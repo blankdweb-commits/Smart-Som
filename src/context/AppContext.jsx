@@ -46,11 +46,51 @@ export const AppProvider = ({ children }) => {
   }, [studyStats]);
 
   const addFlashcard = (card) => {
-    setFlashcards([...flashcards, { ...card, id: Date.now().toString(), createdAt: new Date().toISOString() }]);
+    setFlashcards([...flashcards, {
+      ...card,
+      id: Date.now().toString(),
+      createdAt: new Date().toISOString(),
+      srs: {
+        interval: 0,
+        reps: 0,
+        efactor: 2.5,
+        nextReview: new Date().toISOString()
+      }
+    }]);
   };
 
   const updateFlashcard = (id, updatedCard) => {
     setFlashcards(flashcards.map(card => card.id === id ? { ...card, ...updatedCard } : card));
+  };
+
+  const updateCardProgress = (id, quality) => {
+    setFlashcards(flashcards.map(card => {
+      if (card.id !== id) return card;
+
+      const srs = card.srs || { interval: 0, reps: 0, efactor: 2.5 };
+      let { interval, reps, efactor } = srs;
+
+      if (quality >= 3) {
+        if (reps === 0) interval = 1;
+        else if (reps === 1) interval = 6;
+        else interval = Math.round(interval * efactor);
+        reps += 1;
+      } else {
+        reps = 0;
+        interval = 1;
+      }
+
+      efactor = efactor + (0.1 - (5 - quality) * (0.08 + (5 - quality) * 0.02));
+      if (efactor < 1.3) efactor = 1.3;
+
+      const nextReview = new Date();
+      nextReview.setDate(nextReview.getDate() + interval);
+
+      return {
+        ...card,
+        srs: { interval, reps, efactor, nextReview: nextReview.toISOString() }
+      };
+    }));
   };
 
   const deleteFlashcard = (id) => {
@@ -88,7 +128,8 @@ export const AppProvider = ({ children }) => {
       flashcards, addFlashcard, updateFlashcard, deleteFlashcard,
       exams, addExam, updateExam, deleteExam,
       darkMode, toggleDarkMode,
-      studyStats, incrementCardsStudied
+      studyStats, incrementCardsStudied,
+      updateCardProgress
     }}>
       {children}
     </AppContext.Provider>

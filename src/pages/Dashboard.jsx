@@ -10,6 +10,11 @@ const Dashboard = () => {
     .sort((a, b) => new Date(a.date) - new Date(b.date))
     .slice(0, 3);
 
+  const dueFlashcards = flashcards.filter(c => {
+    if (!c.srs?.nextReview) return true;
+    return new Date(c.srs.nextReview) <= new Date();
+  });
+
   const studyTips = [
     "Use the 'Shuffle' mode for flashcards to improve long-term retention.",
     "Focus on 'High-Yield' topics during the last 3 days before an exam.",
@@ -53,10 +58,10 @@ const Dashboard = () => {
           color="bg-orange-50 dark:bg-orange-900/20"
         />
         <StatsCard
-          title="Upcoming Exams"
-          value={upcomingExams.length}
-          icon={<Calendar className="text-purple-500" />}
-          color="bg-purple-50 dark:bg-purple-900/20"
+          title="Due for Review"
+          value={dueFlashcards.length}
+          icon={<Award className="text-amber-500" />}
+          color="bg-amber-50 dark:bg-amber-900/20"
         />
       </div>
 
@@ -83,9 +88,32 @@ const Dashboard = () => {
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm">
-          <h3 className="text-xl font-semibold mb-4 flex items-center text-medical-600">
+        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-amber-100 dark:border-amber-900/30">
+          <h3 className="text-xl font-semibold mb-4 flex items-center text-amber-600">
             <Award className="mr-2" size={20} />
+            Smart Learning Hub
+          </h3>
+
+          {dueFlashcards.length > 0 ? (
+            <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-800">
+              <p className="text-amber-800 dark:text-amber-300 font-bold text-sm uppercase mb-1">Action Required</p>
+              <p className="text-amber-700 dark:text-amber-400 text-sm">
+                You have <strong>{dueFlashcards.length} cards</strong> due for review. Spaced repetition is most effective when done daily!
+              </p>
+              <a href="/flashcards" className="mt-3 inline-block px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-lg transition-colors">
+                Start Review Now
+              </a>
+            </div>
+          ) : (
+            <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-800">
+              <p className="text-green-800 dark:text-green-300 font-bold text-sm uppercase mb-1">All Caught Up!</p>
+              <p className="text-green-700 dark:text-green-400 text-sm">
+                Excellent! You've reviewed all your current flashcards. Come back later for more.
+              </p>
+            </div>
+          )}
+
+          <h3 className="text-sm font-bold text-slate-400 uppercase mb-3 mt-6">
             Study Tip of the Day
           </h3>
           <div className="p-4 bg-medical-50 dark:bg-medical-900/20 rounded-xl border border-medical-100 dark:border-medical-800 h-24 flex items-center">

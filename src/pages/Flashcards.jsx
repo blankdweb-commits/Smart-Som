@@ -2,10 +2,20 @@ import React, { useState, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
 import FlashcardCard from '../components/FlashcardCard';
 import FlashcardForm from '../components/FlashcardForm';
+import Toast from '../components/Toast';
 import { Plus, Search, Filter, Play, Shuffle, List, ChevronLeft, ChevronRight, Award } from 'lucide-react';
 
+const SRSButton = ({ label, color, onClick }) => (
+  <button
+    onClick={(e) => { e.stopPropagation(); onClick(); }}
+    className={`${color} text-white py-2 rounded-lg text-sm font-bold shadow-sm hover:opacity-90 active:scale-95 transition-all`}
+  >
+    {label}
+  </button>
+);
+
 const Flashcards = () => {
-  const { flashcards, addFlashcard, updateFlashcard, deleteFlashcard, incrementCardsStudied } = useAppContext();
+  const { flashcards, addFlashcard, updateFlashcard, deleteFlashcard, incrementCardsStudied, updateCardProgress } = useAppContext();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCard, setEditingCard] = useState(null);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'study'
@@ -14,6 +24,7 @@ const Flashcards = () => {
   const [filterDifficulty, setFilterDifficulty] = useState('All');
   const [studyIndex, setStudyIndex] = useState(0);
   const [shuffledCards, setShuffledCards] = useState([]);
+  const [toast, setToast] = useState(null);
 
   const subjects = ['All', ...new Set(flashcards.map(c => c.subject))];
 
@@ -27,11 +38,25 @@ const Flashcards = () => {
     });
   }, [flashcards, searchTerm, filterSubject, filterDifficulty]);
 
-  const startStudyMode = (shuffle = false) => {
+  const startStudyMode = (shuffle = false, srsOnly = false) => {
     let cardsToStudy = [...filteredCards];
+
+    if (srsOnly) {
+      cardsToStudy = cardsToStudy.filter(c => {
+        if (!c.srs?.nextReview) return true;
+        return new Date(c.srs.nextReview) <= new Date();
+      });
+    }
+
     if (shuffle) {
       cardsToStudy = cardsToStudy.sort(() => Math.random() - 0.5);
     }
+
+    if (cardsToStudy.length === 0 && srsOnly) {
+      alert("No cards due for review!");
+      return;
+    }
+
     setShuffledCards(cardsToStudy);
     setStudyIndex(0);
     setViewMode('study');
@@ -40,7 +65,10 @@ const Flashcards = () => {
     }
   };
 
-  const handleNext = () => {
+  const handleNext = (quality = null) => {
+    if (quality !== null) {
+      setToast({ message: `Card Rated! Next review in ${quality >= 3 ? 'days' : '1 day'}.`, type: 'success' });
+    }
     if (studyIndex < shuffledCards.length - 1) {
       setStudyIndex(studyIndex + 1);
       incrementCardsStudied();
@@ -80,11 +108,18 @@ const Flashcards = () => {
           {viewMode === 'list' ? (
             <>
               <button
+                onClick={() => startStudyMode(true, true)}
+                className="flex items-center px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white rounded-lg transition-colors"
+                disabled={flashcards.length === 0}
+              >
+                <Award size={18} className="mr-2" /> Smart Review
+              </button>
+              <button
                 onClick={() => startStudyMode(false)}
                 className="flex items-center px-4 py-2 bg-medical-600 hover:bg-medical-700 text-white rounded-lg transition-colors"
                 disabled={filteredCards.length === 0}
               >
-                <Play size={18} className="mr-2" /> Study
+                <Play size={18} className="mr-2" /> Study All
               </button>
               <button
                 onClick={() => startStudyMode(true)}
@@ -218,21 +253,30 @@ const Flashcards = () => {
             )}
           </div>
 
-          <div className="flex items-center space-x-6">
-            <button
-              onClick={handlePrev}
-              disabled={studyIndex === 0}
-              className="p-4 rounded-full bg-white dark:bg-slate-800 shadow-md disabled:opacity-30 transition-all active:scale-95"
-            >
-              <ChevronLeft size={32} />
-            </button>
-            <button
-              onClick={handleNext}
-              disabled={studyIndex === shuffledCards.length - 1}
-              className="p-4 rounded-full bg-medical-600 text-white shadow-lg disabled:opacity-30 transition-all active:scale-95"
-            >
-              <ChevronRight size={32} />
-            </button>
+          <div className="w-full flex flex-col items-center gap-6">
+            <div className="grid grid-cols-4 gap-2 w-full max-w-md">
+              <SRSButton label="Again" color="bg-red-500" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 1); handleNext(1); }} />
+              <SRSButton label="Hard" color="bg-orange-500" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 3); handleNext(3); }} />
+              <SRSButton label="Good" color="bg-green-500" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 4); handleNext(4); }} />
+              <SRSButton label="Easy" color="bg-blue-500" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 5); handleNext(5); }} />
+            </div>
+
+            <div className="flex items-center space-x-6">
+              <button
+                onClick={handlePrev}
+                disabled={studyIndex === 0}
+                className="p-3 rounded-full bg-white dark:bg-slate-800 shadow-md disabled:opacity-30 transition-all active:scale-95"
+              >
+                <ChevronLeft size={24} />
+              </button>
+              <button
+                onClick={handleNext}
+                disabled={studyIndex === shuffledCards.length - 1}
+                className="p-3 rounded-full bg-medical-600 text-white shadow-lg disabled:opacity-30 transition-all active:scale-95"
+              >
+                <ChevronRight size={24} />
+              </button>
+            </div>
           </div>
 
           {studyIndex === shuffledCards.length - 1 && (
@@ -256,6 +300,8 @@ const Flashcards = () => {
         onSubmit={handleFormSubmit}
         initialData={editingCard}
       />
+
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 };
