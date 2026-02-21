@@ -1,0 +1,20 @@
+[
+  {
+    "id": "y1s1-ni-1",
+    "subject": "Nursing Informatics",
+    "topic": "Data Security",
+    "question": "What does HIPAA stand for in the context of healthcare data?",
+    "answer": "Health Insurance Portability and Accountability Act.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "y1s1-ni-2",
+    "subject": "Nursing Informatics",
+    "topic": "EHR",
+    "question": "What is the primary benefit of Electronic Health Records (EHR) over paper records?",
+    "answer": "Improved accessibility, coordination of care, and reduced errors through legible, real-time data.",
+    "difficulty": "Easy",
+    "isImportant": false
+  }
+]

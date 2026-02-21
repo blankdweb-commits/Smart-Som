@@ -1,0 +1,11 @@
+[
+  {
+    "id": "y1s1-ap-1",
+    "subject": "Applied Physics",
+    "topic": "Pressure",
+    "question": "How does blood pressure change when the diameter of a blood vessel decreases (vasoconstriction)?",
+    "answer": "Blood pressure increases because resistance to flow increases.",
+    "difficulty": "Hard",
+    "isImportant": true
+  }
+]

@@ -1,0 +1,11 @@
+[
+  {
+    "id": "y2s1-phc2-1",
+    "subject": "Primary Health Care",
+    "topic": "Immunization",
+    "question": "At what age is the first dose of the Measles vaccine typically given?",
+    "answer": "9 months (in many PHC settings).",
+    "difficulty": "Moderate",
+    "isImportant": false
+  }
+]

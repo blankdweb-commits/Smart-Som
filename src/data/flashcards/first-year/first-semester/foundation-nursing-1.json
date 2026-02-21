@@ -1,0 +1,38 @@
+[
+  {
+    "id": "y1s1-fn1-1",
+    "subject": "Foundation Nursing",
+    "topic": "Vital Signs",
+    "question": "What is the normal range for an adult's resting heart rate?",
+    "answer": "60 to 100 beats per minute (bpm).",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "y1s1-fn1-2",
+    "subject": "Foundation Nursing",
+    "topic": "Infection Control",
+    "question": "What is the single most effective way to prevent the spread of infection?",
+    "answer": "Hand hygiene (handwashing).",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "y1s1-fn1-3",
+    "subject": "Foundation Nursing",
+    "topic": "Nursing Process",
+    "question": "What are the five steps of the Nursing Process?",
+    "answer": "Assessment, Diagnosis, Planning, Implementation, and Evaluation (ADPIE).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "y1s1-fn1-4",
+    "subject": "Foundation Nursing",
+    "topic": "Ethics",
+    "question": "What does the ethical principle of 'Autonomy' mean in nursing?",
+    "answer": "The right of patients to make their own decisions about their medical care.",
+    "difficulty": "Moderate",
+    "isImportant": false
+  }
+]

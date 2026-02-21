@@ -1,0 +1,11 @@
+[
+  {
+    "id": "y1s1-mb-1",
+    "subject": "Microbiology",
+    "topic": "Bacteria",
+    "question": "What is the difference between Gram-positive and Gram-negative bacteria?",
+    "answer": "Gram-positive bacteria have a thick peptidoglycan layer and stain purple; Gram-negative have a thin layer and an outer membrane, staining pink/red.",
+    "difficulty": "Hard",
+    "isImportant": true
+  }
+]

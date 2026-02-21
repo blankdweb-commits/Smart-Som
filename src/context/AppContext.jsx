@@ -1,12 +1,22 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { initialFlashcards } from '../data/initialData';
+import { allBuiltInFlashcards } from '../data/loadFlashcards';
 
 const AppContext = createContext();
 
 export const AppProvider = ({ children }) => {
   const [flashcards, setFlashcards] = useState(() => {
     const saved = localStorage.getItem('flashcards');
-    return saved ? JSON.parse(saved) : initialFlashcards;
+    const builtIn = [...initialFlashcards, ...allBuiltInFlashcards];
+
+    if (!saved) return builtIn;
+
+    const existing = JSON.parse(saved);
+    // Merge built-in cards that don't exist in saved state
+    const existingIds = new Set(existing.map(c => c.id));
+    const newBuiltIn = builtIn.filter(c => !existingIds.has(c.id));
+
+    return [...existing, ...newBuiltIn];
   });
 
   const [exams, setExams] = useState(() => {

@@ -1,0 +1,47 @@
+[
+  {
+    "id": "y1s1-ap1-1",
+    "subject": "Anatomy & Physiology",
+    "topic": "Homeostasis",
+    "question": "What is the primary mechanism by which the body maintains homeostasis?",
+    "answer": "Negative Feedback Loops (e.g., temperature regulation, blood glucose control).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "y1s1-ap1-2",
+    "subject": "Anatomy & Physiology",
+    "topic": "Skeletal System",
+    "question": "How many bones are in the adult human body?",
+    "answer": "206 bones.",
+    "difficulty": "Easy",
+    "isImportant": false
+  },
+  {
+    "id": "y1s1-ap1-3",
+    "subject": "Anatomy & Physiology",
+    "topic": "Cell Biology",
+    "question": "Which organelle is known as the 'powerhouse' of the cell?",
+    "answer": "The Mitochondria.",
+    "difficulty": "Easy",
+    "isImportant": false
+  },
+  {
+    "id": "y1s1-ap1-4",
+    "subject": "Anatomy & Physiology",
+    "topic": "Tissues",
+    "question": "What are the four primary types of tissues in the human body?",
+    "answer": "Epithelial, Connective, Muscle, and Nervous tissue.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "y1s1-ap1-5",
+    "subject": "Anatomy & Physiology",
+    "topic": "Anatomical Terminology",
+    "question": "What term describes a structure being closer to the midline of the body?",
+    "answer": "Medial.",
+    "difficulty": "Easy",
+    "isImportant": false
+  }
+]

@@ -56,20 +56,28 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Subject</label>
-              <select
+              <input
+                type="text"
                 name="subject"
+                list="subjects-list"
                 value={formData.subject}
                 onChange={handleChange}
                 required
+                placeholder="e.g., Anatomy"
                 className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-2 focus:ring-medical-500 outline-none"
-              >
-                <option value="">Select Subject</option>
-                <option value="Anatomy">Anatomy</option>
-                <option value="Pharmacology">Pharmacology</option>
-                <option value="Medical-Surgical Nursing">Medical-Surgical Nursing</option>
-                <option value="Midwifery">Midwifery</option>
-                <option value="Fundamentals">Fundamentals</option>
-              </select>
+              />
+              <datalist id="subjects-list">
+                <option value="Anatomy" />
+                <option value="Pharmacology" />
+                <option value="Medical-Surgical Nursing" />
+                <option value="Midwifery" />
+                <option value="Fundamentals" />
+                <option value="Microbiology" />
+                <option value="Primary Health Care" />
+                <option value="Reproductive Health" />
+                <option value="Community Health Nursing" />
+                <option value="Mental Health Nursing" />
+              </datalist>
             </div>
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Difficulty</label>
