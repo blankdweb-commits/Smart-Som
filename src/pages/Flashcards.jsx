@@ -3,7 +3,7 @@ import { useAppContext } from '../context/AppContext';
 import FlashcardCard from '../components/FlashcardCard';
 import FlashcardForm from '../components/FlashcardForm';
 import Toast from '../components/Toast';
-import { Plus, Search, Filter, Play, Shuffle, List, ChevronLeft, ChevronRight, Award } from 'lucide-react';
+import { Plus, Search, Filter, Play, Shuffle, List, ChevronLeft, ChevronRight, Award, Download, Upload, Share2 } from 'lucide-react';
 
 const SRSButton = ({ label, sublabel, color, onClick }) => (
   <button
@@ -16,7 +16,7 @@ const SRSButton = ({ label, sublabel, color, onClick }) => (
 );
 
 const Flashcards = () => {
-  const { flashcards, addFlashcard, updateFlashcard, deleteFlashcard, incrementCardsStudied, updateCardProgress } = useAppContext();
+  const { flashcards, addFlashcard, updateFlashcard, deleteFlashcard, importFlashcards, incrementCardsStudied, updateCardProgress } = useAppContext();
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingCard, setEditingCard] = useState(null);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'study'
@@ -92,6 +92,12 @@ const Flashcards = () => {
     setIsFormOpen(true);
   };
 
+  const handleShare = (card) => {
+    const cardData = JSON.stringify([card], null, 2);
+    navigator.clipboard.writeText(cardData);
+    setToast({ message: 'Card data copied to clipboard! Others can import this.', type: 'success' });
+  };
+
   const handleFormSubmit = (data) => {
     if (editingCard) {
       updateFlashcard(editingCard.id, data);
@@ -99,6 +105,39 @@ const Flashcards = () => {
       addFlashcard(data);
     }
     setEditingCard(null);
+  };
+
+  const exportToJSON = () => {
+    const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(flashcards, null, 2));
+    const downloadAnchorNode = document.createElement('a');
+    downloadAnchorNode.setAttribute("href",     dataStr);
+    downloadAnchorNode.setAttribute("download", "nursing_flashcards.json");
+    document.body.appendChild(downloadAnchorNode);
+    downloadAnchorNode.click();
+    downloadAnchorNode.remove();
+    setToast({ message: 'Flashcards exported successfully!', type: 'success' });
+  };
+
+  const handleImport = (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    const reader = new FileReader();
+    reader.onload = (event) => {
+      try {
+        const importedData = JSON.parse(event.target.result);
+        if (Array.isArray(importedData)) {
+          const count = importFlashcards(importedData);
+          setToast({ message: `Successfully imported ${count} new flashcards!`, type: 'success' });
+        } else {
+          setToast({ message: 'Invalid file format. Please upload a JSON array of flashcards.', type: 'error' });
+        }
+      } catch (error) {
+        setToast({ message: 'Error reading file. Please make sure it is a valid JSON.', type: 'error' });
+      }
+    };
+    reader.readAsText(file);
+    e.target.value = ''; // Reset input
   };
 
   const highYieldCards = flashcards.filter(c => c.important);
@@ -140,6 +179,18 @@ const Flashcards = () => {
               >
                 <Plus size={18} className="mr-2" /> Add Card
               </button>
+              <div className="h-8 w-px bg-slate-200 dark:bg-slate-700 mx-1"></div>
+              <button
+                onClick={() => exportToJSON()}
+                className="p-2 text-slate-500 hover:text-medical-600 hover:bg-medical-50 dark:hover:bg-medical-900/20 rounded-lg transition-all"
+                title="Export Flashcards"
+              >
+                <Download size={20} />
+              </button>
+              <label className="p-2 text-slate-500 hover:text-medical-600 hover:bg-medical-50 dark:hover:bg-medical-900/20 rounded-lg transition-all cursor-pointer" title="Import Flashcards">
+                <Upload size={20} />
+                <input type="file" className="hidden" accept=".json" onChange={handleImport} />
+              </label>
             </>
           ) : (
             <button
@@ -218,6 +269,7 @@ const Flashcards = () => {
                   card={card}
                   onEdit={handleEdit}
                   onDelete={deleteFlashcard}
+                  onShare={handleShare}
                   onToggleImportant={(id) => updateFlashcard(id, { important: !card.important })}
                 />
               ))

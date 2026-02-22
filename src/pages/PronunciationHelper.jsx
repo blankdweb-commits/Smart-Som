@@ -16,14 +16,42 @@ const PronunciationHelper = () => {
       // Cancel any ongoing speech
       window.speechSynthesis.cancel();
 
+      // Some browsers need a resume if it was interrupted
+      if (window.speechSynthesis.paused) {
+        window.speechSynthesis.resume();
+      }
+
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate = 0.8; // Slightly slower for clarity
       utterance.pitch = 1;
+
+      // Handle cases where the voice might not be loaded or needs a specific lang
+      utterance.lang = 'en-US';
+
+      // On some browsers, we need to re-bind the speak call to a user action directly
+      // but here we are in a click handler already.
+
+      // Error handling
+      utterance.onerror = (event) => {
+        console.error('SpeechSynthesisUtterance error', event);
+      };
+
       window.speechSynthesis.speak(utterance);
     } else {
       alert("Sorry, your browser doesn't support text to speech.");
     }
   };
+
+  // Fix for Chrome where speech might stop after ~15 seconds or on some events
+  useEffect(() => {
+    const keepAlive = setInterval(() => {
+      if (window.speechSynthesis.speaking) {
+        window.speechSynthesis.pause();
+        window.speechSynthesis.resume();
+      }
+    }, 10000);
+    return () => clearInterval(keepAlive);
+  }, []);
 
   const handleTermClick = (term) => {
     setSelectedTerm(term);
@@ -118,7 +146,15 @@ const PronunciationHelper = () => {
                 </div>
 
                 <div>
-                  <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest mb-3">Definition</h4>
+                  <div className="flex items-center justify-between mb-3">
+                    <h4 className="text-sm font-bold text-slate-400 uppercase tracking-widest">Definition</h4>
+                    <button
+                      onClick={() => speak(selectedTerm.definition)}
+                      className="text-medical-600 hover:text-medical-700 flex items-center text-xs font-bold gap-1"
+                    >
+                      <Volume2 size={14} /> Listen to Definition
+                    </button>
+                  </div>
                   <p className="text-lg text-slate-600 dark:text-slate-400 leading-relaxed">
                     {selectedTerm.definition}
                   </p>

@@ -107,6 +107,17 @@ export const AppProvider = ({ children }) => {
     setFlashcards(flashcards.filter(card => card.id !== id));
   };
 
+  const importFlashcards = (importedCards) => {
+    const existingIds = new Set(flashcards.map(c => c.id));
+    const newCards = importedCards.filter(c => !existingIds.has(c.id)).map(c => ({
+      ...c,
+      id: c.id || Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      srs: c.srs || { interval: 0, reps: 0, efactor: 2.5, nextReview: new Date().toISOString() }
+    }));
+    setFlashcards([...flashcards, ...newCards]);
+    return newCards.length;
+  };
+
   const addExam = (exam) => {
     setExams([...exams, { ...exam, id: Date.now().toString() }]);
   };
@@ -135,7 +146,7 @@ export const AppProvider = ({ children }) => {
 
   return (
     <AppContext.Provider value={{
-      flashcards, addFlashcard, updateFlashcard, deleteFlashcard,
+      flashcards, addFlashcard, updateFlashcard, deleteFlashcard, importFlashcards,
       exams, addExam, updateExam, deleteExam,
       darkMode, toggleDarkMode,
       studyStats, incrementCardsStudied,

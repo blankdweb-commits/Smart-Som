@@ -322,5 +322,149 @@ export const medicalTerms = [
     phonetic: '/ˌzɪərəˈstoʊmiə/',
     syllables: 'Xer-o-sto-mi-a',
     definition: 'Dryness of the mouth, often due to decreased saliva flow.'
+  },
+  {
+    term: 'Adjuvant',
+    phonetic: '/ˈædʒʊvənt/',
+    syllables: 'Ad-ju-vant',
+    definition: 'A substance that enhances the body’s immune response to an antigen.'
+  },
+  {
+    term: 'Aphasia',
+    phonetic: '/əˈfeɪziə/',
+    syllables: 'A-pha-sia',
+    definition: 'Loss of ability to understand or express speech, caused by brain damage.'
+  },
+  {
+    term: 'Atrophy',
+    phonetic: '/ˈætrəfi/',
+    syllables: 'A-tro-phy',
+    definition: 'Waste away, typically due to the degeneration of cells.'
+  },
+  {
+    term: 'Cachexia',
+    phonetic: '/kəˈkɛksiə/',
+    syllables: 'Ca-chex-i-a',
+    definition: 'Weakness and wasting of the body due to severe chronic illness.'
+  },
+  {
+    term: 'Diaphoresis',
+    phonetic: '/ˌdaɪəfəˈriːsɪs/',
+    syllables: 'Di-a-pho-re-sis',
+    definition: 'Sweating, especially to an unusual degree as a symptom of disease or a side effect of a drug.'
+  },
+  {
+    term: 'Embolism',
+    phonetic: '/ˈɛmbəlɪzəm/',
+    syllables: 'Em-bo-lism',
+    definition: 'Obstruction of an artery, typically by a clot of blood or an air bubble.'
+  },
+  {
+    term: 'Febrile',
+    phonetic: '/ˈfɛbraɪl/',
+    syllables: 'Feb-rile',
+    definition: 'Having or showing the symptoms of a fever.'
+  },
+  {
+    term: 'Gait',
+    phonetic: '/ɡeɪt/',
+    syllables: 'Gait',
+    definition: 'A person’s manner of walking.'
+  },
+  {
+    term: 'Hemostat',
+    phonetic: '/ˈhiːməˌstæt/',
+    syllables: 'He-mo-stat',
+    definition: 'An instrument or agent used to compress or treat a bleeding vessel.'
+  },
+  {
+    term: 'Incontinence',
+    phonetic: '/ɪnˈkɒntɪnəns/',
+    syllables: 'In-con-ti-nence',
+    definition: 'Lack of voluntary control over urination or defecation.'
+  },
+  {
+    term: 'Jaundice',
+    phonetic: '/ˈdʒɔːndɪs/',
+    syllables: 'Jaun-dice',
+    definition: 'A medical condition with yellowing of the skin or whites of the eyes.'
+  },
+  {
+    term: 'Keloid',
+    phonetic: '/ˈkiːlɔɪd/',
+    syllables: 'Ke-loid',
+    definition: 'An area of irregular fibrous tissue formed at the site of a scar or injury.'
+  },
+  {
+    term: 'Lesion',
+    phonetic: '/ˈliːʒən/',
+    syllables: 'Le-sion',
+    definition: 'A region in an organ or tissue which has suffered damage through injury or disease.'
+  },
+  {
+    term: 'Metastasis',
+    phonetic: '/məˈtæstəsɪs/',
+    syllables: 'Me-tas-ta-sis',
+    definition: 'The development of secondary malignant growths at a distance from a primary site of cancer.'
+  },
+  {
+    term: 'Necrosis',
+    phonetic: '/nəˈkroʊsɪs/',
+    syllables: 'Ne-cro-sis',
+    definition: 'The death of most or all of the cells in an organ or tissue due to disease, injury, or failure of the blood supply.'
+  },
+  {
+    term: 'Oedema',
+    phonetic: '/ɪˈdiːmə/',
+    syllables: 'Oe-de-ma',
+    definition: 'A condition characterized by an excess of watery fluid collecting in the cavities or tissues of the body.'
+  },
+  {
+    term: 'Palliative',
+    phonetic: '/ˈpæliətɪv/',
+    syllables: 'Pal-li-a-tive',
+    definition: 'Relieving pain without dealing with the cause of the condition.'
+  },
+  {
+    term: 'Quadriplegia',
+    phonetic: '/ˌkwɒdrɪˈpliːdʒə/',
+    syllables: 'Quad-ri-ple-gi-a',
+    definition: 'Paralysis of all four limbs.'
+  },
+  {
+    term: 'Relapse',
+    phonetic: '/rɪˈlæps/',
+    syllables: 'Re-lapse',
+    definition: 'Suffer deterioration after a period of improvement.'
+  },
+  {
+    term: 'Sepsis',
+    phonetic: '/ˈsɛpsɪs/',
+    syllables: 'Sep-sis',
+    definition: 'A life-threatening reaction to an infection.'
+  },
+  {
+    term: 'Tinnitus',
+    phonetic: '/ˈtɪnɪtəs/',
+    syllables: 'Tin-ni-tus',
+    definition: 'Ringing or buzzing in the ears.'
+  },
+  {
+    term: 'Ulcer',
+    phonetic: '/ˈʌlsər/',
+    syllables: 'Ul-cer',
+    definition: 'An open sore on an external or internal surface of the body.'
+  },
+  {
+    term: 'Vertigo',
+    phonetic: '/ˈvɜːrtɪɡoʊ/',
+    syllables: 'Ver-ti-go',
+    definition: 'A sensation of whirling and loss of balance.'
+  },
+  {
+    term: 'Wheeze',
+    phonetic: '/wiːz/',
+    syllables: 'Wheeze',
+    definition: 'A whistling sound when breathing.'
   }
 ];

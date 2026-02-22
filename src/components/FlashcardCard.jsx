@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
-import { Star, Edit2, Trash2, HelpCircle, Info } from 'lucide-react';
+import { Star, Edit2, Trash2, HelpCircle, Info, Share2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const FlashcardCard = ({ card, onEdit, onDelete, onToggleImportant, isStudyMode = false }) => {
+const FlashcardCard = ({ card, onEdit, onDelete, onToggleImportant, onShare, isStudyMode = false }) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [showHint, setShowHint] = useState(false);
 
@@ -35,6 +35,13 @@ const FlashcardCard = ({ card, onEdit, onDelete, onToggleImportant, isStudyMode 
                       className="p-1 text-slate-400 hover:text-medical-600 transition-colors"
                     >
                       <Edit2 size={18} />
+                    </button>
+                    <button
+                      onClick={(e) => { e.stopPropagation(); onShare(card); }}
+                      className="p-1 text-slate-400 hover:text-indigo-500 transition-colors"
+                      title="Copy card data"
+                    >
+                      <Share2 size={18} />
                     </button>
                     <button
                       onClick={(e) => { e.stopPropagation(); onDelete(card.id); }}
