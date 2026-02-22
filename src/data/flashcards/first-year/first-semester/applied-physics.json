@@ -1,11 +1,17 @@
 [
-  {
-    "id": "y1s1-ap-1",
-    "subject": "Applied Physics",
-    "topic": "Pressure",
-    "question": "How does blood pressure change when the diameter of a blood vessel decreases (vasoconstriction)?",
-    "answer": "Blood pressure increases because resistance to flow increases.",
-    "difficulty": "Hard",
-    "isImportant": true
-  }
+  { "id": "ap-1", "subject": "Applied Physics", "topic": "Pressure", "question": "What is Pascal’s Principle?", "answer": "Pressure applied to an enclosed fluid is transmitted undiminished to every part of the fluid and to the walls of the container.", "hint": "Fluid pressure.", "difficulty": "Hard", "isImportant": true },
+  { "id": "ap-2", "subject": "Applied Physics", "topic": "Pressure", "question": "Application of Pascal's Principle in nursing?", "answer": "Measurement of blood pressure or intracranial pressure.", "hint": "Medical monitoring.", "difficulty": "Moderate", "isImportant": false },
+  { "id": "ap-3", "subject": "Applied Physics", "topic": "Fluid Dynamics", "question": "What is Poiseuille’s Law?", "answer": "The flow of a fluid is related to the pressure gradient, the radius of the tube, the length of the tube, and the viscosity of the fluid.", "hint": "IV flow rate.", "difficulty": "Hard", "isImportant": true },
+  { "id": "ap-4", "subject": "Applied Physics", "topic": "Fluid Dynamics", "question": "According to Poiseuille's Law, what factor has the greatest effect on flow rate?", "answer": "The radius of the tube (to the 4th power).", "hint": "r^4.", "difficulty": "Hard", "isImportant": true },
+  { "id": "ap-5", "subject": "Applied Physics", "topic": "Forces", "question": "What is Newton's First Law of Motion?", "answer": "An object at rest stays at rest, and an object in motion stays in motion unless acted upon by an external force.", "hint": "Inertia.", "difficulty": "Easy", "isImportant": false },
+  { "id": "ap-6", "subject": "Applied Physics", "topic": "Heat", "question": "Three modes of heat transfer?", "answer": "Conduction, Convection, and Radiation.", "hint": "Energy movement.", "difficulty": "Moderate", "isImportant": true },
+  { "id": "ap-7", "subject": "Applied Physics", "topic": "Heat", "question": "What is 'Evaporation' in terms of heat loss?", "answer": "Loss of heat when a liquid changes into a gas (e.g., sweating).", "hint": "Cooling mechanism.", "difficulty": "Easy", "isImportant": true },
+  { "id": "ap-8", "subject": "Applied Physics", "topic": "Electricity", "question": "What is Ohm's Law?", "answer": "Voltage (V) = Current (I) x Resistance (R).", "hint": "V=IR.", "difficulty": "Moderate", "isImportant": true },
+  { "id": "ap-9", "subject": "Applied Physics", "topic": "Sound", "question": "What is the 'Doppler Effect'?", "answer": "The change in frequency of a wave in relation to an observer moving relative to the wave source.", "hint": "Doppler Ultrasound.", "difficulty": "Moderate", "isImportant": true },
+  { "id": "ap-10", "subject": "Applied Physics", "topic": "Optics", "question": "What is 'Refraction'?", "answer": "The bending of light as it passes from one medium to another.", "hint": "Vision correction.", "difficulty": "Moderate", "isImportant": false },
+  { "id": "ap-11", "subject": "Applied Physics", "topic": "Mechanics", "question": "What is 'Torque'?", "answer": "The tendency of a force to rotate an object around an axis.", "hint": "Rotational force.", "difficulty": "Hard", "isImportant": false },
+  { "id": "ap-12", "subject": "Applied Physics", "topic": "Mechanics", "question": "Importance of 'Center of Gravity' in patient handling?", "answer": "To maintain balance and prevent injury, the nurse should keep their center of gravity over their base of support.", "hint": "Stable lifting.", "difficulty": "Easy", "isImportant": true },
+  { "id": "ap-13", "subject": "Applied Physics", "topic": "Gases", "question": "What is Boyle's Law?", "answer": "The pressure of a given mass of an ideal gas is inversely proportional to its volume at constant temperature.", "hint": "P1V1 = P2V2.", "difficulty": "Moderate", "isImportant": true },
+  { "id": "ap-14", "subject": "Applied Physics", "topic": "Gases", "question": "How does Boyle's Law relate to breathing?", "answer": "During inspiration, thoracic volume increases, decreasing pressure and causing air to flow into the lungs.", "hint": "Respiratory mechanics.", "difficulty": "Hard", "isImportant": true },
+  { "id": "ap-15", "subject": "Applied Physics", "topic": "Energy", "question": "Difference between Potential and Kinetic energy?", "answer": "Potential is stored energy; Kinetic is energy of motion.", "hint": "Stored vs Active.", "difficulty": "Easy", "isImportant": false }
 ]

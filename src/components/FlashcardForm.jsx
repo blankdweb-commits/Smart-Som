@@ -7,19 +7,25 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     topic: '',
     question: '',
     answer: '',
+    hint: '',
     difficulty: 'Moderate',
     important: false
   });
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      setFormData({
+        ...formData,
+        ...initialData,
+        hint: initialData.hint || ''
+      });
     } else {
       setFormData({
         subject: '',
         topic: '',
         question: '',
         answer: '',
+        hint: '',
         difficulty: 'Moderate',
         important: false
       });
@@ -117,6 +123,18 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
               rows="2"
               className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-2 focus:ring-medical-500 outline-none resize-none"
             ></textarea>
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Hint (Optional)</label>
+            <input
+              type="text"
+              name="hint"
+              value={formData.hint}
+              onChange={handleChange}
+              placeholder="A subtle clue to help recall..."
+              className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-2 focus:ring-medical-500 outline-none"
+            />
           </div>
 
           <div>

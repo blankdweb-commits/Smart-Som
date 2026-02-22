@@ -1,11 +1,22 @@
 [
-  {
-    "id": "y1s1-el-1",
-    "subject": "English Language",
-    "topic": "Medical Suffixes",
-    "question": "What does the suffix '-itis' denote in medical terminology?",
-    "answer": "Inflammation (e.g., Tonsillitis, Gastritis).",
-    "difficulty": "Easy",
-    "isImportant": true
-  }
+  { "id": "el-1", "subject": "English Language", "topic": "Grammar", "question": "What is a 'Noun'?", "answer": "A word that represents a person, place, thing, or idea.", "hint": "Naming word.", "difficulty": "Easy", "isImportant": false },
+  { "id": "el-2", "subject": "English Language", "topic": "Grammar", "question": "What is a 'Verb'?", "answer": "A word used to describe an action, state, or occurrence.", "hint": "Action word.", "difficulty": "Easy", "isImportant": false },
+  { "id": "el-3", "subject": "English Language", "topic": "Medical Terminology", "question": "Prefix 'Brady-' means?", "answer": "Slow.", "hint": "Opposite of Tachy-.", "difficulty": "Easy", "isImportant": true },
+  { "id": "el-4", "subject": "English Language", "topic": "Medical Terminology", "question": "Prefix 'Tachy-' means?", "answer": "Fast.", "hint": "Opposite of Brady-.", "difficulty": "Easy", "isImportant": true },
+  { "id": "el-5", "subject": "English Language", "topic": "Medical Terminology", "question": "Suffix '-itis' means?", "answer": "Inflammation.", "hint": "Tonsillitis, Gastritis.", "difficulty": "Easy", "isImportant": true },
+  { "id": "el-6", "subject": "English Language", "topic": "Medical Terminology", "question": "Suffix '-ectomy' means?", "answer": "Surgical removal.", "hint": "Appendectomy.", "difficulty": "Easy", "isImportant": true },
+  { "id": "el-7", "subject": "English Language", "topic": "Medical Terminology", "question": "Prefix 'Hypo-' means?", "answer": "Under, below, or deficient.", "hint": "Hypoglycemia.", "difficulty": "Easy", "isImportant": true },
+  { "id": "el-8", "subject": "English Language", "topic": "Medical Terminology", "question": "Prefix 'Hyper-' means?", "answer": "Above, excessive, or beyond.", "hint": "Hyperglycemia.", "difficulty": "Easy", "isImportant": true },
+  { "id": "el-9", "subject": "English Language", "topic": "Grammar", "question": "What is an 'Adjective'?", "answer": "A word that describes or modifies a noun.", "hint": "Descriptive word.", "difficulty": "Easy", "isImportant": false },
+  { "id": "el-10", "subject": "English Language", "topic": "Communication", "question": "What is 'Active Listening'?", "answer": "Fully concentrating on what is being said rather than just passively 'hearing' the message.", "hint": "Full attention.", "difficulty": "Moderate", "isImportant": true },
+  { "id": "el-11", "subject": "English Language", "topic": "Medical Terminology", "question": "Suffix '-algia' means?", "answer": "Pain.", "hint": "Neuralgia.", "difficulty": "Moderate", "isImportant": true },
+  { "id": "el-12", "subject": "English Language", "topic": "Medical Terminology", "question": "Suffix '-scopy' means?", "answer": "Visual examination.", "hint": "Endoscopy.", "difficulty": "Moderate", "isImportant": true },
+  { "id": "el-13", "subject": "English Language", "topic": "Medical Terminology", "question": "Prefix 'Dys-' means?", "answer": "Difficult, painful, or abnormal.", "hint": "Dyspnea.", "difficulty": "Moderate", "isImportant": true },
+  { "id": "el-14", "subject": "English Language", "topic": "Writing", "question": "What is a 'Subject-Verb Agreement'?", "answer": "The rule that the subject and verb must agree in number (both singular or both plural).", "hint": "Grammar rule.", "difficulty": "Moderate", "isImportant": false },
+  { "id": "el-15", "subject": "English Language", "topic": "Writing", "question": "Define 'Paraphrasing'.", "answer": "Expressing the meaning of something using different words.", "hint": "Rewording.", "difficulty": "Moderate", "isImportant": true },
+  { "id": "el-16", "subject": "English Language", "topic": "Writing", "question": "What is 'Plagiarism'?", "answer": "The practice of taking someone else's work or ideas and passing them off as one's own.", "hint": "Academic honesty.", "difficulty": "Moderate", "isImportant": true },
+  { "id": "el-17", "subject": "English Language", "topic": "Communication", "question": "What is 'Non-verbal Communication'?", "answer": "Communication without words, such as body language, eye contact, and facial expressions.", "hint": "Cues.", "difficulty": "Easy", "isImportant": true },
+  { "id": "el-18", "subject": "English Language", "topic": "Vocabulary", "question": "What does 'Etiology' mean?", "answer": "The cause, set of causes, or manner of causation of a disease or condition.", "hint": "Origin.", "difficulty": "Moderate", "isImportant": true },
+  { "id": "el-19", "subject": "English Language", "topic": "Vocabulary", "question": "What does 'Prognosis' mean?", "answer": "The likely course of a disease or condition.", "hint": "Forecast.", "difficulty": "Moderate", "isImportant": true },
+  { "id": "el-20", "subject": "English Language", "topic": "Vocabulary", "question": "What does 'Acute' mean in a medical context?", "answer": "Severe and sudden in onset.", "hint": "Opposite of chronic.", "difficulty": "Easy", "isImportant": true }
 ]

@@ -1,11 +1,17 @@
 [
-  {
-    "id": "y1s1-mb-1",
-    "subject": "Microbiology",
-    "topic": "Bacteria",
-    "question": "What is the difference between Gram-positive and Gram-negative bacteria?",
-    "answer": "Gram-positive bacteria have a thick peptidoglycan layer and stain purple; Gram-negative have a thin layer and an outer membrane, staining pink/red.",
-    "difficulty": "Hard",
-    "isImportant": true
-  }
+  { "id": "mb-1", "subject": "Microbiology", "topic": "Bacteria", "question": "Difference between Gram-positive and Gram-negative bacteria?", "answer": "Gram-positive have thick peptidoglycan and stain purple; Gram-negative have thin peptidoglycan and outer membrane, stain pink.", "hint": "Purple vs Pink.", "difficulty": "Hard", "isImportant": true },
+  { "id": "mb-2", "subject": "Microbiology", "topic": "Terminology", "question": "What is a 'Pathogen'?", "answer": "A microorganism that causes disease.", "hint": "Disease causer.", "difficulty": "Easy", "isImportant": true },
+  { "id": "mb-3", "subject": "Microbiology", "topic": "Sterilization", "question": "What is an 'Autoclave'?", "answer": "A device that uses pressurized steam to sterilize equipment.", "hint": "121°C for 15 mins.", "difficulty": "Moderate", "isImportant": true },
+  { "id": "mb-4", "subject": "Microbiology", "topic": "Viruses", "question": "Are viruses living organisms?", "answer": "No, they are obligate intracellular parasites that require a host cell to replicate.", "hint": "Non-living.", "difficulty": "Moderate", "isImportant": false },
+  { "id": "mb-5", "subject": "Microbiology", "topic": "Fungi", "question": "What is 'Candidiasis'?", "answer": "A fungal infection caused by a yeast (Candida albicans).", "hint": "Thrush.", "difficulty": "Moderate", "isImportant": true },
+  { "id": "mb-6", "subject": "Microbiology", "topic": "Bacteria", "question": "Shape of 'Cocci' bacteria?", "answer": "Spherical / Round.", "hint": "Circle.", "difficulty": "Easy", "isImportant": false },
+  { "id": "mb-7", "subject": "Microbiology", "topic": "Bacteria", "question": "Shape of 'Bacilli' bacteria?", "answer": "Rod-shaped.", "hint": "Stick.", "difficulty": "Easy", "isImportant": false },
+  { "id": "mb-8", "subject": "Microbiology", "topic": "Bacteria", "question": "Shape of 'Spirilla' bacteria?", "answer": "Spiral-shaped.", "hint": "Corkscrew.", "difficulty": "Easy", "isImportant": false },
+  { "id": "mb-9", "subject": "Microbiology", "topic": "Infection", "question": "What is 'Nosocomial Infection'?", "answer": "A hospital-acquired infection (HAI).", "hint": "Caught in hospital.", "difficulty": "Easy", "isImportant": true },
+  { "id": "mb-10", "subject": "Microbiology", "topic": "Infection", "question": "What is a 'Vector' in microbiology?", "answer": "An organism (typically an insect) that transmits a pathogen from one host to another.", "hint": "Mosquito, tick.", "difficulty": "Moderate", "isImportant": true },
+  { "id": "mb-11", "subject": "Microbiology", "topic": "Genetics", "question": "What is 'Plasmids' in bacteria?", "answer": "Small, circular DNA molecules that can carry antibiotic resistance genes.", "hint": "Extra-chromosomal DNA.", "difficulty": "Hard", "isImportant": true },
+  { "id": "mb-12", "subject": "Microbiology", "topic": "Immunology", "question": "What is an 'Antigen'?", "answer": "A substance that triggers an immune response.", "hint": "Foreign marker.", "difficulty": "Moderate", "isImportant": true },
+  { "id": "mb-13", "subject": "Microbiology", "topic": "Immunology", "question": "What is an 'Antibody'?", "answer": "A protein produced by B-cells that neutralizes pathogens.", "hint": "Immunoglobulin.", "difficulty": "Moderate", "isImportant": true },
+  { "id": "mb-14", "subject": "Microbiology", "topic": "Antibiotics", "question": "What is 'Antibiotic Resistance'?", "answer": "The ability of bacteria to survive and grow despite exposure to antibiotics.", "hint": "Major health threat.", "difficulty": "Moderate", "isImportant": true },
+  { "id": "mb-15", "subject": "Microbiology", "topic": "Protists", "question": "Cause of Malaria?", "answer": "Plasmodium parasite transmitted by Anopheles mosquito.", "hint": "Protozoan.", "difficulty": "Moderate", "isImportant": true }
 ]

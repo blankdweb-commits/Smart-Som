@@ -5,6 +5,23 @@ import { BookOpen, Calendar, TrendingUp, Award } from 'lucide-react';
 const Dashboard = () => {
   const { flashcards, exams, studyStats } = useAppContext();
 
+  const subjectProgress = React.useMemo(() => {
+    const stats = {};
+    flashcards.forEach(card => {
+      if (!stats[card.subject]) {
+        stats[card.subject] = { total: 0, learned: 0 };
+      }
+      stats[card.subject].total += 1;
+      if (card.srs?.reps > 0) {
+        stats[card.subject].learned += 1;
+      }
+    });
+    return Object.entries(stats)
+      .map(([name, data]) => ({ name, ...data, percent: Math.round((data.learned / data.total) * 100) }))
+      .sort((a, b) => b.total - a.total)
+      .slice(0, 5);
+  }, [flashcards]);
+
   const upcomingExams = exams
     .filter(e => new Date(e.date) >= new Date())
     .sort((a, b) => new Date(a.date) - new Date(b.date))
@@ -66,25 +83,54 @@ const Dashboard = () => {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm">
+        <div className="space-y-6">
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
+            <h3 className="text-xl font-semibold mb-6 flex items-center">
+              <TrendingUp className="mr-2 text-medical-600" size={20} />
+              Subject Mastery
+            </h3>
+            <div className="space-y-5">
+              {subjectProgress.length > 0 ? (
+                subjectProgress.map(sub => (
+                  <div key={sub.name}>
+                    <div className="flex justify-between text-xs font-bold mb-1 uppercase tracking-wider text-slate-500">
+                      <span className="truncate max-w-[200px]">{sub.name}</span>
+                      <span>{sub.learned}/{sub.total} cards</span>
+                    </div>
+                    <div className="w-full h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                      <div
+                        className="h-full bg-medical-500 rounded-full transition-all duration-500"
+                        style={{ width: `${sub.percent}%` }}
+                      ></div>
+                    </div>
+                  </div>
+                ))
+              ) : (
+                <p className="text-sm text-slate-500 italic">Start studying to see subject progress.</p>
+              )}
+            </div>
+          </div>
+
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm">
           <h3 className="text-xl font-semibold mb-4 flex items-center">
             <Calendar className="mr-2 text-medical-600" size={20} />
             Upcoming Exams
           </h3>
-          <div className="space-y-4">
-            {upcomingExams.length > 0 ? upcomingExams.map(exam => (
-              <div key={exam.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50">
-                <div>
-                  <p className="font-medium">{exam.title}</p>
-                  <p className="text-sm text-slate-500">{new Date(exam.date).toLocaleDateString()}</p>
+            <div className="space-y-4">
+              {upcomingExams.length > 0 ? upcomingExams.map(exam => (
+                <div key={exam.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50">
+                  <div>
+                    <p className="font-medium">{exam.title}</p>
+                    <p className="text-sm text-slate-500">{new Date(exam.date).toLocaleDateString()}</p>
+                  </div>
+                  <span className="text-xs px-2 py-1 bg-medical-100 text-medical-700 dark:bg-medical-900/40 dark:text-medical-300 rounded-full">
+                    Upcoming
+                  </span>
                 </div>
-                <span className="text-xs px-2 py-1 bg-medical-100 text-medical-700 dark:bg-medical-900/40 dark:text-medical-300 rounded-full">
-                  Upcoming
-                </span>
-              </div>
-            )) : (
-              <p className="text-slate-500 italic">No upcoming exams scheduled.</p>
-            )}
+              )) : (
+                <p className="text-slate-500 italic">No upcoming exams scheduled.</p>
+              )}
+            </div>
           </div>
         </div>
 

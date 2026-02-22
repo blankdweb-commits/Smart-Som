@@ -5,12 +5,13 @@ import FlashcardForm from '../components/FlashcardForm';
 import Toast from '../components/Toast';
 import { Plus, Search, Filter, Play, Shuffle, List, ChevronLeft, ChevronRight, Award } from 'lucide-react';
 
-const SRSButton = ({ label, color, onClick }) => (
+const SRSButton = ({ label, sublabel, color, onClick }) => (
   <button
     onClick={(e) => { e.stopPropagation(); onClick(); }}
-    className={`${color} text-white py-2 rounded-lg text-sm font-bold shadow-sm hover:opacity-90 active:scale-95 transition-all`}
+    className={`${color} text-white p-3 rounded-xl shadow-lg hover:opacity-90 active:scale-95 transition-all flex flex-col items-center justify-center`}
   >
-    {label}
+    <span className="text-base font-bold">{label}</span>
+    <span className="text-[10px] opacity-80 font-medium">{sublabel}</span>
   </button>
 );
 
@@ -25,8 +26,9 @@ const Flashcards = () => {
   const [studyIndex, setStudyIndex] = useState(0);
   const [shuffledCards, setShuffledCards] = useState([]);
   const [toast, setToast] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(12);
 
-  const subjects = ['All', ...new Set(flashcards.map(c => c.subject))];
+  const subjects = ['All', ...[...new Set(flashcards.map(c => c.subject))].sort()];
 
   const filteredCards = useMemo(() => {
     return flashcards.filter(card => {
@@ -37,6 +39,10 @@ const Flashcards = () => {
       return matchesSearch && matchesSubject && matchesDifficulty;
     });
   }, [flashcards, searchTerm, filterSubject, filterDifficulty]);
+
+  React.useEffect(() => {
+    setVisibleCount(12);
+  }, [searchTerm, filterSubject, filterDifficulty]);
 
   const startStudyMode = (shuffle = false, srsOnly = false) => {
     let cardsToStudy = [...filteredCards];
@@ -206,7 +212,7 @@ const Flashcards = () => {
           {/* Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredCards.length > 0 ? (
-              filteredCards.map(card => (
+              filteredCards.slice(0, visibleCount).map(card => (
                 <FlashcardCard
                   key={card.id}
                   card={card}
@@ -227,6 +233,17 @@ const Flashcards = () => {
               </div>
             )}
           </div>
+
+          {filteredCards.length > visibleCount && (
+            <div className="flex justify-center mt-10">
+              <button
+                onClick={() => setVisibleCount(prev => prev + 12)}
+                className="px-8 py-3 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-bold shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-95 flex items-center"
+              >
+                Load More Content ({filteredCards.length - visibleCount} remaining)
+              </button>
+            </div>
+          )}
         </>
       ) : (
         /* Study Mode */
@@ -254,11 +271,31 @@ const Flashcards = () => {
           </div>
 
           <div className="w-full flex flex-col items-center gap-6">
-            <div className="grid grid-cols-4 gap-2 w-full max-w-md">
-              <SRSButton label="Again" color="bg-red-500" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 1); handleNext(1); }} />
-              <SRSButton label="Hard" color="bg-orange-500" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 3); handleNext(3); }} />
-              <SRSButton label="Good" color="bg-green-500" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 4); handleNext(4); }} />
-              <SRSButton label="Easy" color="bg-blue-500" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 5); handleNext(5); }} />
+            <div className="grid grid-cols-4 gap-3 w-full max-w-lg">
+              <SRSButton
+                label="Again"
+                sublabel="< 1m"
+                color="bg-red-500"
+                onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 1); handleNext(1); }}
+              />
+              <SRSButton
+                label="Hard"
+                sublabel="1d"
+                color="bg-orange-500"
+                onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 3); handleNext(3); }}
+              />
+              <SRSButton
+                label="Good"
+                sublabel="4d"
+                color="bg-green-500"
+                onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 4); handleNext(4); }}
+              />
+              <SRSButton
+                label="Easy"
+                sublabel="7d+"
+                color="bg-blue-500"
+                onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 5); handleNext(5); }}
+              />
             </div>
 
             <div className="flex items-center space-x-6">

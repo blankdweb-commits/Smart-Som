@@ -1,11 +1,15 @@
 import React, { useState } from 'react';
-import { Star, Edit2, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
+import { Star, Edit2, Trash2, HelpCircle, Info } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const FlashcardCard = ({ card, onEdit, onDelete, onToggleImportant, isStudyMode = false }) => {
   const [isFlipped, setIsFlipped] = useState(false);
+  const [showHint, setShowHint] = useState(false);
 
-  const handleFlip = () => setIsFlipped(!isFlipped);
+  const handleFlip = () => {
+    setIsFlipped(!isFlipped);
+    setShowHint(false);
+  };
 
   return (
     <div className={`relative h-64 w-full cursor-pointer group flashcard-container`} onClick={handleFlip}>
@@ -46,8 +50,36 @@ const FlashcardCard = ({ card, onEdit, onDelete, onToggleImportant, isStudyMode 
             <h3 className="text-xl font-bold text-slate-800 dark:text-white mt-4 text-center">
               {card.question}
             </h3>
+
+            {card.hint && (
+              <div className="mt-4 flex flex-col items-center">
+                <button
+                  onClick={(e) => { e.stopPropagation(); setShowHint(!showHint); }}
+                  className="flex items-center text-xs font-bold text-medical-600 dark:text-medical-400 hover:text-medical-700 transition-colors uppercase tracking-wider"
+                >
+                  <HelpCircle size={14} className="mr-1" /> {showHint ? 'Hide Hint' : 'Show Hint'}
+                </button>
+                <AnimatePresence>
+                  {showHint && (
+                    <motion.div
+                      initial={{ opacity: 0, height: 0 }}
+                      animate={{ opacity: 1, height: 'auto' }}
+                      exit={{ opacity: 0, height: 0 }}
+                      className="mt-2 text-sm text-slate-500 italic text-center bg-slate-50 dark:bg-slate-900/50 p-2 rounded-lg border border-slate-100 dark:border-slate-800"
+                    >
+                      {card.hint}
+                    </motion.div>
+                  )}
+                </AnimatePresence>
+              </div>
+            )}
           </div>
-          <div className="flex justify-center">
+          <div className="flex justify-center items-center gap-2">
+            {card.srs?.reps > 0 && (
+              <div className="flex items-center text-[10px] font-bold text-indigo-600 bg-indigo-50 dark:bg-indigo-900/20 px-2 py-0.5 rounded-full">
+                <Info size={10} className="mr-1" /> {card.srs.reps} reviews
+              </div>
+            )}
             <span className={`text-[10px] px-2 py-0.5 rounded-full ${
               card.difficulty === 'Easy' ? 'bg-green-100 text-green-700' :
               card.difficulty === 'Moderate' ? 'bg-yellow-100 text-yellow-700' :
