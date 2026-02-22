@@ -4,6 +4,7 @@ import FlashcardCard from '../components/FlashcardCard';
 import FlashcardForm from '../components/FlashcardForm';
 import ShareModal from '../components/ShareModal';
 import Toast from '../components/Toast';
+import MobileFriendlySelect from './MobileFriendlySelect';
 import { Plus, Search, Filter, Play, Shuffle, List, ChevronLeft, ChevronRight, Award, Download, Upload, Share2, Folder, Book, ArrowLeft } from 'lucide-react';
 
 const SRSButton = ({ label, sublabel, color, onClick }) => (
@@ -241,15 +242,16 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
                 className="w-full pl-10 pr-4 py-2 rounded-lg border dark:border-slate-700 dark:bg-slate-900 outline-none"
               />
             </div>
-            <select
-              value={filterDifficulty} onChange={(e) => setFilterDifficulty(e.target.value)}
-              className="w-full px-4 py-2 rounded-lg border dark:border-slate-700 dark:bg-slate-900"
-            >
-              <option value="All">All Difficulties</option>
-              <option value="Easy">Easy</option>
-              <option value="Moderate">Moderate</option>
-              <option value="Hard">Hard</option>
-            </select>
+            <MobileFriendlySelect
+              value={filterDifficulty}
+              options={[
+                { label: 'All Difficulties', value: 'All' },
+                { label: 'Easy', value: 'Easy' },
+                { label: 'Moderate', value: 'Moderate' },
+                { label: 'Hard', value: 'Hard' }
+              ]}
+              onChange={(e) => setFilterDifficulty(e.target.value)}
+            />
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

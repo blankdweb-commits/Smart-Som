@@ -1,0 +1,158 @@
+[
+  {
+    "id": "nur-223-001",
+    "subject": "Reproductive Health I",
+    "topic": "Reproductive health concepts, gynecological disorders, sexually transmitted infections, infertility, and safe motherhood",
+    "question": "Define Reproductive Health",
+    "answer": "A state of complete physical, mental and social well-being in all matters relating to the reproductive system, implying that people can have a satisfying and safe sex life, capability to reproduce, and freedom to decide if, when, and how often to do so.",
+    "difficulty": "Beginner",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 2",
+    "course_code": "NUR 223",
+    "tags": [
+      "reproductive health",
+      "definition"
+    ]
+  },
+  {
+    "id": "nur-223-002",
+    "subject": "Reproductive Health I",
+    "topic": "Reproductive health concepts, gynecological disorders, sexually transmitted infections, infertility, and safe motherhood",
+    "question": "What are the components of Reproductive Health?",
+    "answer": "Family planning, maternal and newborn health, prevention of unsafe abortion, adolescent reproductive health, prevention and management of STIs/HIV, reproductive tract cancers, infertility management, and sexual health.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 2",
+    "course_code": "NUR 223",
+    "tags": [
+      "reproductive health",
+      "components"
+    ]
+  },
+  {
+    "id": "nur-223-003",
+    "subject": "Reproductive Health I",
+    "topic": "Reproductive health concepts, gynecological disorders, sexually transmitted infections, infertility, and safe motherhood",
+    "question": "What is female genital mutilation (FGM) and its health consequences?",
+    "answer": "FGM involves partial or total removal of external female genitalia for non-medical reasons. Consequences: Severe pain, hemorrhage, infection, urinary problems, complications in childbirth, psychological trauma, sexual dysfunction.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 2",
+    "course_code": "NUR 223",
+    "tags": [
+      "FGM",
+      "harmful practices",
+      "women's health"
+    ]
+  },
+  {
+    "id": "nur-223-004",
+    "subject": "Reproductive Health I",
+    "topic": "Reproductive health concepts, gynecological disorders, sexually transmitted infections, infertility, and safe motherhood",
+    "question": "Define infertility and its types",
+    "answer": "Infertility: Inability to conceive after 12 months of regular unprotected intercourse. Primary infertility: Never conceived. Secondary infertility: Unable to conceive after previous pregnancy.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 2",
+    "course_code": "NUR 223",
+    "tags": [
+      "infertility",
+      "reproduction"
+    ]
+  },
+  {
+    "id": "nur-223-005",
+    "subject": "Reproductive Health I",
+    "topic": "Reproductive health concepts, gynecological disorders, sexually transmitted infections, infertility, and safe motherhood",
+    "question": "What are common causes of female infertility?",
+    "answer": "Ovulation disorders, tubal blockage (often from PID/STIs), endometriosis, uterine abnormalities, cervical factors, age-related decline, and hormonal imbalances.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 2",
+    "course_code": "NUR 223",
+    "tags": [
+      "infertility",
+      "female causes"
+    ]
+  },
+  {
+    "id": "nur-223-006",
+    "subject": "Reproductive Health I",
+    "topic": "Reproductive health concepts, gynecological disorders, sexually transmitted infections, infertility, and safe motherhood",
+    "question": "What are common causes of male infertility?",
+    "answer": "Low sperm count, poor sperm motility, abnormal sperm morphology, varicocele, infections, hormonal imbalances, genetic factors, lifestyle factors (smoking, alcohol, drugs), and obstruction.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 2",
+    "course_code": "NUR 223",
+    "tags": [
+      "infertility",
+      "male causes"
+    ]
+  },
+  {
+    "id": "nur-223-007",
+    "subject": "Reproductive Health I",
+    "topic": "Reproductive health concepts, gynecological disorders, sexually transmitted infections, infertility, and safe motherhood",
+    "question": "What is the ABCDE approach to HIV prevention?",
+    "answer": "A: Abstinence, B: Be faithful, C: Condom use, D: Don't share needles, E: Education and Empowerment.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 2",
+    "course_code": "NUR 223",
+    "tags": [
+      "HIV",
+      "prevention",
+      "ABCDE"
+    ]
+  },
+  {
+    "id": "nur-223-008",
+    "subject": "Reproductive Health I",
+    "topic": "Reproductive health concepts, gynecological disorders, sexually transmitted infections, infertility, and safe motherhood",
+    "question": "What is PMTCT?",
+    "answer": "Prevention of Mother-to-Child Transmission of HIV. Interventions include antenatal HIV testing, antiretroviral therapy during pregnancy/labor, safe delivery practices, appropriate infant feeding, and postnatal antiretroviral prophylaxis for the infant.",
+    "difficulty": "Advanced",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 2",
+    "course_code": "NUR 223",
+    "tags": [
+      "PMTCT",
+      "HIV",
+      "maternal-child"
+    ]
+  },
+  {
+    "id": "nur-223-009",
+    "subject": "Reproductive Health I",
+    "topic": "Reproductive health concepts, gynecological disorders, sexually transmitted infections, infertility, and safe motherhood",
+    "question": "What is Safe Motherhood?",
+    "answer": "A global initiative to ensure women receive quality care during pregnancy, childbirth, and postpartum to reduce maternal and newborn morbidity and mortality. Components include antenatal care, skilled birth attendance, emergency obstetric care, and postnatal care.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 2",
+    "course_code": "NUR 223",
+    "tags": [
+      "safe motherhood",
+      "maternal health"
+    ]
+  }
+]

@@ -61,6 +61,13 @@ const ExamTimetable = () => {
     setIsFormOpen(true);
   };
 
+  const handleDelete = (id) => {
+    if (window.confirm('Are you sure you want to delete this exam?')) {
+      deleteExam(id);
+      setToast({ message: 'Exam deleted successfully', type: 'success' });
+    }
+  };
+
   const handleFormSubmit = (data) => {
     if (editingExam) {
       updateExam(editingExam.id, data);
@@ -168,9 +175,9 @@ const ExamTimetable = () => {
                     <span className="text-xs font-medium text-slate-500">
                       {getCountdown(exam.date)}
                     </span>
-                    <div className="flex space-x-2 pt-2 opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => handleEdit(exam)} className="p-1 hover:text-medical-600"><Edit2 size={16}/></button>
-                      <button onClick={() => deleteExam(exam.id)} className="p-1 hover:text-red-500"><Trash2 size={16}/></button>
+                    <div className="flex space-x-2 pt-2 md:opacity-0 group-hover:opacity-100 transition-opacity">
+                      <button onClick={() => handleEdit(exam)} className="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg hover:text-medical-600 transition-colors"><Edit2 size={16}/></button>
+                      <button onClick={() => handleDelete(exam.id)} className="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
                     </div>
                   </div>
                 </div>

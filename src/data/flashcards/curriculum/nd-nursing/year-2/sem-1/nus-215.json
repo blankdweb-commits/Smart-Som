@@ -1,0 +1,92 @@
+[
+  {
+    "id": "nus-215-001",
+    "subject": "Biostatistics",
+    "topic": "Basic statistical principles and methods for analyzing and presenting health data",
+    "question": "Define statistics, biostatistics, and vital statistics",
+    "answer": "Statistics: Collection, analysis, interpretation, and presentation of data. Biostatistics: Application of statistics to biological and health-related fields. Vital statistics: Data on vital events like births, deaths, marriages, and divorces.",
+    "difficulty": "Beginner",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 1",
+    "course_code": "NUS 215",
+    "tags": [
+      "statistics",
+      "biostatistics",
+      "definitions"
+    ]
+  },
+  {
+    "id": "nus-215-002",
+    "subject": "Biostatistics",
+    "topic": "Basic statistical principles and methods for analyzing and presenting health data",
+    "question": "What are the main sources of medical data?",
+    "answer": "Hospital records, vital registration systems, surveys, disease registries, administrative data, research studies, and census data.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 1",
+    "course_code": "NUS 215",
+    "tags": [
+      "data sources",
+      "medical data"
+    ]
+  },
+  {
+    "id": "nus-215-003",
+    "subject": "Biostatistics",
+    "topic": "Basic statistical principles and methods for analyzing and presenting health data",
+    "question": "What are measures of central tendency?",
+    "answer": "Mean (average), Median (middle value when data arranged in order), Mode (most frequently occurring value)",
+    "difficulty": "Beginner",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 1",
+    "course_code": "NUS 215",
+    "tags": [
+      "central tendency",
+      "mean",
+      "median",
+      "mode"
+    ]
+  },
+  {
+    "id": "nus-215-004",
+    "subject": "Biostatistics",
+    "topic": "Basic statistical principles and methods for analyzing and presenting health data",
+    "question": "What are measures of dispersion/variability?",
+    "answer": "Range (highest minus lowest), Variance (average of squared deviations), Standard deviation (square root of variance), Interquartile range (difference between 75th and 25th percentiles)",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 1",
+    "course_code": "NUS 215",
+    "tags": [
+      "dispersion",
+      "variability",
+      "statistics"
+    ]
+  },
+  {
+    "id": "nus-215-005",
+    "subject": "Biostatistics",
+    "topic": "Basic statistical principles and methods for analyzing and presenting health data",
+    "question": "What is the difference between incidence and prevalence?",
+    "answer": "Incidence: Number of NEW cases of a disease in a population during a specific time period. Prevalence: Total number of EXISTING cases (both new and old) in a population at a specific point in time.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 1",
+    "course_code": "NUS 215",
+    "tags": [
+      "epidemiology",
+      "incidence",
+      "prevalence"
+    ]
+  }
+]

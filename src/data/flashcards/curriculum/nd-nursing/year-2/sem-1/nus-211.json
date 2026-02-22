@@ -1,0 +1,139 @@
+[
+  {
+    "id": "nus-211-001",
+    "subject": "Human Anatomy III",
+    "topic": "Structure of female and male reproductive systems, and fetal development",
+    "question": "What are the organs of the female reproductive system?",
+    "answer": "External: Vulva (labia majora, labia minora, clitoris, vestibule), Internal: Vagina, cervix, uterus, fallopian tubes, ovaries. Accessory organs: Breasts.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 1",
+    "course_code": "NUS 211",
+    "tags": [
+      "female reproductive",
+      "anatomy"
+    ]
+  },
+  {
+    "id": "nus-211-002",
+    "subject": "Human Anatomy III",
+    "topic": "Structure of female and male reproductive systems, and fetal development",
+    "question": "Describe the menstrual cycle phases",
+    "answer": "Menstrual phase (days 1-5): Shedding of endometrium. Follicular/proliferative phase (days 6-14): Follicle development, estrogen rises, endometrium thickens. Ovulation (day 14): Egg release. Luteal/secretory phase (days 15-28): Corpus luteum forms, progesterone rises, endometrium prepares for implantation.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 1",
+    "course_code": "NUS 211",
+    "tags": [
+      "menstrual cycle",
+      "reproduction"
+    ]
+  },
+  {
+    "id": "nus-211-003",
+    "subject": "Human Anatomy III",
+    "topic": "Structure of female and male reproductive systems, and fetal development",
+    "question": "What hormones control the menstrual cycle?",
+    "answer": "GnRH (hypothalamus), FSH and LH (anterior pituitary), Estrogen and Progesterone (ovaries)",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 1",
+    "course_code": "NUS 211",
+    "tags": [
+      "hormones",
+      "menstrual cycle"
+    ]
+  },
+  {
+    "id": "nus-211-004",
+    "subject": "Human Anatomy III",
+    "topic": "Structure of female and male reproductive systems, and fetal development",
+    "question": "Define oogenesis, ovulation, fertilization, and sex determination",
+    "answer": "Oogenesis: Formation and development of female gametes (ova). Ovulation: Release of mature egg from ovary. Fertilization: Union of sperm and egg to form zygote. Sex determination: Determined by sperm chromosome (X or Y) at fertilization.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 1",
+    "course_code": "NUS 211",
+    "tags": [
+      "reproduction",
+      "gametes"
+    ]
+  },
+  {
+    "id": "nus-211-005",
+    "subject": "Human Anatomy III",
+    "topic": "Structure of female and male reproductive systems, and fetal development",
+    "question": "What is menopause?",
+    "answer": "The permanent cessation of menstruation for 12 consecutive months, typically occurring between ages 45-55, marking the end of reproductive capacity. Associated with declining estrogen and progesterone.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 1",
+    "course_code": "NUS 211",
+    "tags": [
+      "menopause",
+      "aging"
+    ]
+  },
+  {
+    "id": "nus-211-006",
+    "subject": "Human Anatomy III",
+    "topic": "Structure of female and male reproductive systems, and fetal development",
+    "question": "What are the organs of the male reproductive system?",
+    "answer": "Testes, epididymis, vas deferens, seminal vesicles, prostate gland, bulbourethral glands, urethra, penis, scrotum.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 1",
+    "course_code": "NUS 211",
+    "tags": [
+      "male reproductive",
+      "anatomy"
+    ]
+  },
+  {
+    "id": "nus-211-007",
+    "subject": "Human Anatomy III",
+    "topic": "Structure of female and male reproductive systems, and fetal development",
+    "question": "Define spermatogenesis",
+    "answer": "The process of sperm production in the seminiferous tubules of the testes, taking approximately 64-72 days, involving meiosis to produce haploid sperm cells.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 1",
+    "course_code": "NUS 211",
+    "tags": [
+      "spermatogenesis",
+      "male reproduction"
+    ]
+  },
+  {
+    "id": "nus-211-008",
+    "subject": "Human Anatomy III",
+    "topic": "Structure of female and male reproductive systems, and fetal development",
+    "question": "What are fontanelles and sutures in the fetal skull?",
+    "answer": "Fontanelles are soft membranous gaps between skull bones that allow for brain growth and facilitate delivery through the birth canal. Sutures are fibrous joints between skull bones that allow for molding during birth. Major fontanelles: anterior and posterior.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 1",
+    "course_code": "NUS 211",
+    "tags": [
+      "fetal skull",
+      "fontanelles",
+      "obstetrics"
+    ]
+  }
+]

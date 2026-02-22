@@ -1,0 +1,123 @@
+[
+  {
+    "id": "nur-121-001",
+    "subject": "Foundations of Nursing II",
+    "topic": "Basic nursing care skills, diagnostic procedures, aseptic techniques, and injection procedures",
+    "question": "What are pressure sores and what causes them?",
+    "answer": "Pressure sores (bedsores, decubitus ulcers) are localized injuries to skin and underlying tissue caused by prolonged pressure, shear, or friction. Causes include immobility, moisture, poor nutrition, and reduced sensation.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 1",
+    "semester": "Semester 2",
+    "course_code": "NUR 121",
+    "tags": [
+      "pressure sores",
+      "skin care",
+      "complications"
+    ]
+  },
+  {
+    "id": "nur-121-002",
+    "subject": "Foundations of Nursing II",
+    "topic": "Basic nursing care skills, diagnostic procedures, aseptic techniques, and injection procedures",
+    "question": "What are the common pressure areas in the body?",
+    "answer": "Sacrum, heels, elbows, shoulders, back of head, ears, hips (trochanters), ankles, knees, and any bony prominences when lying or sitting for prolonged periods.",
+    "difficulty": "Beginner",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 1",
+    "semester": "Semester 2",
+    "course_code": "NUR 121",
+    "tags": [
+      "pressure areas",
+      "positioning"
+    ]
+  },
+  {
+    "id": "nur-121-003",
+    "subject": "Foundations of Nursing II",
+    "topic": "Basic nursing care skills, diagnostic procedures, aseptic techniques, and injection procedures",
+    "question": "What is included in vital signs measurement?",
+    "answer": "Temperature, Pulse, Respiration, Blood Pressure (TPR/BP). Some sources also include oxygen saturation and pain as additional vital signs.",
+    "difficulty": "Beginner",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 1",
+    "semester": "Semester 2",
+    "course_code": "NUR 121",
+    "tags": [
+      "vital signs",
+      "assessment"
+    ]
+  },
+  {
+    "id": "nur-121-004",
+    "subject": "Foundations of Nursing II",
+    "topic": "Basic nursing care skills, diagnostic procedures, aseptic techniques, and injection procedures",
+    "question": "What are the routes of drug administration?",
+    "answer": "Oral, intravenous (IV), intramuscular (IM), subcutaneous, intradermal, sublingual, topical, rectal, vaginal, inhalation, intrathecal, and intraosseous.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 1",
+    "semester": "Semester 2",
+    "course_code": "NUR 121",
+    "tags": [
+      "drug administration",
+      "routes"
+    ]
+  },
+  {
+    "id": "nur-121-005",
+    "subject": "Foundations of Nursing II",
+    "topic": "Basic nursing care skills, diagnostic procedures, aseptic techniques, and injection procedures",
+    "question": "What are the risks associated with unsafe injection practices?",
+    "answer": "Transmission of blood-borne pathogens (HIV, Hepatitis B/C), abscesses, nerve damage, allergic reactions, medication errors, and needlestick injuries.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 1",
+    "semester": "Semester 2",
+    "course_code": "NUR 121",
+    "tags": [
+      "injection safety",
+      "complications"
+    ]
+  },
+  {
+    "id": "nur-121-006",
+    "subject": "Foundations of Nursing II",
+    "topic": "Basic nursing care skills, diagnostic procedures, aseptic techniques, and injection procedures",
+    "question": "How are healthcare wastes classified?",
+    "answer": "Infectious waste, pathological waste, sharps, pharmaceutical waste, chemical waste, radioactive waste, and general/non-hazardous waste.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 1",
+    "semester": "Semester 2",
+    "course_code": "NUR 121",
+    "tags": [
+      "healthcare waste",
+      "classification"
+    ]
+  },
+  {
+    "id": "nur-121-007",
+    "subject": "Foundations of Nursing II",
+    "topic": "Basic nursing care skills, diagnostic procedures, aseptic techniques, and injection procedures",
+    "question": "What are the legal roles of a nurse as a healthcare provider?",
+    "answer": "Providing competent care according to standards, maintaining patient confidentiality, obtaining informed consent, accurate documentation, reporting incidents, following scope of practice, and advocating for patients.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 1",
+    "semester": "Semester 2",
+    "course_code": "NUR 121",
+    "tags": [
+      "legal",
+      "nurse role",
+      "ethics"
+    ]
+  }
+]

@@ -1,0 +1,121 @@
+[
+  {
+    "id": "nur-222-001",
+    "subject": "Medical-Surgical Nursing II",
+    "topic": "Disorders of respiratory, digestive, and genito-urinary systems and their management",
+    "question": "What are common respiratory system disorders?",
+    "answer": "Upper airway infections, asthma, COPD, pneumonia, tuberculosis, bronchitis, emphysema, lung cancer, occupational lung diseases",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 2",
+    "course_code": "NUR 222",
+    "tags": [
+      "respiratory",
+      "disorders"
+    ]
+  },
+  {
+    "id": "nur-222-002",
+    "subject": "Medical-Surgical Nursing II",
+    "topic": "Disorders of respiratory, digestive, and genito-urinary systems and their management",
+    "question": "What is a tracheostomy and nursing care considerations?",
+    "answer": "Surgical creation of an opening into the trachea. Nursing care includes: maintaining airway patency, suctioning, humidification, cleaning inner cannula, monitoring for complications, preventing infection, and providing communication support.",
+    "difficulty": "Advanced",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 2",
+    "course_code": "NUR 222",
+    "tags": [
+      "tracheostomy",
+      "airway management"
+    ]
+  },
+  {
+    "id": "nur-222-003",
+    "subject": "Medical-Surgical Nursing II",
+    "topic": "Disorders of respiratory, digestive, and genito-urinary systems and their management",
+    "question": "What is under-water seal drainage and its purpose?",
+    "answer": "A chest drainage system that uses a water seal to allow air and fluid to drain from the pleural space while preventing air from entering. Used after thoracic surgery or for pneumothorax/hemothorax.",
+    "difficulty": "Advanced",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 2",
+    "course_code": "NUR 222",
+    "tags": [
+      "chest drainage",
+      "thoracic"
+    ]
+  },
+  {
+    "id": "nur-222-004",
+    "subject": "Medical-Surgical Nursing II",
+    "topic": "Disorders of respiratory, digestive, and genito-urinary systems and their management",
+    "question": "What are common disorders of the digestive system?",
+    "answer": "Gastroesophageal reflux (GERD), peptic ulcers, gastritis, inflammatory bowel disease (Crohn's, ulcerative colitis), diverticulitis, appendicitis, hepatitis, cirrhosis, pancreatitis, colorectal cancer, hemorrhoids.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 2",
+    "course_code": "NUR 222",
+    "tags": [
+      "digestive",
+      "GI disorders"
+    ]
+  },
+  {
+    "id": "nur-222-005",
+    "subject": "Medical-Surgical Nursing II",
+    "topic": "Disorders of respiratory, digestive, and genito-urinary systems and their management",
+    "question": "What is colostomy care?",
+    "answer": "Assessment of stoma (color, size, moisture), skin care around stoma, appropriate appliance selection and application, monitoring output, patient education on diet, activity, and signs of complications.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 2",
+    "course_code": "NUR 222",
+    "tags": [
+      "colostomy",
+      "ostomy care"
+    ]
+  },
+  {
+    "id": "nur-222-006",
+    "subject": "Medical-Surgical Nursing II",
+    "topic": "Disorders of respiratory, digestive, and genito-urinary systems and their management",
+    "question": "What are common disorders of the genito-urinary system?",
+    "answer": "Urinary tract infections, glomerulonephritis, renal failure (acute/chronic), nephrotic syndrome, kidney stones, polycystic kidney disease, prostate enlargement (BPH), prostate cancer, bladder cancer.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 2",
+    "course_code": "NUR 222",
+    "tags": [
+      "genitourinary",
+      "renal"
+    ]
+  },
+  {
+    "id": "nur-222-007",
+    "subject": "Medical-Surgical Nursing II",
+    "topic": "Disorders of respiratory, digestive, and genito-urinary systems and their management",
+    "question": "What are the types of renal failure?",
+    "answer": "Acute renal failure: Sudden onset, potentially reversible. Chronic renal failure: Progressive, irreversible loss of kidney function over months to years. Prerenal (decreased blood flow), Intrarenal (kidney tissue damage), Postrenal (urine outflow obstruction).",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 2",
+    "semester": "Semester 2",
+    "course_code": "NUR 222",
+    "tags": [
+      "renal failure",
+      "kidney"
+    ]
+  }
+]

@@ -34,6 +34,10 @@ export const AppProvider = ({ children }) => {
     return saved ? JSON.parse(saved) : { streak: 0, lastStudyDate: null, cardsStudied: 0 };
   });
 
+  const [deepSeekApiKey, setDeepSeekApiKey] = useState(() => {
+    return localStorage.getItem('deepSeekApiKey') || '';
+  });
+
   useEffect(() => {
     localStorage.setItem('flashcards', JSON.stringify(flashcards));
   }, [flashcards]);
@@ -54,6 +58,10 @@ export const AppProvider = ({ children }) => {
   useEffect(() => {
     localStorage.setItem('studyStats', JSON.stringify(studyStats));
   }, [studyStats]);
+
+  useEffect(() => {
+    localStorage.setItem('deepSeekApiKey', deepSeekApiKey);
+  }, [deepSeekApiKey]);
 
   const addFlashcard = (card) => {
     setFlashcards([...flashcards, {
@@ -156,7 +164,8 @@ export const AppProvider = ({ children }) => {
       exams, addExam, updateExam, deleteExam,
       darkMode, toggleDarkMode,
       studyStats, incrementCardsStudied,
-      updateCardProgress
+      updateCardProgress,
+      deepSeekApiKey, setDeepSeekApiKey,
     }}>
       {children}
     </AppContext.Provider>

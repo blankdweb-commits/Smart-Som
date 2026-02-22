@@ -1,0 +1,140 @@
+[
+  {
+    "id": "nus-117-001",
+    "subject": "Medical Microbiology",
+    "topic": "Study of microorganisms, their role in disease causation, and principles of infection control",
+    "question": "Define microbiology",
+    "answer": "The study of microscopic organisms, including bacteria, viruses, fungi, protozoa, and parasites.",
+    "difficulty": "Beginner",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 1",
+    "semester": "Semester 1",
+    "course_code": "NUS 117",
+    "tags": [
+      "microbiology",
+      "definition"
+    ]
+  },
+  {
+    "id": "nus-117-002",
+    "subject": "Medical Microbiology",
+    "topic": "Study of microorganisms, their role in disease causation, and principles of infection control",
+    "question": "What are the main classifications of microorganisms?",
+    "answer": "Bacteria, Viruses, Fungi, Protozoa, Parasites (helminths)",
+    "difficulty": "Beginner",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 1",
+    "semester": "Semester 1",
+    "course_code": "NUS 117",
+    "tags": [
+      "microorganisms",
+      "classification"
+    ]
+  },
+  {
+    "id": "nus-117-003",
+    "subject": "Medical Microbiology",
+    "topic": "Study of microorganisms, their role in disease causation, and principles of infection control",
+    "question": "What is the difference between gram-positive and gram-negative bacteria?",
+    "answer": "Gram-positive bacteria have a thick peptidoglycan layer in their cell wall and stain purple/violet. Gram-negative bacteria have a thin peptidoglycan layer and an outer lipid membrane, and stain pink/red.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 1",
+    "semester": "Semester 1",
+    "course_code": "NUS 117",
+    "tags": [
+      "bacteria",
+      "gram stain"
+    ]
+  },
+  {
+    "id": "nus-117-004",
+    "subject": "Medical Microbiology",
+    "topic": "Study of microorganisms, their role in disease causation, and principles of infection control",
+    "question": "What is the chain of infection?",
+    "answer": "Infectious agent \u2192 Reservoir \u2192 Portal of exit \u2192 Mode of transmission \u2192 Portal of entry \u2192 Susceptible host",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 1",
+    "semester": "Semester 1",
+    "course_code": "NUS 117",
+    "tags": [
+      "infection control",
+      "chain of infection"
+    ]
+  },
+  {
+    "id": "nus-117-005",
+    "subject": "Medical Microbiology",
+    "topic": "Study of microorganisms, their role in disease causation, and principles of infection control",
+    "question": "What are the standard precautionary measures in infection control?",
+    "answer": "Hand hygiene, use of personal protective equipment (gloves, masks, gowns, goggles), respiratory hygiene/cough etiquette, safe injection practices, proper handling of contaminated equipment, and environmental cleaning.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 1",
+    "semester": "Semester 1",
+    "course_code": "NUS 117",
+    "tags": [
+      "standard precautions",
+      "infection control",
+      "PPE"
+    ]
+  },
+  {
+    "id": "nus-117-006",
+    "subject": "Medical Microbiology",
+    "topic": "Study of microorganisms, their role in disease causation, and principles of infection control",
+    "question": "Define immunity and immunology",
+    "answer": "Immunity is the body's ability to resist or defend against infectious agents. Immunology is the study of the immune system and its responses to pathogens.",
+    "difficulty": "Beginner",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 1",
+    "semester": "Semester 1",
+    "course_code": "NUS 117",
+    "tags": [
+      "immunity",
+      "immunology"
+    ]
+  },
+  {
+    "id": "nus-117-007",
+    "subject": "Medical Microbiology",
+    "topic": "Study of microorganisms, their role in disease causation, and principles of infection control",
+    "question": "What is the difference between natural and artificial immunity?",
+    "answer": "Natural immunity: Acquired through normal life experiences (infection or maternal antibodies). Artificial immunity: Acquired through medical interventions (vaccination or immune globulins). Both can be active (body produces its own antibodies) or passive (receiving antibodies).",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 1",
+    "semester": "Semester 1",
+    "course_code": "NUS 117",
+    "tags": [
+      "immunity",
+      "natural",
+      "artificial"
+    ]
+  },
+  {
+    "id": "nus-117-008",
+    "subject": "Medical Microbiology",
+    "topic": "Study of microorganisms, their role in disease causation, and principles of infection control",
+    "question": "What are the methods of sterilization?",
+    "answer": "Physical methods: Heat (autoclaving, boiling, dry heat), radiation (gamma, UV), filtration. Chemical methods: Ethylene oxide gas, hydrogen peroxide plasma, glutaraldehyde, formaldehyde.",
+    "difficulty": "Intermediate",
+    "important": false,
+    "category": "Academic",
+    "level": "Year 1",
+    "semester": "Semester 1",
+    "course_code": "NUS 117",
+    "tags": [
+      "sterilization",
+      "infection control"
+    ]
+  }
+]

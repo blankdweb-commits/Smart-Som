@@ -1,7 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { X } from 'lucide-react';
+import { X, Sparkles, Loader2 } from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
+import { generateFlashcardWithAI } from '../utils/ai';
+import MobileFriendlySelect from './MobileFriendlySelect';
 
 const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
+  const { deepSeekApiKey } = useAppContext();
+  const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({
     subject: '',
     topic: '',
@@ -46,6 +51,27 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     }));
   };
 
+  const handleAiGenerate = async () => {
+    if (!formData.topic || !formData.subject) {
+      alert('Please enter a Subject and Topic first');
+      return;
+    }
+
+    setIsGenerating(true);
+    try {
+      const result = await generateFlashcardWithAI(deepSeekApiKey, formData.topic, formData.subject);
+      setFormData(prev => ({
+        ...prev,
+        question: result.question,
+        answer: result.answer
+      }));
+    } catch (error) {
+      alert(error.message);
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
   const handleSubmit = (e) => {
     e.preventDefault();
     onSubmit(formData);
@@ -66,34 +92,18 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
 
         <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Category</label>
-              <select
-                name="category"
-                value={formData.category}
-                onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-2 focus:ring-medical-500 outline-none"
-              >
-                <option value="Academic">Academic</option>
-                <option value="NCLEX">NCLEX</option>
-                <option value="NMCN">NMCN</option>
-              </select>
-            </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Study Level</label>
-              <select
-                name="level"
-                value={formData.level}
-                onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-2 focus:ring-medical-500 outline-none"
-              >
-                <option value="Year 1">Year 1</option>
-                <option value="Year 2">Year 2</option>
-                <option value="Year 3">Year 3</option>
-                <option value="Preparation">Exam Preparation</option>
-                <option value="Council Exam">Council Exam</option>
-              </select>
-            </div>
+            <MobileFriendlySelect
+              label="Category"
+              value={formData.category}
+              options={['Academic', 'NCLEX', 'NMCN']}
+              onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
+            />
+            <MobileFriendlySelect
+              label="Study Level"
+              value={formData.level}
+              options={['Year 1', 'Year 2', 'Year 3', 'Preparation', 'Council Exam']}
+              onChange={(e) => setFormData(prev => ({ ...prev, level: e.target.value }))}
+            />
           </div>
 
           <div className="grid grid-cols-2 gap-4">
@@ -122,23 +132,33 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                 <option value="Mental Health Nursing" />
               </datalist>
             </div>
-            <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Difficulty</label>
-              <select
-                name="difficulty"
-                value={formData.difficulty}
-                onChange={handleChange}
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-2 focus:ring-medical-500 outline-none"
-              >
-                <option value="Easy">Easy</option>
-                <option value="Moderate">Moderate</option>
-                <option value="Hard">Hard</option>
-              </select>
-            </div>
+            <MobileFriendlySelect
+              label="Difficulty"
+              value={formData.difficulty}
+              options={['Easy', 'Moderate', 'Hard']}
+              onChange={(e) => setFormData(prev => ({ ...prev, difficulty: e.target.value }))}
+            />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Topic</label>
+            <div className="flex justify-between items-center mb-1">
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Topic</label>
+              {deepSeekApiKey && (
+                <button
+                  type="button"
+                  onClick={handleAiGenerate}
+                  disabled={isGenerating || !formData.topic || !formData.subject}
+                  className="flex items-center gap-1 text-xs font-bold text-medical-600 dark:text-medical-400 hover:text-medical-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isGenerating ? (
+                    <Loader2 size={12} className="animate-spin" />
+                  ) : (
+                    <Sparkles size={12} />
+                  )}
+                  AI Generate
+                </button>
+              )}
+            </div>
             <input
               type="text"
               name="topic"
