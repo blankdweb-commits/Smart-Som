@@ -1,0 +1,122 @@
+[
+  {
+    "id": "nclex-1",
+    "subject": "NCLEX-RN",
+    "topic": "Clinical Judgment - Prioritization",
+    "question": "A nurse is caring for four clients. Which client should the nurse assess first?",
+    "answer": "A client with a new diagnosis of heart failure who has a respiratory rate of 28/min and crackles in the lung bases.",
+    "difficulty": "Hard",
+    "important": true,
+    "category": "NCLEX",
+    "level": "Preparation",
+    "semester": "Exam Prep"
+  },
+  {
+    "id": "nclex-2",
+    "subject": "NCLEX-RN",
+    "topic": "Pharmacology - Digoxin",
+    "question": "What are the classic signs of digoxin toxicity?",
+    "answer": "Nausea, vomiting, anorexia, blurred vision, and yellow-green halos around lights.",
+    "difficulty": "Moderate",
+    "important": true,
+    "category": "NCLEX",
+    "level": "Preparation",
+    "semester": "Exam Prep"
+  },
+  {
+    "id": "nclex-3",
+    "subject": "NCLEX-RN",
+    "topic": "Management of Care - Legal",
+    "question": "Define 'Battery' in a nursing context.",
+    "answer": "The intentional and wrongful physical contact with a person without their consent that causes injury or offensive touching.",
+    "difficulty": "Easy",
+    "important": false,
+    "category": "NCLEX",
+    "level": "Preparation",
+    "semester": "Exam Prep"
+  },
+  {
+    "id": "nclex-4",
+    "subject": "NCLEX-RN",
+    "topic": "Fluid & Electrolytes - Potassium",
+    "question": "What is the priority intervention for a client with a potassium level of 6.2 mEq/L?",
+    "answer": "Obtain an ECG to check for tall peaked T waves and prepare to administer calcium gluconate.",
+    "difficulty": "Hard",
+    "important": true,
+    "category": "NCLEX",
+    "level": "Preparation",
+    "semester": "Exam Prep"
+  },
+  {
+    "id": "nclex-5",
+    "subject": "NCLEX-RN",
+    "topic": "Maternal-Newborn - Preeclampsia",
+    "question": "What is the primary goal of magnesium sulfate administration in a client with preeclampsia?",
+    "answer": "To prevent seizures (seizure prophylaxis).",
+    "difficulty": "Moderate",
+    "important": true,
+    "category": "NCLEX",
+    "level": "Preparation",
+    "semester": "Exam Prep"
+  },
+  {
+    "id": "nclex-6",
+    "subject": "NCLEX-RN",
+    "topic": "Psychiatric - Lithium",
+    "question": "What is the therapeutic range for Lithium carbonate?",
+    "answer": "0.6 to 1.2 mEq/L.",
+    "difficulty": "Moderate",
+    "important": false,
+    "category": "NCLEX",
+    "level": "Preparation",
+    "semester": "Exam Prep"
+  },
+  {
+    "id": "nclex-7",
+    "subject": "NCLEX-RN",
+    "topic": "Infection Control - Precautions",
+    "question": "Which PPE is required for a client with active Pulmonary Tuberculosis?",
+    "answer": "N95 respirator, private room with negative pressure airflow (Airborne Precautions).",
+    "difficulty": "Moderate",
+    "important": true,
+    "category": "NCLEX",
+    "level": "Preparation",
+    "semester": "Exam Prep"
+  },
+  {
+    "id": "nclex-8",
+    "subject": "NCLEX-RN",
+    "topic": "Reduction of Risk - Post-op",
+    "question": "What is the first sign of hemorrhage in a post-operative client?",
+    "answer": "Increasing heart rate (tachycardia).",
+    "difficulty": "Easy",
+    "important": true,
+    "category": "NCLEX",
+    "level": "Preparation",
+    "semester": "Exam Prep"
+  },
+  {
+    "id": "nclex-9",
+    "subject": "NCLEX-RN",
+    "topic": "Physiological Adaptation - ABGs",
+    "question": "Interpret these ABGs: pH 7.28, PaCO2 55, HCO3 26.",
+    "answer": "Uncompensated Respiratory Acidosis.",
+    "difficulty": "Hard",
+    "important": true,
+    "category": "NCLEX",
+    "level": "Preparation",
+    "semester": "Exam Prep"
+  },
+  {
+    "id": "nclex-10",
+    "subject": "NCLEX-RN",
+    "topic": "Nutrition - TPN",
+    "question": "What is the most common complication of Total Parenteral Nutrition (TPN)?",
+    "answer": "Infection/Sepsis (usually at the catheter site) and Hyperglycemia.",
+    "difficulty": "Moderate",
+    "important": false,
+    "category": "NCLEX",
+    "level": "Preparation",
+    "semester": "Exam Prep"
+  }
+]

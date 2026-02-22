@@ -9,7 +9,10 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     answer: '',
     hint: '',
     difficulty: 'Moderate',
-    important: false
+    important: false,
+    category: 'Academic',
+    level: 'Year 1',
+    semester: 'Semester 1'
   });
 
   useEffect(() => {
@@ -27,7 +30,10 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
         answer: '',
         hint: '',
         difficulty: 'Moderate',
-        important: false
+        important: false,
+        category: 'Academic',
+        level: 'Year 1',
+        semester: 'Semester 1'
       });
     }
   }, [initialData, isOpen]);
@@ -58,7 +64,38 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4">
+        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Category</label>
+              <select
+                name="category"
+                value={formData.category}
+                onChange={handleChange}
+                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-2 focus:ring-medical-500 outline-none"
+              >
+                <option value="Academic">Academic</option>
+                <option value="NCLEX">NCLEX</option>
+                <option value="NMCN">NMCN</option>
+              </select>
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Study Level</label>
+              <select
+                name="level"
+                value={formData.level}
+                onChange={handleChange}
+                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-2 focus:ring-medical-500 outline-none"
+              >
+                <option value="Year 1">Year 1</option>
+                <option value="Year 2">Year 2</option>
+                <option value="Year 3">Year 3</option>
+                <option value="Preparation">Exam Preparation</option>
+                <option value="Council Exam">Council Exam</option>
+              </select>
+            </div>
+          </div>
+
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Subject</label>

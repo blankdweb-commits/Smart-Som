@@ -1,470 +1,214 @@
 export const medicalTerms = [
-  {
-    term: 'Episiotomy',
-    phonetic: '/ɪˌpɪziˈɒtəmi/',
-    syllables: 'E-pis-i-ot-o-my',
-    definition: 'A surgical cut made at the opening of the vagina during childbirth.'
-  },
-  {
-    term: 'Preeclampsia',
-    phonetic: '/ˌpriːɪˈklampsɪə/',
-    syllables: 'Pre-e-clamp-si-a',
-    definition: 'High blood pressure and protein in urine during pregnancy.'
-  },
-  {
-    term: 'Auscultation',
-    phonetic: '/ˌɔːskəlˈteɪʃ(ə)n/',
-    syllables: 'Aus-cul-ta-tion',
-    definition: 'Listening to sounds from the heart, lungs, or other organs.'
-  },
-  {
-    term: 'Cyanosis',
-    phonetic: '/ˌsʌɪəˈnəʊsɪs/',
-    syllables: 'Cy-a-no-sis',
-    definition: 'Bluish discoloration of the skin due to poor oxygenation.'
-  },
-  {
-    term: 'Tachycardia',
-    phonetic: '/ˌtakɪˈkɑːdɪə/',
-    syllables: 'Tach-y-car-di-a',
-    definition: 'Heart rate over 100 beats per minute.'
-  },
-  {
-    term: 'Oligohydramnios',
-    phonetic: '/ˌɒlɪɡəʊhaɪˈdræmnɪɒs/',
-    syllables: 'Ol-i-go-hy-dram-ni-os',
-    definition: 'Deficiency of amniotic fluid.'
-  },
-  {
-    term: 'Amenorrhea',
-    phonetic: '/eɪˌmɛnəˈriːə/',
-    syllables: 'A-men-or-rhe-a',
-    definition: 'Abnormal absence of menstruation.'
-  },
-  {
-    term: 'Borborygmi',
-    phonetic: '/ˌbɔːrbəˈrɪɡmaɪ/',
-    syllables: 'Bor-bo-ryg-mi',
-    definition: 'Rumbling or gurgling noise made by the movement of fluid and gas in the intestines.'
-  },
-  {
-    term: 'Bradycardia',
-    phonetic: '/ˌbreɪdɪˈkɑːrdɪə/',
-    syllables: 'Brad-y-car-di-a',
-    definition: 'Abnormally slow heart action (typically below 60 bpm).'
-  },
-  {
-    term: 'Cholecystectomy',
-    phonetic: '/ˌkoʊlisɪˈstɛktəmi/',
-    syllables: 'Cho-le-cys-tec-to-my',
-    definition: 'Surgical removal of the gallbladder.'
-  },
-  {
-    term: 'Dysphagia',
-    phonetic: '/dɪsˈfeɪdʒə/',
-    syllables: 'Dys-pha-gi-a',
-    definition: 'Difficulty or discomfort in swallowing.'
-  },
-  {
-    term: 'Dyspnea',
-    phonetic: '/dɪspˈniːə/',
-    syllables: 'Dys-pne-a',
-    definition: 'Difficult or labored breathing.'
-  },
-  {
-    term: 'Erythema',
-    phonetic: '/ˌɛrɪˈθiːmə/',
-    syllables: 'Er-y-the-ma',
-    definition: 'Superficial reddening of the skin, usually in patches.'
-  },
-  {
-    term: 'Gastrostomy',
-    phonetic: '/ɡæˈstrɒstəmi/',
-    syllables: 'Gas-tros-to-my',
-    definition: 'An opening into the stomach from the abdominal wall, made surgically for the introduction of food.'
-  },
-  {
-    term: 'Hematemesis',
-    phonetic: '/ˌhiːməˈtɛməsɪs/',
-    syllables: 'Hem-a-tem-e-sis',
-    definition: 'The vomiting of blood.'
-  },
-  {
-    term: 'Hemostat',
-    phonetic: '/ˈhiːməˌstæt/',
-    syllables: 'He-mo-stat',
-    definition: 'An instrument or agent used to compress or treat a bleeding vessel.'
-  },
-  {
-    term: 'Hydronephrosis',
-    phonetic: '/ˌhaɪdroʊnəˈfroʊsɪs/',
-    syllables: 'Hy-dro-ne-phro-sis',
-    definition: 'Swelling of a kidney due to a build-up of urine.'
-  },
-  {
-    term: 'Hyperglycemia',
-    phonetic: '/ˌhaɪpərɡlaɪˈsiːmiə/',
-    syllables: 'Hy-per-gly-ce-mi-a',
-    definition: 'An excess of glucose in the bloodstream.'
-  },
-  {
-    term: 'Hypoglycemia',
-    phonetic: '/ˌhaɪpoʊɡlaɪˈsiːmiə/',
-    syllables: 'Hy-po-gly-ce-mi-a',
-    definition: 'Deficiency of glucose in the bloodstream.'
-  },
-  {
-    term: 'Iatrogenic',
-    phonetic: '/aɪˌætrəˈdʒɛnɪk/',
-    syllables: 'I-at-ro-gen-ic',
-    definition: 'Relating to illness caused by medical examination or treatment.'
-  },
-  {
-    term: 'Ischemia',
-    phonetic: '/ɪˈskiːmiə/',
-    syllables: 'Is-che-mi-a',
-    definition: 'Inadequate blood supply to an organ or part of the body.'
-  },
-  {
-    term: 'Kyphosis',
-    phonetic: '/kaɪˈfoʊsɪs/',
-    syllables: 'Ky-pho-sis',
-    definition: 'Excessive outward curvature of the spine, causing hunching of the back.'
-  },
-  {
-    term: 'Laparotomy',
-    phonetic: '/ˌlæpəˈrɒtəmi/',
-    syllables: 'Lap-a-rot-o-my',
-    definition: 'A surgical incision into the abdominal cavity.'
-  },
-  {
-    term: 'Leukopenia',
-    phonetic: '/ˌluːkoʊˈpiːniə/',
-    syllables: 'Leu-ko-pe-ni-a',
-    definition: 'A reduction in the number of white cells in the blood.'
-  },
-  {
-    term: 'Mastication',
-    phonetic: '/ˌmæstɪˈkeɪʃən/',
-    syllables: 'Mas-ti-ca-tion',
-    definition: 'The process of chewing.'
-  },
-  {
-    term: 'Menarche',
-    phonetic: '/məˈnɑːrki/',
-    syllables: 'Me-nar-che',
-    definition: 'The first occurrence of menstruation.'
-  },
-  {
-    term: 'Myocardial Infarction',
-    phonetic: '/ˌmaɪoʊˈkɑːrdiəl ɪnˈfɑːrkʃən/',
-    syllables: 'My-o-car-di-al In-farc-tion',
-    definition: 'Death of heart muscle due to blocked blood flow; a heart attack.'
-  },
-  {
-    term: 'Nasogastric',
-    phonetic: '/ˌneɪzoʊˈɡæstrɪk/',
-    syllables: 'Na-so-gas-tric',
-    definition: 'Reaching or supplying the stomach via the nose.'
-  },
-  {
-    term: 'Nephropathy',
-    phonetic: '/nəˈfrɒpəθi/',
-    syllables: 'Ne-phrop-a-thy',
-    definition: 'Disease or damage to a kidney.'
-  },
-  {
-    term: 'Nocturia',
-    phonetic: '/nɒkˈtjʊəriə/',
-    syllables: 'Noc-tu-ri-a',
-    definition: 'The need to wake up during the night to urinate.'
-  },
-  {
-    term: 'Nulliparous',
-    phonetic: '/nʌˈlɪpərəs/',
-    syllables: 'Nul-lip-a-rous',
-    definition: 'A female who has never given birth to a viable offspring.'
-  },
-  {
-    term: 'Oophorectomy',
-    phonetic: '/ˌoʊəfəˈrɛktəmi/',
-    syllables: 'O-o-pho-rec-to-my',
-    definition: 'Surgical removal of one or both ovaries.'
-  },
-  {
-    term: 'Orthopnea',
-    phonetic: '/ɔːrˈθɒpniə/',
-    syllables: 'Or-thop-ne-a',
-    definition: 'Shortness of breath that occurs when lying flat.'
-  },
-  {
-    term: 'Osteoporosis',
-    phonetic: '/ˌɒstioʊpəˈroʊsɪs/',
-    syllables: 'Os-te-o-po-ro-sis',
-    definition: 'A condition in which bones become weak and brittle.'
-  },
-  {
-    term: 'Paresthesia',
-    phonetic: '/ˌpærɪsˈθiːziə/',
-    syllables: 'Par-es-the-sia',
-    definition: 'An abnormal sensation, typically tingling or pricking (“pins and needles”).'
-  },
-  {
-    term: 'Peritonitis',
-    phonetic: '/ˌpɛrɪtəˈnaɪtɪs/',
-    syllables: 'Per-i-to-ni-tis',
-    definition: 'Inflammation of the peritoneum (lining of the abdominal cavity).'
-  },
-  {
-    term: 'Phlebotomy',
-    phonetic: '/fləˈbɒtəmi/',
-    syllables: 'Phle-bot-o-my',
-    definition: 'The act of drawing blood from a vein.'
-  },
-  {
-    term: 'Polydipsia',
-    phonetic: '/ˌpɒliˈdɪpsiə/',
-    syllables: 'Pol-y-dip-si-a',
-    definition: 'Abnormally great thirst as a symptom of disease.'
-  },
-  {
-    term: 'Polyuria',
-    phonetic: '/ˌpɒliˈjʊəriə/',
-    syllables: 'Pol-y-u-ri-a',
-    definition: 'Production of abnormally large volumes of dilute urine.'
-  },
-  {
-    term: 'Postpartum',
-    phonetic: '/ˌpoʊstˈpɑːrtəm/',
-    syllables: 'Post-par-tum',
-    definition: 'Occurring in the period of time following childbirth.'
-  },
-  {
-    term: 'Prognosis',
-    phonetic: '/prɒɡˈnoʊsɪs/',
-    syllables: 'Prog-no-sis',
-    definition: 'The likely course of a disease or ailment.'
-  },
-  {
-    term: 'Pruritus',
-    phonetic: '/pruːˈraɪtəs/',
-    syllables: 'Pru-ri-tus',
-    definition: 'Severe itching of the skin.'
-  },
-  {
-    term: 'Pulmonary',
-    phonetic: '/ˈpʊlmənɛri/',
-    syllables: 'Pul-mon-ar-y',
-    definition: 'Relating to the lungs.'
-  },
-  {
-    term: 'Quadrant',
-    phonetic: '/ˈkwɒdrənt/',
-    syllables: 'Quad-rant',
-    definition: 'One of four sections, especially of the abdomen.'
-  },
-  {
-    term: 'Rhinorrhea',
-    phonetic: '/ˌraɪnəˈriːə/',
-    syllables: 'Rhi-nor-rhe-a',
-    definition: 'A condition where the nasal cavity is filled with a significant amount of mucus fluid; “runny nose”.'
-  },
-  {
-    term: 'Scoliosis',
-    phonetic: '/ˌskɒliˈoʊsɪs/',
-    syllables: 'Sco-li-o-sis',
-    definition: 'Abnormal lateral curvature of the spine.'
-  },
-  {
-    term: 'Septicemia',
-    phonetic: '/ˌsɛptɪˈsiːmiə/',
-    syllables: 'Sep-ti-ce-mi-a',
-    definition: 'Blood poisoning caused by bacteria or their toxins.'
-  },
-  {
-    term: 'Sphygmomanometer',
-    phonetic: '/ˌsfɪɡmoʊməˈnɒmɪtər/',
-    syllables: 'Sphyg-mo-ma-nom-e-ter',
-    definition: 'An instrument for measuring blood pressure.'
-  },
-  {
-    term: 'Stenosis',
-    phonetic: '/stəˈnoʊsɪs/',
-    syllables: 'Ste-no-sis',
-    definition: 'The abnormal narrowing of a passage in the body.'
-  },
-  {
-    term: 'Tachypnea',
-    phonetic: '/tæˈkɪpniə/',
-    syllables: 'Tach-yp-ne-a',
-    definition: 'Abnormally rapid breathing.'
-  },
-  {
-    term: 'Thrombosis',
-    phonetic: '/θrɒmˈboʊsɪs/',
-    syllables: 'Throm-bo-sis',
-    definition: 'Local coagulation or clotting of the blood in a part of the circulatory system.'
-  },
-  {
-    term: 'Urticaria',
-    phonetic: '/ˌɜːrtɪˈkɛəriə/',
-    syllables: 'Ur-ti-ca-ri-a',
-    definition: 'A skin rash with pale red, raised, itchy bumps; “hives”.'
-  },
-  {
-    term: 'Venipuncture',
-    phonetic: '/ˈvɛnɪˌpʌŋktʃər/',
-    syllables: 'Ven-i-punc-ture',
-    definition: 'The puncture of a vein as part of a medical procedure.'
-  },
-  {
-    term: 'Xerostomia',
-    phonetic: '/ˌzɪərəˈstoʊmiə/',
-    syllables: 'Xer-o-sto-mi-a',
-    definition: 'Dryness of the mouth, often due to decreased saliva flow.'
-  },
-  {
-    term: 'Adjuvant',
-    phonetic: '/ˈædʒʊvənt/',
-    syllables: 'Ad-ju-vant',
-    definition: 'A substance that enhances the body’s immune response to an antigen.'
-  },
-  {
-    term: 'Aphasia',
-    phonetic: '/əˈfeɪziə/',
-    syllables: 'A-pha-sia',
-    definition: 'Loss of ability to understand or express speech, caused by brain damage.'
-  },
-  {
-    term: 'Atrophy',
-    phonetic: '/ˈætrəfi/',
-    syllables: 'A-tro-phy',
-    definition: 'Waste away, typically due to the degeneration of cells.'
-  },
-  {
-    term: 'Cachexia',
-    phonetic: '/kəˈkɛksiə/',
-    syllables: 'Ca-chex-i-a',
-    definition: 'Weakness and wasting of the body due to severe chronic illness.'
-  },
-  {
-    term: 'Diaphoresis',
-    phonetic: '/ˌdaɪəfəˈriːsɪs/',
-    syllables: 'Di-a-pho-re-sis',
-    definition: 'Sweating, especially to an unusual degree as a symptom of disease or a side effect of a drug.'
-  },
-  {
-    term: 'Embolism',
-    phonetic: '/ˈɛmbəlɪzəm/',
-    syllables: 'Em-bo-lism',
-    definition: 'Obstruction of an artery, typically by a clot of blood or an air bubble.'
-  },
-  {
-    term: 'Febrile',
-    phonetic: '/ˈfɛbraɪl/',
-    syllables: 'Feb-rile',
-    definition: 'Having or showing the symptoms of a fever.'
-  },
-  {
-    term: 'Gait',
-    phonetic: '/ɡeɪt/',
-    syllables: 'Gait',
-    definition: 'A person’s manner of walking.'
-  },
-  {
-    term: 'Hemostat',
-    phonetic: '/ˈhiːməˌstæt/',
-    syllables: 'He-mo-stat',
-    definition: 'An instrument or agent used to compress or treat a bleeding vessel.'
-  },
-  {
-    term: 'Incontinence',
-    phonetic: '/ɪnˈkɒntɪnəns/',
-    syllables: 'In-con-ti-nence',
-    definition: 'Lack of voluntary control over urination or defecation.'
-  },
-  {
-    term: 'Jaundice',
-    phonetic: '/ˈdʒɔːndɪs/',
-    syllables: 'Jaun-dice',
-    definition: 'A medical condition with yellowing of the skin or whites of the eyes.'
-  },
-  {
-    term: 'Keloid',
-    phonetic: '/ˈkiːlɔɪd/',
-    syllables: 'Ke-loid',
-    definition: 'An area of irregular fibrous tissue formed at the site of a scar or injury.'
-  },
-  {
-    term: 'Lesion',
-    phonetic: '/ˈliːʒən/',
-    syllables: 'Le-sion',
-    definition: 'A region in an organ or tissue which has suffered damage through injury or disease.'
-  },
-  {
-    term: 'Metastasis',
-    phonetic: '/məˈtæstəsɪs/',
-    syllables: 'Me-tas-ta-sis',
-    definition: 'The development of secondary malignant growths at a distance from a primary site of cancer.'
-  },
-  {
-    term: 'Necrosis',
-    phonetic: '/nəˈkroʊsɪs/',
-    syllables: 'Ne-cro-sis',
-    definition: 'The death of most or all of the cells in an organ or tissue due to disease, injury, or failure of the blood supply.'
-  },
-  {
-    term: 'Oedema',
-    phonetic: '/ɪˈdiːmə/',
-    syllables: 'Oe-de-ma',
-    definition: 'A condition characterized by an excess of watery fluid collecting in the cavities or tissues of the body.'
-  },
-  {
-    term: 'Palliative',
-    phonetic: '/ˈpæliətɪv/',
-    syllables: 'Pal-li-a-tive',
-    definition: 'Relieving pain without dealing with the cause of the condition.'
-  },
-  {
-    term: 'Quadriplegia',
-    phonetic: '/ˌkwɒdrɪˈpliːdʒə/',
-    syllables: 'Quad-ri-ple-gi-a',
-    definition: 'Paralysis of all four limbs.'
-  },
-  {
-    term: 'Relapse',
-    phonetic: '/rɪˈlæps/',
-    syllables: 'Re-lapse',
-    definition: 'Suffer deterioration after a period of improvement.'
-  },
-  {
-    term: 'Sepsis',
-    phonetic: '/ˈsɛpsɪs/',
-    syllables: 'Sep-sis',
-    definition: 'A life-threatening reaction to an infection.'
-  },
-  {
-    term: 'Tinnitus',
-    phonetic: '/ˈtɪnɪtəs/',
-    syllables: 'Tin-ni-tus',
-    definition: 'Ringing or buzzing in the ears.'
-  },
-  {
-    term: 'Ulcer',
-    phonetic: '/ˈʌlsər/',
-    syllables: 'Ul-cer',
-    definition: 'An open sore on an external or internal surface of the body.'
-  },
-  {
-    term: 'Vertigo',
-    phonetic: '/ˈvɜːrtɪɡoʊ/',
-    syllables: 'Ver-ti-go',
-    definition: 'A sensation of whirling and loss of balance.'
-  },
-  {
-    term: 'Wheeze',
-    phonetic: '/wiːz/',
-    syllables: 'Wheeze',
-    definition: 'A whistling sound when breathing.'
-  }
+  { term: 'Episiotomy', phonetic: '/ɪˌpɪziˈɒtəmi/', syllables: 'E-pis-i-ot-o-my', definition: 'A surgical cut made at the opening of the vagina during childbirth.' },
+  { term: 'Preeclampsia', phonetic: '/ˌpriːɪˈklampsɪə/', syllables: 'Pre-e-clamp-si-a', definition: 'High blood pressure and protein in urine during pregnancy.' },
+  { term: 'Auscultation', phonetic: '/ˌɔːskəlˈteɪʃ(ə)n/', syllables: 'Aus-cul-ta-tion', definition: 'Listening to sounds from the heart, lungs, or other organs.' },
+  { term: 'Cyanosis', phonetic: '/ˌsʌɪəˈnəʊsɪs/', syllables: 'Cy-a-no-sis', definition: 'Bluish discoloration of the skin due to poor oxygenation.' },
+  { term: 'Tachycardia', phonetic: '/ˌtakɪˈkɑːdɪə/', syllables: 'Tach-y-car-di-a', definition: 'Heart rate over 100 beats per minute.' },
+  { term: 'Oligohydramnios', phonetic: '/ˌɒlɪɡəʊhaɪˈdræmnɪɒs/', syllables: 'Ol-i-go-hy-dram-ni-os', definition: 'Deficiency of amniotic fluid.' },
+  { term: 'Amenorrhea', phonetic: '/eɪˌmɛnəˈriːə/', syllables: 'A-men-or-rhe-a', definition: 'Abnormal absence of menstruation.' },
+  { term: 'Borborygmi', phonetic: '/ˌbɔːrbəˈrɪɡmaɪ/', syllables: 'Bor-bo-ryg-mi', definition: 'Rumbling or gurgling noise made by the movement of fluid and gas in the intestines.' },
+  { term: 'Bradycardia', phonetic: '/ˌbreɪdɪˈkɑːrdɪə/', syllables: 'Brad-y-car-di-a', definition: 'Abnormally slow heart action (typically below 60 bpm).' },
+  { term: 'Cholecystectomy', phonetic: '/ˌkoʊlisɪˈstɛktəmi/', syllables: 'Cho-le-cys-tec-to-my', definition: 'Surgical removal of the gallbladder.' },
+  { term: 'Dysphagia', phonetic: '/dɪsˈfeɪdʒə/', syllables: 'Dys-pha-gi-a', definition: 'Difficulty or discomfort in swallowing.' },
+  { term: 'Dyspnea', phonetic: '/dɪspˈniːə/', syllables: 'Dys-pne-a', definition: 'Difficult or labored breathing.' },
+  { term: 'Erythema', phonetic: '/ˌɛrɪˈθiːmə/', syllables: 'Er-y-the-ma', definition: 'Superficial reddening of the skin, usually in patches.' },
+  { term: 'Gastrostomy', phonetic: '/ɡæˈstrɒstəmi/', syllables: 'Gas-tros-to-my', definition: 'An opening into the stomach from the abdominal wall, made surgically for the introduction of food.' },
+  { term: 'Hematemesis', phonetic: '/ˌhiːməˈtɛməsɪs/', syllables: 'Hem-a-tem-e-sis', definition: 'The vomiting of blood.' },
+  { term: 'Hemostat', phonetic: '/ˈhiːməˌstæt/', syllables: 'He-mo-stat', definition: 'An instrument or agent used to compress or treat a bleeding vessel.' },
+  { term: 'Hydronephrosis', phonetic: '/ˌhaɪdroʊnəˈfroʊsɪs/', syllables: 'Hy-dro-ne-phro-sis', definition: 'Swelling of a kidney due to a build-up of urine.' },
+  { term: 'Hyperglycemia', phonetic: '/ˌhaɪpərɡlaɪˈsiːmiə/', syllables: 'Hy-per-gly-ce-mi-a', definition: 'An excess of glucose in the bloodstream.' },
+  { term: 'Hypoglycemia', phonetic: '/ˌhaɪpoʊɡlaɪˈsiːmiə/', syllables: 'Hy-po-gly-ce-mi-a', definition: 'Deficiency of glucose in the bloodstream.' },
+  { term: 'Iatrogenic', phonetic: '/aɪˌætrəˈdʒɛnɪk/', syllables: 'I-at-ro-gen-ic', definition: 'Relating to illness caused by medical examination or treatment.' },
+  { term: 'Ischemia', phonetic: '/ɪˈskiːmiə/', syllables: 'Is-che-mi-a', definition: 'Inadequate blood supply to an organ or part of the body.' },
+  { term: 'Kyphosis', phonetic: '/kaɪˈfoʊsɪs/', syllables: 'Ky-pho-sis', definition: 'Excessive outward curvature of the spine, causing hunching of the back.' },
+  { term: 'Laparotomy', phonetic: '/ˌlæpəˈrɒtəmi/', syllables: 'Lap-a-rot-o-my', definition: 'A surgical incision into the abdominal cavity.' },
+  { term: 'Leukopenia', phonetic: '/ˌluːkoʊˈpiːniə/', syllables: 'Leu-ko-pe-ni-a', definition: 'A reduction in the number of white cells in the blood.' },
+  { term: 'Mastication', phonetic: '/ˌmæstɪˈkeɪʃən/', syllables: 'Mas-ti-ca-tion', definition: 'The process of chewing.' },
+  { term: 'Menarche', phonetic: '/məˈnɑːrki/', syllables: 'Me-nar-che', definition: 'The first occurrence of menstruation.' },
+  { term: 'Myocardial Infarction', phonetic: '/ˌmaɪoʊˈkɑːrdiəl ɪnˈfɑːrkʃən/', syllables: 'My-o-car-di-al In-farc-tion', definition: 'Death of heart muscle due to blocked blood flow; a heart attack.' },
+  { term: 'Nasogastric', phonetic: '/ˌneɪzoʊˈɡæstrɪk/', syllables: 'Na-so-gas-tric', definition: 'Reaching or supplying the stomach via the nose.' },
+  { term: 'Nephropathy', phonetic: '/nəˈfrɒpəθi/', syllables: 'Ne-phrop-a-thy', definition: 'Disease or damage to a kidney.' },
+  { term: 'Nocturia', phonetic: '/nɒkˈtjʊəriə/', syllables: 'Noc-tu-ri-a', definition: 'The need to wake up during the night to urinate.' },
+  { term: 'Nulliparous', phonetic: '/nʌˈlɪpərəs/', syllables: 'Nul-lip-a-rous', definition: 'A female who has never given birth to a viable offspring.' },
+  { term: 'Oophorectomy', phonetic: '/ˌoʊəfəˈrɛktəmi/', syllables: 'O-o-pho-rec-to-my', definition: 'Surgical removal of one or both ovaries.' },
+  { term: 'Orthopnea', phonetic: '/ɔːrˈθɒpniə/', syllables: 'Or-thop-ne-a', definition: 'Shortness of breath that occurs when lying flat.' },
+  { term: 'Osteoporosis', phonetic: '/ˌɒstioʊpəˈroʊsɪs/', syllables: 'Os-te-o-po-ro-sis', definition: 'A condition in which bones become weak and brittle.' },
+  { term: 'Paresthesia', phonetic: '/ˌpærɪsˈθiːziə/', syllables: 'Par-es-the-sia', definition: 'An abnormal sensation, typically tingling or pricking (“pins and needles”).' },
+  { term: 'Peritonitis', phonetic: '/ˌpɛrɪtəˈnaɪtɪs/', syllables: 'Per-i-to-ni-tis', definition: 'Inflammation of the peritoneum (lining of the abdominal cavity).' },
+  { term: 'Phlebotomy', phonetic: '/fləˈbɒtəmi/', syllables: 'Phle-bot-o-my', definition: 'The act of drawing blood from a vein.' },
+  { term: 'Polydipsia', phonetic: '/ˌpɒliˈdɪpsiə/', syllables: 'Pol-y-dip-si-a', definition: 'Abnormally great thirst as a symptom of disease.' },
+  { term: 'Polyuria', phonetic: '/ˌpɒliˈjʊəriə/', syllables: 'Pol-y-u-ri-a', definition: 'Production of abnormally large volumes of dilute urine.' },
+  { term: 'Postpartum', phonetic: '/ˌpoʊstˈpɑːrtəm/', syllables: 'Post-par-tum', definition: 'Occurring in the period of time following childbirth.' },
+  { term: 'Prognosis', phonetic: '/prɒɡˈnoʊsɪs/', syllables: 'Prog-no-sis', definition: 'The likely course of a disease or ailment.' },
+  { term: 'Pruritus', phonetic: '/pruːˈraɪtəs/', syllables: 'Pru-ri-tus', definition: 'Severe itching of the skin.' },
+  { term: 'Pulmonary', phonetic: '/ˈpʊlmənɛri/', syllables: 'Pul-mon-ar-y', definition: 'Relating to the lungs.' },
+  { term: 'Quadrant', phonetic: '/ˈkwɒdrənt/', syllables: 'Quad-rant', definition: 'One of four sections, especially of the abdomen.' },
+  { term: 'Rhinorrhea', phonetic: '/ˌraɪnəˈriːə/', syllables: 'Rhi-nor-rhe-a', definition: 'A condition where the nasal cavity is filled with a significant amount of mucus fluid; “runny nose”.' },
+  { term: 'Scoliosis', phonetic: '/ˌskɒliˈoʊsɪs/', syllables: 'Sco-li-o-sis', definition: 'Abnormal lateral curvature of the spine.' },
+  { term: 'Septicemia', phonetic: '/ˌsɛptɪˈsiːmiə/', syllables: 'Sep-ti-ce-mi-a', definition: 'Blood poisoning caused by bacteria or their toxins.' },
+  { term: 'Sphygmomanometer', phonetic: '/ˌsfɪɡmoʊməˈnɒmɪtər/', syllables: 'Sphyg-mo-ma-nom-e-ter', definition: 'An instrument for measuring blood pressure.' },
+  { term: 'Stenosis', phonetic: '/stəˈnoʊsɪs/', syllables: 'Ste-no-sis', definition: 'The abnormal narrowing of a passage in the body.' },
+  { term: 'Tachypnea', phonetic: '/tæˈkɪpniə/', syllables: 'Tach-yp-ne-a', definition: 'Abnormally rapid breathing.' },
+  { term: 'Thrombosis', phonetic: '/θrɒmˈboʊsɪs/', syllables: 'Throm-bo-sis', definition: 'Local coagulation or clotting of the blood in a part of the circulatory system.' },
+  { term: 'Urticaria', phonetic: '/ˌɜːrtɪˈkɛəriə/', syllables: 'Ur-ti-ca-ri-a', definition: 'A skin rash with pale red, raised, itchy bumps; “hives”.' },
+  { term: 'Venipuncture', phonetic: '/ˈvɛnɪˌpʌŋktʃər/', syllables: 'Ven-i-punc-ture', definition: 'The puncture of a vein as part of a medical procedure.' },
+  { term: 'Xerostomia', phonetic: '/ˌzɪərəˈstoʊmiə/', syllables: 'Xer-o-sto-mi-a', definition: 'Dryness of the mouth, often due to decreased saliva flow.' },
+  { term: 'Abduction', phonetic: '/æbˈdʌkʃən/', syllables: 'Ab-duc-tion', definition: 'Movement of a limb away from the midline of the body.' },
+  { term: 'Adduction', phonetic: '/əˈdʌkʃən/', syllables: 'Ad-duc-tion', definition: 'Movement of a limb toward the midline of the body.' },
+  { term: 'Alopecia', phonetic: '/ˌæləˈpiːʃiə/', syllables: 'Al-o-pe-ci-a', definition: 'Partial or complete absence of hair from areas of the body where it normally grows; baldness.' },
+  { term: 'Anasarca', phonetic: '/ˌænəˈsɑːrkə/', syllables: 'An-a-sar-ca', definition: 'Severe generalized edema.' },
+  { term: 'Aneurysm', phonetic: '/ˈænjəˌrɪzəm/', syllables: 'An-eu-rysm', definition: 'An excessive localized enlargement of an artery caused by a weakening of the artery wall.' },
+  { term: 'Anuria', phonetic: '/əˈnjʊəriə/', syllables: 'An-u-ri-a', definition: 'Failure of the kidneys to produce urine.' },
+  { term: 'Ascites', phonetic: '/əˈsaɪtiːz/', syllables: 'As-ci-tes', definition: 'The accumulation of fluid in the peritoneal cavity, causing abdominal swelling.' },
+  { term: 'Atelectasis', phonetic: '/ˌætəˈlɛktəsɪs/', syllables: 'At-e-lec-ta-sis', definition: 'Partial or complete collapse of the lung.' },
+  { term: 'Bilirubin', phonetic: '/ˌbɪlɪˈruːbɪn/', syllables: 'Bil-i-ru-bin', definition: 'An orange-yellow pigment formed in the liver by the breakdown of hemoglobin.' },
+  { term: 'Biopsy', phonetic: '/ˈbaɪɒpsi/', syllables: 'Bi-op-sy', definition: 'An examination of tissue removed from a living body to discover the presence, cause, or extent of a disease.' },
+  { term: 'Catheterization', phonetic: '/ˌkæθətəraɪˈzeɪʃən/', syllables: 'Cath-e-ter-i-za-tion', definition: 'The use of or introduction of a catheter.' },
+  { term: 'Cellulitis', phonetic: '/ˌsɛljʊˈlaɪtɪs/', syllables: 'Cel-lu-li-tis', definition: 'Inflammation of subcutaneous connective tissue.' },
+  { term: 'Cerebrovascular', phonetic: '/ˌsɛrəbroʊˈvæskjələr/', syllables: 'Cer-e-bro-vas-cu-lar', definition: 'Relating to the brain and its blood vessels.' },
+  { term: 'Chemotherapy', phonetic: '/ˌkiːmoʊˈθɛrəpi/', syllables: 'Che-mo-ther-a-py', definition: 'The treatment of disease by the use of chemical substances.' },
+  { term: 'Cirrhosis', phonetic: '/sɪˈroʊsɪs/', syllables: 'Cir-rho-sis', definition: 'A chronic disease of the liver marked by degeneration of cells, inflammation, and fibrous thickening of tissue.' },
+  { term: 'Coagulation', phonetic: '/koʊˌæɡjʊˈleɪʃən/', syllables: 'Co-ag-u-la-tion', definition: 'The action or process of a liquid, especially blood, changing to a solid or semi-solid state.' },
+  { term: 'Colostomy', phonetic: '/kəˈlɒstəmi/', syllables: 'Co-los-to-my', definition: 'A surgical operation in which a piece of the colon is diverted to an artificial opening in the abdominal wall so as to bypass a damaged part of the colon.' },
+  { term: 'Creatinine', phonetic: '/kriˈætɪniːn/', syllables: 'Cre-at-i-nine', definition: 'A compound which is produced by metabolism of creatine and excreted in the urine.' },
+  { term: 'Debridement', phonetic: '/dɪˈbriːdmənt/', syllables: 'De-bride-ment', definition: 'The removal of damaged tissue or foreign objects from a wound.' },
+  { term: 'Dermatitis', phonetic: '/ˌdɜːrməˈtaɪtɪs/', syllables: 'Der-ma-ti-tis', definition: 'A condition of the skin in which it becomes red, swollen, and sore, sometimes with small blisters.' },
+  { term: 'Dialysis', phonetic: '/daɪˈæləsɪs/', syllables: 'Di-al-y-sis', definition: 'The clinical purification of blood by dialysis, as a substitute for the normal function of the kidney.' },
+  { term: 'Diuretic', phonetic: '/ˌdaɪjʊˈrɛtɪk/', syllables: 'Di-u-ret-ic', definition: 'Causing increased passing of urine.' },
+  { term: 'Diverticulitis', phonetic: '/ˌdaɪvərtɪkjʊˈlaɪtɪs/', syllables: 'Di-ver-tic-u-li-tis', definition: 'Inflammation of a diverticulum, especially in the colon.' },
+  { term: 'Ecchymosis', phonetic: '/ˌɛkɪˈmoʊsɪs/', syllables: 'Ec-chy-mo-sis', definition: 'A discoloration of the skin resulting from bleeding underneath, typically caused by bruising.' },
+  { term: 'Echocardiogram', phonetic: '/ˌɛkoʊˈkɑːrdiəˌɡræm/', syllables: 'E-cho-car-di-o-gram', definition: 'A test of the action of the heart using ultrasound waves to produce a visual display.' },
+  { term: 'Emphysema', phonetic: '/ˌɛmfɪˈziːmə/', syllables: 'Em-phy-se-ma', definition: 'A condition in which the air sacs of the lungs are damaged and enlarged, causing breathlessness.' },
+  { term: 'Encephalopathy', phonetic: '/ɛnˌsɛfəˈlɒpəθi/', syllables: 'En-ceph-a-lop-a-thy', definition: 'A disease in which the functioning of the brain is affected by some agent or condition.' },
+  { term: 'Endoscopy', phonetic: '/ɛnˈdɒskəpi/', syllables: 'En-dos-co-py', definition: 'Procedure using an endoscope to look inside the body.' },
+  { term: 'Epistaxis', phonetic: '/ˌɛpɪˈstæksɪs/', syllables: 'Ep-i-stax-is', definition: 'Bleeding from the nose.' },
+  { term: 'Exudate', phonetic: '/ˈɛksjʊdeɪt/', syllables: 'Ex-u-date', definition: 'A mass of cells and fluid that has seeped out of blood vessels or an organ, especially in inflammation.' },
+  { term: 'Fibrillation', phonetic: '/ˌfɪbrɪˈleɪʃən/', syllables: 'Fi-bril-la-tion', definition: 'Very rapid, irregular, and unsynchronized contraction of muscle fibers.' },
+  { term: 'Fibrosis', phonetic: '/faɪˈbroʊsɪs/', syllables: 'Fi-bro-sis', definition: 'The thickening and scarring of connective tissue, usually as a result of injury.' },
+  { term: 'Glaucoma', phonetic: '/ɡlaʊˈkoʊmə/', syllables: 'Glau-co-ma', definition: 'A condition of increased pressure within the eyeball, causing gradual loss of sight.' },
+  { term: 'Glycosuria', phonetic: '/ˌɡlaɪkoʊˈsjʊəriə/', syllables: 'Gly-co-su-ri-a', definition: 'Excess of sugar in the urine.' },
+  { term: 'Hematocrit', phonetic: '/hɪˈmætəkrɪt/', syllables: 'Hem-a-to-crit', definition: 'The ratio of the volume of red blood cells to the total volume of blood.' },
+  { term: 'Hemodialysis', phonetic: '/ˌhiːmoʊdaɪˈæləsɪs/', syllables: 'He-mo-di-al-y-sis', definition: 'Kidney dialysis.' },
+  { term: 'Hemoglobin', phonetic: '/ˈhiːməˌɡloʊbɪn/', syllables: 'He-mo-glo-bin', definition: 'A red protein responsible for transporting oxygen in the blood.' },
+  { term: 'Hemolysis', phonetic: '/hɪˈmɒlɪsɪs/', syllables: 'He-mol-y-sis', definition: 'The rupture or destruction of red blood cells.' },
+  { term: 'Hemophilia', phonetic: '/ˌhiːməˈfɪliə/', syllables: 'He-mo-phil-i-a', definition: 'A medical condition in which the ability of the blood to clot is severely reduced.' },
+  { term: 'Hemoptysis', phonetic: '/hɪˈmɒptəsɪs/', syllables: 'He-mop-ty-sis', definition: 'The coughing up of blood.' },
+  { term: 'Hemorrhage', phonetic: '/ˈhɛmərɪdʒ/', syllables: 'Hem-or-rhage', definition: 'An escape of blood from a ruptured blood vessel.' },
+  { term: 'Hepatitis', phonetic: '/ˌhɛpəˈtaɪtɪs/', syllables: 'Hep-a-ti-tis', definition: 'Inflammation of the liver.' },
+  { term: 'Hepatomegaly', phonetic: '/ˌhɛpətoʊˈmɛɡəli/', syllables: 'Hep-a-to-meg-a-ly', definition: 'Abnormal enlargement of the liver.' },
+  { term: 'Herniated', phonetic: '/ˈhɜːrniˌeɪtɪd/', syllables: 'Her-ni-at-ed', definition: 'Displaced from its normal position.' },
+  { term: 'Histology', phonetic: '/hɪˈstɒlədʒi/', syllables: 'His-tol-o-gy', definition: 'The study of the microscopic structure of tissues.' },
+  { term: 'Homeostasis', phonetic: '/ˌhoʊmioʊˈsteɪsɪs/', syllables: 'Ho-me-o-sta-sis', definition: 'The tendency toward a relatively stable equilibrium between interdependent elements.' },
+  { term: 'Hypercapnia', phonetic: '/ˌhaɪpərˈkæpniə/', syllables: 'Hy-per-cap-ni-a', definition: 'Excessive carbon dioxide in the bloodstream.' },
+  { term: 'Hyperplasia', phonetic: '/ˌhaɪpərˈpleɪʒə/', syllables: 'Hy-per-pla-sia', definition: 'The enlargement of an organ or tissue caused by an increase in the reproduction rate of its cells.' },
+  { term: 'Hypertension', phonetic: '/ˌhaɪpərˈtɛnʃən/', syllables: 'Hy-per-ten-sion', definition: 'Abnormally high blood pressure.' },
+  { term: 'Hypertrophy', phonetic: '/haɪˈpɜːrtrəfi/', syllables: 'Hy-per-tro-phy', definition: 'The enlargement of an organ or tissue from the increase in size of its cells.' },
+  { term: 'Hypoxemia', phonetic: '/ˌhaɪpɒkˈsiːmiə/', syllables: 'Hy-pox-e-mi-a', definition: 'An abnormally low concentration of oxygen in the blood.' },
+  { term: 'Hypoxia', phonetic: '/haɪˈpɒksiə/', syllables: 'Hy-pox-i-a', definition: 'Deficiency in the amount of oxygen reaching the tissues.' },
+  { term: 'Hysterectomy', phonetic: '/ˌhɪstəˈrɛktəmi/', syllables: 'Hys-ter-ec-to-my', definition: 'A surgical operation to remove the uterus.' },
+  { term: 'Icterus', phonetic: '/ˈɪktərəs/', syllables: 'Ic-ter-us', definition: 'Jaundice.' },
+  { term: 'Ileostomy', phonetic: '/ˌɪliˈɒstəmi/', syllables: 'Il-e-os-to-my', definition: 'A surgical operation in which a piece of the ileum is diverted to an artificial opening in the abdominal wall.' },
+  { term: 'Immunoassay', phonetic: '/ˌɪmjʊnoʊˈæseɪ/', syllables: 'Im-mu-no-as-say', definition: 'A procedure for detecting or measuring specific proteins or other substances through their properties as antigens or antibodies.' },
+  { term: 'Immunosuppression', phonetic: '/ˌɪmjʊnoʊsəˈprɛʃən/', syllables: 'Im-mu-no-sup-pres-sion', definition: 'Partial or complete suppression of the immune response of an individual.' },
+  { term: 'Infarction', phonetic: '/ɪnˈfɑːrkʃən/', syllables: 'In-farc-tion', definition: 'Obstruction of the blood supply to an organ or region of tissue.' },
+  { term: 'Inflammation', phonetic: '/ˌɪnfləˈmeɪʃən/', syllables: 'In-flam-ma-tion', definition: 'A localized physical condition in which part of the body becomes reddened, swollen, hot, and often painful.' },
+  { term: 'Intravenous', phonetic: '/ˌɪntrəˈviːnəs/', syllables: 'In-tra-ve-nous', definition: 'Existing or taking place within, or administered into, a vein or veins.' },
+  { term: 'Intubation', phonetic: '/ˌɪntjʊˈbeɪʃən/', syllables: 'In-tu-ba-tion', definition: 'Insert a tube into (a person or a body part).' },
+  { term: 'Ketosis', phonetic: '/kɪˈtoʊsɪs/', syllables: 'Ke-to-sis', definition: 'A metabolic state characterized by raised levels of ketone bodies in the body tissues.' },
+  { term: 'Lactation', phonetic: '/lækˈteɪʃən/', syllables: 'Lac-ta-tion', definition: 'The secretion of milk from the mammary glands.' },
+  { term: 'Laryngitis', phonetic: '/ˌlærɪnˈdʒaɪtɪs/', syllables: 'Lar-yn-gi-tis', definition: 'Inflammation of the larynx.' },
+  { term: 'Leukemia', phonetic: '/luːˈkiːmiə/', syllables: 'Leu-ke-mi-a', definition: 'A malignant progressive disease in which the bone marrow and other blood-forming organs produce increased numbers of immature or abnormal leukocytes.' },
+  { term: 'Leukocytosis', phonetic: '/ˌluːkoʊsaɪˈtoʊsɪs/', syllables: 'Leu-ko-cy-to-sis', definition: 'An increase in the number of white cells in the blood.' },
+  { term: 'Lipidemia', phonetic: '/ˌlɪpɪˈdiːmiə/', syllables: 'Lip-id-e-mi-a', definition: 'Presence of excess lipids in the blood.' },
+  { term: 'Lipoma', phonetic: '/laɪˈpoʊmə/', syllables: 'Li-po-ma', definition: 'A benign tumor of fatty tissue.' },
+  { term: 'Lymphadenopathy', phonetic: '/lɪmˌfædəˈnɒpəθi/', syllables: 'Lymph-ad-e-nop-a-thy', definition: 'Disease of the lymph nodes.' },
+  { term: 'Lymphoma', phonetic: '/lɪmˈfoʊmə/', syllables: 'Lym-pho-ma', definition: 'Cancer of the lymph nodes.' },
+  { term: 'Malaise', phonetic: '/məˈleɪz/', syllables: 'Ma-laise', definition: 'A general feeling of discomfort, illness, or uneasiness.' },
+  { term: 'Malignancy', phonetic: '/məˈlɪɡnənsi/', syllables: 'Ma-lig-nan-cy', definition: 'The state or presence of a malignant tumor; cancer.' },
+  { term: 'Mammography', phonetic: '/mæˈmɒɡrəfi/', syllables: 'Mam-mog-ra-phy', definition: 'X-ray examination of the breasts.' },
+  { term: 'Meningitis', phonetic: '/ˌmɛnɪnˈdʒaɪtɪs/', syllables: 'Men-in-gi-tis', definition: 'Inflammation of the meninges caused by viral or bacterial infection.' },
+  { term: 'Metabolism', phonetic: '/məˈtæbəlɪzəm/', syllables: 'Me-tab-o-lism', definition: 'The chemical processes that occur within a living organism in order to maintain life.' },
+  { term: 'Myalgia', phonetic: '/maɪˈældʒə/', syllables: 'My-al-gi-a', definition: 'Pain in a muscle or group of muscles.' },
+  { term: 'Narcosis', phonetic: '/nɑːrˈkoʊsɪs/', syllables: 'Nar-co-sis', definition: 'A state of stupor, drowsiness, or unconsciousness produced by drugs.' },
+  { term: 'Nebulizer', phonetic: '/ˈnɛbjʊlaɪzər/', syllables: 'Neb-u-liz-er', definition: 'A device for producing a fine spray of liquid, used for inhaling a medicinal drug.' },
+  { term: 'Neoplasm', phonetic: '/ˈniːoʊˌplæzəm/', syllables: 'Ne-o-plasm', definition: 'A new and abnormal growth of tissue in some part of the body, especially as a characteristic of cancer.' },
+  { term: 'Neuralgia', phonetic: '/njʊˈrældʒə/', syllables: 'Neu-ral-gi-a', definition: 'Intense, typically intermittent pain along the course of a nerve.' },
+  { term: 'Neuropathy', phonetic: '/njʊˈrɒpəθi/', syllables: 'Neu-rop-a-thy', definition: 'Disease or dysfunction of one or more peripheral nerves.' },
+  { term: 'Neutropenia', phonetic: '/ˌnjuːtrəˈpiːniə/', syllables: 'Neu-tro-pe-ni-a', definition: 'The presence of abnormally few neutrophils in the blood.' },
+  { term: 'Nystagmus', phonetic: '/nɪˈstæɡməs/', syllables: 'Nys-tag-mus', definition: 'Rapid involuntary movements of the eyes.' },
+  { term: 'Oliguria', phonetic: '/ˌɒlɪˈɡjʊəriə/', syllables: 'Ol-i-gu-ri-a', definition: 'The production of abnormally small amounts of urine.' },
+  { term: 'Oncology', phonetic: '/ɒnˈkɒlədʒi/', syllables: 'On-col-o-gy', definition: 'The study and treatment of tumors.' },
+  { term: 'Ophthalmoscope', phonetic: '/ɒfˈθælməˌskoʊp/', syllables: 'Oph-thal-mo-scope', definition: 'An instrument for inspecting the retina and other parts of the eye.' },
+  { term: 'Orthostatic', phonetic: '/ˌɔːrθəˈstætɪk/', syllables: 'Or-tho-stat-ic', definition: 'Relating to or caused by an upright posture.' },
+  { term: 'Otitis', phonetic: '/oʊˈtaɪtɪs/', syllables: 'O-ti-tis', definition: 'Inflammation of the ear.' },
+  { term: 'Otoscope', phonetic: '/ˈoʊtəˌskoʊp/', syllables: 'O-to-scope', definition: 'An instrument designed for visual examination of the eardrum and the passage of the outer ear.' },
+  { term: 'Palpation', phonetic: '/pælˈpeɪʃən/', syllables: 'Pal-pa-tion', definition: 'Examine (a part of the body) by touch, especially for medical purposes.' },
+  { term: 'Palpitation', phonetic: '/ˌpælpɪˈteɪʃən/', syllables: 'Pal-pi-ta-tion', definition: 'A noticeably rapid, strong, or irregular heartbeat due to agitation, exertion, or illness.' },
+  { term: 'Pancreatitis', phonetic: '/ˌpæŋkriəˈtaɪtɪs/', syllables: 'Pan-cre-a-ti-tis', definition: 'Inflammation of the pancreas.' },
+  { term: 'Paraplegia', phonetic: '/ˌpærəˈpliːdʒə/', syllables: 'Par-a-ple-gi-a', definition: 'Paralysis of the legs and lower body.' },
+  { term: 'Parasympathetic', phonetic: '/ˌpærəsɪmpəˈθɛtɪk/', syllables: 'Par-a-sym-pa-thet-ic', definition: 'Relating to the part of the automatic nervous system that counterbalances the action of the sympathetic nerves.' },
+  { term: 'Pathogen', phonetic: '/ˈpæθədʒən/', syllables: 'Path-o-gen', definition: 'A bacterium, virus, or other microorganism that can cause disease.' },
+  { term: 'Percussion', phonetic: '/pərˈkʌʃən/', syllables: 'Per-cus-sion', definition: 'The action of tapping a part of the body as part of a medical diagnosis.' },
+  { term: 'Pericarditis', phonetic: '/ˌpɛrɪkɑːrˈdaɪtɪs/', syllables: 'Per-i-car-di-tis', definition: 'Inflammation of the pericardium.' },
+  { term: 'Peristalsis', phonetic: '/ˌpɛrɪˈstælsɪs/', syllables: 'Per-i-stal-sis', definition: 'The involuntary constriction and relaxation of the muscles of the intestine.' },
+  { term: 'Petechiae', phonetic: '/pɪˈtiːkiˌaɪ/', syllables: 'Pe-te-chi-ae', definition: 'Small red or purple spots caused by bleeding into the skin.' },
+  { term: 'Photophobia', phonetic: '/ˌfoʊtoʊˈfoʊbiə/', syllables: 'Pho-to-pho-bi-a', definition: 'Extreme sensitivity to light.' },
+  { term: 'Platelet', phonetic: '/ˈpleɪtlət/', syllables: 'Plate-let', definition: 'A small colorless disk-shaped cell fragment without a nucleus, found in large numbers in blood and involved in clotting.' },
+  { term: 'Pneumothorax', phonetic: '/ˌnjuːmoʊˈθɔːræks/', syllables: 'Pneu-mo-tho-rax', definition: 'The presence of air or gas in the cavity between the lungs and the chest wall, causing collapse of the lung.' },
+  { term: 'Polycythemia', phonetic: '/ˌpɒlisaɪˈθiːmiə/', syllables: 'Pol-y-cy-the-mi-a', definition: 'An abnormally increased concentration of hemoglobin in the blood.' },
+  { term: 'Postoperative', phonetic: '/ˌpoʊstˈɒpərətɪv/', syllables: 'Post-op-er-a-tive', definition: 'Relating to the period following a surgical operation.' },
+  { term: 'Preoperative', phonetic: '/ˌpriːˈɒpərətɪv/', syllables: 'Pre-op-er-a-tive', definition: 'Relating to the period before a surgical operation.' },
+  { term: 'Prescription', phonetic: '/prɪˈskrɪpʃən/', syllables: 'Pre-scrip-tion', definition: 'An instruction written by a medical practitioner that authorizes a patient to be provided with a medicine or treatment.' },
+  { term: 'Priapism', phonetic: '/ˈpraɪəpɪzəm/', syllables: 'Pri-a-pism', definition: 'Persistent and painful erection of the penis.' },
+  { term: 'Prophylaxis', phonetic: '/ˌproʊfɪˈlæksɪs/', syllables: 'Pro-phy-lax-is', definition: 'Action taken to prevent disease.' },
+  { term: 'Proteinuria', phonetic: '/ˌproʊtiːˈnjʊəriə/', syllables: 'Pro-tein-u-ri-a', definition: 'The presence of abnormal quantities of protein in the urine.' },
+  { term: 'Psoriasis', phonetic: '/səˈraɪəsɪs/', syllables: 'Pso-ri-a-sis', definition: 'A skin disease marked by red, itchy, scaly patches.' },
+  { term: 'Psychosis', phonetic: '/saɪˈkoʊsɪs/', syllables: 'Psy-cho-sis', definition: 'A severe mental disorder in which thought and emotions are so impaired that contact is lost with external reality.' },
+  { term: 'Ptosis', phonetic: '/ˈtoʊsɪs/', syllables: 'Pto-sis', definition: 'Drooping of the upper eyelid.' },
+  { term: 'Pyuria', phonetic: '/paɪˈjʊəriə/', syllables: 'Py-u-ri-a', definition: 'The presence of pus in the urine.' },
+  { term: 'Radiology', phonetic: '/ˌreɪdiˈɒlədʒi/', syllables: 'Ra-di-ol-o-gy', definition: 'The science dealing with X-rays and other high-energy radiation, especially for the diagnosis and treatment of disease.' },
+  { term: 'Rehabilitation', phonetic: '/ˌriːhəˌbɪlɪˈteɪʃən/', syllables: 'Re-ha-bil-i-ta-tion', definition: 'The action of restoring someone to health or normal life through training and therapy.' },
+  { term: 'Remission', phonetic: '/rɪˈmɪʃən/', syllables: 'Re-mis-sion', definition: 'A temporary diminution of the severity of disease or pain.' },
+  { term: 'Renal', phonetic: '/ˈriːnəl/', syllables: 'Re-nal', definition: 'Relating to the kidneys.' },
+  { term: 'Respiration', phonetic: '/ˌrɛspɪˈreɪʃən/', syllables: 'Res-pi-ra-tion', definition: 'The action of breathing.' },
+  { term: 'Retinopathy', phonetic: '/ˌrɛtɪˈnɒpəθi/', syllables: 'Ret-i-nop-a-thy', definition: 'Disease of the retina.' },
+  { term: 'Salivation', phonetic: '/ˌsælɪˈveɪʃən/', syllables: 'Sal-i-va-tion', definition: 'The process of secreting saliva.' },
+  { term: 'Sarcoma', phonetic: '/sɑːrˈkoʊmə/', syllables: 'Sar-co-ma', definition: 'A malignant tumor of connective or other nonepithelial tissue.' },
+  { term: 'Scleroderma', phonetic: '/ˌsklɪərəˈdɜːrmə/', syllables: 'Scle-ro-der-ma', definition: 'A chronic hardening and tightening of the skin and connective tissues.' },
+  { term: 'Seizure', phonetic: '/ˈsiːʒər/', syllables: 'Sei-zure', definition: 'A sudden attack of illness, especially a stroke or an epileptic fit.' },
+  { term: 'Sinusitis', phonetic: '/ˌsaɪnəˈsaɪtɪs/', syllables: 'Si-nus-i-tis', definition: 'Inflammation of a nasal sinus.' },
+  { term: 'Somatic', phonetic: '/soʊˈmætɪk/', syllables: 'So-mat-ic', definition: 'Relating to the body, especially as distinct from the mind.' },
+  { term: 'Spasm', phonetic: '/ˈspæzəm/', syllables: 'Spasm', definition: 'A sudden involuntary muscular contraction or convulsive movement.' },
+  { term: 'Sputum', phonetic: '/ˈspjuːtəm/', syllables: 'Spu-tum', definition: 'A mixture of saliva and mucus coughed up from the respiratory tract.' },
+  { term: 'Stat', phonetic: '/stæt/', syllables: 'Stat', definition: 'Immediately.' },
+  { term: 'Subcutaneous', phonetic: '/ˌsʌbkjuːˈteɪniəs/', syllables: 'Sub-cu-ta-ne-ous', definition: 'Situated or applied under the skin.' },
+  { term: 'Sympathetic', phonetic: '/ˌsɪmpəˈθɛtɪk/', syllables: 'Sym-pa-thet-ic', definition: 'Relating to the part of the autonomic nervous system that increases heart rate, blood pressure, etc.' },
+  { term: 'Symptom', phonetic: '/ˈsɪmptəm/', syllables: 'Symp-tom', definition: 'A physical or mental feature which is regarded as indicating a condition of disease.' },
+  { term: 'Syncope', phonetic: '/ˈsɪŋkəpi/', syllables: 'Syn-co-pe', definition: 'Temporary loss of consciousness caused by a fall in blood pressure.' },
+  { term: 'Syndrome', phonetic: '/ˈsɪndroʊm/', syllables: 'Syn-drome', definition: 'A group of symptoms which consistently occur together.' },
+  { term: 'Systemic', phonetic: '/sɪˈstɛmɪk/', syllables: 'Sys-tem-ic', definition: 'Relating to a system, especially as opposed to a particular part.' },
+  { term: 'Systolic', phonetic: '/sɪˈstɒlɪk/', syllables: 'Sys-tol-ic', definition: 'Relating to the phase of the heartbeat when the heart muscle contracts.' },
+  { term: 'Tachycardia', phonetic: '/ˌtækɪˈkɑːrdiə/', syllables: 'Tach-y-car-di-a', definition: 'An abnormally rapid heart rate.' },
+  { term: 'Therapeutic', phonetic: '/ˌθɛrəˈpjuːtɪk/', syllables: 'Ther-a-peu-tic', definition: 'Relating to the healing of disease.' },
+  { term: 'Thoracic', phonetic: '/θɔːˈræsɪk/', syllables: 'Tho-rac-ic', definition: 'Relating to the thorax (chest).' },
+  { term: 'Thrombocytopenia', phonetic: '/ˌθrɒmboʊˌsaɪtəˈpiːniə/', syllables: 'Throm-bo-cy-to-pe-ni-a', definition: 'Deficiency of platelets in the blood.' },
+  { term: 'Thyroiditis', phonetic: '/ˌθaɪrɔɪˈdaɪtɪs/', syllables: 'Thy-roid-i-tis', definition: 'Inflammation of the thyroid gland.' },
+  { term: 'Toxicity', phonetic: '/tɒkˈsɪsɪti/', syllables: 'Tox-ic-i-ty', definition: 'The quality of being toxic or poisonous.' },
+  { term: 'Tracheostomy', phonetic: '/ˌtreɪkiˈɒstəmi/', syllables: 'Tra-che-os-to-my', definition: 'An incision in the windpipe made to relieve an obstruction to breathing.' },
+  { term: 'Transfusion', phonetic: '/trænsˈfjuːʒən/', syllables: 'Trans-fu-sion', definition: 'An act of transferring donated blood, blood products, or other fluids into the circulatory system.' },
+  { term: 'Trauma', phonetic: '/ˈtrɔːmə/', syllables: 'Trau-ma', definition: 'A deeply distressing or disturbing experience; or physical injury.' },
+  { term: 'Uremia', phonetic: '/jʊˈriːmiə/', syllables: 'U-re-mi-a', definition: 'A raised level in the blood of urea and other nitrogenous waste compounds.' },
+  { term: 'Urethritis', phonetic: '/ˌjʊərɪˈθraɪtɪs/', syllables: 'U-re-thri-tis', definition: 'Inflammation of the urethra.' },
+  { term: 'Urinalysis', phonetic: '/ˌjʊərɪˈnæləsɪs/', syllables: 'U-ri-nal-y-sis', definition: 'Analysis of urine by physical, chemical, and microscopical means.' },
+  { term: 'Urology', phonetic: '/jʊˈrɒlədʒi/', syllables: 'U-rol-o-gy', definition: 'The branch of medicine and physiology concerned with the function and disorders of the urinary system.' },
+  { term: 'Vaccination', phonetic: '/ˌvæksɪˈneɪʃən/', syllables: 'Vac-ci-na-tion', definition: 'Treatment with a vaccine to produce immunity against a disease.' },
+  { term: 'Vascular', phonetic: '/ˈvæskjələr/', syllables: 'Vas-cu-lar', definition: 'Relating to, affecting, or consisting of a vessel or vessels, especially those which carry blood.' },
+  { term: 'Vasoconstriction', phonetic: '/ˌveɪzoʊkənˈstrɪkʃən/', syllables: 'Va-so-con-stric-tion', definition: 'The constriction of blood vessels, which increases blood pressure.' },
+  { term: 'Vasodilation', phonetic: '/ˌveɪzoʊdaɪˈleɪʃən/', syllables: 'Va-so-di-la-tion', definition: 'The dilatation of blood vessels, which decreases blood pressure.' },
+  { term: 'Vena Cava', phonetic: '/ˌviːnə ˈkeɪvə/', syllables: 'Ve-na Ca-va', definition: 'A large vein carrying deoxygenated blood into the heart.' },
+  { term: 'Venous', phonetic: '/ˈviːnəs/', syllables: 'Ve-nous', definition: 'Relating to a vein or the veins.' },
+  { term: 'Ventricle', phonetic: '/ˈvɛntrɪkəl/', syllables: 'Ven-tri-cle', definition: 'A hollow part or cavity in an organ, especially in the brain or heart.' },
+  { term: 'Virology', phonetic: '/vaɪˈrɒlədʒi/', syllables: 'Vi-rol-o-gy', definition: 'The branch of science that deals with the study of viruses.' },
+  { term: 'Visceral', phonetic: '/ˈvɪsərəl/', syllables: 'Vis-cer-al', definition: 'Relating to the viscera (internal organs).' },
+  { term: 'Vulvitis', phonetic: '/vʌlˈvaɪtɪs/', syllables: 'Vul-vi-tis', definition: 'Inflammation of the vulva.' }
 ];

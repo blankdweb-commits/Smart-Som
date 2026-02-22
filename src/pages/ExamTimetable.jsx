@@ -1,7 +1,8 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import ExamForm from '../components/ExamForm';
-import { Plus, Calendar as CalendarIcon, MapPin, Clock, Edit2, Trash2, Download, AlertCircle, LayoutGrid, List } from 'lucide-react';
+import Toast from '../components/Toast';
+import { Plus, Calendar as CalendarIcon, MapPin, Clock, Edit2, Trash2, Download, AlertCircle, LayoutGrid, List, Award } from 'lucide-react';
 import { format, differenceInDays, isSameDay, parseISO } from 'date-fns';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
@@ -13,7 +14,18 @@ const ExamTimetable = () => {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingExam, setEditingExam] = useState(null);
   const [view, setView] = useState('list'); // 'list' or 'calendar'
+  const [toast, setToast] = useState(null);
   const timetableRef = useRef();
+
+  useEffect(() => {
+    const upcomingSoon = exams.filter(e => {
+      const diff = differenceInDays(new Date(e.date), new Date());
+      return diff >= 0 && diff <= 3;
+    });
+    if (upcomingSoon.length > 0) {
+      setToast({ message: `You have ${upcomingSoon.length} exams coming up within 3 days! Keep studying.`, type: 'info' });
+    }
+  }, [exams]);
 
   const getStatusColor = (date) => {
     const today = new Date();
@@ -74,6 +86,14 @@ const ExamTimetable = () => {
   };
 
   const sortedExams = [...exams].sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  // Cross-referencing logic: Find matching subjects in flashcards
+  const { flashcards } = useAppContext();
+  const getRevisionSuggestions = (examTitle) => {
+    const title = examTitle.toLowerCase();
+    const subjects = [...new Set(flashcards.map(c => c.subject))];
+    return subjects.filter(s => title.includes(s.toLowerCase()) || s.toLowerCase().includes(title));
+  };
 
   return (
     <div className="space-y-6 pb-20">
@@ -198,6 +218,40 @@ const ExamTimetable = () => {
         )}
       </div>
 
+      {/* Revision Suggestions */}
+      {exams.length > 0 && (
+        <div className="mt-8 bg-indigo-50 dark:bg-indigo-900/10 p-6 rounded-2xl border border-indigo-100 dark:border-indigo-900/30">
+          <div className="flex items-center gap-2 mb-4">
+            <Award className="text-indigo-600" size={24} />
+            <h3 className="text-xl font-bold text-slate-800 dark:text-white">Smart Revision Assistant</h3>
+          </div>
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {sortedExams.filter(e => differenceInDays(new Date(e.date), new Date()) >= 0).slice(0, 3).map(exam => {
+              const suggestions = getRevisionSuggestions(exam.title);
+              return (
+                <div key={exam.id} className="bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-indigo-50 dark:border-indigo-900/20">
+                  <p className="font-bold text-slate-800 dark:text-white mb-2">{exam.title}</p>
+                  {suggestions.length > 0 ? (
+                    <div className="space-y-2">
+                      <p className="text-xs text-slate-500 uppercase font-bold tracking-tight">Recommended Decks:</p>
+                      <div className="flex flex-wrap gap-2">
+                        {suggestions.map(s => (
+                          <span key={s} className="px-2 py-1 bg-indigo-100 dark:bg-indigo-900 text-indigo-700 dark:text-indigo-300 rounded text-xs font-medium">
+                            {s}
+                          </span>
+                        ))}
+                      </div>
+                    </div>
+                  ) : (
+                    <p className="text-xs text-slate-400 italic">No matching flashcards found. Create some for better preparation!</p>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-8">
         <div className="p-4 bg-green-50 dark:bg-green-900/10 border border-green-100 dark:border-green-900/30 rounded-xl flex items-start">
           <AlertCircle className="text-green-600 mr-3 shrink-0" size={20} />
@@ -228,6 +282,7 @@ const ExamTimetable = () => {
         onSubmit={handleFormSubmit}
         initialData={editingExam}
       />
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 };

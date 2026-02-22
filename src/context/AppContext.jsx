@@ -60,6 +60,9 @@ export const AppProvider = ({ children }) => {
       ...card,
       id: Date.now().toString(),
       createdAt: new Date().toISOString(),
+      category: card.category || 'Academic',
+      level: card.level || 'Year 1',
+      semester: card.semester || 'Semester 1',
       srs: {
         interval: 0,
         reps: 0,
@@ -112,6 +115,9 @@ export const AppProvider = ({ children }) => {
     const newCards = importedCards.filter(c => !existingIds.has(c.id)).map(c => ({
       ...c,
       id: c.id || Date.now().toString() + Math.random().toString(36).substr(2, 9),
+      category: c.category || 'Academic',
+      level: c.level || 'Year 1',
+      semester: c.semester || 'Semester 1',
       srs: c.srs || { interval: 0, reps: 0, efactor: 2.5, nextReview: new Date().toISOString() }
     }));
     setFlashcards([...flashcards, ...newCards]);

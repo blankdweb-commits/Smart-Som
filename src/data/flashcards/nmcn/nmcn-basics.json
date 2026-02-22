@@ -1,0 +1,62 @@
+[
+  {
+    "id": "nmcn-1",
+    "subject": "NMCN Paper 1",
+    "topic": "Nursing Procedures",
+    "question": "What is the correct angle for an intramuscular injection in an adult?",
+    "answer": "90 degrees.",
+    "difficulty": "Easy",
+    "important": true,
+    "category": "NMCN",
+    "level": "Council Exam",
+    "semester": "CBT Prep"
+  },
+  {
+    "id": "nmcn-2",
+    "subject": "NMCN Paper 1",
+    "topic": "Anatomy",
+    "question": "Which organ is responsible for the production of insulin?",
+    "answer": "The Pancreas (specifically the Islets of Langerhans).",
+    "difficulty": "Easy",
+    "important": false,
+    "category": "NMCN",
+    "level": "Council Exam",
+    "semester": "CBT Prep"
+  },
+  {
+    "id": "nmcn-3",
+    "subject": "NMCN Paper 2",
+    "topic": "Maternal Health",
+    "question": "Define the first stage of labor.",
+    "answer": "It begins with the onset of true labor contractions and ends with full dilation of the cervix (10 cm).",
+    "difficulty": "Moderate",
+    "important": true,
+    "category": "NMCN",
+    "level": "Council Exam",
+    "semester": "CBT Prep"
+  },
+  {
+    "id": "nmcn-4",
+    "subject": "NMCN Paper 3",
+    "topic": "Community Health",
+    "question": "What are the components of the GOBI-FFF strategy in Primary Health Care?",
+    "answer": "Growth monitoring, Oral rehydration, Breastfeeding, Immunization, Female education, Family spacing, Food supplementation.",
+    "difficulty": "Hard",
+    "important": true,
+    "category": "NMCN",
+    "level": "Council Exam",
+    "semester": "CBT Prep"
+  },
+  {
+    "id": "nmcn-5",
+    "subject": "NMCN Paper 1",
+    "topic": "Pharmacology",
+    "question": "What is the antidote for heparin overdose?",
+    "answer": "Protamine sulfate.",
+    "difficulty": "Moderate",
+    "important": true,
+    "category": "NMCN",
+    "level": "Council Exam",
+    "semester": "CBT Prep"
+  }
+]

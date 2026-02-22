@@ -11,6 +11,8 @@ const Sidebar = () => {
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
     { name: 'Flashcards', icon: BookOpen, path: '/flashcards' },
+    { name: 'NCLEX Prep', icon: BookOpen, path: '/nclex' },
+    { name: 'NMCN Prep', icon: BookOpen, path: '/nmcn' },
     { name: 'Exam Timetable', icon: Calendar, path: '/exams' },
     { name: 'Pronunciation', icon: Volume2, path: '/pronunciation' },
   ];
