@@ -171,18 +171,33 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
             </button>
             <h3 className="text-2xl font-bold">{currentLevel} - {currentSemester}</h3>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {subjects.map(subject => (
-                <button
-                  key={subject}
-                  onClick={() => setCurrentSubject(subject)}
-                  className="p-4 bg-white dark:bg-slate-800 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 hover:bg-medical-50 dark:hover:bg-medical-900/20 transition-all text-left"
-                >
-                  <h5 className="font-bold text-slate-800 dark:text-white truncate">{subject}</h5>
-                  <span className="text-xs text-slate-500">
-                    {categoryCards.filter(c => c.level === currentLevel && c.semester === currentSemester && c.subject === subject).length} cards
-                  </span>
-                </button>
-              ))}
+              {subjects.map(subject => {
+                const isOSCE = subject === 'OSCE Procedures';
+                const isQuickRef = subject === 'Quick Reference';
+                return (
+                  <button
+                    key={subject}
+                    onClick={() => setCurrentSubject(subject)}
+                    className={`p-4 rounded-xl shadow-sm border transition-all text-left group
+                      ${isOSCE ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-900/30 hover:bg-amber-100' :
+                        isQuickRef ? 'bg-indigo-50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-900/30 hover:bg-indigo-100' :
+                        'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:bg-medical-50 dark:hover:bg-medical-900/20'}
+                    `}
+                  >
+                    <div className="flex justify-between items-start">
+                      <h5 className={`font-bold truncate ${isOSCE ? 'text-amber-800 dark:text-amber-400' : isQuickRef ? 'text-indigo-800 dark:text-indigo-400' : 'text-slate-800 dark:text-white'}`}>
+                        {subject}
+                      </h5>
+                      {(isOSCE || isQuickRef) && <Award size={16} className={isOSCE ? 'text-amber-500' : 'text-indigo-500'} />}
+                    </div>
+                    <span className="text-xs text-slate-500">
+                      {categoryCards.filter(c => c.level === currentLevel && c.semester === currentSemester && c.subject === subject).length} cards
+                    </span>
+                    {isOSCE && <p className="text-[10px] mt-2 font-bold uppercase text-amber-600 dark:text-amber-500/70 tracking-tight">Essential Clinical Skills</p>}
+                    {isQuickRef && <p className="text-[10px] mt-2 font-bold uppercase text-indigo-600 dark:text-indigo-500/70 tracking-tight">High-Yield Facts</p>}
+                  </button>
+                );
+              })}
             </div>
           </div>
         )}

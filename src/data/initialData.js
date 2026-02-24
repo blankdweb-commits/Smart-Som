@@ -1,4 +1,4 @@
-import { medicalTerms as expandedTerms } from './medicalTerms';
+import expandedTerms from './medicalTerms';
 
 export const initialFlashcards = [
   {

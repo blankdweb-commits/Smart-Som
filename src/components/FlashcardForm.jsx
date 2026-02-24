@@ -5,7 +5,6 @@ import { generateFlashcardWithAI } from '../utils/ai';
 import MobileFriendlySelect from './MobileFriendlySelect';
 
 const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
-  const { deepSeekApiKey } = useAppContext();
   const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({
     subject: '',
@@ -59,7 +58,7 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
 
     setIsGenerating(true);
     try {
-      const result = await generateFlashcardWithAI(deepSeekApiKey, formData.topic, formData.subject);
+      const result = await generateFlashcardWithAI(formData.topic, formData.subject);
       setFormData(prev => ({
         ...prev,
         question: result.question,
@@ -143,21 +142,19 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
           <div>
             <div className="flex justify-between items-center mb-1">
               <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Topic</label>
-              {deepSeekApiKey && (
-                <button
-                  type="button"
-                  onClick={handleAiGenerate}
-                  disabled={isGenerating || !formData.topic || !formData.subject}
-                  className="flex items-center gap-1 text-xs font-bold text-medical-600 dark:text-medical-400 hover:text-medical-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                >
-                  {isGenerating ? (
-                    <Loader2 size={12} className="animate-spin" />
-                  ) : (
-                    <Sparkles size={12} />
-                  )}
-                  AI Generate
-                </button>
-              )}
+              <button
+                type="button"
+                onClick={handleAiGenerate}
+                disabled={isGenerating || !formData.topic || !formData.subject}
+                className="flex items-center gap-1 text-xs font-bold text-medical-600 dark:text-medical-400 hover:text-medical-700 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {isGenerating ? (
+                  <Loader2 size={12} className="animate-spin" />
+                ) : (
+                  <Sparkles size={12} />
+                )}
+                AI Generate
+              </button>
             </div>
             <input
               type="text"

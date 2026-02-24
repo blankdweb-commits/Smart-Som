@@ -1,18 +1,15 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Sun, Moon, Menu, X } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Sun, Moon, Menu, X, Award } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
-import { useState } from 'react';
 
-const Sidebar = () => {
+const Sidebar = ({ isOpen, setIsOpen }) => {
   const { darkMode, toggleDarkMode } = useAppContext();
-  const [isOpen, setIsOpen] = useState(false);
 
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
-    { name: 'Flashcards', icon: BookOpen, path: '/flashcards' },
-    { name: 'NCLEX Prep', icon: BookOpen, path: '/nclex' },
-    { name: 'NMCN Prep', icon: BookOpen, path: '/nmcn' },
+    { name: 'Academic Cards', icon: BookOpen, path: '/flashcards' },
+    { name: 'Professional Prep', icon: Award, path: '/prep' },
     { name: 'Exam Timetable', icon: Calendar, path: '/exams' },
     { name: 'Pronunciation', icon: Volume2, path: '/pronunciation' },
     { name: 'Settings', icon: Settings, path: '/settings' },
@@ -20,15 +17,7 @@ const Sidebar = () => {
 
   return (
     <>
-      {/* Mobile Menu Button */}
-      <button
-        className="fixed top-4 left-4 z-50 p-2 bg-medical-600 text-white rounded-md lg:hidden"
-        onClick={() => setIsOpen(!isOpen)}
-      >
-        {isOpen ? <X size={24} /> : <Menu size={24} />}
-      </button>
-
-      {/* Sidebar */}
+      {/* Sidebar - hidden on mobile, visible on large screens */}
       <div className={`
         fixed inset-y-0 left-0 z-40 w-64 bg-white dark:bg-slate-800 shadow-xl transform transition-transform duration-300 ease-in-out
         ${isOpen ? 'translate-x-0' : '-translate-x-full'}
@@ -80,13 +69,6 @@ const Sidebar = () => {
         </div>
       </div>
 
-      {/* Overlay for mobile */}
-      {isOpen && (
-        <div
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
-          onClick={() => setIsOpen(false)}
-        />
-      )}
     </>
   );
 };

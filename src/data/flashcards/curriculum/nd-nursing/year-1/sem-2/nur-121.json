@@ -1,123 +1,237 @@
 [
   {
     "id": "nur-121-001",
-    "subject": "Foundations of Nursing II",
-    "topic": "Basic nursing care skills, diagnostic procedures, aseptic techniques, and injection procedures",
-    "question": "What are pressure sores and what causes them?",
-    "answer": "Pressure sores (bedsores, decubitus ulcers) are localized injuries to skin and underlying tissue caused by prolonged pressure, shear, or friction. Causes include immobility, moisture, poor nutrition, and reduced sensation.",
-    "difficulty": "Intermediate",
-    "important": false,
+    "subject": "Foundation of Nursing II",
+    "topic": "Unit I: Administration of Drugs",
+    "question": "What are the 'Five Rights' of drug administration?",
+    "answer": "1. Right Patient: Verify with two identifiers (name, date of birth, hospital number). 2. Right Drug: Check medication label against order. 3. Right Dose: Verify calculation, check for high-alert medications. 4. Right Route: Confirm appropriate route (oral, IV, IM, etc.). 5. Right Time: Administer at scheduled time, check frequency. Additional 'Rights': Right documentation, Right indication, Right response, Right to refuse, Right education.",
+    "difficulty": "Easy",
     "category": "Academic",
     "level": "Year 1",
     "semester": "Semester 2",
     "course_code": "NUR 121",
     "tags": [
-      "pressure sores",
-      "skin care",
-      "complications"
-    ]
+      "medication administration",
+      "patient safety",
+      "five rights"
+    ],
+    "clinical_application": "Critical safety check to prevent medication errors and adverse drug events"
   },
   {
     "id": "nur-121-002",
-    "subject": "Foundations of Nursing II",
-    "topic": "Basic nursing care skills, diagnostic procedures, aseptic techniques, and injection procedures",
-    "question": "What are the common pressure areas in the body?",
-    "answer": "Sacrum, heels, elbows, shoulders, back of head, ears, hips (trochanters), ankles, knees, and any bony prominences when lying or sitting for prolonged periods.",
-    "difficulty": "Beginner",
-    "important": false,
+    "subject": "Foundation of Nursing II",
+    "topic": "Unit I: Administration of Drugs",
+    "question": "How do you calculate drug dosages for oral medications and injections?",
+    "answer": "Basic formula: Desired dose \u00f7 Stock strength \u00d7 Quantity = Amount to administer. Oral: D/H \u00d7 Q. Injections: D/H \u00d7 Q (where D=desired, H=have, Q=quantity/volume). IV flow rates: Total volume (ml) \u00f7 Time (hours) = ml/hr. Drops per minute: (Volume \u00d7 Drop factor) \u00f7 Time in minutes. Pediatric dosing based on weight (mg/kg) or body surface area. Critical care: mcg/kg/min calculations.",
+    "difficulty": "Moderate",
     "category": "Academic",
     "level": "Year 1",
     "semester": "Semester 2",
     "course_code": "NUR 121",
     "tags": [
-      "pressure areas",
-      "positioning"
-    ]
+      "dosage calculation",
+      "medication math",
+      "drug calculation"
+    ],
+    "clinical_application": "Essential for accurate medication administration, preventing under/overdosing, especially in pediatrics and critical care"
   },
   {
     "id": "nur-121-003",
-    "subject": "Foundations of Nursing II",
-    "topic": "Basic nursing care skills, diagnostic procedures, aseptic techniques, and injection procedures",
-    "question": "What is included in vital signs measurement?",
-    "answer": "Temperature, Pulse, Respiration, Blood Pressure (TPR/BP). Some sources also include oxygen saturation and pain as additional vital signs.",
-    "difficulty": "Beginner",
-    "important": false,
+    "subject": "Foundation of Nursing II",
+    "topic": "Unit I: Administration of Drugs",
+    "question": "Describe the procedure for intramuscular injection",
+    "answer": "Sites: Ventrogluteal (preferred), dorsogluteal, deltoid, vastus lateralis. Procedure: 1. Verify order, perform hand hygiene. 2. Gather equipment: syringe, needle (22-25G), medication, alcohol swab, gauze. 3. Identify patient, explain procedure. 4. Prepare medication using aseptic technique. 5. Position patient appropriately. 6. Identify landmark, clean site in circular motion. 7. Insert needle at 90\u00b0 angle quickly. 8. Aspirate (controversial; check facility policy). 9. Inject slowly (10 sec/ml). 10. Withdraw, apply pressure. 11. Activate safety device, dispose properly. 12. Document.",
+    "difficulty": "Moderate",
     "category": "Academic",
     "level": "Year 1",
     "semester": "Semester 2",
     "course_code": "NUR 121",
     "tags": [
-      "vital signs",
-      "assessment"
-    ]
+      "IM injection",
+      "intramuscular",
+      "injection technique"
+    ],
+    "clinical_application": "Common route for vaccines, antibiotics, hormones; requires proper technique to prevent injury and ensure absorption"
   },
   {
     "id": "nur-121-004",
-    "subject": "Foundations of Nursing II",
-    "topic": "Basic nursing care skills, diagnostic procedures, aseptic techniques, and injection procedures",
-    "question": "What are the routes of drug administration?",
-    "answer": "Oral, intravenous (IV), intramuscular (IM), subcutaneous, intradermal, sublingual, topical, rectal, vaginal, inhalation, intrathecal, and intraosseous.",
-    "difficulty": "Intermediate",
-    "important": false,
+    "subject": "Foundation of Nursing II",
+    "topic": "Unit I: Administration of Drugs",
+    "question": "What is the procedure for intravenous injection?",
+    "answer": "1. Verify order, perform hand hygiene. 2. Gather equipment: syringe with prepared medication, tourniquet, alcohol swab, gauze, tape, IV cannula if not in situ. 3. Identify patient, explain procedure. 4. Select vein (cephalic, basilic, median cubital). 5. Apply tourniquet. 6. Clean site. 7. Insert cannula at 15-30\u00b0 angle, look for flashback. 8. Advance, remove stylet, attach extension set/flush. 9. Secure with dressing. 10. Administer medication slowly per guidelines (push rate). 11. Observe for infiltration, extravasation, adverse reactions. 12. Flush after administration. 13. Document.",
+    "difficulty": "Hard",
     "category": "Academic",
     "level": "Year 1",
     "semester": "Semester 2",
     "course_code": "NUR 121",
     "tags": [
-      "drug administration",
-      "routes"
-    ]
+      "IV injection",
+      "intravenous",
+      "cannulation"
+    ],
+    "clinical_application": "Critical for emergency medications, chemotherapy, and drugs requiring rapid onset; high risk for complications"
   },
   {
     "id": "nur-121-005",
-    "subject": "Foundations of Nursing II",
-    "topic": "Basic nursing care skills, diagnostic procedures, aseptic techniques, and injection procedures",
+    "subject": "Foundation of Nursing II",
+    "topic": "Unit I: Administration of Drugs",
+    "question": "How do you administer eye drops correctly?",
+    "answer": "1. Verify order, perform hand hygiene. 2. Gather medication, gloves, tissues. 3. Identify patient, explain procedure. 4. Position patient sitting or lying with head tilted back. 5. Remove contact lenses if present. 6. Remove cap, avoid touching dropper tip. 7. Gently pull down lower lid to create conjunctival sac. 8. Ask patient to look up. 9. Instill prescribed number of drops into sac, not directly on cornea. 10. Release lid, ask patient to close eyes gently. 11. Apply gentle pressure to inner canthus (nasolacrimal occlusion) for 1-2 minutes to reduce systemic absorption. 12. Wait 5 minutes between different eye drops. 13. Document.",
+    "difficulty": "Moderate",
+    "category": "Academic",
+    "level": "Year 1",
+    "semester": "Semester 2",
+    "course_code": "NUR 121",
+    "tags": [
+      "eye drops",
+      "ophthalmic",
+      "medication administration"
+    ],
+    "clinical_application": "Common for glaucoma, infections, allergies; proper technique ensures effectiveness and reduces systemic effects"
+  },
+  {
+    "id": "nur-121-006",
+    "subject": "Foundation of Nursing II",
+    "topic": "Unit II: Aseptic Techniques",
+    "question": "What are the principles of aseptic technique?",
+    "answer": "1. Only sterile items touch sterile areas. 2. Sterile surfaces contact only sterile surfaces. 3. Keep sterile fields dry (moisture wicks bacteria). 4. Consider edges of sterile field as contaminated. 5. Never turn back on sterile field. 6. Keep sterile items above waist level (in view). 7. Avoid talking, coughing, sneezing over sterile field. 8. Minimize air movement. 9. Use sterile gloves when touching sterile items. 10. Open sterile packages away from sterile field first. 11. Maintain sterile field at all times.",
+    "difficulty": "Moderate",
+    "category": "Academic",
+    "level": "Year 1",
+    "semester": "Semester 2",
+    "course_code": "NUR 121",
+    "tags": [
+      "aseptic technique",
+      "sterile technique",
+      "infection prevention"
+    ],
+    "clinical_application": "Essential for wound care, catheter insertion, surgery, and any procedure breaching sterile body areas"
+  },
+  {
+    "id": "nur-121-007",
+    "subject": "Foundation of Nursing II",
+    "topic": "Unit II: Aseptic Techniques",
+    "question": "Differentiate between sterilization, disinfection, and decontamination",
+    "answer": "Sterilization: Complete elimination of all microorganisms including spores. Methods: Autoclaving (steam under pressure), dry heat, ethylene oxide gas, radiation. Used for surgical instruments, implants. Disinfection: Eliminates pathogens but not necessarily all spores. High-level: Kills all except some spores (boiling, chemical sterilants). Intermediate: Kills TB, viruses, bacteria (alcohol, bleach). Low-level: Kills some bacteria/viruses (quaternary ammonium). Decontamination: Process reducing microorganisms to safe level (cleaning with detergent).",
+    "difficulty": "Moderate",
+    "category": "Academic",
+    "level": "Year 1",
+    "semester": "Semester 2",
+    "course_code": "NUR 121",
+    "tags": [
+      "sterilization",
+      "disinfection",
+      "decontamination",
+      "infection control"
+    ],
+    "clinical_application": "Guides proper processing of equipment based on Spaulding classification (critical, semi-critical, non-critical items)"
+  },
+  {
+    "id": "nur-121-008",
+    "subject": "Foundation of Nursing II",
+    "topic": "Unit II: Aseptic Techniques",
+    "question": "Describe the technique for wound dressing",
+    "answer": "1. Assess wound, gather appropriate supplies. 2. Perform hand hygiene, don gloves. 3. Position patient, provide privacy. 4. Remove old dressing, observe drainage. 5. Remove gloves, perform hand hygiene. 6. Open sterile dressing tray using aseptic technique. 7. Don sterile gloves. 8. Clean wound: From cleanest to dirtiest area, using circular motion from center outward. Use new swab for each stroke. 9. Apply prescribed ointment/medication. 10. Place sterile dressing over wound. 11. Secure with tape. 12. Dispose of contaminated materials properly. 13. Document wound appearance, drainage, patient response.",
+    "difficulty": "Moderate",
+    "category": "Academic",
+    "level": "Year 1",
+    "semester": "Semester 2",
+    "course_code": "NUR 121",
+    "tags": [
+      "wound dressing",
+      "aseptic technique",
+      "wound care"
+    ],
+    "clinical_application": "Promotes healing, prevents infection, allows wound assessment, and provides patient comfort"
+  },
+  {
+    "id": "nur-121-009",
+    "subject": "Foundation of Nursing II",
+    "topic": "Unit II: Aseptic Techniques",
+    "question": "How do you remove sutures?",
+    "answer": "1. Verify order, assess wound healing (typically 7-14 days post-op). 2. Perform hand hygiene, gather supplies: sterile suture removal kit (forceps, scissors), gloves, antiseptic swabs, dressing. 3. Explain procedure, position patient. 4. Clean wound with antiseptic. 5. Using sterile forceps, gently lift suture knot. 6. Cut suture close to skin on one side (avoid cutting visible part above skin). 7. Gently pull suture out with forceps toward wound line. 8. Count sutures removed. 9. Assess wound for dehiscence. 10. Apply sterile dressing if needed. 11. Document number removed, wound appearance, patient tolerance.",
+    "difficulty": "Moderate",
+    "category": "Academic",
+    "level": "Year 1",
+    "semester": "Semester 2",
+    "course_code": "NUR 121",
+    "tags": [
+      "suture removal",
+      "wound healing",
+      "post-operative care"
+    ],
+    "clinical_application": "Removes non-absorbable sutures after wound healing; incorrect technique can cause wound dehiscence"
+  },
+  {
+    "id": "nur-121-010",
+    "subject": "Foundation of Nursing II",
+    "topic": "Unit III: Injection Safety",
     "question": "What are the risks associated with unsafe injection practices?",
-    "answer": "Transmission of blood-borne pathogens (HIV, Hepatitis B/C), abscesses, nerve damage, allergic reactions, medication errors, and needlestick injuries.",
-    "difficulty": "Intermediate",
-    "important": false,
+    "answer": "1. Transmission of bloodborne pathogens: HIV, Hepatitis B, Hepatitis C. 2. Bacterial infections: Abscesses, sepsis. 3. Nerve damage: Needle injury to peripheral nerves. 4. Tissue necrosis from incorrect injection. 5. Allergic reactions. 6. Medication errors. 7. Needlestick injuries to healthcare workers. 8. Toxic effects from incorrect medication/dose. 9. Abscess formation from contaminated equipment. 10. Psychological trauma. WHO estimates 1.3 million deaths annually from unsafe injections.",
+    "difficulty": "Moderate",
     "category": "Academic",
     "level": "Year 1",
     "semester": "Semester 2",
     "course_code": "NUR 121",
     "tags": [
       "injection safety",
-      "complications"
-    ]
+      "bloodborne pathogens",
+      "needlestick injury"
+    ],
+    "clinical_application": "Understanding risks motivates adherence to safe injection practices and proper sharps disposal"
   },
   {
-    "id": "nur-121-006",
-    "subject": "Foundations of Nursing II",
-    "topic": "Basic nursing care skills, diagnostic procedures, aseptic techniques, and injection procedures",
+    "id": "nur-121-011",
+    "subject": "Foundation of Nursing II",
+    "topic": "Unit III: Injection Safety",
+    "question": "What are the WHO recommendations for injection safety?",
+    "answer": "1. Use sterile equipment for each injection. 2. Prevent contamination of injection equipment. 3. Use aseptic technique. 4. Prevent needle stick injuries (safety-engineered devices). 5. Safe sharps disposal: puncture-proof containers, no recapping. 6. Avoid unnecessary injections. 7. Use single-dose vials when possible. 8. Proper hand hygiene. 9. Appropriate skin preparation. 10. Vaccinate healthcare workers against HBV. 11. Monitor and evaluate injection practices. 12. Educate patients and providers. One needle, one syringe, only one time.",
+    "difficulty": "Moderate",
+    "category": "Academic",
+    "level": "Year 1",
+    "semester": "Semester 2",
+    "course_code": "NUR 121",
+    "tags": [
+      "WHO",
+      "injection safety",
+      "guidelines"
+    ],
+    "clinical_application": "Standardized protocols to prevent injection-associated infections and injuries"
+  },
+  {
+    "id": "nur-121-012",
+    "subject": "Foundation of Nursing II",
+    "topic": "Unit IV: Healthcare Waste Management",
     "question": "How are healthcare wastes classified?",
-    "answer": "Infectious waste, pathological waste, sharps, pharmaceutical waste, chemical waste, radioactive waste, and general/non-hazardous waste.",
-    "difficulty": "Intermediate",
-    "important": false,
+    "answer": "1. Infectious waste: Contaminated with blood, body fluids, cultures. 2. Pathological waste: Human tissues, organs, body parts, fetuses. 3. Sharps: Needles, scalpels, broken glass. 4. Pharmaceutical waste: Expired, unused drugs. 5. Cytotoxic waste: Chemotherapy agents. 6. Chemical waste: Laboratory reagents, disinfectants. 7. Radioactive waste: Nuclear medicine, radiotherapy. 8. General waste: Non-hazardous (similar to household). Color coding: Yellow (infectious), Red (sharps), Black (general), Brown (chemical), etc.",
+    "difficulty": "Moderate",
     "category": "Academic",
     "level": "Year 1",
     "semester": "Semester 2",
     "course_code": "NUR 121",
     "tags": [
       "healthcare waste",
-      "classification"
-    ]
+      "waste classification",
+      "sharps disposal"
+    ],
+    "clinical_application": "Proper segregation reduces environmental impact, prevents injuries, and ensures regulatory compliance"
   },
   {
-    "id": "nur-121-007",
-    "subject": "Foundations of Nursing II",
-    "topic": "Basic nursing care skills, diagnostic procedures, aseptic techniques, and injection procedures",
-    "question": "What are the legal roles of a nurse as a healthcare provider?",
-    "answer": "Providing competent care according to standards, maintaining patient confidentiality, obtaining informed consent, accurate documentation, reporting incidents, following scope of practice, and advocating for patients.",
-    "difficulty": "Intermediate",
-    "important": false,
+    "id": "nur-121-013",
+    "subject": "Foundation of Nursing II",
+    "topic": "Unit IV: Healthcare Waste Management",
+    "question": "What are the key steps in healthcare waste management?",
+    "answer": "1. Segregation: Separate at point of generation using color-coded containers. 2. Collection: Regular collection in designated containers. 3. Storage: Secure, labeled area with limited access. 4. Transport: Safe internal and external transport. 5. Treatment: Autoclaving, incineration, chemical treatment. 6. Disposal: Landfill for treated waste. 7. Monitoring: Track waste streams, maintain records. 8. Training: Educate all healthcare workers. 9. Personal protective equipment. 10. Emergency procedures for spills.",
+    "difficulty": "Moderate",
     "category": "Academic",
     "level": "Year 1",
     "semester": "Semester 2",
     "course_code": "NUR 121",
     "tags": [
-      "legal",
-      "nurse role",
-      "ethics"
-    ]
+      "waste management",
+      "healthcare waste",
+      "infection control"
+    ],
+    "clinical_application": "Systematic approach to protect healthcare workers, public, and environment from hazardous waste"
   }
 ]

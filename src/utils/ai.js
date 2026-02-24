@@ -1,5 +1,8 @@
-export const generateFlashcardWithAI = async (apiKey, topic, subject) => {
-  if (!apiKey) throw new Error('DeepSeek API Key is required');
+export const generateFlashcardWithAI = async (topic, subject) => {
+  const apiKey = import.meta.env.VITE_DEEPSEEK_API_KEY;
+  if (!apiKey || apiKey === 'your_deepseek_api_key_here') {
+    throw new Error('Please configure a valid DeepSeek API Key in your .env file to use AI generation.');
+  }
 
   const prompt = `You are a professional Nursing and Midwifery educator.
   Generate a high-yield flashcard for the following topic and subject.
