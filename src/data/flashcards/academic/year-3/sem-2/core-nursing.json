@@ -1,0 +1,92 @@
+[
+  {
+    "id": "300-men-4",
+    "subject": "Mental Health",
+    "topic": "Bipolar Disorder",
+    "question": "What is 'Mania'?",
+    "answer": "A period of abnormally elevated or irritable mood, intense energy, racing thoughts, and other extreme behaviors.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "300-com-4",
+    "subject": "Community Health",
+    "topic": "Environment",
+    "question": "What is 'Vector Control'?",
+    "answer": "Methods used to limit or eradicate mammals, birds, insects, or other arthropods that transmit disease pathogens.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "300-eth-4",
+    "subject": "Ethics",
+    "topic": "Confidentiality",
+    "question": "Under what circumstance can patient confidentiality be breached?",
+    "answer": "When there is a legal requirement (e.g., reportable diseases) or a clear threat of harm to the patient or others.",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "300-res-2",
+    "subject": "Research",
+    "topic": "Hypothesis",
+    "question": "What is a 'Null Hypothesis'?",
+    "answer": "A statement that there is no significant difference or relationship between variables.",
+    "difficulty": "Hard",
+    "isImportant": false
+  },
+  {
+    "id": "300-men-5",
+    "subject": "Mental Health",
+    "topic": "Anxiety",
+    "question": "What is a 'Panic Attack'?",
+    "answer": "A sudden episode of intense fear that triggers severe physical reactions when there is no real danger or apparent cause.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "300-com-5",
+    "subject": "Community Health",
+    "topic": "Sanitation",
+    "question": "What is the primary goal of sewage treatment?",
+    "answer": "To remove contaminants from wastewater to produce an effluent that can be safely returned to the environment.",
+    "difficulty": "Moderate",
+    "isImportant": false
+  },
+  {
+    "id": "300-eth-5",
+    "subject": "Ethics",
+    "topic": "Justice",
+    "question": "What is 'Distributive Justice' in healthcare?",
+    "answer": "The fair and equitable distribution of healthcare resources.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "300-men-6",
+    "subject": "Mental Health",
+    "topic": "Addiction",
+    "question": "What is 'Tolerance' in the context of substance use?",
+    "answer": "A condition where higher doses of a drug are required to produce the same effect previously achieved with lower doses.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "300-com-6",
+    "subject": "Community Health",
+    "topic": "Demography",
+    "question": "What is 'Fertility Rate'?",
+    "answer": "The average number of children born to women of childbearing age in a population.",
+    "difficulty": "Moderate",
+    "isImportant": false
+  },
+  {
+    "id": "300-res-3",
+    "subject": "Research",
+    "topic": "Data Collection",
+    "question": "What is a 'Qualitative Research' approach?",
+    "answer": "An approach focused on understanding people's experiences, perspectives, and social reality through non-numerical data.",
+    "difficulty": "Hard",
+    "isImportant": false
+  }
+]

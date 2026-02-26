@@ -1,0 +1,92 @@
+[
+  {
+    "id": "200-ms-1",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Diabetes Mellitus",
+    "question": "What are the three 'Ps' of Diabetes Mellitus?",
+    "answer": "Polyuria (excessive urination), Polydipsia (excessive thirst), and Polyphagia (excessive hunger).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "200-pha-1",
+    "subject": "Pharmacology",
+    "topic": "Medication Administration",
+    "question": "What are the 'Five Rights' of medication administration?",
+    "answer": "Right Patient, Right Drug, Right Dose, Right Route, and Right Time.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "200-pha-2",
+    "subject": "Pharmacology",
+    "topic": "Analgesics",
+    "question": "What is the common antidote for Acetaminophen (Paracetamol) overdose?",
+    "answer": "N-acetylcysteine (Mucomyst).",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "200-nut-1",
+    "subject": "Nutrition",
+    "topic": "Vitamins",
+    "question": "A deficiency in Vitamin C leads to which condition?",
+    "answer": "Scurvy.",
+    "difficulty": "Easy",
+    "isImportant": false
+  },
+  {
+    "id": "200-ms-2",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Hypertension",
+    "question": "What is considered a 'Normal' blood pressure reading for an adult?",
+    "answer": "Less than 120/80 mmHg.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "200-rep-1",
+    "subject": "Reproductive Health",
+    "topic": "Pregnancy",
+    "question": "What is the standard duration of a human pregnancy in weeks?",
+    "answer": "40 weeks (280 days).",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "200-ms-3",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Pre-operative Care",
+    "question": "What does 'NPO' stand for, and why is it used before surgery?",
+    "answer": "Nil Per Os (Nothing by Mouth). It is used to prevent aspiration during anesthesia.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "200-pha-3",
+    "subject": "Pharmacology",
+    "topic": "Antibiotics",
+    "question": "Which antibiotic class is associated with a risk of tendon rupture?",
+    "answer": "Fluoroquinolones (e.g., Ciprofloxacin).",
+    "difficulty": "Hard",
+    "isImportant": false
+  },
+  {
+    "id": "200-ms-4",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Wound Care",
+    "question": "What is 'Debridement'?",
+    "answer": "The medical removal of dead, damaged, or infected tissue to improve the healing potential of the remaining healthy tissue.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "200-ms-5",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Respiratory",
+    "question": "What is the priority nursing intervention for a patient with acute shortness of breath?",
+    "answer": "Elevate the head of the bed (High Fowler's position) and assess oxygen saturation.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  }
+]

@@ -1,0 +1,92 @@
+[
+  {
+    "id": "100-ana-7",
+    "subject": "Anatomy",
+    "topic": "The Skin",
+    "question": "What is the outermost layer of the skin?",
+    "answer": "The Epidermis.",
+    "difficulty": "Easy",
+    "isImportant": false
+  },
+  {
+    "id": "100-phy-1",
+    "subject": "Physiology",
+    "topic": "Homeostasis",
+    "question": "What is 'Homeostasis'?",
+    "answer": "The state of steady internal, physical, and chemical conditions maintained by living systems.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "100-fon-4",
+    "subject": "Foundations",
+    "topic": "Body Mechanics",
+    "question": "When lifting a heavy object, where should you keep your center of gravity?",
+    "answer": "Low, by bending your knees and keeping the object close to your body.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "100-soc-1",
+    "subject": "Social Science",
+    "topic": "Maslow's Hierarchy",
+    "question": "What is the most basic level of Maslow's Hierarchy of Needs?",
+    "answer": "Physiological needs (food, water, warmth, rest).",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "100-fon-5",
+    "subject": "Foundations",
+    "topic": "Documentation",
+    "question": "What is the golden rule of nursing documentation?",
+    "answer": "If it wasn't documented, it wasn't done.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "100-ana-8",
+    "subject": "Anatomy",
+    "topic": "Muscular System",
+    "question": "What type of muscle is found in the walls of the heart?",
+    "answer": "Cardiac muscle.",
+    "difficulty": "Easy",
+    "isImportant": false
+  },
+  {
+    "id": "100-mic-2",
+    "subject": "Microbiology",
+    "topic": "Bacteria",
+    "question": "What is the difference between Gram-positive and Gram-negative bacteria?",
+    "answer": "Gram-positive bacteria have a thick peptidoglycan cell wall and stain purple; Gram-negative have a thin wall and stain pink/red.",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "100-ana-9",
+    "subject": "Anatomy",
+    "topic": "Endocrine",
+    "question": "Which gland is known as the 'Master Gland'?",
+    "answer": "The Pituitary Gland.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "100-fon-6",
+    "subject": "Foundations",
+    "topic": "Patient Safety",
+    "question": "How many side rails are typically considered a restraint if all are raised?",
+    "answer": "Four side rails (in most hospital policies).",
+    "difficulty": "Moderate",
+    "isImportant": false
+  },
+  {
+    "id": "100-phy-2",
+    "subject": "Physiology",
+    "topic": "Respiratory",
+    "question": "What is the primary muscle of respiration?",
+    "answer": "The Diaphragm.",
+    "difficulty": "Easy",
+    "isImportant": true
+  }
+]

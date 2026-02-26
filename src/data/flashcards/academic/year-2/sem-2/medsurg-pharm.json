@@ -1,0 +1,137 @@
+[
+  {
+    "id": "200-ms-12",
+    "subject": "Medical-Surgical",
+    "topic": "Orthopedics",
+    "question": "What is 'Compartment Syndrome'?",
+    "answer": "A painful and potentially serious condition caused by bleeding or swelling within an enclosed bundle of muscles (a muscle compartment).",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "200-pha-7",
+    "subject": "Pharmacology",
+    "topic": "Diuretics",
+    "question": "Which electrolyte should be closely monitored in a patient taking Furosemide (Lasix)?",
+    "answer": "Potassium (risk of Hypokalemia).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "200-ms-13",
+    "subject": "Medical-Surgical",
+    "topic": "Gastrointestinal",
+    "question": "What is the priority assessment for a patient with a new colostomy?",
+    "answer": "The stoma's color and appearance (it should be pink/red and moist).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "200-pha-8",
+    "subject": "Pharmacology",
+    "topic": "Antibiotics",
+    "question": "What is 'Red Man Syndrome' and which medication is it associated with?",
+    "answer": "A reaction characterized by flushing/rash of the face/neck/upper torso; associated with rapid infusion of Vancomycin.",
+    "difficulty": "Hard",
+    "isImportant": false
+  },
+  {
+    "id": "200-ms-14",
+    "subject": "Medical-Surgical",
+    "topic": "Respiratory",
+    "question": "What are the early signs of hypoxia?",
+    "answer": "Restlessness, tachycardia, and tachypnea.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "200-ms-15",
+    "subject": "Medical-Surgical",
+    "topic": "Fluid and Electrolytes",
+    "question": "What is 'Trousseau's Sign' and what does it indicate?",
+    "answer": "Carpal spasm induced by inflating a BP cuff above systolic pressure; indicates Hypocalcemia.",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "200-pha-9",
+    "subject": "Pharmacology",
+    "topic": "Cardiac",
+    "question": "What is the primary action of Nitroglycerin?",
+    "answer": "Vasodilation (decreasing preload and afterload, reducing myocardial oxygen demand).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "200-ms-16",
+    "subject": "Medical-Surgical",
+    "topic": "Hematology",
+    "question": "What is 'Leukopenia'?",
+    "answer": "A low white blood cell count.",
+    "difficulty": "Easy",
+    "isImportant": false
+  },
+  {
+    "id": "200-pha-10",
+    "subject": "Pharmacology",
+    "topic": "Endocrine",
+    "question": "What is the onset time for rapid-acting insulin (e.g., Lispro/Humalog)?",
+    "answer": "15 minutes.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "200-ms-17",
+    "subject": "Medical-Surgical",
+    "topic": "Integumentary",
+    "question": "What is the 'Rule of Nines' used for?",
+    "answer": "To estimate the percentage of Total Body Surface Area (TBSA) affected by burns.",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "200-pha-11",
+    "subject": "Pharmacology",
+    "topic": "Pain Management",
+    "question": "What is the most serious side effect of opioid analgesics?",
+    "answer": "Respiratory depression.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "200-ms-18",
+    "subject": "Medical-Surgical",
+    "topic": "Endocrine",
+    "question": "What are the clinical manifestations of Cushing's Syndrome?",
+    "answer": "Moon face, buffalo hump, truncal obesity, and purple striae.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "200-ms-19",
+    "subject": "Medical-Surgical",
+    "topic": "Neurology",
+    "question": "What is the difference between a TIA (Transient Ischemic Attack) and a Stroke?",
+    "answer": "A TIA is a 'mini-stroke' with symptoms resolving within 24 hours (usually much sooner); a Stroke results in permanent brain damage.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "200-pha-12",
+    "subject": "Pharmacology",
+    "topic": "Antipsychotics",
+    "question": "What are 'Extrapyramidal Symptoms' (EPS)?",
+    "answer": "Movement disorders such as akathisia, dystonia, and parkinsonism, often caused by antipsychotic medications.",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "200-ms-20",
+    "subject": "Medical-Surgical",
+    "topic": "Renal",
+    "question": "What is the priority nursing intervention for a patient with a renal calculus (kidney stone)?",
+    "answer": "Pain management and strain all urine.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  }
+]

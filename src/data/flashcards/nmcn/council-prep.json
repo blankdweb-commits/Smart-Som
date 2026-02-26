@@ -1,0 +1,137 @@
+[
+  {
+    "id": "nmcn-1",
+    "subject": "Community Health",
+    "topic": "PHC Principles",
+    "question": "What are the four pillars of Primary Health Care (PHC)?",
+    "answer": "1. Community Participation, 2. Intersectoral Collaboration, 3. Appropriate Technology, 4. Equity/Equitable Distribution.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nmcn-2",
+    "subject": "Midwifery",
+    "topic": "Stages of Labour",
+    "question": "What defines the second stage of labour?",
+    "answer": "From full dilatation of the cervix (10cm) to the delivery of the baby.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "nmcn-3",
+    "subject": "Nursing Ethics",
+    "topic": "Professionalism",
+    "question": "What is the primary function of the Nursing and Midwifery Council of Nigeria (NMCN)?",
+    "answer": "To regulate the education and practice of nursing and midwifery in Nigeria to ensure quality care and public protection.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "nmcn-4",
+    "subject": "Medical-Surgical",
+    "topic": "Infectious Diseases",
+    "question": "What is the vector for Lassa Fever?",
+    "answer": "The multimammate rat (Mastomys natalensis).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nmcn-5",
+    "subject": "Midwifery",
+    "topic": "Postpartum",
+    "question": "What is the primary cause of Postpartum Hemorrhage (PPH) in Nigeria?",
+    "answer": "Uterine Atony (failure of the uterus to contract after delivery).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nmcn-6",
+    "subject": "Community Health",
+    "topic": "Immunization",
+    "question": "In the Nigerian EPI schedule, at what age is the Pentavalent vaccine given?",
+    "answer": "6 weeks, 10 weeks, and 14 weeks.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nmcn-7",
+    "subject": "Medical-Surgical",
+    "topic": "Tropical Diseases",
+    "question": "What is the definitive diagnostic test for Malaria?",
+    "answer": "Microscopic examination of a thick and thin blood film (Giemsa stain).",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "nmcn-8",
+    "subject": "Nursing Ethics",
+    "topic": "Decree",
+    "question": "Which decree established the Nursing and Midwifery Council of Nigeria?",
+    "answer": "Decree No. 89 of 1979 (now CAP N143 Laws of the Federation of Nigeria 2004).",
+    "difficulty": "Hard",
+    "isImportant": false
+  },
+  {
+    "id": "nmcn-9",
+    "subject": "Fundamentals",
+    "topic": "Nursing History",
+    "question": "Who is considered the 'Mother of Modern Nursing'?",
+    "answer": "Florence Nightingale.",
+    "difficulty": "Easy",
+    "isImportant": false
+  },
+  {
+    "id": "nmcn-10",
+    "subject": "Medical-Surgical",
+    "topic": "Sickle Cell",
+    "question": "What is the priority nursing intervention for a patient in Sickle Cell Vaso-occlusive Crisis?",
+    "answer": "Hydration and Pain Management.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nmcn-11",
+    "subject": "Midwifery",
+    "topic": "Eclampsia",
+    "question": "What is the drug of choice for managing seizures in Eclampsia?",
+    "answer": "Magnesium Sulphate (MgSO4).",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "nmcn-12",
+    "subject": "Community Health",
+    "topic": "Sanitation",
+    "question": "What is the recommended distance between a borehole/well and a soakaway pit?",
+    "answer": "At least 30 meters (approx. 100 feet).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nmcn-13",
+    "subject": "Nursing Ethics",
+    "topic": "Confidentiality",
+    "question": "Under what NMCN rule can a nurse's license be suspended for professional misconduct?",
+    "answer": "The Nursing and Midwifery Council Rules on Professional Conduct.",
+    "difficulty": "Hard",
+    "isImportant": false
+  },
+  {
+    "id": "nmcn-14",
+    "subject": "Medical-Surgical",
+    "topic": "Tuberculosis",
+    "question": "What is the standard duration for the intensive phase of TB treatment in Nigeria?",
+    "answer": "2 months.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nmcn-15",
+    "subject": "Midwifery",
+    "topic": "Antenatal",
+    "question": "How often should a pregnant woman attend ANC in a low-risk pregnancy according to WHO/NMCN guidelines?",
+    "answer": "At least 8 contacts (previously 4).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  }
+]

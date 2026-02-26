@@ -1,0 +1,452 @@
+[
+  {
+    "id": "nclex-hy-1",
+    "subject": "Fundamentals",
+    "topic": "Prioritization",
+    "question": "Which client should the nurse see first after shift report?",
+    "answer": "The client with the most acute/unstable condition (Airway, Breathing, Circulation). For example, a client with new-onset shortness of breath or sudden chest pain.",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-2",
+    "subject": "Pharmacology",
+    "topic": "Digoxin",
+    "question": "What is the therapeutic range for Digoxin and signs of toxicity?",
+    "answer": "Range: 0.8 to 2.0 ng/mL. Signs of toxicity: Nausea, vomiting, anorexia, and visual disturbances (yellow-green halos).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-3",
+    "subject": "Pharmacology",
+    "topic": "Lithium",
+    "question": "What is the therapeutic range for Lithium and a key patient teaching point?",
+    "answer": "Range: 0.6 to 1.2 mEq/L. Teaching: Maintain adequate sodium and fluid intake to prevent toxicity.",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-4",
+    "subject": "Medical-Surgical",
+    "topic": "Diabetes Mellitus",
+    "question": "What are the signs of Hypoglycemia?",
+    "answer": "Shakiness, sweating (diaphoresis), palpitations, hunger, and confusion ('Cool and clammy, need some candy').",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-5",
+    "subject": "Medical-Surgical",
+    "topic": "Diabetes Mellitus",
+    "question": "What is the priority treatment for DKA (Diabetic Ketoacidosis)?",
+    "answer": "Normal Saline (IV fluids) first to address dehydration, followed by Regular Insulin IV.",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-6",
+    "subject": "Pharmacology",
+    "topic": "Anticoagulants",
+    "question": "What is the antidote for Heparin and what lab value is monitored?",
+    "answer": "Antidote: Protamine Sulfate. Lab: aPTT.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-7",
+    "subject": "Pharmacology",
+    "topic": "Anticoagulants",
+    "question": "What is the antidote for Warfarin and what lab value is monitored?",
+    "answer": "Antidote: Vitamin K. Lab: PT/INR.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-8",
+    "subject": "Medical-Surgical",
+    "topic": "Electrolytes",
+    "question": "What is the most dangerous complication of Hyperkalemia?",
+    "answer": "Cardiac dysrhythmias (Tall peaked T-waves).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-9",
+    "subject": "Medical-Surgical",
+    "topic": "Acid-Base Balance",
+    "question": "A patient has a pH of 7.30 and PaCO2 of 50. What is the interpretation?",
+    "answer": "Respiratory Acidosis.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-10",
+    "subject": "Fundamentals",
+    "topic": "Infection Control",
+    "question": "What PPE is required for a patient on Droplet Precautions?",
+    "answer": "Surgical mask.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-11",
+    "subject": "Medical-Surgical",
+    "topic": "Burn Care",
+    "question": "Using the Parkland Formula, how much fluid is given in the first 8 hours?",
+    "answer": "Half of the total 24-hour fluid volume (4mL x kg x %TBSA).",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-12",
+    "subject": "Medical-Surgical",
+    "topic": "Myocardial Infarction",
+    "question": "What is the priority nursing action for a patient with chest pain?",
+    "answer": "Administer Oxygen, then Morphine, Nitroglycerin, and Aspirin (MONA).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-13",
+    "subject": "Pediatrics",
+    "topic": "Developmental Milestones",
+    "question": "At what age should a child be able to sit unsupported?",
+    "answer": "8 months.",
+    "difficulty": "Moderate",
+    "isImportant": false
+  },
+  {
+    "id": "nclex-hy-14",
+    "subject": "Maternity",
+    "topic": "Preeclampsia",
+    "question": "What is the priority assessment for a patient on Magnesium Sulfate?",
+    "answer": "Deep tendon reflexes (DTRs), respiratory rate, and urine output (to monitor for toxicity).",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-15",
+    "subject": "Mental Health",
+    "topic": "Defense Mechanisms",
+    "question": "What is 'Sublimation'?",
+    "answer": "Channeling unacceptable impulses into socially acceptable activities (e.g., a person with anger issues taking up boxing).",
+    "difficulty": "Moderate",
+    "isImportant": false
+  },
+  {
+    "id": "nclex-hy-16",
+    "subject": "Fundamentals",
+    "topic": "Legal/Ethical",
+    "question": "What is 'Autonomy'?",
+    "answer": "The right of the patient to make their own decisions about their care.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-17",
+    "subject": "Medical-Surgical",
+    "topic": "Neurological",
+    "question": "What are the components of Cushing's Triad (indicating increased ICP)?",
+    "answer": "1. Hypertension (widening pulse pressure), 2. Bradycardia, 3. Irregular respirations.",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-18",
+    "subject": "Pharmacology",
+    "topic": "Antibiotics",
+    "question": "What is a major side effect of Aminoglycosides (e.g., Gentamicin)?",
+    "answer": "Ototoxicity (hearing loss/tinnitus) and Nephrotoxicity.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-19",
+    "subject": "Medical-Surgical",
+    "topic": "Endocrine",
+    "question": "What are the signs of Hyperthyroidism (Grave's Disease)?",
+    "answer": "Weight loss, heat intolerance, tachycardia, and exophthalmos.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-20",
+    "subject": "Fundamentals",
+    "topic": "Positioning",
+    "question": "What position should a patient be in after a Liver Biopsy?",
+    "answer": "Right side-lying (to apply pressure to the site and prevent bleeding).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-21",
+    "subject": "Mental Health",
+    "topic": "Therapeutic Communication",
+    "question": "A client with depression says, 'I'm a failure and I've let everyone down.' What is the most therapeutic response?",
+    "answer": "Focus on feelings: 'It sounds like you're feeling very overwhelmed and guilty right now.'",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-22",
+    "subject": "Mental Health",
+    "topic": "Lithium Toxicity",
+    "question": "What are the early signs of Lithium toxicity?",
+    "answer": "Nausea, vomiting, diarrhea, fine tremors, and muscle weakness. (Serum levels > 1.5 mEq/L).",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-23",
+    "subject": "Maternity",
+    "topic": "Placenta Previa vs. Abruptio Placentae",
+    "question": "What is the key difference in presentation between Placenta Previa and Abruptio Placentae?",
+    "answer": "Placenta Previa: Painless, bright red vaginal bleeding. Abruptio Placentae: Painful, dark red vaginal bleeding with board-like abdomen.",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-24",
+    "subject": "Maternity",
+    "topic": "Postpartum Hemorrhage (PPH)",
+    "question": "What is the first nursing action for a soft/boggy uterus postpartum?",
+    "answer": "Perform fundal massage until firm.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-25",
+    "subject": "Maternity",
+    "topic": "Fetal Heart Rate Patterns",
+    "question": "What do late decelerations indicate, and what is the priority action?",
+    "answer": "Uteroplacental insufficiency. Actions: Stop Oxytocin, turn client to left side, apply Oxygen by mask, increase IV fluids.",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-26",
+    "subject": "Pediatrics",
+    "topic": "Tetralogy of Fallot",
+    "question": "What position should a child be placed in during a 'Tet' (cyanotic) spell?",
+    "answer": "Knee-chest position (increases systemic vascular resistance).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-27",
+    "subject": "Pediatrics",
+    "topic": "Epiglottitis",
+    "question": "What is the priority nursing precaution for a child suspected of having Epiglottitis?",
+    "answer": "Do NOT examine the throat with a tongue depressor. Have emergency intubation equipment ready.",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-28",
+    "subject": "Fundamentals",
+    "topic": "Infection Control",
+    "question": "Which infections require Airborne Precautions?",
+    "answer": "Measles, Chickenpox (Varicella), Disseminated Herpes Zoster, Tuberculosis (MTB).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-29",
+    "subject": "Fundamentals",
+    "topic": "Infection Control",
+    "question": "What personal protective equipment (PPE) is required for Droplet Precautions?",
+    "answer": "Surgical mask within 3-6 feet of the client.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-30",
+    "subject": "Medical-Surgical",
+    "topic": "Chest Tube Management",
+    "question": "What does continuous bubbling in the water seal chamber indicate?",
+    "answer": "An air leak in the system.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-31",
+    "subject": "Fundamentals",
+    "topic": "Prioritization",
+    "question": "A nurse receives report on 4 clients. Who should be seen first?",
+    "answer": "The client with a change in mental status or airway issues. (e.g., A client with pneumonia who is now restless and confused).",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-32",
+    "subject": "Pharmacology",
+    "topic": "Safe Administration",
+    "question": "What is the most important assessment before giving a Beta-Blocker (e.g., Metoprolol)?",
+    "answer": "Blood pressure and Heart Rate (HR < 60, hold the med).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-33",
+    "subject": "Medical-Surgical",
+    "topic": "Endocrine",
+    "question": "What is 'Thyroid Storm'?",
+    "answer": "A life-threatening health condition that is associated with untreated or under-treated hyperthyroidism; symptoms include fever, tachycardia, and hypertension.",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-34",
+    "subject": "Pediatrics",
+    "topic": "Safety",
+    "question": "What is the 'Safe Sleep' recommendation for infants to prevent SIDS?",
+    "answer": "Place the infant on their back on a firm, flat sleep surface in a crib without blankets or toys.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-35",
+    "subject": "Medical-Surgical",
+    "topic": "Respiratory",
+    "question": "What is the 'PEEP' setting on a ventilator used for?",
+    "answer": "Positive End-Expiratory Pressure: it keeps the alveoli open at the end of expiration to improve oxygenation.",
+    "difficulty": "Hard",
+    "isImportant": false
+  },
+  {
+    "id": "nclex-hy-36",
+    "subject": "Pharmacology",
+    "topic": "Statins",
+    "question": "What is a major side effect of Atorvastatin that must be reported immediately?",
+    "answer": "Muscle pain or weakness (Rhabdomyolysis).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-37",
+    "subject": "Maternity",
+    "topic": "Neonatal",
+    "question": "What is 'Phototherapy' used for in newborns?",
+    "answer": "To treat hyperbilirubinemia (jaundice) by helping the body break down bilirubin in the skin.",
+    "difficulty": "Moderate",
+    "isImportant": false
+  },
+  {
+    "id": "nclex-hy-38",
+    "subject": "Mental Health",
+    "topic": "Restraints",
+    "question": "How often must a nurse check a patient in physical restraints?",
+    "answer": "Continuously or every 15-30 minutes depending on facility policy; the order must be renewed every 4 hours for adults.",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-39",
+    "subject": "Fundamentals",
+    "topic": "Delegation",
+    "question": "What can a nurse delegate to an Unlicensed Assistive Personnel (UAP)?",
+    "answer": "Activities of Daily Living (ADLs), vital signs on stable patients, and ambulation of stable patients. (No assessment, teaching, or meds).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-40",
+    "subject": "Medical-Surgical",
+    "topic": "Fluid & Electrolytes",
+    "question": "What is the priority intervention for Hyperkalemia?",
+    "answer": "Calcium Gluconate (to protect the heart), then Insulin with D50 or Kayexalate.",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-41",
+    "subject": "Medical-Surgical",
+    "topic": "Cardiac",
+    "question": "What is 'Atrial Fibrillation'?",
+    "answer": "An irregular, often rapid heart rate that commonly causes poor blood flow; major risk of blood clots and stroke.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-42",
+    "subject": "Medical-Surgical",
+    "topic": "Neurology",
+    "question": "What are the signs of Autonomic Dysreflexia?",
+    "answer": "Severe headache, extreme hypertension, bradycardia, and flushing above the level of spinal cord injury.",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-43",
+    "subject": "Pharmacology",
+    "topic": "MAOIs",
+    "question": "What dietary restriction is required for patients on MAOIs?",
+    "answer": "Avoid Tyramine-rich foods (aged cheese, wine, cured meats) to prevent hypertensive crisis.",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-44",
+    "subject": "Medical-Surgical",
+    "topic": "GI",
+    "question": "What is 'Dumping Syndrome'?",
+    "answer": "A condition that can develop after surgery to remove the whole or part of the stomach; symptoms include nausea, cramping, and diarrhea shortly after eating.",
+    "difficulty": "Moderate",
+    "isImportant": false
+  },
+  {
+    "id": "nclex-hy-45",
+    "subject": "Maternity",
+    "topic": "Stages",
+    "question": "What is the 'Transitional Phase' of labour?",
+    "answer": "The end of the first stage (8-10 cm dilatation); often the most intense phase.",
+    "difficulty": "Moderate",
+    "isImportant": false
+  },
+  {
+    "id": "nclex-hy-46",
+    "subject": "Pediatrics",
+    "topic": "Infection",
+    "question": "What is 'RSV' (Respiratory Syncytial Virus)?",
+    "answer": "A common respiratory virus that usually causes mild, cold-like symptoms but can be serious for infants (bronchiolitis).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-47",
+    "subject": "Fundamentals",
+    "topic": "Ethics",
+    "question": "What is 'Veracity'?",
+    "answer": "The obligation to tell the truth.",
+    "difficulty": "Easy",
+    "isImportant": false
+  },
+  {
+    "id": "nclex-hy-48",
+    "subject": "Medical-Surgical",
+    "topic": "Renal",
+    "question": "What is 'Oliguria'?",
+    "answer": "A urine output of less than 400 mL in 24 hours.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-49",
+    "subject": "Pharmacology",
+    "topic": "Diuretics",
+    "question": "What is the primary difference between Spironolactone and Furosemide?",
+    "answer": "Spironolactone is Potassium-sparing; Furosemide is Potassium-wasting.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "nclex-hy-50",
+    "subject": "Medical-Surgical",
+    "topic": "Vascular",
+    "question": "What is a 'DVT' (Deep Vein Thrombosis)?",
+    "answer": "A blood clot in a deep vein, usually in the legs; risk of Pulmonary Embolism (PE).",
+    "difficulty": "Easy",
+    "isImportant": true
+  }
+]

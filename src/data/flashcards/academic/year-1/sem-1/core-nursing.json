@@ -1,0 +1,182 @@
+[
+  {
+    "id": "100-ana-1",
+    "subject": "Anatomy",
+    "topic": "Skeletal System",
+    "question": "What is the longest and strongest bone in the human body?",
+    "answer": "The Femur (thigh bone).",
+    "difficulty": "Easy",
+    "isImportant": false
+  },
+  {
+    "id": "100-ana-2",
+    "subject": "Physiology",
+    "topic": "Circulatory System",
+    "question": "What is the primary function of Hemoglobin?",
+    "answer": "To transport oxygen from the lungs to the rest of the body and return carbon dioxide from the body to the lungs.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "100-ana-3",
+    "subject": "Anatomy",
+    "topic": "Digestive System",
+    "question": "Where does the majority of nutrient absorption occur?",
+    "answer": "The Small Intestine.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "100-fon-1",
+    "subject": "Foundations of Nursing",
+    "topic": "Vital Signs",
+    "question": "What is considered the 'normal' resting heart rate for an adult?",
+    "answer": "60 to 100 beats per minute.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "100-fon-2",
+    "subject": "Foundations of Nursing",
+    "topic": "Hand Hygiene",
+    "question": "What is the single most important way to prevent the spread of infection?",
+    "answer": "Handwashing/Hand hygiene.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "100-mic-1",
+    "subject": "Microbiology",
+    "topic": "Sterilization",
+    "question": "What device uses pressurized steam to sterilize medical equipment?",
+    "answer": "An Autoclave.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "100-ana-4",
+    "subject": "Anatomy",
+    "topic": "Nervous System",
+    "question": "Which part of the brain is primarily responsible for balance and coordination?",
+    "answer": "The Cerebellum.",
+    "difficulty": "Moderate",
+    "isImportant": false
+  },
+  {
+    "id": "100-ana-5",
+    "subject": "Physiology",
+    "topic": "Endocrine System",
+    "question": "Which organ produces Insulin?",
+    "answer": "The Pancreas (specifically the Islets of Langerhans).",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "100-ana-6",
+    "subject": "Physiology",
+    "topic": "Urinary System",
+    "question": "What is the functional unit of the kidney?",
+    "answer": "The Nephron.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "100-fon-3",
+    "subject": "Foundations of Nursing",
+    "topic": "Nursing Process",
+    "question": "What are the five steps of the Nursing Process?",
+    "answer": "Assessment, Diagnosis, Planning, Implementation, and Evaluation (ADPIE).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "100-ana-11",
+    "subject": "Anatomy",
+    "topic": "Terminology",
+    "question": "What does 'Proximal' mean?",
+    "answer": "Nearer to the center (trunk of the body) or to the point of attachment to the body.",
+    "difficulty": "Easy",
+    "isImportant": false
+  },
+  {
+    "id": "100-phy-3",
+    "subject": "Physiology",
+    "topic": "Cell",
+    "question": "What is the 'Powerhouse' of the cell?",
+    "answer": "The Mitochondria.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "100-fon-7",
+    "subject": "Foundations",
+    "topic": "Infection Control",
+    "question": "What is 'Sepsis'?",
+    "answer": "A life-threatening reaction to an infection; the body's extreme response to an infection.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "100-soc-2",
+    "subject": "Social Science",
+    "topic": "Culture",
+    "question": "What is 'Ethnocentrism'?",
+    "answer": "The belief in the inherent superiority of one's own ethnic group or culture.",
+    "difficulty": "Moderate",
+    "isImportant": false
+  },
+  {
+    "id": "100-fon-8",
+    "subject": "Foundations",
+    "topic": "Vital Signs",
+    "question": "What is the normal range for adult oxygen saturation (SpO2)?",
+    "answer": "95% to 100%.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "100-ana-12",
+    "subject": "Anatomy",
+    "topic": "Blood",
+    "question": "What are 'Leukocytes'?",
+    "answer": "White blood cells.",
+    "difficulty": "Easy",
+    "isImportant": false
+  },
+  {
+    "id": "100-mic-3",
+    "subject": "Microbiology",
+    "topic": "Viruses",
+    "question": "Do antibiotics kill viruses?",
+    "answer": "No, antibiotics only kill bacteria.",
+    "difficulty": "Easy",
+    "isImportant": true
+  },
+  {
+    "id": "100-ana-13",
+    "subject": "Anatomy",
+    "topic": "Skeletal",
+    "question": "How many bones are in the adult human body?",
+    "answer": "206.",
+    "difficulty": "Easy",
+    "isImportant": false
+  },
+  {
+    "id": "100-fon-9",
+    "subject": "Foundations",
+    "topic": "Ethics",
+    "question": "What is 'Malpractice'?",
+    "answer": "Professional negligence by act or omission by a healthcare provider in which the treatment provided falls below the accepted standard of practice.",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "100-phy-4",
+    "subject": "Physiology",
+    "topic": "Nervous",
+    "question": "What is a 'Synapse'?",
+    "answer": "The junction between two neurons where electrical or chemical signals are transmitted.",
+    "difficulty": "Moderate",
+    "isImportant": false
+  }
+]

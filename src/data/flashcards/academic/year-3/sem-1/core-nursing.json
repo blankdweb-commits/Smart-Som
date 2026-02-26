@@ -1,0 +1,92 @@
+[
+  {
+    "id": "300-com-1",
+    "subject": "Community Health Nursing",
+    "topic": "Levels of Prevention",
+    "question": "What is an example of Primary Prevention?",
+    "answer": "Immunizations, health education, and exercise programs (aimed at preventing the disease before it occurs).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "300-men-1",
+    "subject": "Mental Health Nursing",
+    "topic": "Schizophrenia",
+    "question": "What is the difference between a hallucination and a delusion?",
+    "answer": "A hallucination is a sensory perception without an external stimulus (seeing or hearing things); a delusion is a fixed, false belief despite evidence to the contrary.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "300-eth-1",
+    "subject": "Professional Ethics",
+    "topic": "Principles",
+    "question": "What does the ethical principle of 'Non-maleficence' mean?",
+    "answer": "To 'do no harm'.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "300-res-1",
+    "subject": "Research",
+    "topic": "Sampling",
+    "question": "What is 'Random Sampling'?",
+    "answer": "A sampling technique where each member of the population has an equal chance of being selected.",
+    "difficulty": "Moderate",
+    "isImportant": false
+  },
+  {
+    "id": "300-men-2",
+    "subject": "Mental Health Nursing",
+    "topic": "Therapeutic Communication",
+    "question": "What is a 'Closed-ended' question?",
+    "answer": "A question that can be answered with a simple 'yes' or 'no' or a specific fact, which often limits communication.",
+    "difficulty": "Easy",
+    "isImportant": false
+  },
+  {
+    "id": "300-com-2",
+    "subject": "Community Health Nursing",
+    "topic": "Epidemiology",
+    "question": "What is the 'Epidemiological Triangle'?",
+    "answer": "A model used to explain the etiology of infectious diseases, consisting of the Host, the Agent, and the Environment.",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "300-eth-2",
+    "subject": "Professional Ethics",
+    "topic": "Legal Issues",
+    "question": "What is 'Assault' in a nursing context?",
+    "answer": "A threat to touch a person without their consent that causes them to fear that they will be touched.",
+    "difficulty": "Hard",
+    "isImportant": true
+  },
+  {
+    "id": "300-men-3",
+    "subject": "Mental Health Nursing",
+    "topic": "Depression",
+    "question": "What is the priority assessment for a client with severe depression?",
+    "answer": "Risk for self-harm or suicide.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "300-eth-3",
+    "subject": "Professional Ethics",
+    "topic": "Principles",
+    "question": "What is 'Beneficence'?",
+    "answer": "The duty to do good and act in the best interest of the patient.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "300-com-3",
+    "subject": "Community Health Nursing",
+    "topic": "Home Visits",
+    "question": "What is the first step in conducting a home visit?",
+    "answer": "The pre-visit phase (reviewing records, contacting the family, and planning the visit).",
+    "difficulty": "Moderate",
+    "isImportant": false
+  }
+]
