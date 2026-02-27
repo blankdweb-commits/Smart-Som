@@ -1,0 +1,194 @@
+[
+  {
+    "id": "y2-pha-u5-1",
+    "subject": "Pharmacology",
+    "topic": "Antibiotics",
+    "question": "What is the primary mechanism of action of Penicillins?",
+    "answer": "Inhibition of bacterial cell wall synthesis.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-pha-u5-2",
+    "subject": "Pharmacology",
+    "topic": "Antibiotics",
+    "question": "Which antibiotic is commonly associated with 'Red Man Syndrome' if infused too quickly?",
+    "answer": "Vancomycin.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-pha-u5-3",
+    "subject": "Pharmacology",
+    "topic": "Antibiotics",
+    "question": "What is a major side effect of Tetracyclines in children?",
+    "answer": "Permanent discoloration of developing teeth.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-pha-u5-4",
+    "subject": "Pharmacology",
+    "topic": "Cardiovascular",
+    "question": "How do Beta-Blockers affect heart rate and blood pressure?",
+    "answer": "They decrease both heart rate and blood pressure by blocking beta-adrenergic receptors.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-pha-u5-5",
+    "subject": "Pharmacology",
+    "topic": "Cardiovascular",
+    "question": "What is the common side effect of ACE Inhibitors (e.g., Lisinopril)?",
+    "answer": "Dry, persistent cough.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y2-rh-u4-1",
+    "subject": "Reproductive Health",
+    "topic": "Contraception",
+    "question": "How do Combined Oral Contraceptives prevent pregnancy?",
+    "answer": "By inhibiting ovulation through the suppression of FSH and LH.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-rh-u4-2",
+    "subject": "Reproductive Health",
+    "topic": "Contraception",
+    "question": "What is a major contraindication for the use of estrogen-containing contraceptives?",
+    "answer": "History of blood clots (DVT/PE) or active smoking over age 35.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y2-rh-u4-3",
+    "subject": "Reproductive Health",
+    "topic": "STIs",
+    "question": "What is the treatment of choice for Chlamydia?",
+    "answer": "Azithromycin or Doxycycline.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y2-rh-u4-4",
+    "subject": "Reproductive Health",
+    "topic": "STIs",
+    "question": "Which STI is characterized by a painless chancre?",
+    "answer": "Primary Syphilis.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y2-ms-u12-1",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Oncology",
+    "question": "Define 'Metastasis'.",
+    "answer": "The spread of cancer cells from the primary site to distant organs or tissues.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y2-ms-u12-2",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Oncology",
+    "question": "What is the 'TN_M' system used for in cancer?",
+    "answer": "Staging: T (Tumor size), N (Node involvement), M (Metastasis).",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-ms-u12-3",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Oncology",
+    "question": "What is a 'Biopsy'?",
+    "answer": "The removal of a small piece of tissue for laboratory examination to confirm a diagnosis.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y2-ms-u12-4",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Oncology",
+    "question": "What is 'Neutropenia' and why is it significant in cancer patients?",
+    "answer": "Low white blood cell count; increases the risk of severe infection.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-ms-u12-5",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Immunity",
+    "question": "Define 'Autoimmune Disease'.",
+    "answer": "A condition where the immune system attacks the body's own healthy tissues (e.g., Lupus, Rheumatoid Arthritis).",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-ms-u13-1",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Fluid & Electrolytes",
+    "question": "What is 'Third Spacing'?",
+    "answer": "The shift of fluid from the vascular space into an area where it is not easily exchanged (e.g., ascites).",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y2-ms-u13-2",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Fluid & Electrolytes",
+    "question": "What is the classic sign of Hypocalcemia?",
+    "answer": "Positive Chvostek's sign (facial twitching when nerve is tapped).",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y2-ms-u13-3",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Fluid & Electrolytes",
+    "question": "What is the primary cause of Hypermagnesemia?",
+    "answer": "Renal failure or excessive intake of magnesium-containing antacids/laxatives.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y2-ms-u14-1",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Gastrointestinal",
+    "question": "What is 'GERD'?",
+    "answer": "Gastroesophageal Reflux Disease; backflow of stomach acid into the esophagus.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y2-ms-u14-2",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Gastrointestinal",
+    "question": "What is the primary symptom of GERD?",
+    "answer": "Heartburn (pyrosis).",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y2-ms-u14-3",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Gastrointestinal",
+    "question": "Define 'Hepatitis'.",
+    "answer": "Inflammation of the liver, often caused by viruses (A, B, C, D, E).",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y2-ms-u14-4",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Gastrointestinal",
+    "question": "How is Hepatitis A primarily transmitted?",
+    "answer": "Fecal-oral route (contaminated food/water).",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y2-ms-u14-5",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Gastrointestinal",
+    "question": "Which types of Hepatitis are transmitted through blood and body fluids?",
+    "answer": "Hepatitis B and Hepatitis C.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-ms-u15-1",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Respiratory",
+    "question": "What is 'Tension Pneumothorax'?",
+    "answer": "A life-threatening condition where air is trapped in the pleural space, causing pressure on the heart and lungs.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y2-ms-u15-2",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Respiratory",
+    "question": "What is the hallmark sign of a Tension Pneumothorax?",
+    "answer": "Tracheal deviation toward the unaffected side.",
+    "difficulty": "Hard"
+  }
+]

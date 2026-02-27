@@ -1,0 +1,210 @@
+[
+  {
+    "id": "y3-ed-u1-1",
+    "subject": "Emergency Nursing",
+    "topic": "Triage",
+    "question": "What is the 'START' triage system?",
+    "answer": "Simple Triage and Rapid Treatment; used for mass casualty events to sort patients by urgency.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-ed-u1-2",
+    "subject": "Emergency Nursing",
+    "topic": "Triage",
+    "question": "In triage, what does a 'Red Tag' represent?",
+    "answer": "Immediate priority; life-threatening injury that is treatable (e.g., airway obstruction, severe hemorrhage).",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y3-ed-u1-3",
+    "subject": "Emergency Nursing",
+    "topic": "Triage",
+    "question": "In triage, what does a 'Black Tag' represent?",
+    "answer": "Deceased or expectant; injuries are so severe that survival is unlikely even with care.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y3-ed-u1-4",
+    "subject": "Emergency Nursing",
+    "topic": "Trauma",
+    "question": "What is 'Beck's Triad' and what does it indicate?",
+    "answer": "Hypotension, JVD, and muffled heart sounds; indicates Cardiac Tamponade.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y3-ed-u1-5",
+    "subject": "Emergency Nursing",
+    "topic": "Shock",
+    "question": "Define 'Distributive Shock'.",
+    "answer": "Shock caused by excessive vasodilation and impaired distribution of blood flow (e.g., Sepsis, Anaphylaxis, Neurogenic).",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mh-u5-1",
+    "subject": "Mental Health Nursing",
+    "topic": "Legal/Ethical",
+    "question": "Define 'Involuntary Commitment'.",
+    "answer": "Legal process by which an individual with mental illness is court-ordered into treatment, usually because they are a danger to themselves or others.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mh-u5-2",
+    "subject": "Mental Health Nursing",
+    "topic": "Schizophrenia",
+    "question": "What is the difference between 'Positive' and 'Negative' symptoms of Schizophrenia?",
+    "answer": "Positive: addition of abnormal behaviors (hallucinations, delusions); Negative: loss of normal functions (apathy, social withdrawal).",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mh-u5-3",
+    "subject": "Mental Health Nursing",
+    "topic": "Mood Disorders",
+    "question": "What is 'Anhedonia'?",
+    "answer": "The inability to feel pleasure in activities normally found enjoyable.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y3-mh-u5-4",
+    "subject": "Mental Health Nursing",
+    "topic": "Crisis Intervention",
+    "question": "What is the primary goal of Crisis Intervention?",
+    "answer": "To return the individual to their pre-crisis level of functioning.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mh-u5-5",
+    "subject": "Mental Health Nursing",
+    "topic": "Pharmacology",
+    "question": "Name a common mood stabilizer used for Bipolar Disorder.",
+    "answer": "Lithium Carbonate.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y3-mh-u5-6",
+    "subject": "Mental Health Nursing",
+    "topic": "Pharmacology",
+    "question": "What is 'Neuroleptic Malignant Syndrome' (NMS)?",
+    "answer": "A life-threatening reaction to antipsychotic drugs characterized by fever, muscle rigidity, and autonomic instability.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y3-chn-u4-1",
+    "subject": "Community Health Nursing",
+    "topic": "Epidemiology",
+    "question": "Define 'Herd Immunity'.",
+    "answer": "When a large portion of a community becomes immune to a disease, making the spread of disease from person to person unlikely.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-chn-u4-2",
+    "subject": "Community Health Nursing",
+    "topic": "Levels of Prevention",
+    "question": "Give an example of 'Secondary Prevention' in the community.",
+    "answer": "Screening programs (e.g., blood pressure checks, Pap smears, mammograms).",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-chn-u4-3",
+    "subject": "Community Health Nursing",
+    "topic": "Demography",
+    "question": "What is the 'Vital Statistics' of a community?",
+    "answer": "Data on births, deaths, marriages, and divorces in a population.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-ed-u2-1",
+    "subject": "Emergency Nursing",
+    "topic": "Resuscitation",
+    "question": "What are the 'H's and T's' in ACLS?",
+    "answer": "Hypovolemia, Hypoxia, Hydrogen ion (acidosis), Hypo/Hyperkalemia, Hypothermia; Tension pneumothorax, Tamponade, Toxins, Thrombosis (pulmonary/coronary).",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y3-ed-u2-2",
+    "subject": "Emergency Nursing",
+    "topic": "Burns",
+    "question": "In the Parkland Formula, how much fluid is given in the first 8 hours?",
+    "answer": "One half of the total calculated 24-hour volume.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-ed-u2-3",
+    "subject": "Emergency Nursing",
+    "topic": "Poisoning",
+    "question": "What is the antidote for Opioid overdose?",
+    "answer": "Naloxone (Narcan).",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y3-ed-u2-4",
+    "subject": "Emergency Nursing",
+    "topic": "Cardiac",
+    "question": "Define 'Defibrillation'.",
+    "answer": "The delivery of an electrical shock to stop an unstable heart rhythm (VF or pulseless VT) and allow the SA node to take over.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mid-u5-1",
+    "subject": "Midwifery",
+    "topic": "Obstetric Emergencies",
+    "question": "What is 'Shoulder Dystocia'?",
+    "answer": "Obstetric emergency where the fetal head is delivered but the shoulders are trapped behind the maternal pubic bone.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y3-mid-u5-2",
+    "subject": "Midwifery",
+    "topic": "Obstetric Emergencies",
+    "question": "What is the 'McRoberts Maneuver'?",
+    "answer": "Flexing the mother's thighs toward her abdomen to widen the pelvic outlet during shoulder dystocia.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y3-mid-u5-3",
+    "subject": "Midwifery",
+    "topic": "Complications",
+    "question": "Define 'Puerperal Sepsis'.",
+    "answer": "Infection of the genital tract occurring at any time between the onset of rupture of membranes or labour, and the 42nd day postpartum.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mid-u5-4",
+    "subject": "Midwifery",
+    "topic": "Antenatal",
+    "question": "What is the significance of a 'Reactive Non-Stress Test'?",
+    "answer": "It indicates a healthy fetus with adequate oxygenation; defined by at least two FHR accelerations in 20 minutes.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y3-qi-u1-1",
+    "subject": "Quality Improvement",
+    "topic": "Patient Safety",
+    "question": "Define 'Sentinel Event'.",
+    "answer": "An unexpected occurrence involving death or serious physical or psychological injury in a healthcare setting.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-qi-u1-2",
+    "subject": "Quality Improvement",
+    "topic": "Process",
+    "question": "What is the 'PDSA' cycle in QI?",
+    "answer": "Plan-Do-Study-Act; a model for testing small-scale changes to improve quality.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-ent-u1-1",
+    "subject": "Entrepreneurship in Nursing",
+    "topic": "Business",
+    "question": "What is a 'SWOT' Analysis?",
+    "answer": "Strengths, Weaknesses, Opportunities, and Threats; used for strategic planning.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y3-ent-u1-2",
+    "subject": "Entrepreneurship in Nursing",
+    "topic": "Ethics",
+    "question": "Define 'Intrapreneurship' in nursing.",
+    "answer": "Developing new ideas, products, or services within an existing healthcare organization.",
+    "difficulty": "Moderate"
+  }
+]

@@ -1,13 +1,13 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Calendar, Award, Users } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Calendar, Award, Users, Volume2 } from 'lucide-react';
 
 const BottomNav = () => {
   const navItems = [
     { name: 'Home', icon: LayoutDashboard, path: '/' },
     { name: 'Cards', icon: BookOpen, path: '/flashcards' },
     { name: 'Prep', icon: Award, path: '/prep' },
-    { name: 'Exams', icon: Calendar, path: '/exams' },
+    { name: 'Audio', icon: Volume2, path: '/pronunciation' },
     { name: 'Chat', icon: Users, path: '/community' },
   ];
 

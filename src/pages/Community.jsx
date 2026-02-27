@@ -9,7 +9,9 @@ const Community = () => {
   const [category, setCategory] = useState('Study Tips');
   const [image, setImage] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
+  const [replyTo, setReplyTo] = useState(null);
   const fileInputRef = useRef(null);
+  const replyInputRef = useRef(null);
 
   useEffect(() => {
     fetchPosts();
@@ -19,7 +21,7 @@ const Community = () => {
     if (isSupabaseConfigured()) {
       const { data, error } = await supabase
         .from('posts')
-        .select('*')
+        .select('*, replies (*)')
         .order('created_at', { ascending: false });
 
       if (data) setPosts(data);
@@ -36,7 +38,9 @@ const Community = () => {
             category: 'Mnemonics',
             likes: 12,
             created_at: new Date(Date.now() - 3600000).toISOString(),
-            comments: 3
+            replies: [
+              { id: 101, user: 'Student_Jay', content: 'This is brilliant! Saving it.', created_at: new Date(Date.now() - 1800000).toISOString() }
+            ]
           }
         ];
         setPosts(initialPosts);
@@ -94,7 +98,6 @@ const Community = () => {
 
   const handleLike = async (id) => {
     if (isSupabaseConfigured()) {
-      // In a real app, we'd increment in DB. For now, local UI update then DB update.
       const targetPost = posts.find(p => p.id === id);
       const { error } = await supabase
         .from('posts')
@@ -106,6 +109,32 @@ const Community = () => {
       setPosts(updatedPosts);
       localStorage.setItem('nursing_community_posts', JSON.stringify(updatedPosts));
     }
+  };
+
+  const handleReply = async (postId, content) => {
+    if (!content.trim()) return;
+
+    const replyData = {
+      post_id: postId,
+      user: 'You',
+      content,
+      created_at: new Date().toISOString()
+    };
+
+    if (isSupabaseConfigured()) {
+      const { error } = await supabase.from('replies').insert([replyData]);
+      if (!error) fetchPosts();
+    } else {
+      const updatedPosts = posts.map(p => {
+        if (p.id === postId) {
+          return { ...p, replies: [...(p.replies || []), { ...replyData, id: Date.now() }] };
+        }
+        return p;
+      });
+      setPosts(updatedPosts);
+      localStorage.setItem('nursing_community_posts', JSON.stringify(updatedPosts));
+    }
+    setReplyTo(null);
   };
 
   return (
@@ -194,52 +223,106 @@ const Community = () => {
       </div>
 
       {/* Community Feed */}
-      <div className="space-y-4">
+      <div className="space-y-6">
         {posts.map(post => (
-          <div key={post.id} className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6 space-y-4 hover:border-medical-500/30 transition-colors group">
-            <div className="flex justify-between items-start">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500">
-                  <User size={20} />
-                </div>
-                <div>
-                  <h4 className="font-bold text-slate-800 dark:text-white">{post.user}</h4>
-                  <div className="flex items-center gap-2 text-xs text-slate-500">
-                    <Clock size={12} />
-                    {new Date(post.created_at).toLocaleDateString()}
-                    <span className="px-2 py-0.5 bg-medical-50 dark:bg-medical-900/20 text-medical-600 rounded-full font-bold">
-                      {post.category}
-                    </span>
+          <div key={post.id} className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+            <div className="p-4 sm:p-6 space-y-4">
+              <div className="flex justify-between items-start">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500">
+                    <User size={20} />
+                  </div>
+                  <div>
+                    <h4 className="font-bold text-slate-800 dark:text-white text-sm sm:text-base">{post.user}</h4>
+                    <div className="flex items-center gap-2 text-[10px] sm:text-xs text-slate-500">
+                      <Clock size={10} />
+                      {new Date(post.created_at).toLocaleDateString()}
+                      <span className="px-2 py-0.5 bg-medical-50 dark:bg-medical-900/20 text-medical-600 rounded-full font-bold">
+                        {post.category}
+                      </span>
+                    </div>
                   </div>
                 </div>
+                <button className="text-slate-400 hover:text-medical-600 transition-colors p-1">
+                  <Share2 size={16} />
+                </button>
               </div>
-              <button className="text-slate-400 hover:text-medical-600 transition-colors">
-                <Share2 size={18} />
-              </button>
+
+              <div className="space-y-4">
+                <p className="text-slate-700 dark:text-slate-300 text-sm sm:text-base leading-relaxed">
+                  {post.content}
+                </p>
+                {post.image_url && (
+                  <img src={post.image_url} alt="Post content" className="rounded-xl w-full max-h-96 object-cover border border-slate-100 dark:border-slate-700" />
+                )}
+              </div>
+
+              <div className="flex items-center gap-6 pt-2 border-t border-slate-50 dark:border-slate-700/50">
+                <button
+                  onClick={() => handleLike(post.id)}
+                  className="flex items-center gap-2 text-slate-500 hover:text-medical-600 transition-colors font-medium text-xs sm:text-sm"
+                >
+                  <ThumbsUp size={16} className={post.likes > 20 ? 'fill-medical-600 text-medical-600' : ''} />
+                  {post.likes || 0}
+                </button>
+                <button
+                  onClick={() => setReplyTo(replyTo === post.id ? null : post.id)}
+                  className="flex items-center gap-2 text-slate-500 hover:text-medical-600 transition-colors font-medium text-xs sm:text-sm"
+                >
+                  <MessageSquare size={16} />
+                  {post.replies?.length || 0} Replies
+                </button>
+              </div>
             </div>
 
-            <div className="space-y-4">
-              <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-                {post.content}
-              </p>
-              {post.image_url && (
-                <img src={post.image_url} alt="Post content" className="rounded-xl w-full max-h-96 object-cover border border-slate-100 dark:border-slate-700" />
-              )}
-            </div>
-
-            <div className="flex items-center gap-6 pt-2 border-t border-slate-50 dark:border-slate-700/50">
-              <button
-                onClick={() => handleLike(post.id)}
-                className="flex items-center gap-2 text-slate-500 hover:text-medical-600 transition-colors font-medium text-sm group-active:scale-125 transition-transform"
-              >
-                <ThumbsUp size={18} className={post.likes > 20 ? 'fill-medical-600 text-medical-600' : ''} />
-                {post.likes}
-              </button>
-              <div className="flex items-center gap-2 text-slate-500 font-medium text-sm">
-                <MessageSquare size={18} />
-                {post.comments}
+            {/* Replies Section */}
+            {post.replies && post.replies.length > 0 && (
+              <div className="bg-slate-50 dark:bg-slate-900/30 border-t border-slate-100 dark:border-slate-700/50 p-4 sm:p-6 space-y-4">
+                {post.replies.map(reply => (
+                  <div key={reply.id} className="flex gap-3">
+                    <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 shrink-0">
+                      <User size={14} />
+                    </div>
+                    <div className="flex-1 bg-white dark:bg-slate-800 p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 dark:border-slate-700/50">
+                      <div className="flex justify-between items-center mb-1">
+                        <span className="font-bold text-xs text-slate-800 dark:text-white">{reply.user}</span>
+                        <span className="text-[10px] text-slate-500">{new Date(reply.created_at).toLocaleDateString()}</span>
+                      </div>
+                      <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">{reply.content}</p>
+                    </div>
+                  </div>
+                ))}
               </div>
-            </div>
+            )}
+
+            {/* Reply Input */}
+            {replyTo === post.id && (
+              <div className="p-4 bg-white dark:bg-slate-800 border-t border-slate-100 dark:border-slate-700">
+                <div className="flex gap-2">
+                  <input
+                    type="text"
+                    placeholder="Write a reply..."
+                    className="flex-1 bg-slate-50 dark:bg-slate-900/50 rounded-xl px-4 py-2 text-sm border-none focus:ring-1 focus:ring-medical-500 dark:text-white"
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        handleReply(post.id, e.target.value);
+                        e.target.value = '';
+                      }
+                    }}
+                  />
+                  <button
+                    onClick={(e) => {
+                      const input = e.currentTarget.previousSibling;
+                      handleReply(post.id, input.value);
+                      input.value = '';
+                    }}
+                    className="p-2 bg-medical-600 text-white rounded-xl shadow-md active:scale-95"
+                  >
+                    <Send size={16} />
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
         ))}
       </div>
