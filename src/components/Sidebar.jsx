@@ -1,10 +1,10 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Sun, Moon, Menu, X, Award } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Sun, Moon, Menu, X, Award, Users } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 const Sidebar = ({ isOpen, setIsOpen }) => {
-  const { darkMode, toggleDarkMode } = useAppContext();
+  const { darkMode } = useAppContext();
 
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
@@ -12,6 +12,7 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
     { name: 'Professional Prep', icon: Award, path: '/prep' },
     { name: 'Exam Timetable', icon: Calendar, path: '/exams' },
     { name: 'Pronunciation', icon: Volume2, path: '/pronunciation' },
+    { name: 'Community', icon: Users, path: '/community' },
     { name: 'Settings', icon: Settings, path: '/settings' },
   ];
 
@@ -48,24 +49,6 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
             ))}
           </nav>
 
-          <div className="p-4 border-t border-slate-200 dark:border-slate-700">
-            <button
-              onClick={toggleDarkMode}
-              className="flex items-center w-full px-4 py-3 rounded-lg text-slate-600 hover:bg-slate-100 dark:text-slate-300 dark:hover:bg-slate-700 transition-colors"
-            >
-              {darkMode ? (
-                <>
-                  <Sun className="mr-3" size={20} />
-                  <span className="font-medium">Light Mode</span>
-                </>
-              ) : (
-                <>
-                  <Moon className="mr-3" size={20} />
-                  <span className="font-medium">Dark Mode</span>
-                </>
-              )}
-            </button>
-          </div>
         </div>
       </div>
 

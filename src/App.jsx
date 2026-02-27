@@ -9,6 +9,7 @@ import PronunciationHelper from './pages/PronunciationHelper';
 import NclexPrep from './pages/NclexPrep';
 import NmcnPrep from './pages/NmcnPrep';
 import Prep from './pages/Prep';
+import Community from './pages/Community';
 import Settings from './pages/Settings';
 
 function App() {
@@ -24,6 +25,7 @@ function App() {
             <Route path="/nmcn" element={<NmcnPrep />} />
             <Route path="/exams" element={<ExamTimetable />} />
             <Route path="/pronunciation" element={<PronunciationHelper />} />
+            <Route path="/community" element={<Community />} />
             <Route path="/settings" element={<Settings />} />
           </Routes>
         </Layout>

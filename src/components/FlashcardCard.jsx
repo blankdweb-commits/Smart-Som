@@ -12,13 +12,13 @@ const FlashcardCard = ({ card, onEdit, onDelete, onToggleImportant, onShare, isS
   };
 
   return (
-    <div className={`relative h-64 w-full cursor-pointer group flashcard-container`} onClick={handleFlip}>
+    <div className={`relative h-72 sm:h-64 w-full cursor-pointer group flashcard-container`} onClick={handleFlip}>
       <div className={`flashcard-inner w-full h-full duration-500 ${isFlipped ? 'flipped' : ''}`}>
         {/* Front */}
-        <div className="flashcard-front absolute inset-0 bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200 dark:border-slate-700 p-6 flex flex-col justify-between">
+        <div className="flashcard-front absolute inset-0 bg-white dark:bg-slate-800 rounded-xl shadow-md border border-slate-200 dark:border-slate-700 p-5 sm:p-6 flex flex-col justify-between">
           <div>
             <div className="flex justify-between items-start mb-2">
-              <span className="text-xs font-semibold px-2 py-1 bg-medical-100 text-medical-700 dark:bg-medical-900/40 dark:text-medical-300 rounded uppercase">
+              <span className="text-[10px] sm:text-xs font-semibold px-2 py-1 bg-medical-100 text-medical-700 dark:bg-medical-900/40 dark:text-medical-300 rounded uppercase truncate max-w-[120px]">
                 {card.subject}
               </span>
               <div className="flex space-x-2">
@@ -53,8 +53,8 @@ const FlashcardCard = ({ card, onEdit, onDelete, onToggleImportant, onShare, isS
                 )}
               </div>
             </div>
-            <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-1">{card.topic}</p>
-            <h3 className="text-xl font-bold text-slate-800 dark:text-white mt-4 text-center">
+            <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mb-1 truncate">{card.topic}</p>
+            <h3 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-white mt-4 text-center line-clamp-4">
               {card.question}
             </h3>
 
@@ -98,12 +98,12 @@ const FlashcardCard = ({ card, onEdit, onDelete, onToggleImportant, onShare, isS
         </div>
 
         {/* Back */}
-        <div className="flashcard-back absolute inset-0 bg-medical-600 rounded-xl shadow-md p-6 flex flex-col items-center justify-center text-white text-center">
-          <p className="text-xs uppercase tracking-wider mb-4 opacity-80">Answer</p>
-          <p className="text-lg font-medium">
+        <div className="flashcard-back absolute inset-0 bg-medical-600 rounded-xl shadow-md p-5 sm:p-6 flex flex-col items-center justify-center text-white text-center overflow-auto">
+          <p className="text-[10px] uppercase tracking-wider mb-4 opacity-80">Answer</p>
+          <p className="text-base sm:text-lg font-medium">
             {card.answer}
           </p>
-          <p className="mt-8 text-xs opacity-60">Click to flip back</p>
+          <p className="mt-6 text-[10px] opacity-60">Click to flip back</p>
         </div>
       </div>
     </div>

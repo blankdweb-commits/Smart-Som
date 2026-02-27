@@ -120,23 +120,23 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   // Render Directory View
   if (viewMode === 'list' && !currentSubject && initialCategory === 'Academic') {
     return (
-      <div className="space-y-8 animate-in fade-in duration-500">
+      <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500">
         <header>
-          <h2 className="text-3xl font-bold text-slate-800 dark:text-white">Nursing Curriculum</h2>
-          <p className="text-slate-600 dark:text-slate-400">Select your level of study to browse courses.</p>
+          <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white">Nursing Curriculum</h2>
+          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">Select your level of study to browse courses.</p>
         </header>
 
         {!currentLevel ? (
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
             {levels.map(level => (
               <button
                 key={level}
                 onClick={() => setCurrentLevel(level)}
-                className="p-8 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:border-medical-500 dark:hover:border-medical-500 transition-all text-left group"
+                className="p-6 sm:p-8 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:border-medical-500 dark:hover:border-medical-500 transition-all text-left group"
               >
-                <Folder className="text-medical-600 mb-4 group-hover:scale-110 transition-transform" size={40} />
-                <h3 className="text-xl font-bold text-slate-800 dark:text-white">{level}</h3>
-                <p className="text-sm text-slate-500 mt-1">
+                <Folder className="text-medical-600 mb-3 sm:mb-4 group-hover:scale-110 transition-transform" size={32} sm={40} />
+                <h3 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-white">{level}</h3>
+                <p className="text-xs sm:text-sm text-slate-500 mt-1">
                   {categoryCards.filter(c => c.level === level).length} Flashcards
                 </p>
               </button>
@@ -144,20 +144,20 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
           </div>
         ) : !currentSemester ? (
           <div className="space-y-6">
-            <button onClick={() => setCurrentLevel(null)} className="flex items-center text-medical-600 font-medium hover:underline">
-              <ArrowLeft size={16} className="mr-1" /> Back to Years
+            <button onClick={() => setCurrentLevel(null)} className="flex items-center text-medical-600 text-sm font-medium hover:underline">
+              <ArrowLeft size={14} className="mr-1" /> Back to Years
             </button>
-            <h3 className="text-2xl font-bold">{currentLevel}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <h3 className="text-xl sm:text-2xl font-bold">{currentLevel}</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
               {semesters.map(sem => (
                 <button
                   key={sem}
                   onClick={() => setCurrentSemester(sem)}
-                  className="p-8 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:border-medical-500 transition-all text-left group"
+                  className="p-6 sm:p-8 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:border-medical-500 transition-all text-left group"
                 >
-                  <Book className="text-medical-600 mb-4 group-hover:scale-110 transition-transform" size={40} />
-                  <h4 className="text-lg font-bold">{sem}</h4>
-                  <p className="text-sm text-slate-500">
+                  <Book className="text-medical-600 mb-3 sm:mb-4 group-hover:scale-110 transition-transform" size={32} sm={40} />
+                  <h4 className="text-base sm:text-lg font-bold">{sem}</h4>
+                  <p className="text-xs sm:text-sm text-slate-500">
                     {categoryCards.filter(c => c.level === currentLevel && c.semester === sem).length} Flashcards
                   </p>
                 </button>
@@ -166,11 +166,11 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
           </div>
         ) : (
           <div className="space-y-6">
-            <button onClick={() => setCurrentSemester(null)} className="flex items-center text-medical-600 font-medium hover:underline">
-              <ArrowLeft size={16} className="mr-1" /> Back to Semesters
+            <button onClick={() => setCurrentSemester(null)} className="flex items-center text-medical-600 text-sm font-medium hover:underline">
+              <ArrowLeft size={14} className="mr-1" /> Back to Semesters
             </button>
-            <h3 className="text-2xl font-bold">{currentLevel} - {currentSemester}</h3>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <h3 className="text-xl sm:text-2xl font-bold">{currentLevel} - {currentSemester}</h3>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
               {subjects.map(subject => {
                 const isOSCE = subject === 'OSCE Procedures';
                 const isQuickRef = subject === 'Quick Reference';
