@@ -1,0 +1,82 @@
+[
+  {
+    "id": "y2-ms-u10-1",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Immunology",
+    "question": "What is the difference between 'Innate' and 'Adaptive' immunity?",
+    "answer": "Innate immunity is non-specific and present at birth (skin, mucus, phagocytes). Adaptive immunity is specific and developed after exposure to antigens (antibodies, T cells).",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-ms-u10-2",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Immunology",
+    "question": "What are the four signs of local inflammation?",
+    "answer": "Redness (rubor), Heat (calor), Swelling (tumor), and Pain (dolor).",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y2-ms-u10-3",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Immunology",
+    "question": "Define 'Autoimmunity'.",
+    "answer": "A condition where the immune system attacks the body's own healthy cells.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-ms-u10-4",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Immunology",
+    "question": "What is 'Anaphylaxis'?",
+    "answer": "A severe, systemic allergic reaction that is potentially life-threatening.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y2-ms-u10-5",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Immunology",
+    "question": "What is the primary medication used to treat anaphylaxis?",
+    "answer": "Epinephrine (Adrenaline).",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y2-ms-u10-6",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Immunology",
+    "question": "What are 'Opportunistic Infections'?",
+    "answer": "Infections that occur more frequently and are more severe in people with weakened immune systems.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-ms-u10-7",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Immunology",
+    "question": "What is 'Passive Immunity'?",
+    "answer": "The transfer of active humoral immunity (antibodies) from one person to another (e.g., breastfeeding).",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-ms-u10-8",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Immunology",
+    "question": "What is the function of B-lymphocytes?",
+    "answer": "To produce antibodies against specific antigens.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y2-ms-u10-9",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Immunology",
+    "question": "What is the function of T-lymphocytes?",
+    "answer": "To coordinate the immune response and directly kill infected cells.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y2-ms-u10-10",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Immunology",
+    "question": "Define 'Antigen'.",
+    "answer": "Any substance that causes the body to produce an immune response against it.",
+    "difficulty": "Easy"
+  }
+]

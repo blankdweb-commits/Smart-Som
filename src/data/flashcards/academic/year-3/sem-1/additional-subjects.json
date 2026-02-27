@@ -1,0 +1,170 @@
+[
+  {
+    "id": "y3-mid-u1-1",
+    "subject": "Midwifery",
+    "topic": "Antenatal Care",
+    "question": "What is 'Naegele's Rule' used for?",
+    "answer": "To calculate the Estimated Date of Delivery (EDD).",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mid-u1-2",
+    "subject": "Midwifery",
+    "topic": "Antenatal Care",
+    "question": "Calculate EDD using Naegele's Rule: Last Menstrual Period (LMP) was May 10, 2023.",
+    "answer": "February 17, 2024 (LMP + 7 days - 3 months + 1 year).",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y3-mid-u1-3",
+    "subject": "Midwifery",
+    "topic": "Antenatal Care",
+    "question": "What does 'Gravida' mean?",
+    "answer": "A woman who is pregnant.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y3-mid-u1-4",
+    "subject": "Midwifery",
+    "topic": "Antenatal Care",
+    "question": "Define 'Para'.",
+    "answer": "The number of pregnancies in which the fetus has reached 20 weeks gestation.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y3-mid-u1-5",
+    "subject": "Midwifery",
+    "topic": "Antenatal Care",
+    "question": "What is 'Quickening'?",
+    "answer": "The first movement of the fetus in the uterus that can be felt by the mother.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y3-mid-u1-6",
+    "subject": "Midwifery",
+    "topic": "Antenatal Care",
+    "question": "At how many weeks is Quickening typically felt by a primigravida?",
+    "answer": "18 to 20 weeks.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mid-u1-7",
+    "subject": "Midwifery",
+    "topic": "Antenatal Care",
+    "question": "What is 'Goodell's Sign'?",
+    "answer": "Softening of the cervix (a probable sign of pregnancy).",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mid-u1-8",
+    "subject": "Midwifery",
+    "topic": "Antenatal Care",
+    "question": "What is 'Chadwick's Sign'?",
+    "answer": "Bluish-purple coloration of the vaginal mucosa and cervix (a probable sign of pregnancy).",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mid-u2-1",
+    "subject": "Midwifery",
+    "topic": "Labour Complications",
+    "question": "Define 'Abruptio Placentae'.",
+    "answer": "Premature separation of the placenta from the uterine wall.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y3-mid-u2-2",
+    "subject": "Midwifery",
+    "topic": "Labour Complications",
+    "question": "What is the key clinical feature of Abruptio Placentae?",
+    "answer": "Painful vaginal bleeding with a board-like (hard) abdomen.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y3-mid-u2-3",
+    "subject": "Midwifery",
+    "topic": "Labour Complications",
+    "question": "Define 'Placenta Previa'.",
+    "answer": "Implantation of the placenta in the lower uterine segment, covering or near the internal os of the cervix.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mid-u2-4",
+    "subject": "Midwifery",
+    "topic": "Labour Complications",
+    "question": "What is the key clinical feature of Placenta Previa?",
+    "answer": "Painless, bright red vaginal bleeding.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mid-u2-5",
+    "subject": "Midwifery",
+    "topic": "Labour Complications",
+    "question": "Is a vaginal exam (SVE) performed on a woman with suspected Placenta Previa?",
+    "answer": "No, it is contraindicated until the placental location is confirmed by ultrasound (risk of severe hemorrhage).",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y3-mid-u3-1",
+    "subject": "Midwifery",
+    "topic": "Newborn Care",
+    "question": "What is 'Vernix Caseosa'?",
+    "answer": "A white, cheese-like substance that protects the fetus's skin while in the uterus.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y3-mid-u3-2",
+    "subject": "Midwifery",
+    "topic": "Newborn Care",
+    "question": "Define 'Lanugo'.",
+    "answer": "Fine, downy hair that covers the fetus in the uterus.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y3-mid-u3-3",
+    "subject": "Midwifery",
+    "topic": "Newborn Care",
+    "question": "What are 'Milia'?",
+    "answer": "Small, white sebaceous glands (looks like whiteheads) on the newborn's nose and chin.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y3-mid-u3-4",
+    "subject": "Midwifery",
+    "topic": "Newborn Care",
+    "question": "What is 'Caput Succedaneum'?",
+    "answer": "Generalized edema of the scalp that crosses the suture lines (present at birth).",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mid-u3-5",
+    "subject": "Midwifery",
+    "topic": "Newborn Care",
+    "question": "What is 'Cephalhematoma'?",
+    "answer": "A collection of blood between the skull bone and the periosteum; it does NOT cross suture lines.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y3-mid-u3-6",
+    "subject": "Midwifery",
+    "topic": "Newborn Care",
+    "question": "What is the 'Moro Reflex'?",
+    "answer": "The startle reflex; infant arms spread and then pull back in response to a sudden loud noise or feeling of falling.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mid-u3-7",
+    "subject": "Midwifery",
+    "topic": "Newborn Care",
+    "question": "What is 'Babinski's Reflex'?",
+    "answer": "Fanning of the toes when the sole of the foot is stroked (normal in infants up to 1 year).",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mid-u3-8",
+    "subject": "Midwifery",
+    "topic": "Newborn Care",
+    "question": "Why is Vitamin K administered to newborns?",
+    "answer": "To prevent Vitamin K Deficiency Bleeding (VKDB), as infants are born with a sterile gut and low Vitamin K levels.",
+    "difficulty": "Moderate"
+  }
+]

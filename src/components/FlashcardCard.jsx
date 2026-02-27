@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star, Edit2, Trash2, HelpCircle, Info, Share2 } from 'lucide-react';
+import { Star, Edit2, Trash2, HelpCircle, Info, Share2, Volume2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const FlashcardCard = ({ card, onEdit, onDelete, onToggleImportant, onShare, isStudyMode = false }) => {
@@ -9,6 +9,15 @@ const FlashcardCard = ({ card, onEdit, onDelete, onToggleImportant, onShare, isS
   const handleFlip = () => {
     setIsFlipped(!isFlipped);
     setShowHint(false);
+  };
+
+  const handleSpeak = (e, text) => {
+    e.stopPropagation();
+    if (!window.speechSynthesis) return;
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(text);
+    utterance.rate = 0.9;
+    window.speechSynthesis.speak(utterance);
   };
 
   return (
@@ -51,6 +60,13 @@ const FlashcardCard = ({ card, onEdit, onDelete, onToggleImportant, onShare, isS
                     </button>
                   </>
                 )}
+                <button
+                  onClick={(e) => handleSpeak(e, card.question)}
+                  className="p-1 text-slate-400 hover:text-medical-600 transition-colors"
+                  title="Listen to question"
+                >
+                  <Volume2 size={18} />
+                </button>
               </div>
             </div>
             <p className="text-xs sm:text-sm text-slate-500 dark:text-slate-400 font-medium mb-1 truncate">{card.topic}</p>
@@ -98,7 +114,14 @@ const FlashcardCard = ({ card, onEdit, onDelete, onToggleImportant, onShare, isS
         </div>
 
         {/* Back */}
-        <div className="flashcard-back absolute inset-0 bg-medical-600 rounded-xl shadow-md p-5 sm:p-6 flex flex-col items-center justify-center text-white text-center overflow-auto">
+        <div className="flashcard-back absolute inset-0 bg-medical-600 rounded-xl shadow-md p-5 sm:p-6 flex flex-col items-center justify-center text-white text-center overflow-auto relative">
+          <button
+            onClick={(e) => handleSpeak(e, card.answer)}
+            className="absolute top-4 right-4 p-2 text-white/50 hover:text-white transition-colors"
+            title="Listen to answer"
+          >
+            <Volume2 size={20} />
+          </button>
           <p className="text-[10px] uppercase tracking-wider mb-4 opacity-80">Answer</p>
           <p className="text-base sm:text-lg font-medium">
             {card.answer}

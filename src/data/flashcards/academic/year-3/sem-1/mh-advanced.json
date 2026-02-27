@@ -1,0 +1,74 @@
+[
+  {
+    "id": "y3-mh-u2-1",
+    "subject": "Mental Health Nursing",
+    "topic": "Schizophrenia Spectrum",
+    "question": "Name two 'Negative Symptoms' of Schizophrenia.",
+    "answer": "Avolition (lack of motivation), Alogia (poverty of speech), Anhedonia (lack of pleasure), and Affective Flattening.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y3-mh-u2-2",
+    "subject": "Mental Health Nursing",
+    "topic": "Schizophrenia Spectrum",
+    "question": "What is 'Waxy Flexibility'?",
+    "answer": "A condition in which a patient's limbs will remain in whatever position they are placed (seen in catatonia).",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y3-mh-u2-3",
+    "subject": "Mental Health Nursing",
+    "topic": "Schizophrenia Spectrum",
+    "question": "What is 'Echolalia'?",
+    "answer": "The automatic repetition of vocalizations made by another person.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mh-u4-1",
+    "subject": "Mental Health Nursing",
+    "topic": "Addiction",
+    "question": "What is 'Codependency'?",
+    "answer": "A relationship pattern where one person enables another's addictive or dysfunctional behavior.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mh-u4-2",
+    "subject": "Mental Health Nursing",
+    "topic": "Addiction",
+    "question": "Name a medication used to treat alcohol withdrawal symptoms.",
+    "answer": "Benzodiazepines (e.g., Chlordiazepoxide or Diazepam).",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y3-mh-u4-3",
+    "subject": "Mental Health Nursing",
+    "topic": "Addiction",
+    "question": "What is 'Antabuse' (Disulfiram) used for?",
+    "answer": "As an aversion therapy to prevent alcohol consumption by causing severe nausea/vomiting if alcohol is ingested.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y3-mh-u6-1",
+    "subject": "Mental Health Nursing",
+    "topic": "Personality Disorders",
+    "question": "What defines 'Antisocial Personality Disorder'?",
+    "answer": "A pattern of disregard for and violation of the rights of others, often involving lack of remorse.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mh-u6-2",
+    "subject": "Mental Health Nursing",
+    "topic": "Personality Disorders",
+    "question": "What is 'Splitting' in the context of Borderline Personality Disorder?",
+    "answer": "A defense mechanism where people are seen as either 'all good' or 'all bad'.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y3-mh-u6-3",
+    "subject": "Mental Health Nursing",
+    "topic": "Personality Disorders",
+    "question": "What characterizes 'Narcissistic Personality Disorder'?",
+    "answer": "A long-term pattern of abnormal behavior characterized by exaggerated feelings of self-importance, excessive need for admiration, and a lack of empathy.",
+    "difficulty": "Moderate"
+  }
+]

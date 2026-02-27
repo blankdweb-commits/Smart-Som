@@ -1,0 +1,42 @@
+[
+  {
+    "id": "nmcn-11",
+    "subject": "Council Prep",
+    "topic": "Nursing Laws",
+    "question": "Which decree established the Nursing and Midwifery Council of Nigeria?",
+    "answer": "Decree No. 89 of 1979.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "nmcn-12",
+    "subject": "Council Prep",
+    "topic": "Ethics",
+    "question": "What is the primary role of the NMCN in terms of education?",
+    "answer": "To set standards of education and practice, and to accredit nursing and midwifery institutions in Nigeria.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "nmcn-13",
+    "subject": "Council Prep",
+    "topic": "Professionalism",
+    "question": "How often should a nursing license be renewed in Nigeria?",
+    "answer": "Every three years.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "nmcn-14",
+    "subject": "Council Prep",
+    "topic": "Community Health",
+    "question": "What is the 'Green Card' in the context of Child Health in Nigeria?",
+    "answer": "The Road-to-Health chart used to monitor the growth and immunization of children.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "nmcn-15",
+    "subject": "Council Prep",
+    "topic": "Midwifery",
+    "question": "What is the drug of choice for managing seizures in Eclampsia in Nigeria?",
+    "answer": "Magnesium Sulphate (MgSO4).",
+    "difficulty": "Hard"
+  }
+]

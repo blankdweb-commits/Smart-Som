@@ -1,76 +1,111 @@
-import React, { useState, useEffect } from 'react';
-import { MessageSquare, Send, ThumbsUp, User, Clock, Share2, Award, Info } from 'lucide-react';
+import React, { useState, useEffect, useRef } from 'react';
+import { MessageSquare, Send, ThumbsUp, User, Clock, Share2, Award, Info, Image as ImageIcon, X } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+import { supabase, isSupabaseConfigured } from '../utils/supabase';
 
 const Community = () => {
   const [posts, setPosts] = useState([]);
   const [newPost, setNewPost] = useState('');
   const [category, setCategory] = useState('Study Tips');
+  const [image, setImage] = useState(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef(null);
 
   useEffect(() => {
-    const savedPosts = localStorage.getItem('nursing_community_posts');
-    if (savedPosts) {
-      setPosts(JSON.parse(savedPosts));
-    } else {
-      // Seed initial community data
-      const initialPosts = [
-        {
-          id: 1,
-          user: 'Nur_Kemi',
-          content: 'Found a great mnemonic for the 12 cranial nerves: "On Occasion Our Trusty Truck Acts Funny, Very Good Vehicle Any How"!',
-          category: 'Mnemonics',
-          likes: 12,
-          time: new Date(Date.now() - 3600000).toISOString(),
-          comments: 3
-        },
-        {
-          id: 2,
-          user: 'Midwife_Amaka',
-          content: 'Just passed my Midwifery Council exam! The OSCE section here really helped with the Leopold maneuvers steps.',
-          category: 'Success Stories',
-          likes: 24,
-          time: new Date(Date.now() - 86400000).toISOString(),
-          comments: 5
-        },
-        {
-          id: 3,
-          user: 'Student_Bolu',
-          content: 'Does anyone have tips for remembering drug dosages for Pediatric patients? I find them tricky.',
-          category: 'Study Tips',
-          likes: 8,
-          time: new Date(Date.now() - 172800000).toISOString(),
-          comments: 10
-        }
-      ];
-      setPosts(initialPosts);
-      localStorage.setItem('nursing_community_posts', JSON.stringify(initialPosts));
-    }
+    fetchPosts();
   }, []);
 
-  const handlePost = (e) => {
-    e.preventDefault();
-    if (!newPost.trim()) return;
+  const fetchPosts = async () => {
+    if (isSupabaseConfigured()) {
+      const { data, error } = await supabase
+        .from('posts')
+        .select('*')
+        .order('created_at', { ascending: false });
 
-    const post = {
-      id: Date.now(),
+      if (data) setPosts(data);
+    } else {
+      const savedPosts = localStorage.getItem('nursing_community_posts');
+      if (savedPosts) {
+        setPosts(JSON.parse(savedPosts));
+      } else {
+        const initialPosts = [
+          {
+            id: 1,
+            user: 'Nur_Kemi',
+            content: 'Found a great mnemonic for the 12 cranial nerves: "On Occasion Our Trusty Truck Acts Funny, Very Good Vehicle Any How"!',
+            category: 'Mnemonics',
+            likes: 12,
+            created_at: new Date(Date.now() - 3600000).toISOString(),
+            comments: 3
+          }
+        ];
+        setPosts(initialPosts);
+        localStorage.setItem('nursing_community_posts', JSON.stringify(initialPosts));
+      }
+    }
+  };
+
+  const handlePost = async (e) => {
+    e.preventDefault();
+    if (!newPost.trim() && !image) return;
+
+    let imageUrl = null;
+    if (image && isSupabaseConfigured()) {
+      setIsUploading(true);
+      const fileExt = image.name.split('.').pop();
+      const fileName = `${Math.random()}.${fileExt}`;
+      const filePath = `${fileName}`;
+
+      const { error: uploadError } = await supabase.storage
+        .from('community-images')
+        .upload(filePath, image);
+
+      if (!uploadError) {
+        const { data } = supabase.storage
+          .from('community-images')
+          .getPublicUrl(filePath);
+        imageUrl = data.publicUrl;
+      }
+      setIsUploading(false);
+    }
+
+    const postData = {
       user: 'You',
       content: newPost,
       category: category,
       likes: 0,
-      time: new Date().toISOString(),
+      image_url: imageUrl,
+      created_at: new Date().toISOString(),
       comments: 0
     };
 
-    const updatedPosts = [post, ...posts];
-    setPosts(updatedPosts);
-    localStorage.setItem('nursing_community_posts', JSON.stringify(updatedPosts));
+    if (isSupabaseConfigured()) {
+      const { error } = await supabase.from('posts').insert([postData]);
+      if (!error) fetchPosts();
+    } else {
+      const updatedPosts = [{ ...postData, id: Date.now() }, ...posts];
+      setPosts(updatedPosts);
+      localStorage.setItem('nursing_community_posts', JSON.stringify(updatedPosts));
+    }
+
     setNewPost('');
+    setImage(null);
   };
 
-  const handleLike = (id) => {
-    const updatedPosts = posts.map(p => p.id === id ? { ...p, likes: p.likes + 1 } : p);
-    setPosts(updatedPosts);
-    localStorage.setItem('nursing_community_posts', JSON.stringify(updatedPosts));
+  const handleLike = async (id) => {
+    if (isSupabaseConfigured()) {
+      // In a real app, we'd increment in DB. For now, local UI update then DB update.
+      const targetPost = posts.find(p => p.id === id);
+      const { error } = await supabase
+        .from('posts')
+        .update({ likes: (targetPost.likes || 0) + 1 })
+        .eq('id', id);
+      if (!error) fetchPosts();
+    } else {
+      const updatedPosts = posts.map(p => p.id === id ? { ...p, likes: (p.likes || 0) + 1 } : p);
+      setPosts(updatedPosts);
+      localStorage.setItem('nursing_community_posts', JSON.stringify(updatedPosts));
+    }
   };
 
   return (
@@ -98,29 +133,61 @@ const Community = () => {
               rows="3"
             />
           </div>
+          {image && (
+            <div className="relative inline-block ml-14">
+              <img src={URL.createObjectURL(image)} alt="Preview" className="h-32 w-32 object-cover rounded-xl border-2 border-medical-200" />
+              <button
+                type="button"
+                onClick={() => setImage(null)}
+                className="absolute -top-2 -right-2 p-1 bg-red-500 text-white rounded-full shadow-lg"
+              >
+                <X size={14} />
+              </button>
+            </div>
+          )}
+
           <div className="flex flex-wrap items-center justify-between gap-4 pt-2">
-            <div className="flex gap-2">
-              {['Study Tips', 'Mnemonics', 'Findings', 'Support'].map(cat => (
-                <button
-                  key={cat}
-                  type="button"
-                  onClick={() => setCategory(cat)}
-                  className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
-                    category === cat
-                      ? 'bg-medical-600 text-white'
-                      : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
-                  }`}
-                >
-                  {cat}
-                </button>
-              ))}
+            <div className="flex items-center gap-4">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                className="p-2 text-slate-500 hover:text-medical-600 hover:bg-medical-50 dark:hover:bg-medical-900/20 rounded-lg transition-colors"
+                title="Add Image"
+              >
+                <ImageIcon size={20} />
+              </button>
+              <input
+                type="file"
+                ref={fileInputRef}
+                onChange={(e) => setImage(e.target.files[0])}
+                className="hidden"
+                accept="image/*"
+              />
+              <div className="h-6 w-px bg-slate-200 dark:bg-slate-700 mx-2" />
+              <div className="flex gap-2 overflow-x-auto pb-1 max-w-[200px] sm:max-w-none no-scrollbar">
+                {['Study Tips', 'Mnemonics', 'Findings', 'Support'].map(cat => (
+                  <button
+                    key={cat}
+                    type="button"
+                    onClick={() => setCategory(cat)}
+                    className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
+                      category === cat
+                        ? 'bg-medical-600 text-white'
+                        : 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200'
+                    }`}
+                  >
+                    {cat}
+                  </button>
+                ))}
+              </div>
             </div>
             <button
               type="submit"
-              className="flex items-center gap-2 px-6 py-2 bg-medical-600 text-white rounded-xl font-bold hover:bg-medical-700 transition-colors shadow-lg shadow-medical-600/20 active:scale-95"
+              disabled={isUploading}
+              className={`flex items-center gap-2 px-6 py-2 bg-medical-600 text-white rounded-xl font-bold hover:bg-medical-700 transition-colors shadow-lg shadow-medical-600/20 active:scale-95 ${isUploading ? 'opacity-50 cursor-not-allowed' : ''}`}
             >
               <Send size={18} />
-              Post
+              {isUploading ? 'Uploading...' : 'Post'}
             </button>
           </div>
         </form>
@@ -139,7 +206,7 @@ const Community = () => {
                   <h4 className="font-bold text-slate-800 dark:text-white">{post.user}</h4>
                   <div className="flex items-center gap-2 text-xs text-slate-500">
                     <Clock size={12} />
-                    {new Date(post.time).toLocaleDateString()}
+                    {new Date(post.created_at).toLocaleDateString()}
                     <span className="px-2 py-0.5 bg-medical-50 dark:bg-medical-900/20 text-medical-600 rounded-full font-bold">
                       {post.category}
                     </span>
@@ -151,9 +218,14 @@ const Community = () => {
               </button>
             </div>
 
-            <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
-              {post.content}
-            </p>
+            <div className="space-y-4">
+              <p className="text-slate-700 dark:text-slate-300 leading-relaxed">
+                {post.content}
+              </p>
+              {post.image_url && (
+                <img src={post.image_url} alt="Post content" className="rounded-xl w-full max-h-96 object-cover border border-slate-100 dark:border-slate-700" />
+              )}
+            </div>
 
             <div className="flex items-center gap-6 pt-2 border-t border-slate-50 dark:border-slate-700/50">
               <button

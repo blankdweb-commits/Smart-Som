@@ -1,0 +1,202 @@
+[
+  {
+    "id": "y2-ms-u2-1",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Electrolytes",
+    "question": "What is the normal serum Potassium (K+) level?",
+    "answer": "3.5 to 5.0 mEq/L.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-ms-u2-2",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Electrolytes",
+    "question": "What is 'Hyperkalemia' and why is it dangerous?",
+    "answer": "High potassium levels; dangerous because it can cause cardiac arrest or fatal dysrhythmias.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-ms-u2-3",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Electrolytes",
+    "question": "What is the normal serum Sodium (Na+) level?",
+    "answer": "135 to 145 mEq/L.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-ms-u2-4",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Electrolytes",
+    "question": "What is 'Hyponatremia'?",
+    "answer": "Low sodium concentration in the blood.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y2-ms-u2-5",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Acid-Base Balance",
+    "question": "What is the normal range for arterial blood pH?",
+    "answer": "7.35 to 7.45.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-ms-u2-6",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Acid-Base Balance",
+    "question": "If pH is 7.30 and PaCO2 is 50, what is the interpretation?",
+    "answer": "Respiratory Acidosis.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y2-ms-u2-7",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Acid-Base Balance",
+    "question": "If pH is 7.50 and HCO3 is 30, what is the interpretation?",
+    "answer": "Metabolic Alkalosis.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y2-ms-u4-1",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Perioperative",
+    "question": "What is the priority nursing action for a patient with wound evisceration?",
+    "answer": "Cover the protruding organs with sterile gauze moistened with sterile saline and notify the surgeon immediately.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y2-ms-u4-2",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Perioperative",
+    "question": "Define 'Atelectasis'.",
+    "answer": "Collapse of the alveoli, preventing gas exchange.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-ms-u4-3",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Perioperative",
+    "question": "How often should a postoperative patient use an incentive spirometer?",
+    "answer": "Ideally 10 times every hour while awake.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y2-ms-u6-1",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Integumentary",
+    "question": "Using the 'Rule of Nines', what percentage is assigned to the entire head and neck?",
+    "answer": "9%.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-ms-u6-2",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Integumentary",
+    "question": "What is the primary concern in the first 24-48 hours after a major burn?",
+    "answer": "Hypovolemic Shock (Fluid shift).",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y2-ms-u6-3",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Integumentary",
+    "question": "What is the Parkland Formula used for?",
+    "answer": "To calculate the amount of fluid resuscitation needed in the first 24 hours for a burn patient.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y2-ms-u6-4",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Integumentary",
+    "question": "Define 'Stage 1' Pressure Injury.",
+    "answer": "Non-blanchable erythema (redness) of intact skin.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y2-ms-u6-5",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Integumentary",
+    "question": "What does 'Slough' look like in a wound?",
+    "answer": "Yellow, tan, gray, green, or brown stringy non-viable tissue.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-ms-u6-6",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Integumentary",
+    "question": "What is 'Debridement'?",
+    "answer": "The removal of dead, damaged, or infected tissue to improve healing.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-ms-u8-1",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Endocrine",
+    "question": "What are the signs of 'Hypoglycemia'?",
+    "answer": "Shakiness, sweating, palpitations, hunger, and confusion.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y2-ms-u8-2",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Endocrine",
+    "question": "What are the signs of 'Hyperglycemia'?",
+    "answer": "Extreme thirst, frequent urination, dry skin, blurred vision, and drowsiness.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y2-ms-u8-3",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Endocrine",
+    "question": "What is the 'Somogyi Effect'?",
+    "answer": "Rebound hyperglycemia in the morning after an undetected hypoglycemic episode during the night.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y2-ms-u8-4",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Endocrine",
+    "question": "What is the 'Dawn Phenomenon'?",
+    "answer": "Early morning rise in blood sugar due to growth hormone release, not preceded by hypoglycemia.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y2-ms-u8-5",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Endocrine",
+    "question": "What is 'Grave's Disease'?",
+    "answer": "An autoimmune disorder that causes Hyperthyroidism.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-ms-u8-6",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Endocrine",
+    "question": "What is 'Myxedema'?",
+    "answer": "Severe Hypothyroidism.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y2-ms-u8-7",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Endocrine",
+    "question": "Define 'Diabetes Insipidus'.",
+    "answer": "A condition characterized by large amounts of dilute urine and increased thirst due to lack of ADH.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y2-ms-u8-8",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Endocrine",
+    "question": "What is 'Cushing's Syndrome' caused by?",
+    "answer": "Excess cortisol levels in the body.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-ms-u8-9",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Endocrine",
+    "question": "What is 'Addison's Disease'?",
+    "answer": "Adrenocortical insufficiency (too little cortisol and aldosterone).",
+    "difficulty": "Hard"
+  }
+]

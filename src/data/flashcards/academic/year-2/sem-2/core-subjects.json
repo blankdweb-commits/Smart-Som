@@ -1,0 +1,42 @@
+[
+  {
+    "id": "y2-s2-ms-1",
+    "subject": "Medical-Surgical Nursing II",
+    "topic": "Respiratory",
+    "question": "What is the priority assessment for a patient with a chest tube?",
+    "answer": "Ensuring the system is airtight, checking for air leaks (bubbling), and monitoring drainage volume/color.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-s2-ms-2",
+    "subject": "Medical-Surgical Nursing II",
+    "topic": "Respiratory",
+    "question": "What should the nurse do if a chest tube becomes disconnected from the drainage unit?",
+    "answer": "Submerge the end of the tube in sterile water to create a temporary water seal.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y2-s2-ms-3",
+    "subject": "Medical-Surgical Nursing II",
+    "topic": "GI",
+    "question": "What is 'Paralytic Ileus'?",
+    "answer": "Temporary paralysis of the intestinal muscles, often occurring after abdominal surgery.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-s2-ms-4",
+    "subject": "Medical-Surgical Nursing II",
+    "topic": "Renal",
+    "question": "Define 'Nephrolithiasis'.",
+    "answer": "The formation of kidney stones (calculi) in the urinary tract.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y2-s2-ms-5",
+    "subject": "Medical-Surgical Nursing II",
+    "topic": "Renal",
+    "question": "What is the primary intervention for a patient with kidney stones?",
+    "answer": "Pain management (analgesics) and increasing fluid intake to help pass the stone.",
+    "difficulty": "Moderate"
+  }
+]
