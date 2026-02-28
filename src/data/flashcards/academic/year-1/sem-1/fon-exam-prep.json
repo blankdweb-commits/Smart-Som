@@ -1,0 +1,82 @@
+[
+  {
+    "id": "y1-fon-u5-1",
+    "subject": "Foundations of Nursing",
+    "topic": "Body Positions",
+    "question": "Describe 'Fowler's Position'.",
+    "answer": "A semi-sitting position where the head of the bed is elevated 45 to 60 degrees.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y1-fon-u5-2",
+    "subject": "Foundations of Nursing",
+    "topic": "Body Positions",
+    "question": "What position is used for a patient with severe hypotension to promote venous return?",
+    "answer": "Trendelenburg position (head lower than feet).",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y1-fon-u5-3",
+    "subject": "Foundations of Nursing",
+    "topic": "Body Positions",
+    "question": "What is 'Sims' Position' used for?",
+    "answer": "Rectal examinations, treatments, and enemas.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y1-fon-u5-4",
+    "subject": "Foundations of Nursing",
+    "topic": "Medication: Routes",
+    "question": "What does 'PRN' mean on a medication order?",
+    "answer": "As needed.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y1-fon-u5-5",
+    "subject": "Foundations of Nursing",
+    "topic": "Medication: Routes",
+    "question": "Define 'Parenteral' administration.",
+    "answer": "Medication administration by any route other than the digestive tract (e.g., IM, IV, SC).",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y1-fon-u5-6",
+    "subject": "Foundations of Nursing",
+    "topic": "Ethics: Vocabulary",
+    "question": "What is 'Veracity'?",
+    "answer": "The duty to tell the truth.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y1-fon-u5-7",
+    "subject": "Foundations of Nursing",
+    "topic": "Ethics: Vocabulary",
+    "question": "Define 'Fidelity'.",
+    "answer": "The duty to keep promises and be faithful to commitments.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y1-fon-u5-8",
+    "subject": "Foundations of Nursing",
+    "topic": "Ethics: Vocabulary",
+    "question": "What is 'Justice' in nursing ethics?",
+    "answer": "The fair and equitable distribution of resources and treatment of all patients.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y1-fon-u5-9",
+    "subject": "Foundations of Nursing",
+    "topic": "Wound Care: Terminology",
+    "question": "What is 'Exudate'?",
+    "answer": "Fluid, such as pus or serum, that leaks out of blood vessels into nearby tissues due to inflammation.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y1-fon-u5-10",
+    "subject": "Foundations of Nursing",
+    "topic": "Wound Care: Terminology",
+    "question": "What is 'Granulation Tissue'?",
+    "answer": "New vascular tissue in granular form on an ulcer or healing surface of a wound.",
+    "difficulty": "Hard"
+  }
+]

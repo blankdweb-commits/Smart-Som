@@ -4,10 +4,11 @@ export const allBuiltInFlashcards = Object.entries(modules).flatMap(([path, modu
   // Infer category, level, and semester from path if missing
   // Path format: ./flashcards/academic/year-1/sem-1/file.json
   const parts = path.split('/');
+  const fIdx = parts.indexOf('flashcards');
 
-  const inferredCategory = parts[2] ? parts[2].charAt(0).toUpperCase() + parts[2].slice(1) : 'Academic';
-  let inferredLevel = parts[3] ? parts[3].replace('year-', 'Year ') : 'Year 1';
-  let inferredSemester = parts[4] ? parts[4].replace('sem-', 'Semester ') : 'Semester 1';
+  const inferredCategory = parts[fIdx + 1] ? parts[fIdx + 1].charAt(0).toUpperCase() + parts[fIdx + 1].slice(1) : 'Academic';
+  let inferredLevel = parts[fIdx + 2] ? parts[fIdx + 2].replace('year-', 'Year ') : 'Year 1';
+  let inferredSemester = parts[fIdx + 3] ? parts[fIdx + 3].replace('sem-', 'Semester ') : 'Semester 1';
 
   // Specific overrides for professional tracks
   const finalCategory = inferredCategory === 'Nclex' ? 'NCLEX' : inferredCategory === 'Nmcn' ? 'NMCN' : inferredCategory;

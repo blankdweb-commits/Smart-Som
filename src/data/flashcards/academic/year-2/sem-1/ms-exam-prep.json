@@ -1,0 +1,82 @@
+[
+  {
+    "id": "y2-ms-u13-1-exp",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Renal: Glomerulonephritis",
+    "question": "What is the hallmark symptom of Acute Glomerulonephritis?",
+    "answer": "Hematuria (cola-colored or smoky urine) and edema (especially periorbital).",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-ms-u13-2-exp",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Renal: Nephrotic Syndrome",
+    "question": "What are the four primary clinical features of Nephrotic Syndrome?",
+    "answer": "Massive proteinuria, Hypoalbuminemia, Edema, and Hyperlipidemia.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y2-ms-u13-3-exp",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "GI: Cholecystitis",
+    "question": "What is 'Murphy's Sign'?",
+    "answer": "Pain on deep inspiration while the nurse palpates the right upper quadrant; indicates Cholecystitis (gallbladder inflammation).",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y2-ms-u13-4-exp",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "GI: Pancreatitis",
+    "question": "What lab values are most critical for diagnosing Acute Pancreatitis?",
+    "answer": "Serum Amylase and Lipase (usually significantly elevated).",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-ms-u13-5-exp",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Endocrine: Pheochromocytoma",
+    "question": "What is a Pheochromocytoma and its most dangerous symptom?",
+    "answer": "A catecholamine-secreting tumor of the adrenal medulla; dangerous symptom is severe, resistant hypertension.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y2-ms-u13-6-exp",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Respiratory: Asthma",
+    "question": "What is 'Status Asthmaticus'?",
+    "answer": "A severe, life-threatening asthma attack that does not respond to standard treatments (bronchodilators).",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-ms-u13-7-exp",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Cardiovascular: MI",
+    "question": "What is the significance of ST-segment elevation on an ECG?",
+    "answer": "It indicates acute myocardial injury (STEMI) requiring immediate intervention.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y2-ms-u13-8-exp",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Cardiovascular: MI",
+    "question": "Which cardiac biomarker is the most specific for myocardial damage?",
+    "answer": "Troponin (I or T).",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y2-ms-u13-9-exp",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Neurology: Meningitis",
+    "question": "What is 'Brudzinski's Sign'?",
+    "answer": "Flexion of the hips and knees when the neck is flexed; a sign of meningeal irritation.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y2-ms-u13-10-exp",
+    "subject": "Medical-Surgical Nursing",
+    "topic": "Neurology: Meningitis",
+    "question": "What is 'Kernig's Sign'?",
+    "answer": "Inability to straighten the leg when the hip is flexed at 90 degrees; a sign of meningeal irritation.",
+    "difficulty": "Hard"
+  }
+]

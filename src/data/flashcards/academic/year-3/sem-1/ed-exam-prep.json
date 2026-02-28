@@ -1,0 +1,82 @@
+[
+  {
+    "id": "y3-ed-u10-1",
+    "subject": "Emergency Nursing",
+    "topic": "Triage: Scenarios",
+    "question": "A patient with a minor arm fracture and no respiratory distress is arriving at triage. What color tag do they receive?",
+    "answer": "Green (Minor/Walking wounded).",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y3-ed-u10-2",
+    "subject": "Emergency Nursing",
+    "topic": "Triage: Scenarios",
+    "question": "A patient with stable abdominal pain but requiring treatment within 1-2 hours is tagged as what color?",
+    "answer": "Yellow (Delayed).",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-ed-u10-3",
+    "subject": "Emergency Nursing",
+    "topic": "Trauma: Head",
+    "question": "What is the 'Battle's Sign'?",
+    "answer": "Bruising behind the ear (mastoid process); indicative of a basilar skull fracture.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y3-ed-u10-4",
+    "subject": "Emergency Nursing",
+    "topic": "Trauma: Head",
+    "question": "What are 'Raccoon Eyes'?",
+    "answer": "Periorbital ecchymosis (bruising around eyes); indicative of a basilar skull fracture.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-ed-u10-5",
+    "subject": "Emergency Nursing",
+    "topic": "Shock: Sepsis",
+    "question": "Define the 'Sepsis Six' bundle.",
+    "answer": "Give: O2, IV fluids, Antibiotics. Take: Blood cultures, Lactate, Urine output.",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y3-ed-u10-6",
+    "subject": "Emergency Nursing",
+    "topic": "Cardiac: ACLS",
+    "question": "What is the recommended joule setting for an initial biphasic defibrillation?",
+    "answer": "120 to 200 Joules (follow manufacturer guidelines).",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y3-ed-u10-7",
+    "subject": "Emergency Nursing",
+    "topic": "Poisoning: Lead",
+    "question": "What is 'Chelation Therapy'?",
+    "answer": "A medical procedure that involves the administration of chelating agents to remove heavy metals (like lead) from the body.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-ed-u10-8",
+    "subject": "Emergency Nursing",
+    "topic": "Trauma: Chest",
+    "question": "What is the emergency treatment for a sucking chest wound (Open Pneumothorax)?",
+    "answer": "Occlusive dressing taped on THREE sides (allows air to escape but not enter).",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y3-ed-u10-9",
+    "subject": "Emergency Nursing",
+    "topic": "Environmental: Heat",
+    "question": "What is the primary difference between Heat Exhaustion and Heat Stroke?",
+    "answer": "Heat stroke involves central nervous system dysfunction (confusion/seizures) and an extremely high body temperature.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-ed-u10-10",
+    "subject": "Emergency Nursing",
+    "topic": "Environmental: Cold",
+    "question": "What is the 'rewarming' priority for severe hypothermia?",
+    "answer": "Core rewarming (warm IV fluids, warm humidified O2) before surface rewarming to prevent afterdrop.",
+    "difficulty": "Hard"
+  }
+]

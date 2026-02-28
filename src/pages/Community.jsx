@@ -223,20 +223,22 @@ const Community = () => {
       </div>
 
       {/* Community Feed */}
-      <div className="space-y-6">
+      <div className="space-y-4 sm:space-y-6">
         {posts.map(post => (
-          <div key={post.id} className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden">
+          <div key={post.id} className="bg-white dark:bg-slate-800 rounded-2xl sm:rounded-3xl shadow-sm border border-slate-100 dark:border-slate-700 overflow-hidden transition-all duration-300">
             <div className="p-4 sm:p-6 space-y-4">
               <div className="flex justify-between items-start">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 rounded-full bg-slate-100 dark:bg-slate-700 flex items-center justify-center text-slate-500">
                     <User size={20} />
                   </div>
-                  <div>
-                    <h4 className="font-bold text-slate-800 dark:text-white text-sm sm:text-base">{post.user}</h4>
-                    <div className="flex items-center gap-2 text-[10px] sm:text-xs text-slate-500">
-                      <Clock size={10} />
-                      {new Date(post.created_at).toLocaleDateString()}
+                  <div className="min-w-0">
+                    <h4 className="font-bold text-slate-800 dark:text-white text-sm sm:text-base truncate">{post.user}</h4>
+                    <div className="flex flex-wrap items-center gap-2 text-[10px] sm:text-xs text-slate-500 mt-0.5">
+                      <div className="flex items-center gap-1">
+                        <Clock size={10} />
+                        {new Date(post.created_at).toLocaleDateString()}
+                      </div>
                       <span className="px-2 py-0.5 bg-medical-50 dark:bg-medical-900/20 text-medical-600 rounded-full font-bold">
                         {post.category}
                       </span>
@@ -277,18 +279,18 @@ const Community = () => {
 
             {/* Replies Section */}
             {post.replies && post.replies.length > 0 && (
-              <div className="bg-slate-50 dark:bg-slate-900/30 border-t border-slate-100 dark:border-slate-700/50 p-4 sm:p-6 space-y-4">
+              <div className="bg-slate-50/50 dark:bg-slate-900/30 border-t border-slate-100 dark:border-slate-700/50 p-4 sm:p-6 space-y-3">
                 {post.replies.map(reply => (
-                  <div key={reply.id} className="flex gap-3">
-                    <div className="w-8 h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 shrink-0">
-                      <User size={14} />
+                  <div key={reply.id} className="flex gap-2 sm:gap-3">
+                    <div className="w-7 h-7 sm:w-8 sm:h-8 rounded-full bg-slate-200 dark:bg-slate-700 flex items-center justify-center text-slate-500 shrink-0">
+                      <User size={12} sm={14} />
                     </div>
-                    <div className="flex-1 bg-white dark:bg-slate-800 p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-100 dark:border-slate-700/50">
+                    <div className="flex-1 bg-white/50 dark:bg-slate-800/50 p-2 sm:p-3 rounded-2xl rounded-tl-none shadow-sm border border-slate-100/50 dark:border-slate-700/30">
                       <div className="flex justify-between items-center mb-1">
-                        <span className="font-bold text-xs text-slate-800 dark:text-white">{reply.user}</span>
-                        <span className="text-[10px] text-slate-500">{new Date(reply.created_at).toLocaleDateString()}</span>
+                        <span className="font-bold text-[10px] sm:text-xs text-slate-800 dark:text-white">{reply.user}</span>
+                        <span className="text-[8px] sm:text-[10px] text-slate-400">{new Date(reply.created_at).toLocaleDateString()}</span>
                       </div>
-                      <p className="text-xs sm:text-sm text-slate-600 dark:text-slate-400">{reply.content}</p>
+                      <p className="text-[11px] sm:text-sm text-slate-600 dark:text-slate-400 leading-relaxed">{reply.content}</p>
                     </div>
                   </div>
                 ))}

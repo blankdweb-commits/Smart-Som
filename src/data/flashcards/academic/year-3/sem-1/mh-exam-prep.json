@@ -1,0 +1,82 @@
+[
+  {
+    "id": "y3-mh-u10-1",
+    "subject": "Mental Health Nursing",
+    "topic": "Psychiatry: Vocabulary",
+    "question": "What is 'Confabulation'?",
+    "answer": "Filling in memory gaps with imaginary stories that the person believes to be true (common in Korsakoff's).",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y3-mh-u10-2",
+    "subject": "Mental Health Nursing",
+    "topic": "Psychiatry: Vocabulary",
+    "question": "Define 'Akathesia'.",
+    "answer": "A side effect of antipsychotics characterized by physical restlessness and an inability to sit still.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mh-u10-3",
+    "subject": "Mental Health Nursing",
+    "topic": "Psychiatry: Vocabulary",
+    "question": "What is 'Tardive Dyskinesia'?",
+    "answer": "A serious side effect of long-term antipsychotic use involving involuntary repetitive movements (e.g., lip smacking).",
+    "difficulty": "Hard"
+  },
+  {
+    "id": "y3-mh-u10-4",
+    "subject": "Mental Health Nursing",
+    "topic": "Therapy: Milieu",
+    "question": "Define 'Milieu Therapy'.",
+    "answer": "A therapeutic environment designed to provide safety and help patients develop social and self-management skills.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mh-u10-5",
+    "subject": "Mental Health Nursing",
+    "topic": "Defense Mechanisms",
+    "question": "What is 'Projection'?",
+    "answer": "Attributing one's own unacceptable feelings or thoughts to someone else.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mh-u10-6",
+    "subject": "Mental Health Nursing",
+    "topic": "Defense Mechanisms",
+    "question": "Define 'Rationalization'.",
+    "answer": "Creating logical-sounding excuses to justify unacceptable behavior or feelings.",
+    "difficulty": "Easy"
+  },
+  {
+    "id": "y3-mh-u10-7",
+    "subject": "Mental Health Nursing",
+    "topic": "Ethics: Rights",
+    "question": "Do voluntary psychiatric patients have the right to refuse medication?",
+    "answer": "Yes, in most jurisdictions, unless there is an immediate emergency or a specific court order.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mh-u10-8",
+    "subject": "Mental Health Nursing",
+    "topic": "Pharmacology: SSRIs",
+    "question": "How long does it typically take for SSRIs (e.g., Fluoxetine) to reach full therapeutic effect?",
+    "answer": "Usually 2 to 4 weeks (sometimes up to 6-8 weeks).",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mh-u10-9",
+    "subject": "Mental Health Nursing",
+    "topic": "Alcoholism",
+    "question": "What is 'Wernicke's Encephalopathy' caused by?",
+    "answer": "Thiamine (Vitamin B1) deficiency, common in chronic alcoholism.",
+    "difficulty": "Moderate"
+  },
+  {
+    "id": "y3-mh-u10-10",
+    "subject": "Mental Health Nursing",
+    "topic": "Bipolar: Lithium",
+    "question": "What is the priority lab test for a patient starting Lithium?",
+    "answer": "Renal function (BUN/Creatinine) and Thyroid function (TSH).",
+    "difficulty": "Hard"
+  }
+]

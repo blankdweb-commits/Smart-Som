@@ -21,6 +21,7 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   const { flashcards, addFlashcard, updateFlashcard, deleteFlashcard, importFlashcards, incrementCardsStudied, updateCardProgress } = useAppContext();
 
   // Navigation State
+  const [currentProgram, setCurrentProgram] = useState(null); // 'General Nursing' or 'Midwifery'
   const [currentLevel, setCurrentLevel] = useState(null); // 'Year 1', etc.
   const [currentSemester, setCurrentSemester] = useState(null); // 'Semester 1', etc.
   const [currentSubject, setCurrentSubject] = useState(null);
@@ -38,7 +39,19 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   const [visibleCount, setVisibleCount] = useState(12);
 
   // Derive hierarchy options
-  const categoryCards = useMemo(() => flashcards.filter(c => c.category === initialCategory), [flashcards, initialCategory]);
+  const categoryCards = useMemo(() => {
+    let filtered = flashcards.filter(c => c.category === initialCategory);
+    if (initialCategory === 'Academic' && currentProgram) {
+      // In a real app, we'd have a 'program' field. For now, we filter by subject keywords or tags if available.
+      // Or we just assume the user is browsing within a context.
+      // Let's assume most subjects belong to both, but Midwifery is specific.
+      if (currentProgram === 'Midwifery') {
+        return filtered.filter(c => c.subject.toLowerCase().includes('midwifery') || c.subject.toLowerCase().includes('reproductive'));
+      }
+      return filtered.filter(c => !c.subject.toLowerCase().includes('midwifery'));
+    }
+    return filtered;
+  }, [flashcards, initialCategory, currentProgram]);
 
   const levels = useMemo(() => [...new Set(categoryCards.map(c => c.level))].sort(), [categoryCards]);
 
@@ -112,6 +125,7 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   };
 
   const resetNav = () => {
+    setCurrentProgram(null);
     setCurrentLevel(null);
     setCurrentSemester(null);
     setCurrentSubject(null);
@@ -122,11 +136,49 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
     return (
       <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500">
         <header>
-          <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white">Nursing Curriculum</h2>
-          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">Select your level of study to browse courses.</p>
+          <div className="flex items-center gap-2 mb-2">
+            {currentProgram && (
+              <button onClick={() => {
+                if (currentLevel) setCurrentLevel(null);
+                else setCurrentProgram(null);
+              }} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded">
+                <ArrowLeft size={20} />
+              </button>
+            )}
+            <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white">
+              {currentProgram ? `${currentProgram} Curriculum` : 'Select Your Program'}
+            </h2>
+          </div>
+          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
+            {currentProgram ? 'Select your level of study to browse courses.' : 'Choose your primary field of study to get tailored flashcards.'}
+          </p>
         </header>
 
-        {!currentLevel ? (
+        {!currentProgram ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <button
+              onClick={() => setCurrentProgram('General Nursing')}
+              className="p-8 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border-2 border-transparent hover:border-medical-500 transition-all text-left group"
+            >
+              <div className="w-16 h-16 bg-medical-100 dark:bg-medical-900/30 rounded-2xl flex items-center justify-center text-medical-600 mb-6 group-hover:scale-110 transition-transform">
+                <Book size={32} />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-white">General Nursing</h3>
+              <p className="text-slate-500 mt-2">Comprehensive curriculum for standard nursing practice and council exams.</p>
+            </button>
+
+            <button
+              onClick={() => setCurrentProgram('Midwifery')}
+              className="p-8 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border-2 border-transparent hover:border-pink-500 transition-all text-left group"
+            >
+              <div className="w-16 h-16 bg-pink-100 dark:bg-pink-900/30 rounded-2xl flex items-center justify-center text-pink-600 mb-6 group-hover:scale-110 transition-transform">
+                <Award size={32} />
+              </div>
+              <h3 className="text-2xl font-bold text-slate-800 dark:text-white">Midwifery</h3>
+              <p className="text-slate-500 mt-2">Specialized tracks focusing on maternal health, labor, and newborn care.</p>
+            </button>
+          </div>
+        ) : !currentLevel ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
             {levels.map(level => (
               <button
@@ -208,6 +260,12 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   // Study/List View
   return (
     <div className="space-y-6 pb-20">
+      {/* Mobile Breadcrumb/Back button for Study View */}
+      {viewMode === 'study' && (
+        <button onClick={() => setViewMode('list')} className="flex items-center text-medical-600 text-sm font-bold bg-white dark:bg-slate-800 px-4 py-2 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 active:scale-95 transition-transform">
+          <ArrowLeft size={16} className="mr-2" /> Back to Decks
+        </button>
+      )}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2 mb-1">
