@@ -1,0 +1,28 @@
+{
+  "metadata": {
+    "program": "National Diploma in Midwifery",
+    "level": "Year 1",
+    "semester": "Semester 1",
+    "last_updated": "2026-02-28"
+  },
+  "courses": [
+    {
+      "id": "mid-101",
+      "course_code": "MID 111",
+      "title": "Introduction to Midwifery",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Professional Midwifery",
+          "flashcards": [
+            { "id": "m1s1-i-1", "question": "Define Midwifery according to the ICM.", "answer": "Midwifery is the profession of caring for women during pregnancy, labor, and the postpartum period, as well as providing newborn and infant care.", "difficulty": "Easy", "isImportant": true },
+            { "id": "m1s1-i-2", "question": "What is the primary role of the midwife as a 'skilled birth attendant'?", "answer": "To monitor the health of mother and fetus, detect complications, and provide essential emergency obstetric and newborn care (EmONC).", "difficulty": "Moderate", "isImportant": true },
+            { "id": "m1s1-i-3", "question": "What are the core values of the midwifery profession?", "answer": "Respect for women's autonomy, dignity, partnership with women, and evidence-based practice.", "difficulty": "Easy", "isImportant": true },
+            { "id": "m1s1-i-4", "question": "What is the ICM definition of a Midwife?", "answer": "A person who has successfully completed a midwifery education programme that is duly recognized in the country where it is located.", "difficulty": "Moderate" },
+            { "id": "m1s1-i-5", "question": "List three components of the scope of midwifery practice.", "answer": "Health counseling and education, prenatal care, and conducting deliveries on own responsibility.", "difficulty": "Moderate" }
+          ]
+        }
+      ]
+    }
+  ]
+}

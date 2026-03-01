@@ -22,6 +22,12 @@ export const allBuiltInFlashcards = Object.entries(modules).flatMap(([path, modu
   // Specific overrides for professional tracks
   const finalCategory = inferredCategory === 'Nclex' ? 'NCLEX' : inferredCategory === 'Nmcn' ? 'NMCN' : inferredCategory;
 
+  // Prevent Professional exams from leaking into Academic Year defaults
+  if (finalCategory === 'NCLEX' || finalCategory === 'NMCN') {
+    inferredLevel = 'Professional';
+    inferredSemester = 'Exam Prep';
+  }
+
   const data = module.default;
   let cards = [];
 
@@ -41,18 +47,29 @@ export const allBuiltInFlashcards = Object.entries(modules).flatMap(([path, modu
     );
   }
 
-  return cards.map(card => ({
-    category: finalCategory,
-    level: inferredLevel,
-    semester: inferredSemester,
-    program: inferredProgram,
-    ...card, // Original card properties override inferred ones
-    important: card.isImportant || card.important || false,
-    srs: card.srs || {
-      interval: 0,
-      reps: 0,
-      efactor: 2.5,
-      nextReview: new Date().toISOString()
-    }
-  }));
+  return cards.map(card => {
+    // Normalize subject names to prevent duplicates like "Anatomy and Physiology" vs "Anatomy & Physiology"
+    let normalizedSubject = card.subject || 'General';
+    normalizedSubject = normalizedSubject
+      .replace(/\s+and\s+/gi, ' & ')
+      .replace(/-/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    return {
+      category: finalCategory,
+      level: inferredLevel,
+      semester: inferredSemester,
+      program: inferredProgram,
+      ...card, // Original card properties override inferred ones
+      subject: normalizedSubject,
+      important: card.isImportant || card.important || false,
+      srs: card.srs || {
+        interval: 0,
+        reps: 0,
+        efactor: 2.5,
+        nextReview: new Date().toISOString()
+      }
+    };
+  });
 });
