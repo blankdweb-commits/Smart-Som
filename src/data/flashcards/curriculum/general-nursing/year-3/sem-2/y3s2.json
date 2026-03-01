@@ -1,0 +1,32 @@
+{
+  "metadata": {
+    "program": "National Diploma in Nursing",
+    "level": "Year 3",
+    "semester": "Semester 2",
+    "last_updated": "2026-02-28"
+  },
+  "courses": [
+    {
+      "id": "nur-3xx-pmt",
+      "title": "Management and Teaching",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Management",
+          "flashcards": [
+            { "id": "y3s2-m-1", "question": "What is 'Planning'?", "answer": "Setting goals and deciding how to achieve them.", "difficulty": "beginner" },
+            { "id": "y3s2-m-2", "question": "Define 'Organizing'.", "answer": "Allocating resources to implement the plan.", "difficulty": "beginner" },
+            { "id": "y3s2-m-3", "question": "What is 'Staffing'?", "answer": "Recruiting and managing human resources.", "difficulty": "Moderate" },
+            { "id": "y3s2-m-4", "question": "Define 'Directing'.", "answer": "Guiding and motivating staff to meet objectives.", "difficulty": "Moderate" },
+            { "id": "y3s2-m-5", "question": "What is 'Controlling'?", "answer": "Evaluating performance against goals.", "difficulty": "Moderate" },
+            { "id": "y3s2-m-6", "question": "Define 'Unity of Command'.", "answer": "Reporting to one supervisor only.", "difficulty": "Moderate" },
+            { "id": "y3s2-m-7", "question": "What is 'Span of Control'?", "answer": "Number of staff a manager supervises.", "difficulty": "Moderate" },
+            { "id": "y3s2-m-8", "question": "Define 'MBO'.", "answer": "Management by Objectives.", "difficulty": "Hard" },
+            { "id": "y3s2-m-9", "question": "What is 'Delegation'?", "answer": "Transferring task responsibility while keeping accountability.", "difficulty": "Hard" },
+            { "id": "y3s2-m-10", "question": "What is 'Leadership'?", "answer": "Influencing others toward a common goal.", "difficulty": "intermediate" }
+          ]
+        }
+      ]
+    }
+  ]
+}

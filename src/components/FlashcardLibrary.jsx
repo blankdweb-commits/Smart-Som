@@ -40,17 +40,30 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
 
   // Derive hierarchy options
   const categoryCards = useMemo(() => {
-    let filtered = flashcards.filter(c => c.category === initialCategory);
-    if (initialCategory === 'Academic' && currentProgram) {
-      // In a real app, we'd have a 'program' field. For now, we filter by subject keywords or tags if available.
-      // Or we just assume the user is browsing within a context.
-      // Let's assume most subjects belong to both, but Midwifery is specific.
-      if (currentProgram === 'Midwifery') {
-        return filtered.filter(c => c.subject.toLowerCase().includes('midwifery') || c.subject.toLowerCase().includes('reproductive'));
-      }
-      return filtered.filter(c => !c.subject.toLowerCase().includes('midwifery'));
+    if (!currentProgram) return [];
+
+    // First, try to filter by the 'program' field from loadFlashcards (e.g., 'nd-nursing')
+    // We'll normalize program names for matching
+    const programSlug = currentProgram.toLowerCase().replace(/\s+/g, '-');
+
+    let filtered = flashcards.filter(c =>
+      (c.category === 'Curriculum' && c.program === programSlug) ||
+      (c.category === initialCategory)
+    );
+
+    if (currentProgram === 'Midwifery') {
+      return filtered.filter(c =>
+        c.subject.toLowerCase().includes('midwifery') ||
+        c.subject.toLowerCase().includes('reproductive') ||
+        c.program === 'midwifery'
+      );
     }
-    return filtered;
+
+    // Default: General Nursing
+    return filtered.filter(c =>
+      !c.subject.toLowerCase().includes('midwifery') ||
+      c.program === 'nd-nursing'
+    );
   }, [flashcards, initialCategory, currentProgram]);
 
   const levels = useMemo(() => [...new Set(categoryCards.map(c => c.level))].sort(), [categoryCards]);
@@ -230,23 +243,36 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
                   <button
                     key={subject}
                     onClick={() => setCurrentSubject(subject)}
-                    className={`p-4 rounded-xl shadow-sm border transition-all text-left group
+                    className={`p-4 rounded-xl shadow-sm border transition-all text-left group flex flex-col justify-between h-full
                       ${isOSCE ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-900/30 hover:bg-amber-100' :
                         isQuickRef ? 'bg-indigo-50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-900/30 hover:bg-indigo-100' :
                         'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:bg-medical-50 dark:hover:bg-medical-900/20'}
                     `}
                   >
-                    <div className="flex justify-between items-start">
-                      <h5 className={`font-bold truncate ${isOSCE ? 'text-amber-800 dark:text-amber-400' : isQuickRef ? 'text-indigo-800 dark:text-indigo-400' : 'text-slate-800 dark:text-white'}`}>
-                        {subject}
-                      </h5>
-                      {(isOSCE || isQuickRef) && <Award size={16} className={isOSCE ? 'text-amber-500' : 'text-indigo-500'} />}
+                    <div>
+                      <div className="flex justify-between items-start mb-1">
+                        <h5 className={`font-bold leading-tight ${isOSCE ? 'text-amber-800 dark:text-amber-400' : isQuickRef ? 'text-indigo-800 dark:text-indigo-400' : 'text-slate-800 dark:text-white'}`}>
+                          {subject}
+                        </h5>
+                        {(isOSCE || isQuickRef) && <Award size={16} className={isOSCE ? 'text-amber-500' : 'text-indigo-500'} />}
+                      </div>
+                      <span className="text-xs text-slate-500 font-medium">
+                        {categoryCards.filter(c => c.level === currentLevel && c.semester === currentSemester && c.subject === subject).length} cards
+                      </span>
                     </div>
-                    <span className="text-xs text-slate-500">
-                      {categoryCards.filter(c => c.level === currentLevel && c.semester === currentSemester && c.subject === subject).length} cards
-                    </span>
-                    {isOSCE && <p className="text-[10px] mt-2 font-bold uppercase text-amber-600 dark:text-amber-500/70 tracking-tight">Essential Clinical Skills</p>}
-                    {isQuickRef && <p className="text-[10px] mt-2 font-bold uppercase text-indigo-600 dark:text-indigo-500/70 tracking-tight">High-Yield Facts</p>}
+                    <div className="mt-4">
+                      {isOSCE ? (
+                        <p className="text-[10px] font-bold uppercase text-amber-600 dark:text-amber-500/70 tracking-tight">Essential Clinical Skills</p>
+                      ) : isQuickRef ? (
+                        <p className="text-[10px] font-bold uppercase text-indigo-600 dark:text-indigo-500/70 tracking-tight">High-Yield Facts</p>
+                      ) : (
+                        <div className="flex gap-1 flex-wrap">
+                          {[...new Set(categoryCards.filter(c => c.subject === subject).map(c => c.unit).filter(Boolean))].slice(0, 3).map(u => (
+                            <span key={u} className="text-[8px] bg-slate-100 dark:bg-slate-700 px-1 rounded">{u}</span>
+                          ))}
+                        </div>
+                      )}
+                    </div>
                   </button>
                 );
               })}

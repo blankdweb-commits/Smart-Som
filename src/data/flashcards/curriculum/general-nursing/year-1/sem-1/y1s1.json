@@ -1,0 +1,117 @@
+{
+  "metadata": {
+    "program": "National Diploma in Nursing",
+    "level": "Year 1",
+    "semester": "Semester 1",
+    "last_updated": "2026-02-28"
+  },
+  "courses": [
+    {
+      "id": "anat-101",
+      "course_code": "NUS 113",
+      "title": "Anatomy and Physiology I",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Introduction to Anatomy and Physiology & Organization of the Human Body",
+          "flashcards": [
+            { "id": "y1s1-a1-u1-1", "question": "What is the standard anatomical position?", "answer": "Body erect, face forward, arms at sides, palms forward.", "difficulty": "Easy" },
+            { "id": "y1s1-a1-u1-2", "question": "Define the Sagittal Plane.", "answer": "A vertical plane that divides the body into right and left parts.", "difficulty": "Easy" },
+            { "id": "y1s1-a1-u1-3", "question": "Define the Coronal (Frontal) Plane.", "answer": "Divides the body into anterior and posterior (front and back) portions.", "difficulty": "Easy" },
+            { "id": "y1s1-a1-u1-4", "question": "Define the Transverse Plane.", "answer": "A horizontal plane dividing the body into superior and inferior parts.", "difficulty": "Easy" },
+            { "id": "y1s1-a1-u1-5", "question": "Name the four basic types of human tissues.", "answer": "Epithelial, Connective, Muscle, and Nervous tissues.", "difficulty": "Easy" },
+            { "id": "y1s1-a1-u1-6", "question": "What is the basic functional unit of life?", "answer": "The cell.", "difficulty": "Easy" },
+            { "id": "y1s1-a1-u1-7", "question": "Define Homeostasis.", "answer": "The maintenance of a stable internal environment despite external changes.", "difficulty": "Moderate" },
+            { "id": "y1s1-a1-u1-8", "question": "What are the standard anatomical positions and planes?", "answer": "Anatomical position: body erect, face forward, arms at sides, palms forward. Planes: sagittal (left-right), coronal (front-back), transverse (upper-lower).", "difficulty": "beginner" },
+            { "id": "y1s1-a1-u1-9", "question": "List the major body cavities and their contents.", "answer": "Dorsal cavity: cranial (brain) and spinal (spinal cord). Ventral cavity: thoracic (heart, lungs) and abdominopelvic (digestive organs, bladder, reproductive organs).", "difficulty": "beginner" },
+            { "id": "y1s1-a1-u1-10", "question": "What is the Cell Theory?", "answer": "All living organisms are composed of one or more cells; the cell is the basic unit of life; all cells arise from pre-existing cells.", "difficulty": "beginner" },
+            { "id": "y1s1-a1-u1-11", "question": "Define proximal and distal.", "answer": "Proximal: closer to the point of attachment. Distal: further from the point of attachment.", "difficulty": "beginner" },
+            { "id": "y1s1-a1-u1-12", "question": "What is the function of mitochondria?", "answer": "To produce ATP through cellular respiration.", "difficulty": "beginner" }
+          ]
+        },
+        {
+          "unit_number": "Unit II",
+          "title": "Blood and Cardiovascular System",
+          "flashcards": [
+            { "id": "y1s1-a1-u2-1", "question": "What are the components of blood?", "answer": "Plasma (55%) and formed elements (45%): RBCs, WBCs, and platelets.", "difficulty": "Easy" },
+            { "id": "y1s1-a1-u2-2", "question": "Which blood type is the universal donor?", "answer": "Type O Negative.", "difficulty": "Moderate" },
+            { "id": "y1s1-a1-u2-3", "question": "Explain the ABO blood grouping system and Rh factor.", "answer": "Type A has A antigens and anti-B antibodies; Type B has B antigens and anti-A; Type AB has both antigens, no antibodies; Type O has no antigens, both antibodies. Rh-positive has D antigen; Rh-negative lacks it.", "difficulty": "intermediate" },
+            { "id": "y1s1-a1-u2-4", "question": "Describe the clotting mechanism (hemostasis).", "answer": "Vascular spasm, platelet plug formation, coagulation cascade (intrinsic and extrinsic pathways) leading to fibrin clot.", "difficulty": "advanced" },
+            { "id": "y1s1-a1-u2-5", "question": "Trace the path of blood through the heart.", "answer": "Vena cava → right atrium → tricuspid valve → right ventricle → pulmonary valve → pulmonary artery → lungs → pulmonary veins → left atrium → mitral valve → left ventricle → aortic valve → aorta.", "difficulty": "intermediate" },
+            { "id": "y1s1-a1-u2-6", "question": "What factors affect blood pressure?", "answer": "Cardiac output, peripheral resistance, blood volume, viscosity, elasticity of arteries.", "difficulty": "intermediate" },
+            { "id": "y1s1-a1-u2-7", "question": "Define Cardiac Output.", "answer": "The volume of blood pumped by each ventricle per minute (CO = HR x SV).", "difficulty": "Hard" },
+            { "id": "y1s1-a1-u2-8", "question": "What is the function of white blood cells?", "answer": "To protect the body against infectious diseases and foreign invaders.", "difficulty": "Easy" },
+            { "id": "y1s1-a1-u2-9", "question": "What is the Sinoatrial (SA) Node?", "answer": "The primary pacemaker of the heart.", "difficulty": "Moderate" },
+            { "id": "y1s1-a1-u2-10", "question": "What are the three layers of the heart wall?", "answer": "Epicardium, Myocardium, and Endocardium.", "difficulty": "Easy" }
+          ]
+        },
+        {
+          "unit_number": "Unit III",
+          "title": "The Respiratory System",
+          "flashcards": [
+            { "id": "y1s1-a1-u3-1", "question": "List the organs of the respiratory tract in order.", "answer": "Nose → pharynx → larynx → trachea → bronchi → bronchioles → alveoli.", "difficulty": "beginner" },
+            { "id": "y1s1-a1-u3-2", "question": "Explain the mechanism of gas exchange in the alveoli.", "answer": "Oxygen diffuses from alveoli (high concentration) into blood (low concentration); CO2 diffuses from blood into alveoli.", "difficulty": "intermediate" },
+            { "id": "y1s1-a1-u3-3", "question": "Define tidal volume, vital capacity, and residual volume.", "answer": "Tidal volume: air per normal breath; Vital capacity: maximum air exhaled after deep inspiration; Residual volume: air remaining after maximal exhalation.", "difficulty": "intermediate" },
+            { "id": "y1s1-a1-u3-4", "question": "What is the function of surfactant?", "answer": "To reduce surface tension in the alveoli, preventing collapse during expiration.", "difficulty": "Hard" },
+            { "id": "y1s1-a1-u3-5", "question": "What is the primary muscle of respiration?", "answer": "The diaphragm.", "difficulty": "Easy" },
+            { "id": "y1s1-a1-u3-6", "question": "Describe the epiglottis function.", "answer": "A flap of cartilage that prevents food/liquid from entering the trachea during swallowing.", "difficulty": "Easy" },
+            { "id": "y1s1-a1-u3-7", "question": "How is oxygen transported in the blood?", "answer": "Bound to hemoglobin in RBCs (oxyhemoglobin).", "difficulty": "Moderate" },
+            { "id": "y1s1-a1-u3-8", "question": "Where is the respiratory center in the brain?", "answer": "In the medulla oblongata and pons.", "difficulty": "Moderate" },
+            { "id": "y1s1-a1-u3-9", "question": "What is external respiration?", "answer": "Exchange of gases between the lungs and the blood.", "difficulty": "Moderate" },
+            { "id": "y1s1-a1-u3-10", "question": "What are the pleural membranes?", "answer": "Two layers (visceral and parietal) that surround the lungs and reduce friction.", "difficulty": "Easy" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fon-101",
+      "course_code": "NUR 111",
+      "title": "Foundation of Nursing I",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Introduction to Nursing",
+          "flashcards": [
+            { "id": "y1s1-f1-u1-1", "question": "Define nursing according to the ICN.", "answer": "Nursing encompasses autonomous and collaborative care of individuals of all ages, families, groups and communities, sick or well in all settings.", "difficulty": "beginner" },
+            { "id": "y1s1-f1-u1-2", "question": "What are the characteristics of a polyvalent nurse?", "answer": "Comprehensive knowledge, adaptability, critical thinking, cultural competence, strong communication, technical proficiency, leadership, ethical decision-making, health promotion focus, collaborative mindset.", "difficulty": "intermediate" },
+            { "id": "y1s1-f1-u1-3", "question": "Explain the concepts of health and illness.", "answer": "Health is a state of complete physical, mental and social well-being (WHO). Illness is the subjective experience of symptoms and suffering; disease is the objective pathological condition.", "difficulty": "beginner" },
+            { "id": "y1s1-f1-u1-4", "question": "Who is the founder of modern nursing?", "answer": "Florence Nightingale.", "difficulty": "Easy" },
+            { "id": "y1s1-f1-u1-5", "question": "What are the four components of nursing advocacy?", "answer": "Protecting, supporting, informing, and representing the patient.", "difficulty": "Moderate" },
+            { "id": "y1s1-f1-u1-6", "question": "What are the primary roles of a nurse?", "answer": "Caregiver, Communicator, Teacher, Client Advocate, Counselor, Change Agent, Leader, and Manager.", "difficulty": "Moderate" },
+            { "id": "y1s1-f1-u1-7", "question": "Define the Nightingale Pledge.", "answer": "A statement of the ethics and principles of the nursing profession.", "difficulty": "Moderate" },
+            { "id": "y1s1-f1-u1-8", "question": "What is the primary goal of nursing practice?", "answer": "To promote health, prevent illness, restore health, and facilitate coping with disability or death.", "difficulty": "beginner" },
+            { "id": "y1s1-f1-u1-9", "question": "What is accountability in nursing?", "answer": "Being responsible for one's own professional actions and their outcomes.", "difficulty": "Moderate" },
+            { "id": "y1s1-f1-u1-10", "question": "What is holism?", "answer": "Treating the whole person, including physical, mental, social, and spiritual aspects.", "difficulty": "beginner" }
+          ]
+        },
+        {
+          "unit_number": "Unit II",
+          "title": "Health Care Institutions",
+          "flashcards": [
+            { "id": "y1s1-f1-u2-1", "question": "Describe the three levels of health care in Nigeria.", "answer": "Primary (health centers), Secondary (general hospitals), and Tertiary (teaching hospitals/FMCs).", "difficulty": "beginner" },
+            { "id": "y1s1-f1-u2-2", "question": "What are the procedures for admission, transfer, and discharge of a patient?", "answer": "Admission (orientation/registration), Transfer (continuity of care), and Discharge (education/follow-up).", "difficulty": "intermediate" },
+            { "id": "y1s1-f1-u2-3", "question": "What is a 'General Hospital'?", "answer": "A facility that provides a variety of medical and surgical services to the public.", "difficulty": "Easy" },
+            { "id": "y1s1-f1-u2-4", "question": "What is orientation in the context of admission?", "answer": "Introducing the patient to the ward, staff, and hospital rules.", "difficulty": "Easy" },
+            { "id": "y1s1-f1-u2-5", "question": "What is the purpose of a discharge summary?", "answer": "To provide a record of the patient's care and instructions for post-hospitalization.", "difficulty": "Moderate" }
+          ]
+        },
+        {
+          "unit_number": "Unit III",
+          "title": "Tools of Nursing",
+          "flashcards": [
+            { "id": "y1s1-f1-u3-1", "question": "What are the components of the nursing process?", "answer": "Assessment, Diagnosis, Planning, Implementation, Evaluation (ADPIE).", "difficulty": "beginner" },
+            { "id": "y1s1-f1-u3-2", "question": "Explain Maslow's hierarchy of needs.", "answer": "Physiological, Safety, Love/Belonging, Esteem, and Self-actualization.", "difficulty": "intermediate" },
+            { "id": "y1s1-f1-u3-3", "question": "What is therapeutic communication?", "answer": "Communication that promotes understanding and support; includes active listening and empathy.", "difficulty": "intermediate" },
+            { "id": "y1s1-f1-u3-4", "question": "Difference between Subjective and Objective data?", "answer": "Subjective is what the patient says; Objective is what the nurse observes/measures.", "difficulty": "beginner" },
+            { "id": "y1s1-f1-u3-5", "question": "What is a SMART goal?", "answer": "Specific, Measurable, Attainable, Realistic, and Time-bound.", "difficulty": "Moderate" },
+            { "id": "y1s1-f1-u3-6", "question": "Name three therapeutic communication techniques.", "answer": "Active listening, open-ended questions, and silence.", "difficulty": "Easy" },
+            { "id": "y1s1-f1-u3-7", "question": "What is a Nursing Diagnosis?", "answer": "A clinical judgment about the patient's response to actual or potential health problems.", "difficulty": "Moderate" },
+            { "id": "y1s1-f1-u3-8", "question": "Define 'Implementation' in the nursing process.", "answer": "The phase where the nurse carries out the planned nursing interventions.", "difficulty": "beginner" },
+            { "id": "y1s1-f1-u3-9", "question": "What is active listening?", "answer": "Paying full attention to the speaker, both verbally and non-verbally.", "difficulty": "Easy" },
+            { "id": "y1s1-f1-u3-10", "question": "Why is evaluation important?", "answer": "To determine if the patient's goals were met and adjust the care plan if needed.", "difficulty": "Moderate" }
+          ]
+        }
+      ]
+    }
+  ]
+}

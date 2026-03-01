@@ -1,0 +1,29 @@
+[
+  {
+    "id": "mid-201-u1-001",
+    "subject": "Normal Midwifery",
+    "topic": "Antenatal",
+    "question": "What is the purpose of the initial antenatal booking visit?",
+    "answer": "To perform a comprehensive risk assessment, establish a baseline health status, and plan for a safe delivery.",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "mid-201-u1-002",
+    "subject": "Normal Midwifery",
+    "topic": "Antenatal",
+    "question": "List the common blood tests performed at booking.",
+    "answer": "Blood group/Rh factor, hemoglobin, syphilis (VDRL/RPR), HIV, and Hepatitis B (HBsAg).",
+    "difficulty": "Moderate",
+    "isImportant": true
+  },
+  {
+    "id": "mid-201-u2-001",
+    "subject": "Normal Midwifery",
+    "topic": "Labour",
+    "question": "What are the '5 Ps' affecting the progress of labor?",
+    "answer": "Passenger (fetus), Passageway (pelvis), Powers (contractions), Position (maternal), and Psychology (maternal).",
+    "difficulty": "Hard",
+    "isImportant": true
+  }
+]
