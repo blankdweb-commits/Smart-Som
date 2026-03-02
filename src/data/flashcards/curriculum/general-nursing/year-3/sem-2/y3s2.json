@@ -8,22 +8,28 @@
   "courses": [
     {
       "id": "nur-3xx-pmt",
-      "title": "Management and Teaching",
+      "course_code": "NUR 3xx",
+      "title": "Principles of Management and Teaching",
       "units": [
         {
           "unit_number": "Unit I",
-          "title": "Management",
+          "title": "Management Fundamentals",
           "flashcards": [
-            { "id": "y3s2-m-1", "question": "What is 'Planning'?", "answer": "Setting goals and deciding how to achieve them.", "difficulty": "beginner" },
-            { "id": "y3s2-m-2", "question": "Define 'Organizing'.", "answer": "Allocating resources to implement the plan.", "difficulty": "beginner" },
-            { "id": "y3s2-m-3", "question": "What is 'Staffing'?", "answer": "Recruiting and managing human resources.", "difficulty": "Moderate" },
-            { "id": "y3s2-m-4", "question": "Define 'Directing'.", "answer": "Guiding and motivating staff to meet objectives.", "difficulty": "Moderate" },
-            { "id": "y3s2-m-5", "question": "What is 'Controlling'?", "answer": "Evaluating performance against goals.", "difficulty": "Moderate" },
-            { "id": "y3s2-m-6", "question": "Define 'Unity of Command'.", "answer": "Reporting to one supervisor only.", "difficulty": "Moderate" },
-            { "id": "y3s2-m-7", "question": "What is 'Span of Control'?", "answer": "Number of staff a manager supervises.", "difficulty": "Moderate" },
-            { "id": "y3s2-m-8", "question": "Define 'MBO'.", "answer": "Management by Objectives.", "difficulty": "Hard" },
-            { "id": "y3s2-m-9", "question": "What is 'Delegation'?", "answer": "Transferring task responsibility while keeping accountability.", "difficulty": "Hard" },
-            { "id": "y3s2-m-10", "question": "What is 'Leadership'?", "answer": "Influencing others toward a common goal.", "difficulty": "intermediate" }
+            { "id": "y3s2-m-1", "question": "What is 'Planning' in management?", "answer": "Setting goals and determining the best way to achieve them.", "difficulty": "beginner", "isImportant": true },
+            { "id": "y3s2-m-2", "question": "Define 'Organizing'.", "answer": "Arranging resources (people, equipment, money) to implement a plan.", "difficulty": "beginner" },
+            { "id": "y3s2-m-3", "question": "What is 'Staffing' in a clinical unit?", "answer": "The process of recruiting, selecting, and maintaining qualified personnel for the ward.", "difficulty": "Moderate", "isImportant": true },
+            { "id": "y3s2-m-4", "question": "Define 'Directing' (Leading).", "answer": "Influencing and motivating staff to work effectively toward organizational objectives.", "difficulty": "Moderate" },
+            { "id": "y3s2-m-5", "question": "What is 'Controlling'?", "answer": "Monitoring performance against goals and taking corrective action when necessary.", "difficulty": "Moderate", "isImportant": true },
+            { "id": "y3s2-m-6", "question": "Define 'Unity of Command'.", "answer": "The principle that each employee should report to only one direct supervisor.", "difficulty": "Moderate" },
+            { "id": "y3s2-m-7", "question": "What is 'Span of Control'?", "answer": "The number of subordinates a manager can effectively oversee.", "difficulty": "Moderate" },
+            { "id": "y3s2-m-8", "question": "Explain 'Delegation' in nursing.", "answer": "Transferring the responsibility of a task to a subordinate while maintaining ultimate accountability.", "difficulty": "Hard", "isImportant": true },
+            { "id": "y3s2-m-9", "question": "What is a 'Line of Command'?", "answer": "The vertical hierarchy of authority in an organization.", "difficulty": "Easy" },
+            { "id": "y3s2-m-10", "question": "Define 'Management by Objectives' (MBO).", "answer": "Setting specific, measurable objectives collaboratively and measuring success against them.", "difficulty": "Hard" },
+            { "id": "y3s2-m-11", "question": "What are the four 'P's of marketing in healthcare?", "answer": "Product, Price, Place, and Promotion.", "difficulty": "Hard" },
+            { "id": "y3s2-m-12", "question": "Define 'Conflict Resolution'.", "answer": "The process of resolving a disagreement or dispute through communication and negotiation.", "difficulty": "Moderate" },
+            { "id": "y3s2-m-13", "question": "What is 'Total Quality Management' (TQM)?", "answer": "A management approach focused on continuous improvement and customer (patient) satisfaction.", "difficulty": "Hard", "isImportant": true },
+            { "id": "y3s2-m-14", "question": "Explain the difference between 'Authority' and 'Responsibility'.", "answer": "Authority is the right to give orders; Responsibility is the obligation to perform a task.", "difficulty": "Moderate" },
+            { "id": "y3s2-m-15", "question": "What is an 'Organization Chart'?", "answer": "A visual representation of an organization's structure and hierarchy.", "difficulty": "Easy" }
           ]
         }
       ]

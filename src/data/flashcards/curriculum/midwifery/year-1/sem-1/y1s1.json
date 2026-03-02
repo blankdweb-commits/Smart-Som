@@ -19,7 +19,17 @@
             { "id": "m1s1-i-2", "question": "What is the primary role of the midwife as a 'skilled birth attendant'?", "answer": "To monitor the health of mother and fetus, detect complications, and provide essential emergency obstetric and newborn care (EmONC).", "difficulty": "Moderate", "isImportant": true },
             { "id": "m1s1-i-3", "question": "What are the core values of the midwifery profession?", "answer": "Respect for women's autonomy, dignity, partnership with women, and evidence-based practice.", "difficulty": "Easy", "isImportant": true },
             { "id": "m1s1-i-4", "question": "What is the ICM definition of a Midwife?", "answer": "A person who has successfully completed a midwifery education programme that is duly recognized in the country where it is located.", "difficulty": "Moderate" },
-            { "id": "m1s1-i-5", "question": "List three components of the scope of midwifery practice.", "answer": "Health counseling and education, prenatal care, and conducting deliveries on own responsibility.", "difficulty": "Moderate" }
+            { "id": "m1s1-i-5", "question": "List three components of the scope of midwifery practice.", "answer": "Health counseling and education, prenatal care, and conducting deliveries on own responsibility.", "difficulty": "Moderate" },
+            { "id": "m1s1-i-6", "question": "Define 'Episiotomy'.", "answer": "A surgical incision of the perineum to enlarge the vaginal opening during delivery.", "difficulty": "Moderate", "isImportant": true },
+            { "id": "m1s1-i-7", "question": "What is the difference between a Nurse and a Midwife in traditional roles?", "answer": "A nurse focuses on general illness care; a midwife focuses specifically on the reproductive cycle and maternal/newborn health.", "difficulty": "Easy" },
+            { "id": "m1s1-i-8", "question": "Define 'Parity'.", "answer": "The number of pregnancies in which the fetus or fetuses reached 20 weeks or more of gestation.", "difficulty": "Moderate", "isImportant": true },
+            { "id": "m1s1-i-9", "question": "Define 'Gravida'.", "answer": "The total number of times a woman has been pregnant, regardless of the outcome.", "difficulty": "Easy" },
+            { "id": "m1s1-i-10", "question": "What is 'Naegele's Rule'?", "answer": "A formula to calculate the Estimated Date of Delivery: (LMP + 7 days - 3 months + 1 year).", "difficulty": "Hard", "isImportant": true },
+            { "id": "m1s1-i-11", "question": "Define 'Fundal Height'.", "answer": "The distance from the top of the pubic bone to the top of the uterus, used to estimate fetal growth.", "difficulty": "Moderate" },
+            { "id": "m1s1-i-12", "question": "What is 'Quickening'?", "answer": "The first fetal movements felt by the mother, usually between 16-20 weeks.", "difficulty": "Easy" },
+            { "id": "m1s1-i-13", "question": "Define 'Amenorrhea'.", "answer": "The absence of menstruation; one of the earliest presumptive signs of pregnancy.", "difficulty": "Easy" },
+            { "id": "m1s1-i-14", "question": "What are 'Leopold Maneuvers'?", "answer": "A series of four manual palpations to determine the position and presentation of the fetus in the uterus.", "difficulty": "Hard", "isImportant": true },
+            { "id": "m1s1-i-15", "question": "Define 'Lightening'.", "answer": "The descent of the fetal presenting part into the pelvis, occurring late in pregnancy.", "difficulty": "Moderate" }
           ]
         }
       ]

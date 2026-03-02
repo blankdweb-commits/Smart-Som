@@ -7,47 +7,29 @@
   },
   "courses": [
     {
-      "id": "anat-201",
-      "course_code": "NUS 211",
-      "title": "Anatomy and Physiology III",
-      "units": [
-        {
-          "unit_number": "Unit II",
-          "title": "The Endocrine System",
-          "flashcards": [
-            { "id": "y2s1-a3-u2-1", "question": "List the major endocrine glands.", "answer": "Pituitary, thyroid, parathyroid, adrenal, pancreas, gonads, pineal, and thymus.", "difficulty": "beginner" },
-            { "id": "y2s1-a3-u2-2", "question": "What is the function of the Pituitary Gland?", "answer": "The 'Master Gland' that regulates other endocrine glands through various hormones.", "difficulty": "beginner" },
-            { "id": "y2s1-a3-u2-3", "question": "Define 'Hormone'.", "answer": "A chemical messenger secreted by endocrine glands into the blood.", "difficulty": "beginner" },
-            { "id": "y2s1-a3-u2-4", "question": "What is the function of Insulin?", "answer": "To lower blood glucose levels by facilitating glucose uptake into cells.", "difficulty": "intermediate" },
-            { "id": "y2s1-a3-u2-5", "question": "What is the function of Glucagon?", "answer": "To raise blood glucose levels by stimulating the liver to release stored glucose.", "difficulty": "intermediate" },
-            { "id": "y2s1-a3-u2-6", "question": "Name the two hormones produced by the Posterior Pituitary.", "answer": "Oxytocin and ADH (Antidiuretic Hormone).", "difficulty": "Hard" },
-            { "id": "y2s1-a3-u2-7", "question": "What is the role of Thyroid Hormone (T3/T4)?", "answer": "To regulate the body's metabolic rate, growth, and development.", "difficulty": "intermediate" },
-            { "id": "y2s1-a3-u2-8", "question": "What gland secretes Epinephrine and Norepinephrine?", "answer": "The Adrenal Medulla.", "difficulty": "intermediate" },
-            { "id": "y2s1-a3-u2-9", "question": "What is the function of Parathyroid Hormone (PTH)?", "answer": "To increase blood calcium levels by stimulating bone resorption.", "difficulty": "Hard" },
-            { "id": "y2s1-a3-u2-10", "question": "Define 'Negative Feedback' in the endocrine system.", "answer": "A mechanism where a hormone's effect inhibits its further secretion.", "difficulty": "intermediate" }
-          ]
-        }
-      ]
-    },
-    {
       "id": "nur-213",
       "course_code": "NUR 213",
       "title": "Medical-Surgical Nursing I",
       "units": [
         {
           "unit_number": "Unit I",
-          "title": "Concepts and Terms",
+          "title": "Shock and Adaptability",
           "flashcards": [
-            { "id": "y2s1-ms1-u1-1", "question": "Define Holistic Care.", "answer": "Treating the whole person – physical, emotional, social, and spiritual needs.", "difficulty": "beginner" },
-            { "id": "y2s1-ms1-u1-2", "question": "What is primary nursing?", "answer": "One nurse is responsible for total care of assigned patients 24/7.", "difficulty": "beginner" },
-            { "id": "y2s1-ms1-u1-3", "question": "What is the nursing process?", "answer": "Assessment, Diagnosis, Planning, Implementation, Evaluation.", "difficulty": "beginner" },
-            { "id": "y2s1-ms1-u1-4", "question": "Define 'Asepsis'.", "answer": "The absence of bacteria, viruses, and other microorganisms.", "difficulty": "beginner" },
-            { "id": "y2s1-ms1-u1-5", "question": "What are Standard Precautions?", "answer": "Infection control practices applied to all patients regardless of diagnosis.", "difficulty": "Moderate" },
-            { "id": "y2s1-ms1-u1-6", "question": "Define 'Shock'.", "answer": "A state of inadequate tissue perfusion.", "difficulty": "Moderate" },
-            { "id": "y2s1-ms1-u1-7", "question": "What is the most common cause of Hypovolemic Shock?", "answer": "Severe blood or fluid loss.", "difficulty": "Moderate" },
-            { "id": "y2s1-ms1-u1-8", "question": "What are the four cardinal signs of inflammation?", "answer": "Redness, heat, swelling, and pain.", "difficulty": "Moderate" },
-            { "id": "y2s1-ms1-u1-9", "question": "Define 'Pyrexia'.", "answer": "An elevated body temperature (fever).", "difficulty": "beginner" },
-            { "id": "y2s1-ms1-u1-10", "question": "What is 'Triage'?", "answer": "Prioritizing patients based on the severity of their condition.", "difficulty": "Moderate" }
+            { "id": "y2s1-ms-1", "question": "Define Shock.", "answer": "A life-threatening syndrome where tissue perfusion is inadequate to meet cellular demands.", "difficulty": "Moderate", "isImportant": true },
+            { "id": "y2s1-ms-2", "question": "What is Hypovolemic Shock?", "answer": "Shock caused by rapid fluid/blood loss (e.g., hemorrhage).", "difficulty": "Moderate", "isImportant": true },
+            { "id": "y2s1-ms-3", "question": "List the four stages of Shock.", "answer": "Initial, Compensatory, Progressive, and Irreversible.", "difficulty": "Hard", "isImportant": true },
+            { "id": "y2s1-ms-4", "question": "What are the early signs of compensated shock?", "answer": "Tachycardia, tachypnea, and cool/clammy skin.", "difficulty": "Hard", "isImportant": true },
+            { "id": "y2s1-ms-5", "question": "Define Anaphylactic Shock.", "answer": "A severe systemic allergic reaction causing massive vasodilation and airway edema.", "difficulty": "Moderate" },
+            { "id": "y2s1-ms-6", "question": "What is the primary intervention for Hypovolemic Shock?", "answer": "Rapid fluid resuscitation (usually with isotonic crystalloids).", "difficulty": "Moderate", "isImportant": true },
+            { "id": "y2s1-ms-7", "question": "Explain 'Septic Shock'.", "answer": "Shock resulting from overwhelming infection and the systemic inflammatory response.", "difficulty": "Hard" },
+            { "id": "y2s1-ms-8", "question": "What is Cardiogenic Shock?", "answer": "Failure of the heart to pump effectively, often due to MI or HF.", "difficulty": "Hard" },
+            { "id": "y2s1-ms-9", "question": "Define 'Trendelenburg position' and its modern use in shock.", "answer": "Head-down position; used to increase venous return, though now often cautioned against.", "difficulty": "Moderate" },
+            { "id": "y2s1-ms-10", "question": "What is MODS?", "answer": "Multiple Organ Dysfunction Syndrome; failure of 2 or more organs in acute illness.", "difficulty": "Hard" },
+            { "id": "y2s1-ms-11", "question": "List common IV crystalloid fluids used in shock.", "answer": "0.9% Normal Saline and Lactated Ringer's.", "difficulty": "Moderate" },
+            { "id": "y2s1-ms-12", "question": "What are the priority assessments in an acutely ill patient (ABC)?", "answer": "Airway, Breathing, and Circulation.", "difficulty": "Easy", "isImportant": true },
+            { "id": "y2s1-ms-13", "question": "Define 'Oliguria'.", "answer": "Abnormally small production of urine (typically <400ml/day in adults).", "difficulty": "Moderate" },
+            { "id": "y2s1-ms-14", "question": "What is the role of Vasopressors in shock management?", "answer": "To increase blood pressure by causing vasoconstriction.", "difficulty": "Hard" },
+            { "id": "y2s1-ms-15", "question": "Explain 'Capillary Refill Time'.", "answer": "The time it takes for color to return to an external capillary bed after pressure; >3s suggests poor perfusion.", "difficulty": "Moderate" }
           ]
         }
       ]

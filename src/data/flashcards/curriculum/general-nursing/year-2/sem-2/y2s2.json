@@ -7,47 +7,29 @@
   },
   "courses": [
     {
-      "id": "nur-222",
-      "course_code": "NUR 222",
-      "title": "Medical-Surgical Nursing II",
-      "units": [
-        {
-          "unit_number": "Unit I",
-          "title": "Respiratory System Disorders",
-          "flashcards": [
-            { "id": "y2s2-ms2-u1-1", "question": "What is COPD?", "answer": "Chronic Obstructive Pulmonary Disease; includes chronic bronchitis and emphysema.", "difficulty": "intermediate" },
-            { "id": "y2s2-ms2-u1-2", "question": "Define Asthma.", "answer": "Chronic inflammatory airway disease characterized by reversible obstruction.", "difficulty": "intermediate" },
-            { "id": "y2s2-ms2-u1-3", "question": "What is the primary sign of Emphysema?", "answer": "Shortness of breath due to destruction of alveoli and air trapping.", "difficulty": "Moderate" },
-            { "id": "y2s2-ms2-u1-4", "question": "What is Pneumonia?", "answer": "Infection of the lung parenchyma causing inflammation and fluid.", "difficulty": "Moderate" },
-            { "id": "y2s2-ms2-u1-5", "question": "Define 'Tracheostomy'.", "answer": "Surgical airway opening into the trachea.", "difficulty": "Hard" },
-            { "id": "y2s2-ms2-u1-6", "question": "What is Tuberculosis (TB)?", "answer": "Infectious disease caused by Mycobacterium tuberculosis.", "difficulty": "Moderate" },
-            { "id": "y2s2-ms2-u1-7", "question": "What is 'Pursed-Lip Breathing'?", "answer": "Technique to help COPD patients prolong exhalation.", "difficulty": "Moderate" },
-            { "id": "y2s2-ms2-u1-8", "question": "Define Hemoptysis.", "answer": "Coughing up blood.", "difficulty": "Moderate" },
-            { "id": "y2s2-ms2-u1-9", "question": "What is Cyanosis?", "answer": "Bluish discoloration of skin due to poor oxygenation.", "difficulty": "beginner" },
-            { "id": "y2s2-ms2-u1-10", "question": "Explain 'Atelectasis'.", "answer": "Collapse of part or all of a lung.", "difficulty": "Hard" }
-          ]
-        }
-      ]
-    },
-    {
       "id": "nur-223",
       "course_code": "NUR 223",
       "title": "Reproductive Health II",
       "units": [
         {
           "unit_number": "Unit III",
-          "title": "Labour",
+          "title": "Labour and Birth",
           "flashcards": [
-            { "id": "y2s2-rh2-u3-1", "question": "What are the stages of labour?", "answer": "1st: Dilatation; 2nd: Expulsion; 3rd: Placental; 4th: Recovery.", "difficulty": "beginner" },
-            { "id": "y2s2-rh2-u3-2", "question": "What is 'Effacement'?", "answer": "Shortening and thinning of the cervix.", "difficulty": "Moderate" },
-            { "id": "y2s2-rh2-u3-3", "question": "What is 'Dilation'?", "answer": "Opening of the cervix (up to 10cm).", "difficulty": "beginner" },
-            { "id": "y2s2-rh2-u3-4", "question": "Define 'Engagement'.", "answer": "When the presenting part enters the pelvic brim.", "difficulty": "Hard" },
-            { "id": "y2s2-rh2-u3-5", "question": "What is the 'Partograph'?", "answer": "Graphic tool to monitor labor progress.", "difficulty": "Hard" },
-            { "id": "y2s2-rh2-u3-6", "question": "Define 'Lochia'.", "answer": "Postnatal vaginal discharge.", "difficulty": "Moderate" },
-            { "id": "y2s2-rh2-u3-7", "question": "What is Preeclampsia?", "answer": "Hypertension and proteinuria in pregnancy.", "difficulty": "Hard" },
-            { "id": "y2s2-rh2-u3-8", "question": "What is exclusive breastfeeding?", "answer": "Feeding only breast milk for 6 months.", "difficulty": "beginner" },
-            { "id": "y2s2-rh2-u3-9", "question": "Define 'Safe Motherhood'.", "answer": "Ensuring all women get the care they need during pregnancy and birth.", "difficulty": "Moderate" },
-            { "id": "y2s2-rh2-u3-10", "question": "What is neonatal jaundice?", "answer": "Yellowing of newborn skin due to high bilirubin.", "difficulty": "Moderate" }
+            { "id": "y2s2-rh-1", "question": "What are the four stages of labor?", "answer": "1st: Dilatation; 2nd: Expulsion of fetus; 3rd: Placental stage; 4th: Recovery.", "difficulty": "Moderate", "isImportant": true },
+            { "id": "y2s2-rh-2", "question": "Define 'Effacement'.", "answer": "The thinning and shortening of the cervix during labor.", "difficulty": "Moderate" },
+            { "id": "y2s2-rh-3", "question": "What is 'Station' in labor?", "answer": "The descent of the fetal presenting part relative to the ischial spines.", "difficulty": "Hard", "isImportant": true },
+            { "id": "y2s2-rh-4", "question": "List the 'Mechanisms of Normal Labor'.", "answer": "Engagement, Descent, Flexion, Internal rotation, Extension, Restitution, External rotation, Expulsion.", "difficulty": "Hard", "isImportant": true },
+            { "id": "y2s2-rh-5", "question": "What is the normal fetal heart rate (FHR) range?", "answer": "110 to 160 beats per minute.", "difficulty": "Easy", "isImportant": true },
+            { "id": "y2s2-rh-6", "question": "Define 'Lochia'.", "answer": "The vaginal discharge after childbirth containing blood, mucus, and uterine tissue.", "difficulty": "Moderate" },
+            { "id": "y2s2-rh-7", "question": "What is Preeclampsia?", "answer": "High blood pressure and signs of damage to another organ system (usually kidneys) during pregnancy.", "difficulty": "Hard", "isImportant": true },
+            { "id": "y2s2-rh-8", "question": "Explain 'Eclampsia'.", "answer": "The onset of seizures in a woman with preeclampsia.", "difficulty": "Hard", "isImportant": true },
+            { "id": "y2s2-rh-9", "question": "Define 'Involution'.", "answer": "The process by which the uterus returns to its non-pregnant size after delivery.", "difficulty": "Moderate" },
+            { "id": "y2s2-rh-10", "question": "What is exclusive breastfeeding?", "answer": "Giving an infant only breast milk for the first six months of life.", "difficulty": "beginner", "isImportant": true },
+            { "id": "y2s2-rh-11", "question": "Define 'Show' in early labor.", "answer": "The release of the mucus plug from the cervix, often tinged with blood.", "difficulty": "Easy" },
+            { "id": "y2s2-rh-12", "question": "What is the 'Partograph' used for?", "answer": "A graphic tool used to monitor the progress of labor and detect complications.", "difficulty": "Hard", "isImportant": true },
+            { "id": "y2s2-rh-13", "question": "Define 'Apgar Score'.", "answer": "A quick assessment of a newborn's health at 1 and 5 minutes after birth.", "difficulty": "Moderate", "isImportant": true },
+            { "id": "y2s2-rh-14", "question": "What is the primary sign of the Third Stage of Labor?", "answer": "Lengthening of the umbilical cord and a gush of blood signifying placental separation.", "difficulty": "Moderate" },
+            { "id": "y2s2-rh-15", "question": "Define 'Puerperium'.", "answer": "The 6-week period following childbirth during which the mother's body returns to its non-pregnant state.", "difficulty": "Moderate" }
           ]
         }
       ]

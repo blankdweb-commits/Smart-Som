@@ -13,100 +13,77 @@
       "units": [
         {
           "unit_number": "Unit I",
-          "title": "Introduction to Anatomy and Physiology & Organization of the Human Body",
+          "title": "Organization of the Body",
           "flashcards": [
-            { "id": "y1s1-a1-u1-1", "question": "What is the standard anatomical position?", "answer": "Body erect, face forward, arms at sides, palms forward.", "difficulty": "Easy", "isImportant": true },
-            { "id": "y1s1-a1-u1-2", "question": "Define the Sagittal Plane.", "answer": "A vertical plane that divides the body into right and left parts.", "difficulty": "Easy" },
-            { "id": "y1s1-a1-u1-3", "question": "Define the Coronal (Frontal) Plane.", "answer": "Divides the body into anterior and posterior (front and back) portions.", "difficulty": "Easy" },
-            { "id": "y1s1-a1-u1-4", "question": "Define the Transverse Plane.", "answer": "A horizontal plane dividing the body into superior and inferior parts.", "difficulty": "Easy" },
-            { "id": "y1s1-a1-u1-5", "question": "Name the four basic types of human tissues.", "answer": "Epithelial, Connective, Muscle, and Nervous tissues.", "difficulty": "Easy" },
-            { "id": "y1s1-a1-u1-6", "question": "What is the basic functional unit of life?", "answer": "The cell.", "difficulty": "Easy", "isImportant": true },
-            { "id": "y1s1-a1-u1-7", "question": "Define Homeostasis.", "answer": "The maintenance of a stable internal environment despite external changes.", "difficulty": "Moderate", "isImportant": true },
-            { "id": "y1s1-a1-u1-8", "question": "List the major body cavities and their contents.", "answer": "Dorsal cavity: cranial (brain) and spinal (spinal cord). Ventral cavity: thoracic (heart, lungs) and abdominopelvic (digestive organs, bladder, reproductive organs).", "difficulty": "beginner", "isImportant": true },
-            { "id": "y1s1-a1-u1-9", "question": "What is the Cell Theory?", "answer": "All living organisms are composed of one or more cells; the cell is the basic unit of life; all cells arise from pre-existing cells.", "difficulty": "beginner" },
-            { "id": "y1s1-a1-u1-10", "question": "Define proximal and distal.", "answer": "Proximal: closer to the point of attachment. Distal: further from the point of attachment.", "difficulty": "beginner" },
-            { "id": "y1s1-a1-u1-11", "question": "What is the function of mitochondria?", "answer": "To produce ATP through cellular respiration.", "difficulty": "beginner", "isImportant": true },
-            { "id": "y1s1-a1-u1-12", "question": "Explain 'negative feedback' with an example.", "answer": "A mechanism that reverses a deviation from the set point. Example: insulin lowering high blood sugar.", "difficulty": "Moderate", "isImportant": true }
+            { "id": "y1s1-a-u1-1", "question": "What is the standard anatomical position?", "answer": "Body erect, face forward, arms at sides, palms forward.", "difficulty": "Easy", "isImportant": true },
+            { "id": "y1s1-a-u1-2", "question": "Define the Sagittal Plane.", "answer": "A vertical plane that divides the body into right and left parts.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u1-3", "question": "Define the Coronal (Frontal) Plane.", "answer": "Divides the body into anterior and posterior (front and back) portions.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u1-4", "question": "Define the Transverse Plane.", "answer": "A horizontal plane dividing the body into superior and inferior parts.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u1-5", "question": "Name the four basic types of human tissues.", "answer": "Epithelial, Connective, Muscle, and Nervous tissues.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u1-6", "question": "What is the basic functional unit of life?", "answer": "The cell.", "difficulty": "Easy", "isImportant": true },
+            { "id": "y1s1-a-u1-7", "question": "Define Homeostasis.", "answer": "The maintenance of a stable internal environment despite external changes.", "difficulty": "Moderate", "isImportant": true },
+            { "id": "y1s1-a-u1-8", "question": "List the major body cavities.", "answer": "Dorsal (cranial/spinal) and Ventral (thoracic/abdominopelvic).", "difficulty": "Moderate", "isImportant": true },
+            { "id": "y1s1-a-u1-9", "question": "What is the function of mitochondria?", "answer": "To produce ATP through cellular respiration.", "difficulty": "beginner", "isImportant": true },
+            { "id": "y1s1-a-u1-10", "question": "Explain 'negative feedback' with an example.", "answer": "A mechanism that reverses a deviation from the set point. Example: insulin lowering high blood sugar.", "difficulty": "Moderate", "isImportant": true },
+            { "id": "y1s1-a-u1-11", "question": "Define 'Distal' in anatomical terms.", "answer": "Further from the point of attachment or the trunk.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u1-12", "question": "What are the levels of structural organization in the body?", "answer": "Chemical, Cellular, Tissue, Organ, Organ System, Organism.", "difficulty": "Moderate" },
+            { "id": "y1s1-a-u1-13", "question": "What is Histology?", "answer": "The microscopic study of tissues.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u1-14", "question": "Name the three types of muscle tissue.", "answer": "Skeletal, Cardiac, and Smooth muscle.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u1-15", "question": "What is the function of the cell membrane?", "answer": "Regulates the movement of substances in and out of the cell (selective permeability).", "difficulty": "Moderate" },
+            { "id": "y1s1-a-u1-16", "question": "Define 'Metabolism'.", "answer": "The sum of all chemical reactions that occur in the body (Anabolism + Catabolism).", "difficulty": "Moderate" },
+            { "id": "y1s1-a-u1-17", "question": "What is the function of Lysosomes?", "answer": "To break down waste materials and cellular debris using enzymes.", "difficulty": "Hard" },
+            { "id": "y1s1-a-u1-18", "question": "Name the primary components of the Integumentary system.", "answer": "Skin, hair, nails, and sweat/sebaceous glands.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u1-19", "question": "Define 'Prone' vs 'Supine'.", "answer": "Prone: lying face down; Supine: lying face up.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u1-20", "question": "What is the difference between simple and stratified epithelium?", "answer": "Simple has one layer of cells; Stratified has multiple layers.", "difficulty": "Moderate" }
           ]
         },
         {
           "unit_number": "Unit II",
           "title": "Blood and Cardiovascular System",
           "flashcards": [
-            { "id": "y1s1-a1-u2-1", "question": "What are the components of blood?", "answer": "Plasma (55%) and formed elements (45%): RBCs, WBCs, and platelets.", "difficulty": "Easy", "isImportant": true },
-            { "id": "y1s1-a1-u2-2", "question": "Which blood type is the universal donor?", "answer": "Type O Negative.", "difficulty": "Moderate", "isImportant": true },
-            { "id": "y1s1-a1-u2-3", "question": "Explain the ABO blood grouping system and Rh factor.", "answer": "Type A has A antigens and anti-B antibodies; Type B has B antigens and anti-A; Type AB has both antigens, no antibodies; Type O has no antigens, both antibodies. Rh-positive has D antigen; Rh-negative lacks it.", "difficulty": "intermediate", "isImportant": true },
-            { "id": "y1s1-a1-u2-4", "question": "Describe the clotting mechanism (hemostasis).", "answer": "Vascular spasm, platelet plug formation, coagulation cascade (intrinsic and extrinsic pathways) leading to fibrin clot.", "difficulty": "advanced", "isImportant": true },
-            { "id": "y1s1-a1-u2-5", "question": "Trace the path of blood through the heart.", "answer": "Vena cava → right atrium → tricuspid valve → right ventricle → pulmonary valve → pulmonary artery → lungs → pulmonary veins → left atrium → mitral valve → left ventricle → aortic valve → aorta.", "difficulty": "intermediate", "isImportant": true },
-            { "id": "y1s1-a1-u2-6", "question": "What factors affect blood pressure?", "answer": "Cardiac output, peripheral resistance, blood volume, viscosity, elasticity of arteries.", "difficulty": "intermediate", "isImportant": true },
-            { "id": "y1s1-a1-u2-7", "question": "Define Cardiac Output.", "answer": "The volume of blood pumped by each ventricle per minute (CO = HR x SV).", "difficulty": "Hard" },
-            { "id": "y1s1-a1-u2-8", "question": "What is the function of white blood cells?", "answer": "To protect the body against infectious diseases and foreign invaders.", "difficulty": "Easy" },
-            { "id": "y1s1-a1-u2-9", "question": "What is the Sinoatrial (SA) Node?", "answer": "The primary pacemaker of the heart.", "difficulty": "Moderate", "isImportant": true },
-            { "id": "y1s1-a1-u2-10", "question": "What are the three layers of the heart wall?", "answer": "Epicardium, Myocardium, and Endocardium.", "difficulty": "Easy" }
-          ]
-        },
-        {
-          "unit_number": "Unit III",
-          "title": "The Respiratory System",
-          "flashcards": [
-            { "id": "y1s1-a1-u3-1", "question": "List the organs of the respiratory tract in order.", "answer": "Nose → pharynx → larynx → trachea → bronchi → bronchioles → alveoli.", "difficulty": "beginner", "isImportant": true },
-            { "id": "y1s1-a1-u3-2", "question": "Explain the mechanism of gas exchange in the alveoli.", "answer": "Oxygen diffuses from alveoli (high concentration) into blood (low concentration); CO2 diffuses from blood into alveoli.", "difficulty": "intermediate", "isImportant": true },
-            { "id": "y1s1-a1-u3-3", "question": "Define tidal volume, vital capacity, and residual volume.", "answer": "Tidal volume: air per normal breath; Vital capacity: maximum air exhaled after deep inspiration; Residual volume: air remaining after maximal exhalation.", "difficulty": "intermediate", "isImportant": true },
-            { "id": "y1s1-a1-u3-4", "question": "What is the function of surfactant?", "answer": "To reduce surface tension in the alveoli, preventing collapse during expiration.", "difficulty": "Hard", "isImportant": true },
-            { "id": "y1s1-a1-u3-5", "question": "What is the primary muscle of respiration?", "answer": "The diaphragm.", "difficulty": "Easy", "isImportant": true },
-            { "id": "y1s1-a1-u3-6", "question": "Describe the epiglottis function.", "answer": "A flap of cartilage that prevents food/liquid from entering the trachea during swallowing.", "difficulty": "Easy" },
-            { "id": "y1s1-a1-u3-7", "question": "How is oxygen transported in the blood?", "answer": "Bound to hemoglobin in RBCs (oxyhemoglobin).", "difficulty": "Moderate" },
-            { "id": "y1s1-a1-u3-8", "question": "Where is the respiratory center in the brain?", "answer": "In the medulla oblongata and pons.", "difficulty": "Moderate" },
-            { "id": "y1s1-a1-u3-9", "question": "What is external respiration?", "answer": "Exchange of gases between the lungs and the blood.", "difficulty": "Moderate" },
-            { "id": "y1s1-a1-u3-10", "question": "What are the pleural membranes?", "answer": "Two layers (visceral and parietal) that surround the lungs and reduce friction.", "difficulty": "Easy" }
+            { "id": "y1s1-a-u2-1", "question": "What is the normal pH range of human blood?", "answer": "7.35 to 7.45.", "difficulty": "Moderate", "isImportant": true },
+            { "id": "y1s1-a-u2-2", "question": "Name the three types of formed elements in blood.", "answer": "Erythrocytes (RBCs), Leukocytes (WBCs), and Thrombocytes (Platelets).", "difficulty": "Easy", "isImportant": true },
+            { "id": "y1s1-a-u2-3", "question": "What is the primary function of Hemoglobin?", "answer": "To transport oxygen from the lungs to the tissues.", "difficulty": "Easy", "isImportant": true },
+            { "id": "y1s1-a-u2-4", "question": "Which blood type is the universal donor?", "answer": "Type O Negative.", "difficulty": "Moderate", "isImportant": true },
+            { "id": "y1s1-a-u2-5", "question": "Trace a drop of blood from the R Atrium to the Lungs.", "answer": "R Atrium -> Tricuspid Valve -> R Ventricle -> Pulmonary Valve -> Pulmonary Artery -> Lungs.", "difficulty": "Hard", "isImportant": true },
+            { "id": "y1s1-a-u2-6", "question": "What is the 'Pacemaker' of the heart?", "answer": "The Sinoatrial (SA) Node.", "difficulty": "Easy", "isImportant": true },
+            { "id": "y1s1-a-u2-7", "question": "Define Cardiac Output.", "answer": "The volume of blood pumped by each ventricle in one minute (CO = HR x SV).", "difficulty": "Hard", "isImportant": true },
+            { "id": "y1s1-a-u2-8", "question": "What is Erythropoiesis?", "answer": "The process of red blood cell production.", "difficulty": "Moderate" },
+            { "id": "y1s1-a-u2-9", "question": "Name the four valves of the heart.", "answer": "Tricuspid, Mitral (Bicuspid), Pulmonary, and Aortic valves.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u2-10", "question": "Define Systole and Diastole.", "answer": "Systole: phase of contraction; Diastole: phase of relaxation/filling.", "difficulty": "Moderate" },
+            { "id": "y1s1-a-u2-11", "question": "What are the characteristics of an Artery?", "answer": "Thick muscular walls, carries blood under high pressure away from the heart.", "difficulty": "Moderate" },
+            { "id": "y1s1-a-u2-12", "question": "What is the largest artery in the human body?", "answer": "The Aorta.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u2-13", "question": "Define 'Hematocrit'.", "answer": "The percentage of total blood volume that is occupied by red blood cells.", "difficulty": "Hard" },
+            { "id": "y1s1-a-u2-14", "question": "What is the lifespan of a typical Red Blood Cell?", "answer": "Approximately 120 days.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u2-15", "question": "Explain the Rh factor in blood grouping.", "answer": "An antigen (D antigen) on the surface of RBCs; its presence makes blood Rh positive.", "difficulty": "Moderate" }
           ]
         }
       ]
     },
     {
-      "id": "fon-101",
+      "id": "nur-111",
       "course_code": "NUR 111",
       "title": "Foundation of Nursing I",
       "units": [
         {
           "unit_number": "Unit I",
-          "title": "Introduction to Nursing",
+          "title": "Fundamentals of Nursing",
           "flashcards": [
-            { "id": "y1s1-f1-u1-1", "question": "Define nursing according to the ICN.", "answer": "Nursing encompasses autonomous and collaborative care of individuals of all ages, families, groups and communities, sick or well in all settings.", "difficulty": "beginner", "isImportant": true },
-            { "id": "y1s1-f1-u1-2", "question": "What are the characteristics of a polyvalent nurse?", "answer": "Comprehensive knowledge, adaptability, critical thinking, cultural competence, strong communication, technical proficiency, leadership, ethical decision-making, health promotion focus, collaborative mindset.", "difficulty": "intermediate", "isImportant": true },
-            { "id": "y1s1-f1-u1-3", "question": "Explain the concepts of health and illness.", "answer": "Health is a state of complete physical, mental and social well-being (WHO). Illness is the subjective experience of symptoms and suffering; disease is the objective pathological condition.", "difficulty": "beginner", "isImportant": true },
-            { "id": "y1s1-f1-u1-4", "question": "Who is the founder of modern nursing?", "answer": "Florence Nightingale.", "difficulty": "Easy", "isImportant": true },
-            { "id": "y1s1-f1-u1-5", "question": "What are the primary roles of a nurse?", "answer": "Caregiver, Communicator, Teacher, Client Advocate, Counselor, Change Agent, Leader, and Manager.", "difficulty": "Moderate", "isImportant": true },
-            { "id": "y1s1-f1-u1-6", "question": "What is holism?", "answer": "Treating the whole person, including physical, mental, social, and spiritual aspects.", "difficulty": "beginner", "isImportant": true },
-            { "id": "y1s1-f1-u1-7", "question": "Define the Nightingale Pledge.", "answer": "A statement of the ethics and principles of the nursing profession.", "difficulty": "Moderate" },
-            { "id": "y1s1-f1-u1-8", "question": "What is the primary goal of nursing practice?", "answer": "To promote health, prevent illness, restore health, and facilitate coping with disability or death.", "difficulty": "beginner", "isImportant": true },
-            { "id": "y1s1-f1-u1-9", "question": "What is accountability in nursing?", "answer": "Being responsible for one's own professional actions and their outcomes.", "difficulty": "Moderate", "isImportant": true },
-            { "id": "y1s1-f1-u1-10", "question": "What is therapeutic communication?", "answer": "Communication that promotes understanding and support; includes active listening and empathy.", "difficulty": "intermediate", "isImportant": true }
-          ]
-        },
-        {
-          "unit_number": "Unit II",
-          "title": "Health Care Institutions",
-          "flashcards": [
-            { "id": "y1s1-f1-u2-1", "question": "Describe the three levels of health care in Nigeria.", "answer": "Primary (health centers), Secondary (general hospitals), and Tertiary (teaching hospitals/FMCs).", "difficulty": "beginner", "isImportant": true },
-            { "id": "y1s1-f1-u2-2", "question": "What are the procedures for admission, transfer, and discharge of a patient?", "answer": "Admission (orientation/registration), Transfer (continuity of care), and Discharge (education/follow-up).", "difficulty": "intermediate", "isImportant": true },
-            { "id": "y1s1-f1-u2-3", "question": "What is orientation in the context of admission?", "answer": "Introducing the patient to the ward, staff, and hospital rules.", "difficulty": "Easy" },
-            { "id": "y1s1-f1-u2-4", "question": "What is the purpose of a discharge summary?", "answer": "To provide a record of the patient's care and instructions for post-hospitalization.", "difficulty": "Moderate", "isImportant": true }
-          ]
-        },
-        {
-          "unit_number": "Unit III",
-          "title": "Tools of Nursing",
-          "flashcards": [
-            { "id": "y1s1-f1-u3-1", "question": "What are the components of the nursing process?", "answer": "Assessment, Diagnosis, Planning, Implementation, Evaluation (ADPIE).", "difficulty": "beginner", "isImportant": true },
-            { "id": "y1s1-f1-u3-2", "question": "Explain Maslow's hierarchy of needs.", "answer": "Physiological, Safety, Love/Belonging, Esteem, and Self-actualization.", "difficulty": "intermediate", "isImportant": true },
-            { "id": "y1s1-f1-u3-3", "question": "Difference between Subjective and Objective data?", "answer": "Subjective is what the patient says; Objective is what the nurse observes/measures.", "difficulty": "beginner", "isImportant": true },
-            { "id": "y1s1-f1-u3-4", "question": "What is a SMART goal?", "answer": "Specific, Measurable, Attainable, Realistic, and Time-bound.", "difficulty": "Moderate", "isImportant": true },
-            { "id": "y1s1-f1-u3-5", "question": "Name three therapeutic communication techniques.", "answer": "Active listening, open-ended questions, and silence.", "difficulty": "Easy" },
-            { "id": "y1s1-f1-u3-6", "question": "What is a Nursing Diagnosis?", "answer": "A clinical judgment about the patient's response to actual or potential health problems.", "difficulty": "Moderate", "isImportant": true },
-            { "id": "y1s1-f1-u3-7", "question": "Define 'Implementation' in the nursing process.", "answer": "The phase where the nurse carries out the planned nursing interventions.", "difficulty": "beginner", "isImportant": true },
-            { "id": "y1s1-f1-u3-8", "question": "What is active listening?", "answer": "Paying full attention to the speaker, both verbally and non-verbally.", "difficulty": "Easy" },
-            { "id": "y1s1-f1-u3-9", "question": "Why is evaluation important?", "answer": "To determine if the patient's goals were met and adjust the care plan if needed.", "difficulty": "Moderate", "isImportant": true }
+            { "id": "y1s1-f-u1-1", "question": "Define nursing according to the ICN.", "answer": "Nursing encompasses autonomous and collaborative care of individuals of all ages, families, groups and communities, sick or well in all settings.", "difficulty": "beginner", "isImportant": true },
+            { "id": "y1s1-f-u1-2", "question": "List the five steps of the nursing process.", "answer": "Assessment, Diagnosis, Planning, Implementation, Evaluation (ADPIE).", "difficulty": "Easy", "isImportant": true },
+            { "id": "y1s1-f-u1-3", "question": "Who is the founder of modern nursing?", "answer": "Florence Nightingale.", "difficulty": "Easy" },
+            { "id": "y1s1-f-u1-4", "question": "What is 'Therapeutic Communication'?", "answer": "Active listening and empathy to support the patient's well-being.", "difficulty": "Moderate", "isImportant": true },
+            { "id": "y1s1-f-u1-5", "question": "What are Standard Precautions?", "answer": "Infection control measures used for all patients regardless of diagnosis.", "difficulty": "Moderate", "isImportant": true },
+            { "id": "y1s1-f-u1-6", "question": "Define 'Asepsis'.", "answer": "The absence of pathogenic microorganisms.", "difficulty": "beginner" },
+            { "id": "y1s1-f-u1-7", "question": "What is the primary goal of the nursing assessment?", "answer": "To collect data and establish a database about the patient's health status.", "difficulty": "Moderate" },
+            { "id": "y1s1-f-u1-8", "question": "Differentiate between Subjective and Objective data.", "answer": "Subjective is what the patient says (symptoms); Objective is what the nurse observes/measures (signs).", "difficulty": "Easy", "isImportant": true },
+            { "id": "y1s1-f-u1-9", "question": "Define 'Implementation' in the nursing process.", "answer": "The phase where the nurse carries out the planned nursing interventions.", "difficulty": "beginner" },
+            { "id": "y1s1-f-u1-10", "question": "Why is 'Evaluation' crucial in nursing?", "answer": "To determine if the patient's goals were met and adjust the care plan if needed.", "difficulty": "Moderate" },
+            { "id": "y1s1-f-u1-11", "question": "List four vital signs.", "answer": "Temperature, Pulse, Respiration, and Blood Pressure.", "difficulty": "Easy", "isImportant": true },
+            { "id": "y1s1-f-u1-12", "question": "What is the normal adult body temperature range?", "answer": "36.5°C to 37.5°C (97.7°F to 99.5°F).", "difficulty": "Easy" },
+            { "id": "y1s1-f-u1-13", "question": "Define 'Bradypnea'.", "answer": "An abnormally slow respiratory rate (typically <12 breaths per minute).", "difficulty": "Moderate" },
+            { "id": "y1s1-f-u1-14", "question": "What is the 'Golden Rule' of nursing documentation?", "answer": "If it wasn't documented, it wasn't done.", "difficulty": "Easy", "isImportant": true },
+            { "id": "y1s1-f-u1-15", "question": "Define 'Autonomy' in nursing ethics.", "answer": "Respecting the patient's right to make their own healthcare decisions.", "difficulty": "Moderate" }
           ]
         }
       ]
