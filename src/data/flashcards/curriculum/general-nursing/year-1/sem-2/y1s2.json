@@ -3,7 +3,7 @@
     "program": "National Diploma in Nursing",
     "level": "Year 1",
     "semester": "Semester 2",
-    "last_updated": "2026-02-28"
+    "last_updated": "2026-03-02"
   },
   "courses": [
     {
@@ -15,16 +15,17 @@
           "unit_number": "Unit I",
           "title": "Introduction to Primary Health Care",
           "flashcards": [
-            { "id": "y1s2-phc-1", "question": "Define Primary Health Care (PHC).", "answer": "Essential health care made universally accessible to individuals and families in the community through their full participation, at a cost the community and country can afford.", "difficulty": "beginner" },
-            { "id": "y1s2-phc-2", "question": "What are the eight components of PHC?", "answer": "Health education, nutrition, safe water/sanitation, maternal/child health, immunization, endemic disease prevention, common disease treatment, and essential drugs.", "difficulty": "intermediate" },
-            { "id": "y1s2-phc-3", "question": "Name the five principles of PHC.", "answer": "Equity, community participation, intersectoral collaboration, appropriate technology, and focus on prevention.", "difficulty": "intermediate" },
-            { "id": "y1s2-phc-4", "question": "Explain 'Intersectoral Collaboration' in PHC.", "answer": "The combined efforts of the health sector and other sectors (e.g., agriculture, education) to improve health.", "difficulty": "Moderate" },
-            { "id": "y1s2-phc-5", "question": "What is 'Appropriate Technology'?", "answer": "Methods and equipment that are scientifically sound, yet adapted to local needs and acceptable to the community.", "difficulty": "Moderate" },
-            { "id": "y1s2-phc-6", "question": "Define 'Social Justice' in the context of PHC.", "answer": "The equitable distribution of health resources according to the needs of the population.", "difficulty": "Moderate" },
-            { "id": "y1s2-phc-7", "question": "What is the goal of 'Health for All'?", "answer": "Achieving a level of health that enables all people to lead socially and economically productive lives.", "difficulty": "beginner" },
-            { "id": "y1s2-phc-8", "question": "Explain the role of the community in PHC.", "answer": "Active participation in planning, implementing, and evaluating their own healthcare services.", "difficulty": "intermediate" },
-            { "id": "y1s2-phc-9", "question": "What does GOBI-FFF stand for?", "answer": "Growth monitoring, Oral rehydration, Breastfeeding, Immunization, Female education, Family spacing, Food supplementation.", "difficulty": "Hard" },
-            { "id": "y1s2-phc-10", "question": "Why is health education considered the first component of PHC?", "answer": "Because it empowers people with the knowledge to prevent disease and promote their own health.", "difficulty": "Moderate" }
+            { "id": "y1s2-phc-u1-1", "question": "Define Primary Health Care (PHC).", "answer": "Essential health care made universally accessible to individuals and families in the community.", "difficulty": "beginner" },
+            { "id": "y1s2-phc-u1-2", "question": "What are the eight components of PHC?", "answer": "Health education, nutrition, safe water/sanitation, maternal/child health, immunization, endemic disease prevention, common disease treatment, and essential drugs.", "difficulty": "intermediate" },
+            { "id": "y1s2-phc-u1-3", "question": "Name the principles of PHC.", "answer": "Equity, community participation, intersectoral collaboration, appropriate technology, and focus on prevention.", "difficulty": "intermediate" }
+          ]
+        },
+        {
+          "unit_number": "Unit II",
+          "title": "The Community",
+          "flashcards": [
+            { "id": "y1s2-phc-u2-1", "question": "List the cadres of PHC workers in Nigeria.", "answer": "CHEWs, CHOs, Midwives, Public Health Nurses, Community Physicians, VHWs, TBAs.", "difficulty": "intermediate" },
+            { "id": "y1s2-phc-u2-2", "question": "Define 'Community Diagnosis'.", "answer": "A process of identifying health problems and needs of a community through data collection.", "difficulty": "Moderate" }
           ]
         }
       ]
@@ -36,18 +37,93 @@
       "units": [
         {
           "unit_number": "Unit I",
-          "title": "Introduction to Pharmacology",
+          "title": "Introduction",
           "flashcards": [
-            { "id": "y1s2-p-1", "question": "Define Pharmacology.", "answer": "The study of drugs and their interactions with living systems.", "difficulty": "beginner" },
-            { "id": "y1s2-p-2", "question": "Differentiate between Generic and Brand names.", "answer": "Generic is the official name; Brand is the manufacturer's trade name.", "difficulty": "beginner" },
-            { "id": "y1s2-p-3", "question": "Define 'Pharmacokinetics'.", "answer": "The study of what the body does to the drug (Absorption, Distribution, Metabolism, Excretion).", "difficulty": "intermediate" },
-            { "id": "y1s2-p-4", "question": "Define 'Pharmacodynamics'.", "answer": "The study of what the drug does to the body (mechanism of action, therapeutic effects).", "difficulty": "intermediate" },
-            { "id": "y1s2-p-5", "question": "What is 'Bioavailability'?", "answer": "The fraction of an administered dose that reaches the systemic circulation in an unchanged form.", "difficulty": "Hard" },
-            { "id": "y1s2-p-6", "question": "Define 'Half-life' (t 1/2).", "answer": "The time required for the concentration of a drug in the body to decrease by half.", "difficulty": "Moderate" },
-            { "id": "y1s2-p-7", "question": "What is a 'Teratogen'?", "answer": "An agent that causes physical or functional defects in the embryo or fetus.", "difficulty": "Hard" },
-            { "id": "y1s2-p-8", "question": "Define 'Drug Tolerance'.", "answer": "A reduced response to a drug following repeated administration.", "difficulty": "Moderate" },
-            { "id": "y1s2-p-9", "question": "What is 'Polypharmacy'?", "answer": "The use of multiple medications by a patient, increasing the risk of drug interactions.", "difficulty": "Moderate" },
-            { "id": "y1s2-p-10", "question": "Define 'Agonist' vs 'Antagonist'.", "answer": "Agonist activates receptors; Antagonist blocks receptors.", "difficulty": "Hard" }
+            { "id": "y1s2-p-u1-1", "question": "Define Pharmacology.", "answer": "The study of drugs and their interactions with living systems.", "difficulty": "beginner" },
+            { "id": "y1s2-p-u1-2", "question": "What is the difference between Generic and Brand names?", "answer": "Generic is the official name (e.g., Paracetamol); Brand is the trade name (e.g., Panadol).", "difficulty": "beginner" },
+            { "id": "y1s2-p-u1-3", "question": "Define 'Pharmacokinetics'.", "answer": "The study of what the body does to the drug (ADME).", "difficulty": "intermediate" },
+            { "id": "y1s2-p-u1-4", "question": "Define 'Pharmacodynamics'.", "answer": "The study of what the drug does to the body.", "difficulty": "intermediate" }
+          ]
+        },
+        {
+          "unit_number": "Unit III",
+          "title": "Preparation of Drugs",
+          "flashcards": [
+            { "id": "y1s2-p-u3-1", "question": "How do you calculate infusion rate (gtt/min)?", "answer": "(Volume in mL x Drop Factor) / Time in minutes.", "difficulty": "Hard" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "anat-102",
+      "course_code": "NUS 121",
+      "title": "Anatomy and Physiology II",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "The Musculoskeletal System",
+          "flashcards": [
+            { "id": "y1s2-a-u1-1", "question": "Name the two types of bone tissue.", "answer": "Compact and Cancellous (spongy) bone.", "difficulty": "Easy" },
+            { "id": "y1s2-a-u1-2", "question": "Define a 'Joint'.", "answer": "The site where two or more bones meet.", "difficulty": "Easy" }
+          ]
+        },
+        {
+          "unit_number": "Unit II",
+          "title": "The Digestive System",
+          "flashcards": [
+            { "id": "y1s2-a-u2-1", "question": "List the organs of the digestive tract in order.", "answer": "Mouth, esophagus, stomach, small intestine, large intestine, rectum, anus.", "difficulty": "Easy" },
+            { "id": "y1s2-a-u2-2", "question": "What is the function of Bile?", "answer": "To emulsify fats for digestion.", "difficulty": "Moderate" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fon-102",
+      "course_code": "NUR 121",
+      "title": "Foundation of Nursing II",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Administration of Drugs",
+          "flashcards": [
+            { "id": "y1s2-f-u1-1", "question": "What are the five 'rights' of drug administration?", "answer": "Right patient, right drug, right dose, right route, right time.", "difficulty": "Easy" }
+          ]
+        },
+        {
+          "unit_number": "Unit II",
+          "title": "Aseptic Techniques",
+          "flashcards": [
+            { "id": "y1s2-f-u2-1", "question": "Differentiate between Sterilization and Disinfection.", "answer": "Sterilization kills all microbes including spores; Disinfection only reduces pathogens.", "difficulty": "Moderate" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ms-101",
+      "course_code": "NUR 213",
+      "title": "Medical-Surgical Nursing I",
+      "units": [
+        {
+          "unit_number": "Unit III",
+          "title": "Common Situations that Threaten Adaptation",
+          "flashcards": [
+            { "id": "y1s2-ms-u3-1", "question": "Define Shock.", "answer": "A life-threatening condition of inadequate tissue perfusion.", "difficulty": "Moderate" },
+            { "id": "y1s2-ms-u3-2", "question": "What is Hypovolemic Shock?", "answer": "Shock caused by rapid fluid/blood loss.", "difficulty": "Moderate" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ethics-101",
+      "course_code": "NUR 1xx",
+      "title": "Nursing Ethics and Jurisprudence",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Ethical Concepts in Nursing",
+          "flashcards": [
+            { "id": "y1s2-e-u1-1", "question": "Define 'Morality'.", "answer": "Beliefs about what is right and wrong behavior.", "difficulty": "Easy" },
+            { "id": "y1s2-e-u1-2", "question": "What is the ICN Code of Ethics?", "answer": "A guide for ethical nursing practice globally.", "difficulty": "Moderate" }
           ]
         }
       ]
