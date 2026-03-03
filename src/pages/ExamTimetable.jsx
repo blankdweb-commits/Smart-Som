@@ -102,8 +102,28 @@ const ExamTimetable = () => {
     return subjects.filter(s => title.includes(s.toLowerCase()) || s.toLowerCase().includes(title));
   };
 
+  const soonestExam = sortedExams.find(e => new Date(e.date) >= new Date());
+
   return (
     <div className="space-y-6 pb-20">
+      {soonestExam && differenceInDays(new Date(soonestExam.date), new Date()) <= 7 && (
+        <div className="bg-gradient-to-r from-medical-600 to-indigo-600 p-4 rounded-2xl text-white shadow-lg flex items-center justify-between">
+          <div className="flex items-center gap-4">
+            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md">
+              <Clock className="text-white" size={24} />
+            </div>
+            <div>
+              <p className="text-xs font-bold uppercase tracking-wider opacity-80">Revision Reminder</p>
+              <h3 className="text-lg font-bold">{soonestExam.title} in {differenceInDays(new Date(soonestExam.date), new Date())} days!</h3>
+            </div>
+          </div>
+          <div className="hidden md:block text-right">
+            <p className="text-xs font-medium opacity-80">Keep pushing!</p>
+            <p className="text-sm font-bold">You've got this.</p>
+          </div>
+        </div>
+      )}
+
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
         <div>
           <h2 className="text-3xl font-bold text-slate-800 dark:text-white">Exam Timetable</h2>

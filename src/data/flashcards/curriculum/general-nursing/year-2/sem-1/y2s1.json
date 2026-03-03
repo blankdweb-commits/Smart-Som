@@ -12,18 +12,34 @@
       "title": "Anatomy and Physiology III",
       "units": [
         {
+          "unit_number": "Unit I",
+          "title": "The Integumentary System",
+          "flashcards": [
+            { "id": "y2s1-a-u1-1", "question": "Name the three layers of the skin.", "answer": "Epidermis, Dermis, and Hypodermis (Subcutaneous layer).", "difficulty": "Easy" },
+            { "id": "y2s1-a-u1-2", "question": "What is the function of Melanin?", "answer": "To provide pigment and protect the skin from UV radiation.", "difficulty": "Easy" }
+          ]
+        },
+        {
           "unit_number": "Unit II",
           "title": "The Endocrine System",
           "flashcards": [
-            { "id": "y2s1-a-u2-1", "question": "Name the 'Master Gland' of the endocrine system.", "answer": "The Pituitary Gland.", "difficulty": "Easy" },
-            { "id": "y2s1-a-u2-2", "question": "What is the function of Insulin?", "answer": "To lower blood glucose levels.", "difficulty": "Moderate" }
+            { "id": "y2s1-a-u2-1", "question": "What gland is known as the Master Gland?", "answer": "The Pituitary Gland.", "difficulty": "Easy" },
+            { "id": "y2s1-a-u2-2", "question": "Function of Thyroid Hormone?", "answer": "Regulates metabolism, growth, and development.", "difficulty": "Moderate" }
           ]
         },
         {
           "unit_number": "Unit III",
           "title": "The Nervous System",
           "flashcards": [
-            { "id": "y2s1-a-u3-1", "question": "Name the 12 cranial nerves in order.", "answer": "I Olfactory, II Optic, III Oculomotor, IV Trochlear, V Trigeminal, VI Abducens, VII Facial, VIII Vestibulocochlear, IX Glossopharyngeal, X Vagus, XI Accessory, XII Hypoglossal.", "difficulty": "Hard" }
+            { "id": "y2s1-a-u3-1", "question": "Name the two divisions of the nervous system.", "answer": "Central (CNS) and Peripheral (PNS).", "difficulty": "Easy" },
+            { "id": "y2s1-a-u3-2", "question": "Define 'Synapse'.", "answer": "The junction between two neurons where impulses are transmitted.", "difficulty": "Moderate" }
+          ]
+        },
+        {
+          "unit_number": "Unit IV",
+          "title": "The Special Senses",
+          "flashcards": [
+            { "id": "y2s1-a-u4-1", "question": "Name the five special senses.", "answer": "Sight, Hearing, Equilibrium, Smell, and Taste.", "difficulty": "Easy" }
           ]
         }
       ]
@@ -35,79 +51,16 @@
       "units": [
         {
           "unit_number": "Unit I",
-          "title": "Feeding/Elimination Problems",
+          "title": "Feeding and Elimination Problems",
           "flashcards": [
-            { "id": "y2s1-f-u1-1", "question": "How do you measure an NG tube for insertion?", "answer": "From nose to earlobe to xiphoid process.", "difficulty": "Moderate" }
+            { "id": "y2s1-f-u1-1", "question": "How is a Nasogastric (NG) tube inserted?", "answer": "Measure from nose to earlobe to xiphoid, lubricate, insert via nostril.", "difficulty": "Moderate" }
           ]
-        }
-      ]
-    },
-    {
-      "id": "ms-201",
-      "course_code": "NUR 222",
-      "title": "Medical-Surgical Nursing II",
-      "units": [
-        {
-          "unit_number": "Unit I",
-          "title": "Respiratory Problems",
-          "flashcards": [
-            { "id": "y2s1-ms-u1-1", "question": "What is COPD?", "answer": "Chronic Obstructive Pulmonary Disease; includes bronchitis and emphysema.", "difficulty": "Moderate" }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "phc-201",
-      "course_code": "NUR 212",
-      "title": "Primary Health Care II",
-      "units": [
-        {
-          "unit_number": "Unit I",
-          "title": "Components of PHC",
-          "flashcards": [
-            { "id": "y2s1-phc-u1-1", "question": "What is the EPI program?", "answer": "Expanded Programme on Immunization.", "difficulty": "Moderate" }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "pharm-201",
-      "course_code": "NUS 213",
-      "title": "Pharmacology II",
-      "units": [
-        {
-          "unit_number": "Unit II",
-          "title": "Pharmacovigilance",
-          "flashcards": [
-            { "id": "y2s1-p-u2-1", "question": "Define Pharmacovigilance.", "answer": "The detection, assessment, and prevention of adverse effects of drugs.", "difficulty": "Hard" }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "rh-201",
-      "course_code": "NUR 223",
-      "title": "Reproductive Health I",
-      "units": [
+        },
         {
           "unit_number": "Unit III",
-          "title": "Review of Reproductive Organs",
+          "title": "Basic Life Support",
           "flashcards": [
-            { "id": "y2s1-rh-u3-1", "question": "Define Amenorrhea.", "answer": "The absence of menstruation.", "difficulty": "Easy" }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "research-201",
-      "course_code": "NUR 214",
-      "title": "Research and Statistics I",
-      "units": [
-        {
-          "unit_number": "Unit IV",
-          "title": "Measurement and Statistics",
-          "flashcards": [
-            { "id": "y2s1-r-u4-1", "question": "Name the three measures of central tendency.", "answer": "Mean, Median, and Mode.", "difficulty": "Easy" }
+            { "id": "y2s1-f-u3-1", "question": "What is the compression-to-breath ratio for adult CPR?", "answer": "30 compressions to 2 breaths.", "difficulty": "Easy" }
           ]
         }
       ]

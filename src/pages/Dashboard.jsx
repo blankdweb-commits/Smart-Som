@@ -24,8 +24,11 @@ const Dashboard = () => {
 
   const upcomingExams = exams
     .filter(e => new Date(e.date) >= new Date())
-    .sort((a, b) => new Date(a.date) - new Date(b.date))
-    .slice(0, 3);
+    .sort((a, b) => new Date(a.date) - new Date(b.date));
+
+  const immediateExam = upcomingExams[0];
+  const isExamSoon = immediateExam &&
+    (new Date(immediateExam.date).getTime() - new Date().getTime()) / (1000 * 3600 * 24) <= 2;
 
   const dueFlashcards = flashcards.filter(c => {
     if (!c.srs?.nextReview) return true;
@@ -50,9 +53,30 @@ const Dashboard = () => {
 
   return (
     <div className="space-y-6">
-      <header>
-        <h2 className="text-3xl font-bold text-slate-800 dark:text-white">Welcome back, Student</h2>
-        <p className="text-slate-600 dark:text-slate-400">Track your nursing study progress and upcoming exams.</p>
+      <header className="relative">
+        <div className="flex justify-between items-start">
+          <div>
+            <h2 className="text-3xl font-bold text-slate-800 dark:text-white">Welcome back, Student</h2>
+            <p className="text-slate-600 dark:text-slate-400">Track your nursing study progress and upcoming exams.</p>
+          </div>
+        </div>
+
+        {isExamSoon && (
+          <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded-r-xl flex items-center justify-between animate-pulse">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center text-red-600">
+                <Calendar size={20} />
+              </div>
+              <div>
+                <p className="text-red-800 dark:text-red-300 font-bold text-sm uppercase">Exam Alert!</p>
+                <p className="text-red-700 dark:text-red-400 text-sm font-medium">
+                  Your <strong>{immediateExam.title}</strong> exam is in less than 48 hours ({new Date(immediateExam.date).toLocaleDateString()}).
+                </p>
+              </div>
+            </div>
+            <a href="/exams" className="px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-lg shadow-lg">View Schedule</a>
+          </div>
+        )}
       </header>
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">

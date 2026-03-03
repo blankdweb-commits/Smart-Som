@@ -7,6 +7,7 @@ const Community = () => {
   const [posts, setPosts] = useState([]);
   const [newPost, setNewPost] = useState('');
   const [category, setCategory] = useState('Study Tips');
+  const [activeTab, setActiveTab] = useState('feed'); // 'feed' or 'suggestions'
   const [image, setImage] = useState(null);
   const [isUploading, setIsUploading] = useState(false);
   const [replyTo, setReplyTo] = useState(null);
@@ -139,14 +140,53 @@ const Community = () => {
 
   return (
     <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
-      <header className="space-y-2">
-        <h2 className="text-3xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-          <MessageSquare className="text-medical-600" />
-          Nursing Community
-        </h2>
-        <p className="text-slate-600 dark:text-slate-400">Share findings, mnemonics, and support your fellow students.</p>
+      <header className="space-y-4">
+        <div className="space-y-2">
+          <h2 className="text-3xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
+            <MessageSquare className="text-medical-600" />
+            Nursing Community
+          </h2>
+          <p className="text-slate-600 dark:text-slate-400">Share findings, mnemonics, and support your fellow students.</p>
+        </div>
+
+        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
+          <button
+            onClick={() => setActiveTab('feed')}
+            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'feed' ? 'bg-white dark:bg-slate-700 shadow-sm text-medical-600' : 'text-slate-500'}`}
+          >
+            Community Feed
+          </button>
+          <button
+            onClick={() => setActiveTab('suggestions')}
+            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'suggestions' ? 'bg-white dark:bg-slate-700 shadow-sm text-medical-600' : 'text-slate-500'}`}
+          >
+            Suggestions
+          </button>
+        </div>
       </header>
 
+      {activeTab === 'suggestions' ? (
+        <div className="bg-medical-50 dark:bg-medical-900/10 border border-medical-100 dark:border-medical-900/30 rounded-2xl p-8 text-center space-y-4">
+          <div className="w-16 h-16 bg-medical-100 dark:bg-medical-900/40 rounded-full flex items-center justify-center text-medical-600 mx-auto">
+            <Award size={32} />
+          </div>
+          <div className="max-w-md mx-auto space-y-2">
+            <h3 className="text-xl font-bold">Have a Suggestion?</h3>
+            <p className="text-slate-600 dark:text-slate-400 text-sm">
+              Missing a course? Found an error? Want a new feature?
+              Post your suggestions in the feed using the <strong>"Support"</strong> category,
+              or reach out to the development team directly.
+            </p>
+          </div>
+          <button
+            onClick={() => { setActiveTab('feed'); setCategory('Support'); }}
+            className="px-6 py-3 bg-medical-600 text-white rounded-xl font-bold shadow-lg shadow-medical-600/20 active:scale-95 transition-all"
+          >
+            Write a Suggestion
+          </button>
+        </div>
+      ) : (
+      <>
       {/* Post Box */}
       <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6">
         <form onSubmit={handlePost} className="space-y-4">
@@ -328,6 +368,8 @@ const Community = () => {
           </div>
         ))}
       </div>
+      </>
+      )}
 
       {/* Study Hall Info */}
       <div className="bg-amber-50 dark:bg-amber-900/10 border border-amber-200 dark:border-amber-900/30 rounded-2xl p-6 flex gap-4">

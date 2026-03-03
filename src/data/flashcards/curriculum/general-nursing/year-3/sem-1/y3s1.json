@@ -12,10 +12,18 @@
       "title": "Medical Surgical Nursing IV",
       "units": [
         {
+          "unit_number": "Unit I",
+          "title": "Reproductive Disorders",
+          "flashcards": [
+            { "id": "y3s1-ms-u1-1", "question": "Define BPH.", "answer": "Benign Prostatic Hyperplasia; noncancerous enlargement of the prostate.", "difficulty": "Moderate" },
+            { "id": "y3s1-ms-u1-2", "question": "What is Endometriosis?", "answer": "Condition where tissue similar to the lining of the uterus grows outside the uterus.", "difficulty": "Hard" }
+          ]
+        },
+        {
           "unit_number": "Unit II",
           "title": "Haematological System",
           "flashcards": [
-            { "id": "y3s1-ms-u2-1", "question": "What is Sickle Cell Anemia?", "answer": "A genetic blood disorder where RBCs take on an abnormal sickle shape.", "difficulty": "Moderate" }
+            { "id": "y3s1-ms-u2-1", "question": "What is Sickle Cell Anemia?", "answer": "Genetic blood disorder where RBCs take on an abnormal sickle shape.", "difficulty": "Moderate" }
           ]
         }
       ]
@@ -26,10 +34,17 @@
       "title": "Reproductive Health III",
       "units": [
         {
-          "unit_number": "Unit IV",
-          "title": "Vaccines and Immunization",
+          "unit_number": "Unit I",
+          "title": "Growth and Development",
           "flashcards": [
-            { "id": "y3s1-rh-u4-1", "question": "List vaccines given at birth in Nigeria.", "answer": "BCG, OPV0, and HepB.", "difficulty": "Moderate" }
+            { "id": "y3s1-rh-u1-1", "question": "What are developmental milestones?", "answer": "Skills or behaviors seen in infants and children as they grow (sitting, walking).", "difficulty": "Moderate" }
+          ]
+        },
+        {
+          "unit_number": "Unit VII",
+          "title": "Gender Equality and Social Inclusion",
+          "flashcards": [
+            { "id": "y3s1-rh-u7-1", "question": "Define GBV.", "answer": "Gender-Based Violence; harmful acts directed at an individual based on their gender.", "difficulty": "Moderate" }
           ]
         }
       ]
@@ -43,7 +58,7 @@
           "unit_number": "Unit I",
           "title": "Epidemiology",
           "flashcards": [
-            { "id": "y3s1-c-u1-1", "question": "Define Epidemiology.", "answer": "The study of the distribution and determinants of health-related states in populations.", "difficulty": "Moderate" }
+            { "id": "y3s1-c-u1-1", "question": "Define Epidemiology.", "answer": "Study of the distribution and determinants of health states in populations.", "difficulty": "Moderate" }
           ]
         }
       ]
@@ -57,7 +72,7 @@
           "unit_number": "Unit II",
           "title": "Mental Disorders",
           "flashcards": [
-            { "id": "y3s1-mh-u2-1", "question": "What is Schizophrenia?", "answer": "A severe mental disorder characterized by hallucinations and delusions.", "difficulty": "Hard" }
+            { "id": "y3s1-mh-u2-1", "question": "What is Schizophrenia?", "answer": "Severe mental disorder characterized by hallucinations and delusions.", "difficulty": "Hard" }
           ]
         }
       ]
@@ -71,7 +86,8 @@
           "unit_number": "Unit III",
           "title": "Management of Emergencies",
           "flashcards": [
-            { "id": "y3s1-ed-u3-1", "question": "What does 'Triage' mean in an emergency?", "answer": "Sorting patients based on the severity of their condition to prioritize care.", "difficulty": "Moderate" }
+            { "id": "y3s1-ed-u3-1", "question": "What does 'Triage' mean?", "answer": "Sorting patients by severity of condition to prioritize care.", "difficulty": "Moderate" },
+            { "id": "y3s1-ed-u3-2", "question": "List the ABCDE of resuscitation.", "answer": "Airway, Breathing, Circulation, Disability, Exposure.", "difficulty": "intermediate" }
           ]
         }
       ]
@@ -85,7 +101,7 @@
           "unit_number": "Unit III",
           "title": "Improvement Plans",
           "flashcards": [
-            { "id": "y3s1-q-u3-1", "question": "What is a PDSA cycle?", "answer": "Plan-Do-Study-Act; a model for testing change.", "difficulty": "Moderate" }
+            { "id": "y3s1-q-u3-1", "question": "What is a PDSA cycle?", "answer": "Plan-Do-Study-Act.", "difficulty": "Moderate" }
           ]
         }
       ]
