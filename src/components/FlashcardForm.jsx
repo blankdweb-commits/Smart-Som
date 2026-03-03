@@ -80,34 +80,37 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-      <div className="bg-white dark:bg-slate-800 rounded-2xl w-full max-w-md shadow-2xl overflow-hidden">
-        <div className="flex justify-between items-center p-6 border-b border-slate-200 dark:border-slate-700">
-          <h3 className="text-xl font-bold">{initialData ? 'Edit Flashcard' : 'Create New Flashcard'}</h3>
-          <button onClick={onClose} className="text-slate-500 hover:text-slate-700 dark:text-slate-400 dark:hover:text-slate-200">
+    <div className="fixed inset-0 z-[60] flex items-end sm:items-center justify-center p-0 sm:p-4 bg-slate-900/60 backdrop-blur-md animate-in fade-in duration-300">
+      <div className="bg-white dark:bg-slate-800 rounded-t-[2.5rem] sm:rounded-[2.5rem] w-full max-w-lg shadow-clinical overflow-hidden animate-in slide-in-from-bottom-full sm:zoom-in-95 duration-500 max-h-[90vh] flex flex-col">
+        <div className="flex justify-between items-center p-8 border-b border-slate-100 dark:border-slate-700">
+          <div>
+            <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">{initialData ? 'Edit Card' : 'New Flashcard'}</h3>
+            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Curriculum Management</p>
+          </div>
+          <button onClick={onClose} className="p-2 bg-slate-50 dark:bg-slate-700 rounded-xl text-slate-500 hover:text-slate-700 dark:hover:text-slate-300 transition-colors">
             <X size={24} />
           </button>
         </div>
 
-        <form onSubmit={handleSubmit} className="p-6 space-y-4 max-h-[70vh] overflow-y-auto">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <form onSubmit={handleSubmit} className="p-8 space-y-6 overflow-y-auto no-scrollbar">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <MobileFriendlySelect
-              label="Category"
+              label="Track"
               value={formData.category}
               options={['Academic', 'NCLEX', 'NMCN']}
               onChange={(e) => setFormData(prev => ({ ...prev, category: e.target.value }))}
             />
             <MobileFriendlySelect
-              label="Study Level"
+              label="Year / Level"
               value={formData.level}
               options={['Year 1', 'Year 2', 'Year 3', 'Preparation', 'Council Exam']}
               onChange={(e) => setFormData(prev => ({ ...prev, level: e.target.value }))}
             />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
             <div>
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Subject</label>
+              <label className="block text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Clinical Subject</label>
               <input
                 type="text"
                 name="subject"
@@ -116,7 +119,7 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                 onChange={handleChange}
                 required
                 placeholder="e.g., Anatomy"
-                className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-2 focus:ring-medical-500 outline-none"
+                className="w-full px-5 py-3 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-50 dark:border-slate-800 focus:border-medical-500 focus:ring-0 outline-none transition-all font-bold dark:text-white"
               />
               <datalist id="subjects-list">
                 <option value="Anatomy" />
@@ -140,20 +143,20 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
           </div>
 
           <div>
-            <div className="flex justify-between items-center mb-1">
-              <label className="block text-sm font-medium text-slate-700 dark:text-slate-300">Topic</label>
+            <div className="flex justify-between items-center mb-2">
+              <label className="block text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Specific Topic</label>
               <button
                 type="button"
                 onClick={handleAiGenerate}
                 disabled={isGenerating || !formData.topic || !formData.subject}
-                className="flex items-center gap-1 text-xs font-bold text-medical-600 dark:text-medical-400 hover:text-medical-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex items-center gap-2 px-3 py-1 bg-medical-50 dark:bg-medical-900/30 text-[10px] font-black uppercase tracking-widest text-medical-600 dark:text-medical-400 rounded-full hover:bg-medical-100 transition-all disabled:opacity-50"
               >
                 {isGenerating ? (
                   <Loader2 size={12} className="animate-spin" />
                 ) : (
                   <Sparkles size={12} />
                 )}
-                AI Generate
+                AI Assist
               </button>
             </div>
             <input
@@ -163,65 +166,67 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
               onChange={handleChange}
               required
               placeholder="e.g., Cardiac Cycle"
-              className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-2 focus:ring-medical-500 outline-none"
+              className="w-full px-5 py-3 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-50 dark:border-slate-800 focus:border-medical-500 outline-none transition-all font-bold dark:text-white"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Question (Front)</label>
+            <label className="block text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Clinical Question</label>
             <textarea
               name="question"
               value={formData.question}
               onChange={handleChange}
               required
               rows="2"
-              className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-2 focus:ring-medical-500 outline-none resize-none"
+              className="w-full px-5 py-4 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-50 dark:border-slate-800 focus:border-medical-500 outline-none transition-all font-bold dark:text-white resize-none leading-relaxed"
+              placeholder="Enter the question for the front of the card..."
             ></textarea>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Hint (Optional)</label>
+            <label className="block text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Recall Hint (Optional)</label>
             <input
               type="text"
               name="hint"
               value={formData.hint}
               onChange={handleChange}
-              placeholder="A subtle clue to help recall..."
-              className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-2 focus:ring-medical-500 outline-none"
+              placeholder="A clinical pearl to help recall..."
+              className="w-full px-5 py-3 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-50 dark:border-slate-800 focus:border-medical-500 outline-none transition-all font-bold dark:text-white"
             />
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-slate-700 dark:text-slate-300 mb-1">Answer (Back)</label>
+            <label className="block text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-2 ml-1">Detailed Answer</label>
             <textarea
               name="answer"
               value={formData.answer}
               onChange={handleChange}
               required
               rows="3"
-              className="w-full px-4 py-2 rounded-lg border border-slate-300 dark:border-slate-600 dark:bg-slate-700 focus:ring-2 focus:ring-medical-500 outline-none resize-none"
+              className="w-full px-5 py-4 rounded-2xl bg-white dark:bg-slate-900 border-2 border-slate-50 dark:border-slate-800 focus:border-medical-500 outline-none transition-all font-bold dark:text-white resize-none leading-relaxed"
+              placeholder="Provide the high-yield answer here..."
             ></textarea>
           </div>
 
-          <div className="flex items-center">
+          <div className="flex items-center p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border-2 border-transparent hover:border-medical-100 transition-all cursor-pointer">
             <input
               type="checkbox"
               id="important"
               name="important"
               checked={formData.important}
               onChange={handleChange}
-              className="h-4 w-4 text-medical-600 focus:ring-medical-500 border-slate-300 rounded"
+              className="h-5 w-5 text-medical-600 focus:ring-0 border-slate-300 rounded-lg cursor-pointer"
             />
-            <label htmlFor="important" className="ml-2 block text-sm text-slate-700 dark:text-slate-300">
-              Mark as High-Yield / Important
+            <label htmlFor="important" className="ml-3 block text-sm font-bold text-slate-700 dark:text-slate-300 cursor-pointer">
+              Mark as High-Yield Exam Topic
             </label>
           </div>
 
           <button
             type="submit"
-            className="w-full py-3 bg-medical-600 hover:bg-medical-700 text-white rounded-lg font-bold transition-colors mt-4"
+            className="w-full py-5 bg-medical-600 hover:bg-medical-700 text-white rounded-2xl font-black shadow-clinical transition-all active:scale-[0.98] uppercase tracking-[0.2em] text-sm"
           >
-            {initialData ? 'Update Card' : 'Create Card'}
+            {initialData ? 'Update Clinical Card' : 'Save New Card'}
           </button>
         </form>
       </div>

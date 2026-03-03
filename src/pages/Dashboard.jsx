@@ -52,156 +52,181 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div className="space-y-6">
-      <header className="relative">
+    <div className="space-y-8 pb-20">
+      <header className="relative py-4">
         <div className="flex justify-between items-start">
           <div>
-            <h2 className="text-3xl font-bold text-slate-800 dark:text-white">Welcome back, Student</h2>
-            <p className="text-slate-600 dark:text-slate-400">Track your nursing study progress and upcoming exams.</p>
+            <h2 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">Nurse's Dashboard</h2>
+            <p className="text-slate-500 dark:text-slate-400 font-medium text-lg mt-1">Empowering your clinical learning journey.</p>
           </div>
         </div>
 
         {isExamSoon && (
-          <div className="mt-4 p-4 bg-red-50 dark:bg-red-900/20 border-l-4 border-red-500 rounded-r-xl flex items-center justify-between animate-pulse">
-            <div className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-red-100 dark:bg-red-900/40 rounded-full flex items-center justify-center text-red-600">
-                <Calendar size={20} />
+          <div className="mt-6 p-6 bg-red-50 dark:bg-red-900/20 border-2 border-red-100 dark:border-red-900/30 rounded-[2rem] flex flex-col sm:flex-row items-center justify-between gap-4 animate-bounce-in shadow-soft">
+            <div className="flex items-center gap-4 text-center sm:text-left">
+              <div className="w-14 h-14 bg-red-100 dark:bg-red-900/40 rounded-2xl flex items-center justify-center text-red-600 shrink-0">
+                <Calendar size={28} />
               </div>
               <div>
-                <p className="text-red-800 dark:text-red-300 font-bold text-sm uppercase">Exam Alert!</p>
-                <p className="text-red-700 dark:text-red-400 text-sm font-medium">
-                  Your <strong>{immediateExam.title}</strong> exam is in less than 48 hours ({new Date(immediateExam.date).toLocaleDateString()}).
+                <p className="text-red-800 dark:text-red-400 font-bold text-lg uppercase tracking-wider">High Urgency: Exam Alert</p>
+                <p className="text-red-700 dark:text-red-500 font-medium">
+                  Your <strong>{immediateExam.title}</strong> exam is in less than 48 hours. Focus on high-yield topics now!
                 </p>
               </div>
             </div>
-            <a href="/exams" className="px-4 py-2 bg-red-600 text-white text-xs font-bold rounded-lg shadow-lg">View Schedule</a>
+            <a href="/exams" className="w-full sm:w-auto px-8 py-3 bg-red-600 hover:bg-red-700 text-white font-bold rounded-2xl shadow-clinical transition-all active:scale-95 text-center">Open Timetable</a>
           </div>
         )}
       </header>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         <StatsCard
-          title="Total Flashcards"
+          title="Curriculum Decks"
           value={flashcards.length}
-          icon={<BookOpen className="text-blue-500" />}
-          color="bg-blue-50 dark:bg-blue-900/20"
+          icon={<BookOpen size={24} />}
+          color="text-blue-600"
+          bg="bg-blue-50/50 dark:bg-blue-900/20"
         />
         <StatsCard
           title="Cards Studied"
           value={studyStats.cardsStudied}
-          icon={<TrendingUp className="text-green-500" />}
-          color="bg-green-50 dark:bg-green-900/20"
+          icon={<TrendingUp size={24} />}
+          color="text-emerald-600"
+          bg="bg-emerald-50/50 dark:bg-emerald-900/20"
         />
         <StatsCard
           title="Study Streak"
           value={`${studyStats.streak} Days`}
-          icon={<Award className="text-orange-500" />}
-          color="bg-orange-50 dark:bg-orange-900/20"
+          icon={<Award size={24} />}
+          color="text-orange-600"
+          bg="bg-orange-50/50 dark:bg-orange-900/20"
         />
         <StatsCard
-          title="Due for Review"
+          title="Due Today"
           value={dueFlashcards.length}
-          icon={<Award className="text-amber-500" />}
-          color="bg-amber-50 dark:bg-amber-900/20"
+          icon={<Award size={24} />}
+          color="text-amber-600"
+          bg="bg-amber-50/50 dark:bg-amber-900/20"
         />
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        <div className="space-y-6">
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
-            <h3 className="text-xl font-semibold mb-6 flex items-center">
-              <TrendingUp className="mr-2 text-medical-600" size={20} />
-              Subject Mastery
-            </h3>
-            <div className="space-y-5">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-8">
+          <div className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-soft border border-slate-100 dark:border-slate-700">
+            <div className="flex items-center justify-between mb-8">
+              <h3 className="text-2xl font-bold flex items-center text-slate-900 dark:text-white">
+                <TrendingUp className="mr-3 text-medical-600" size={24} />
+                Subject Mastery
+              </h3>
+              <span className="text-sm font-bold text-slate-400 uppercase tracking-widest">Top 5 Courses</span>
+            </div>
+            <div className="space-y-8">
               {subjectProgress.length > 0 ? (
                 subjectProgress.map(sub => (
-                  <div key={sub.name}>
-                    <div className="flex justify-between text-xs font-bold mb-1 uppercase tracking-wider text-slate-500">
-                      <span className="truncate max-w-[200px]">{sub.name}</span>
-                      <span>{sub.learned}/{sub.total} cards</span>
+                  <div key={sub.name} className="group">
+                    <div className="flex justify-between text-sm font-bold mb-2 uppercase tracking-tight">
+                      <span className="text-slate-700 dark:text-slate-300 truncate max-w-[250px]">{sub.name}</span>
+                      <span className="text-medical-600">{sub.percent}% Mastery</span>
                     </div>
-                    <div className="w-full h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div className="w-full h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
                       <div
-                        className="h-full bg-medical-500 rounded-full transition-all duration-500"
+                        className="h-full bg-medical-500 rounded-full transition-all duration-1000 group-hover:bg-medical-400"
                         style={{ width: `${sub.percent}%` }}
                       ></div>
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-slate-500 italic">Start studying to see subject progress.</p>
+                <div className="py-10 text-center">
+                  <p className="text-slate-400 font-medium italic">Begin your first study session to track course mastery.</p>
+                </div>
               )}
             </div>
           </div>
 
-          <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm">
-          <h3 className="text-xl font-semibold mb-4 flex items-center">
-            <Calendar className="mr-2 text-medical-600" size={20} />
-            Upcoming Exams
-          </h3>
+          <div className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-soft border border-slate-100 dark:border-slate-700">
+            <h3 className="text-2xl font-bold mb-6 flex items-center text-slate-900 dark:text-white">
+              <Calendar className="mr-3 text-medical-600" size={24} />
+              Upcoming Exams
+            </h3>
             <div className="space-y-4">
               {upcomingExams.length > 0 ? upcomingExams.map(exam => (
-                <div key={exam.id} className="flex items-center justify-between p-3 rounded-lg bg-slate-50 dark:bg-slate-700/50">
-                  <div>
-                    <p className="font-medium">{exam.title}</p>
-                    <p className="text-sm text-slate-500">{new Date(exam.date).toLocaleDateString()}</p>
+                <div key={exam.id} className="flex items-center justify-between p-5 rounded-3xl bg-slate-50 dark:bg-slate-900/50 border border-transparent hover:border-medical-200 dark:hover:border-medical-800 transition-all">
+                  <div className="flex items-center gap-4">
+                    <div className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm text-medical-600">
+                      <Calendar size={20} />
+                    </div>
+                    <div>
+                      <p className="font-bold text-slate-900 dark:text-white">{exam.title}</p>
+                      <p className="text-sm text-slate-500 font-medium">{new Date(exam.date).toLocaleDateString(undefined, { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                    </div>
                   </div>
-                  <span className="text-xs px-2 py-1 bg-medical-100 text-medical-700 dark:bg-medical-900/40 dark:text-medical-300 rounded-full">
-                    Upcoming
+                  <span className="text-xs font-bold px-4 py-1.5 bg-medical-50 text-medical-700 dark:bg-medical-900/40 dark:text-medical-300 rounded-full uppercase tracking-wider">
+                    {Math.ceil((new Date(exam.date).getTime() - new Date().getTime()) / (1000 * 3600 * 24))} Days Left
                   </span>
                 </div>
               )) : (
-                <p className="text-slate-500 italic">No upcoming exams scheduled.</p>
+                <div className="py-6 text-center">
+                  <p className="text-slate-400 font-medium italic">Your exam schedule is clear.</p>
+                </div>
               )}
             </div>
           </div>
         </div>
 
-        <div className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-amber-100 dark:border-amber-900/30">
-          <h3 className="text-xl font-semibold mb-4 flex items-center text-amber-600">
-            <Award className="mr-2" size={20} />
-            Smart Learning Hub
-          </h3>
+        <div className="space-y-8">
+          <div className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-soft border border-amber-100 dark:border-amber-900/30 relative overflow-hidden">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-amber-50 dark:bg-amber-900/10 rounded-full -mr-16 -mt-16" />
 
-          {dueFlashcards.length > 0 ? (
-            <div className="mb-6 p-4 bg-amber-50 dark:bg-amber-900/20 rounded-xl border border-amber-100 dark:border-amber-800">
-              <p className="text-amber-800 dark:text-amber-300 font-bold text-sm uppercase mb-1">Action Required</p>
-              <p className="text-amber-700 dark:text-amber-400 text-sm">
-                You have <strong>{dueFlashcards.length} cards</strong> due for review. Spaced repetition is most effective when done daily!
-              </p>
-              <a href="/flashcards" className="mt-3 inline-block px-4 py-2 bg-amber-500 hover:bg-amber-600 text-white text-xs font-bold rounded-lg transition-colors">
-                Start Review Now
-              </a>
-            </div>
-          ) : (
-            <div className="mb-6 p-4 bg-green-50 dark:bg-green-900/20 rounded-xl border border-green-100 dark:border-green-800">
-              <p className="text-green-800 dark:text-green-300 font-bold text-sm uppercase mb-1">All Caught Up!</p>
-              <p className="text-green-700 dark:text-green-400 text-sm">
-                Excellent! You've reviewed all your current flashcards. Come back later for more.
-              </p>
-            </div>
-          )}
+            <h3 className="text-2xl font-bold mb-6 flex items-center text-amber-600 relative z-10">
+              <Award className="mr-3" size={24} />
+              Learning Hub
+            </h3>
 
-          <h3 className="text-sm font-bold text-slate-400 uppercase mb-3 mt-6">
-            Study Tip of the Day
-          </h3>
-          <div className="p-4 bg-medical-50 dark:bg-medical-900/20 rounded-xl border border-medical-100 dark:border-medical-800 h-24 flex items-center">
-            <p className="text-medical-800 dark:text-medical-300 italic">
-              "{studyTips[currentTip]}"
-            </p>
-          </div>
-          <div className="mt-8">
-            <h4 className="text-sm font-bold text-slate-400 uppercase mb-3">Quick Actions</h4>
-            <div className="grid grid-cols-2 gap-3">
-              <a href="/flashcards" className="flex flex-col items-center p-3 rounded-lg bg-slate-50 dark:bg-slate-700 hover:bg-medical-50 dark:hover:bg-medical-900/20 transition-colors border border-transparent hover:border-medical-200">
-                <BookOpen className="text-medical-600 mb-2" size={20} />
-                <span className="text-xs font-medium">Flashcards</span>
-              </a>
-              <a href="/exams" className="flex flex-col items-center p-3 rounded-lg bg-slate-50 dark:bg-slate-700 hover:bg-medical-50 dark:hover:bg-medical-900/20 transition-colors border border-transparent hover:border-medical-200">
-                <Calendar className="text-medical-600 mb-2" size={20} />
-                <span className="text-xs font-medium">Exams</span>
-              </a>
+            {dueFlashcards.length > 0 ? (
+              <div className="mb-8 p-6 bg-amber-50 dark:bg-amber-900/20 rounded-3xl border border-amber-100 dark:border-amber-800/50 relative z-10">
+                <p className="text-amber-800 dark:text-amber-300 font-bold text-xs uppercase tracking-widest mb-2">High Yield Focus</p>
+                <p className="text-amber-700 dark:text-amber-400 font-medium mb-4">
+                  You have <strong>{dueFlashcards.length} cards</strong> due for review today. Stay sharp!
+                </p>
+                <a href="/flashcards" className="flex items-center justify-center w-full py-3 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-2xl shadow-soft transition-all active:scale-95">
+                  Start Review
+                </a>
+              </div>
+            ) : (
+              <div className="mb-8 p-6 bg-emerald-50 dark:bg-emerald-900/20 rounded-3xl border border-emerald-100 dark:border-emerald-800/50 relative z-10">
+                <p className="text-emerald-800 dark:text-emerald-300 font-bold text-xs uppercase tracking-widest mb-2">Well Done!</p>
+                <p className="text-emerald-700 dark:text-emerald-400 font-medium">
+                  Your review queue is empty. You're maintaining an excellent study pace!
+                </p>
+              </div>
+            )}
+
+            <div className="space-y-6 relative z-10">
+              <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest">Clinical Study Tip</h4>
+              <div className="p-6 bg-medical-50 dark:bg-medical-900/20 rounded-3xl border border-medical-100 dark:border-medical-800/50 min-h-[140px] flex items-center">
+                <p className="text-medical-800 dark:text-medical-300 italic font-medium leading-relaxed">
+                  "{studyTips[currentTip]}"
+                </p>
+              </div>
+            </div>
+
+            <div className="mt-10 relative z-10">
+              <h4 className="text-xs font-extrabold text-slate-400 uppercase tracking-widest mb-4">Quick Access</h4>
+              <div className="grid grid-cols-2 gap-4">
+                <a href="/flashcards" className="flex flex-col items-center p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 hover:bg-white dark:hover:bg-slate-800 shadow-sm border border-transparent hover:border-medical-200 transition-all">
+                  <div className="p-2 bg-medical-50 dark:bg-medical-900/30 rounded-xl mb-2 text-medical-600">
+                    <BookOpen size={20} />
+                  </div>
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Cards</span>
+                </a>
+                <a href="/exams" className="flex flex-col items-center p-4 rounded-2xl bg-slate-50 dark:bg-slate-900/50 hover:bg-white dark:hover:bg-slate-800 shadow-sm border border-transparent hover:border-medical-200 transition-all">
+                  <div className="p-2 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl mb-2 text-indigo-600">
+                    <Calendar size={20} />
+                  </div>
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-300">Exams</span>
+                </a>
+              </div>
             </div>
           </div>
         </div>
@@ -210,14 +235,14 @@ const Dashboard = () => {
   );
 };
 
-const StatsCard = ({ title, value, icon, color }) => (
-  <div className={`p-6 rounded-xl shadow-sm ${color} flex items-center`}>
-    <div className="p-3 bg-white dark:bg-slate-800 rounded-lg mr-4">
+const StatsCard = ({ title, value, icon, color, bg }) => (
+  <div className={`p-8 rounded-[2.5rem] shadow-soft ${bg} border border-white dark:border-slate-800/50 flex flex-col items-center text-center group hover:shadow-clinical transition-all`}>
+    <div className={`p-4 bg-white dark:bg-slate-800 rounded-2xl shadow-sm ${color} mb-4 group-hover:scale-110 transition-transform`}>
       {icon}
     </div>
     <div>
-      <p className="text-sm text-slate-500 dark:text-slate-400 font-medium">{title}</p>
-      <p className="text-2xl font-bold">{value}</p>
+      <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white leading-none">{value}</p>
+      <p className="text-xs sm:text-sm font-bold text-slate-500 dark:text-slate-400 mt-2 uppercase tracking-widest">{title}</p>
     </div>
   </div>
 );

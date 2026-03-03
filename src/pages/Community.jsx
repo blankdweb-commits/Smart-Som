@@ -139,26 +139,26 @@ const Community = () => {
   };
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 animate-in fade-in duration-500 pb-20">
-      <header className="space-y-4">
-        <div className="space-y-2">
-          <h2 className="text-3xl font-bold text-slate-800 dark:text-white flex items-center gap-2">
-            <MessageSquare className="text-medical-600" />
-            Nursing Community
-          </h2>
-          <p className="text-slate-600 dark:text-slate-400">Share findings, mnemonics, and support your fellow students.</p>
+    <div className="max-w-4xl mx-auto space-y-8 pb-24 animate-in fade-in duration-500">
+      <header className="py-4">
+        <div className="flex items-center gap-4 mb-3">
+          <div className="p-3 bg-medical-100 dark:bg-medical-900/30 rounded-2xl text-medical-600">
+            <MessageSquare size={32} />
+          </div>
+          <h2 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">Clinical Circle</h2>
         </div>
+        <p className="text-slate-500 dark:text-slate-400 font-medium text-lg">Collaborate with fellow nursing students globally.</p>
 
-        <div className="flex bg-slate-100 dark:bg-slate-800 p-1 rounded-xl w-fit">
+        <div className="flex bg-white dark:bg-slate-800 p-1.5 rounded-2xl shadow-soft border border-slate-100 dark:border-slate-700 w-fit mt-6">
           <button
             onClick={() => setActiveTab('feed')}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'feed' ? 'bg-white dark:bg-slate-700 shadow-sm text-medical-600' : 'text-slate-500'}`}
+            className={`px-8 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'feed' ? 'bg-medical-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
           >
-            Community Feed
+            Study Feed
           </button>
           <button
             onClick={() => setActiveTab('suggestions')}
-            className={`px-6 py-2 rounded-lg text-sm font-bold transition-all ${activeTab === 'suggestions' ? 'bg-white dark:bg-slate-700 shadow-sm text-medical-600' : 'text-slate-500'}`}
+            className={`px-8 py-2.5 rounded-xl text-sm font-black transition-all ${activeTab === 'suggestions' ? 'bg-medical-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
           >
             Suggestions
           </button>
@@ -166,39 +166,40 @@ const Community = () => {
       </header>
 
       {activeTab === 'suggestions' ? (
-        <div className="bg-medical-50 dark:bg-medical-900/10 border border-medical-100 dark:border-medical-900/30 rounded-2xl p-8 text-center space-y-4">
-          <div className="w-16 h-16 bg-medical-100 dark:bg-medical-900/40 rounded-full flex items-center justify-center text-medical-600 mx-auto">
-            <Award size={32} />
+        <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-clinical border border-slate-100 dark:border-slate-700 p-12 text-center space-y-8 overflow-hidden relative">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-medical-50 dark:bg-medical-900/10 rounded-full -mr-32 -mt-32 pointer-events-none" />
+
+          <div className="w-24 h-24 bg-medical-100 dark:bg-medical-900/40 rounded-[2rem] flex items-center justify-center text-medical-600 mx-auto relative z-10">
+            <Award size={48} />
           </div>
-          <div className="max-w-md mx-auto space-y-2">
-            <h3 className="text-xl font-bold">Have a Suggestion?</h3>
-            <p className="text-slate-600 dark:text-slate-400 text-sm">
-              Missing a course? Found an error? Want a new feature?
-              Post your suggestions in the feed using the <strong>"Support"</strong> category,
-              or reach out to the development team directly.
+          <div className="max-w-md mx-auto space-y-3 relative z-10">
+            <h3 className="text-3xl font-black text-slate-900 dark:text-white">Enhance the Suite</h3>
+            <p className="text-slate-500 dark:text-slate-400 font-medium text-lg leading-relaxed">
+              Missing a specialized unit? Found a clinical error?
+              Post your suggestions in the feed using the <strong className="text-medical-600">"Support"</strong> category.
             </p>
           </div>
           <button
             onClick={() => { setActiveTab('feed'); setCategory('Support'); }}
-            className="px-6 py-3 bg-medical-600 text-white rounded-xl font-bold shadow-lg shadow-medical-600/20 active:scale-95 transition-all"
+            className="px-10 py-4 bg-medical-600 text-white rounded-[1.5rem] font-black shadow-clinical active:scale-95 transition-all relative z-10 uppercase tracking-widest text-sm"
           >
-            Write a Suggestion
+            Submit Suggestion
           </button>
         </div>
       ) : (
       <>
       {/* Post Box */}
-      <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 p-6">
-        <form onSubmit={handlePost} className="space-y-4">
-          <div className="flex gap-4">
-            <div className="w-10 h-10 rounded-full bg-medical-100 dark:bg-medical-900/30 flex items-center justify-center text-medical-600 shrink-0">
-              <User size={20} />
+      <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-soft border border-slate-100 dark:border-slate-700 p-8 sm:p-10">
+        <form onSubmit={handlePost} className="space-y-6">
+          <div className="flex gap-6">
+            <div className="w-14 h-14 rounded-2xl bg-medical-100 dark:bg-medical-900/30 flex items-center justify-center text-medical-600 shrink-0 shadow-sm">
+              <User size={28} />
             </div>
             <textarea
               value={newPost}
               onChange={(e) => setNewPost(e.target.value)}
-              placeholder="Share a study tip or finding..."
-              className="w-full bg-slate-50 dark:bg-slate-900/50 rounded-xl p-4 border-none focus:ring-2 focus:ring-medical-500 dark:text-white resize-none"
+              placeholder="Share a clinical mnemonic or study insight..."
+              className="w-full bg-slate-50 dark:bg-slate-900/50 rounded-[1.5rem] p-6 border-2 border-transparent focus:border-medical-500 focus:bg-white transition-all outline-none dark:text-white resize-none text-lg font-medium"
               rows="3"
             />
           </div>

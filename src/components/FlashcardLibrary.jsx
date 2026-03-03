@@ -10,10 +10,10 @@ import { Plus, Search, Filter, Play, Shuffle, List, ChevronLeft, ChevronRight, A
 const SRSButton = ({ label, sublabel, color, onClick }) => (
   <button
     onClick={(e) => { e.stopPropagation(); onClick(); }}
-    className={`${color} text-white p-3 rounded-xl shadow-lg hover:opacity-90 active:scale-95 transition-all flex flex-col items-center justify-center`}
+    className={`${color} text-white p-4 rounded-2xl shadow-clinical hover:opacity-90 active:scale-95 transition-all flex flex-col items-center justify-center min-h-[80px]`}
   >
-    <span className="text-base font-bold">{label}</span>
-    <span className="text-[10px] opacity-80 font-medium">{sublabel}</span>
+    <span className="text-lg font-bold">{label}</span>
+    <span className="text-[11px] opacity-80 font-medium tracking-wide">{sublabel}</span>
   </button>
 );
 
@@ -147,131 +147,165 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   // Render Directory View
   if (viewMode === 'list' && !currentSubject && initialCategory === 'Academic') {
     return (
-      <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-500">
-        <header>
-          <div className="flex items-center gap-2 mb-2">
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20">
+        <header className="relative py-4">
+          <div className="flex items-center gap-3 mb-3">
             {currentProgram && (
               <button onClick={() => {
                 if (currentLevel) setCurrentLevel(null);
                 else setCurrentProgram(null);
-              }} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded">
+              }} className="p-2 bg-white dark:bg-slate-800 shadow-soft rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
                 <ArrowLeft size={20} />
               </button>
             )}
-            <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white">
-              {currentProgram ? `${currentProgram} Curriculum` : 'Select Your Program'}
+            <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">
+              {currentProgram ? `${currentProgram}` : 'Your Curriculum'}
             </h2>
           </div>
-          <p className="text-sm sm:text-base text-slate-600 dark:text-slate-400">
-            {currentProgram ? 'Select your level of study to browse courses.' : 'Choose your primary field of study to get tailored flashcards.'}
+          <p className="text-slate-500 dark:text-slate-400 font-medium text-lg max-w-2xl">
+            {currentProgram ? 'Select your current level of study to browse your specific courses and procedures.' : 'Choose your program to access high-yield nursing and midwifery materials.'}
           </p>
         </header>
 
         {!currentProgram ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
             <button
               onClick={() => setCurrentProgram('General Nursing')}
-              className="p-8 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border-2 border-transparent hover:border-medical-500 transition-all text-left group"
+              className="p-10 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-soft hover:shadow-clinical border-2 border-transparent hover:border-medical-500 transition-all text-left group relative overflow-hidden"
             >
-              <div className="w-16 h-16 bg-medical-100 dark:bg-medical-900/30 rounded-2xl flex items-center justify-center text-medical-600 mb-6 group-hover:scale-110 transition-transform">
-                <Book size={32} />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-medical-50 dark:bg-medical-900/10 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110" />
+              <div className="w-20 h-20 bg-medical-100 dark:bg-medical-900/30 rounded-3xl flex items-center justify-center text-medical-600 mb-8 relative z-10">
+                <Book size={40} />
               </div>
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-white">General Nursing</h3>
-              <p className="text-slate-500 mt-2">Comprehensive curriculum for standard nursing practice and council exams.</p>
+              <h3 className="text-3xl font-bold text-slate-900 dark:text-white relative z-10">General Nursing</h3>
+              <p className="text-slate-500 dark:text-slate-400 mt-3 text-lg relative z-10">Complete curriculum for RN training, covering all clinical and theoretical domains.</p>
+              <div className="mt-8 flex items-center text-medical-600 font-bold relative z-10">
+                Browse Levels <ChevronRight size={20} className="ml-1 group-hover:translate-x-1 transition-transform" />
+              </div>
             </button>
 
             <button
               onClick={() => setCurrentProgram('Midwifery')}
-              className="p-8 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border-2 border-transparent hover:border-pink-500 transition-all text-left group"
+              className="p-10 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-soft hover:shadow-clinical border-2 border-transparent hover:border-pink-500 transition-all text-left group relative overflow-hidden"
             >
-              <div className="w-16 h-16 bg-pink-100 dark:bg-pink-900/30 rounded-2xl flex items-center justify-center text-pink-600 mb-6 group-hover:scale-110 transition-transform">
-                <Award size={32} />
+              <div className="absolute top-0 right-0 w-32 h-32 bg-pink-50 dark:bg-pink-900/10 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110" />
+              <div className="w-20 h-20 bg-pink-100 dark:bg-pink-900/30 rounded-3xl flex items-center justify-center text-pink-600 mb-8 relative z-10">
+                <Award size={40} />
               </div>
-              <h3 className="text-2xl font-bold text-slate-800 dark:text-white">Midwifery</h3>
-              <p className="text-slate-500 mt-2">Specialized tracks focusing on maternal health, labor, and newborn care.</p>
+              <h3 className="text-3xl font-bold text-slate-900 dark:text-white relative z-10">Midwifery</h3>
+              <p className="text-slate-500 dark:text-slate-400 mt-3 text-lg relative z-10">Specialized tracks focusing on reproductive health, neonatal care, and obstetric excellence.</p>
+              <div className="mt-8 flex items-center text-pink-600 font-bold relative z-10">
+                Browse Levels <ChevronRight size={20} className="ml-1 group-hover:translate-x-1 transition-transform" />
+              </div>
             </button>
           </div>
         ) : !currentLevel ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 sm:gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
             {levels.map(level => (
               <button
                 key={level}
                 onClick={() => setCurrentLevel(level)}
-                className="p-6 sm:p-8 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:border-medical-500 dark:hover:border-medical-500 transition-all text-left group"
+                className="p-8 bg-white dark:bg-slate-800 rounded-3xl shadow-soft hover:shadow-clinical border border-slate-100 dark:border-slate-700 hover:border-medical-500 dark:hover:border-medical-500 transition-all text-left group"
               >
-                <Folder className="text-medical-600 mb-3 sm:mb-4 group-hover:scale-110 transition-transform" size={32} sm={40} />
-                <h3 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-white">{level}</h3>
-                <p className="text-xs sm:text-sm text-slate-500 mt-1">
-                  {categoryCards.filter(c => c.level === level).length} Flashcards
-                </p>
+                <div className="flex justify-between items-start mb-6">
+                  <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl text-medical-600 group-hover:scale-110 transition-transform">
+                    <Folder size={32} />
+                  </div>
+                  <span className="bg-medical-50 dark:bg-medical-900/20 text-medical-700 dark:text-medical-400 text-xs font-bold px-3 py-1 rounded-full">
+                    {categoryCards.filter(c => c.level === level).length} Cards
+                  </span>
+                </div>
+                <h3 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight">{level}</h3>
+                <p className="text-slate-500 mt-2 font-medium">Foundation and clinical practice for {level.toLowerCase()}.</p>
               </button>
             ))}
           </div>
         ) : !currentSemester ? (
-          <div className="space-y-6">
-            <button onClick={() => setCurrentLevel(null)} className="flex items-center text-medical-600 text-sm font-medium hover:underline">
-              <ArrowLeft size={14} className="mr-1" /> Back to Years
-            </button>
-            <h3 className="text-xl sm:text-2xl font-bold">{currentLevel}</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 sm:gap-6">
+          <div className="space-y-8">
+            <div className="flex items-center justify-between">
+              <h3 className="text-2xl font-bold flex items-center gap-2">
+                <span className="text-medical-600">{currentProgram}</span>
+                <span className="text-slate-300 dark:text-slate-600">/</span>
+                <span>{currentLevel}</span>
+              </h3>
+              <button onClick={() => setCurrentLevel(null)} className="text-medical-600 font-bold text-sm hover:bg-medical-50 dark:hover:bg-medical-900/20 px-4 py-2 rounded-xl transition-colors">
+                Change Year
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
               {semesters.map(sem => (
                 <button
                   key={sem}
                   onClick={() => setCurrentSemester(sem)}
-                  className="p-6 sm:p-8 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:border-medical-500 transition-all text-left group"
+                  className="p-10 bg-white dark:bg-slate-800 rounded-[2rem] shadow-soft hover:shadow-clinical border border-slate-100 dark:border-slate-700 hover:border-medical-500 transition-all text-left group"
                 >
-                  <Book className="text-medical-600 mb-3 sm:mb-4 group-hover:scale-110 transition-transform" size={32} sm={40} />
-                  <h4 className="text-base sm:text-lg font-bold">{sem}</h4>
-                  <p className="text-xs sm:text-sm text-slate-500">
-                    {categoryCards.filter(c => c.level === currentLevel && c.semester === sem).length} Flashcards
-                  </p>
+                  <div className="flex items-center gap-4 mb-6">
+                    <div className="p-3 bg-medical-50 dark:bg-medical-900/20 rounded-2xl text-medical-600 group-hover:rotate-12 transition-transform">
+                      <Book size={28} />
+                    </div>
+                    <div>
+                      <h4 className="text-2xl font-bold text-slate-900 dark:text-white">{sem}</h4>
+                      <p className="text-slate-500 text-sm font-medium">{categoryCards.filter(c => c.level === currentLevel && c.semester === sem).length} Flashcards Available</p>
+                    </div>
+                  </div>
+                  <div className="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                    <div className="h-full bg-medical-500 rounded-full w-1/3" />
+                  </div>
                 </button>
               ))}
             </div>
           </div>
         ) : (
-          <div className="space-y-6">
-            <button onClick={() => setCurrentSemester(null)} className="flex items-center text-medical-600 text-sm font-medium hover:underline">
-              <ArrowLeft size={14} className="mr-1" /> Back to Semesters
-            </button>
-            <h3 className="text-xl sm:text-2xl font-bold">{currentLevel} - {currentSemester}</h3>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+          <div className="space-y-8">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2 text-sm font-bold">
+                <span className="text-medical-600">{currentLevel}</span>
+                <ChevronRight size={14} className="text-slate-400" />
+                <span className="text-slate-900 dark:text-white">{currentSemester}</span>
+              </div>
+              <button onClick={() => setCurrentSemester(null)} className="text-medical-600 font-bold text-sm hover:bg-medical-50 px-4 py-2 rounded-xl transition-colors">
+                Change Semester
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {subjects.map(subject => {
                 const isOSCE = subject === 'OSCE Procedures';
                 const isQuickRef = subject === 'Quick Reference';
+                const cardCount = categoryCards.filter(c => c.level === currentLevel && c.semester === currentSemester && c.subject === subject).length;
+
                 return (
                   <button
                     key={subject}
                     onClick={() => setCurrentSubject(subject)}
-                    className={`p-4 rounded-xl shadow-sm border transition-all text-left group flex flex-col justify-between h-full
-                      ${isOSCE ? 'bg-amber-50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-900/30 hover:bg-amber-100' :
-                        isQuickRef ? 'bg-indigo-50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-900/30 hover:bg-indigo-100' :
-                        'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:bg-medical-50 dark:hover:bg-medical-900/20'}
+                    className={`p-6 rounded-3xl shadow-soft hover:shadow-clinical border transition-all text-left group flex flex-col h-full relative overflow-hidden
+                      ${isOSCE ? 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-900/30 hover:border-amber-400' :
+                        isQuickRef ? 'bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-900/30 hover:border-indigo-400' :
+                        'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-medical-500'}
                     `}
                   >
-                    <div>
-                      <div className="flex justify-between items-start mb-1">
-                        <h5 className={`font-bold leading-tight ${isOSCE ? 'text-amber-800 dark:text-amber-400' : isQuickRef ? 'text-indigo-800 dark:text-indigo-400' : 'text-slate-800 dark:text-white'}`}>
-                          {subject}
-                        </h5>
-                        {(isOSCE || isQuickRef) && <Award size={16} className={isOSCE ? 'text-amber-500' : 'text-indigo-500'} />}
-                      </div>
-                      <span className="text-xs text-slate-500 font-medium">
-                        {categoryCards.filter(c => c.level === currentLevel && c.semester === currentSemester && c.subject === subject).length} cards
-                      </span>
+                    <div className="flex justify-between items-start mb-4">
+                      <h5 className={`text-xl font-bold leading-tight ${isOSCE ? 'text-amber-900 dark:text-amber-400' : isQuickRef ? 'text-indigo-900 dark:text-indigo-400' : 'text-slate-900 dark:text-white'}`}>
+                        {subject}
+                      </h5>
+                      {isOSCE ? <Award size={24} className="text-amber-500" /> : isQuickRef ? <Search size={24} className="text-indigo-500" /> : <div className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg"><Book size={20} className="text-slate-400" /></div>}
                     </div>
-                    <div className="mt-4">
-                      {isOSCE ? (
-                        <p className="text-[10px] font-bold uppercase text-amber-600 dark:text-amber-500/70 tracking-tight">Essential Clinical Skills</p>
-                      ) : isQuickRef ? (
-                        <p className="text-[10px] font-bold uppercase text-indigo-600 dark:text-indigo-500/70 tracking-tight">High-Yield Facts</p>
-                      ) : (
-                        <div className="flex gap-1 flex-wrap">
-                          {[...new Set(categoryCards.filter(c => c.subject === subject).map(c => c.unit).filter(Boolean))].slice(0, 3).map(u => (
-                            <span key={u} className="text-[8px] bg-slate-100 dark:bg-slate-700 px-1 rounded">{u}</span>
-                          ))}
+
+                    <div className="mt-auto space-y-4">
+                      <div className="flex gap-1 flex-wrap">
+                        {[...new Set(categoryCards.filter(c => c.subject === subject).map(c => c.unit).filter(Boolean))].slice(0, 2).map(u => (
+                          <span key={u} className="text-[10px] font-bold bg-slate-100/80 dark:bg-slate-700/50 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-lg border border-slate-200/50 dark:border-slate-600/50">
+                            {u}
+                          </span>
+                        ))}
+                      </div>
+                      <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700/50">
+                        <span className="text-sm font-bold text-slate-500">{cardCount} Units</span>
+                        <div className="w-8 h-8 rounded-full bg-medical-500 flex items-center justify-center text-white scale-0 group-hover:scale-100 transition-transform">
+                          <Play size={16} fill="currentColor" />
                         </div>
-                      )}
+                      </div>
                     </div>
                   </button>
                 );
@@ -312,18 +346,18 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
         <div className="flex flex-wrap gap-2">
           {viewMode === 'list' ? (
             <>
-              <button onClick={() => startStudyMode(true, true)} className="flex items-center px-4 py-2 bg-amber-500 text-white rounded-lg hover:bg-amber-600 transition-colors shadow-sm">
+              <button onClick={() => startStudyMode(true, true)} className="flex items-center px-5 py-2.5 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 transition-all shadow-soft active:scale-95">
                 <Award size={18} className="mr-2" /> Smart Review
               </button>
-              <button onClick={() => startStudyMode(false)} className="flex items-center px-4 py-2 bg-medical-600 text-white rounded-lg hover:bg-medical-700 transition-colors shadow-sm">
-                <Play size={18} className="mr-2" /> Study All
+              <button onClick={() => startStudyMode(false)} className="flex items-center px-5 py-2.5 bg-medical-600 text-white rounded-xl font-bold hover:bg-medical-700 transition-all shadow-soft active:scale-95">
+                <Play size={18} className="mr-2" /> Study Deck
               </button>
-              <button onClick={() => setIsFormOpen(true)} className="flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors shadow-sm">
-                <Plus size={18} className="mr-2" /> Add Card
+              <button onClick={() => setIsFormOpen(true)} className="flex items-center px-5 py-2.5 bg-white dark:bg-slate-800 text-emerald-600 border-2 border-emerald-100 dark:border-emerald-900/30 rounded-xl font-bold hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all shadow-soft active:scale-95">
+                <Plus size={18} className="mr-2" /> New Card
               </button>
             </>
           ) : (
-            <button onClick={() => setViewMode('list')} className="flex items-center px-4 py-2 bg-slate-200 dark:bg-slate-700 rounded-lg">
+            <button onClick={() => setViewMode('list')} className="flex items-center px-5 py-2.5 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl font-bold shadow-soft active:scale-95">
               <List size={18} className="mr-2" /> Exit Study
             </button>
           )}
@@ -332,13 +366,13 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
 
       {viewMode === 'list' ? (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm p-4 rounded-2xl shadow-soft border border-white dark:border-slate-700/50">
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
               <input
                 type="text" placeholder="Search questions..."
                 value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-lg border dark:border-slate-700 dark:bg-slate-900 outline-none"
+                className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-slate-50 dark:border-slate-700 dark:bg-slate-900 outline-none focus:border-medical-500 transition-colors"
               />
             </div>
             <MobileFriendlySelect

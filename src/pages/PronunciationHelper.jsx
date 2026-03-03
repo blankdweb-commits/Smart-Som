@@ -61,31 +61,31 @@ const PronunciationHelper = () => {
   };
 
   return (
-    <div className="space-y-6 pb-20">
-      <div>
-        <h2 className="text-3xl font-bold text-slate-800 dark:text-white">Medical Pronunciation Helper</h2>
-        <p className="text-slate-600 dark:text-slate-400">Master difficult nursing and midwifery terminology.</p>
-      </div>
+    <div className="space-y-8 pb-24">
+      <header className="py-4">
+        <h2 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">Pronunciation Master</h2>
+        <p className="text-slate-500 dark:text-slate-400 font-medium text-lg mt-1">Perfect your clinical terminology for professional confidence.</p>
+      </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Sidebar: Search and List */}
-        <div className="lg:col-span-1 space-y-4">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+        <div className="lg:col-span-1 space-y-6">
+          <div className="relative group">
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400 transition-colors group-focus-within:text-medical-500" size={20} />
             <input
               type="text"
-              placeholder="Search terms..."
+              placeholder="Search medical terms..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full pl-10 pr-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 dark:bg-slate-800 outline-none focus:ring-2 focus:ring-medical-500 shadow-sm"
+              className="w-full pl-12 pr-4 py-4 rounded-2xl border-2 border-slate-50 dark:border-slate-800 dark:bg-slate-800 outline-none focus:border-medical-500 transition-all shadow-soft"
             />
           </div>
 
-          <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 overflow-hidden">
-            <div className="p-4 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
-              <span className="text-sm font-bold text-slate-500 uppercase">Common Terms</span>
-              <label className="flex items-center cursor-pointer">
-                <span className="mr-2 text-xs font-medium text-slate-400">Auto-play</span>
+          <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-soft border border-slate-100 dark:border-slate-700 overflow-hidden transition-all">
+            <div className="p-6 border-b border-slate-100 dark:border-slate-700 flex justify-between items-center">
+              <span className="text-xs font-black text-slate-400 uppercase tracking-[0.2em]">Medical Lexicon</span>
+              <label className="flex items-center cursor-pointer group">
+                <span className="mr-3 text-xs font-bold text-slate-500 uppercase tracking-wider">Auto-Play</span>
                 <div className="relative">
                   <input
                     type="checkbox"
@@ -93,8 +93,8 @@ const PronunciationHelper = () => {
                     checked={autoPlay}
                     onChange={() => setAutoPlay(!autoPlay)}
                   />
-                  <div className={`block w-8 h-5 rounded-full transition-colors ${autoPlay ? 'bg-medical-500' : 'bg-slate-300 dark:bg-slate-600'}`}></div>
-                  <div className={`absolute left-1 top-1 bg-white w-3 h-3 rounded-full transition-transform ${autoPlay ? 'translate-x-3' : ''}`}></div>
+                  <div className={`block w-10 h-6 rounded-full transition-colors ${autoPlay ? 'bg-medical-500' : 'bg-slate-200 dark:bg-slate-700'}`}></div>
+                  <div className={`absolute left-1 top-1 bg-white w-4 h-4 rounded-full shadow-sm transition-transform ${autoPlay ? 'translate-x-4' : ''}`}></div>
                 </div>
               </label>
             </div>
@@ -121,17 +121,19 @@ const PronunciationHelper = () => {
         {/* Content: Details */}
         <div className="lg:col-span-2">
           {selectedTerm ? (
-            <div className="bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-8 sticky top-8">
-              <div className="flex flex-col md:flex-row md:items-center justify-between gap-6 mb-8">
+            <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-clinical border border-slate-100 dark:border-slate-700 p-8 sm:p-12 sticky top-24 animate-bounce-in overflow-hidden">
+              <div className="absolute top-0 right-0 w-64 h-64 bg-medical-50 dark:bg-medical-900/10 rounded-full -mr-32 -mt-32 pointer-events-none" />
+
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-8 mb-12 relative z-10">
                 <div>
-                  <h3 className="text-4xl font-bold text-slate-800 dark:text-white">{selectedTerm.term}</h3>
-                  <p className="text-xl text-medical-600 dark:text-medical-400 font-serif mt-2 italic">{selectedTerm.phonetic}</p>
+                  <h3 className="text-5xl font-black text-slate-900 dark:text-white tracking-tight">{selectedTerm.term}</h3>
+                  <p className="text-2xl text-medical-600 dark:text-medical-400 font-serif mt-3 italic tracking-wide">{selectedTerm.phonetic}</p>
                 </div>
                 <button
                   onClick={() => speak(selectedTerm.term)}
-                  className="flex items-center justify-center gap-2 px-8 py-4 bg-medical-600 hover:bg-medical-700 text-white rounded-2xl font-bold text-lg shadow-lg shadow-medical-500/30 transition-all active:scale-95"
+                  className="flex items-center justify-center gap-3 px-10 py-5 bg-medical-600 hover:bg-medical-700 text-white rounded-2xl font-black text-xl shadow-clinical transition-all active:scale-95 group"
                 >
-                  <Volume2 size={24} /> Listen
+                  <Volume2 size={28} className="group-hover:scale-110 transition-transform" /> Listen
                 </button>
               </div>
 

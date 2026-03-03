@@ -105,53 +105,65 @@ const ExamTimetable = () => {
   const soonestExam = sortedExams.find(e => new Date(e.date) >= new Date());
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-8 pb-24">
+      <header className="py-4">
+        <h2 className="text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white">Exam Center</h2>
+        <p className="text-slate-500 dark:text-slate-400 font-medium text-lg mt-1">Organize your nursing assessments and clinical check-offs.</p>
+      </header>
+
       {soonestExam && differenceInDays(new Date(soonestExam.date), new Date()) <= 7 && (
-        <div className="bg-gradient-to-r from-medical-600 to-indigo-600 p-4 rounded-2xl text-white shadow-lg flex items-center justify-between">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-white/20 rounded-full flex items-center justify-center backdrop-blur-md">
-              <Clock className="text-white" size={24} />
+        <div className="bg-gradient-to-r from-medical-600 to-indigo-600 p-6 rounded-3xl text-white shadow-clinical flex flex-col md:flex-row items-center justify-between gap-6 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16" />
+          <div className="flex items-center gap-5 relative z-10 text-center md:text-left">
+            <div className="w-16 h-16 bg-white/20 rounded-2xl flex items-center justify-center backdrop-blur-xl border border-white/20">
+              <Clock className="text-white" size={32} />
             </div>
             <div>
-              <p className="text-xs font-bold uppercase tracking-wider opacity-80">Revision Reminder</p>
-              <h3 className="text-lg font-bold">{soonestExam.title} in {differenceInDays(new Date(soonestExam.date), new Date())} days!</h3>
+              <p className="text-xs font-black uppercase tracking-[0.2em] text-white/70 mb-1">Upcoming Exam</p>
+              <h3 className="text-2xl font-bold">{soonestExam.title}</h3>
+              <p className="text-white/80 font-medium">Coming in {differenceInDays(new Date(soonestExam.date), new Date())} days!</p>
             </div>
           </div>
-          <div className="hidden md:block text-right">
-            <p className="text-xs font-medium opacity-80">Keep pushing!</p>
-            <p className="text-sm font-bold">You've got this.</p>
+          <div className="flex flex-col items-center md:items-end relative z-10">
+            <p className="text-sm font-bold bg-white/20 px-4 py-1.5 rounded-full backdrop-blur-md border border-white/20 mb-2">You've got this!</p>
+            <p className="text-xs font-medium text-white/60">Keep pushing through the curriculum.</p>
           </div>
         </div>
       )}
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <h2 className="text-3xl font-bold text-slate-800 dark:text-white">Exam Timetable</h2>
-          <p className="text-slate-600 dark:text-slate-400">Plan your revision and keep track of upcoming assessments.</p>
-        </div>
-        <div className="flex gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex bg-white dark:bg-slate-800 p-1.5 rounded-2xl shadow-soft border border-slate-100 dark:border-slate-700">
           <button
-            onClick={() => setView(view === 'list' ? 'calendar' : 'list')}
-            className="flex items-center px-4 py-2 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 border border-slate-200 dark:border-slate-700 rounded-lg hover:bg-slate-50 transition-colors"
+            onClick={() => setView('list')}
+            className={`flex items-center px-5 py-2.5 rounded-xl font-bold transition-all ${view === 'list' ? 'bg-medical-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
           >
-            {view === 'list' ? <><LayoutGrid size={18} className="mr-2" /> Calendar</> : <><List size={18} className="mr-2" /> List</>}
+            <List size={18} className="mr-2" /> List
           </button>
           <button
-            onClick={exportPDF}
-            className="flex items-center px-4 py-2 bg-slate-200 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-lg hover:bg-slate-300 dark:hover:bg-slate-600 transition-colors"
+            onClick={() => setView('calendar')}
+            className={`flex items-center px-5 py-2.5 rounded-xl font-bold transition-all ${view === 'calendar' ? 'bg-medical-600 text-white shadow-lg' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
           >
-            <Download size={18} className="mr-2" /> Export PDF
+            <LayoutGrid size={18} className="mr-2" /> Calendar
+          </button>
+        </div>
+
+        <div className="flex gap-3">
+          <button
+            onClick={exportPDF}
+            className="flex items-center px-6 py-3 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-2xl font-bold border-2 border-slate-50 dark:border-slate-700 shadow-soft hover:bg-slate-50 transition-all active:scale-95"
+          >
+            <Download size={18} className="mr-2" /> Export
           </button>
           <button
             onClick={() => { setEditingExam(null); setIsFormOpen(true); }}
-            className="flex items-center px-4 py-2 bg-medical-600 hover:bg-medical-700 text-white rounded-lg transition-colors"
+            className="flex items-center px-6 py-3 bg-medical-600 hover:bg-medical-700 text-white rounded-2xl font-bold shadow-clinical transition-all active:scale-95"
           >
-            <Plus size={18} className="mr-2" /> Add Exam
+            <Plus size={18} className="mr-2" /> New Exam
           </button>
         </div>
       </div>
 
-      <div ref={timetableRef} className="bg-white dark:bg-slate-800 p-6 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700">
+      <div ref={timetableRef} className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-soft border border-slate-100 dark:border-slate-700">
         {view === 'list' ? (
           <>
             <div className="hidden md:grid grid-cols-5 gap-4 pb-4 border-b border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-500 dark:text-slate-400">
