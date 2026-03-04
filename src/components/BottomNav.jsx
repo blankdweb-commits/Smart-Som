@@ -12,30 +12,21 @@ const BottomNav = () => {
   ];
 
   return (
-    <nav className="lg:hidden fixed bottom-6 left-4 right-4 bg-white/90 dark:bg-slate-800/90 backdrop-blur-xl border border-white/20 dark:border-slate-700/50 rounded-[2rem] shadow-clinical z-50 h-20 px-2 overflow-hidden">
-      <div className="flex justify-around items-center h-full">
+    <nav className="lg:hidden fixed bottom-0 left-0 right-0 bg-white dark:bg-slate-900 border-t border-slate-100 dark:border-slate-800 pb-safe z-40">
+      <div className="flex justify-around items-center h-16">
         {navItems.map((item) => (
           <NavLink
             key={item.name}
             to={item.path}
             className={({ isActive }) => `
-              flex flex-col items-center justify-center flex-1 h-full transition-all relative
+              flex flex-col items-center justify-center flex-1 h-full transition-colors
               ${isActive
-                ? 'text-medical-600 dark:text-medical-400 scale-110'
-                : 'text-slate-400 dark:text-slate-500 hover:text-medical-500'}
+                ? 'text-medical-600 dark:text-medical-400'
+                : 'text-slate-500 dark:text-slate-400 hover:text-medical-500'}
             `}
           >
-            {({ isActive }) => (
-              <>
-                <div className={`p-2 rounded-xl transition-all ${isActive ? 'bg-medical-50 dark:bg-medical-900/40 shadow-sm mb-1' : 'mb-1'}`}>
-                  <item.icon size={24} strokeWidth={isActive ? 2.5 : 2} />
-                </div>
-                <span className={`text-[10px] font-black uppercase tracking-widest ${isActive ? 'opacity-100' : 'opacity-60'}`}>{item.name}</span>
-                {isActive && (
-                  <div className="absolute -bottom-1 w-1.5 h-1.5 bg-medical-500 rounded-full shadow-lg shadow-medical-500/50" />
-                )}
-              </>
-            )}
+            <item.icon size={20} className="mb-1" />
+            <span className="text-[10px] font-bold uppercase tracking-wider">{item.name}</span>
           </NavLink>
         ))}
       </div>

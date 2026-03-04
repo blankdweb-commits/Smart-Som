@@ -102,17 +102,9 @@ body {
   animation: bounce-in 0.3s ease-out forwards;
 }
 
-/* Learning Environment Enhancements */
-.glass-effect {
-  @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border border-white/20 dark:border-slate-800/20;
-}
-
+/* Soft Medical Aesthetics */
 .medical-gradient {
-  background: linear-gradient(135deg, #0ea5e9 0%, #0284c7 100%);
-}
-
-.study-focus-mode .sidebar-nav {
-  display: none;
+  background: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%);
 }
 
 /* Clinical Tidy scrollbars */

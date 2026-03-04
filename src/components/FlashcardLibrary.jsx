@@ -42,28 +42,26 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   const categoryCards = useMemo(() => {
     if (!currentProgram) return [];
 
-    // First, try to filter by the 'program' field from loadFlashcards (e.g., 'nd-nursing')
-    // We'll normalize program names for matching
     const programSlug = currentProgram.toLowerCase().replace(/\s+/g, '-');
 
-    let filtered = flashcards.filter(c =>
-      (c.category === 'Curriculum' && c.program === programSlug) ||
-      (c.category === initialCategory)
-    );
+    // Core filtering logic for built-in vs user cards
+    return flashcards.filter(c => {
+      // Professional track specific filtering
+      if (initialCategory === 'NCLEX') return c.category === 'NCLEX';
+      if (initialCategory === 'NMCN') return c.category === 'NMCN';
 
-    if (currentProgram === 'Midwifery') {
-      return filtered.filter(c =>
-        c.subject.toLowerCase().includes('midwifery') ||
-        c.subject.toLowerCase().includes('reproductive') ||
-        c.program === 'midwifery'
-      );
-    }
+      // Academic curriculum filtering
+      if (c.program) {
+        // Match specific program or general nursing foundation if applicable
+        return c.program === programSlug || (programSlug === 'general-nursing' && c.program === 'nd-nursing');
+      }
 
-    // Default: General Nursing
-    return filtered.filter(c =>
-      !c.subject.toLowerCase().includes('midwifery') ||
-      c.program === 'nd-nursing'
-    );
+      // If it's a user card
+      if (currentProgram === 'Midwifery') {
+        return c.subject.toLowerCase().includes('midwifery') || c.category === initialCategory;
+      }
+      return !c.subject.toLowerCase().includes('midwifery') || c.category === initialCategory;
+    });
   }, [flashcards, initialCategory, currentProgram]);
 
   const levels = useMemo(() => [...new Set(categoryCards.map(c => c.level))].sort(), [categoryCards]);
@@ -238,19 +236,16 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
                 <button
                   key={sem}
                   onClick={() => setCurrentSemester(sem)}
-                  className="p-10 bg-white dark:bg-slate-800 rounded-[2rem] shadow-soft hover:shadow-clinical border border-slate-100 dark:border-slate-700 hover:border-medical-500 transition-all text-left group"
+                className="p-8 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:border-medical-500 transition-all text-left group"
                 >
-                  <div className="flex items-center gap-4 mb-6">
-                    <div className="p-3 bg-medical-50 dark:bg-medical-900/20 rounded-2xl text-medical-600 group-hover:rotate-12 transition-transform">
-                      <Book size={28} />
+                <div className="flex items-center gap-4">
+                  <div className="p-3 bg-medical-50 dark:bg-medical-900/20 rounded-xl text-medical-600">
+                    <Book size={24} />
                     </div>
                     <div>
-                      <h4 className="text-2xl font-bold text-slate-900 dark:text-white">{sem}</h4>
-                      <p className="text-slate-500 text-sm font-medium">{categoryCards.filter(c => c.level === currentLevel && c.semester === sem).length} Flashcards Available</p>
+                    <h4 className="text-xl font-bold text-slate-800 dark:text-white">{sem}</h4>
+                    <p className="text-slate-500 text-xs font-medium">{categoryCards.filter(c => c.level === currentLevel && c.semester === sem).length} Cards</p>
                     </div>
-                  </div>
-                  <div className="h-2 w-full bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                    <div className="h-full bg-medical-500 rounded-full w-1/3" />
                   </div>
                 </button>
               ))}
@@ -269,43 +264,29 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
               {subjects.map(subject => {
-                const isOSCE = subject === 'OSCE Procedures';
-                const isQuickRef = subject === 'Quick Reference';
                 const cardCount = categoryCards.filter(c => c.level === currentLevel && c.semester === currentSemester && c.subject === subject).length;
 
                 return (
                   <button
                     key={subject}
                     onClick={() => setCurrentSubject(subject)}
-                    className={`p-6 rounded-3xl shadow-soft hover:shadow-clinical border transition-all text-left group flex flex-col h-full relative overflow-hidden
-                      ${isOSCE ? 'bg-amber-50/50 dark:bg-amber-900/10 border-amber-200 dark:border-amber-900/30 hover:border-amber-400' :
-                        isQuickRef ? 'bg-indigo-50/50 dark:bg-indigo-900/10 border-indigo-200 dark:border-indigo-900/30 hover:border-indigo-400' :
-                        'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 hover:border-medical-500'}
-                    `}
+                    className="p-5 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:bg-medical-50 dark:hover:bg-medical-900/20 transition-all text-left group h-full flex flex-col justify-between"
                   >
-                    <div className="flex justify-between items-start mb-4">
-                      <h5 className={`text-xl font-bold leading-tight ${isOSCE ? 'text-amber-900 dark:text-amber-400' : isQuickRef ? 'text-indigo-900 dark:text-indigo-400' : 'text-slate-900 dark:text-white'}`}>
-                        {subject}
-                      </h5>
-                      {isOSCE ? <Award size={24} className="text-amber-500" /> : isQuickRef ? <Search size={24} className="text-indigo-500" /> : <div className="p-2 bg-slate-50 dark:bg-slate-700 rounded-lg"><Book size={20} className="text-slate-400" /></div>}
-                    </div>
-
-                    <div className="mt-auto space-y-4">
-                      <div className="flex gap-1 flex-wrap">
-                        {[...new Set(categoryCards.filter(c => c.subject === subject).map(c => c.unit).filter(Boolean))].slice(0, 2).map(u => (
-                          <span key={u} className="text-[10px] font-bold bg-slate-100/80 dark:bg-slate-700/50 text-slate-600 dark:text-slate-400 px-2 py-0.5 rounded-lg border border-slate-200/50 dark:border-slate-600/50">
-                            {u}
-                          </span>
-                        ))}
-                      </div>
-                      <div className="flex items-center justify-between pt-4 border-t border-slate-100 dark:border-slate-700/50">
-                        <span className="text-sm font-bold text-slate-500">{cardCount} Units</span>
-                        <div className="w-8 h-8 rounded-full bg-medical-500 flex items-center justify-center text-white scale-0 group-hover:scale-100 transition-transform">
-                          <Play size={16} fill="currentColor" />
+                    <div>
+                      <div className="flex justify-between items-start mb-2">
+                        <h5 className="text-lg font-bold text-slate-800 dark:text-white leading-tight">{subject}</h5>
+                        <div className="p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg text-slate-400 group-hover:text-medical-600">
+                          <Book size={18} />
                         </div>
                       </div>
+                      <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{cardCount} Flashcards</span>
+                    </div>
+
+                    <div className="mt-4 pt-4 border-t border-slate-50 dark:border-slate-700 flex justify-between items-center">
+                      <span className="text-[10px] font-bold text-medical-600 uppercase">View Modules</span>
+                      <ChevronRight size={14} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
                     </div>
                   </button>
                 );
@@ -346,14 +327,14 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
         <div className="flex flex-wrap gap-2">
           {viewMode === 'list' ? (
             <>
-              <button onClick={() => startStudyMode(true, true)} className="flex items-center px-5 py-2.5 bg-amber-500 text-white rounded-xl font-bold hover:bg-amber-600 transition-all shadow-soft active:scale-95">
+              <button onClick={() => startStudyMode(true, true)} className="flex items-center px-4 py-2 bg-amber-500 text-white rounded-lg font-bold hover:bg-amber-600 transition-all shadow-sm active:scale-95 text-sm">
                 <Award size={18} className="mr-2" /> Smart Review
               </button>
-              <button onClick={() => startStudyMode(false)} className="flex items-center px-5 py-2.5 bg-medical-600 text-white rounded-xl font-bold hover:bg-medical-700 transition-all shadow-soft active:scale-95">
-                <Play size={18} className="mr-2" /> Study Deck
+              <button onClick={() => startStudyMode(false)} className="flex items-center px-4 py-2 bg-medical-600 text-white rounded-lg font-bold hover:bg-medical-700 transition-all shadow-sm active:scale-95 text-sm">
+                <Play size={18} className="mr-2" /> Study All
               </button>
-              <button onClick={() => setIsFormOpen(true)} className="flex items-center px-5 py-2.5 bg-white dark:bg-slate-800 text-emerald-600 border-2 border-emerald-100 dark:border-emerald-900/30 rounded-xl font-bold hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all shadow-soft active:scale-95">
-                <Plus size={18} className="mr-2" /> New Card
+              <button onClick={() => setIsFormOpen(true)} className="flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-sm active:scale-95 text-sm">
+                <Plus size={18} className="mr-2" /> Add Card
               </button>
             </>
           ) : (
@@ -366,25 +347,27 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
 
       {viewMode === 'list' ? (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white/50 dark:bg-slate-800/50 backdrop-blur-sm p-4 rounded-2xl shadow-soft border border-white dark:border-slate-700/50">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
             <div className="relative">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={20} />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
                 type="text" placeholder="Search questions..."
                 value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-12 pr-4 py-3 rounded-xl border-2 border-slate-50 dark:border-slate-700 dark:bg-slate-900 outline-none focus:border-medical-500 transition-colors"
+                className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:border-medical-500 transition-colors text-sm"
               />
             </div>
-            <MobileFriendlySelect
-              value={filterDifficulty}
-              options={[
-                { label: 'All Difficulties', value: 'All' },
-                { label: 'Easy', value: 'Easy' },
-                { label: 'Moderate', value: 'Moderate' },
-                { label: 'Hard', value: 'Hard' }
-              ]}
-              onChange={(e) => setFilterDifficulty(e.target.value)}
-            />
+            <div>
+              <select
+                value={filterDifficulty}
+                onChange={(e) => setFilterDifficulty(e.target.value)}
+                className="w-full px-4 py-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:border-medical-500 transition-colors text-sm font-bold"
+              >
+                <option value="All">All Difficulties</option>
+                <option value="Easy">Easy</option>
+                <option value="Moderate">Moderate</option>
+                <option value="Hard">Hard</option>
+              </select>
+            </div>
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">

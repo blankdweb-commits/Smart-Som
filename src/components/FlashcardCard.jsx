@@ -21,16 +21,13 @@ const FlashcardCard = ({ card, onEdit, onDelete, onToggleImportant, onShare, isS
   };
 
   return (
-    <div className={`relative h-[320px] sm:h-72 w-full cursor-pointer group flashcard-container`} onClick={handleFlip}>
+    <div className={`relative h-72 sm:h-64 w-full cursor-pointer group flashcard-container`} onClick={handleFlip}>
       <div className={`flashcard-inner w-full h-full ${isFlipped ? 'flipped' : ''}`}>
         {/* Front */}
-        <div className="flashcard-front absolute inset-0 bg-white dark:bg-slate-800 rounded-3xl shadow-soft border border-slate-100 dark:border-slate-700 p-6 sm:p-8 flex flex-col justify-between overflow-hidden">
-          {/* Decorative clinical element */}
-          <div className="absolute top-0 left-0 w-1 bg-medical-500 h-full opacity-50" />
-
+        <div className="flashcard-front absolute inset-0 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex flex-col justify-between overflow-hidden">
           <div>
-            <div className="flex justify-between items-start mb-4">
-              <span className="text-[10px] sm:text-xs font-bold px-3 py-1 bg-medical-50 text-medical-700 dark:bg-medical-900/40 dark:text-medical-300 rounded-full border border-medical-100 dark:border-medical-800 uppercase tracking-wider truncate max-w-[140px]">
+            <div className="flex justify-between items-start mb-3">
+              <span className="text-[10px] sm:text-xs font-bold px-2 py-1 bg-medical-50 text-medical-600 dark:bg-medical-900/40 dark:text-medical-300 rounded uppercase tracking-wide truncate max-w-[120px]">
                 {card.subject}
               </span>
               <div className="flex space-x-2">
@@ -72,8 +69,8 @@ const FlashcardCard = ({ card, onEdit, onDelete, onToggleImportant, onShare, isS
                 </button>
               </div>
             </div>
-            <p className="text-xs sm:text-sm text-slate-400 dark:text-slate-500 font-bold mb-1 uppercase tracking-tight">{card.topic}</p>
-            <h3 className="text-xl sm:text-2xl font-extrabold text-slate-900 dark:text-white mt-4 leading-snug">
+            <p className="text-xs text-slate-400 dark:text-slate-500 font-bold mb-1 uppercase">{card.topic}</p>
+            <h3 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-white mt-2 leading-snug text-center">
               {card.question}
             </h3>
 
@@ -117,29 +114,19 @@ const FlashcardCard = ({ card, onEdit, onDelete, onToggleImportant, onShare, isS
         </div>
 
         {/* Back */}
-        <div className="flashcard-back absolute inset-0 bg-medical-600 rounded-3xl shadow-clinical p-8 flex flex-col items-center justify-center text-white text-center overflow-auto relative">
-          {/* Pattern Overlay */}
-          <div className="absolute inset-0 opacity-10 pointer-events-none" style={{ backgroundImage: 'radial-gradient(circle at 2px 2px, white 1px, transparent 0)', backgroundSize: '24px 24px' }} />
-
+        <div className="flashcard-back absolute inset-0 bg-medical-600 rounded-2xl shadow-lg p-6 flex flex-col items-center justify-center text-white text-center overflow-auto relative">
           <button
             onClick={(e) => handleSpeak(e, card.answer)}
-            className="absolute top-6 right-6 p-2 bg-white/10 rounded-xl text-white/80 hover:bg-white/20 transition-all z-10"
+            className="absolute top-4 right-4 p-2 text-white/50 hover:text-white transition-colors"
             title="Listen to answer"
           >
-            <Volume2 size={24} />
+            <Volume2 size={20} />
           </button>
-
-          <div className="relative z-10">
-            <p className="text-xs font-bold uppercase tracking-[0.2em] mb-6 text-white/60">Correct Answer</p>
-            <p className="text-xl sm:text-2xl font-bold leading-relaxed">
-              {card.answer}
-            </p>
-            <div className="mt-8 flex justify-center">
-              <div className="px-4 py-1.5 bg-white/10 rounded-full text-xs font-bold border border-white/20">
-                Tap to Flip Back
-              </div>
-            </div>
-          </div>
+          <p className="text-[10px] uppercase tracking-wider mb-4 opacity-80 font-bold">Answer</p>
+          <p className="text-base sm:text-lg font-medium leading-relaxed">
+            {card.answer}
+          </p>
+          <p className="mt-6 text-[10px] opacity-60 font-bold uppercase tracking-widest">Click to flip back</p>
         </div>
       </div>
     </div>
