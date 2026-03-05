@@ -15,24 +15,7 @@
           "unit_number": "Unit I",
           "title": "Introduction to Primary Health Care",
           "flashcards": [
-            { "id": "y1s2-phc-u1-1", "question": "Define Primary Health Care (PHC).", "answer": "Essential health care made universally accessible to individuals and families in the community.", "difficulty": "beginner" },
-            { "id": "y1s2-phc-u1-2", "question": "What are the eight components of PHC?", "answer": "Health education, nutrition, safe water/sanitation, maternal/child health, immunization, endemic disease prevention, common disease treatment, and essential drugs.", "difficulty": "intermediate" },
-            { "id": "y1s2-phc-u1-3", "question": "Name the five principles of PHC.", "answer": "Equity, community participation, intersectoral collaboration, appropriate technology, and focus on prevention.", "difficulty": "intermediate" }
-          ]
-        },
-        {
-          "unit_number": "Unit II",
-          "title": "Community structure",
-          "flashcards": [
-            { "id": "y1s2-phc-u2-1", "question": "List the cadres of PHC workers in Nigeria.", "answer": "CHEWs, CHOs, Midwives, Public Health Nurses, Community Physicians, VHWs, TBAs.", "difficulty": "intermediate" },
-            { "id": "y1s2-phc-u2-2", "question": "What is the role of a Traditional Birth Attendant (TBA)?", "answer": "Assisting with childbirth and providing maternal/child care in communities.", "difficulty": "Moderate" }
-          ]
-        },
-        {
-          "unit_number": "Unit III",
-          "title": "Community Diagnosis",
-          "flashcards": [
-            { "id": "y1s2-phc-u3-1", "question": "What is community diagnosis?", "answer": "A process of identifying health problems and needs of a community through data collection.", "difficulty": "Moderate" }
+            { "id": "y1s2-phc-u1-1", "question": "Define Primary Health Care (PHC).", "answer": "Essential health care made universally accessible to individuals and families.", "difficulty": "Easy" }
           ]
         }
       ]
@@ -43,19 +26,10 @@
       "title": "Pharmacology I",
       "units": [
         {
-          "unit_number": "Unit I",
-          "title": "Introduction",
-          "flashcards": [
-            { "id": "y1s2-p-u1-1", "question": "Define Pharmacology.", "answer": "The study of drugs and their interactions with living systems.", "difficulty": "beginner" },
-            { "id": "y1s2-p-u1-2", "question": "Differentiate between Generic and Brand names.", "answer": "Generic is the official name (e.g., Paracetamol); Brand is the trade name (e.g., Panadol).", "difficulty": "beginner" }
-          ]
-        },
-        {
           "unit_number": "Unit VI",
           "title": "Mechanism of Drug Action",
           "flashcards": [
-            { "id": "y1s2-p-u6-1", "question": "Define 'Pharmacokinetics'.", "answer": "The study of what the body does to the drug (ADME: Absorption, Distribution, Metabolism, Excretion).", "difficulty": "intermediate" },
-            { "id": "y1s2-p-u6-2", "question": "Define 'Pharmacodynamics'.", "answer": "The study of what the drug does to the body (drug effects).", "difficulty": "intermediate" }
+            { "id": "y1s2-p-u6-1", "question": "Define 'Pharmacokinetics'.", "answer": "What the body does to the drug (ADME).", "difficulty": "Moderate" }
           ]
         }
       ]
@@ -66,40 +40,17 @@
       "title": "Anatomy and Physiology II",
       "units": [
         {
-          "unit_number": "Unit I",
-          "title": "The Musculoskeletal System",
-          "flashcards": [
-            { "id": "y1s2-a-u1-1", "question": "Explain the physiology of muscle contraction.", "answer": "The sliding filament mechanism involving actin and myosin triggered by calcium ions.", "difficulty": "Hard" }
-          ]
-        },
-        {
-          "unit_number": "Unit II",
-          "title": "The Digestive System",
-          "flashcards": [
-            { "id": "y1s2-a-u2-1", "question": "List the organs of the digestive system.", "answer": "Mouth, esophagus, stomach, small intestine, large intestine, and accessory organs (liver, pancreas).", "difficulty": "Easy" }
-          ]
-        },
-        {
           "unit_number": "Unit III",
           "title": "The Urinary System",
           "flashcards": [
-            { "id": "y1s2-a-u3-1", "question": "What is the functional unit of the kidney?", "answer": "The nephron.", "difficulty": "Easy" },
-            { "id": "y1s2-a-u3-2", "question": "Define 'Micturition'.", "answer": "The physiological process of urinating.", "difficulty": "Moderate" }
-          ]
-        },
-        {
-          "unit_number": "Unit IV",
-          "title": "The Female Reproductive System",
-          "flashcards": [
-            { "id": "y1s2-a-u4-1", "question": "Describe the phases of the menstrual cycle.", "answer": "Menstrual, Proliferative, Ovulation, and Secretory phases.", "difficulty": "Moderate" }
+            { "id": "y1s2-a-u3-1", "question": "What is the functional unit of the kidney?", "answer": "The nephron.", "difficulty": "Easy" }
           ]
         },
         {
           "unit_number": "Unit VI",
           "title": "Foetal Development",
           "flashcards": [
-            { "id": "y1s2-a-u6-1", "question": "What are the three signs of placental separation?", "answer": "Lengthening of the cord, gush of blood, and the uterus becoming firm and globular.", "difficulty": "Hard" },
-            { "id": "y1s2-a-u6-2", "question": "Trace Fetal Circulation.", "answer": "Oxygenated blood from placenta -> Umbilical vein -> Ductus venosus -> IVC -> RA -> Foramen ovale -> LA -> LV -> Aorta.", "difficulty": "Hard" }
+            { "id": "y1s2-a-u6-1", "question": "What are the three signs of placental separation?", "answer": "Lengthening of cord, gush of blood, firm globular uterus.", "difficulty": "Hard" }
           ]
         }
       ]
@@ -113,14 +64,7 @@
           "unit_number": "Unit I",
           "title": "Administration of Drugs",
           "flashcards": [
-            { "id": "y1s2-f-u1-1", "question": "What are the rules of drug administration?", "answer": "Right patient, right drug, right dose, right route, right time.", "difficulty": "Easy" }
-          ]
-        },
-        {
-          "unit_number": "Unit III",
-          "title": "Injection Safety",
-          "flashcards": [
-            { "id": "y1s2-f-u3-1", "question": "List risks associated with unsafe injection practices.", "answer": "Blood-borne pathogens (HIV, Hep B/C), abscess, and nerve damage.", "difficulty": "Moderate" }
+            { "id": "y1s2-f-u1-1", "question": "List the five rights of drug administration.", "answer": "Right patient, drug, dose, route, time.", "difficulty": "Easy" }
           ]
         }
       ]
@@ -132,9 +76,23 @@
       "units": [
         {
           "unit_number": "Unit V",
-          "title": "Principles of Operating Room Nursing",
+          "title": "Operating Room Nursing",
           "flashcards": [
-            { "id": "y1s2-ms-u5-1", "question": "Differentiate between the Scrub Nurse and the Circulating Nurse.", "answer": "Scrub nurse works within the sterile field; Circulating nurse manages the OR environment outside the sterile field.", "difficulty": "Moderate" }
+            { "id": "y1s2-ms-u5-1", "question": "What is the role of the Scrub Nurse?", "answer": "Maintains sterile field and assists surgeon during operation.", "difficulty": "Moderate" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ethics-101",
+      "course_code": "NUR 1xx",
+      "title": "Nursing Ethics and Jurisprudence",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Ethical Concepts",
+          "flashcards": [
+            { "id": "y1s2-e-u1-1", "question": "Define 'Informed Consent'.", "answer": "Patient's agreement to treatment after being told of risks/benefits.", "difficulty": "Moderate" }
           ]
         }
       ]

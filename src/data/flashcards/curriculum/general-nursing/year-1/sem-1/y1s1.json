@@ -13,47 +13,27 @@
       "units": [
         {
           "unit_number": "Unit I",
-          "title": "Introduction to Anatomy and Physiology & Organization of the Human Body",
+          "title": "Introduction to Anatomy and Physiology",
           "flashcards": [
             { "id": "y1s1-a-u1-1", "question": "Define Anatomy and Physiology.", "answer": "Anatomy is the study of structure; Physiology is the study of function.", "difficulty": "Easy" },
             { "id": "y1s1-a-u1-2", "question": "What is the standard anatomical position?", "answer": "Body erect, face forward, arms at sides, palms forward.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u1-3", "question": "Define the Sagittal Plane.", "answer": "A vertical plane that divides the body into right and left parts.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u1-4", "question": "Name the two major divisions of the ventral body cavity.", "answer": "Thoracic and Abdominopelvic cavities.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u1-5", "question": "What are the four basic types of human tissues?", "answer": "Epithelial, Connective, Muscle, and Nervous tissues.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u1-6", "question": "What is the basic functional unit of life?", "answer": "The cell.", "difficulty": "Easy", "isImportant": true },
-            { "id": "y1s1-a-u1-7", "question": "Define Homeostasis.", "answer": "The maintenance of a stable internal environment despite external changes.", "difficulty": "Moderate", "isImportant": true },
-            { "id": "y1s1-a-u1-8", "question": "List the levels of structural organization in the body.", "answer": "Chemical, Cellular, Tissue, Organ, Organ System, Organism.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u1-9", "question": "What is the function of mitochondria?", "answer": "To produce ATP through cellular respiration.", "difficulty": "beginner", "isImportant": true },
-            { "id": "y1s1-a-u1-10", "question": "Explain 'negative feedback' with an example.", "answer": "A mechanism that reverses a deviation from the set point. Example: insulin lowering high blood sugar.", "difficulty": "Moderate", "isImportant": true },
-            { "id": "y1s1-a-u1-11", "question": "Define 'Distal' and 'Proximal'.", "answer": "Distal: further from attachment; Proximal: closer to attachment.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u1-12", "question": "What is the Cell Theory?", "answer": "All living things are made of cells, cells are basic units, cells come from pre-existing cells.", "difficulty": "Moderate" }
+            { "id": "y1s1-a-u1-3", "question": "What is the basic functional unit of life?", "answer": "The cell.", "difficulty": "Easy", "isImportant": true },
+            { "id": "y1s1-a-u1-4", "question": "Define Homeostasis.", "answer": "The maintenance of a stable internal environment.", "difficulty": "Moderate", "isImportant": true }
           ]
         },
         {
           "unit_number": "Unit II",
           "title": "Blood and Cardiovascular System",
           "flashcards": [
-            { "id": "y1s1-a-u2-1", "question": "What is the normal pH range of human blood?", "answer": "7.35 to 7.45.", "difficulty": "Moderate", "isImportant": true },
-            { "id": "y1s1-a-u2-2", "question": "Name the three types of formed elements in blood.", "answer": "Erythrocytes (RBCs), Leukocytes (WBCs), and Thrombocytes (Platelets).", "difficulty": "Easy", "isImportant": true },
-            { "id": "y1s1-a-u2-3", "question": "What is the primary function of Hemoglobin?", "answer": "To transport oxygen from the lungs to the tissues.", "difficulty": "Easy", "isImportant": true },
-            { "id": "y1s1-a-u2-4", "question": "Which blood type is the universal donor?", "answer": "Type O Negative.", "difficulty": "Moderate", "isImportant": true },
-            { "id": "y1s1-a-u2-5", "question": "Trace a drop of blood from the R Atrium to the Lungs.", "answer": "R Atrium -> Tricuspid Valve -> R Ventricle -> Pulmonary Valve -> Pulmonary Artery -> Lungs.", "difficulty": "Hard", "isImportant": true },
-            { "id": "y1s1-a-u2-6", "question": "What is the 'Pacemaker' of the heart?", "answer": "The Sinoatrial (SA) Node.", "difficulty": "Easy", "isImportant": true },
-            { "id": "y1s1-a-u2-7", "question": "Define Cardiac Output.", "answer": "The volume of blood pumped by each ventricle in one minute (CO = HR x SV).", "difficulty": "Hard", "isImportant": true },
-            { "id": "y1s1-a-u2-8", "question": "What are the four valves of the heart?", "answer": "Tricuspid, Pulmonary, Mitral (Bicuspid), Aortic.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u2-9", "question": "Differentiate between Systemic and Pulmonary circulation.", "answer": "Systemic: L Ventricle to body; Pulmonary: R Ventricle to lungs.", "difficulty": "Moderate" }
+            { "id": "y1s1-a-u2-1", "question": "What is the normal pH of blood?", "answer": "7.35 to 7.45.", "difficulty": "Moderate", "isImportant": true },
+            { "id": "y1s1-a-u2-2", "question": "Name the heart's natural pacemaker.", "answer": "Sinoatrial (SA) node.", "difficulty": "Easy", "isImportant": true }
           ]
         },
         {
           "unit_number": "Unit III",
           "title": "The Respiratory System",
           "flashcards": [
-            { "id": "y1s1-a-u3-1", "question": "List the organs of the respiratory tract in order.", "answer": "Nose -> Pharynx -> Larynx -> Trachea -> Bronchi -> Bronchioles -> Alveoli.", "difficulty": "beginner" },
-            { "id": "y1s1-a-u3-2", "question": "Explain the mechanism of gas exchange in the alveoli.", "answer": "Oxygen diffuses from alveoli into blood; CO2 diffuses from blood into alveoli.", "difficulty": "intermediate" },
-            { "id": "y1s1-a-u3-3", "question": "Define tidal volume.", "answer": "The volume of air inhaled or exhaled per normal breath.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u3-4", "question": "What is the primary muscle of respiration?", "answer": "The diaphragm.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u3-5", "question": "Where is the respiratory center located in the brain?", "answer": "Medulla oblongata and Pons.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u3-6", "question": "Define 'Vital Capacity'.", "answer": "Maximum air exhaled after maximum inhalation.", "difficulty": "Hard" }
+            { "id": "y1s1-a-u3-1", "question": "What is the primary muscle of respiration?", "answer": "The diaphragm.", "difficulty": "Easy" }
           ]
         }
       ]
@@ -67,66 +47,21 @@
           "unit_number": "Unit I",
           "title": "Introduction to Nursing",
           "flashcards": [
-            { "id": "y1s1-f-u1-1", "question": "Define nursing according to the ICN.", "answer": "Autonomous and collaborative care of individuals of all ages, families, groups and communities.", "difficulty": "beginner", "isImportant": true },
-            { "id": "y1s1-f-u1-2", "question": "Who is the founder of modern nursing?", "answer": "Florence Nightingale.", "difficulty": "Easy" },
-            { "id": "y1s1-f-u1-3", "question": "What are the characteristics of a polyvalent nurse?", "answer": "Versatile, adaptable, and capable of working in various settings.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u1-4", "question": "Define 'Health' according to WHO.", "answer": "A state of complete physical, mental and social well-being.", "difficulty": "Easy" },
-            { "id": "y1s1-f-u1-5", "question": "What are the roles of a professional nurse?", "answer": "Caregiver, Teacher, Advocate, Manager, Researcher.", "difficulty": "Moderate" }
-          ]
-        },
-        {
-          "unit_number": "Unit II",
-          "title": "Health Care Institutions",
-          "flashcards": [
-            { "id": "y1s1-f-u2-1", "question": "Name the three levels of healthcare in Nigeria.", "answer": "Primary, Secondary, and Tertiary.", "difficulty": "Easy", "isImportant": true },
-            { "id": "y1s1-f-u2-2", "question": "What is the primary function of a Secondary health institution?", "answer": "Provide specialized services (General Hospitals).", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u2-3", "question": "Define 'Referral'.", "answer": "Sending a patient to a more specialized facility for care.", "difficulty": "Easy" }
+            { "id": "y1s1-f-u1-1", "question": "Who is the founder of modern nursing?", "answer": "Florence Nightingale.", "difficulty": "Easy" }
           ]
         },
         {
           "unit_number": "Unit III",
           "title": "Tools of Nursing",
           "flashcards": [
-            { "id": "y1s1-f-u3-1", "question": "What are the components of the nursing process?", "answer": "Assessment, Diagnosis, Planning, Implementation, Evaluation (ADPIE).", "difficulty": "Easy", "isImportant": true },
-            { "id": "y1s1-f-u3-2", "question": "Explain Maslow's hierarchy of needs.", "answer": "Physiological, Safety, Love, Esteem, Self-actualization.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u3-3", "question": "What is therapeutic communication?", "answer": "Interaction focusing on advancing the patient's well-being.", "difficulty": "Moderate" }
-          ]
-        },
-        {
-          "unit_number": "Unit IV",
-          "title": "Comfort and Safety Measures",
-          "flashcards": [
-            { "id": "y1s1-f-u4-1", "question": "List common nursing positions.", "answer": "Fowler's, Supine, Prone, Lateral, Sims'.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u4-2", "question": "What is 'Body Mechanics'?", "answer": "Efficient use of the body to prevent injury.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u4-3", "question": "How do you lift a patient safely?", "answer": "Keep back straight, bend at knees, keep weight close to body.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u4-4", "question": "What is the purpose of a 'Cradle' in bed making?", "answer": "To keep bedclothes off sensitive areas like burnt skin or fractures.", "difficulty": "Hard" }
-          ]
-        },
-        {
-          "unit_number": "Unit V",
-          "title": "Basic Client/Patient Care",
-          "flashcards": [
-            { "id": "y1s1-f-u5-1", "question": "What are the pressure points of the body?", "answer": "Sacrum, heels, elbows, shoulders, back of head.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u5-2", "question": "How are pressure sores prevented?", "answer": "Turning every 2 hours, skin care, using air rings/cradles.", "difficulty": "Easy", "isImportant": true },
-            { "id": "y1s1-f-u5-3", "question": "What is 'Personal Hygiene'?", "answer": "Bathing, oral care, hair care, nail care to maintain health.", "difficulty": "Easy" },
-            { "id": "y1s1-f-u5-4", "question": "Define 'Standard Precautions'.", "answer": "Infection control practices applied to all patients.", "difficulty": "Moderate" }
+            { "id": "y1s1-f-u3-1", "question": "List the steps of the Nursing Process.", "answer": "Assessment, Diagnosis, Planning, Implementation, Evaluation (ADPIE).", "difficulty": "Easy", "isImportant": true }
           ]
         },
         {
           "unit_number": "Unit VI",
           "title": "Diagnostic Measures",
           "flashcards": [
-            { "id": "y1s1-f-u6-1", "question": "List the vital signs.", "answer": "Temperature, Pulse, Respiration, Blood Pressure.", "difficulty": "Easy", "isImportant": true },
-            { "id": "y1s1-f-u6-2", "question": "Where is the Apex Beat measured?", "answer": "5th intercostal space, left midclavicular line.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u6-3", "question": "What is anthropometry?", "answer": "Measurement of the human body (height, weight, etc.).", "difficulty": "Moderate" }
-          ]
-        },
-        {
-          "unit_number": "Unit VII",
-          "title": "First Aid",
-          "flashcards": [
-            { "id": "y1s1-f-u7-1", "question": "What is the primary survey in first aid (ABC)?", "answer": "Airway, Breathing, Circulation.", "difficulty": "Easy", "isImportant": true },
-            { "id": "y1s1-f-u7-2", "question": "How do you manage a casualty in shock?", "answer": "Lay flat, elevate legs, keep warm, reassure.", "difficulty": "Moderate" }
+            { "id": "y1s1-f-u6-1", "question": "Where is the Apex Beat measured?", "answer": "5th intercostal space, left midclavicular line.", "difficulty": "Moderate" }
           ]
         }
       ]
@@ -140,49 +75,14 @@
           "unit_number": "Unit I",
           "title": "Introduction to Nursing Informatics",
           "flashcards": [
-            { "id": "y1s1-ni-u1-1", "question": "Define Nursing Informatics.", "answer": "Specialty integrating nursing science, computer science, and info science.", "difficulty": "Moderate" },
-            { "id": "y1s1-ni-u1-2", "question": "Name basic components of a computer.", "answer": "Hardware (CPU, Monitor) and Software.", "difficulty": "Easy" },
-            { "id": "y1s1-ni-u1-3", "question": "What is the importance of informatics in nursing?", "answer": "Improved patient safety, efficiency, and data management.", "difficulty": "Moderate" },
-            { "id": "y1s1-ni-u1-4", "question": "What is hardware?", "answer": "Physical parts of a computer system.", "difficulty": "Easy" },
-            { "id": "y1s1-ni-u1-5", "question": "What is software?", "answer": "Programs and operating info used by a computer.", "difficulty": "Easy" },
-            { "id": "y1s1-ni-u1-6", "question": "Name two types of computers.", "answer": "Mainframes, Microcomputers (PCs).", "difficulty": "Moderate" }
-          ]
-        },
-        {
-          "unit_number": "Unit II",
-          "title": "Nursing Information Management",
-          "flashcards": [
-            { "id": "y1s1-ni-u2-1", "question": "What is an Electronic Health Record (EHR)?", "answer": "Digital version of a patient's medical history.", "difficulty": "Easy" },
-            { "id": "y1s1-ni-u2-2", "question": "Why is data security important in nursing?", "answer": "To protect patient confidentiality and legal rights.", "difficulty": "Moderate" },
-            { "id": "y1s1-ni-u2-3", "question": "What is information retrieval?", "answer": "The process of obtaining information system resources that are relevant to an info need.", "difficulty": "Hard" }
-          ]
-        },
-        {
-          "unit_number": "Unit III",
-          "title": "ICT in Nursing Practice",
-          "flashcards": [
-            { "id": "y1s1-ni-u3-1", "question": "Define Tele-Nursing.", "answer": "Use of technology to provide nursing care remotely.", "difficulty": "Moderate" },
-            { "id": "y1s1-ni-u3-2", "question": "What are wearable devices in health?", "answer": "Tech worn on body to monitor vitals (e.g., smartwatches).", "difficulty": "Easy" },
-            { "id": "y1s1-ni-u3-3", "question": "Name an electronic communication tool for nurses.", "answer": "Zoom, Teams, or Skype for consultations.", "difficulty": "Easy" },
-            { "id": "y1s1-ni-u3-4", "question": "What is mHealth?", "answer": "Mobile health; use of mobile devices for health services.", "difficulty": "Moderate" }
+            { "id": "y1s1-ni-u1-1", "question": "Define Nursing Informatics.", "answer": "Integration of nursing science, computer science, and information science.", "difficulty": "Moderate" }
           ]
         },
         {
           "unit_number": "Unit IV",
           "title": "Monitoring & Care Devices",
           "flashcards": [
-            { "id": "y1s1-ni-u4-1", "question": "What is a Pulse Oximeter?", "answer": "Device measuring oxygen saturation in blood.", "difficulty": "Easy" },
-            { "id": "y1s1-ni-u4-2", "question": "What are IV Pumps used for?", "answer": "Controlled delivery of fluids and medications intravenously.", "difficulty": "Moderate" },
-            { "id": "y1s1-ni-u4-3", "question": "Name a direct nursing delivery technology.", "answer": "Barcode medication administration (BCMA).", "difficulty": "Hard" },
-            { "id": "y1s1-ni-u4-4", "question": "What is Telemetry?", "answer": "Wireless monitoring of heart rate and rhythm.", "difficulty": "Hard" },
-            { "id": "y1s1-ni-u4-5", "question": "What are Robotics used for in nursing?", "answer": "Assisting in patient transfer or surgery.", "difficulty": "Hard" },
-            { "id": "y1s1-ni-u4-6", "question": "Define MRI.", "answer": "Magnetic Resonance Imaging; diagnostic tool for detailed body structure images.", "difficulty": "Moderate" },
-            { "id": "y1s1-ni-u4-7", "question": "What is a CT Scan?", "answer": "Computed Tomography; uses X-rays to create cross-sectional images.", "difficulty": "Moderate" },
-            { "id": "y1s1-ni-u4-8", "question": "Define Ultrasound.", "answer": "Imaging using high-frequency sound waves.", "difficulty": "Easy" },
-            { "id": "y1s1-ni-u4-9", "question": "What is an infusion pump?", "answer": "Infuses fluids, medication or nutrients into a patient's circulatory system.", "difficulty": "Moderate" },
-            { "id": "y1s1-ni-u4-10", "question": "What is video surveillance in hospitals?", "answer": "Monitoring patient safety and unit security.", "difficulty": "Easy" },
-            { "id": "y1s1-ni-u4-11", "question": "Define Direct Nursing technology.", "answer": "Tech used at the bedside to provide care directly.", "difficulty": "Moderate" },
-            { "id": "y1s1-ni-u4-12", "question": "Define Indirect Nursing tech.", "answer": "Staffing systems, inventory systems.", "difficulty": "Moderate" }
+            { "id": "y1s1-ni-u4-1", "question": "What is a Pulse Oximeter?", "answer": "Device measuring oxygen saturation in blood.", "difficulty": "Easy" }
           ]
         }
       ]
@@ -196,43 +96,63 @@
           "unit_number": "Unit I",
           "title": "Grammatical Conversation",
           "flashcards": [
-            { "id": "y1s1-e-u1-1", "question": "List the parts of speech.", "answer": "Noun, Pronoun, Verb, Adjective, Adverb, Preposition, Conjunction, Interjection.", "difficulty": "Easy" },
-            { "id": "y1s1-e-u1-2", "question": "What is 'Concord'?", "answer": "Agreement between subject and verb in number and person.", "difficulty": "Moderate" },
-            { "id": "y1s1-e-u1-3", "question": "Define a Noun.", "answer": "Naming word for person, place, thing, or idea.", "difficulty": "Easy" },
-            { "id": "y1s1-e-u1-4", "question": "What is a Punctuation mark?", "answer": "Symbols like commas and periods used to clarify meaning in writing.", "difficulty": "Easy" },
-            { "id": "y1s1-e-u1-5", "question": "Define 'Stress' in speech.", "answer": "Emphasis given to a syllable or word.", "difficulty": "Moderate" },
-            { "id": "y1s1-e-u1-6", "question": "What is Intonation?", "answer": "The rise and fall of the voice in speaking.", "difficulty": "Moderate" },
-            { "id": "y1s1-e-u1-7", "question": "What is a Pronoun?", "answer": "Word that replaces a noun (he, she, it).", "difficulty": "Easy" },
-            { "id": "y1s1-e-u1-8", "question": "What is an Adjective?", "answer": "Word that describes or modifies a noun.", "difficulty": "Easy" },
-            { "id": "y1s1-e-u1-9", "question": "What is a Verb?", "answer": "Action or state word.", "difficulty": "Easy" },
-            { "id": "y1s1-e-u1-10", "question": "What is a Preposition?", "answer": "Word showing relationship between noun and other parts (in, on, at).", "difficulty": "Easy" }
+            { "id": "y1s1-e-u1-1", "question": "What is 'Concord' in grammar?", "answer": "Agreement between subject and verb.", "difficulty": "Moderate" }
           ]
-        },
+        }
+      ]
+    },
+    {
+      "id": "phys-101",
+      "course_code": "NUS 112",
+      "title": "Applied Physics",
+      "units": [
         {
           "unit_number": "Unit II",
-          "title": "Techniques of Writing",
+          "title": "Molecular Phenomena",
           "flashcards": [
-            { "id": "y1s1-e-u2-1", "question": "Name the stages of writing.", "answer": "Pre-writing, Writing, Rewriting.", "difficulty": "Easy" },
-            { "id": "y1s1-e-u2-2", "question": "What is a Paragraph?", "answer": "A distinct section of writing dealing with a single theme.", "difficulty": "Easy" },
-            { "id": "y1s1-e-u2-3", "question": "Differentiate between Formal and Informal letters.", "answer": "Formal: professional (job app); Informal: personal (to friend).", "difficulty": "Easy" },
-            { "id": "y1s1-e-u2-4", "question": "What is Referencing?", "answer": "Acknowledging sources of info in a paper.", "difficulty": "Moderate" },
-            { "id": "y1s1-e-u2-5", "question": "What is a Report?", "answer": "Formal account of an event or investigation.", "difficulty": "Moderate" },
-            { "id": "y1s1-e-u2-6", "question": "What are Minutes?", "answer": "Official record of a meeting.", "difficulty": "Moderate" },
-            { "id": "y1s1-e-u2-7", "question": "Define an Essay.", "answer": "Short piece of writing on a particular subject.", "difficulty": "Easy" },
-            { "id": "y1s1-e-u2-8", "question": "What is an Article?", "answer": "Piece of writing for a publication like a newspaper.", "difficulty": "Easy" },
-            { "id": "y1s1-e-u2-9", "question": "What is a Memorandum?", "answer": "Internal business communication (Memo).", "difficulty": "Moderate" },
-            { "id": "y1s1-e-u2-10", "question": "What is a Book Review?", "answer": "Critical evaluation of a book.", "difficulty": "Hard" }
+            { "id": "y1s1-p-u2-1", "question": "Define Osmosis.", "answer": "Movement of solvent molecules through a semi-permeable membrane.", "difficulty": "Easy" }
           ]
-        },
+        }
+      ]
+    },
+    {
+      "id": "chem-101",
+      "course_code": "NUS 111",
+      "title": "Applied Chemistry",
+      "units": [
         {
           "unit_number": "Unit III",
-          "title": "Reading Skills",
+          "title": "Acids, Bases and Salts",
           "flashcards": [
-            { "id": "y1s1-e-u3-1", "question": "Define Skimming.", "answer": "Rapid reading to get the main idea.", "difficulty": "Easy" },
-            { "id": "y1s1-e-u3-2", "question": "Define Scanning.", "answer": "Reading quickly to find specific information.", "difficulty": "Easy" },
-            { "id": "y1s1-e-u3-3", "question": "What is Comprehension?", "answer": "The ability to understand what is read.", "difficulty": "Easy" },
-            { "id": "y1s1-e-u3-4", "question": "What is Summary writing?", "answer": "Condensing a text into its main points.", "difficulty": "Moderate" },
-            { "id": "y1s1-e-u3-5", "question": "What is a Debate?", "answer": "Formal discussion on a particular matter with opposing arguments.", "difficulty": "Easy" }
+            { "id": "y1s1-c-u3-1", "question": "What is the pH scale?", "answer": "Measure of acidity or alkalinity from 0 to 14.", "difficulty": "Easy" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "micro-101",
+      "course_code": "NUS 117",
+      "title": "Microbiology",
+      "units": [
+        {
+          "unit_number": "Unit II",
+          "title": "Infectious Process",
+          "flashcards": [
+            { "id": "y1s1-m-u2-1", "question": "List the chain of infection.", "answer": "Causative agent, reservoir, portal of exit, mode of transmission, portal of entry, susceptible host.", "difficulty": "Moderate", "isImportant": true }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sbs-101",
+      "course_code": "NUS 115",
+      "title": "Social and Behavioural Science",
+      "units": [
+        {
+          "unit_number": "Unit V",
+          "title": "Human Growth and Development",
+          "flashcards": [
+            { "id": "y1s1-s-u5-1", "question": "Name Erikson's first stage of development.", "answer": "Trust vs. Mistrust.", "difficulty": "Moderate" }
           ]
         }
       ]

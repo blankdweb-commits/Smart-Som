@@ -16,10 +16,7 @@
           "title": "The Integumentary System",
           "flashcards": [
             { "id": "y2s1-a-u1-1", "question": "Name the layers of the skin.", "answer": "Epidermis, Dermis, Hypodermis.", "difficulty": "Easy" },
-            { "id": "y2s1-a-u1-2", "question": "What is the function of melanin?", "answer": "Protects against UV radiation.", "difficulty": "Moderate" },
-            { "id": "y2s1-a-u1-3", "question": "What is the largest organ in the human body?", "answer": "The Skin.", "difficulty": "Easy" },
-            { "id": "y2s1-a-u1-4", "question": "Define keratinization.", "answer": "Process by which cells of the epidermis become filled with keratin.", "difficulty": "Moderate" },
-            { "id": "y2s1-a-u1-5", "question": "List two functions of the skin.", "answer": "Protection, Temperature regulation.", "difficulty": "Easy" }
+            { "id": "y2s1-a-u1-2", "question": "What is the function of melanin?", "answer": "Protects against UV radiation.", "difficulty": "Moderate" }
           ]
         },
         {
@@ -27,37 +24,133 @@
           "title": "The Endocrine System",
           "flashcards": [
             { "id": "y2s1-a-u2-1", "question": "List the major endocrine glands.", "answer": "Pituitary, thyroid, adrenal, pancreas, gonads.", "difficulty": "Moderate" },
-            { "id": "y2s1-a-u2-2", "question": "What gland is called the 'Master Gland'?", "answer": "The Pituitary Gland.", "difficulty": "Easy" },
-            { "id": "y2s1-a-u2-3", "question": "Function of Insulin?", "answer": "Lowers blood glucose levels.", "difficulty": "Easy" },
-            { "id": "y2s1-a-u2-4", "question": "What is the function of ADH?", "answer": "Regulates water balance by increasing water reabsorption in kidneys.", "difficulty": "Moderate" },
-            { "id": "y2s1-a-u2-5", "question": "Define 'Hormone'.", "answer": "Chemical messenger secreted into the blood.", "difficulty": "Easy" },
-            { "id": "y2s1-a-u2-6", "question": "Function of thyroid hormone?", "answer": "Regulates metabolic rate.", "difficulty": "Moderate" },
-            { "id": "y2s1-a-u2-7", "question": "What is a negative feedback loop?", "answer": "Response that reverses a change in a controlled condition.", "difficulty": "Hard" }
+            { "id": "y2s1-a-u2-2", "question": "What gland is called the 'Master Gland'?", "answer": "The Pituitary Gland.", "difficulty": "Easy" }
           ]
         },
         {
           "unit_number": "Unit III",
           "title": "The Nervous System",
           "flashcards": [
-            { "id": "y2s1-a-u3-1", "question": "Name the 12 cranial nerves.", "answer": "I Olfactory, II Optic, III Oculomotor, IV Trochlear, V Trigeminal, VI Abducens, VII Facial, VIII Vestibulocochlear, IX Glossopharyngeal, X Vagus, XI Accessory, XII Hypoglossal.", "difficulty": "Hard" },
-            { "id": "y2s1-a-u3-2", "question": "What are the divisions of the autonomic nervous system?", "answer": "Sympathetic (fight/flight) and Parasympathetic (rest/digest).", "difficulty": "Moderate" },
-            { "id": "y2s1-a-u3-3", "question": "Structure of a neuron?", "answer": "Cell body, dendrites, axon.", "difficulty": "Easy" },
-            { "id": "y2s1-a-u3-4", "question": "What are the meninges?", "answer": "Dura mater, Arachnoid mater, Pia mater.", "difficulty": "Moderate" },
-            { "id": "y2s1-a-u3-5", "question": "Function of the Cerebellum?", "answer": "Balance, coordination, and posture.", "difficulty": "Easy" },
-            { "id": "y2s1-a-u3-6", "question": "Where is the vital center for HR and breathing located?", "answer": "Medulla Oblongata.", "difficulty": "Moderate" },
-            { "id": "y2s1-a-u3-7", "question": "Define 'Synapse'.", "answer": "Junction between two neurons.", "difficulty": "Moderate" },
-            { "id": "y2s1-a-u3-8", "question": "What is CSF?", "answer": "Cerebrospinal fluid; cushions the brain and spinal cord.", "difficulty": "Easy" }
+            { "id": "y2s1-a-u3-1", "question": "Name the 12 cranial nerves.", "answer": "I Olfactory, II Optic, III Oculomotor, IV Trochlear, V Trigeminal, VI Abducens, VII Facial, VIII Vestibulocochlear, IX Glossopharyngeal, X Vagus, XI Accessory, XII Hypoglossal.", "difficulty": "Hard" }
           ]
         },
         {
           "unit_number": "Unit IV",
-          "title": "Special Senses",
+          "title": "The Special Senses",
           "flashcards": [
-            { "id": "y2s1-a-u4-1", "question": "Name the special senses.", "answer": "Sight, hearing, smell, taste, touch/equilibrium.", "difficulty": "Easy" },
-            { "id": "y2s1-a-u4-2", "question": "Anatomy of the Eye?", "answer": "Cornea, lens, retina, iris, pupil.", "difficulty": "Moderate" },
-            { "id": "y2s1-a-u4-3", "question": "Mechanism of hearing?", "answer": "Sound waves -> tympanic membrane -> ossicles -> cochlea -> brain.", "difficulty": "Moderate" },
-            { "id": "y2s1-a-u4-4", "question": "What is the function of Rods and Cones?", "answer": "Rods: night vision/dim light; Cones: color vision.", "difficulty": "Hard" },
-            { "id": "y2s1-a-u4-5", "question": "What is Tinnitus?", "answer": "Ringing or buzzing in the ears.", "difficulty": "Easy" }
+            { "id": "y2s1-a-u4-1", "question": "Name the special senses.", "answer": "Sight, hearing, smell, taste, touch/equilibrium.", "difficulty": "Easy" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fon-201",
+      "course_code": "NUR 211",
+      "title": "Foundation of Nursing III",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Nursing Care of Patients with Feeding/Elimination Problems",
+          "flashcards": [
+            { "id": "y2s1-f-u1-1", "question": "What is Gastrostomy feeding?", "answer": "Feeding directly into the stomach through an opening in the abdominal wall.", "difficulty": "Moderate" }
+          ]
+        },
+        {
+          "unit_number": "Unit II",
+          "title": "Patients with Urinary Problems",
+          "flashcards": [
+            { "id": "y2s1-f-u2-1", "question": "Define Urinary Retention.", "answer": "Inability to empty the bladder completely or at all.", "difficulty": "Easy" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ms-201",
+      "course_code": "NUR 222",
+      "title": "Medical-Surgical Nursing II",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Management of Clients with Respiratory System Problems",
+          "flashcards": [
+            { "id": "y2s1-ms-u1-1", "question": "What is a Tracheostomy?", "answer": "Surgical creation of an opening into the trachea to provide an airway.", "difficulty": "Moderate" }
+          ]
+        },
+        {
+          "unit_number": "Unit II",
+          "title": "Management of Clients with Digestive System Problems",
+          "flashcards": [
+            { "id": "y2s1-ms-u2-1", "question": "What are common disorders of the esophagus?", "answer": "GERD, Esophagitis, and Esophageal Varices.", "difficulty": "Moderate" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phc-201",
+      "course_code": "NUR 212",
+      "title": "Primary Health Care II",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Components of Primary Health Care",
+          "flashcards": [
+            { "id": "y2s1-phc-u1-1", "question": "Define Epidemiology.", "answer": "The study of how often diseases occur in different groups of people and why.", "difficulty": "Moderate" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pharm-201",
+      "course_code": "NUS 213",
+      "title": "Pharmacology II",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "National Drug Policy",
+          "flashcards": [
+            { "id": "y2s1-p-u1-1", "question": "What is the Essential Drug Programme?", "answer": "A policy to ensure availability of high-quality, safe, and effective drugs at affordable prices.", "difficulty": "Moderate" }
+          ]
+        },
+        {
+          "unit_number": "Unit II",
+          "title": "Pharmacovigilance",
+          "flashcards": [
+            { "id": "y2s1-p-u2-1", "question": "Define Pharmacovigilance.", "answer": "The science and activities relating to the detection, assessment, understanding and prevention of adverse effects.", "difficulty": "Moderate" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "rh-201",
+      "course_code": "NUR 223",
+      "title": "Reproductive Health I",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Introduction to Reproductive Health",
+          "flashcards": [
+            { "id": "y2s1-rh-u1-1", "question": "Define Reproductive Health.", "answer": "A state of physical, mental, and social well-being in all matters relating to the reproductive system.", "difficulty": "Easy" }
+          ]
+        },
+        {
+          "unit_number": "Unit VII",
+          "title": "HIV Infection and AIDS",
+          "flashcards": [
+            { "id": "y2s1-rh-u7-1", "question": "Define PMTCT.", "answer": "Prevention of Mother-to-Child Transmission of HIV.", "difficulty": "Easy" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "research-201",
+      "course_code": "NUR 214",
+      "title": "Research and Statistics I",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Overview of Research",
+          "flashcards": [
+            { "id": "y2s1-r-u1-1", "question": "Define Nursing Research.", "answer": "A scientific process that validates and refines existing knowledge and generates new knowledge in nursing.", "difficulty": "Moderate" }
           ]
         }
       ]

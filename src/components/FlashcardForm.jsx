@@ -16,7 +16,8 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     important: false,
     category: 'Academic',
     level: 'Year 1',
-    semester: 'Semester 1'
+    semester: 'Semester 1',
+    program: 'nd-nursing'
   });
 
   useEffect(() => {
@@ -122,6 +123,19 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                 <option value="Council Exam">Council Exam</option>
               </select>
             </div>
+          </div>
+
+          <div>
+            <label className="block text-xs font-bold text-slate-400 uppercase tracking-wider mb-1 ml-1">Program</label>
+            <select
+              name="program"
+              value={formData.program || 'nd-nursing'}
+              onChange={handleChange}
+              className="w-full px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-medical-500 outline-none font-bold text-sm"
+            >
+              <option value="nd-nursing">General Nursing (ND)</option>
+              <option value="midwifery">Midwifery</option>
+            </select>
           </div>
 
           <div className="grid grid-cols-2 gap-4 sm:gap-6">
