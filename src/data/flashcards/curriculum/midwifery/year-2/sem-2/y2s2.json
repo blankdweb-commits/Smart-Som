@@ -1,0 +1,24 @@
+{
+  "metadata": {
+    "program": "National Diploma in Midwifery",
+    "level": "Year 2",
+    "semester": "Semester 2",
+    "last_updated": "2026-03-02"
+  },
+  "courses": [
+    {
+      "id": "mid-202",
+      "course_code": "MID 221",
+      "title": "Complications of Labor",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Malpresentations",
+          "flashcards": [
+            { "id": "m2s2-c-1", "question": "Define 'Breech Presentation'.", "answer": "A delivery in which the fetus emerges with the buttocks or feet first instead of the head.", "difficulty": "Moderate", "isImportant": true }
+          ]
+        }
+      ]
+    }
+  ]
+}

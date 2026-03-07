@@ -1,0 +1,24 @@
+{
+  "metadata": {
+    "program": "National Diploma in Midwifery",
+    "level": "Year 3",
+    "semester": "Semester 1",
+    "last_updated": "2026-03-02"
+  },
+  "courses": [
+    {
+      "id": "mid-301",
+      "course_code": "MID 311",
+      "title": "Advanced Midwifery Practicum",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Emergency Obstetric Care",
+          "flashcards": [
+            { "id": "m3s1-a-1", "question": "What are the signal functions of Basic EmONC?", "answer": "Parenteral antibiotics, oxytocics, anticonvulsants, manual removal of placenta, removal of retained products, assisted vaginal delivery, and newborn resuscitation.", "difficulty": "Hard", "isImportant": true }
+          ]
+        }
+      ]
+    }
+  ]
+}

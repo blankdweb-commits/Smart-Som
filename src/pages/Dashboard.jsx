@@ -44,6 +44,14 @@ const Dashboard = () => {
 
   const [currentTip, setCurrentTip] = React.useState(0);
 
+  const quickReference = [
+    { label: "Normal BP", value: "120/80 mmHg" },
+    { label: "Normal HR", value: "60-100 bpm" },
+    { label: "Normal Temp", value: "36.5-37.5 °C" },
+    { label: "Oxygen Sat", value: "95-100%" },
+    { label: "Blood pH", value: "7.35-7.45" }
+  ];
+
   React.useEffect(() => {
     const interval = setInterval(() => {
       setCurrentTip(prev => (prev + 1) % studyTips.length);
@@ -52,7 +60,7 @@ const Dashboard = () => {
   }, []);
 
   return (
-    <div className="space-y-6 pb-20">
+    <div className="space-y-6 pb-20 animate-in fade-in slide-in-from-bottom-2 duration-700">
       <header>
         <h2 className="text-3xl font-bold text-slate-800 dark:text-white">Dashboard</h2>
         <p className="text-slate-600 dark:text-slate-400">Welcome back to your nursing study portal.</p>
@@ -84,6 +92,23 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">
         <div className="lg:col-span-2 space-y-4 sm:space-y-6">
+          {/* Quick Reference Section */}
+          <div className="bg-medical-600 rounded-2xl p-6 text-white shadow-lg overflow-hidden relative group">
+            <div className="absolute top-0 right-0 w-32 h-32 bg-white/10 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110" />
+            <h3 className="text-lg font-bold mb-4 flex items-center">
+              <Award className="mr-2" size={20} />
+              Clinical Quick Reference
+            </h3>
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-5 gap-4 relative z-10">
+              {quickReference.map((ref, i) => (
+                <div key={i} className="bg-white/10 backdrop-blur-md p-3 rounded-xl border border-white/20">
+                  <p className="text-[10px] uppercase font-black opacity-70 tracking-tighter">{ref.label}</p>
+                  <p className="text-sm font-bold mt-1">{ref.value}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+
           <div className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
             <h3 className="text-xl font-semibold mb-6 flex items-center text-slate-800 dark:text-white">
               <TrendingUp className="mr-2 text-medical-600" size={20} />

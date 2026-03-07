@@ -13,27 +13,30 @@
       "units": [
         {
           "unit_number": "Unit I",
-          "title": "Introduction to Anatomy and Physiology",
+          "title": "Introduction & Organization",
           "flashcards": [
             { "id": "y1s1-a-u1-1", "question": "Define Anatomy and Physiology.", "answer": "Anatomy is the study of structure; Physiology is the study of function.", "difficulty": "Easy" },
             { "id": "y1s1-a-u1-2", "question": "What is the standard anatomical position?", "answer": "Body erect, face forward, arms at sides, palms forward.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u1-3", "question": "What is the basic functional unit of life?", "answer": "The cell.", "difficulty": "Easy", "isImportant": true },
-            { "id": "y1s1-a-u1-4", "question": "Define Homeostasis.", "answer": "The maintenance of a stable internal environment.", "difficulty": "Moderate", "isImportant": true }
+            { "id": "y1s1-a-u1-3", "question": "Define the Sagittal Plane.", "answer": "A vertical plane that divides the body into right and left parts.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u1-5", "question": "What are the four basic types of human tissues?", "answer": "Epithelial, Connective, Muscle, and Nervous tissues.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u1-6", "question": "What is the basic functional unit of life?", "answer": "The cell.", "difficulty": "Easy", "isImportant": true },
+            { "id": "y1s1-a-u1-7", "question": "Define Homeostasis.", "answer": "The maintenance of a stable internal environment despite external changes.", "difficulty": "Moderate", "isImportant": true }
           ]
         },
         {
           "unit_number": "Unit II",
           "title": "Blood and Cardiovascular System",
           "flashcards": [
-            { "id": "y1s1-a-u2-1", "question": "What is the normal pH of blood?", "answer": "7.35 to 7.45.", "difficulty": "Moderate", "isImportant": true },
-            { "id": "y1s1-a-u2-2", "question": "Name the heart's natural pacemaker.", "answer": "Sinoatrial (SA) node.", "difficulty": "Easy", "isImportant": true }
+            { "id": "y1s1-a-u2-1", "question": "What is the normal pH range of human blood?", "answer": "7.35 to 7.45.", "difficulty": "Moderate", "isImportant": true },
+            { "id": "y1s1-a-u2-2", "question": "Name the three types of formed elements in blood.", "answer": "Erythrocytes (RBCs), Leukocytes (WBCs), and Thrombocytes (Platelets).", "difficulty": "Easy", "isImportant": true },
+            { "id": "y1s1-a-u2-6", "question": "What is the 'Pacemaker' of the heart?", "answer": "The Sinoatrial (SA) Node.", "difficulty": "Easy", "isImportant": true }
           ]
         },
         {
           "unit_number": "Unit III",
           "title": "The Respiratory System",
           "flashcards": [
-            { "id": "y1s1-a-u3-1", "question": "What is the primary muscle of respiration?", "answer": "The diaphragm.", "difficulty": "Easy" }
+            { "id": "y1s1-a-u3-4", "question": "What is the primary muscle of respiration?", "answer": "The diaphragm.", "difficulty": "Easy" }
           ]
         }
       ]
@@ -43,27 +46,9 @@
       "course_code": "NUR 111",
       "title": "Foundation of Nursing I",
       "units": [
-        {
-          "unit_number": "Unit I",
-          "title": "Introduction to Nursing",
-          "flashcards": [
-            { "id": "y1s1-f-u1-1", "question": "Who is the founder of modern nursing?", "answer": "Florence Nightingale.", "difficulty": "Easy" }
-          ]
-        },
-        {
-          "unit_number": "Unit III",
-          "title": "Tools of Nursing",
-          "flashcards": [
-            { "id": "y1s1-f-u3-1", "question": "List the steps of the Nursing Process.", "answer": "Assessment, Diagnosis, Planning, Implementation, Evaluation (ADPIE).", "difficulty": "Easy", "isImportant": true }
-          ]
-        },
-        {
-          "unit_number": "Unit VI",
-          "title": "Diagnostic Measures",
-          "flashcards": [
-            { "id": "y1s1-f-u6-1", "question": "Where is the Apex Beat measured?", "answer": "5th intercostal space, left midclavicular line.", "difficulty": "Moderate" }
-          ]
-        }
+        { "unit_number": "Unit I", "title": "Introduction", "flashcards": [{ "id": "y1s1-f-u1-1", "question": "Who is the founder of modern nursing?", "answer": "Florence Nightingale.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit III", "title": "Tools of Nursing", "flashcards": [{ "id": "y1s1-f-u3-1", "question": "List the components of the nursing process.", "answer": "Assessment, Diagnosis, Planning, Implementation, Evaluation (ADPIE).", "difficulty": "Easy", "isImportant": true }] },
+        { "unit_number": "Unit VI", "title": "Diagnostic Measures", "flashcards": [{ "id": "y1s1-f-u6-1", "question": "List the vital signs.", "answer": "Temperature, Pulse, Respiration, Blood Pressure.", "difficulty": "Easy", "isImportant": true }] }
       ]
     },
     {
@@ -71,20 +56,7 @@
       "course_code": "NUR 1xx",
       "title": "Introduction to Nursing Informatics",
       "units": [
-        {
-          "unit_number": "Unit I",
-          "title": "Introduction to Nursing Informatics",
-          "flashcards": [
-            { "id": "y1s1-ni-u1-1", "question": "Define Nursing Informatics.", "answer": "Integration of nursing science, computer science, and information science.", "difficulty": "Moderate" }
-          ]
-        },
-        {
-          "unit_number": "Unit IV",
-          "title": "Monitoring & Care Devices",
-          "flashcards": [
-            { "id": "y1s1-ni-u4-1", "question": "What is a Pulse Oximeter?", "answer": "Device measuring oxygen saturation in blood.", "difficulty": "Easy" }
-          ]
-        }
+        { "unit_number": "Unit I", "title": "Concepts", "flashcards": [{ "id": "y1s1-ni-u1-1", "question": "Define Nursing Informatics.", "answer": "Specialty integrating nursing science, computer science, and info science.", "difficulty": "Moderate" }] }
       ]
     },
     {
@@ -92,13 +64,7 @@
       "course_code": "GNS 102",
       "title": "The Use of English Language",
       "units": [
-        {
-          "unit_number": "Unit I",
-          "title": "Grammatical Conversation",
-          "flashcards": [
-            { "id": "y1s1-e-u1-1", "question": "What is 'Concord' in grammar?", "answer": "Agreement between subject and verb.", "difficulty": "Moderate" }
-          ]
-        }
+        { "unit_number": "Unit I", "title": "Grammatical Conversation", "flashcards": [{ "id": "y1s1-e-u1-1", "question": "What is 'Concord'?", "answer": "Agreement between subject and verb in number and person.", "difficulty": "Moderate" }] }
       ]
     },
     {
@@ -106,13 +72,7 @@
       "course_code": "NUS 112",
       "title": "Applied Physics",
       "units": [
-        {
-          "unit_number": "Unit II",
-          "title": "Molecular Phenomena",
-          "flashcards": [
-            { "id": "y1s1-p-u2-1", "question": "Define Osmosis.", "answer": "Movement of solvent molecules through a semi-permeable membrane.", "difficulty": "Easy" }
-          ]
-        }
+        { "unit_number": "Unit II", "title": "Molecular Phenomena", "flashcards": [{ "id": "y1s1-p-u2-2", "question": "Define Osmosis.", "answer": "Movement of solvent molecules through a semi-permeable membrane.", "difficulty": "Easy" }] }
       ]
     },
     {
@@ -120,13 +80,7 @@
       "course_code": "NUS 111",
       "title": "Applied Chemistry",
       "units": [
-        {
-          "unit_number": "Unit III",
-          "title": "Acids, Bases and Salts",
-          "flashcards": [
-            { "id": "y1s1-c-u3-1", "question": "What is the pH scale?", "answer": "Measure of acidity or alkalinity from 0 to 14.", "difficulty": "Easy" }
-          ]
-        }
+        { "unit_number": "Unit III", "title": "Acids, Bases and Salts", "flashcards": [{ "id": "y1s1-c-u3-1", "question": "Define pH.", "answer": "A measure of the acidity or alkalinity of a solution.", "difficulty": "Easy" }] }
       ]
     },
     {
@@ -134,13 +88,7 @@
       "course_code": "NUS 117",
       "title": "Microbiology",
       "units": [
-        {
-          "unit_number": "Unit II",
-          "title": "Infectious Process",
-          "flashcards": [
-            { "id": "y1s1-m-u2-1", "question": "List the chain of infection.", "answer": "Causative agent, reservoir, portal of exit, mode of transmission, portal of entry, susceptible host.", "difficulty": "Moderate", "isImportant": true }
-          ]
-        }
+        { "unit_number": "Unit II", "title": "Infectious Process", "flashcards": [{ "id": "y1s1-m-u2-1", "question": "List the chain of infection.", "answer": "Causative agent, reservoir, portal of exit, mode of transmission, portal of entry, susceptible host.", "difficulty": "Moderate", "isImportant": true }] }
       ]
     },
     {
@@ -148,13 +96,7 @@
       "course_code": "NUS 115",
       "title": "Social and Behavioural Science",
       "units": [
-        {
-          "unit_number": "Unit V",
-          "title": "Human Growth and Development",
-          "flashcards": [
-            { "id": "y1s1-s-u5-1", "question": "Name Erikson's first stage of development.", "answer": "Trust vs. Mistrust.", "difficulty": "Moderate" }
-          ]
-        }
+        { "unit_number": "Unit V", "title": "Human Growth", "flashcards": [{ "id": "y1s1-s-u5-1", "question": "Name Erikson's first stage of psychosocial development.", "answer": "Trust vs. Mistrust.", "difficulty": "Moderate" }] }
       ]
     }
   ]

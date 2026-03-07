@@ -15,56 +15,16 @@
           "unit_number": "Unit I",
           "title": "Oncology",
           "flashcards": [
-            { "id": "y3s2-ms-u1-1", "question": "Differentiate between benign and malignant tumors.", "answer": "Benign are non-cancerous and don't spread; Malignant are cancerous and can invade other tissues.", "difficulty": "Moderate" }
-          ]
-        },
-        {
-          "unit_number": "Unit III",
-          "title": "Gerontology",
-          "flashcards": [
-            { "id": "y3s2-ms-u3-1", "question": "Define Gerontology.", "answer": "The study of the social, cultural, psychological, cognitive, and biological aspects of aging.", "difficulty": "Easy" }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "hhc-301",
-      "course_code": "NUR 3xx",
-      "title": "Home Health Care Nursing",
-      "units": [
-        {
-          "unit_number": "Unit I",
-          "title": "Introduction to Home Health Care",
-          "flashcards": [
-            { "id": "y3s2-hhc-u1-1", "question": "What is the goal of Home Health Care?", "answer": "To allow individuals to remain in their home while receiving medical care or assistance with ADLs.", "difficulty": "Easy" }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "rh-302",
-      "course_code": "NUR 3xx",
-      "title": "Reproductive Health V",
-      "units": [
-        {
-          "unit_number": "Unit I",
-          "title": "Hospitalized Child",
-          "flashcards": [
-            { "id": "y3s2-rh-u1-1", "question": "List two reactions of a child to hospitalization.", "answer": "Separation anxiety and fear of bodily injury.", "difficulty": "Moderate" }
-          ]
-        },
-        {
-          "unit_number": "Unit II",
-          "title": "Management of Congenital Abnormalities",
-          "flashcards": [
-            { "id": "y3s2-rh-u2-1", "question": "What is Spina Bifida?", "answer": "A birth defect where there is incomplete closing of the backbone and membranes around the spinal cord.", "difficulty": "Hard" }
+            { "id": "y3s2-ms-u1-1", "question": "Differentiate between benign and malignant tumors.", "answer": "Benign are non-cancerous and don't spread; Malignant are cancerous and can invade other tissues.", "difficulty": "Moderate" },
+            { "id": "y3s2-ms-u1-2", "question": "What is Chemotherapy?", "answer": "The use of powerful chemicals to kill fast-growing cells in your body.", "difficulty": "Easy" }
           ]
         },
         {
           "unit_number": "Unit IV",
-          "title": "Integrated Management of Childhood Illness (IMCI)",
+          "title": "Overview of Palliative Care",
           "flashcards": [
-            { "id": "y3s2-rh-u4-1", "question": "What are the three components of IMCI?", "answer": "Improving case management skills of health workers, improving health systems, and improving family/community practices.", "difficulty": "Hard" }
+            { "id": "y3s2-ms-u4-1", "question": "What is the primary goal of Palliative Care?", "answer": "To improve the quality of life for both the patient and the family by providing relief from symptoms and stress of a serious illness.", "difficulty": "Moderate" },
+            { "id": "y3s2-ms-u4-2", "question": "Define 'Bereavement'.", "answer": "The state of having suffered a loss, typically referring to the period after the death of a loved one.", "difficulty": "Easy" }
           ]
         }
       ]
@@ -75,45 +35,18 @@
       "title": "Principle of Management and Teaching",
       "units": [
         {
-          "unit_number": "Unit I",
-          "title": "Management",
+          "unit_number": "Unit II",
+          "title": "Objectives in Health Administration",
           "flashcards": [
-            { "id": "y3s2-p-u1-1", "question": "Functions of management?", "answer": "Planning, Organizing, Staffing, Directing, Controlling.", "difficulty": "Easy" },
-            { "id": "y3s2-p-u1-2", "question": "Differentiate between Strategic and Operational plans.", "answer": "Strategic: long-term, broad; Operational: short-term, specific.", "difficulty": "Moderate" },
-            { "id": "y3s2-p-u1-3", "question": "Define 'Authority'.", "answer": "The right to give orders and the power to exact obedience.", "difficulty": "Moderate" },
-            { "id": "y3s2-p-u1-4", "question": "What is Delegation?", "answer": "Assignment of responsibility or authority to another person.", "difficulty": "Moderate" },
-            { "id": "y3s2-p-u1-5", "question": "Importance of Supervision?", "answer": "To ensure quality of care and support staff development.", "difficulty": "Easy" }
-          ]
-        },
-        {
-          "unit_number": "Unit III",
-          "title": "Leadership Dynamics",
-          "flashcards": [
-            { "id": "y3s2-p-u3-1", "question": "Name three leadership styles.", "answer": "Autocratic, Democratic, Laissez-faire.", "difficulty": "Easy" },
-            { "id": "y3s2-p-u3-2", "question": "What is motivation in nursing management?", "answer": "The process that initiates and sustains goal-oriented behaviors.", "difficulty": "Moderate" }
+            { "id": "y3s2-p-u2-1", "question": "What is Management by Objectives (MBO)?", "answer": "A management model that aims to improve organizational performance by clearly defining objectives that are agreed to by both management and employees.", "difficulty": "Hard" }
           ]
         },
         {
           "unit_number": "Unit V",
           "title": "Conflict Management and Resolution",
           "flashcards": [
-            { "id": "y3s2-p-u5-1", "question": "Name a conflict resolution strategy.", "answer": "Collaboration, Compromise, or Accommodation.", "difficulty": "Moderate" }
-          ]
-        },
-        {
-          "unit_number": "Unit VIII",
-          "title": "Teaching and Learning Process",
-          "flashcards": [
-            { "id": "y3s2-p-u8-1", "question": "What is a Lesson Plan?", "answer": "A detailed description of the course of instruction for a single lesson.", "difficulty": "Moderate" },
-            { "id": "y3s2-p-u8-2", "question": "Methods of teaching?", "answer": "Lecture, Demonstration, Discussion, Roleplay.", "difficulty": "Easy" }
-          ]
-        },
-        {
-          "unit_number": "Unit X",
-          "title": "Administrative Laws Relevant to Nursing",
-          "flashcards": [
-            { "id": "y3s2-p-u10-1", "question": "Define 'Vicarious Liability'.", "answer": "Employer's responsibility for the actions of employees.", "difficulty": "Hard" },
-            { "id": "y3s2-p-u10-2", "question": "What is Malpractice?", "answer": "Professional negligence by act or omission.", "difficulty": "Hard" }
+            { "id": "y3s2-p-u5-1", "question": "Name a conflict resolution strategy.", "answer": "Collaboration, Compromise, or Accommodation.", "difficulty": "Moderate" },
+            { "id": "y3s2-p-u5-2", "question": "What is 'Mediation'?", "answer": "Intervention in a dispute in order to resolve it; a neutral third party helps the parties reach an agreement.", "difficulty": "Moderate" }
           ]
         }
       ]
@@ -124,39 +57,11 @@
       "title": "Health Economics",
       "units": [
         {
-          "unit_number": "Unit I",
-          "title": "Introduction to Health Economics",
+          "unit_number": "Unit IV",
+          "title": "Health Care Financing",
           "flashcards": [
-            { "id": "y3s2-he-u1-1", "question": "Define Opportunity Cost.", "answer": "The loss of potential gain from other alternatives when one alternative is chosen.", "difficulty": "Moderate" }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "ent-301",
-      "course_code": "EEd 216",
-      "title": "Entrepreneurship in Nursing",
-      "units": [
-        {
-          "unit_number": "Unit I",
-          "title": "Entrepreneur, Entrepreneurship, and Enterprise",
-          "flashcards": [
-            { "id": "y3s2-en-u1-1", "question": "Define Entrepreneur.", "answer": "Person who organizes and operates a business.", "difficulty": "Easy" },
-            { "id": "y3s2-en-u1-2", "question": "What is an entrepreneurial mindset?", "answer": "Way of thinking that allows you to overcome challenges, be decisive, and accept responsibility.", "difficulty": "Moderate" }
-          ]
-        },
-        {
-          "unit_number": "Unit II",
-          "title": "The Entrepreneurial Journey",
-          "flashcards": [
-            { "id": "y3s2-en-u2-1", "question": "What is SWOT Analysis?", "answer": "Strengths, Weaknesses, Opportunities, Threats.", "difficulty": "Easy" }
-          ]
-        },
-        {
-          "unit_number": "Unit V",
-          "title": "Entrepreneurship Opportunities in Nigeria",
-          "flashcards": [
-            { "id": "y3s2-en-u5-1", "question": "Can nurses establish maternity homes in Nigeria?", "answer": "Yes, following N&MCN guidelines.", "difficulty": "Moderate" }
+            { "id": "y3s2-he-u4-1", "question": "What is the NHIS in Nigeria?", "answer": "National Health Insurance Scheme; a corporate body established to improve access to health care for all Nigerians.", "difficulty": "Moderate" },
+            { "id": "y3s2-he-u4-2", "question": "Define 'Equity' in healthcare financing.", "answer": "The principle that individuals should contribute to the costs of healthcare according to their ability to pay, but should receive care according to their need.", "difficulty": "Hard" }
           ]
         }
       ]

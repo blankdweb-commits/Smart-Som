@@ -1,0 +1,24 @@
+{
+  "metadata": {
+    "program": "National Diploma in Midwifery",
+    "level": "Year 3",
+    "semester": "Semester 2",
+    "last_updated": "2026-03-02"
+  },
+  "courses": [
+    {
+      "id": "mid-302",
+      "course_code": "MID 321",
+      "title": "Professional Ethics in Midwifery",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Ethics and Regulation",
+          "flashcards": [
+            { "id": "m3s2-e-1", "question": "Define 'Respectful Maternity Care'.", "answer": "An approach to care that organizes for and provides care to all women in a manner that maintains their dignity, privacy and confidentiality.", "difficulty": "Easy", "isImportant": true }
+          ]
+        }
+      ]
+    }
+  ]
+}

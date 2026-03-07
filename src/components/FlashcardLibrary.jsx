@@ -272,21 +272,39 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
                   <button
                     key={subject}
                     onClick={() => setCurrentSubject(subject)}
-                    className="p-5 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:bg-medical-50 dark:hover:bg-medical-900/20 transition-all text-left group h-full flex flex-col justify-between"
+                    className="p-5 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border-2 border-transparent hover:border-medical-500 transition-all text-left group h-full flex flex-col justify-between overflow-hidden relative"
                   >
+                    <div className="absolute top-0 right-0 w-16 h-16 bg-medical-50 dark:bg-medical-900/10 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-150" />
+
                     <div>
-                      <div className="flex justify-between items-start mb-2">
-                        <h5 className="text-lg font-bold text-slate-800 dark:text-white leading-tight">{subject}</h5>
-                        <div className="p-2 bg-slate-50 dark:bg-slate-900/50 rounded-lg text-slate-400 group-hover:text-medical-600">
+                      <div className="flex justify-between items-start mb-2 relative z-10">
+                        <h5 className="text-lg font-bold text-slate-800 dark:text-white leading-tight group-hover:text-medical-600 transition-colors">{subject}</h5>
+                        <div className="p-2 bg-slate-50 dark:bg-slate-900/50 rounded-xl text-slate-400 group-hover:text-medical-600 transition-colors">
                           <Book size={18} />
                         </div>
                       </div>
-                      <span className="text-xs font-bold text-slate-400 uppercase tracking-widest">{cardCount} Flashcards</span>
+
+                      <div className="flex flex-wrap gap-1 mb-3 relative z-10">
+                        {[...new Set(categoryCards.filter(c => c.subject === subject).map(c => c.unit))].filter(Boolean).slice(0, 3).map(u => (
+                          <span key={u} className="text-[8px] font-black px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 rounded uppercase">{u}</span>
+                        ))}
+                      </div>
+
+                      <div className="flex items-center justify-between relative z-10">
+                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{cardCount} Flashcards</span>
+                        <div className="flex -space-x-1">
+                          {[1, 2, 3].map(i => (
+                            <div key={i} className="w-1.5 h-1.5 rounded-full bg-medical-200 dark:bg-medical-800" />
+                          ))}
+                        </div>
+                      </div>
                     </div>
 
-                    <div className="mt-4 pt-4 border-t border-slate-50 dark:border-slate-700 flex justify-between items-center">
-                      <span className="text-[10px] font-bold text-medical-600 uppercase">View Modules</span>
-                      <ChevronRight size={14} className="text-slate-300 group-hover:translate-x-1 transition-transform" />
+                    <div className="mt-4 pt-4 border-t border-slate-50 dark:border-slate-700 flex justify-between items-center relative z-10">
+                      <span className="text-[10px] font-black text-medical-600 uppercase tracking-widest">Begin Session</span>
+                      <div className="p-1 bg-medical-600 text-white rounded-lg shadow-lg shadow-medical-600/20 group-hover:translate-x-1 transition-transform">
+                        <ChevronRight size={14} />
+                      </div>
                     </div>
                   </button>
                 );
@@ -307,21 +325,27 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
           <ArrowLeft size={16} className="mr-2" /> Back to Decks
         </button>
       )}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div>
-          <div className="flex items-center gap-2 mb-1">
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div className="animate-in slide-in-from-left-4 duration-500">
+          <div className="flex items-center gap-3 mb-1">
             {initialCategory === 'Academic' && currentSubject && (
-              <button onClick={() => setCurrentSubject(null)} className="p-1 hover:bg-slate-100 dark:hover:bg-slate-800 rounded">
+              <button onClick={() => setCurrentSubject(null)} className="p-2 bg-white dark:bg-slate-800 shadow-soft rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-90">
                 <ArrowLeft size={20} />
               </button>
             )}
-            <h2 className="text-3xl font-bold text-slate-800 dark:text-white">
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
               {currentSubject || (initialCategory === 'NCLEX' ? 'NCLEX-RN Prep' : initialCategory === 'NMCN' ? 'NMCN Council Prep' : 'Flashcards')}
             </h2>
           </div>
-          <p className="text-slate-600 dark:text-slate-400">
-            {currentLevel} {currentSemester ? `• ${currentSemester}` : ''}
-          </p>
+          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-bold text-sm uppercase tracking-wider ml-1">
+            <span className="text-medical-600">{currentLevel}</span>
+            {currentSemester && (
+              <>
+                <div className="w-1 h-1 rounded-full bg-slate-300 mx-1" />
+                <span>{currentSemester}</span>
+              </>
+            )}
+          </div>
         </div>
 
         <div className="flex flex-wrap gap-2">
