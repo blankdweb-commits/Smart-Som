@@ -4,11 +4,12 @@ import { LayoutDashboard, BookOpen, Calendar, Award, Users, Volume2 } from 'luci
 
 const BottomNav = () => {
   const navItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
+    { name: 'Home', icon: LayoutDashboard, path: '/' },
     { name: 'Cards', icon: BookOpen, path: '/flashcards' },
-    { name: 'Timetable', icon: Calendar, path: '/exams' },
-    { name: 'Pronounce', icon: Volume2, path: '/pronunciation' },
-    { name: 'Community', icon: Users, path: '/community' },
+    { name: 'Prep', icon: Award, path: '/prep' },
+    { name: 'Exams', icon: Calendar, path: '/exams' },
+    { name: 'Audio', icon: Volume2, path: '/pronunciation' },
+    { name: 'Chat', icon: Users, path: '/community' },
   ];
 
   return (

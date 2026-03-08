@@ -13,30 +13,23 @@
       "units": [
         {
           "unit_number": "Unit I",
-          "title": "Introduction & Organization",
+          "title": "Introduction to Anatomy and Physiology & Organization of the Human Body",
           "flashcards": [
-            { "id": "y1s1-a-u1-1", "question": "Define Anatomy and Physiology.", "answer": "Anatomy is the study of structure; Physiology is the study of function.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u1-2", "question": "What is the standard anatomical position?", "answer": "Body erect, face forward, arms at sides, palms forward.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u1-3", "question": "Define the Sagittal Plane.", "answer": "A vertical plane that divides the body into right and left parts.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u1-5", "question": "What are the four basic types of human tissues?", "answer": "Epithelial, Connective, Muscle, and Nervous tissues.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u1-6", "question": "What is the basic functional unit of life?", "answer": "The cell.", "difficulty": "Easy", "isImportant": true },
-            { "id": "y1s1-a-u1-7", "question": "Define Homeostasis.", "answer": "The maintenance of a stable internal environment despite external changes.", "difficulty": "Moderate", "isImportant": true }
+            { "id": "y1s1-a-u1-1", "question": "Define Anatomy and Physiology.", "answer": "Anatomy is the study of structure; Physiology is the study of function.", "difficulty": "Easy" }
           ]
         },
         {
           "unit_number": "Unit II",
           "title": "Blood and Cardiovascular System",
           "flashcards": [
-            { "id": "y1s1-a-u2-1", "question": "What is the normal pH range of human blood?", "answer": "7.35 to 7.45.", "difficulty": "Moderate", "isImportant": true },
-            { "id": "y1s1-a-u2-2", "question": "Name the three types of formed elements in blood.", "answer": "Erythrocytes (RBCs), Leukocytes (WBCs), and Thrombocytes (Platelets).", "difficulty": "Easy", "isImportant": true },
-            { "id": "y1s1-a-u2-6", "question": "What is the 'Pacemaker' of the heart?", "answer": "The Sinoatrial (SA) Node.", "difficulty": "Easy", "isImportant": true }
+            { "id": "y1s1-a-u2-1", "question": "What is the normal pH of blood?", "answer": "7.35 to 7.45.", "difficulty": "Moderate" }
           ]
         },
         {
           "unit_number": "Unit III",
           "title": "The Respiratory System",
           "flashcards": [
-            { "id": "y1s1-a-u3-4", "question": "What is the primary muscle of respiration?", "answer": "The diaphragm.", "difficulty": "Easy" }
+            { "id": "y1s1-a-u3-1", "question": "What is the primary muscle of respiration?", "answer": "The diaphragm.", "difficulty": "Easy" }
           ]
         }
       ]
@@ -47,8 +40,12 @@
       "title": "Foundation of Nursing I",
       "units": [
         { "unit_number": "Unit I", "title": "Introduction", "flashcards": [{ "id": "y1s1-f-u1-1", "question": "Who is the founder of modern nursing?", "answer": "Florence Nightingale.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit III", "title": "Tools of Nursing", "flashcards": [{ "id": "y1s1-f-u3-1", "question": "List the components of the nursing process.", "answer": "Assessment, Diagnosis, Planning, Implementation, Evaluation (ADPIE).", "difficulty": "Easy", "isImportant": true }] },
-        { "unit_number": "Unit VI", "title": "Diagnostic Measures", "flashcards": [{ "id": "y1s1-f-u6-1", "question": "List the vital signs.", "answer": "Temperature, Pulse, Respiration, Blood Pressure.", "difficulty": "Easy", "isImportant": true }] }
+        { "unit_number": "Unit II", "title": "Health Care Institutions", "flashcards": [{ "id": "y1s1-f-u2-1", "question": "Name the three levels of healthcare in Nigeria.", "answer": "Primary, Secondary, and Tertiary.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit III", "title": "Tools of Nursing", "flashcards": [{ "id": "y1s1-f-u3-1", "question": "List the steps of the Nursing Process.", "answer": "Assessment, Diagnosis, Planning, Implementation, Evaluation (ADPIE).", "difficulty": "Easy" }] },
+        { "unit_number": "Unit IV", "title": "Comfort and Safety Measures", "flashcards": [{ "id": "y1s1-f-u4-1", "question": "What is 'Body Mechanics'?", "answer": "Efficient use of the body to prevent injury.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit V", "title": "Basic Client/Patient Care", "flashcards": [{ "id": "y1s1-f-u5-1", "question": "Define 'Standard Precautions'.", "answer": "Infection control practices applied to all patients.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit VI", "title": "Diagnostic Measures", "flashcards": [{ "id": "y1s1-f-u6-1", "question": "List the vital signs.", "answer": "Temperature, Pulse, Respiration, Blood Pressure.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit VII", "title": "First Aid", "flashcards": [{ "id": "y1s1-f-u7-1", "question": "What is the primary survey in first aid (ABC)?", "answer": "Airway, Breathing, Circulation.", "difficulty": "Easy" }] }
       ]
     },
     {
@@ -56,7 +53,10 @@
       "course_code": "NUR 1xx",
       "title": "Introduction to Nursing Informatics",
       "units": [
-        { "unit_number": "Unit I", "title": "Concepts", "flashcards": [{ "id": "y1s1-ni-u1-1", "question": "Define Nursing Informatics.", "answer": "Specialty integrating nursing science, computer science, and info science.", "difficulty": "Moderate" }] }
+        { "unit_number": "Unit I", "title": "Introduction to Nursing Informatics", "flashcards": [{ "id": "y1s1-ni-u1-1", "question": "Define Nursing Informatics.", "answer": "Integration of nursing science, computer science, and info science.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit II", "title": "Nursing Information Management", "flashcards": [{ "id": "y1s1-ni-u2-1", "question": "What is an Electronic Health Record (EHR)?", "answer": "Digital version of a patient's medical history.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit III", "title": "ICT in Nursing Practice", "flashcards": [{ "id": "y1s1-ni-u3-1", "question": "Define Tele-Nursing.", "answer": "Use of technology to provide nursing care remotely.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit IV", "title": "Monitoring & Care Devices", "flashcards": [{ "id": "y1s1-ni-u4-1", "question": "What is a Pulse Oximeter?", "answer": "Device measuring oxygen saturation in blood.", "difficulty": "Easy" }] }
       ]
     },
     {
@@ -64,7 +64,9 @@
       "course_code": "GNS 102",
       "title": "The Use of English Language",
       "units": [
-        { "unit_number": "Unit I", "title": "Grammatical Conversation", "flashcards": [{ "id": "y1s1-e-u1-1", "question": "What is 'Concord'?", "answer": "Agreement between subject and verb in number and person.", "difficulty": "Moderate" }] }
+        { "unit_number": "Unit I", "title": "Grammatical Conversation", "flashcards": [{ "id": "y1s1-e-u1-1", "question": "What is 'Concord'?", "answer": "Agreement between subject and verb.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit II", "title": "Techniques of Writing", "flashcards": [{ "id": "y1s1-e-u2-1", "question": "Name the stages of writing.", "answer": "Pre-writing, Writing, Rewriting.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit III", "title": "Reading Skills, Summary and Art of Debate", "flashcards": [{ "id": "y1s1-e-u3-1", "question": "Define Skimming.", "answer": "Rapid reading to get the main idea.", "difficulty": "Easy" }] }
       ]
     },
     {
@@ -72,7 +74,16 @@
       "course_code": "NUS 112",
       "title": "Applied Physics",
       "units": [
-        { "unit_number": "Unit II", "title": "Molecular Phenomena", "flashcards": [{ "id": "y1s1-p-u2-2", "question": "Define Osmosis.", "answer": "Movement of solvent molecules through a semi-permeable membrane.", "difficulty": "Easy" }] }
+        { "unit_number": "Unit I", "title": "Introduction", "flashcards": [{ "id": "y1s1-p-u1-1", "question": "Define science.", "answer": "Systematic study of the physical world.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit II", "title": "Molecular Phenomena and Applications", "flashcards": [{ "id": "y1s1-p-u2-1", "question": "Define Osmosis.", "answer": "Movement of solvent through a semi-permeable membrane.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit III", "title": "Measurements and Units", "flashcards": [{ "id": "y1s1-p-u3-1", "question": "S.I. unit for pressure?", "answer": "Pascal (Pa).", "difficulty": "Easy" }] },
+        { "unit_number": "Unit IV", "title": "Forces", "flashcards": [{ "id": "y1s1-p-u4-1", "question": "Define Work in physics.", "answer": "Force applied over a distance (W = F x d).", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit V", "title": "Machines", "flashcards": [{ "id": "y1s1-p-u5-1", "question": "What is a lever?", "answer": "A simple machine consisting of a beam or rigid rod pivoted at a fixed hinge, or fulcrum.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit VI", "title": "Heat", "flashcards": [{ "id": "y1s1-p-u6-1", "question": "Name a type of thermometer.", "answer": "Infrared thermometer.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit VII", "title": "Elasticity", "flashcards": [{ "id": "y1s1-p-u7-1", "question": "State Hooke's Law.", "answer": "The strain in a solid is proportional to the applied stress within the elastic limit.", "difficulty": "Hard" }] },
+        { "unit_number": "Unit VIII", "title": "Optics and Waves", "flashcards": [{ "id": "y1s1-p-u8-1", "question": "What is reflection?", "answer": "Bouncing of light waves off a surface.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit IX", "title": "Electricity, Magnetism and Sound Waves", "flashcards": [{ "id": "y1s1-p-u9-1", "question": "What is an X-ray?", "answer": "Form of high-energy electromagnetic radiation.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit X", "title": "Practical", "flashcards": [{ "id": "y1s1-p-u10-1", "question": "What is the purpose of clinical physics?", "answer": "Applying physical principles to patient care and equipment.", "difficulty": "Moderate" }] }
       ]
     },
     {
@@ -80,7 +91,14 @@
       "course_code": "NUS 111",
       "title": "Applied Chemistry",
       "units": [
-        { "unit_number": "Unit III", "title": "Acids, Bases and Salts", "flashcards": [{ "id": "y1s1-c-u3-1", "question": "Define pH.", "answer": "A measure of the acidity or alkalinity of a solution.", "difficulty": "Easy" }] }
+        { "unit_number": "Unit I", "title": "Introduction", "flashcards": [{ "id": "y1s1-c-u1-1", "question": "Define chemistry.", "answer": "Study of matter and its changes.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit II", "title": "Nature of Matter", "flashcards": [{ "id": "y1s1-c-u2-1", "question": "What is an atom?", "answer": "Smallest unit of an element.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit III", "title": "Acids, Bases and Salts", "flashcards": [{ "id": "y1s1-c-u3-1", "question": "What is the pH scale?", "answer": "Measure of acidity or alkalinity from 0 to 14.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit IV", "title": "Electrolysis", "flashcards": [{ "id": "y1s1-c-u4-1", "question": "Define electrolysis.", "answer": "Chemical decomposition produced by passing an electric current through a liquid.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit V", "title": "Carbon Compounds", "flashcards": [{ "id": "y1s1-c-u5-1", "question": "What are hydrocarbons?", "answer": "Compounds made of only carbon and hydrogen.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit VI", "title": "Organic and Inorganic Compounds", "flashcards": [{ "id": "y1s1-c-u6-1", "question": "What are proteins?", "answer": "Large molecules made of amino acids.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit VII", "title": "Atomic Structure and Nuclear Energy", "flashcards": [{ "id": "y1s1-c-u7-1", "question": "Define radioactivity.", "answer": "Emission of ionizing radiation or particles caused by the spontaneous disintegration of atomic nuclei.", "difficulty": "Hard" }] },
+        { "unit_number": "Unit VIII", "title": "Practical", "flashcards": [{ "id": "y1s1-c-u8-1", "question": "Why is chemistry important in nursing?", "answer": "For understanding drug actions, body chemistry, and nutrition.", "difficulty": "Moderate" }] }
       ]
     },
     {
@@ -88,7 +106,12 @@
       "course_code": "NUS 117",
       "title": "Microbiology",
       "units": [
-        { "unit_number": "Unit II", "title": "Infectious Process", "flashcards": [{ "id": "y1s1-m-u2-1", "question": "List the chain of infection.", "answer": "Causative agent, reservoir, portal of exit, mode of transmission, portal of entry, susceptible host.", "difficulty": "Moderate", "isImportant": true }] }
+        { "unit_number": "Unit I", "title": "Introduction", "flashcards": [{ "id": "y1s1-m-u1-1", "question": "Define Microbiology.", "answer": "Study of microscopic organisms.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit II", "title": "Infectious Process and Control", "flashcards": [{ "id": "y1s1-m-u2-1", "question": "List the chain of infection.", "answer": "Agent, Reservoir, Exit, Transmission, Entry, Host.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit III", "title": "Microorganisms of Clinical Importance", "flashcards": [{ "id": "y1s1-m-u3-1", "question": "What are normal flora?", "answer": "Microorganisms that normally reside on or in the body without causing disease.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit IV", "title": "Immunology", "flashcards": [{ "id": "y1s1-m-u4-1", "question": "What is an antigen?", "answer": "Substance that triggers an immune response.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit V", "title": "Diagnostic Microbiology", "flashcards": [{ "id": "y1s1-m-u5-1", "question": "What is a culture and sensitivity test?", "answer": "Test to identify bacteria and determine effective antibiotics.", "difficulty": "Hard" }] },
+        { "unit_number": "Unit VI", "title": "Environmental Microbiology", "flashcards": [{ "id": "y1s1-m-u6-1", "question": "How is sewage disposed of safely?", "answer": "Via septic tanks or community treatment plants to prevent water pollution.", "difficulty": "Moderate" }] }
       ]
     },
     {
@@ -96,7 +119,15 @@
       "course_code": "NUS 115",
       "title": "Social and Behavioural Science",
       "units": [
-        { "unit_number": "Unit V", "title": "Human Growth", "flashcards": [{ "id": "y1s1-s-u5-1", "question": "Name Erikson's first stage of psychosocial development.", "answer": "Trust vs. Mistrust.", "difficulty": "Moderate" }] }
+        { "unit_number": "Unit I", "title": "Nature and Scope of Sociology", "flashcards": [{ "id": "y1s1-s-u1-1", "question": "Define Sociology.", "answer": "Study of social life, social change, and human behavior.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit II", "title": "Social Process", "flashcards": [{ "id": "y1s1-s-u2-1", "question": "What is socialization?", "answer": "Process of learning to behave in a way that is acceptable to society.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit III", "title": "Health Illness Behaviour", "flashcards": [{ "id": "y1s1-s-u3-1", "question": "What is Transcultural Nursing?", "answer": "Nursing focused on comparative cultural care values and beliefs.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit IV", "title": "Relationships in Healthcare", "flashcards": [{ "id": "y1s1-s-u4-1", "question": "Define Nurse-Patient Relationship.", "answer": "Therapeutic alliance focused on the patient's health and well-being.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit V", "title": "Human Growth and Development", "flashcards": [{ "id": "y1s1-s-u5-1", "question": "Name Erikson's first stage of development.", "answer": "Trust vs. Mistrust.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit VI", "title": "Human Emotions", "flashcards": [{ "id": "y1s1-s-u6-1", "question": "What is motivation?", "answer": "Reason or reasons one has for acting or behaving in a particular way.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit VII", "title": "Cognition and Learning", "flashcards": [{ "id": "y1s1-s-u7-1", "question": "Define Classical Conditioning.", "answer": "Learning process through association (e.g., Pavlov's dogs).", "difficulty": "Hard" }] },
+        { "unit_number": "Unit VIII", "title": "Psychological Methods", "flashcards": [{ "id": "y1s1-s-u8-1", "question": "What is Psychotherapy?", "answer": "Treatment of mental disorders by psychological rather than medical means.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit IX", "title": "Psychological Testing", "flashcards": [{ "id": "y1s1-s-u9-1", "question": "What is a standardized test?", "answer": "Test administered and scored in a consistent manner.", "difficulty": "Moderate" }] }
       ]
     }
   ]

@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { X, Sparkles, Loader2 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import { generateFlashcardWithAI } from '../utils/ai';
-import MobileFriendlySelect from './MobileFriendlySelect';
 
 const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   const [isGenerating, setIsGenerating] = useState(false);

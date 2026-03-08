@@ -11,15 +11,10 @@
       "course_code": "NUS 211",
       "title": "Anatomy and Physiology III",
       "units": [
-        {
-          "unit_number": "Unit III",
-          "title": "The Nervous System",
-          "flashcards": [
-            { "id": "y2s1-a-u3-1", "question": "Name the 12 cranial nerves.", "answer": "I Olfactory, II Optic, III Oculomotor, IV Trochlear, V Trigeminal, VI Abducens, VII Facial, VIII Vestibulocochlear, IX Glossopharyngeal, X Vagus, XI Accessory, XII Hypoglossal.", "difficulty": "Hard" },
-            { "id": "y2s1-a-u3-9", "question": "What is the function of the Blood-Brain Barrier (BBB)?", "answer": "To protect the brain from harmful substances in the blood while allowing essential nutrients to pass through.", "difficulty": "Hard" },
-            { "id": "y2s1-a-u3-10", "question": "What is the difference between Sympathetic and Parasympathetic nervous systems?", "answer": "Sympathetic: 'Fight or Flight' (increases HR); Parasympathetic: 'Rest and Digest' (decreases HR).", "difficulty": "Moderate" }
-          ]
-        }
+        { "unit_number": "Unit I", "title": "Integumentary System", "flashcards": [{ "id": "y2s1-a-u1-1", "question": "List the layers of the skin.", "answer": "Epidermis, Dermis, Hypodermis.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit II", "title": "Endocrine System", "flashcards": [{ "id": "y2s1-a-u2-1", "question": "What is the 'Master Gland'?", "answer": "The Pituitary Gland.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit III", "title": "Nervous System", "flashcards": [{ "id": "y2s1-a-u3-1", "question": "Name the 12 cranial nerves.", "answer": "I Olfactory, II Optic, III Oculomotor, IV Trochlear, V Trigeminal, VI Abducens, VII Facial, VIII Vestibulocochlear, IX Glossopharyngeal, X Vagus, XI Accessory, XII Hypoglossal.", "difficulty": "Hard" }] },
+        { "unit_number": "Unit IV", "title": "Special Senses", "flashcards": [{ "id": "y2s1-a-u4-1", "question": "Name the special senses.", "answer": "Sight, hearing, smell, taste, touch.", "difficulty": "Easy" }] }
       ]
     },
     {
@@ -27,22 +22,10 @@
       "course_code": "NUR 211",
       "title": "Foundation of Nursing III",
       "units": [
-        {
-          "unit_number": "Unit I",
-          "title": "Feeding and Elimination",
-          "flashcards": [
-            { "id": "y2s1-f-u1-1", "question": "What is Gastrostomy feeding?", "answer": "Feeding directly into the stomach through an opening in the abdominal wall.", "difficulty": "Moderate" },
-            { "id": "y2s1-f-u1-2", "question": "Define 'Fecal Impaction'.", "answer": "A large, hard mass of stool that gets stuck in the rectum and cannot be passed.", "difficulty": "Moderate" }
-          ]
-        },
-        {
-          "unit_number": "Unit III",
-          "title": "Basic Life Support",
-          "flashcards": [
-            { "id": "y2s1-f-u3-1", "question": "What is the compression-to-ventilation ratio for adult CPR?", "answer": "30:2.", "difficulty": "Moderate", "isImportant": true },
-            { "id": "y2s1-f-u3-2", "question": "Where do you check the pulse in an unconscious adult during BLS?", "answer": "Carotid artery.", "difficulty": "Easy" }
-          ]
-        }
+        { "unit_number": "Unit I", "title": "Feeding/Elimination Problems", "flashcards": [{ "id": "y2s1-f-u1-1", "question": "What is Gastrostomy feeding?", "answer": "Feeding directly into the stomach through an opening.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit II", "title": "Urinary Problems", "flashcards": [{ "id": "y2s1-f-u2-1", "question": "Define Urinary Retention.", "answer": "Inability to empty the bladder completely.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit III", "title": "Basic Life Support", "flashcards": [{ "id": "y2s1-f-u3-1", "question": "What is the compression-to-ventilation ratio for adult CPR?", "answer": "30:2.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit IV", "title": "Technologies", "flashcards": [{ "id": "y2s1-f-u4-1", "question": "What is a pulse-oximeter used for?", "answer": "Measuring oxygen saturation in the blood.", "difficulty": "Easy" }] }
       ]
     },
     {
@@ -50,14 +33,59 @@
       "course_code": "NUR 222",
       "title": "Medical-Surgical Nursing II",
       "units": [
-        {
-          "unit_number": "Unit I",
-          "title": "Respiratory System Problems",
-          "flashcards": [
-            { "id": "y2s1-ms-u1-1", "question": "What is a Tracheostomy?", "answer": "Surgical creation of an opening into the trachea to provide an airway.", "difficulty": "Moderate" },
-            { "id": "y2s1-ms-u1-2", "question": "Define 'Pneumothorax'.", "answer": "Presence of air in the pleural cavity, which can cause the lung to collapse.", "difficulty": "Hard" }
-          ]
-        }
+        { "unit_number": "Unit I", "title": "Respiratory Problems", "flashcards": [{ "id": "y2s1-ms-u1-1", "question": "What is a Tracheostomy?", "answer": "Surgical opening in the trachea to provide an airway.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit II", "title": "Digestive Problems", "flashcards": [{ "id": "y2s1-ms-u2-1", "question": "Define GERD.", "answer": "Gastroesophageal Reflux Disease.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit III", "title": "Genito-Urinary Problems", "flashcards": [{ "id": "y2s1-ms-u3-1", "question": "What is Renal Failure?", "answer": "Condition where kidneys lose ability to remove waste.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit IV", "title": "Integumentary Problems", "flashcards": [{ "id": "y2s1-ms-u4-1", "question": "How are burns classified?", "answer": "By depth (1st, 2nd, 3rd, 4th degree).", "difficulty": "Easy" }] }
+      ]
+    },
+    {
+      "id": "phc-201",
+      "course_code": "NUR 212",
+      "title": "Primary Health Care II",
+      "units": [
+        { "unit_number": "Unit I", "title": "Components of PHC", "flashcards": [{ "id": "y2s1-phc-u1-1", "question": "What are the four pillars of safe motherhood?", "answer": "FP, ANC, Clean Delivery, EOC.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit II", "title": "Training", "flashcards": [{ "id": "y2s1-phc-u2-1", "question": "What is a training needs assessment?", "answer": "Process of identifying gap between current and desired skills.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit III", "title": "Management in PHC", "flashcards": [{ "id": "y2s1-phc-u3-1", "question": "What is a PHC Information System?", "answer": "System for collecting and analyzing community health data.", "difficulty": "Moderate" }] }
+      ]
+    },
+    {
+      "id": "pharm-201",
+      "course_code": "NUS 213",
+      "title": "Pharmacology II",
+      "units": [
+        { "unit_number": "Unit I", "title": "National Drug Policy", "flashcards": [{ "id": "y2s1-p-u1-1", "question": "What is the Essential Drug List?", "answer": "List of drugs that satisfy priority healthcare needs.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit II", "title": "Pharmacovigilance", "flashcards": [{ "id": "y2s1-p-u2-1", "question": "Define Pharmacovigilance.", "answer": "Monitoring of drug safety and adverse reactions.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit III", "title": "Drug Revolving Fund", "flashcards": [{ "id": "y2s1-p-u3-1", "question": "What is a DRF?", "answer": "Drug Revolving Fund; mechanism for sustainable drug supply.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit IV", "title": "Patient Education", "flashcards": [{ "id": "y2s1-p-u4-1", "question": "Why is drug compliance important?", "answer": "To ensure therapeutic effectiveness and prevent resistance.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit V", "title": "Drugs for Special Conditions", "flashcards": [{ "id": "y2s1-p-u5-1", "question": "What are cytotoxic drugs?", "answer": "Drugs used to kill cancer cells.", "difficulty": "Moderate" }] }
+      ]
+    },
+    {
+      "id": "rh-201",
+      "course_code": "NUR 223",
+      "title": "Reproductive Health I",
+      "units": [
+        { "unit_number": "Unit I", "title": "Introduction", "flashcards": [{ "id": "y2s1-rh-u1-1", "question": "Define Reproductive Health.", "answer": "State of well-being in all matters relating to reproductive system.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit II", "title": "Human Sexuality", "flashcards": [{ "id": "y2s1-rh-u2-1", "question": "What is Family Life Education?", "answer": "Education about relationships, sexuality, and health.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit III", "title": "Review of Organs", "flashcards": [{ "id": "y2s1-rh-u3-1", "question": "List female internal reproductive organs.", "answer": "Vagina, Uterus, Fallopian tubes, Ovaries.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit IV", "title": "Procedures", "flashcards": [{ "id": "y2s1-rh-u4-1", "question": "What is a D&C?", "answer": "Dilation and Curettage.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit V", "title": "Gynecological Conditions", "flashcards": [{ "id": "y2s1-rh-u5-1", "question": "What are fibroids?", "answer": "Noncancerous growths in the uterus.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit VI", "title": "STIs and Infertility", "flashcards": [{ "id": "y2s1-rh-u6-1", "question": "Define Infertility.", "answer": "Inability to conceive after one year of unprotected intercourse.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit VII", "title": "HIV/AIDS", "flashcards": [{ "id": "y2s1-rh-u7-1", "question": "Define PMTCT.", "answer": "Prevention of Mother-to-Child Transmission.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit VIII", "title": "Harmful Practices", "flashcards": [{ "id": "y2s1-rh-u8-1", "question": "Define FGM.", "answer": "Female Genital Mutilation.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit IX", "title": "IEC in RH", "flashcards": [{ "id": "y2s1-rh-u9-1", "question": "What is advocacy in reproductive health?", "answer": "Action to influence policy and resource allocation.", "difficulty": "Moderate" }] }
+      ]
+    },
+    {
+      "id": "research-201",
+      "course_code": "NUR 214",
+      "title": "Research and Statistics I",
+      "units": [
+        { "unit_number": "Unit I", "title": "Overview", "flashcards": [{ "id": "y2s1-r-u1-1", "question": "What is Nursing Research?", "answer": "Systematic investigation to develop knowledge about nursing.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit II", "title": "Functions", "flashcards": [{ "id": "y2s1-r-u2-1", "question": "List a function of research in nursing.", "answer": "Improve patient outcomes.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit III", "title": "Steps", "flashcards": [{ "id": "y2s1-r-u3-1", "question": "What is the first step of research?", "answer": "Problem identification.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit IV", "title": "Measurement/Statistics", "flashcards": [{ "id": "y2s1-r-u4-1", "question": "Define Mean, Median, and Mode.", "answer": "Mean: average; Median: middle; Mode: most frequent.", "difficulty": "Easy" }] }
       ]
     }
   ]

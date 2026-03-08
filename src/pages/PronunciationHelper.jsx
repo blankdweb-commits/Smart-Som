@@ -63,7 +63,7 @@ const PronunciationHelper = () => {
   return (
     <div className="space-y-6 pb-20">
       <header>
-        <h2 className="text-3xl font-bold text-slate-800 dark:text-white">Pronunciation Helper</h2>
+        <h2 className="text-3xl font-bold text-slate-800 dark:text-white">Medical Pronunciation Helper</h2>
         <p className="text-slate-600 dark:text-slate-400">Master difficult medical terminology with audio guidance.</p>
       </header>
 

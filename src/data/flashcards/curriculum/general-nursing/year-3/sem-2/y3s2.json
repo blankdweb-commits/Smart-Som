@@ -11,22 +11,35 @@
       "course_code": "NUR 3xx",
       "title": "Medical Surgical Nursing V",
       "units": [
-        {
-          "unit_number": "Unit I",
-          "title": "Oncology",
-          "flashcards": [
-            { "id": "y3s2-ms-u1-1", "question": "Differentiate between benign and malignant tumors.", "answer": "Benign are non-cancerous and don't spread; Malignant are cancerous and can invade other tissues.", "difficulty": "Moderate" },
-            { "id": "y3s2-ms-u1-2", "question": "What is Chemotherapy?", "answer": "The use of powerful chemicals to kill fast-growing cells in your body.", "difficulty": "Easy" }
-          ]
-        },
-        {
-          "unit_number": "Unit IV",
-          "title": "Overview of Palliative Care",
-          "flashcards": [
-            { "id": "y3s2-ms-u4-1", "question": "What is the primary goal of Palliative Care?", "answer": "To improve the quality of life for both the patient and the family by providing relief from symptoms and stress of a serious illness.", "difficulty": "Moderate" },
-            { "id": "y3s2-ms-u4-2", "question": "Define 'Bereavement'.", "answer": "The state of having suffered a loss, typically referring to the period after the death of a loved one.", "difficulty": "Easy" }
-          ]
-        }
+        { "unit_number": "Unit I", "title": "Oncology", "flashcards": [{ "id": "y3s2-ms-u1-1", "question": "What is Chemotherapy?", "answer": "Use of chemicals to treat cancer.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit II", "title": "Critical Care", "flashcards": [{ "id": "y3s2-ms-u2-1", "question": "What is an ICU?", "answer": "Intensive Care Unit.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit III", "title": "Gerontology", "flashcards": [{ "id": "y3s2-ms-u3-1", "question": "Define Gerontology.", "answer": "Study of aging.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit IV", "title": "Palliative Care", "flashcards": [{ "id": "y3s2-ms-u4-1", "question": "Goal of Palliative Care?", "answer": "Improve quality of life for terminally ill.", "difficulty": "Easy" }] }
+      ]
+    },
+    {
+      "id": "hhc-301",
+      "course_code": "NUR 3xx",
+      "title": "Home Health Care Nursing",
+      "units": [
+        { "unit_number": "Unit I", "title": "Introduction", "flashcards": [{ "id": "y3s2-h-u1-1", "question": "Define Home Health Care.", "answer": "Medical care provided in a patient's home.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit II", "title": "Implications", "flashcards": [{ "id": "y3s2-h-u2-1", "question": "Why is communication key in HHC?", "answer": "To coordinate care with family and team.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit III", "title": "Across Lifespan", "flashcards": [{ "id": "y3s2-h-u3-1", "question": "Who benefits from HHC?", "answer": "Elderly, children, postpartum mothers.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit IV", "title": "Disease Conditions", "flashcards": [{ "id": "y3s2-h-u4-1", "question": "Role of HHC in chronic disease?", "answer": "Monitoring and education to prevent hospital visits.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit V", "title": "Nursing Homes", "flashcards": [{ "id": "y3s2-h-u5-1", "question": "What is a Nursing Home?", "answer": "Residential facility providing 24/7 care.", "difficulty": "Easy" }] }
+      ]
+    },
+    {
+      "id": "rh-302",
+      "course_code": "NUR 3xx",
+      "title": "Reproductive Health V",
+      "units": [
+        { "unit_number": "Unit I", "title": "Hospitalized Child", "flashcards": [{ "id": "y3s2-rh-u1-1", "question": "Reaction of child to hospital?", "answer": "Fear, separation anxiety.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit II", "title": "Congenital Abnormalities", "flashcards": [{ "id": "y3s2-rh-u2-1", "question": "What is spina bifida?", "answer": "Defect in the spinal column.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit III", "title": "Neonatal Conditions", "flashcards": [{ "id": "y3s2-rh-u3-1", "question": "What is neonatal jaundice?", "answer": "Yellowing of skin in newborns.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit IV", "title": "IMCI", "flashcards": [{ "id": "y3s2-rh-u4-1", "question": "What is IMCI?", "answer": "Integrated Management of Childhood Illness.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit V", "title": "HIV in Children", "flashcards": [{ "id": "y3s2-rh-u5-1", "question": "How is HIV transmitted to children?", "answer": "Mother-to-child during birth or breastfeeding.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit VI", "title": "TB in Children", "flashcards": [{ "id": "y3s2-rh-u6-1", "question": "Is TB curable in children?", "answer": "Yes, with proper antibiotic course.", "difficulty": "Easy" }] }
       ]
     },
     {
@@ -34,21 +47,16 @@
       "course_code": "NUR 3xx",
       "title": "Principle of Management and Teaching",
       "units": [
-        {
-          "unit_number": "Unit II",
-          "title": "Objectives in Health Administration",
-          "flashcards": [
-            { "id": "y3s2-p-u2-1", "question": "What is Management by Objectives (MBO)?", "answer": "A management model that aims to improve organizational performance by clearly defining objectives that are agreed to by both management and employees.", "difficulty": "Hard" }
-          ]
-        },
-        {
-          "unit_number": "Unit V",
-          "title": "Conflict Management and Resolution",
-          "flashcards": [
-            { "id": "y3s2-p-u5-1", "question": "Name a conflict resolution strategy.", "answer": "Collaboration, Compromise, or Accommodation.", "difficulty": "Moderate" },
-            { "id": "y3s2-p-u5-2", "question": "What is 'Mediation'?", "answer": "Intervention in a dispute in order to resolve it; a neutral third party helps the parties reach an agreement.", "difficulty": "Moderate" }
-          ]
-        }
+        { "unit_number": "Unit I", "title": "Management", "flashcards": [{ "id": "y3s2-p-u1-1", "question": "Functions of management?", "answer": "Planning, Organizing, Staffing, Directing, Controlling.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit II", "title": "Administration", "flashcards": [{ "id": "y3s2-p-u2-1", "question": "What is MBO?", "answer": "Management by Objectives.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit III", "title": "Leadership", "flashcards": [{ "id": "y3s2-p-u3-1", "question": "Name a leadership style.", "answer": "Democratic, Autocratic, Laissez-faire.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit IV", "title": "Resource Management", "flashcards": [{ "id": "y3s2-p-u4-1", "question": "List key resources in health.", "answer": "Man, Money, Material, Time.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit V", "title": "Conflict Management", "flashcards": [{ "id": "y3s2-p-u5-1", "question": "What is conflict resolution?", "answer": "Finding a solution to a disagreement.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit VI", "title": "Application", "flashcards": [{ "id": "y3s2-p-u6-1", "question": "Role of nurse in unit management?", "answer": "Coordination and supervision of care.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit VII", "title": "Collaboration", "flashcards": [{ "id": "y3s2-p-u7-1", "question": "What is inter-professional collaboration?", "answer": "Working across different health disciplines.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit VIII", "title": "Teaching", "flashcards": [{ "id": "y3s2-p-u8-1", "question": "What is a lesson plan?", "answer": "Detailed outline for teaching a session.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit IX", "title": "Evaluation", "flashcards": [{ "id": "y3s2-p-u9-1", "question": "What is a management audit?", "answer": "Systematic review of management efficiency.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit X", "title": "Administrative Laws", "flashcards": [{ "id": "y3s2-p-u10-1", "question": "What is vicarious liability?", "answer": "Employer responsible for employee actions.", "difficulty": "Hard" }] }
       ]
     },
     {
@@ -56,14 +64,24 @@
       "course_code": "NUR 3xx",
       "title": "Health Economics",
       "units": [
-        {
-          "unit_number": "Unit IV",
-          "title": "Health Care Financing",
-          "flashcards": [
-            { "id": "y3s2-he-u4-1", "question": "What is the NHIS in Nigeria?", "answer": "National Health Insurance Scheme; a corporate body established to improve access to health care for all Nigerians.", "difficulty": "Moderate" },
-            { "id": "y3s2-he-u4-2", "question": "Define 'Equity' in healthcare financing.", "answer": "The principle that individuals should contribute to the costs of healthcare according to their ability to pay, but should receive care according to their need.", "difficulty": "Hard" }
-          ]
-        }
+        { "unit_number": "Unit I", "title": "Introduction", "flashcards": [{ "id": "y3s2-he-u1-1", "question": "Define opportunity cost.", "answer": "Value of the next best alternative given up.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit II", "title": "Nigeria's Economy", "flashcards": [{ "id": "y3s2-he-u2-1", "question": "What is GDP?", "answer": "Gross Domestic Product.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit III", "title": "Health Policy", "flashcards": [{ "id": "y3s2-he-u3-1", "question": "Goal of National Health Policy?", "answer": "To achieve health for all.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit IV", "title": "Financing", "flashcards": [{ "id": "y3s2-he-u4-1", "question": "What is NHIS?", "answer": "National Health Insurance Scheme.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit V", "title": "Influences", "flashcards": [{ "id": "y3s2-he-u5-1", "question": "How does funding affect health?", "answer": "Influences availability of drugs and staff.", "difficulty": "Easy" }] }
+      ]
+    },
+    {
+      "id": "ent-301",
+      "course_code": "EEd 216",
+      "title": "Entrepreneurship in Nursing",
+      "units": [
+        { "unit_number": "Unit I", "title": "Entrepreneurship", "flashcards": [{ "id": "y3s2-en-u1-1", "question": "Define Entrepreneur.", "answer": "Person who starts a business.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit II", "title": "Journey", "flashcards": [{ "id": "y3s2-en-u2-1", "question": "What is innovation?", "answer": "Introducing new ideas or methods.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit III", "title": "Success Factors", "flashcards": [{ "id": "y3s2-en-u3-1", "question": "List a success factor for a business.", "answer": "Market knowledge, capital.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit IV", "title": "Nursing Entrepreneurship", "flashcards": [{ "id": "y3s2-en-u4-1", "question": "Give example of nursing entrepreneurship.", "answer": "Private clinic, nursing home.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit V", "title": "Opportunities", "flashcards": [{ "id": "y3s2-en-u5-1", "question": "Opportunity for nurses in Nigeria?", "answer": "Maternity home establishment.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit VI", "title": "Transition", "flashcards": [{ "id": "y3s2-en-u6-1", "question": "What is mentorship?", "answer": "Guidance by an experienced person.", "difficulty": "Easy" }] }
       ]
     }
   ]

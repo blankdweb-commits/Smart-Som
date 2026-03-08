@@ -11,13 +11,7 @@
       "course_code": "MID 121",
       "title": "Foundation of Midwifery I",
       "units": [
-        {
-          "unit_number": "Unit I",
-          "title": "Antenatal Care",
-          "flashcards": [
-            { "id": "m1s2-f-1", "question": "What is the primary goal of Antenatal Care?", "answer": "To ensure the best possible health outcome for both the mother and the baby through monitoring, screening, and education.", "difficulty": "Easy", "isImportant": true }
-          ]
-        }
+        { "unit_number": "Unit I", "title": "Antenatal Care", "flashcards": [{ "id": "m1s2-f-1", "question": "What is the goal of Antenatal Care?", "answer": "Ensure best health outcome for mother and baby.", "difficulty": "Easy" }] }
       ]
     }
   ]

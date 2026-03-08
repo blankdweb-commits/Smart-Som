@@ -11,14 +11,10 @@
       "course_code": "NUR 3xx",
       "title": "Medical Surgical Nursing IV",
       "units": [
-        {
-          "unit_number": "Unit II",
-          "title": "Haematological System Problems",
-          "flashcards": [
-            { "id": "y3s1-ms-u2-1", "question": "What is Sickle Cell Anemia?", "answer": "Genetic blood disorder where RBCs take on an abnormal sickle shape.", "difficulty": "Moderate" },
-            { "id": "y3s1-ms-u2-3", "question": "Define 'Polycythemia'.", "answer": "An abnormally increased concentration of hemoglobin in the blood, through either reduction of plasma volume or increase in red cell numbers.", "difficulty": "Hard" }
-          ]
-        }
+        { "unit_number": "Unit I", "title": "Reproductive Disorders", "flashcards": [{ "id": "y3s1-ms-u1-1", "question": "What is BPH?", "answer": "Benign Prostatic Hyperplasia.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit II", "title": "Haematological Problems", "flashcards": [{ "id": "y3s1-ms-u2-1", "question": "Define Anaemia.", "answer": "Condition with low RBC count or hemoglobin.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit III", "title": "Special Senses", "flashcards": [{ "id": "y3s1-ms-u3-1", "question": "What is Glaucoma?", "answer": "Increased intraocular pressure damaging optic nerve.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit IV", "title": "Procedures", "flashcards": [{ "id": "y3s1-ms-u4-1", "question": "What is circumcision?", "answer": "Surgical removal of the foreskin.", "difficulty": "Easy" }] }
       ]
     },
     {
@@ -26,28 +22,63 @@
       "course_code": "NUR 3xx",
       "title": "Reproductive Health III",
       "units": [
-        {
-          "unit_number": "Unit VI",
-          "title": "The Adolescent/Youth",
-          "flashcards": [
-            { "id": "y3s1-rh-u6-1", "question": "What are 'Adolescent Friendly Health Services'?", "answer": "Health services that are accessible, acceptable, equitable, appropriate and effective for adolescents.", "difficulty": "Moderate" }
-          ]
-        }
+        { "unit_number": "Unit I", "title": "Growth & Development", "flashcards": [{ "id": "y3s1-rh-u1-1", "question": "What are developmental milestones?", "answer": "Behaviors or physical skills seen in infants and children as they grow.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit II", "title": "Nutritional Needs", "flashcards": [{ "id": "y3s1-rh-u2-1", "question": "What is Weaning?", "answer": "Gradual replacement of breast milk with other foods.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit III", "title": "Child Survival", "flashcards": [{ "id": "y3s1-rh-u3-1", "question": "What is ORT?", "answer": "Oral Rehydration Therapy.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit IV", "title": "Vaccines", "flashcards": [{ "id": "y3s1-rh-u4-1", "question": "Name a vaccine in the NPI schedule.", "answer": "BCG, Pentavalent, OPV.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit V", "title": "Developmental Problems", "flashcards": [{ "id": "y3s1-rh-u5-1", "question": "What is PEM?", "answer": "Protein Energy Malnutrition.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit VI", "title": "Adolescent/Youth", "flashcards": [{ "id": "y3s1-rh-u6-1", "question": "Define Adolescence.", "answer": "Period from childhood to adulthood.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit VII", "title": "Gender Equality", "flashcards": [{ "id": "y3s1-rh-u7-1", "question": "What is GBV?", "answer": "Gender-Based Violence.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit VIII", "title": "Quality/Safety", "flashcards": [{ "id": "y3s1-rh-u8-1", "question": "What is Patient Safety?", "answer": "Prevention of harm to patients.", "difficulty": "Easy" }] }
+      ]
+    },
+    {
+      "id": "chn-301",
+      "course_code": "NUR 3xx",
+      "title": "Community Health Nursing II",
+      "units": [
+        { "unit_number": "Unit I", "title": "Intro to Epidemiology", "flashcards": [{ "id": "y3s1-c-u1-1", "question": "Define Epidemiology.", "answer": "Study of disease distribution and determinants in populations.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit II", "title": "Communicable Diseases", "flashcards": [{ "id": "y3s1-c-u2-1", "question": "Name a gastrointestinal infection.", "answer": "Cholera, Typhoid.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit III", "title": "Non-Communicable Diseases", "flashcards": [{ "id": "y3s1-c-u3-1", "question": "Name a chronic non-communicable disease.", "answer": "Hypertension, Diabetes.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit IV", "title": "Data Collection", "flashcards": [{ "id": "y3s1-c-u4-1", "question": "What are vital statistics?", "answer": "Records of births, deaths, marriages.", "difficulty": "Easy" }] }
+      ]
+    },
+    {
+      "id": "mh-301",
+      "course_code": "NUR 224",
+      "title": "Mental Health Nursing",
+      "units": [
+        { "unit_number": "Unit I", "title": "Concepts", "flashcards": [{ "id": "y3s1-m-u1-1", "question": "Define Mental Health.", "answer": "State of well-being where one realizes their own potential.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit II", "title": "Disorders", "flashcards": [{ "id": "y3s1-m-u2-1", "question": "What is Schizophrenia?", "answer": "Disorder affecting thinking, feeling, and behavior.", "difficulty": "Hard" }] },
+        { "unit_number": "Unit III", "title": "Management", "flashcards": [{ "id": "y3s1-m-u3-1", "question": "What is Psychotherapy?", "answer": "Talking treatment for mental disorders.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit IV", "title": "Community MH", "flashcards": [{ "id": "y3s1-m-u4-1", "question": "What is a home visit in MH?", "answer": "Visiting patients in their community for care.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit V", "title": "Rehabilitation", "flashcards": [{ "id": "y3s1-m-u5-1", "question": "What is a half-way house?", "answer": "Transitional living facility for those recovering from MH issues.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit VI", "title": "MHPSS", "flashcards": [{ "id": "y3s1-m-u6-1", "question": "What is MHPSS?", "answer": "Mental Health and Psychosocial Support.", "difficulty": "Moderate" }] }
+      ]
+    },
+    {
+      "id": "edn-301",
+      "course_code": "NUR 3xx",
+      "title": "Emergency & Disaster Nursing",
+      "units": [
+        { "unit_number": "Unit I", "title": "Concepts", "flashcards": [{ "id": "y3s1-e-u1-1", "question": "Define Disaster.", "answer": "Sudden catastrophic event causing widespread damage.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit II", "title": "Life-threatening Situations", "flashcards": [{ "id": "y3s1-e-u2-1", "question": "Name a life-threatening situation.", "answer": "Cardiac arrest, Asphyxia.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit III", "title": "BLS Management", "flashcards": [{ "id": "y3s1-e-u3-1", "question": "What is Triage?", "answer": "Prioritizing patients based on severity.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit IV", "title": "Hospital Management", "flashcards": [{ "id": "y3s1-e-u4-1", "question": "What is an AED?", "answer": "Automated External Defibrillator.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit V", "title": "Disaster Management", "flashcards": [{ "id": "y3s1-e-u5-1", "question": "What is a search and rescue operation?", "answer": "Finding and helping people in danger.", "difficulty": "Easy" }] }
       ]
     },
     {
       "id": "qi-301",
       "course_code": "NUR 3xx",
-      "title": "Quality Improvement in Healthcare",
+      "title": "Quality Improvement & Safety",
       "units": [
-        {
-          "unit_number": "Unit V",
-          "title": "Introduction to Patient Safety",
-          "flashcards": [
-            { "id": "y3s1-q-u5-1", "question": "Define 'Adverse Event' in healthcare.", "answer": "An injury caused by medical management rather than the underlying condition of the patient.", "difficulty": "Hard" },
-            { "id": "y3s1-q-u5-2", "question": "What is a 'Just Culture' in healthcare?", "answer": "A culture that recognizes that individual practitioners should not be held accountable for system failings over which they have no control.", "difficulty": "Hard" }
-          ]
-        }
+        { "unit_number": "Unit I", "title": "Data Use", "flashcards": [{ "id": "y3s1-q-u1-1", "question": "What is a run chart?", "answer": "Graph of data over time.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit II", "title": "Introduction to QI", "flashcards": [{ "id": "y3s1-q-u2-1", "question": "What is the science of improvement?", "answer": "Applied science for rapid change.", "difficulty": "Hard" }] },
+        { "unit_number": "Unit III", "title": "Tests of Change", "flashcards": [{ "id": "y3s1-q-u3-1", "question": "What is PDSA?", "answer": "Plan-Do-Study-Act.", "difficulty": "Easy" }] },
+        { "unit_number": "Unit IV", "title": "Assurance/Risk", "flashcards": [{ "id": "y3s1-q-u4-1", "question": "What is a nursing audit?", "answer": "Review of nursing records and practices.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit V", "title": "Patient Safety", "flashcards": [{ "id": "y3s1-q-u5-1", "question": "What is an adverse event?", "answer": "Harm caused by medical care.", "difficulty": "Moderate" }] },
+        { "unit_number": "Unit VI", "title": "Accountability", "flashcards": [{ "id": "y3s1-q-u6-1", "question": "What is a Just Culture?", "answer": "Culture focused on safety and reporting without fear.", "difficulty": "Hard" }] }
       ]
     }
   ]

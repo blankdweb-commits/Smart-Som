@@ -4,7 +4,6 @@ import FlashcardCard from '../components/FlashcardCard';
 import FlashcardForm from '../components/FlashcardForm';
 import ShareModal from '../components/ShareModal';
 import Toast from '../components/Toast';
-import MobileFriendlySelect from './MobileFriendlySelect';
 import { Plus, Search, Filter, Play, Shuffle, List, ChevronLeft, ChevronRight, Award, Download, Upload, Share2, Folder, Book, ArrowLeft } from 'lucide-react';
 
 const SRSButton = ({ label, sublabel, color, onClick }) => (

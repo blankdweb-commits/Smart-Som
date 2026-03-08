@@ -3,7 +3,7 @@ import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Sun, Moon, Menu, X, Award, Users } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
-const Sidebar = ({ isOpen, setIsOpen }) => {
+const Sidebar = () => {
   const { darkMode } = useAppContext();
 
   const navItems = [
@@ -19,23 +19,18 @@ const Sidebar = ({ isOpen, setIsOpen }) => {
   return (
     <>
       {/* Sidebar - hidden on mobile, visible on large screens */}
-      <div className={`
-        fixed inset-y-0 left-0 z-50 w-64 bg-white dark:bg-slate-800 shadow-xl transform transition-transform duration-300 ease-in-out
-        ${isOpen ? 'translate-x-0' : '-translate-x-full'}
-        lg:translate-x-0 lg:static lg:inset-0
-      `}>
-        <div className="flex flex-col h-full">
+      <div className="hidden lg:block w-64 bg-white dark:bg-slate-800 border-r border-slate-100 dark:border-slate-800 transition-all duration-300">
+        <div className="flex flex-col h-full sticky top-0">
           <div className="p-6">
             <h1 className="text-2xl font-bold text-medical-600 dark:text-medical-400">NursingHub</h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Flashcard Learning System</p>
+            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-bold uppercase tracking-widest">Medical Learning</p>
           </div>
 
-          <nav className="flex-1 px-4 space-y-1">
+          <nav className="flex-1 px-4 space-y-1 mt-4">
             {navItems.map((item) => (
               <NavLink
                 key={item.name}
                 to={item.path}
-                onClick={() => setIsOpen(false)}
                 className={({ isActive }) => `
                   flex items-center px-4 py-3 rounded-xl transition-all duration-200
                   ${isActive
