@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Sun, Moon, Menu, X, Award, Users } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Sun, Moon, Menu, X, Award, Users, Search } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 const Sidebar = () => {
@@ -11,6 +11,7 @@ const Sidebar = () => {
     { name: 'Academic Cards', icon: BookOpen, path: '/flashcards' },
     { name: 'Professional Prep', icon: Award, path: '/prep' },
     { name: 'Exam Timetable', icon: Calendar, path: '/exams' },
+    { name: 'Clinical Search', icon: Search, path: '/search' },
     { name: 'Pronunciation', icon: Volume2, path: '/pronunciation' },
     { name: 'Community', icon: Users, path: '/community' },
     { name: 'Settings', icon: Settings, path: '/settings' },

@@ -11,12 +11,15 @@
       "course_code": "NUR 122",
       "title": "Primary Health Care I",
       "units": [
-        { "unit_number": "Unit I", "title": "Introduction to PHC", "flashcards": [{ "id": "y1s2-phc-u1-1", "question": "Define Primary Health Care (PHC).", "answer": "Essential health care made universally accessible to individuals and families.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit II", "title": "The Community", "flashcards": [{ "id": "y1s2-phc-u2-1", "question": "List the cadres of PHC workers in Nigeria.", "answer": "CHEWs, CHOs, Midwives, PHNs, Community Physicians.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit III", "title": "Community Diagnosis", "flashcards": [{ "id": "y1s2-phc-u3-1", "question": "What is community diagnosis?", "answer": "Identification and quantification of health problems in a community.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit IV", "title": "Community Mobilization", "flashcards": [{ "id": "y1s2-phc-u4-1", "question": "What is community mobilization?", "answer": "Process of bringing people together to take action on community issues.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit V", "title": "IEC", "flashcards": [{ "id": "y1s2-phc-u5-1", "question": "What is BCC?", "answer": "Behavioural Change Communication.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit VI", "title": "Clinical Skills in PHC", "flashcards": [{ "id": "y1s2-phc-u6-1", "question": "What is the mid-upper arm circumference (MUAC) strip used for?", "answer": "Nutritional assessment of children.", "difficulty": "Easy" }] }
+        { "unit_number": "Unit I", "title": "Introduction to PHC", "flashcards": [
+          { "id": "y1s2-phc-u1-1", "question": "Define Primary Health Care (PHC).", "answer": "Essential health care made universally accessible to individuals and families.", "difficulty": "Easy" },
+          { "id": "y1s2-phc-u1-2", "question": "What was the Alma-Ata Declaration?", "answer": "The 1978 conference that identified PHC as the key to attaining 'Health for All'.", "difficulty": "Moderate", "important": true },
+          { "id": "y1s2-phc-u1-3", "question": "List the 5 principles of PHC.", "answer": "Equity, Community participation, Intersectoral collaboration, Appropriate technology, Focus on prevention.", "difficulty": "Hard", "important": true }
+        ] },
+        { "unit_number": "Unit II", "title": "The Community", "flashcards": [
+          { "id": "y1s2-phc-u2-1", "question": "List the cadres of PHC workers in Nigeria.", "answer": "CHEWs, CHOs, Midwives, PHNs, Community Physicians.", "difficulty": "Moderate" },
+          { "id": "y1s2-phc-u2-2", "question": "What is the role of a Village Health Worker (VHW)?", "answer": "To serve as a link between the community and the health facility.", "difficulty": "Easy" }
+        ] }
       ]
     },
     {
@@ -24,12 +27,22 @@
       "course_code": "NUS 125",
       "title": "Pharmacology I",
       "units": [
-        { "unit_number": "Unit I", "title": "Introduction", "flashcards": [{ "id": "y1s2-p-u1-1", "question": "Define Pharmacology.", "answer": "Study of drugs and their actions.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit II", "title": "Sources and Classification", "flashcards": [{ "id": "y1s2-p-u2-1", "question": "Name two sources of drugs.", "answer": "Plants, Animals, Minerals, Synthetic.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit III", "title": "Preparation of Drugs", "flashcards": [{ "id": "y1s2-p-u3-1", "question": "Define drug abuse.", "answer": "Excessive or inappropriate use of a drug.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit IV", "title": "Routes of Administration", "flashcards": [{ "id": "y1s2-p-u4-1", "question": "List the five rights of drug administration.", "answer": "Patient, Drug, Dose, Route, Time.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit V", "title": "Safety", "flashcards": [{ "id": "y1s2-p-u5-1", "question": "How should drugs be handled safely?", "answer": "Proper storage, accurate record-keeping, and following control measures.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit VI", "title": "Mechanism of Drug Action", "flashcards": [{ "id": "y1s2-p-u6-1", "question": "Define 'Pharmacokinetics'.", "answer": "What the body does to the drug (ADME).", "difficulty": "Moderate" }] }
+        { "unit_number": "Unit IV", "title": "Routes of Administration", "flashcards": [
+          { "id": "y1s2-p-u4-1", "question": "List the five rights of drug administration.", "answer": "Right Patient, Right Drug, Right Dose, Right Route, Right Time.", "difficulty": "Easy", "important": true },
+          { "id": "y1s2-p-u4-2", "question": "What is the angle for an Intramuscular (IM) injection?", "answer": "90 degrees.", "difficulty": "Easy" },
+          { "id": "y1s2-p-u4-3", "question": "What is the angle for a Subcutaneous injection?", "answer": "45 or 90 degrees depending on fat tissue.", "difficulty": "Moderate" },
+          { "id": "y1s2-p-u4-4", "question": "What is the first-pass effect?", "answer": "Metabolism of a drug by the liver before it reaches systemic circulation.", "difficulty": "Hard" },
+          { "id": "y1s2-p-u4-5", "question": "Why is the Sublingual route faster than Oral?", "answer": "It bypasses the digestive tract and liver (absorption directly into capillaries).", "difficulty": "Moderate" },
+          { "id": "y1s2-p-u4-6", "question": "Define 'Infiltration' in IV therapy.", "answer": "Leakage of non-vesicant fluid into surrounding tissue.", "difficulty": "Moderate", "important": true },
+          { "id": "y1s2-p-u4-7", "question": "What is 'Phlebitis'?", "answer": "Inflammation of a vein, often indicated by redness and warmth at the IV site.", "difficulty": "Moderate" },
+          { "id": "y1s2-p-u4-8", "question": "List the sites for IM injections.", "answer": "Deltoid, Vastus Lateralis, Ventrogluteal, Dorsogluteal.", "difficulty": "Moderate" }
+        ] },
+        { "unit_number": "Unit VI", "title": "Mechanism of Drug Action", "flashcards": [
+          { "id": "y1s2-p-u6-1", "question": "Define 'Pharmacokinetics'.", "answer": "What the body does to the drug (Absorption, Distribution, Metabolism, Excretion).", "difficulty": "Moderate" },
+          { "id": "y1s2-p-u6-2", "question": "Define 'Pharmacodynamics'.", "answer": "What the drug does to the body (biochemical and physiological effects).", "difficulty": "Moderate" },
+          { "id": "y1s2-p-u6-3", "question": "What is an 'Agonist'?", "answer": "A drug that binds to and activates a receptor.", "difficulty": "Moderate" },
+          { "id": "y1s2-p-u6-4", "question": "What is the half-life of a drug?", "answer": "The time it takes for the concentration of the drug in the body to reduce by half.", "difficulty": "Hard" }
+        ] }
       ]
     },
     {
@@ -37,25 +50,19 @@
       "course_code": "NUS 121",
       "title": "Anatomy and Physiology II",
       "units": [
-        { "unit_number": "Unit I", "title": "Musculoskeletal System", "flashcards": [{ "id": "y1s2-a-u1-1", "question": "Define bone tissue.", "answer": "Type of mineralized connective tissue.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit II", "title": "Digestive System", "flashcards": [{ "id": "y1s2-a-u2-1", "question": "List the organs of the digestive system.", "answer": "Mouth, esophagus, stomach, intestines, accessory organs.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit III", "title": "Urinary System", "flashcards": [{ "id": "y1s2-a-u3-1", "question": "What is the functional unit of the kidney?", "answer": "The nephron.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit IV", "title": "Female Reproductive System", "flashcards": [{ "id": "y1s2-a-u4-1", "question": "What are the female sex hormones?", "answer": "Estrogen and Progesterone.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit V", "title": "Male Reproductive System", "flashcards": [{ "id": "y1s2-a-u5-1", "question": "Define Spermatogenesis.", "answer": "Process of sperm cell development.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit VI", "title": "Foetal Development", "flashcards": [{ "id": "y1s2-a-u6-1", "question": "What is the function of the placenta?", "answer": "Provides oxygen/nutrients to the fetus and removes waste.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit VII", "title": "Physiological Changes in Pregnancy", "flashcards": [{ "id": "y1s2-a-u7-1", "question": "List a cardiovascular change in pregnancy.", "answer": "Increased blood volume.", "difficulty": "Moderate" }] }
-      ]
-    },
-    {
-      "id": "fon-102",
-      "course_code": "NUR 121",
-      "title": "Foundation of Nursing II",
-      "units": [
-        { "unit_number": "Unit I", "title": "Administration of Drugs", "flashcards": [{ "id": "y1s2-f-u1-1", "question": "What is IV fluid administration?", "answer": "Infusion of liquid substances directly into a vein.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit II", "title": "Aseptic Techniques", "flashcards": [{ "id": "y1s2-f-u2-1", "question": "Define Sterilization.", "answer": "Destruction of all microorganisms including spores.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit III", "title": "Injection Safety", "flashcards": [{ "id": "y1s2-f-u3-1", "question": "Name a disease caused by unsafe injection.", "answer": "Hepatitis B, Hepatitis C, or HIV.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit IV", "title": "Unsafe Injection Practices", "flashcards": [{ "id": "y1s2-f-u4-1", "question": "Why are unnecessary injections harmful?", "answer": "They increase risk of infection and waste resources.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit V", "title": "Healthcare Waste", "flashcards": [{ "id": "y1s2-f-u5-1", "question": "What is hazardous healthcare waste?", "answer": "Waste that is infectious, radioactive, or chemical.", "difficulty": "Moderate" }] }
+        { "unit_number": "Unit III", "title": "Urinary System", "flashcards": [
+          { "id": "y1s2-a-u3-1", "question": "What is the functional unit of the kidney?", "answer": "The nephron.", "difficulty": "Easy" },
+          { "id": "y1s2-a-u3-2", "question": "Define GFR (Glomerular Filtration Rate).", "answer": "The volume of filtrate formed per minute by the kidneys (normal ~125mL/min).", "difficulty": "Hard", "important": true },
+          { "id": "y1s2-a-u3-3", "question": "What is the role of ADH (Antidiuretic Hormone)?", "answer": "It increases water reabsorption in the collecting ducts of the kidney.", "difficulty": "Moderate" },
+          { "id": "y1s2-a-u3-4", "question": "What is the normal specific gravity of urine?", "answer": "1.005 to 1.030.", "difficulty": "Hard" },
+          { "id": "y1s2-a-u3-5", "question": "Name the hormone produced by the kidney that stimulates RBC production.", "answer": "Erythropoietin.", "difficulty": "Moderate" },
+          { "id": "y1s2-a-u3-6", "question": "What is Micturition?", "answer": "The act of emptying the bladder (urination).", "difficulty": "Easy" }
+        ] },
+        { "unit_number": "Unit IV", "title": "Female Reproductive System", "flashcards": [
+          { "id": "y1s2-a-u4-1", "question": "What are the female sex hormones?", "answer": "Estrogen and Progesterone.", "difficulty": "Easy" },
+          { "id": "y1s2-a-u4-2", "question": "Define Ovulation.", "answer": "The release of a mature egg from the ovary, typically around day 14 of the cycle.", "difficulty": "Easy" },
+          { "id": "y1s2-a-u4-3", "question": "Where does fertilization usually occur?", "answer": "The ampulla of the Fallopian tube.", "difficulty": "Moderate" }
+        ] }
       ]
     },
     {
@@ -63,22 +70,13 @@
       "course_code": "NUR 213",
       "title": "Medical-Surgical Nursing I",
       "units": [
-        { "unit_number": "Unit I", "title": "Concepts", "flashcards": [{ "id": "y1s2-ms-u1-1", "question": "Define Holistic Care.", "answer": "Care that addresses the whole person (physical, mental, social).", "difficulty": "Easy" }] },
-        { "unit_number": "Unit II", "title": "Diagnostic Measures", "flashcards": [{ "id": "y1s2-ms-u2-1", "question": "What is an MRI?", "answer": "Magnetic Resonance Imaging.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit III", "title": "Situations Threatening Adaptation", "flashcards": [{ "id": "y1s2-ms-u3-1", "question": "Define Inflammation.", "answer": "Body's local response to injury or infection.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit IV", "title": "Infectious Diseases", "flashcards": [{ "id": "y1s2-ms-u4-1", "question": "What is the body's primary defense mechanism?", "answer": "The skin.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit V", "title": "Operating Room Nursing", "flashcards": [{ "id": "y1s2-ms-u5-1", "question": "What is preoperative care?", "answer": "Care provided before a surgical procedure.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit VI", "title": "Rehabilitation", "flashcards": [{ "id": "y1s2-ms-u6-1", "question": "Define Rehabilitation.", "answer": "Restoration of optimal health and function.", "difficulty": "Easy" }] }
-      ]
-    },
-    {
-      "id": "ethics-101",
-      "course_code": "NUR 1xx",
-      "title": "Nursing Ethics and Jurisprudence",
-      "units": [
-        { "unit_number": "Unit I", "title": "Ethical Concepts", "flashcards": [{ "id": "y1s2-e-u1-1", "question": "Define Nursing Ethics.", "answer": "Principles of right and wrong in nursing practice.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit II", "title": "Regulation", "flashcards": [{ "id": "y1s2-e-u2-1", "question": "What is the N&MCN?", "answer": "Nursing and Midwifery Council of Nigeria.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit III", "title": "Legal Aspect", "flashcards": [{ "id": "y1s2-e-u3-1", "question": "Define Malpractice.", "answer": "Professional negligence by act or omission.", "difficulty": "Hard" }] }
+        { "unit_number": "Unit III", "title": "Situations Threatening Adaptation", "flashcards": [
+          { "id": "y1s2-ms-u3-1", "question": "Define Inflammation.", "answer": "Body's local response to injury or infection (Redness, Heat, Swelling, Pain).", "difficulty": "Easy" },
+          { "id": "y1s2-ms-u3-2", "question": "What is 'Hypovolemic Shock'?", "answer": "Shock caused by rapid fluid or blood loss.", "difficulty": "Moderate", "important": true },
+          { "id": "y1s2-ms-u3-3", "question": "What is the first sign of shock?", "answer": "Increased heart rate (tachycardia) and restlessness.", "difficulty": "Hard", "important": true },
+          { "id": "y1s2-ms-u3-4", "question": "Define 'Anaphylactic Shock'.", "answer": "Severe, life-threatening allergic reaction causing systemic vasodilation.", "difficulty": "Moderate" },
+          { "id": "y1s2-ms-u3-5", "question": "What are the 3 stages of shock?", "answer": "Compensatory, Progressive, and Irreversible.", "difficulty": "Hard" }
+        ] }
       ]
     }
   ]

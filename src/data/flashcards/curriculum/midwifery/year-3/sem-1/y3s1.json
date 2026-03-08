@@ -15,7 +15,16 @@
           "unit_number": "Unit I",
           "title": "Emergency Obstetric Care",
           "flashcards": [
-            { "id": "m3s1-a-1", "question": "What are the signal functions of Basic EmONC?", "answer": "Parenteral antibiotics, oxytocics, anticonvulsants, manual removal of placenta, removal of retained products, assisted vaginal delivery, and newborn resuscitation.", "difficulty": "Hard", "isImportant": true }
+            { "id": "m3s1-a-1", "question": "What are the signal functions of Basic EmONC?", "answer": "Parenteral antibiotics, oxytocics, anticonvulsants, manual removal of placenta, removal of retained products, assisted vaginal delivery, and newborn resuscitation.", "difficulty": "Hard", "important": true },
+            { "id": "m3s1-a-2", "question": "What is the primary medication for managing Eclampsia seizures?", "answer": "Magnesium Sulfate (loading dose: 4g IV and 10g IM).", "difficulty": "Moderate", "important": true },
+            { "id": "m3s1-a-3", "question": "Define 'Postpartum Hemorrhage' (PPH) by blood loss volume.", "answer": "Blood loss > 500 mL after vaginal delivery or > 1000 mL after C-section.", "difficulty": "Easy", "important": true },
+            { "id": "m3s1-a-4", "question": "What are the '4 Ts' of PPH?", "answer": "Tone (Atony), Tissue (Retained products), Trauma (Lacerations), Thrombin (Clotting issues).", "difficulty": "Moderate", "important": true },
+            { "id": "m3s1-a-5", "question": "What is the priority intervention for Uterine Atony?", "answer": "Fundal massage and administration of uterotonics (Oxytocin).", "difficulty": "Moderate", "important": true },
+            { "id": "m3s1-a-6", "question": "Define 'Shoulder Dystocia'.", "answer": "When the fetal head is delivered but the shoulders are stuck behind the maternal pubic bone.", "difficulty": "Moderate" },
+            { "id": "m3s1-a-7", "question": "What is the 'McRoberts Maneuver'?", "answer": "Hyperflexing the mother's legs to the abdomen to widen the pelvis during shoulder dystocia.", "difficulty": "Moderate", "important": true },
+            { "id": "m3s1-a-8", "question": "Define 'Uterine Rupture'.", "answer": "A catastrophic tearing of the uterine wall, often occurring during labor in a uterus with a previous scar.", "difficulty": "Hard", "important": true },
+            { "id": "m3s1-a-9", "question": "What are the signs of Magnesium Sulfate Toxicity?", "answer": "Loss of patellar reflex, respiratory depression (<12/min), decreased urine output (<30mL/hr).", "difficulty": "Hard", "important": true },
+            { "id": "m3s1-a-10", "question": "What is the antidote for Magnesium Sulfate?", "answer": "Calcium Gluconate (10% solution, 1g IV over 10 mins).", "difficulty": "Moderate", "important": true }
           ]
         }
       ]

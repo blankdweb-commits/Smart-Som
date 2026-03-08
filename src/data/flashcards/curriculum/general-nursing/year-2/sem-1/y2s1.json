@@ -7,85 +7,60 @@
   },
   "courses": [
     {
-      "id": "anat-201",
-      "course_code": "NUS 211",
-      "title": "Anatomy and Physiology III",
-      "units": [
-        { "unit_number": "Unit I", "title": "Integumentary System", "flashcards": [{ "id": "y2s1-a-u1-1", "question": "List the layers of the skin.", "answer": "Epidermis, Dermis, Hypodermis.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit II", "title": "Endocrine System", "flashcards": [{ "id": "y2s1-a-u2-1", "question": "What is the 'Master Gland'?", "answer": "The Pituitary Gland.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit III", "title": "Nervous System", "flashcards": [{ "id": "y2s1-a-u3-1", "question": "Name the 12 cranial nerves.", "answer": "I Olfactory, II Optic, III Oculomotor, IV Trochlear, V Trigeminal, VI Abducens, VII Facial, VIII Vestibulocochlear, IX Glossopharyngeal, X Vagus, XI Accessory, XII Hypoglossal.", "difficulty": "Hard" }] },
-        { "unit_number": "Unit IV", "title": "Special Senses", "flashcards": [{ "id": "y2s1-a-u4-1", "question": "Name the special senses.", "answer": "Sight, hearing, smell, taste, touch.", "difficulty": "Easy" }] }
-      ]
-    },
-    {
-      "id": "fon-201",
-      "course_code": "NUR 211",
-      "title": "Foundation of Nursing III",
-      "units": [
-        { "unit_number": "Unit I", "title": "Feeding/Elimination Problems", "flashcards": [{ "id": "y2s1-f-u1-1", "question": "What is Gastrostomy feeding?", "answer": "Feeding directly into the stomach through an opening.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit II", "title": "Urinary Problems", "flashcards": [{ "id": "y2s1-f-u2-1", "question": "Define Urinary Retention.", "answer": "Inability to empty the bladder completely.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit III", "title": "Basic Life Support", "flashcards": [{ "id": "y2s1-f-u3-1", "question": "What is the compression-to-ventilation ratio for adult CPR?", "answer": "30:2.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit IV", "title": "Technologies", "flashcards": [{ "id": "y2s1-f-u4-1", "question": "What is a pulse-oximeter used for?", "answer": "Measuring oxygen saturation in the blood.", "difficulty": "Easy" }] }
-      ]
-    },
-    {
       "id": "ms-201",
       "course_code": "NUR 222",
       "title": "Medical-Surgical Nursing II",
       "units": [
-        { "unit_number": "Unit I", "title": "Respiratory Problems", "flashcards": [{ "id": "y2s1-ms-u1-1", "question": "What is a Tracheostomy?", "answer": "Surgical opening in the trachea to provide an airway.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit II", "title": "Digestive Problems", "flashcards": [{ "id": "y2s1-ms-u2-1", "question": "Define GERD.", "answer": "Gastroesophageal Reflux Disease.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit III", "title": "Genito-Urinary Problems", "flashcards": [{ "id": "y2s1-ms-u3-1", "question": "What is Renal Failure?", "answer": "Condition where kidneys lose ability to remove waste.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit IV", "title": "Integumentary Problems", "flashcards": [{ "id": "y2s1-ms-u4-1", "question": "How are burns classified?", "answer": "By depth (1st, 2nd, 3rd, 4th degree).", "difficulty": "Easy" }] }
-      ]
-    },
-    {
-      "id": "phc-201",
-      "course_code": "NUR 212",
-      "title": "Primary Health Care II",
-      "units": [
-        { "unit_number": "Unit I", "title": "Components of PHC", "flashcards": [{ "id": "y2s1-phc-u1-1", "question": "What are the four pillars of safe motherhood?", "answer": "FP, ANC, Clean Delivery, EOC.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit II", "title": "Training", "flashcards": [{ "id": "y2s1-phc-u2-1", "question": "What is a training needs assessment?", "answer": "Process of identifying gap between current and desired skills.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit III", "title": "Management in PHC", "flashcards": [{ "id": "y2s1-phc-u3-1", "question": "What is a PHC Information System?", "answer": "System for collecting and analyzing community health data.", "difficulty": "Moderate" }] }
-      ]
-    },
-    {
-      "id": "pharm-201",
-      "course_code": "NUS 213",
-      "title": "Pharmacology II",
-      "units": [
-        { "unit_number": "Unit I", "title": "National Drug Policy", "flashcards": [{ "id": "y2s1-p-u1-1", "question": "What is the Essential Drug List?", "answer": "List of drugs that satisfy priority healthcare needs.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit II", "title": "Pharmacovigilance", "flashcards": [{ "id": "y2s1-p-u2-1", "question": "Define Pharmacovigilance.", "answer": "Monitoring of drug safety and adverse reactions.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit III", "title": "Drug Revolving Fund", "flashcards": [{ "id": "y2s1-p-u3-1", "question": "What is a DRF?", "answer": "Drug Revolving Fund; mechanism for sustainable drug supply.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit IV", "title": "Patient Education", "flashcards": [{ "id": "y2s1-p-u4-1", "question": "Why is drug compliance important?", "answer": "To ensure therapeutic effectiveness and prevent resistance.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit V", "title": "Drugs for Special Conditions", "flashcards": [{ "id": "y2s1-p-u5-1", "question": "What are cytotoxic drugs?", "answer": "Drugs used to kill cancer cells.", "difficulty": "Moderate" }] }
-      ]
-    },
-    {
-      "id": "rh-201",
-      "course_code": "NUR 223",
-      "title": "Reproductive Health I",
-      "units": [
-        { "unit_number": "Unit I", "title": "Introduction", "flashcards": [{ "id": "y2s1-rh-u1-1", "question": "Define Reproductive Health.", "answer": "State of well-being in all matters relating to reproductive system.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit II", "title": "Human Sexuality", "flashcards": [{ "id": "y2s1-rh-u2-1", "question": "What is Family Life Education?", "answer": "Education about relationships, sexuality, and health.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit III", "title": "Review of Organs", "flashcards": [{ "id": "y2s1-rh-u3-1", "question": "List female internal reproductive organs.", "answer": "Vagina, Uterus, Fallopian tubes, Ovaries.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit IV", "title": "Procedures", "flashcards": [{ "id": "y2s1-rh-u4-1", "question": "What is a D&C?", "answer": "Dilation and Curettage.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit V", "title": "Gynecological Conditions", "flashcards": [{ "id": "y2s1-rh-u5-1", "question": "What are fibroids?", "answer": "Noncancerous growths in the uterus.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit VI", "title": "STIs and Infertility", "flashcards": [{ "id": "y2s1-rh-u6-1", "question": "Define Infertility.", "answer": "Inability to conceive after one year of unprotected intercourse.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit VII", "title": "HIV/AIDS", "flashcards": [{ "id": "y2s1-rh-u7-1", "question": "Define PMTCT.", "answer": "Prevention of Mother-to-Child Transmission.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit VIII", "title": "Harmful Practices", "flashcards": [{ "id": "y2s1-rh-u8-1", "question": "Define FGM.", "answer": "Female Genital Mutilation.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit IX", "title": "IEC in RH", "flashcards": [{ "id": "y2s1-rh-u9-1", "question": "What is advocacy in reproductive health?", "answer": "Action to influence policy and resource allocation.", "difficulty": "Moderate" }] }
-      ]
-    },
-    {
-      "id": "research-201",
-      "course_code": "NUR 214",
-      "title": "Research and Statistics I",
-      "units": [
-        { "unit_number": "Unit I", "title": "Overview", "flashcards": [{ "id": "y2s1-r-u1-1", "question": "What is Nursing Research?", "answer": "Systematic investigation to develop knowledge about nursing.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit II", "title": "Functions", "flashcards": [{ "id": "y2s1-r-u2-1", "question": "List a function of research in nursing.", "answer": "Improve patient outcomes.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit III", "title": "Steps", "flashcards": [{ "id": "y2s1-r-u3-1", "question": "What is the first step of research?", "answer": "Problem identification.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit IV", "title": "Measurement/Statistics", "flashcards": [{ "id": "y2s1-r-u4-1", "question": "Define Mean, Median, and Mode.", "answer": "Mean: average; Median: middle; Mode: most frequent.", "difficulty": "Easy" }] }
+        {
+          "unit_number": "Unit I", "title": "Respiratory Problems",
+          "flashcards": [
+            { "id": "y2s1-ms-u1-1", "question": "What is a Tracheostomy?", "answer": "Surgical opening in the trachea to provide an airway.", "difficulty": "Moderate" },
+            { "id": "y2s1-ms-u1-2", "question": "List 3 signs of Respiratory Distress.", "answer": "Tachypnea, use of accessory muscles, cyanosis.", "difficulty": "Easy", "important": true },
+            { "id": "y2s1-ms-u1-3", "question": "Define 'Thoracentesis'.", "answer": "Procedure to remove fluid or air from the pleural space.", "difficulty": "Moderate" },
+            { "id": "y2s1-ms-u1-4", "question": "What is the priority nursing action for a patient with a PE (Pulmonary Embolism)?", "answer": "Oxygen administration and elevating the head of the bed.", "difficulty": "Hard", "important": true },
+            { "id": "y2s1-ms-u1-5", "question": "Define COPD.", "answer": "Chronic Obstructive Pulmonary Disease, a group of lung diseases that block airflow.", "difficulty": "Easy" },
+            { "id": "y2s1-ms-u1-6", "question": "What is 'Pneumothorax'?", "answer": "Air in the pleural cavity causing lung collapse.", "difficulty": "Moderate" },
+            { "id": "y2s1-ms-u1-7", "question": "What are the classic signs of TB (Tuberculosis)?", "answer": "Night sweats, weight loss, hemoptysis (bloody sputum), persistent cough.", "difficulty": "Moderate", "important": true },
+            { "id": "y2s1-ms-u1-8", "question": "What is 'Cyanosis'?", "answer": "Bluish discoloration of the skin indicating low oxygen saturation.", "difficulty": "Easy" },
+            { "id": "y2s1-ms-u1-9", "question": "Define 'Atelectasis'.", "answer": "Collapse of alveoli preventing gas exchange.", "difficulty": "Moderate" },
+            { "id": "y2s1-ms-u1-10", "question": "What is an Incentive Spirometer used for?", "answer": "To promote deep breathing and prevent post-op pneumonia.", "difficulty": "Easy" },
+            { "id": "y2s1-ms-u1-11", "question": "Define 'Hemoptysis'.", "answer": "Coughing up blood from the respiratory tract.", "difficulty": "Moderate" },
+            { "id": "y2s1-ms-u1-12", "question": "What is 'Pulmonary Edema'?", "answer": "Accumulation of fluid in the lungs, often due to left-sided heart failure.", "difficulty": "Hard", "important": true },
+            { "id": "y2s1-ms-u1-13", "question": "Define 'Orthopnea'.", "answer": "Shortness of breath that occurs when lying flat.", "difficulty": "Moderate" },
+            { "id": "y2s1-ms-u1-14", "question": "What are the early signs of Laryngeal Cancer?", "answer": "Persistent hoarseness and a change in voice quality.", "difficulty": "Moderate" },
+            { "id": "y2s1-ms-u1-15", "question": "Define 'Epistaxis'.", "answer": "A nosebleed.", "difficulty": "Easy" },
+            { "id": "y2s1-ms-u1-16", "question": "What is 'Chest Physiotherapy' (CPT)?", "answer": "Techniques (percussion, vibration) used to loosen and drain secretions from the lungs.", "difficulty": "Moderate" },
+            { "id": "y2s1-ms-u1-17", "question": "What is the primary medication class for Asthma exacerbations?", "answer": "Short-acting beta agonists (SABA) like Albuterol.", "difficulty": "Easy", "important": true },
+            { "id": "y2s1-ms-u1-18", "question": "Define 'Pleural Effusion'.", "answer": "Abnormal collection of fluid between the layers of the pleura.", "difficulty": "Moderate" },
+            { "id": "y2s1-ms-u1-19", "question": "What is 'Hypoxemic Respiratory Failure'?", "answer": "PaO2 less than 60 mmHg despite supplemental oxygen.", "difficulty": "Hard", "important": true },
+            { "id": "y2s1-ms-u1-20", "question": "What is 'Kussmaul Breathing'?", "answer": "Deep, rapid breathing often seen in metabolic acidosis (like DKA).", "difficulty": "Hard" }
+          ]
+        },
+        {
+          "unit_number": "Unit II", "title": "Digestive Problems",
+          "flashcards": [
+            { "id": "y2s1-ms-u2-1", "question": "Define GERD.", "answer": "Gastroesophageal Reflux Disease.", "difficulty": "Easy" },
+            { "id": "y2s1-ms-u2-2", "question": "What are the classic symptoms of Appendicitis?", "answer": "Right lower quadrant pain (McBurney's point), rebound tenderness, fever.", "difficulty": "Moderate", "important": true },
+            { "id": "y2s1-ms-u2-3", "question": "Define 'Peptic Ulcer Disease' (PUD).", "answer": "Erosion of the mucosal lining of the stomach or duodenum.", "difficulty": "Moderate" },
+            { "id": "y2s1-ms-u2-4", "question": "What is 'Melena'?", "answer": "Black, tarry stools indicating upper GI bleeding.", "difficulty": "Moderate" },
+            { "id": "y2s1-ms-u2-5", "question": "Define 'Cirrhosis' of the liver.", "answer": "Chronic liver damage leading to scarring and liver failure.", "difficulty": "Moderate" },
+            { "id": "y2s1-ms-u2-6", "question": "What is the primary sign of Jaundice?", "answer": "Yellowing of the skin and sclera (eyes) due to high bilirubin.", "difficulty": "Easy" },
+            { "id": "y2s1-ms-u2-7", "question": "What is 'Diverticulitis'?", "answer": "Inflammation or infection of small pouches (diverticula) in the colon.", "difficulty": "Moderate" },
+            { "id": "y2s1-ms-u2-8", "question": "List 2 nursing interventions for a patient with Gastritis.", "answer": "NPO status initially, admin of antacids/PPIs, monitoring for dehydration.", "difficulty": "Moderate" },
+            { "id": "y2s1-ms-u2-9", "question": "What is 'Cholelithiasis'?", "answer": "Presence of gallstones in the gallbladder.", "difficulty": "Easy" },
+            { "id": "y2s1-ms-u2-10", "question": "Define 'Ascites'.", "answer": "Accumulation of fluid in the peritoneal cavity, often due to liver failure.", "difficulty": "Moderate", "important": true },
+            { "id": "y2s1-ms-u2-11", "question": "What is 'Dumping Syndrome'?", "answer": "Rapid emptying of stomach contents into the small intestine after gastric surgery.", "difficulty": "Moderate", "important": true },
+            { "id": "y2s1-ms-u2-12", "question": "Define 'Stomatitis'.", "answer": "Inflammation of the mouth and lips.", "difficulty": "Easy" },
+            { "id": "y2s1-ms-u2-13", "question": "What are the common causes of Acute Pancreatitis?", "answer": "Alcohol abuse and gallstones.", "difficulty": "Moderate", "important": true },
+            { "id": "y2s1-ms-u2-14", "question": "Define 'Hematemesis'.", "answer": "Vomiting of blood.", "difficulty": "Easy" },
+            { "id": "y2s1-ms-u2-15", "question": "What is a 'Hiatal Hernia'?", "answer": "Protrusion of part of the stomach through the diaphragm into the chest.", "difficulty": "Moderate" },
+            { "id": "y2s1-ms-u2-16", "question": "What is the primary symptom of small bowel obstruction?", "answer": "Projective vomiting and colicky abdominal pain.", "difficulty": "Hard", "important": true },
+            { "id": "y2s1-ms-u2-17", "question": "Define 'Peritonitis'.", "answer": "Inflammation of the peritoneum, often due to a ruptured organ (surgical emergency).", "difficulty": "Hard", "important": true },
+            { "id": "y2s1-ms-u2-18", "question": "What is 'Paralytic Ileus'?", "answer": "Obstruction of the intestine due to paralysis of the intestinal muscles (common post-op).", "difficulty": "Moderate" },
+            { "id": "y2s1-ms-u2-19", "question": "List the two main types of Inflammatory Bowel Disease (IBD).", "answer": "Crohn's Disease and Ulcerative Colitis.", "difficulty": "Moderate", "important": true },
+            { "id": "y2s1-ms-u2-20", "question": "What is the purpose of a T-tube after gallbladder surgery?", "answer": "To ensure patency of the common bile duct and allow drainage of bile.", "difficulty": "Hard" }
+          ]
+        }
       ]
     }
   ]

@@ -11,36 +11,31 @@
       "course_code": "NUR 3xx",
       "title": "Medical Surgical Nursing IV",
       "units": [
-        { "unit_number": "Unit I", "title": "Reproductive Disorders", "flashcards": [{ "id": "y3s1-ms-u1-1", "question": "What is BPH?", "answer": "Benign Prostatic Hyperplasia.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit II", "title": "Haematological Problems", "flashcards": [{ "id": "y3s1-ms-u2-1", "question": "Define Anaemia.", "answer": "Condition with low RBC count or hemoglobin.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit III", "title": "Special Senses", "flashcards": [{ "id": "y3s1-ms-u3-1", "question": "What is Glaucoma?", "answer": "Increased intraocular pressure damaging optic nerve.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit IV", "title": "Procedures", "flashcards": [{ "id": "y3s1-ms-u4-1", "question": "What is circumcision?", "answer": "Surgical removal of the foreskin.", "difficulty": "Easy" }] }
-      ]
-    },
-    {
-      "id": "rh-301",
-      "course_code": "NUR 3xx",
-      "title": "Reproductive Health III",
-      "units": [
-        { "unit_number": "Unit I", "title": "Growth & Development", "flashcards": [{ "id": "y3s1-rh-u1-1", "question": "What are developmental milestones?", "answer": "Behaviors or physical skills seen in infants and children as they grow.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit II", "title": "Nutritional Needs", "flashcards": [{ "id": "y3s1-rh-u2-1", "question": "What is Weaning?", "answer": "Gradual replacement of breast milk with other foods.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit III", "title": "Child Survival", "flashcards": [{ "id": "y3s1-rh-u3-1", "question": "What is ORT?", "answer": "Oral Rehydration Therapy.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit IV", "title": "Vaccines", "flashcards": [{ "id": "y3s1-rh-u4-1", "question": "Name a vaccine in the NPI schedule.", "answer": "BCG, Pentavalent, OPV.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit V", "title": "Developmental Problems", "flashcards": [{ "id": "y3s1-rh-u5-1", "question": "What is PEM?", "answer": "Protein Energy Malnutrition.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit VI", "title": "Adolescent/Youth", "flashcards": [{ "id": "y3s1-rh-u6-1", "question": "Define Adolescence.", "answer": "Period from childhood to adulthood.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit VII", "title": "Gender Equality", "flashcards": [{ "id": "y3s1-rh-u7-1", "question": "What is GBV?", "answer": "Gender-Based Violence.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit VIII", "title": "Quality/Safety", "flashcards": [{ "id": "y3s1-rh-u8-1", "question": "What is Patient Safety?", "answer": "Prevention of harm to patients.", "difficulty": "Easy" }] }
-      ]
-    },
-    {
-      "id": "chn-301",
-      "course_code": "NUR 3xx",
-      "title": "Community Health Nursing II",
-      "units": [
-        { "unit_number": "Unit I", "title": "Intro to Epidemiology", "flashcards": [{ "id": "y3s1-c-u1-1", "question": "Define Epidemiology.", "answer": "Study of disease distribution and determinants in populations.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit II", "title": "Communicable Diseases", "flashcards": [{ "id": "y3s1-c-u2-1", "question": "Name a gastrointestinal infection.", "answer": "Cholera, Typhoid.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit III", "title": "Non-Communicable Diseases", "flashcards": [{ "id": "y3s1-c-u3-1", "question": "Name a chronic non-communicable disease.", "answer": "Hypertension, Diabetes.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit IV", "title": "Data Collection", "flashcards": [{ "id": "y3s1-c-u4-1", "question": "What are vital statistics?", "answer": "Records of births, deaths, marriages.", "difficulty": "Easy" }] }
+        {
+          "unit_number": "Unit II", "title": "Haematological Problems",
+          "flashcards": [
+            { "id": "y3s1-ms-u2-1", "question": "Define Anaemia.", "answer": "Condition with low RBC count or hemoglobin.", "difficulty": "Easy" },
+            { "id": "y3s1-ms-u2-2", "question": "What is Sickle Cell Crisis?", "answer": "Acute episode of vaso-occlusion causing severe pain.", "difficulty": "Hard", "important": true },
+            { "id": "y3s1-ms-u2-3", "question": "Define 'Polycythemia'.", "answer": "Abnormal increase in the number of red blood cells.", "difficulty": "Moderate" },
+            { "id": "y3s1-ms-u2-4", "question": "What is the priority intervention for a Sickle Cell patient in crisis?", "answer": "Oxygenation, Hydration, and Pain Management.", "difficulty": "Hard", "important": true },
+            { "id": "y3s1-ms-u2-5", "question": "Define 'Leukemia'.", "answer": "Cancer of the body's blood-forming tissues (bone marrow/lymph system).", "difficulty": "Moderate" },
+            { "id": "y3s1-ms-u2-6", "question": "What is 'Thrombocytopenia'?", "answer": "Low platelet count, increasing risk of bleeding.", "difficulty": "Moderate" },
+            { "id": "y3s1-ms-u2-7", "question": "What are the signs of a Hemolytic Transfusion Reaction?", "answer": "Fever, chills, low back pain, tachycardia, hypotension.", "difficulty": "Hard", "important": true },
+            { "id": "y3s1-ms-u2-8", "question": "What is 'Hemophilia'?", "answer": "Genetic disorder where blood doesn't clot normally.", "difficulty": "Moderate" },
+            { "id": "y3s1-ms-u2-9", "question": "Define 'Pernicious Anemia'.", "answer": "Anemia caused by Vitamin B12 deficiency (lack of intrinsic factor).", "difficulty": "Moderate" },
+            { "id": "y3s1-ms-u2-10", "question": "What is the function of Eosinophils?", "answer": "Combating parasitic infections and allergic reactions.", "difficulty": "Moderate" },
+            { "id": "y3s1-ms-u2-11", "question": "Define 'Leukopenia'.", "answer": "A decrease in the number of white blood cells, increasing infection risk.", "difficulty": "Easy" },
+            { "id": "y3s1-ms-u2-12", "question": "What is 'Pancytopenia'?", "answer": "A reduction in the number of all three blood cell types (RBCs, WBCs, and Platelets).", "difficulty": "Moderate", "important": true },
+            { "id": "y3s1-ms-u2-13", "question": "Define 'Aplastic Anemia'.", "answer": "A condition where the body stops producing enough new blood cells due to bone marrow failure.", "difficulty": "Hard" },
+            { "id": "y3s1-ms-u2-14", "question": "What is the function of Albumin in the blood?", "answer": "To maintain osmotic pressure and transport various substances.", "difficulty": "Moderate" },
+            { "id": "y3s1-ms-u2-15", "question": "Define 'Multiple Myeloma'.", "answer": "A cancer that forms in a type of white blood cell called a plasma cell.", "difficulty": "Hard" },
+            { "id": "y3s1-ms-u2-16", "question": "What is 'Petichiae'?", "answer": "Tiny round brown-purple spots due to bleeding under the skin (sign of low platelets).", "difficulty": "Easy" },
+            { "id": "y3s1-ms-u2-17", "question": "Define 'Splenomegaly'.", "answer": "Enlargement of the spleen, often seen in hematological disorders.", "difficulty": "Moderate" },
+            { "id": "y3s1-ms-u2-18", "question": "What is the primary function of B-lymphocytes?", "answer": "Production of antibodies (humoral immunity).", "difficulty": "Moderate", "important": true },
+            { "id": "y3s1-ms-u2-19", "question": "Define 'Thalassemia'.", "answer": "An inherited blood disorder characterized by less hemoglobin and fewer red blood cells than normal.", "difficulty": "Hard" },
+            { "id": "y3s1-ms-u2-20", "question": "What is the normal range for Hemoglobin in adult females?", "answer": "12.0 to 15.5 g/dL.", "difficulty": "Moderate" }
+          ]
+        }
       ]
     },
     {
@@ -48,37 +43,31 @@
       "course_code": "NUR 224",
       "title": "Mental Health Nursing",
       "units": [
-        { "unit_number": "Unit I", "title": "Concepts", "flashcards": [{ "id": "y3s1-m-u1-1", "question": "Define Mental Health.", "answer": "State of well-being where one realizes their own potential.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit II", "title": "Disorders", "flashcards": [{ "id": "y3s1-m-u2-1", "question": "What is Schizophrenia?", "answer": "Disorder affecting thinking, feeling, and behavior.", "difficulty": "Hard" }] },
-        { "unit_number": "Unit III", "title": "Management", "flashcards": [{ "id": "y3s1-m-u3-1", "question": "What is Psychotherapy?", "answer": "Talking treatment for mental disorders.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit IV", "title": "Community MH", "flashcards": [{ "id": "y3s1-m-u4-1", "question": "What is a home visit in MH?", "answer": "Visiting patients in their community for care.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit V", "title": "Rehabilitation", "flashcards": [{ "id": "y3s1-m-u5-1", "question": "What is a half-way house?", "answer": "Transitional living facility for those recovering from MH issues.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit VI", "title": "MHPSS", "flashcards": [{ "id": "y3s1-m-u6-1", "question": "What is MHPSS?", "answer": "Mental Health and Psychosocial Support.", "difficulty": "Moderate" }] }
-      ]
-    },
-    {
-      "id": "edn-301",
-      "course_code": "NUR 3xx",
-      "title": "Emergency & Disaster Nursing",
-      "units": [
-        { "unit_number": "Unit I", "title": "Concepts", "flashcards": [{ "id": "y3s1-e-u1-1", "question": "Define Disaster.", "answer": "Sudden catastrophic event causing widespread damage.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit II", "title": "Life-threatening Situations", "flashcards": [{ "id": "y3s1-e-u2-1", "question": "Name a life-threatening situation.", "answer": "Cardiac arrest, Asphyxia.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit III", "title": "BLS Management", "flashcards": [{ "id": "y3s1-e-u3-1", "question": "What is Triage?", "answer": "Prioritizing patients based on severity.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit IV", "title": "Hospital Management", "flashcards": [{ "id": "y3s1-e-u4-1", "question": "What is an AED?", "answer": "Automated External Defibrillator.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit V", "title": "Disaster Management", "flashcards": [{ "id": "y3s1-e-u5-1", "question": "What is a search and rescue operation?", "answer": "Finding and helping people in danger.", "difficulty": "Easy" }] }
-      ]
-    },
-    {
-      "id": "qi-301",
-      "course_code": "NUR 3xx",
-      "title": "Quality Improvement & Safety",
-      "units": [
-        { "unit_number": "Unit I", "title": "Data Use", "flashcards": [{ "id": "y3s1-q-u1-1", "question": "What is a run chart?", "answer": "Graph of data over time.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit II", "title": "Introduction to QI", "flashcards": [{ "id": "y3s1-q-u2-1", "question": "What is the science of improvement?", "answer": "Applied science for rapid change.", "difficulty": "Hard" }] },
-        { "unit_number": "Unit III", "title": "Tests of Change", "flashcards": [{ "id": "y3s1-q-u3-1", "question": "What is PDSA?", "answer": "Plan-Do-Study-Act.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit IV", "title": "Assurance/Risk", "flashcards": [{ "id": "y3s1-q-u4-1", "question": "What is a nursing audit?", "answer": "Review of nursing records and practices.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit V", "title": "Patient Safety", "flashcards": [{ "id": "y3s1-q-u5-1", "question": "What is an adverse event?", "answer": "Harm caused by medical care.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit VI", "title": "Accountability", "flashcards": [{ "id": "y3s1-q-u6-1", "question": "What is a Just Culture?", "answer": "Culture focused on safety and reporting without fear.", "difficulty": "Hard" }] }
+        {
+          "unit_number": "Unit II", "title": "Disorders",
+          "flashcards": [
+            { "id": "y3s1-m-u2-1", "question": "What is Schizophrenia?", "answer": "Disorder affecting thinking, feeling, and behavior, characterized by delusions and hallucinations.", "difficulty": "Hard" },
+            { "id": "y3s1-m-u2-2", "question": "Define 'Mania'.", "answer": "State of abnormally elevated energy, mood, or irritability.", "difficulty": "Moderate" },
+            { "id": "y3s1-m-u2-3", "question": "What is 'Major Depressive Disorder'?", "answer": "Persistent feeling of sadness and loss of interest.", "difficulty": "Moderate" },
+            { "id": "y3s1-m-u2-4", "question": "Define 'Obsessive-Compulsive Disorder' (OCD).", "answer": "Pattern of unwanted thoughts (obsessions) and repetitive behaviors (compulsions).", "difficulty": "Moderate" },
+            { "id": "y3s1-m-u2-5", "question": "What is 'Post-Traumatic Stress Disorder' (PTSD)?", "answer": "Condition triggered by a terrifying event, causing flashbacks and anxiety.", "difficulty": "Moderate" },
+            { "id": "y3s1-m-u2-6", "question": "Define 'Anorexia Nervosa'.", "answer": "Eating disorder characterized by an abnormally low body weight and fear of gaining weight.", "difficulty": "Hard" },
+            { "id": "y3s1-m-u2-7", "question": "What are 'Delusions'?", "answer": "Fixed false beliefs that are not based in reality.", "difficulty": "Moderate" },
+            { "id": "y3s1-m-u2-8", "question": "Define 'Hallucinations'.", "answer": "Perceptions in the absence of external stimuli (e.g., hearing voices).", "difficulty": "Moderate" },
+            { "id": "y3s1-m-u2-9", "question": "What is 'Wernicke's Encephalopathy'?", "answer": "Acute neurological condition due to Thiamine (B1) deficiency, often linked to alcohol abuse.", "difficulty": "Hard", "important": true },
+            { "id": "y3s1-m-u2-10", "question": "Define 'Akathisia'.", "answer": "Feeling of muscle quivering and inability to sit still, often a side effect of antipsychotics.", "difficulty": "Hard" },
+            { "id": "y3s1-m-u2-11", "question": "Define 'Bipolar I Disorder'.", "answer": "A disorder characterized by at least one manic episode, often preceded or followed by major depressive episodes.", "difficulty": "Moderate", "important": true },
+            { "id": "y3s1-m-u2-12", "question": "What is 'Electroconvulsive Therapy' (ECT)?", "answer": "A medical treatment involving brief electrical stimulation of the brain while the patient is under anesthesia.", "difficulty": "Moderate" },
+            { "id": "y3s1-m-u2-13", "question": "Define 'Anhedonia'.", "answer": "Inability to feel pleasure in normally pleasurable activities.", "difficulty": "Easy" },
+            { "id": "y3s1-m-u2-14", "question": "What is the primary goal of the 'Therapeutic Milieu'?", "answer": "To provide a safe, structured, and supportive environment for recovery.", "difficulty": "Moderate" },
+            { "id": "y3s1-m-u2-15", "question": "Define 'Transference'.", "answer": "When a patient redirects feelings for a significant person onto the nurse/therapist.", "difficulty": "Hard" },
+            { "id": "y3s1-m-u2-16", "question": "What is 'Counter-transference'?", "answer": "When a nurse/therapist redirects feelings for a significant person onto the patient.", "difficulty": "Hard" },
+            { "id": "y3s1-m-u2-17", "question": "Define 'Neuroleptic Malignant Syndrome' (NMS).", "answer": "A life-threatening reaction to antipsychotic drugs (signs: high fever, rigidity, autonomic instability).", "difficulty": "Hard", "important": true },
+            { "id": "y3s1-m-u2-18", "question": "What is 'Lithium' used for?", "answer": "A mood stabilizer used primarily to treat mania in bipolar disorder.", "difficulty": "Easy", "important": true },
+            { "id": "y3s1-m-u2-19", "question": "Define 'Flight of Ideas'.", "answer": "A rapid shifting of ideas from one topic to another, common in mania.", "difficulty": "Moderate" },
+            { "id": "y3s1-m-u2-20", "question": "What is 'Crisis Intervention'?", "answer": "Short-term psychological assistance to help an individual resolve an immediate crisis.", "difficulty": "Moderate" }
+          ]
+        }
       ]
     }
   ]

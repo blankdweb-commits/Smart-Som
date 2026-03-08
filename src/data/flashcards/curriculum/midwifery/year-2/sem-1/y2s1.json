@@ -11,7 +11,31 @@
       "course_code": "MID 211",
       "title": "Normal Labor and Birth",
       "units": [
-        { "unit_number": "Unit I", "title": "Mechanism of Labor", "flashcards": [{ "id": "m2s1-n-1", "question": "What is the second stage of labor?", "answer": "Full dilation to delivery of the baby.", "difficulty": "Easy" }] }
+        {
+          "unit_number": "Unit I", "title": "Mechanism of Labor",
+          "flashcards": [
+            { "id": "m2s1-n-1", "question": "What is the second stage of labor?", "answer": "Full dilation to delivery of the baby.", "difficulty": "Easy" },
+            { "id": "m2s1-n-2", "question": "List the mechanisms of labor in order.", "answer": "Engagement, Descent, Flexion, Internal Rotation, Extension, Restitution, External Rotation, Expulsion.", "difficulty": "Hard", "important": true },
+            { "id": "m2s1-n-3", "question": "What is the 'Ferguson Reflex'?", "answer": "The urge to push triggered by pressure on the pelvic floor.", "difficulty": "Moderate" },
+            { "id": "m2s1-n-4", "question": "Define 'Engagement'.", "answer": "When the largest diameter of the presenting part has passed the pelvic inlet.", "difficulty": "Moderate" },
+            { "id": "m2s1-n-5", "question": "What is 'Crowing'?", "answer": "When the widest part of the fetal head remains visible at the vaginal opening without receding.", "difficulty": "Easy" },
+            { "id": "m2s1-n-6", "question": "Define the first stage of labor.", "answer": "From onset of regular contractions to full cervical dilation.", "difficulty": "Easy" },
+            { "id": "m2s1-n-7", "question": "What are the 3 phases of the first stage of labor?", "answer": "Latent, Active, and Transition phases.", "difficulty": "Moderate", "important": true },
+            { "id": "m2s1-n-8", "question": "What is 'Effacement'?", "answer": "The thinning and shortening of the cervix during labor.", "difficulty": "Easy" },
+            { "id": "m2s1-n-9", "question": "Define 'Fetal Station'.", "answer": "Relationship of the presenting part to the level of the maternal ischial spines.", "difficulty": "Moderate" },
+            { "id": "m2s1-n-10", "question": "What is the 'Fourth Stage' of labor?", "answer": "The first 1-2 hours after delivery (recovery phase).", "difficulty": "Easy" },
+            { "id": "m2s1-n-11", "question": "What is the 'Ritgen Maneuver'?", "answer": "A technique used to control the delivery of the fetal head to prevent perineal tears.", "difficulty": "Hard" },
+            { "id": "m2s1-n-12", "question": "Define 'Asynclitism'.", "answer": "When the fetal head is tilted to one side (not synclitic) as it enters the pelvis.", "difficulty": "Hard" },
+            { "id": "m2s1-n-13", "question": "What is 'Oxytocin' used for in labor?", "answer": "To induce or augment labor contractions.", "difficulty": "Moderate" },
+            { "id": "m2s1-n-14", "question": "What are the signs of placental separation?", "answer": "Gush of blood, lengthening of the umbilical cord, uterus becoming globular.", "difficulty": "Moderate", "important": true },
+            { "id": "m2s1-n-15", "question": "Define 'Episiotomy'.", "answer": "Surgical incision of the perineum to facilitate delivery.", "difficulty": "Easy" },
+            { "id": "m2s1-n-16", "question": "What is the 'Bishop Score'?", "answer": "A system used to predict the success of labor induction.", "difficulty": "Hard", "important": true },
+            { "id": "m2s1-n-17", "question": "What is 'Amniotomy'?", "answer": "Artificial rupture of the membranes (AROM).", "difficulty": "Easy" },
+            { "id": "m2s1-n-18", "question": "Define 'Internal Rotation'.", "answer": "When the fetal head rotates to align with the maternal pelvis (usually OA).", "difficulty": "Moderate" },
+            { "id": "m2s1-n-19", "question": "What is 'Restitution'?", "answer": "When the fetal head rotates 45 degrees back to its original position after delivery to align with the shoulders.", "difficulty": "Hard" },
+            { "id": "m2s1-n-20", "question": "What is the primary risk of AROM?", "answer": "Umbilical cord prolapse.", "difficulty": "Hard", "important": true }
+          ]
+        }
       ]
     }
   ]

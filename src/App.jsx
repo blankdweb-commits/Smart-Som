@@ -6,6 +6,7 @@ import Dashboard from './pages/Dashboard';
 import Flashcards from './pages/Flashcards';
 import ExamTimetable from './pages/ExamTimetable';
 import PronunciationHelper from './pages/PronunciationHelper';
+import ClinicalSearchAssistant from './pages/ClinicalSearchAssistant';
 import NclexPrep from './pages/NclexPrep';
 import NmcnPrep from './pages/NmcnPrep';
 import Prep from './pages/Prep';
@@ -55,6 +56,7 @@ function App() {
             <Route path="/nclex" element={<NclexPrep />} />
             <Route path="/nmcn" element={<NmcnPrep />} />
             <Route path="/exams" element={<ExamTimetable />} />
+            <Route path="/search" element={<ClinicalSearchAssistant />} />
             <Route path="/pronunciation" element={<PronunciationHelper />} />
             <Route path="/community" element={<Community />} />
             <Route path="/settings" element={<Settings />} />

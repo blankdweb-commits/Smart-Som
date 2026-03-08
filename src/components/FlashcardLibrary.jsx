@@ -4,20 +4,22 @@ import FlashcardCard from '../components/FlashcardCard';
 import FlashcardForm from '../components/FlashcardForm';
 import ShareModal from '../components/ShareModal';
 import Toast from '../components/Toast';
-import { Plus, Search, Filter, Play, Shuffle, List, ChevronLeft, ChevronRight, Award, Download, Upload, Share2, Folder, Book, ArrowLeft } from 'lucide-react';
+import { Plus, Search, Filter, Play, Shuffle, List, ChevronLeft, ChevronRight, Award, Download, Upload, Share2, Folder, Book, ArrowLeft, AlertCircle } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const SRSButton = ({ label, sublabel, color, onClick }) => (
-  <button
+  <motion.button
+    whileTap={{ scale: 0.9 }}
     onClick={(e) => { e.stopPropagation(); onClick(); }}
-    className={`${color} text-white p-4 rounded-2xl shadow-clinical hover:opacity-90 active:scale-95 transition-all flex flex-col items-center justify-center min-h-[80px]`}
+    className={`${color} text-white p-4 rounded-2xl shadow-clinical hover:opacity-90 transition-all flex flex-col items-center justify-center min-h-[80px]`}
   >
     <span className="text-lg font-bold">{label}</span>
     <span className="text-[11px] opacity-80 font-medium tracking-wide">{sublabel}</span>
-  </button>
+  </motion.button>
 );
 
 const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
-  const { flashcards, addFlashcard, updateFlashcard, deleteFlashcard, importFlashcards, incrementCardsStudied, updateCardProgress } = useAppContext();
+  const { flashcards, exams, addFlashcard, updateFlashcard, deleteFlashcard, importFlashcards, incrementCardsStudied, updateCardProgress } = useAppContext();
 
   // Navigation State
   const [currentProgram, setCurrentProgram] = useState(null); // 'General Nursing' or 'Midwifery'
@@ -32,6 +34,7 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'study'
   const [searchTerm, setSearchTerm] = useState('');
   const [filterDifficulty, setFilterDifficulty] = useState('All');
+  const [isExamPriority, setIsExamPriority] = useState(false);
   const [studyIndex, setStudyIndex] = useState(0);
   const [shuffledCards, setShuffledCards] = useState([]);
   const [toast, setToast] = useState(null);
@@ -76,6 +79,15 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   }, [categoryCards, currentLevel, currentSemester]);
 
   // Main filter logic
+  const upcomingExamSubjects = useMemo(() => {
+    return exams
+      .filter(e => {
+        const diff = new Date(e.date).getTime() - new Date().getTime();
+        return diff > 0 && diff <= (7 * 24 * 3600 * 1000); // Next 7 days
+      })
+      .map(e => e.title.toLowerCase());
+  }, [exams]);
+
   const filteredCards = useMemo(() => {
     return categoryCards.filter(card => {
       const matchesSearch = card.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
@@ -85,9 +97,11 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
       const matchesSubject = !currentSubject || card.subject === currentSubject;
       const matchesDifficulty = filterDifficulty === 'All' || card.difficulty === filterDifficulty;
 
-      return matchesSearch && matchesLevel && matchesSemester && matchesSubject && matchesDifficulty;
+      const isPriority = !isExamPriority || upcomingExamSubjects.some(subj => card.subject.toLowerCase().includes(subj) || subj.includes(card.subject.toLowerCase()));
+
+      return matchesSearch && matchesLevel && matchesSemester && matchesSubject && matchesDifficulty && isPriority;
     });
-  }, [categoryCards, searchTerm, currentLevel, currentSemester, currentSubject, filterDifficulty]);
+  }, [categoryCards, searchTerm, currentLevel, currentSemester, currentSubject, filterDifficulty, isExamPriority, upcomingExamSubjects]);
 
   useEffect(() => {
     setVisibleCount(12);
@@ -370,26 +384,35 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
 
       {viewMode === 'list' ? (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 bg-white dark:bg-slate-800 p-4 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700">
-            <div className="relative">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white dark:bg-slate-800 p-4 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700">
+            <div className="relative md:col-span-1">
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
               <input
                 type="text" placeholder="Search questions..."
                 value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:border-medical-500 transition-colors text-sm font-medium"
+                className="w-full pl-10 pr-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:border-medical-500 transition-colors text-sm font-bold"
               />
             </div>
-            <div className="hidden sm:block">
+            <div>
               <select
                 value={filterDifficulty}
                 onChange={(e) => setFilterDifficulty(e.target.value)}
-                className="w-full px-4 py-2 rounded-lg bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:border-medical-500 transition-colors text-sm font-bold"
+                className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 outline-none focus:border-medical-500 transition-colors text-sm font-bold"
               >
                 <option value="All">All Difficulties</option>
                 <option value="Easy">Easy</option>
                 <option value="Moderate">Moderate</option>
                 <option value="Hard">Hard</option>
               </select>
+            </div>
+            <div className="flex items-center gap-2 px-2">
+              <button
+                onClick={() => setIsExamPriority(!isExamPriority)}
+                className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-xl border-2 transition-all font-bold text-xs uppercase tracking-widest ${isExamPriority ? 'bg-red-50 border-red-500 text-red-600 dark:bg-red-900/20' : 'bg-slate-50 border-slate-200 text-slate-400 dark:bg-slate-900 dark:border-slate-700'}`}
+              >
+                <AlertCircle size={16} />
+                Exam Priority
+              </button>
             </div>
           </div>
 
@@ -427,10 +450,10 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
 
           <div className="w-full flex flex-col items-center gap-6">
             <div className="grid grid-cols-4 gap-3 w-full max-w-lg">
-              <SRSButton label="Again" sublabel="< 1m" color="bg-red-500" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 1); handleNext(1); }} />
-              <SRSButton label="Hard" sublabel="1d" color="bg-orange-500" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 3); handleNext(3); }} />
-              <SRSButton label="Good" sublabel="4d" color="bg-green-500" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 4); handleNext(4); }} />
-              <SRSButton label="Easy" sublabel="7d+" color="bg-blue-500" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 5); handleNext(5); }} />
+              <SRSButton label="Again" sublabel="< 1m" color="bg-red-500/90 dark:bg-red-600/80" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 1); handleNext(1); }} />
+              <SRSButton label="Hard" sublabel="1d" color="bg-orange-500/90 dark:bg-orange-600/80" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 3); handleNext(3); }} />
+              <SRSButton label="Good" sublabel="4d" color="bg-green-500/90 dark:bg-green-600/80" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 4); handleNext(4); }} />
+              <SRSButton label="Easy" sublabel="7d+" color="bg-blue-500/90 dark:bg-blue-600/80" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 5); handleNext(5); }} />
             </div>
             <div className="flex items-center space-x-6">
               <button onClick={handlePrev} disabled={studyIndex === 0} className="p-3 rounded-full bg-white dark:bg-slate-800 shadow-md disabled:opacity-30"><ChevronLeft size={24} /></button>

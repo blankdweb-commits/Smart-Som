@@ -7,26 +7,40 @@
   },
   "courses": [
     {
-      "id": "fon-202",
-      "course_code": "NUR 221",
-      "title": "Foundation of Nursing IV",
-      "units": [
-        { "unit_number": "Unit I", "title": "Musculoskeletal Injuries", "flashcards": [{ "id": "y2s2-f-u1-1", "question": "What is a cast?", "answer": "Rigid dressing to immobilize a limb.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit II", "title": "Special Diagnostic Measures", "flashcards": [{ "id": "y2s2-f-u2-1", "question": "What is a lumbar puncture?", "answer": "Needle insertion into spinal canal to collect CSF.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit III", "title": "Emergencies", "flashcards": [{ "id": "y2s2-f-u3-1", "question": "Define Shock.", "answer": "Inadequate blood flow to organs.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit IV", "title": "Dying Patient", "flashcards": [{ "id": "y2s2-f-u4-1", "question": "List Kubler-Ross stages of grief.", "answer": "Denial, Anger, Bargaining, Depression, Acceptance.", "difficulty": "Moderate" }] }
-      ]
-    },
-    {
       "id": "ms-202",
       "course_code": "NUR 2xx",
       "title": "Medical Surgical Nursing III",
       "units": [
-        { "unit_number": "Unit I", "title": "Musculoskeletal", "flashcards": [{ "id": "y2s2-ms-u1-1", "question": "What is Osteomyelitis?", "answer": "Infection of the bone.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit II", "title": "Metabolic/Endocrine", "flashcards": [{ "id": "y2s2-ms-u2-1", "question": "Define Diabetes Mellitus.", "answer": "Disease characterized by high blood glucose.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit III", "title": "Neurological", "flashcards": [{ "id": "y2s2-ms-u3-1", "question": "What is the Glasgow Coma Scale?", "answer": "Tool to assess consciousness.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit IV", "title": "Cardiovascular", "flashcards": [{ "id": "y2s2-ms-u4-1", "question": "Define Heart Failure.", "answer": "Heart cannot pump enough blood.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit V", "title": "Degenerative Diseases", "flashcards": [{ "id": "y2s2-ms-u5-1", "question": "What is Parkinson's disease?", "answer": "Nervous system disorder affecting movement.", "difficulty": "Easy" }] }
+        {
+          "unit_number": "Unit II", "title": "Metabolic and Endocrine Problems",
+          "flashcards": [
+            { "id": "y2s2-ms-u2-1", "question": "Define Diabetes Mellitus.", "answer": "A chronic metabolic disorder characterized by hyperglycemia due to absolute or relative insulin deficiency.", "difficulty": "Easy" },
+            { "id": "y2s2-ms-u2-2", "question": "What are the 3 classic signs of Diabetes (the 3 Ps)?", "answer": "Polyuria (frequent urination), Polydipsia (excessive thirst), and Polyphagia (excessive hunger).", "difficulty": "Easy", "important": true },
+            { "id": "y2s2-ms-u2-3", "question": "Define 'HbA1c'.", "answer": "Glycated hemoglobin test that measures average blood sugar levels over the past 2-3 months.", "difficulty": "Moderate", "important": true },
+            { "id": "y2s2-ms-u2-4", "question": "What is 'Hypoglycemia' and what is the rule of 15?", "answer": "Low blood sugar (<70 mg/dL). Rule of 15: Give 15g rapid carbs, wait 15 mins, recheck sugar.", "difficulty": "Moderate", "important": true },
+            { "id": "y2s2-ms-u2-5", "question": "Define Diabetic Ketoacidosis (DKA).", "answer": "Life-threatening complication of Type 1 DM with hyperglycemia, ketones in urine, and metabolic acidosis.", "difficulty": "Hard", "important": true },
+            { "id": "y2s2-ms-u2-6", "question": "What is the primary sign of Hyperthyroidism?", "answer": "Increased metabolic rate, weight loss, tachycardia, and exophthalmos (bulging eyes).", "difficulty": "Moderate" },
+            { "id": "y2s2-ms-u2-7", "question": "Define 'Cushing’s Syndrome'.", "answer": "Condition caused by prolonged exposure to high levels of cortisol (signs: moon face, buffalo hump).", "difficulty": "Moderate" },
+            { "id": "y2s2-ms-u2-8", "question": "What is 'Addison’s Disease'?", "answer": "Adrenal insufficiency where the gland doesn't produce enough cortisol/aldosterone (signs: bronze skin, hypotension).", "difficulty": "Hard" },
+            { "id": "y2s2-ms-u2-9", "question": "Define 'Myxedema Coma'.", "answer": "A rare but life-threatening complication of untreated hypothyroidism.", "difficulty": "Hard" },
+            { "id": "y2s2-ms-u2-10", "question": "What is the priority nursing diagnosis for a patient with Diabetes Insipidus?", "answer": "Deficient Fluid Volume related to excessive urine output.", "difficulty": "Moderate" }
+          ]
+        },
+        {
+          "unit_number": "Unit IV", "title": "Cardiovascular Problems",
+          "flashcards": [
+            { "id": "y2s2-ms-u4-1", "question": "Define Heart Failure.", "answer": "A chronic condition where the heart doesn't pump blood as well as it should.", "difficulty": "Easy" },
+            { "id": "y2s2-ms-u4-2", "question": "What are the signs of Right-Sided Heart Failure?", "answer": "Peripheral edema, JVD (Jugular Venous Distension), hepatomegaly, and ascites.", "difficulty": "Moderate", "important": true },
+            { "id": "y2s2-ms-u4-3", "question": "What are the signs of Left-Sided Heart Failure?", "answer": "Pulmonary congestion, crackles, dyspnea, and orthopnea.", "difficulty": "Moderate", "important": true },
+            { "id": "y2s2-ms-u4-4", "question": "Define 'Angina Pectoris'.", "answer": "Chest pain caused by reduced blood flow to the heart muscle.", "difficulty": "Easy" },
+            { "id": "y2s2-ms-u4-5", "question": "What is a Myocardial Infarction (MI)?", "answer": "A heart attack; occurs when blood flow to a part of the heart is blocked for long enough that muscle is damaged.", "difficulty": "Moderate", "important": true },
+            { "id": "y2s2-ms-u4-6", "question": "What is 'MONA' in MI management?", "answer": "Morphine, Oxygen, Nitroglycerin, Aspirin.", "difficulty": "Moderate", "important": true },
+            { "id": "y2s2-ms-u4-7", "question": "Define 'Atrial Fibrillation'.", "answer": "An irregular, often rapid heart rate that causes poor blood flow.", "difficulty": "Moderate" },
+            { "id": "y2s2-ms-u4-8", "question": "What is 'Hypertensive Crisis'?", "answer": "Severe increase in BP (>=180/120) that can lead to organ damage.", "difficulty": "Hard" },
+            { "id": "y2s2-ms-u4-9", "question": "Define 'Endocarditis'.", "answer": "Inflammation of the inner lining of the heart's chambers and valves.", "difficulty": "Moderate" },
+            { "id": "y2s2-ms-u4-10", "question": "What is the primary purpose of a Pacemaker?", "answer": "To control abnormal heart rhythms (arrhythmias) using electrical pulses.", "difficulty": "Easy" }
+          ]
+        }
       ]
     },
     {
@@ -34,87 +48,21 @@
       "course_code": "NUR 2xx",
       "title": "Pharmacology III",
       "units": [
-        { "unit_number": "Unit I", "title": "Cardiovascular Drugs", "flashcards": [{ "id": "y2s2-p-u1-1", "question": "What is Digoxin?", "answer": "Cardiac glycoside used for heart failure.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit II", "title": "Respiratory Drugs", "flashcards": [{ "id": "y2s2-p-u2-1", "question": "What is Albuterol?", "answer": "Bronchodilator.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit III", "title": "Gastrointestinal Drugs", "flashcards": [{ "id": "y2s2-p-u3-1", "question": "What are Antacids?", "answer": "Neutralize stomach acid.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit IV", "title": "Musculoskeletal Drugs", "flashcards": [{ "id": "y2s2-p-u4-1", "question": "What is Ibuprofen?", "answer": "NSAID.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit V", "title": "CNS Drugs", "flashcards": [{ "id": "y2s2-p-u5-1", "question": "What are Hypnotics?", "answer": "Drugs that induce sleep.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit VI", "title": "Endocrine Drugs", "flashcards": [{ "id": "y2s2-p-u6-1", "question": "What is Insulin?", "answer": "Hormone used to treat diabetes.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit VII", "title": "Genitourinary Drugs", "flashcards": [{ "id": "y2s2-p-u7-1", "question": "What are Diuretics?", "answer": "Drugs that increase urine output.", "difficulty": "Easy" }] }
-      ]
-    },
-    {
-      "id": "research-202",
-      "course_code": "NUR 225",
-      "title": "Research Methodology II",
-      "units": [
-        { "unit_number": "Unit I", "title": "Designs", "flashcards": [{ "id": "y2s2-r-u1-1", "question": "What is an Experimental design?", "answer": "Study with control and variable manipulation.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit II", "title": "Analysis", "flashcards": [{ "id": "y2s2-r-u2-1", "question": "What is Data Interpretation?", "answer": "Assigning meaning to collected data.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit III", "title": "Proposal", "flashcards": [{ "id": "y2s2-r-u3-1", "question": "What is a Research Proposal?", "answer": "Document outlining planned study.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit IV", "title": "Dissemination", "flashcards": [{ "id": "y2s2-r-u4-1", "question": "What is a Peer Review?", "answer": "Evaluation of research by experts in the field.", "difficulty": "Moderate" }] }
-      ]
-    },
-    {
-      "id": "chn-201",
-      "course_code": "NUR 2xx",
-      "title": "Community Health Nursing I",
-      "units": [
-        { "unit_number": "Unit I", "title": "Concepts", "flashcards": [{ "id": "y2s2-c-u1-1", "question": "Define Community Health Nursing.", "answer": "Nursing focus on community as a whole.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit II", "title": "MCH Services", "flashcards": [{ "id": "y2s2-c-u2-1", "question": "What is Postnatal care?", "answer": "Care after childbirth.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit III", "title": "School Health", "flashcards": [{ "id": "y2s2-c-u3-1", "question": "Objective of school health?", "answer": "Promote health of students and staff.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit IV", "title": "Special Groups", "flashcards": [{ "id": "y2s2-c-u4-1", "question": "What is geriatric care?", "answer": "Care of the elderly.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit V", "title": "Traditional Practices", "flashcards": [{ "id": "y2s2-c-u5-1", "question": "Give example of harmful traditional practice.", "answer": "FGM.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit VI", "title": "Occupational Health", "flashcards": [{ "id": "y2s2-c-u6-1", "question": "What is occupational health?", "answer": "Health and safety at the workplace.", "difficulty": "Easy" }] }
-      ]
-    },
-    {
-      "id": "rh-202",
-      "course_code": "NUR 2xx",
-      "title": "Reproductive Health II",
-      "units": [
-        { "unit_number": "Unit I", "title": "Safe Motherhood", "flashcards": [{ "id": "y2s2-rh-u1-1", "question": "What is Safe Motherhood?", "answer": "Initiative to reduce maternal mortality.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit II", "title": "Child Bearing", "flashcards": [{ "id": "y2s2-rh-u2-1", "question": "Define Pregnancy.", "answer": "State of carrying developing embryo/fetus.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit III", "title": "Labour", "flashcards": [{ "id": "y2s2-rh-u3-1", "question": "Stages of labour?", "answer": "1. Dilation, 2. Delivery, 3. Placenta.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit IV", "title": "Abnormalities", "flashcards": [{ "id": "y2s2-rh-u4-1", "question": "What is PPH?", "answer": "Postpartum Hemorrhage.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit V", "title": "Puerperium", "flashcards": [{ "id": "y2s2-rh-u5-1", "question": "What is Puerperium?", "answer": "6-week period after birth.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit VI", "title": "Family Planning", "flashcards": [{ "id": "y2s2-rh-u6-1", "question": "What is an IUCD?", "answer": "Intrauterine Contraceptive Device.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit VII", "title": "Abortion", "flashcards": [{ "id": "y2s2-rh-u7-1", "question": "What is PAC?", "answer": "Post-Abortion Care.", "difficulty": "Moderate" }] }
-      ]
-    },
-    {
-      "id": "nutri-201",
-      "course_code": "NUS 214",
-      "title": "Nutrition and Dietetics",
-      "units": [
-        { "unit_number": "Unit I", "title": "Introduction", "flashcards": [{ "id": "y2s2-n-u1-1", "question": "What are Nutrients?", "answer": "Chemicals in food used by the body.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit II", "title": "Needs", "flashcards": [{ "id": "y2s2-n-u2-1", "question": "What is a Balanced Diet?", "answer": "Diet with all nutrients in right proportions.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit III", "title": "Safety", "flashcards": [{ "id": "y2s2-n-u3-1", "question": "How to prevent food poisoning?", "answer": "Proper cooking and storage.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit IV", "title": "Dietetics", "flashcards": [{ "id": "y2s2-n-u4-1", "question": "What is Dietetics?", "answer": "Science of how food affects health.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit V", "title": "Assessment", "flashcards": [{ "id": "y2s2-n-u5-1", "question": "What is BMI?", "answer": "Body Mass Index.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit VI", "title": "Therapeutic", "flashcards": [{ "id": "y2s2-n-u6-1", "question": "What is a soft diet?", "answer": "Foods easy to chew and swallow.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit VII", "title": "Counseling", "flashcards": [{ "id": "y2s2-n-u7-1", "question": "Purpose of dietary counseling?", "answer": "Help patient improve health via food choices.", "difficulty": "Easy" }] }
-      ]
-    },
-    {
-      "id": "pws-201",
-      "course_code": "NUR 2xx",
-      "title": "Professional Writing & Seminar",
-      "units": [
-        { "unit_number": "Unit I", "title": "Writing", "flashcards": [{ "id": "y2s2-pw-u1-1", "question": "What is a Nursing Note?", "answer": "Clinical documentation of patient care.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit II", "title": "Seminar", "flashcards": [{ "id": "y2s2-pw-u2-1", "question": "What is a Seminar Paper?", "answer": "Paper presented at a meeting for discussion.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit III", "title": "Validation", "flashcards": [{ "id": "y2s2-pw-u3-1", "question": "What is public speaking?", "answer": "Speaking to a live audience.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit IV", "title": "Ethics", "flashcards": [{ "id": "y2s2-pw-u4-1", "question": "What is Plagiarism?", "answer": "Using someone else's work without credit.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit V", "title": "Presentations", "flashcards": [{ "id": "y2s2-pw-u5-1", "question": "Role of visual aids?", "answer": "Enhance understanding of presentation.", "difficulty": "Easy" }] }
-      ]
-    },
-    {
-      "id": "pgn-201",
-      "course_code": "NUR 2xx",
-      "title": "Politics and Governance",
-      "units": [
-        { "unit_number": "Unit I", "title": "Concepts", "flashcards": [{ "id": "y2s2-pg-u1-1", "question": "Arms of government?", "answer": "Legislative, Executive, Judicial.", "difficulty": "Easy" }] },
-        { "unit_number": "Unit II", "title": "Interaction", "flashcards": [{ "id": "y2s2-pg-u2-1", "question": "What is collective bargaining?", "answer": "Negotiation between employer and employees group.", "difficulty": "Moderate" }] },
-        { "unit_number": "Unit III", "title": "Activities", "flashcards": [{ "id": "y2s2-pg-u3-1", "question": "What is policy advocacy?", "answer": "Influencing public policy.", "difficulty": "Moderate" }] }
+        {
+          "unit_number": "Unit I", "title": "Cardiovascular System Drugs",
+          "flashcards": [
+            { "id": "y2s2-p-u1-1", "question": "What is Digoxin?", "answer": "A cardiac glycoside that increases the force of myocardial contraction and slows heart rate.", "difficulty": "Moderate", "important": true },
+            { "id": "y2s2-p-u1-2", "question": "What is the classic sign of Digoxin Toxicity?", "answer": "Yellow-green visual halos, nausea, vomiting, and bradycardia.", "difficulty": "Moderate", "important": true },
+            { "id": "y2s2-p-u1-3", "question": "Define 'Beta Blockers'.", "answer": "Drugs that reduce blood pressure and heart rate by blocking epinephrine (e.g., Atenolol, Metoprolol).", "difficulty": "Easy" },
+            { "id": "y2s2-p-u1-4", "question": "What are 'ACE Inhibitors' used for?", "answer": "To treat hypertension and heart failure (e.g., Lisinopril, Enalapril). Key side effect: dry cough.", "difficulty": "Moderate" },
+            { "id": "y2s2-p-u1-5", "question": "Define 'Nitroglycerin'.", "answer": "A vasodilator used to treat angina by increasing coronary blood flow.", "difficulty": "Easy" },
+            { "id": "y2s2-p-u1-6", "question": "What is 'Warfarin' (Coumadin)?", "answer": "An oral anticoagulant. Monitor PT/INR. Antidote: Vitamin K.", "difficulty": "Moderate", "important": true },
+            { "id": "y2s2-p-u1-7", "question": "Define 'Heparin'.", "answer": "A parenteral anticoagulant. Monitor aPTT. Antidote: Protamine Sulfate.", "difficulty": "Moderate", "important": true },
+            { "id": "y2s2-p-u1-8", "question": "What are 'Statins'?", "answer": "Drugs used to lower cholesterol (e.g., Atorvastatin). Monitor for muscle pain (rhabdomyolysis).", "difficulty": "Easy" },
+            { "id": "y2s2-p-u1-9", "question": "Define 'Furosemide' (Lasix).", "answer": "A loop diuretic used to treat edema and hypertension. Monitor for hypokalemia.", "difficulty": "Easy", "important": true },
+            { "id": "y2s2-p-u1-10", "question": "What is 'Spironolactone'?", "answer": "A potassium-sparing diuretic. Monitor for hyperkalemia.", "difficulty": "Moderate" }
+          ]
+        }
       ]
     }
   ]

@@ -15,7 +15,16 @@
           "unit_number": "Unit I",
           "title": "Ethics and Regulation",
           "flashcards": [
-            { "id": "m3s2-e-1", "question": "Define 'Respectful Maternity Care'.", "answer": "An approach to care that organizes for and provides care to all women in a manner that maintains their dignity, privacy and confidentiality.", "difficulty": "Easy", "isImportant": true }
+            { "id": "m3s2-e-1", "question": "Define 'Respectful Maternity Care'.", "answer": "An approach to care that maintains dignity, privacy, and confidentiality for all women during childbirth.", "difficulty": "Easy", "important": true },
+            { "id": "m3s2-e-2", "question": "What is 'Informed Consent' in Midwifery?", "answer": "The process of providing a woman with full information about a procedure so she can make a voluntary choice.", "difficulty": "Easy", "important": true },
+            { "id": "m3s2-e-3", "question": "Define 'Duty of Care'.", "answer": "The legal and professional obligation to act in the best interest of the patient.", "difficulty": "Moderate" },
+            { "id": "m3s2-e-4", "question": "What is 'Negligence'?", "answer": "Failure to provide a standard of care that a reasonably prudent professional would provide in similar circumstances.", "difficulty": "Moderate", "important": true },
+            { "id": "m3s2-e-5", "question": "Define 'Confidentiality'.", "answer": "The ethical and legal right of patients to have their health information kept private.", "difficulty": "Easy" },
+            { "id": "m3s2-e-6", "question": "What is 'Non-Maleficence'?", "answer": "The ethical principle of 'Do No Harm'.", "difficulty": "Moderate" },
+            { "id": "m3s2-e-7", "question": "Define 'Autonomy'.", "answer": "The right of a patient to make their own decisions about their medical care.", "difficulty": "Moderate", "important": true },
+            { "id": "m3s2-e-8", "question": "What is 'Beneficence'?", "answer": "The ethical principle of acting in the patient's best interest (Doing Good).", "difficulty": "Moderate" },
+            { "id": "m3s2-e-9", "question": "What is the N&MCN disciplinary procedure for professional misconduct?", "answer": "Involves an Investigating Panel and a Disciplinary Tribunal.", "difficulty": "Hard", "important": true },
+            { "id": "m3s2-e-10", "question": "Define 'Abandonment' in clinical practice.", "answer": "Termination of the professional relationship without providing notice or ensuring a qualified successor.", "difficulty": "Hard", "important": true }
           ]
         }
       ]

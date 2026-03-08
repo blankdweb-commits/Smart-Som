@@ -21,8 +21,13 @@ const FlashcardCard = ({ card, onEdit, onDelete, onToggleImportant, onShare, isS
   };
 
   return (
-    <div className={`relative h-72 sm:h-64 w-full cursor-pointer group flashcard-container`} onClick={handleFlip}>
-      <div className={`flashcard-inner w-full h-full ${isFlipped ? 'flipped' : ''}`}>
+    <motion.div
+      className={`relative h-72 sm:h-64 w-full cursor-pointer group flashcard-container`}
+      onClick={handleFlip}
+      whileHover={{ y: -4 }}
+      whileTap={{ scale: 0.98 }}
+    >
+      <div className={`flashcard-inner w-full h-full ${isFlipped ? 'flipped' : ''} transition-all duration-500 ease-out`}>
         {/* Front */}
         <div className="flashcard-front absolute inset-0 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700 p-6 flex flex-col justify-between overflow-hidden">
           <div>
@@ -129,7 +134,7 @@ const FlashcardCard = ({ card, onEdit, onDelete, onToggleImportant, onShare, isS
           <p className="mt-6 text-[10px] opacity-60 font-bold uppercase tracking-widest">Click to flip back</p>
         </div>
       </div>
-    </div>
+    </motion.div>
   );
 };
 
