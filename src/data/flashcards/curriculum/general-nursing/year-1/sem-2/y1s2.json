@@ -11,15 +11,26 @@
       "course_code": "NUR 122",
       "title": "Primary Health Care I",
       "units": [
-        { "unit_number": "Unit I", "title": "Introduction to PHC", "flashcards": [
-          { "id": "y1s2-phc-u1-1", "question": "Define Primary Health Care (PHC).", "answer": "Essential health care made universally accessible to individuals and families.", "difficulty": "Easy" },
-          { "id": "y1s2-phc-u1-2", "question": "What was the Alma-Ata Declaration?", "answer": "The 1978 conference that identified PHC as the key to attaining 'Health for All'.", "difficulty": "Moderate", "important": true },
-          { "id": "y1s2-phc-u1-3", "question": "List the 5 principles of PHC.", "answer": "Equity, Community participation, Intersectoral collaboration, Appropriate technology, Focus on prevention.", "difficulty": "Hard", "important": true }
-        ] },
-        { "unit_number": "Unit II", "title": "The Community", "flashcards": [
-          { "id": "y1s2-phc-u2-1", "question": "List the cadres of PHC workers in Nigeria.", "answer": "CHEWs, CHOs, Midwives, PHNs, Community Physicians.", "difficulty": "Moderate" },
-          { "id": "y1s2-phc-u2-2", "question": "What is the role of a Village Health Worker (VHW)?", "answer": "To serve as a link between the community and the health facility.", "difficulty": "Easy" }
-        ] }
+        {
+          "unit_number": "Unit I", "title": "Introduction to PHC",
+          "flashcards": [
+            { "id": "y1s2-phc-u1-1", "question": "Define Primary Health Care (PHC).", "answer": "Essential health care made universally accessible to individuals and families.", "difficulty": "Easy" },
+            { "id": "y1s2-phc-u1-2", "question": "What was the Alma-Ata Declaration?", "answer": "The 1978 conference that identified PHC as the key to attaining 'Health for All'.", "difficulty": "Moderate", "important": true },
+            { "id": "y1s2-phc-u1-3", "question": "List the 5 principles of PHC.", "answer": "Equity, Community participation, Intersectoral collaboration, Appropriate technology, Focus on prevention.", "difficulty": "Hard", "important": true },
+            { "id": "y1s2-phc-u1-4", "question": "What is the goal of PHC?", "answer": "To provide accessible and affordable healthcare to everyone.", "difficulty": "Easy" },
+            { "id": "y1s2-phc-u1-5", "question": "Define 'Equity' in PHC.", "answer": "Fair distribution of health resources according to need.", "difficulty": "Moderate" },
+            { "id": "y1s2-phc-u1-6", "question": "What is 'Community Participation'?", "answer": "Involving the community in planning and implementing their own healthcare.", "difficulty": "Easy" },
+            { "id": "y1s2-phc-u1-7", "question": "Define 'Intersectoral Collaboration'.", "answer": "Cooperation between health and other sectors (e.g., education, water, agriculture).", "difficulty": "Moderate" },
+            { "id": "y1s2-phc-u1-8", "question": "What is 'Appropriate Technology'?", "answer": "Health technologies that are scientifically sound, adaptable, and affordable.", "difficulty": "Moderate" },
+            { "id": "y1s2-phc-u1-9", "question": "Why is 'Focus on Prevention' important in PHC?", "answer": "It is more cost-effective and improves overall population health.", "difficulty": "Easy" },
+            { "id": "y1s2-phc-u1-10", "question": "List 3 elements of PHC.", "answer": "Immunization, Maternal and Child Health, Essential Drugs supply.", "difficulty": "Moderate" },
+            { "id": "y1s2-phc-u1-11", "question": "What is 'Health for All'?", "answer": "The attainment of a level of health that permits all people to lead a socially and economically productive life.", "difficulty": "Moderate" },
+            { "id": "y1s2-phc-u1-12", "question": "Define 'Accessibility' in PHC.", "answer": "Health services located within reasonable distance and reach of the people.", "difficulty": "Easy" },
+            { "id": "y1s2-phc-u1-13", "question": "Define 'Affordability'.", "answer": "The cost of services must be within the means of the individuals and community.", "difficulty": "Easy" },
+            { "id": "y1s2-phc-u1-14", "question": "What is 'Acceptability'?", "answer": "Health services must be culturally and socially acceptable to the people.", "difficulty": "Moderate" },
+            { "id": "y1s2-phc-u1-15", "question": "Define 'Universal Coverage'.", "answer": "Ensuring that all people have access to the health services they need.", "difficulty": "Moderate" }
+          ]
+        }
       ]
     },
     {
@@ -27,22 +38,26 @@
       "course_code": "NUS 125",
       "title": "Pharmacology I",
       "units": [
-        { "unit_number": "Unit IV", "title": "Routes of Administration", "flashcards": [
-          { "id": "y1s2-p-u4-1", "question": "List the five rights of drug administration.", "answer": "Right Patient, Right Drug, Right Dose, Right Route, Right Time.", "difficulty": "Easy", "important": true },
-          { "id": "y1s2-p-u4-2", "question": "What is the angle for an Intramuscular (IM) injection?", "answer": "90 degrees.", "difficulty": "Easy" },
-          { "id": "y1s2-p-u4-3", "question": "What is the angle for a Subcutaneous injection?", "answer": "45 or 90 degrees depending on fat tissue.", "difficulty": "Moderate" },
-          { "id": "y1s2-p-u4-4", "question": "What is the first-pass effect?", "answer": "Metabolism of a drug by the liver before it reaches systemic circulation.", "difficulty": "Hard" },
-          { "id": "y1s2-p-u4-5", "question": "Why is the Sublingual route faster than Oral?", "answer": "It bypasses the digestive tract and liver (absorption directly into capillaries).", "difficulty": "Moderate" },
-          { "id": "y1s2-p-u4-6", "question": "Define 'Infiltration' in IV therapy.", "answer": "Leakage of non-vesicant fluid into surrounding tissue.", "difficulty": "Moderate", "important": true },
-          { "id": "y1s2-p-u4-7", "question": "What is 'Phlebitis'?", "answer": "Inflammation of a vein, often indicated by redness and warmth at the IV site.", "difficulty": "Moderate" },
-          { "id": "y1s2-p-u4-8", "question": "List the sites for IM injections.", "answer": "Deltoid, Vastus Lateralis, Ventrogluteal, Dorsogluteal.", "difficulty": "Moderate" }
-        ] },
-        { "unit_number": "Unit VI", "title": "Mechanism of Drug Action", "flashcards": [
-          { "id": "y1s2-p-u6-1", "question": "Define 'Pharmacokinetics'.", "answer": "What the body does to the drug (Absorption, Distribution, Metabolism, Excretion).", "difficulty": "Moderate" },
-          { "id": "y1s2-p-u6-2", "question": "Define 'Pharmacodynamics'.", "answer": "What the drug does to the body (biochemical and physiological effects).", "difficulty": "Moderate" },
-          { "id": "y1s2-p-u6-3", "question": "What is an 'Agonist'?", "answer": "A drug that binds to and activates a receptor.", "difficulty": "Moderate" },
-          { "id": "y1s2-p-u6-4", "question": "What is the half-life of a drug?", "answer": "The time it takes for the concentration of the drug in the body to reduce by half.", "difficulty": "Hard" }
-        ] }
+        {
+          "unit_number": "Unit IV", "title": "Routes of Administration",
+          "flashcards": [
+            { "id": "y1s2-p-u4-1", "question": "List the five rights of drug administration.", "answer": "Right Patient, Right Drug, Right Dose, Right Route, Right Time.", "difficulty": "Easy", "important": true },
+            { "id": "y1s2-p-u4-2", "question": "What is the angle for an Intramuscular (IM) injection?", "answer": "90 degrees.", "difficulty": "Easy" },
+            { "id": "y1s2-p-u4-3", "question": "What is the angle for a Subcutaneous injection?", "answer": "45 or 90 degrees.", "difficulty": "Moderate" },
+            { "id": "y1s2-p-u4-4", "question": "What is the angle for an Intradermal (ID) injection?", "answer": "10 to 15 degrees.", "difficulty": "Easy" },
+            { "id": "y1s2-p-u4-5", "question": "Define 'Oral Route'.", "answer": "Administration by mouth; simplest and most common route.", "difficulty": "Easy" },
+            { "id": "y1s2-p-u4-6", "question": "Define 'Sublingual Route'.", "answer": "Drug placed under the tongue for rapid absorption.", "difficulty": "Moderate" },
+            { "id": "y1s2-p-u4-7", "question": "What is 'Rectal Administration'?", "answer": "Drug administered via the rectum; used when oral is not possible.", "difficulty": "Moderate" },
+            { "id": "y1s2-p-u4-8", "question": "Define 'Topical Route'.", "answer": "Application of drugs directly to the skin or mucous membranes.", "difficulty": "Easy" },
+            { "id": "y1s2-p-u4-9", "question": "What is an 'Inhalation Route'?", "answer": "Drugs administered through the respiratory tract.", "difficulty": "Moderate" },
+            { "id": "y1s2-p-u4-10", "question": "Define 'Intravenous (IV) Route'.", "answer": "Direct injection into a vein; fastest onset of action.", "difficulty": "Moderate", "important": true },
+            { "id": "y1s2-p-u4-11", "question": "What is the 'Ventrogluteal' site used for?", "answer": "Preferred site for IM injections in adults and children who are walking.", "difficulty": "Hard", "important": true },
+            { "id": "y1s2-p-u4-12", "question": "What is the 'Deltoid' site limitation?", "answer": "Can only handle small volumes of medication (usually < 1ml).", "difficulty": "Moderate" },
+            { "id": "y1s2-p-u4-13", "question": "Define 'Vastus Lateralis'.", "answer": "Preferred IM injection site for infants and young children.", "difficulty": "Moderate" },
+            { "id": "y1s2-p-u4-14", "question": "What is 'Z-track' technique?", "answer": "Method used for IM injections to prevent leakage of irritating drugs into subcutaneous tissue.", "difficulty": "Hard" },
+            { "id": "y1s2-p-u4-15", "question": "What are 'Enteric-coated' tablets?", "answer": "Tablets designed to dissolve in the small intestine, not the stomach.", "difficulty": "Hard" }
+          ]
+        }
       ]
     },
     {
@@ -50,19 +65,53 @@
       "course_code": "NUS 121",
       "title": "Anatomy and Physiology II",
       "units": [
-        { "unit_number": "Unit III", "title": "Urinary System", "flashcards": [
-          { "id": "y1s2-a-u3-1", "question": "What is the functional unit of the kidney?", "answer": "The nephron.", "difficulty": "Easy" },
-          { "id": "y1s2-a-u3-2", "question": "Define GFR (Glomerular Filtration Rate).", "answer": "The volume of filtrate formed per minute by the kidneys (normal ~125mL/min).", "difficulty": "Hard", "important": true },
-          { "id": "y1s2-a-u3-3", "question": "What is the role of ADH (Antidiuretic Hormone)?", "answer": "It increases water reabsorption in the collecting ducts of the kidney.", "difficulty": "Moderate" },
-          { "id": "y1s2-a-u3-4", "question": "What is the normal specific gravity of urine?", "answer": "1.005 to 1.030.", "difficulty": "Hard" },
-          { "id": "y1s2-a-u3-5", "question": "Name the hormone produced by the kidney that stimulates RBC production.", "answer": "Erythropoietin.", "difficulty": "Moderate" },
-          { "id": "y1s2-a-u3-6", "question": "What is Micturition?", "answer": "The act of emptying the bladder (urination).", "difficulty": "Easy" }
-        ] },
-        { "unit_number": "Unit IV", "title": "Female Reproductive System", "flashcards": [
-          { "id": "y1s2-a-u4-1", "question": "What are the female sex hormones?", "answer": "Estrogen and Progesterone.", "difficulty": "Easy" },
-          { "id": "y1s2-a-u4-2", "question": "Define Ovulation.", "answer": "The release of a mature egg from the ovary, typically around day 14 of the cycle.", "difficulty": "Easy" },
-          { "id": "y1s2-a-u4-3", "question": "Where does fertilization usually occur?", "answer": "The ampulla of the Fallopian tube.", "difficulty": "Moderate" }
-        ] }
+        {
+          "unit_number": "Unit III", "title": "Urinary System",
+          "flashcards": [
+            { "id": "y1s2-a-u3-1", "question": "What is the functional unit of the kidney?", "answer": "The nephron.", "difficulty": "Easy" },
+            { "id": "y1s2-a-u3-2", "question": "Define GFR (Glomerular Filtration Rate).", "answer": "The volume of filtrate formed per minute by the kidneys.", "difficulty": "Hard", "important": true },
+            { "id": "y1s2-a-u3-3", "question": "What is the role of ADH?", "answer": "Increases water reabsorption in the collecting ducts.", "difficulty": "Moderate" },
+            { "id": "y1s2-a-u3-4", "question": "Define 'Ureter'.", "answer": "The tube that carries urine from the kidney to the bladder.", "difficulty": "Easy" },
+            { "id": "y1s2-a-u3-5", "question": "What is the 'Urinary Bladder'?", "answer": "A hollow muscular organ that stores urine.", "difficulty": "Easy" },
+            { "id": "y1s2-a-u3-6", "question": "Define 'Urethra'.", "answer": "The tube through which urine leaves the body.", "difficulty": "Easy" },
+            { "id": "y1s2-a-u3-7", "question": "What is 'Micturition'?", "answer": "The process of urination.", "difficulty": "Easy" },
+            { "id": "y1s2-a-u3-8", "question": "What are the three steps of urine formation?", "answer": "Filtration, Reabsorption, Secretion.", "difficulty": "Moderate", "important": true },
+            { "id": "y1s2-a-u3-9", "question": "Define 'Renin'.", "answer": "An enzyme produced by kidneys to help regulate blood pressure.", "difficulty": "Hard" },
+            { "id": "y1s2-a-u3-10", "question": "What is 'Erythropoietin'?", "answer": "A hormone produced by kidneys to stimulate RBC production.", "difficulty": "Moderate" },
+            { "id": "y1s2-a-u3-11", "question": "What is the 'Glomerulus'?", "answer": "A cluster of capillaries around the end of a kidney tubule.", "difficulty": "Moderate" },
+            { "id": "y1s2-a-u3-12", "question": "Define 'Bowman's Capsule'.", "answer": "A cup-like sac at the beginning of the tubular component of a nephron.", "difficulty": "Moderate" },
+            { "id": "y1s2-a-u3-13", "question": "What is 'Hematuria'?", "answer": "The presence of blood in the urine.", "difficulty": "Easy" },
+            { "id": "y1s2-a-u3-14", "question": "What is 'Glycosuria'?", "answer": "The presence of glucose in the urine.", "difficulty": "Moderate" },
+            { "id": "y1s2-a-u3-15", "question": "Define 'Specific Gravity' of urine.", "answer": "A measure of the concentration of solutes in the urine.", "difficulty": "Hard" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fon-102",
+      "course_code": "NUR 121",
+      "title": "Foundation of Nursing II",
+      "units": [
+        {
+          "unit_number": "Unit I", "title": "Administration of Drugs",
+          "flashcards": [
+            { "id": "y1s2-f2-u1-1", "question": "What are the 5 rights of drug administration?", "answer": "Right Patient, Right Drug, Right Dose, Right Route, Right Time.", "difficulty": "Easy", "important": true },
+            { "id": "y1s2-f2-u1-2", "question": "Define 'Pharmacology'.", "answer": "The study of drugs and their actions on living organisms.", "difficulty": "Easy" },
+            { "id": "y1s2-f2-u1-3", "question": "What is 'Drug Control Act'?", "answer": "Legislation regulating the manufacture, distribution, and use of drugs.", "difficulty": "Moderate" },
+            { "id": "y1s2-f2-u1-4", "question": "Nurse's responsibility in drug admin?", "answer": "Ensure safety, accurate dosing, patient education, and documentation.", "difficulty": "Moderate" },
+            { "id": "y1s2-f2-u1-5", "question": "How to identify a patient before giving drugs?", "answer": "Check ID band and ask the patient to state their full name and DOB.", "difficulty": "Easy" },
+            { "id": "y1s2-f2-u1-6", "question": "Define 'Side Effect'.", "answer": "A secondary, typically undesirable effect of a drug or medical treatment.", "difficulty": "Easy" },
+            { "id": "y1s2-f2-u1-7", "question": "What is an 'Adverse Drug Reaction'?", "answer": "An unexpected and harmful response to a medication.", "difficulty": "Moderate" },
+            { "id": "y1s2-f2-u1-8", "question": "Define 'Toxic Effect'.", "answer": "Harmful effect of a drug due to accumulation in the blood.", "difficulty": "Moderate" },
+            { "id": "y1s2-f2-u1-9", "question": "What is a 'Stat Order'?", "answer": "A single dose of medication to be given immediately and only once.", "difficulty": "Easy" },
+            { "id": "y1s2-f2-u1-10", "question": "Define 'PRN Order'.", "answer": "Medication given as needed (pro re nata).", "difficulty": "Easy" },
+            { "id": "y1s2-f2-u1-11", "question": "Importance of drug calculations?", "answer": "To ensure the patient receives the exact prescribed dose and avoid toxicity.", "difficulty": "Moderate", "important": true },
+            { "id": "y1s2-f2-u1-12", "question": "What is 'Polypharmacy'?", "answer": "The use of multiple medications by a patient, increasing risk of interactions.", "difficulty": "Moderate" },
+            { "id": "y1s2-f2-u1-13", "question": "Define 'Bioavailability'.", "answer": "The proportion of a drug that enters the circulation when introduced into the body.", "difficulty": "Hard" },
+            { "id": "y1s2-f2-u1-14", "question": "What is the 'Therapeutic Range'?", "answer": "The dosage range or blood plasma or serum concentration usually expected to achieve desired effects.", "difficulty": "Moderate" },
+            { "id": "y1s2-f2-u1-15", "question": "Define 'Drug Incompatibility'.", "answer": "A chemical or physical reaction that occurs among two or more drugs.", "difficulty": "Hard" }
+          ]
+        }
       ]
     },
     {
@@ -70,13 +119,26 @@
       "course_code": "NUR 213",
       "title": "Medical-Surgical Nursing I",
       "units": [
-        { "unit_number": "Unit III", "title": "Situations Threatening Adaptation", "flashcards": [
-          { "id": "y1s2-ms-u3-1", "question": "Define Inflammation.", "answer": "Body's local response to injury or infection (Redness, Heat, Swelling, Pain).", "difficulty": "Easy" },
-          { "id": "y1s2-ms-u3-2", "question": "What is 'Hypovolemic Shock'?", "answer": "Shock caused by rapid fluid or blood loss.", "difficulty": "Moderate", "important": true },
-          { "id": "y1s2-ms-u3-3", "question": "What is the first sign of shock?", "answer": "Increased heart rate (tachycardia) and restlessness.", "difficulty": "Hard", "important": true },
-          { "id": "y1s2-ms-u3-4", "question": "Define 'Anaphylactic Shock'.", "answer": "Severe, life-threatening allergic reaction causing systemic vasodilation.", "difficulty": "Moderate" },
-          { "id": "y1s2-ms-u3-5", "question": "What are the 3 stages of shock?", "answer": "Compensatory, Progressive, and Irreversible.", "difficulty": "Hard" }
-        ] }
+        {
+          "unit_number": "Unit I", "title": "Concepts and Terms",
+          "flashcards": [
+            { "id": "y1s2-ms1-u1-1", "question": "Define 'Medical-Surgical Nursing'.", "answer": "Nursing specialty that cares for adult patients with a broad range of medical conditions or those having surgery.", "difficulty": "Easy" },
+            { "id": "y1s2-ms1-u1-2", "question": "What is 'Holistic Care'?", "answer": "Comprehensive care that addresses physical, emotional, social, and spiritual needs.", "difficulty": "Moderate" },
+            { "id": "y1s2-ms1-u1-3", "question": "Define 'Homeostasis'.", "answer": "State of steady internal, physical, and chemical conditions maintained by living systems.", "difficulty": "Easy" },
+            { "id": "y1s2-ms1-u1-4", "question": "What is 'Adaptation' in nursing context?", "answer": "The process by which an individual responds to changes in the environment.", "difficulty": "Moderate" },
+            { "id": "y1s2-ms1-u1-5", "question": "Define 'Stress'.", "answer": "A state of mental or emotional strain or tension resulting from adverse or very demanding circumstances.", "difficulty": "Easy" },
+            { "id": "y1s2-ms1-u1-6", "question": "What is the 'Health-Illness Continuum'?", "answer": "A way of conceptualizing health as a dynamic state ranging from wellness to death.", "difficulty": "Moderate" },
+            { "id": "y1s2-ms1-u1-7", "question": "Define 'Primary Nursing'.", "answer": "A model of care delivery where one nurse is responsible for the total care of a patient 24/7.", "difficulty": "Hard" },
+            { "id": "y1s2-ms1-u1-8", "question": "What is 'Team Nursing'?", "answer": "A model where a team provides care to a group of patients.", "difficulty": "Moderate" },
+            { "id": "y1s2-ms1-u1-9", "question": "Define 'Chronic Illness'.", "answer": "A condition that persists over a long period (usually > 6 months).", "difficulty": "Easy" },
+            { "id": "y1s2-ms1-u1-10", "question": "Define 'Acute Illness'.", "answer": "A condition characterized by severe symptoms of relatively short duration.", "difficulty": "Easy" },
+            { "id": "y1s2-ms1-u1-11", "question": "What is 'Exacerbation'?", "answer": "A period when the symptoms of a chronic disease reappear or worsen.", "difficulty": "Moderate" },
+            { "id": "y1s2-ms1-u1-12", "question": "Define 'Remission'.", "answer": "A period when the symptoms of a disease disappear or significantly decrease.", "difficulty": "Moderate" },
+            { "id": "y1s2-ms1-u1-13", "question": "What is 'Morbidity'?", "answer": "The condition of being diseased or the rate of disease in a population.", "difficulty": "Moderate" },
+            { "id": "y1s2-ms1-u1-14", "question": "What is 'Mortality'?", "answer": "The state of being subject to death or the number of deaths in a given period.", "difficulty": "Easy" },
+            { "id": "y1s2-ms1-u1-15", "question": "Define 'Pathophysiology'.", "answer": "The functional changes that accompany a particular syndrome or disease.", "difficulty": "Moderate" }
+          ]
+        }
       ]
     }
   ]

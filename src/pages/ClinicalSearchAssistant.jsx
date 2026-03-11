@@ -1,40 +1,113 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Sparkles, Loader2, Globe, BookOpen, AlertCircle, ChevronRight, CheckCircle2 } from 'lucide-react';
+import { Search, Sparkles, Loader2, Globe, BookOpen, AlertCircle, ChevronRight, CheckCircle2, Plus } from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
 
 const ClinicalSearchAssistant = () => {
+  const { addFlashcard } = useAppContext();
   const [query, setQuery] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [results, setResults] = useState(null);
+  const [toast, setToast] = useState(null);
   const resultsEndRef = useRef(null);
 
   const mockKnowledgeBase = [
     {
-      keywords: ['episiotomy', 'perineum', 'incision'],
+      keywords: ['episiotomy', 'perineum', 'incision', 'tears'],
       title: "Episiotomy Care & Indications",
-      content: "An episiotomy is a surgical incision of the perineum. Indications include fetal distress, operative vaginal delivery (forceps/vacuum), and rigid perineum. Post-procedure care involves frequent perineal hygiene, sitz baths, and monitoring for signs of infection (REEDA scale).",
+      content: "An episiotomy is a surgical incision of the perineum. Indications include fetal distress, operative vaginal delivery (forceps/vacuum), and rigid perineum. Post-procedure care involves frequent perineal hygiene, sitz baths, and monitoring for signs of infection (REEDA scale: Redness, Edema, Ecchymosis, Discharge, Approximation).",
       source: "WHO Guidelines for Intrapartum Care",
       tags: ["Obstetrics", "Midwifery"]
     },
     {
-      keywords: ['preeclampsia', 'hypertension', 'pregnancy', 'blood pressure'],
+      keywords: ['preeclampsia', 'hypertension', 'pregnancy', 'blood pressure', 'proteinuria'],
       title: "Management of Preeclampsia",
-      content: "Preeclampsia is defined by hypertension (BP >140/90) and proteinuria after 20 weeks gestation. Severe features include BP >160/110, headache, visual changes, and epigastric pain. Management includes Magnesium Sulfate for seizure prophylaxis and antihypertensives like Labetalol.",
+      content: "Preeclampsia is defined by hypertension (BP >140/90) and proteinuria after 20 weeks gestation. Severe features include BP >160/110, headache, visual changes, and epigastric pain. Management includes Magnesium Sulfate for seizure prophylaxis (monitor for toxicity: decreased DTRs, respiratory depression) and antihypertensives like Labetalol or Hydralazine.",
       source: "ACOG Practice Bulletin",
       tags: ["High-Risk Pregnancy", "Pharmacology"]
     },
     {
-      keywords: ['digoxin', 'lanoxin', 'heart failure', 'toxicity'],
+      keywords: ['digoxin', 'lanoxin', 'heart failure', 'toxicity', 'pulse'],
       title: "Digoxin (Lanoxin) Nursing Considerations",
-      content: "Digoxin is an inotropic agent used in heart failure. Key nursing actions: Always check apical pulse for 1 full minute (hold if <60 bpm). Monitor for toxicity signs: nausea, vomiting, yellow-green halos in vision. Therapeutic range: 0.5 - 2.0 ng/mL.",
+      content: "Digoxin is an inotropic agent used in heart failure. Key nursing actions: Always check apical pulse for 1 full minute (hold if <60 bpm). Monitor for toxicity signs: nausea, vomiting, anorexia, blurred vision, and yellow-green halos. Therapeutic range: 0.5 - 2.0 ng/mL. Potassium levels must be monitored as hypokalemia increases risk of toxicity.",
       source: "Davis's Drug Guide",
       tags: ["Pharmacology", "Cardiac Nursing"]
     },
     {
-      keywords: ['ng tube', 'nasogastric', 'placement', 'aspiration'],
+      keywords: ['ng tube', 'nasogastric', 'placement', 'aspiration', 'gastric'],
       title: "NG Tube Placement Verification",
-      content: "Verification of NG tube placement is critical. The gold standard is an X-ray. Bedside methods include pH testing of gastric aspirate (pH <5.5). Avoid the 'air bolus' method as it is unreliable for confirming placement in the stomach.",
+      content: "Verification of NG tube placement is critical. The gold standard is an X-ray. Bedside methods include pH testing of gastric aspirate (pH <5.5). Avoid the 'air bolus' method as it is unreliable for confirming placement in the stomach. Always measure from nose to earlobe to xiphoid process (NEX).",
       source: "Evidence-Based Nursing Practice Manual",
       tags: ["Fundamentals", "Skills"]
+    },
+    {
+      keywords: ['cyanosis', 'blue', 'oxygen', 'hypoxia'],
+      title: "Clinical Significance of Cyanosis",
+      content: "Cyanosis is a bluish discoloration of the skin and mucous membranes due to high levels of deoxygenated hemoglobin. Central cyanosis (lips, tongue) indicates systemic hypoxemia, while peripheral cyanosis (fingertips) may indicate local vasoconstriction or low cardiac output.",
+      source: "Medical-Surgical Nursing: Concepts for Interprofessional Collaborative Care",
+      tags: ["Pathophysiology", "Assessment"]
+    },
+    {
+      keywords: ['tachycardia', 'heart rate', 'fast pulse'],
+      title: "Understanding Tachycardia",
+      content: "Tachycardia is defined as a heart rate >100 bpm in adults. Common causes include fever, pain, stress, dehydration, anemia, and hyperthyroidism. Treatment focuses on identifying and managing the underlying cause. Monitor for decreased cardiac output (dizziness, chest pain).",
+      source: "AACN Core Curriculum for High Acuity",
+      tags: ["Cardiac Nursing", "Fundamentals"]
+    },
+    {
+      keywords: ['auscultation', 'breath sounds', 'heart sounds', 'stethoscope'],
+      title: "Principles of Auscultation",
+      content: "Auscultation is the process of listening to sounds produced within the body. Use the diaphragm for high-pitched sounds (lung, bowel, normal heart sounds) and the bell for low-pitched sounds (murmurs, bruits, extra heart sounds like S3/S4).",
+      source: "Bates' Guide to Physical Examination",
+      tags: ["Assessment", "Fundamentals"]
+    },
+    {
+      keywords: ['preeclampsia', 'eclampsia', 'seizures', 'pregnancy'],
+      title: "Eclampsia Emergency Management",
+      content: "Eclampsia is the occurrence of seizures in a woman with preeclampsia. Immediate actions: Call for help, protect the airway, place in left lateral position, and administer Magnesium Sulfate IV bolus. Monitor fetal well-being after stabilizing the mother.",
+      source: "NICE Guidelines",
+      tags: ["Midwifery", "Emergency Nursing"]
+    },
+    {
+      keywords: ['insulin', 'diabetes', 'hypoglycemia', 'hyperglycemia'],
+      title: "Insulin Administration & Safety",
+      content: "Insulin must be administered via the subcutaneous route (except Regular insulin which can be IV). Always rotate injection sites to prevent lipodystrophy. Monitor for signs of hypoglycemia: shakiness, sweating, confusion, and palpitations. Rapid-acting insulin (Lispro) must be given within 15 minutes of a meal.",
+      source: "ADA Standards of Medical Care in Diabetes",
+      tags: ["Endocrinology", "Pharmacology"]
+    },
+    {
+      keywords: ['furosemide', 'lasix', 'diuretic', 'potassium', 'heart failure'],
+      title: "Furosemide (Lasix) Nursing Guidelines",
+      content: "Furosemide is a loop diuretic used to treat edema and hypertension. Monitor for hypokalemia (potassium depletion), which can lead to arrhythmias. Assess blood pressure and fluid intake/output. Teach patients to consume potassium-rich foods (e.g., bananas, oranges).",
+      source: "Pharmacology for Nurses",
+      tags: ["Pharmacology", "Cardiac"]
+    },
+    {
+      keywords: ['warfarine', 'coumadin', 'anticoagulant', 'bleeding', 'vitamin k'],
+      title: "Warfarin (Coumadin) Therapy Management",
+      content: "Warfarin is an oral anticoagulant. Monitor PT/INR (therapeutic INR usually 2.0 - 3.0). Assess for signs of bleeding (bruising, epistaxis). The antidote is Vitamin K. Advise patients to maintain consistent intake of green leafy vegetables.",
+      source: "N&MCN Pharmacology Manual",
+      tags: ["Pharmacology", "Hematology"]
+    },
+    {
+      keywords: ['apical pulse', 'heart rate', 'assessment', 'landmark'],
+      title: "Apical Pulse Assessment Technique",
+      content: "The apical pulse is the most accurate pulse point. Located at the 5th intercostal space at the left midclavicular line (the apex of the heart). Always listen for 1 full minute if the rhythm is irregular or if the patient is taking cardiac medications like Digoxin.",
+      source: "Fundamentals of Nursing: Clinical Skills",
+      tags: ["Assessment", "Fundamentals"]
+    },
+    {
+      keywords: ['postpartum hemorrhage', 'bleeding', 'uterus', 'fundal massage'],
+      title: "Postpartum Hemorrhage (PPH) Management",
+      content: "PPH is defined as blood loss >500ml (vaginal) or >1000ml (C-section). The most common cause is uterine atony. Nursing actions: Immediate fundal massage to express clots and contract the uterus, administer uterotonics (Oxytocin), and monitor vital signs for shock.",
+      source: "WHO Safe Motherhood Guidelines",
+      tags: ["Midwifery", "Obstetrics"]
+    },
+    {
+      keywords: ['triage', 'emergency', 'classification', 'red', 'yellow', 'green'],
+      title: "Disaster Triage (START Method)",
+      content: "Triage categories: RED (Immediate - life-threatening but treatable), YELLOW (Delayed - serious but stable), GREEN (Minor - walking wounded), BLACK (Deceased/Expectant). Focused on prioritizing care to save the maximum number of lives.",
+      source: "Emergency Nurses Association (ENA)",
+      tags: ["Emergency", "Disaster Nursing"]
     }
   ];
 
@@ -47,13 +120,28 @@ const ClinicalSearchAssistant = () => {
 
     // Simulate "Scraping/AI" delay
     setTimeout(() => {
-      const searchTerms = query.toLowerCase().split(' ');
-      const matched = mockKnowledgeBase.filter(entry =>
-        searchTerms.some(term =>
-          entry.keywords.some(kw => kw.includes(term)) ||
-          entry.title.toLowerCase().includes(term)
-        )
-      );
+      const searchTerms = query.toLowerCase().split(/\s+/).filter(t => t.length > 2);
+
+      // Improved matching with scoring
+      const matched = mockKnowledgeBase
+        .map(entry => {
+          let score = 0;
+          const titleLower = entry.title.toLowerCase();
+          const contentLower = entry.content.toLowerCase();
+
+          searchTerms.forEach(term => {
+            if (titleLower.includes(term)) score += 5;
+            if (contentLower.includes(term)) score += 2;
+            entry.keywords.forEach(kw => {
+              if (kw.includes(term)) score += 3;
+              if (kw === term) score += 5;
+            });
+          });
+
+          return { ...entry, score };
+        })
+        .filter(entry => entry.score > 0)
+        .sort((a, b) => b.score - a.score);
 
       setResults(matched.length > 0 ? matched : [{
         title: "Clinical Search Result",
@@ -143,8 +231,21 @@ const ClinicalSearchAssistant = () => {
                     <BookOpen size={16} />
                     <span className="text-xs font-black uppercase tracking-widest">Source: {result.source}</span>
                   </div>
-                  <button className="flex items-center gap-2 text-slate-400 hover:text-medical-600 transition-colors font-bold text-sm">
-                    Generate Flashcard <ChevronRight size={18} />
+                  <button
+                    onClick={() => {
+                      addFlashcard({
+                        question: `What are the key points of ${result.title}?`,
+                        answer: result.content,
+                        subject: result.tags?.[0] || 'Research',
+                        topic: result.title,
+                        difficulty: 'Moderate'
+                      });
+                      setToast(`${result.title} added to flashcards!`);
+                      setTimeout(() => setToast(null), 3000);
+                    }}
+                    className="flex items-center gap-2 text-slate-400 hover:text-medical-600 transition-colors font-bold text-sm"
+                  >
+                    <Plus size={16} /> Generate Flashcard
                   </button>
                 </div>
               </div>
@@ -171,6 +272,12 @@ const ClinicalSearchAssistant = () => {
               <p className="text-sm text-medical-800/80 dark:text-medical-400/80 leading-snug font-medium">All search data is verified against WHO and N&MCN clinical standards.</p>
             </div>
           </div>
+        </div>
+      )}
+      {toast && (
+        <div className="fixed bottom-24 left-1/2 -translate-x-1/2 bg-emerald-600 text-white px-6 py-3 rounded-full shadow-lg font-bold flex items-center gap-2 animate-in slide-in-from-bottom-4 z-50">
+          <CheckCircle2 size={18} />
+          {toast}
         </div>
       )}
     </div>

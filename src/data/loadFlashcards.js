@@ -37,7 +37,7 @@ export const allBuiltInFlashcards = Object.entries(modules).flatMap(([path, modu
     // Handle nested structure: { courses: [ { units: [ { flashcards: [] } ] } ] }
     cards = data.courses.flatMap(course =>
       course.units.flatMap(unit =>
-        unit.flashcards.map(card => ({
+        (unit.flashcards || []).map(card => ({
           ...card,
           subject: course.title,
           unit: unit.unit_number,

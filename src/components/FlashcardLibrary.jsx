@@ -59,10 +59,11 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
       }
 
       // If it's a user card
+      const subject = c.subject || '';
       if (currentProgram === 'Midwifery') {
-        return c.subject.toLowerCase().includes('midwifery') || c.category === initialCategory;
+        return subject.toLowerCase().includes('midwifery') || c.category === initialCategory;
       }
-      return !c.subject.toLowerCase().includes('midwifery') || c.category === initialCategory;
+      return !subject.toLowerCase().includes('midwifery') || c.category === initialCategory;
     });
   }, [flashcards, initialCategory, currentProgram]);
 
@@ -90,14 +91,16 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
 
   const filteredCards = useMemo(() => {
     return categoryCards.filter(card => {
-      const matchesSearch = card.question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            card.topic.toLowerCase().includes(searchTerm.toLowerCase());
+      const question = card.question || '';
+      const topic = card.topic || '';
+      const matchesSearch = question.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                            topic.toLowerCase().includes(searchTerm.toLowerCase());
       const matchesLevel = !currentLevel || card.level === currentLevel;
       const matchesSemester = !currentSemester || card.semester === currentSemester;
       const matchesSubject = !currentSubject || card.subject === currentSubject;
       const matchesDifficulty = filterDifficulty === 'All' || card.difficulty === filterDifficulty;
 
-      const isPriority = !isExamPriority || upcomingExamSubjects.some(subj => card.subject.toLowerCase().includes(subj) || subj.includes(card.subject.toLowerCase()));
+      const isPriority = !isExamPriority || upcomingExamSubjects.some(subj => (card.subject || '').toLowerCase().includes(subj) || subj.includes((card.subject || '').toLowerCase()));
 
       return matchesSearch && matchesLevel && matchesSemester && matchesSubject && matchesDifficulty && isPriority;
     });
@@ -227,7 +230,7 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
                   </span>
                 </div>
                 <h3 className="text-2xl font-bold text-slate-900 dark:text-white leading-tight">{level}</h3>
-                <p className="text-slate-500 mt-2 font-medium">Foundation and clinical practice for {level.toLowerCase()}.</p>
+                <p className="text-slate-500 mt-2 font-medium">Foundation and clinical practice for {(level || '').toLowerCase()}.</p>
               </button>
             ))}
           </div>

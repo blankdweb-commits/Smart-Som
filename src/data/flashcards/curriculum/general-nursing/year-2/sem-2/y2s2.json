@@ -23,7 +23,12 @@
             { "id": "y2s2-ms-u2-7", "question": "Define 'Cushing’s Syndrome'.", "answer": "Condition caused by prolonged exposure to high levels of cortisol (signs: moon face, buffalo hump).", "difficulty": "Moderate" },
             { "id": "y2s2-ms-u2-8", "question": "What is 'Addison’s Disease'?", "answer": "Adrenal insufficiency where the gland doesn't produce enough cortisol/aldosterone (signs: bronze skin, hypotension).", "difficulty": "Hard" },
             { "id": "y2s2-ms-u2-9", "question": "Define 'Myxedema Coma'.", "answer": "A rare but life-threatening complication of untreated hypothyroidism.", "difficulty": "Hard" },
-            { "id": "y2s2-ms-u2-10", "question": "What is the priority nursing diagnosis for a patient with Diabetes Insipidus?", "answer": "Deficient Fluid Volume related to excessive urine output.", "difficulty": "Moderate" }
+            { "id": "y2s2-ms-u2-10", "question": "What is the priority nursing diagnosis for a patient with Diabetes Insipidus?", "answer": "Deficient Fluid Volume related to excessive urine output.", "difficulty": "Moderate" },
+            { "id": "y2s2-ms-u2-11", "question": "Define 'Pheochromocytoma'.", "answer": "A rare tumor of adrenal gland tissue that results in the release of too much epinephrine and norepinephrine.", "difficulty": "Hard" },
+            { "id": "y2s2-ms-u2-12", "question": "What is the 'Somogyi Effect'?", "answer": "A pattern of high blood sugar in the morning after an undetected episode of hypoglycemia during the night.", "difficulty": "Hard" },
+            { "id": "y2s2-ms-u2-13", "question": "Define 'Hypoparathyroidism'.", "answer": "Diminished concentration of parathyroid hormone in the blood, which causes deficiencies of calcium and phosphorus.", "difficulty": "Moderate" },
+            { "id": "y2s2-ms-u2-14", "question": "What is 'Graves’ Disease'?", "answer": "An immune system disorder that results in the overproduction of thyroid hormones (hyperthyroidism).", "difficulty": "Moderate" },
+            { "id": "y2s2-ms-u2-15", "question": "What are 'Trousseau's and Chvostek's signs' used to detect?", "answer": "Hypocalcemia.", "difficulty": "Hard", "important": true }
           ]
         },
         {
@@ -38,7 +43,12 @@
             { "id": "y2s2-ms-u4-7", "question": "Define 'Atrial Fibrillation'.", "answer": "An irregular, often rapid heart rate that causes poor blood flow.", "difficulty": "Moderate" },
             { "id": "y2s2-ms-u4-8", "question": "What is 'Hypertensive Crisis'?", "answer": "Severe increase in BP (>=180/120) that can lead to organ damage.", "difficulty": "Hard" },
             { "id": "y2s2-ms-u4-9", "question": "Define 'Endocarditis'.", "answer": "Inflammation of the inner lining of the heart's chambers and valves.", "difficulty": "Moderate" },
-            { "id": "y2s2-ms-u4-10", "question": "What is the primary purpose of a Pacemaker?", "answer": "To control abnormal heart rhythms (arrhythmias) using electrical pulses.", "difficulty": "Easy" }
+            { "id": "y2s2-ms-u4-10", "question": "What is the primary purpose of a Pacemaker?", "answer": "To control abnormal heart rhythms (arrhythmias) using electrical pulses.", "difficulty": "Easy" },
+            { "id": "y2s2-ms-u4-11", "question": "Define 'Pericarditis'.", "answer": "Inflammation of the pericardium (the sac-like membrane surrounding the heart).", "difficulty": "Moderate" },
+            { "id": "y2s2-ms-u4-12", "question": "What is 'Intermittent Claudication'?", "answer": "Pain in the leg muscles that occurs during exercise and is relieved by rest (sign of Peripheral Artery Disease).", "difficulty": "Hard", "important": true },
+            { "id": "y2s2-ms-u4-13", "question": "Define 'Bruit' in cardiovascular assessment.", "answer": "An abnormal sound heard during auscultation of an artery, indicating turbulent blood flow.", "difficulty": "Moderate" },
+            { "id": "y2s2-ms-u4-14", "question": "What is 'Raynaud's Disease'?", "answer": "A condition in which some areas of the body feel numb and cool in certain circumstances (vasospasms).", "difficulty": "Moderate" },
+            { "id": "y2s2-ms-u4-15", "question": "Define 'Cardiomyopathy'.", "answer": "A disease of the heart muscle that makes it harder for your heart to pump blood to the rest of your body.", "difficulty": "Hard" }
           ]
         }
       ]
@@ -60,7 +70,12 @@
             { "id": "y2s2-p-u1-7", "question": "Define 'Heparin'.", "answer": "A parenteral anticoagulant. Monitor aPTT. Antidote: Protamine Sulfate.", "difficulty": "Moderate", "important": true },
             { "id": "y2s2-p-u1-8", "question": "What are 'Statins'?", "answer": "Drugs used to lower cholesterol (e.g., Atorvastatin). Monitor for muscle pain (rhabdomyolysis).", "difficulty": "Easy" },
             { "id": "y2s2-p-u1-9", "question": "Define 'Furosemide' (Lasix).", "answer": "A loop diuretic used to treat edema and hypertension. Monitor for hypokalemia.", "difficulty": "Easy", "important": true },
-            { "id": "y2s2-p-u1-10", "question": "What is 'Spironolactone'?", "answer": "A potassium-sparing diuretic. Monitor for hyperkalemia.", "difficulty": "Moderate" }
+            { "id": "y2s2-p-u1-10", "question": "What is 'Spironolactone'?", "answer": "A potassium-sparing diuretic. Monitor for hyperkalemia.", "difficulty": "Moderate" },
+            { "id": "y2s2-p-u1-11", "question": "What is 'Amiodarone' used for?", "answer": "An anti-arrhythmic medication used to treat ventricular tachycardia or ventricular fibrillation.", "difficulty": "Hard" },
+            { "id": "y2s2-p-u1-12", "question": "Define 'Calcium Channel Blockers'.", "answer": "Drugs that prevent calcium from entering cells of the heart and blood vessel walls (e.g., Amlodipine).", "difficulty": "Moderate" },
+            { "id": "y2s2-p-u1-13", "question": "What is 'Clopidogrel' (Plavix)?", "answer": "An antiplatelet medication used to reduce the risk of heart disease and stroke.", "difficulty": "Moderate" },
+            { "id": "y2s2-p-u1-14", "question": "Define 'Dopamine' use in cardiac care.", "answer": "An inotropic agent used to improve blood pressure and cardiac output in shock or heart failure.", "difficulty": "Hard" },
+            { "id": "y2s2-p-u1-15", "question": "What is the antidote for 'Warfarin'?", "answer": "Vitamin K.", "difficulty": "Easy", "important": true }
           ]
         }
       ]

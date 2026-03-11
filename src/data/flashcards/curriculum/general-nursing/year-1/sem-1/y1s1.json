@@ -9,7 +9,7 @@
     {
       "id": "anat-101",
       "course_code": "NUS 113",
-      "title": "Anatomy and Physiology I",
+      "title": "Anatomy & Physiology I",
       "units": [
         {
           "unit_number": "Unit I",
@@ -18,65 +18,39 @@
             { "id": "y1s1-a-u1-1", "question": "Define Anatomy and Physiology.", "answer": "Anatomy is the study of structure; Physiology is the study of function.", "difficulty": "Easy" },
             { "id": "y1s1-a-u1-2", "question": "What is the anatomical position?", "answer": "Standing erect, facing forward, arms at sides, palms facing forward.", "difficulty": "Easy" },
             { "id": "y1s1-a-u1-3", "question": "Define the Sagittal plane.", "answer": "A vertical plane that divides the body into right and left parts.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u1-4", "question": "What is Homeostasis?", "answer": "The maintenance of a stable internal environment despite external changes.", "difficulty": "Moderate", "important": true },
-            { "id": "y1s1-a-u1-5", "question": "List the levels of structural organization in the human body.", "answer": "Chemical, Cellular, Tissue, Organ, System, Organism.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u1-6", "question": "What is the function of the Mitochondria?", "answer": "The powerhouse of the cell, responsible for ATP (energy) production.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u1-7", "question": "Define 'Distal' in anatomical terms.", "answer": "Farther from the point of attachment or trunk of the body.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u1-8", "question": "What are the four main types of tissues?", "answer": "Epithelial, Connective, Muscle, and Nervous tissue.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u1-9", "question": "What is the function of Ribosomes?", "answer": "Protein synthesis.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u1-10", "question": "Define Metabolism.", "answer": "The sum of all chemical reactions that occur in the body.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u1-11", "question": "What is the cell membrane composed of?", "answer": "A phospholipid bilayer with embedded proteins and cholesterol.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u1-12", "question": "Define 'Cytoplasm'.", "answer": "The material within a living cell, excluding the nucleus.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u1-13", "question": "What is the difference between Active and Passive transport?", "answer": "Active transport requires energy (ATP); Passive transport (like diffusion) does not.", "difficulty": "Moderate", "important": true },
-            { "id": "y1s1-a-u1-14", "question": "Name the 4 stages of Mitosis.", "answer": "Prophase, Metaphase, Anaphase, Telophase.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u1-15", "question": "What is the function of Lysosomes?", "answer": "Digestion of cellular waste and foreign materials.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u1-16", "question": "Define 'Proximal'.", "answer": "Nearer to the point of attachment or trunk of the body.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u1-17", "question": "Which body cavity contains the brain?", "answer": "The cranial cavity.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u1-18", "question": "What are the 9 abdominal regions?", "answer": "R/L hypochondriac, Epigastric, R/L lumbar, Umbilical, R/L iliac, Hypogastric.", "difficulty": "Hard", "important": true },
-            { "id": "y1s1-a-u1-19", "question": "Define 'Negative Feedback' in homeostasis.", "answer": "A mechanism that reverses a change in a controlled condition.", "difficulty": "Hard" },
-            { "id": "y1s1-a-u1-20", "question": "What is the 'Dorsal' position?", "answer": "Relating to the back or posterior part of the body.", "difficulty": "Easy" }
+            { "id": "y1s1-a-u1-4", "question": "What is Homeostasis?", "answer": "The maintenance of a stable internal environment.", "difficulty": "Moderate", "important": true },
+            { "id": "y1s1-a-u1-5", "question": "List the levels of structural organization.", "answer": "Chemical, Cellular, Tissue, Organ, System, Organism.", "difficulty": "Moderate" },
+            { "id": "y1s1-a-u1-6", "question": "What is the basic unit of the body?", "answer": "The Cell.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u1-7", "question": "Define 'Distal'.", "answer": "Farther from the point of attachment or trunk.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u1-8", "question": "Define 'Proximal'.", "answer": "Nearer to the point of attachment or trunk.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u1-9", "question": "What is the function of Mitochondria?", "answer": "ATP (energy) production.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u1-10", "question": "Define Metabolism.", "answer": "Sum of all chemical reactions in the body.", "difficulty": "Moderate" },
+            { "id": "y1s1-a-u1-11", "question": "What is Cell Theory?", "answer": "Cells are the basic unit of life; all life comes from cells.", "difficulty": "Moderate" },
+            { "id": "y1s1-a-u1-12", "question": "Define 'Transverse Plane'.", "answer": "Divides body into superior and inferior parts.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u1-13", "question": "Function of Golgi Apparatus?", "answer": "Packaging and modifying proteins.", "difficulty": "Moderate" },
+            { "id": "y1s1-a-u1-14", "question": "Define 'Anabolism'.", "answer": "Building complex substances from simpler ones.", "difficulty": "Moderate" },
+            { "id": "y1s1-a-u1-15", "question": "Define 'Catabolism'.", "answer": "Breaking down complex substances into simpler ones.", "difficulty": "Moderate" }
           ]
         },
         {
           "unit_number": "Unit II",
           "title": "Blood and Cardiovascular System",
           "flashcards": [
-            { "id": "y1s1-a-u2-1", "question": "What is the normal pH of blood?", "answer": "7.35 to 7.45.", "difficulty": "Moderate", "important": true },
-            { "id": "y1s1-a-u2-2", "question": "What are the three main types of blood cells?", "answer": "Erythrocytes (RBCs), Leukocytes (WBCs), and Thrombocytes (Platelets).", "difficulty": "Easy" },
-            { "id": "y1s1-a-u2-3", "question": "What is the primary function of Hemoglobin?", "answer": "To transport oxygen from the lungs to the tissues.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u2-4", "question": "Define Systole and Diastole.", "answer": "Systole is the contraction phase of the heart; Diastole is the relaxation phase.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u2-5", "question": "Which blood type is the universal donor?", "answer": "Type O Negative.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u2-6", "question": "What is the SA Node?", "answer": "The sinoatrial node, the natural pacemaker of the heart.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u2-7", "question": "What are the four chambers of the heart?", "answer": "Right Atrium, Right Ventricle, Left Atrium, Left Ventricle.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u2-8", "question": "Define Arteries.", "answer": "Blood vessels that carry blood away from the heart.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u2-9", "question": "What is the function of Platelets?", "answer": "Blood clotting (hemostasis).", "difficulty": "Easy" },
-            { "id": "y1s1-a-u2-10", "question": "What is the Systemic circulation?", "answer": "The part of the cardiovascular system which carries oxygenated blood away from the heart to the body.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u2-11", "question": "Define 'Hematopoiesis'.", "answer": "The process of formation of blood cells, primarily occurring in the red bone marrow.", "difficulty": "Hard" },
-            { "id": "y1s1-a-u2-12", "question": "What is the lifespan of a Red Blood Cell?", "answer": "Approximately 120 days.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u2-13", "question": "What is the primary function of Neutrophils?", "answer": "Phagocytosis (engulfing and destroying) of bacteria.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u2-14", "question": "Define 'Cardiac Output'.", "answer": "The volume of blood pumped by each ventricle per minute (Stroke Volume x Heart Rate).", "difficulty": "Hard", "important": true },
-            { "id": "y1s1-a-u2-15", "question": "What are the three layers of the heart wall?", "answer": "Epicardium, Myocardium, and Endocardium.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u2-16", "question": "What is the function of the AV Node?", "answer": "To delay the electrical impulse from the atria to allow the ventricles to fill.", "difficulty": "Hard" },
-            { "id": "y1s1-a-u2-17", "question": "Define 'Vasoconstriction'.", "answer": "The narrowing of blood vessels, which increases blood pressure.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u2-18", "question": "What is 'Serum'?", "answer": "Plasma without the clotting factors.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u2-19", "question": "Which heart valve is located between the left atrium and left ventricle?", "answer": "The Bicuspid (Mitral) valve.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u2-20", "question": "Define 'Afterload'.", "answer": "The pressure the heart must work against to eject blood during systole.", "difficulty": "Hard" }
-          ]
-        },
-        {
-          "unit_number": "Unit III",
-          "title": "The Respiratory System",
-          "flashcards": [
-            { "id": "y1s1-a-u3-1", "question": "What is the primary muscle of respiration?", "answer": "The diaphragm.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u3-2", "question": "Define 'External Respiration'.", "answer": "The exchange of gases between the lungs (alveoli) and the blood.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u3-3", "question": "What is the function of Alveoli?", "answer": "The site of gas exchange in the lungs.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u3-4", "question": "Define 'Tidal Volume'.", "answer": "The amount of air inhaled or exhaled with each breath during resting breathing.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u3-5", "question": "What part of the brain controls the rate of breathing?", "answer": "The Medulla Oblongata and Pons.", "difficulty": "Hard", "important": true },
-            { "id": "y1s1-a-u3-6", "question": "What is 'Surfactant'?", "answer": "A substance that reduces surface tension in the alveoli, preventing collapse.", "difficulty": "Hard", "important": true },
-            { "id": "y1s1-a-u3-7", "question": "Define 'Hypoxia'.", "answer": "A deficiency in the amount of oxygen reaching the tissues.", "difficulty": "Moderate", "important": true },
-            { "id": "y1s1-a-u3-8", "question": "What is the 'Epiglottis'?", "answer": "A flap of cartilage that covers the trachea during swallowing.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u3-9", "question": "What is the normal range for Arterial Blood pH?", "answer": "7.35 to 7.45.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u3-10", "question": "Define 'Vital Capacity'.", "answer": "The maximum amount of air a person can expel from the lungs after a maximum inhalation.", "difficulty": "Hard" }
+            { "id": "y1s1-a-u2-1", "question": "Normal pH of blood?", "answer": "7.35 to 7.45.", "difficulty": "Moderate", "important": true },
+            { "id": "y1s1-a-u2-2", "question": "Three main types of blood cells?", "answer": "Erythrocytes, Leukocytes, Thrombocytes.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u2-3", "question": "Primary function of Hemoglobin?", "answer": "Transporting oxygen.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u2-4", "question": "Define Systole and Diastole.", "answer": "Systole: contraction; Diastole: relaxation.", "difficulty": "Moderate" },
+            { "id": "y1s1-a-u2-5", "question": "Universal donor blood type?", "answer": "O Negative.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u2-6", "question": "Universal recipient blood type?", "answer": "AB Positive.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u2-7", "question": "Natural pacemaker of the heart?", "answer": "SA Node.", "difficulty": "Moderate" },
+            { "id": "y1s1-a-u2-8", "question": "Where is the SA Node located?", "answer": "Right atrium.", "difficulty": "Hard" },
+            { "id": "y1s1-a-u2-9", "question": "Function of Platelets?", "answer": "Hemostasis (blood clotting).", "difficulty": "Easy" },
+            { "id": "y1s1-a-u2-10", "question": "Define Cardiac Output.", "answer": "SV x HR; volume pumped per minute.", "difficulty": "Hard", "important": true },
+            { "id": "y1s1-a-u2-11", "question": "Lifespan of a Red Blood Cell?", "answer": "120 days.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u2-12", "question": "Define Erythropoiesis.", "answer": "Production of RBCs.", "difficulty": "Moderate" },
+            { "id": "y1s1-a-u2-13", "question": "What is the Rhesus Factor?", "answer": "Antigen on RBC surface (+ or -).", "difficulty": "Moderate" },
+            { "id": "y1s1-a-u2-14", "question": "What are Arteries?", "answer": "Vessels carrying blood away from the heart.", "difficulty": "Easy" },
+            { "id": "y1s1-a-u2-15", "question": "What are Veins?", "answer": "Vessels carrying blood towards the heart.", "difficulty": "Easy" }
           ]
         }
       ]
@@ -87,45 +61,211 @@
       "title": "Foundation of Nursing I",
       "units": [
         {
-          "unit_number": "Unit I", "title": "Introduction",
+          "unit_number": "Unit I", "title": "Introduction to Nursing",
           "flashcards": [
-            { "id": "y1s1-f-u1-1", "question": "Who is the founder of modern nursing?", "answer": "Florence Nightingale.", "difficulty": "Easy" },
-            { "id": "y1s1-f-u1-2", "question": "Define Nursing according to the ICN.", "answer": "Nursing encompasses autonomous and collaborative care of individuals of all ages.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u1-3", "question": "What is the 'Concept of Health'?", "answer": "A state of complete physical, mental, and social well-being, not merely the absence of disease.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u1-4", "question": "What are the 4 main concepts in the Nursing Metaparadigm?", "answer": "Person, Health, Environment, and Nursing.", "difficulty": "Moderate", "important": true },
-            { "id": "y1s1-f-u1-5", "question": "Define 'Holistic Nursing'.", "answer": "Caring for the whole person, including physical, mental, emotional, spiritual, and social needs.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u1-6", "question": "What is the primary goal of the Nursing profession?", "answer": "To promote health, prevent illness, and care for the ill/disabled.", "difficulty": "Easy" },
-            { "id": "y1s1-f-u1-7", "question": "Define 'Ethics' in nursing.", "answer": "The principles of right and wrong that guide nursing practice and decision-making.", "difficulty": "Moderate" }
+            { "id": "y1s1-f-u1-1", "question": "Founder of modern nursing?", "answer": "Florence Nightingale.", "difficulty": "Easy" },
+            { "id": "y1s1-f-u1-2", "question": "Nursing Metaparadigm concepts?", "answer": "Person, Health, Environment, Nursing.", "difficulty": "Moderate", "important": true },
+            { "id": "y1s1-f-u1-3", "question": "Define Nursing (ICN).", "answer": "Autonomous and collaborative care for all ages.", "difficulty": "Moderate" },
+            { "id": "y1s1-f-u1-4", "question": "Goal of nursing profession?", "answer": "Promote health, prevent illness, restore health.", "difficulty": "Easy" },
+            { "id": "y1s1-f-u1-5", "question": "What is 'Concept of Health'?", "answer": "Complete physical, mental, social well-being.", "difficulty": "Easy" },
+            { "id": "y1s1-f-u1-6", "question": "What is the polyvalent nurse?", "answer": "A nurse skilled in many areas of care.", "difficulty": "Moderate" },
+            { "id": "y1s1-f-u1-7", "question": "National professional org for nurses in Nigeria?", "answer": "NANNM.", "difficulty": "Moderate" },
+            { "id": "y1s1-f-u1-8", "question": "Define 'Professionalism'.", "answer": "Maintaining high standards of knowledge and ethics.", "difficulty": "Easy" },
+            { "id": "y1s1-f-u1-9", "question": "Define 'Ethics'.", "answer": "Moral principles that govern behavior.", "difficulty": "Easy" },
+            { "id": "y1s1-f-u1-10", "question": "What is the ICN Code of Ethics?", "answer": "Ethical standards for nurses globally.", "difficulty": "Moderate" },
+            { "id": "y1s1-f-u1-11", "question": "Who is the 'Lady with the Lamp'?", "answer": "Florence Nightingale.", "difficulty": "Easy" },
+            { "id": "y1s1-f-u1-12", "question": "Define 'Environment' in metaparadigm.", "answer": "Internal and external surroundings affecting the person.", "difficulty": "Moderate" },
+            { "id": "y1s1-f-u1-13", "question": "Define 'Health' in metaparadigm.", "answer": "The degree of wellness or well-being the person experiences.", "difficulty": "Moderate" },
+            { "id": "y1s1-f-u1-14", "question": "What is 'Illness-Wellness Continuum'?", "answer": "Scale showing ranging health status.", "difficulty": "Easy" },
+            { "id": "y1s1-f-u1-15", "question": "What is 'Evidence-Based Practice'?", "answer": "Integration of research, clinical expertise, and patient values.", "difficulty": "Hard" }
           ]
         },
         {
           "unit_number": "Unit III", "title": "Tools of Nursing",
           "flashcards": [
-            { "id": "y1s1-f-u3-1", "question": "List the steps of the Nursing Process.", "answer": "Assessment, Diagnosis, Planning, Implementation, Evaluation (ADPIE).", "difficulty": "Easy", "important": true },
-            { "id": "y1s1-f-u3-2", "question": "What is 'Therapeutic Communication'?", "answer": "A collection of techniques that prioritize the physical, mental, and emotional well-being of patients.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u3-3", "question": "Define 'Objective Data'.", "answer": "Observable and measurable signs (e.g., vital signs).", "difficulty": "Easy" },
-            { "id": "y1s1-f-u3-4", "question": "Define 'Subjective Data'.", "answer": "Information provided by the patient (e.g., symptoms like pain or nausea).", "difficulty": "Easy" },
-            { "id": "y1s1-f-u3-5", "question": "What is a 'Nursing Diagnosis'?", "answer": "A clinical judgment about individual, family, or community responses to actual or potential health problems.", "difficulty": "Moderate", "important": true },
-            { "id": "y1s1-f-u3-6", "question": "Define the 'Implementation' phase of the nursing process.", "answer": "The phase where the planned nursing interventions are carried out.", "difficulty": "Easy" },
-            { "id": "y1s1-f-u3-7", "question": "What is the purpose of 'Evaluation' in the nursing process?", "answer": "To determine if the patient's goals were met and if the plan of care needs adjustment.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u3-8", "question": "List 3 therapeutic communication techniques.", "answer": "Active listening, silence, open-ended questions, reflection.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u3-9", "question": "What is 'Empathy' in nursing?", "answer": "The ability to understand and share the feelings of another without taking on those feelings yourself.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u3-10", "question": "Define 'Confidentiality' in patient care.", "answer": "Protecting a patient's private health information and sharing it only with authorized personnel.", "difficulty": "Easy", "important": true }
+            { "id": "y1s1-f-u3-1", "question": "Steps of Nursing Process?", "answer": "Assessment, Diagnosis, Planning, Implementation, Evaluation.", "difficulty": "Easy", "important": true },
+            { "id": "y1s1-f-u3-2", "question": "Define 'Objective Data'.", "answer": "Observable/measurable signs (e.g., BP).", "difficulty": "Easy" },
+            { "id": "y1s1-f-u3-3", "question": "Define 'Subjective Data'.", "answer": "What the patient states (e.g., pain).", "difficulty": "Easy" },
+            { "id": "y1s1-f-u3-4", "question": "What is 'Therapeutic Communication'?", "answer": "Techniques to support patient well-being.", "difficulty": "Moderate" },
+            { "id": "y1s1-f-u3-5", "question": "Define 'Nursing Diagnosis'.", "answer": "Clinical judgment about human response to health states.", "difficulty": "Hard" },
+            { "id": "y1s1-f-u3-6", "question": "What is Maslow's Hierarchy first level?", "answer": "Physiological needs.", "difficulty": "Easy" },
+            { "id": "y1s1-f-u3-7", "question": "Define 'Empathy'.", "answer": "Understanding/sharing feelings of another.", "difficulty": "Moderate" },
+            { "id": "y1s1-f-u3-8", "question": "Define 'Confidentiality'.", "answer": "Protecting private patient info.", "difficulty": "Easy" },
+            { "id": "y1s1-f-u3-9", "question": "First step of Nursing Process?", "answer": "Assessment.", "difficulty": "Easy" },
+            { "id": "y1s1-f-u3-10", "question": "What is a 'Care Plan'?", "answer": "Written guide for patient care.", "difficulty": "Moderate" },
+            { "id": "y1s1-f-u3-11", "question": "Define 'Active Listening'.", "answer": "Full concentration on the speaker.", "difficulty": "Moderate" },
+            { "id": "y1s1-f-u3-12", "question": "Define 'Critical Thinking'.", "answer": "Disciplined conceptualizing/analyzing of info.", "difficulty": "Hard" },
+            { "id": "y1s1-f-u3-13", "question": "What is 'Interprofessional Relationship'?", "answer": "Working with other health disciplines.", "difficulty": "Moderate" },
+            { "id": "y1s1-f-u3-14", "question": "What is 'Reporting'?", "answer": "Verbal/written exchange of patient info.", "difficulty": "Easy" },
+            { "id": "y1s1-f-u3-15", "question": "What is 'Evaluation' step goal?", "answer": "Assess if goals were met.", "difficulty": "Moderate" }
           ]
-        },
+        }
+      ]
+    },
+    {
+      "id": "ni-101",
+      "course_code": "NUR 1xx",
+      "title": "Introduction to Nursing Informatics",
+      "units": [
         {
-          "unit_number": "Unit VI", "title": "Diagnostic Measures",
+          "unit_number": "Unit I",
+          "title": "Informatics Basics",
           "flashcards": [
-            { "id": "y1s1-f-u6-1", "question": "List the vital signs.", "answer": "Temperature, Pulse, Respiration, Blood Pressure.", "difficulty": "Easy", "important": true },
-            { "id": "y1s1-f-u6-2", "question": "What is the normal range for adult Body Temperature?", "answer": "36.5°C to 37.5°C (97.7°F to 99.5°F).", "difficulty": "Easy" },
-            { "id": "y1s1-f-u6-3", "define": "Tachycardia.", "answer": "A heart rate over 100 beats per minute.", "difficulty": "Easy" },
-            { "id": "y1s1-f-u6-4", "question": "What is the normal adult Respiratory Rate?", "answer": "12 to 20 breaths per minute.", "difficulty": "Easy" },
-            { "id": "y1s1-f-u6-5", "question": "Define 'Bradycardia'.", "answer": "A heart rate below 60 beats per minute in an adult.", "difficulty": "Easy" },
-            { "id": "y1s1-f-u6-6", "question": "What is 'Orthostatic Hypotension'?", "answer": "A sudden drop in blood pressure when moving from a lying/sitting position to standing.", "difficulty": "Moderate", "important": true },
-            { "id": "y1s1-f-u6-7", "question": "Define 'Systolic Blood Pressure'.", "answer": "The pressure in the arteries when the heart ventricles contract.", "difficulty": "Easy" },
-            { "id": "y1s1-f-u6-8", "question": "Define 'Diastolic Blood Pressure'.", "answer": "The pressure in the arteries when the heart is at rest between beats.", "difficulty": "Easy" },
-            { "id": "y1s1-f-u6-9", "question": "What is the 'Pulse Pressure'?", "answer": "The difference between the systolic and diastolic blood pressure (SBP - DBP).", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u6-10", "question": "Where is the Apical Pulse located?", "answer": "At the 5th intercostal space, left midclavicular line.", "difficulty": "Moderate", "important": true }
+            { "id": "y1s1-ni-u1-1", "question": "Define Nursing Informatics.", "answer": "Specialty that integrates nursing science with computer and information sciences.", "difficulty": "Moderate" },
+            { "id": "y1s1-ni-u1-2", "question": "What is an EHR?", "answer": "Electronic Health Record; digital version of a patient's chart.", "difficulty": "Easy" },
+            { "id": "y1s1-ni-u1-3", "question": "What is Telehealth?", "answer": "Use of digital technologies to deliver health services remotely.", "difficulty": "Easy" },
+            { "id": "y1s1-ni-u1-4", "question": "Define 'Data' in informatics.", "answer": "Discrete entities without interpretation.", "difficulty": "Moderate" },
+            { "id": "y1s1-ni-u1-5", "question": "Define 'Information' in informatics.", "answer": "Interpreted, organized, or structured data.", "difficulty": "Moderate" },
+            { "id": "y1s1-ni-u1-6", "question": "What is 'Knowledge'?", "answer": "Synthesized information where relationships are identified.", "difficulty": "Moderate" },
+            { "id": "y1s1-ni-u1-7", "question": "Define 'Wisdom'.", "answer": "Appropriate use of knowledge to solve problems.", "difficulty": "Hard" },
+            { "id": "y1s1-ni-u1-8", "question": "What is CDSS?", "answer": "Clinical Decision Support System; provides knowledge to enhance health care.", "difficulty": "Hard" },
+            { "id": "y1s1-ni-u1-9", "question": "Define 'Interoperability'.", "answer": "Ability of systems to communicate and exchange data.", "difficulty": "Hard" },
+            { "id": "y1s1-ni-u1-10", "question": "What is HIPAA?", "answer": "Act that protects patient data privacy and security.", "difficulty": "Moderate" },
+            { "id": "y1s1-ni-u1-11", "question": "Define 'eMAR'.", "answer": "Electronic Medication Administration Record.", "difficulty": "Easy" },
+            { "id": "y1s1-ni-u1-12", "question": "What is 'mHealth'?", "answer": "Mobile health; use of mobile devices for health services.", "difficulty": "Easy" },
+            { "id": "y1s1-ni-u1-13", "question": "Define 'Cybersecurity'.", "answer": "Protection of electronic info from unauthorized access.", "difficulty": "Moderate" },
+            { "id": "y1s1-ni-u1-14", "question": "What is a 'Database'?", "answer": "Organized collection of structured data.", "difficulty": "Moderate" },
+            { "id": "y1s1-ni-u1-15", "question": "What is 'Data Mining'?", "answer": "Process of discovering patterns in large data sets.", "difficulty": "Hard" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "eng-101",
+      "course_code": "GNS 102",
+      "title": "The Use of English Language",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Grammatical Conversation",
+          "flashcards": [
+            { "id": "y1s1-e-u1-1", "question": "What are the 8 parts of speech?", "answer": "Noun, Pronoun, Verb, Adjective, Adverb, Preposition, Conjunction, Interjection.", "difficulty": "Easy" },
+            { "id": "y1s1-e-u1-2", "question": "Define a Noun.", "answer": "A word identifying people, places, or things.", "difficulty": "Easy" },
+            { "id": "y1s1-e-u1-3", "question": "What is a Verb?", "answer": "A word describing action, state, or occurrence.", "difficulty": "Easy" },
+            { "id": "y1s1-e-u1-4", "question": "What is a Pronoun?", "answer": "A word that substitutes for a noun.", "difficulty": "Easy" },
+            { "id": "y1s1-e-u1-5", "question": "Define an Adjective.", "answer": "A word modifying or describing a noun.", "difficulty": "Easy" },
+            { "id": "y1s1-e-u1-6", "question": "What is an Adverb?", "answer": "A word modifying a verb, adjective, or another adverb.", "difficulty": "Easy" },
+            { "id": "y1s1-e-u1-7", "question": "Define a Preposition.", "answer": "A word expressing relation to another word (e.g., 'in', 'on').", "difficulty": "Moderate" },
+            { "id": "y1s1-e-u1-8", "question": "What is a Conjunction?", "answer": "A word used to connect clauses or sentences.", "difficulty": "Easy" },
+            { "id": "y1s1-e-u1-9", "question": "What is an Interjection?", "answer": "An abrupt remark expressing emotion.", "difficulty": "Easy" },
+            { "id": "y1s1-e-u1-10", "question": "Define Punctuation.", "answer": "Signs used to aid understanding of written text.", "difficulty": "Moderate" },
+            { "id": "y1s1-e-u1-11", "question": "What is the use of a Comma?", "answer": "To indicate a slight pause or separate items in a list.", "difficulty": "Easy" },
+            { "id": "y1s1-e-u1-12", "question": "Define 'Concord' in English.", "answer": "Agreement between subject and verb in a sentence.", "difficulty": "Hard" },
+            { "id": "y1s1-e-u1-13", "question": "What is a 'Tense'?", "answer": "A category expressing time reference.", "difficulty": "Moderate" },
+            { "id": "y1s1-e-u1-14", "question": "Define 'Intonation'.", "answer": "The rise and fall of the voice in speaking.", "difficulty": "Moderate" },
+            { "id": "y1s1-e-u1-15", "question": "What is a 'Homophone'?", "answer": "Words sounding same but with different meanings/spellings.", "difficulty": "Easy" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "phys-101",
+      "course_code": "NUS 112",
+      "title": "Applied Physics",
+      "units": [
+        {
+          "unit_number": "Unit II",
+          "title": "Molecular Phenomena",
+          "flashcards": [
+            { "id": "y1s1-p-u2-1", "question": "Define Surface Tension.", "answer": "Tension of a liquid surface caused by particle attraction.", "difficulty": "Moderate" },
+            { "id": "y1s1-p-u2-2", "question": "What is Osmosis?", "answer": "Movement of water through a semi-permeable membrane.", "difficulty": "Moderate" },
+            { "id": "y1s1-p-u2-3", "question": "Define Capillarity.", "answer": "Tendency of liquid to rise/fall in a narrow tube.", "difficulty": "Moderate" },
+            { "id": "y1s1-p-u2-4", "question": "What are the three states of matter?", "answer": "Solid, Liquid, Gas.", "difficulty": "Easy" },
+            { "id": "y1s1-p-u2-5", "question": "What is Diffusion?", "answer": "Movement of particles from high to low concentration.", "difficulty": "Easy" },
+            { "id": "y1s1-p-u2-6", "question": "Define Viscosity.", "answer": "Resistance of a fluid to flow.", "difficulty": "Moderate" },
+            { "id": "y1s1-p-u2-7", "question": "What is Archimedes' Principle?", "answer": "Buoyant force equals weight of displaced fluid.", "difficulty": "Hard" },
+            { "id": "y1s1-p-u2-8", "question": "Define Pressure.", "answer": "Force per unit area.", "difficulty": "Easy" },
+            { "id": "y1s1-p-u2-9", "question": "What is Pascal's Law?", "answer": "Pressure in fluid transmitted equally in all directions.", "difficulty": "Hard" },
+            { "id": "y1s1-p-u2-10", "question": "Define Density.", "answer": "Mass per unit volume.", "difficulty": "Easy" },
+            { "id": "y1s1-p-u2-11", "question": "What is Boyle's Law?", "answer": "Pressure inversely proportional to volume at constant temp.", "difficulty": "Hard" },
+            { "id": "y1s1-p-u2-12", "question": "Define Work.", "answer": "Force applied over a distance (F x d).", "difficulty": "Moderate" },
+            { "id": "y1s1-p-u2-13", "question": "What is Energy?", "answer": "Capacity to do work.", "difficulty": "Easy" },
+            { "id": "y1s1-p-u2-14", "question": "Define Power.", "answer": "Rate at which work is done.", "difficulty": "Moderate" },
+            { "id": "y1s1-p-u2-15", "question": "What is a Lever?", "answer": "Simple machine with beam and fulcrum.", "difficulty": "Moderate" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "chem-101",
+      "course_code": "NUS 111",
+      "title": "Applied Chemistry",
+      "units": [
+        {
+          "unit_number": "Unit II",
+          "title": "Nature of Matter",
+          "flashcards": [
+            { "id": "y1s1-c-u2-1", "question": "What is an Atom?", "answer": "Basic unit of a chemical element.", "difficulty": "Easy" },
+            { "id": "y1s1-c-u2-2", "question": "Define 'Molecule'.", "answer": "Two or more atoms bonded together.", "difficulty": "Easy" },
+            { "id": "y1s1-c-u2-3", "question": "Define 'Atomic Number'.", "answer": "Number of protons in an atom.", "difficulty": "Moderate" },
+            { "id": "y1s1-c-u2-4", "question": "What is 'Mass Number'?", "answer": "Number of protons plus neutrons.", "difficulty": "Moderate" },
+            { "id": "y1s1-c-u2-5", "question": "Define 'Isotopes'.", "answer": "Atoms of same element with different neutron counts.", "difficulty": "Moderate" },
+            { "id": "y1s1-c-u2-6", "question": "What is a 'Covalent Bond'?", "answer": "Bond where atoms share electrons.", "difficulty": "Hard" },
+            { "id": "y1s1-c-u2-7", "question": "Define 'Ionic Bond'.", "answer": "Bond formed by electron transfer.", "difficulty": "Hard" },
+            { "id": "y1s1-c-u2-8", "question": "What is 'Matter'?", "answer": "Anything with mass that takes up space.", "difficulty": "Easy" },
+            { "id": "y1s1-c-u2-9", "question": "Define 'Element'.", "answer": "Pure substance that cannot be broken down further.", "difficulty": "Easy" },
+            { "id": "y1s1-c-u2-10", "question": "What is a 'Compound'?", "answer": "Substance made of different elements chemically bonded.", "difficulty": "Moderate" },
+            { "id": "y1s1-c-u2-11", "question": "Define 'Mixture'.", "answer": "Substances physically combined but not chemically.", "difficulty": "Moderate" },
+            { "id": "y1s1-c-u2-12", "question": "What is 'Physical Change'?", "answer": "Change in form without identity change.", "difficulty": "Easy" },
+            { "id": "y1s1-c-u2-13", "question": "Define 'Chemical Change'.", "answer": "Change that produces new substances.", "difficulty": "Easy" },
+            { "id": "y1s1-c-u2-14", "question": "What is the 'pH scale'?", "answer": "Measure of acidity or alkalinity (0-14).", "difficulty": "Easy" },
+            { "id": "y1s1-c-u2-15", "question": "Define 'Acid'.", "answer": "Substance that donates hydrogen ions in solution.", "difficulty": "Moderate" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "micro-101",
+      "course_code": "NUS 117",
+      "title": "Microbiology",
+      "units": [
+        {
+          "unit_number": "Unit II",
+          "title": "Infectious Process",
+          "flashcards": [
+            { "id": "y1s1-m-u2-1", "question": "What is the 'Chain of Infection'?", "answer": "Pathogen, Reservoir, Portal of Exit, Transmission, Portal of Entry, Susceptible Host.", "difficulty": "Hard", "important": true },
+            { "id": "y1s1-m-u2-2", "question": "Define 'Reservoir'.", "answer": "Natural habitat of an infectious agent.", "difficulty": "Moderate" },
+            { "id": "y1s1-m-u2-3", "question": "Define 'Asepsis'.", "answer": "Absence of pathogenic microorganisms.", "difficulty": "Moderate" },
+            { "id": "y1s1-m-u2-4", "question": "What is 'Sterilization'?", "answer": "Destruction of all forms of microbial life.", "difficulty": "Easy" },
+            { "id": "y1s1-m-u2-5", "question": "Define 'Disinfection'.", "answer": "Elimination of most pathogens from inanimate objects.", "difficulty": "Easy" },
+            { "id": "y1s1-m-u2-6", "question": "What are 'Standard Precautions'?", "answer": "Infection control practices applied to all patients.", "difficulty": "Moderate", "important": true },
+            { "id": "y1s1-m-u2-7", "question": "Define 'Vector'.", "answer": "Organism (like mosquito) transmitting disease.", "difficulty": "Easy" },
+            { "id": "y1s1-m-u2-8", "question": "What is 'Pathogenicity'?", "answer": "Ability of a microbial agent to cause disease.", "difficulty": "Moderate" },
+            { "id": "y1s1-m-u2-9", "question": "Define 'Virulence'.", "answer": "Degree of pathogenicity of a microorganism.", "difficulty": "Hard" },
+            { "id": "y1s1-m-u2-10", "question": "What is a 'Fomite'?", "answer": "Inanimate object capable of carrying infectious organisms.", "difficulty": "Moderate" },
+            { "id": "y1s1-m-u2-11", "question": "Define 'Endemic'.", "answer": "Disease constantly present in a population or region.", "difficulty": "Easy" },
+            { "id": "y1s1-m-u2-12", "question": "Define 'Epidemic'.", "answer": "Sudden increase in cases of a disease above normal levels.", "difficulty": "Easy" },
+            { "id": "y1s1-m-u2-13", "question": "Define 'Pandemic'.", "answer": "Epidemic that has spread over several countries or continents.", "difficulty": "Easy" },
+            { "id": "y1s1-m-u2-14", "question": "What is 'Zoonosis'?", "answer": "Infectious disease that has jumped from a non-human animal to humans.", "difficulty": "Moderate" },
+            { "id": "y1s1-m-u2-15", "question": "Define 'Incubation Period'.", "answer": "Time between exposure to pathogen and onset of symptoms.", "difficulty": "Easy" }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "sbs-101",
+      "course_code": "NUS 115",
+      "title": "Social and Behavioural Science",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Nature and Scope of Sociology",
+          "flashcards": [
+            { "id": "y1s1-s-u1-1", "question": "Define Sociology.", "answer": "Study of society and social behavior.", "difficulty": "Easy" },
+            { "id": "y1s1-s-u1-2", "question": "Who is Auguste Comte?", "answer": "The father of sociology.", "difficulty": "Moderate" },
+            { "id": "y1s1-s-u1-3", "question": "Define 'Social Stratification'.", "answer": "Hierarchical ranking of people in society.", "difficulty": "Moderate" },
+            { "id": "y1s1-s-u1-4", "question": "Define 'Culture'.", "answer": "Shared ways of life of a group.", "difficulty": "Easy" },
+            { "id": "y1s1-s-u1-5", "question": "What are 'Social Norms'?", "answer": "Accepted standards of behavior in a group.", "difficulty": "Easy" },
+            { "id": "y1s1-s-u1-6", "question": "Define 'Socialization'.", "answer": "Lifelong process of learning one's culture.", "difficulty": "Moderate" },
+            { "id": "y1s1-s-u1-7", "question": "What is an 'Institution'?", "answer": "Stable system of social patterns (e.g., family).", "difficulty": "Moderate" },
+            { "id": "y1s1-s-u1-8", "question": "Define 'Psychology'.", "answer": "Study of the mind and behavior.", "difficulty": "Easy" },
+            { "id": "y1s1-s-u1-9", "question": "Define 'Social Class'.", "answer": "Group based on wealth, power, and prestige.", "difficulty": "Moderate" },
+            { "id": "y1s1-s-u1-10", "question": "What is 'Social Interaction'?", "answer": "Process by which people act and react to each other.", "difficulty": "Moderate" },
+            { "id": "y1s1-s-u1-11", "question": "Define 'Status'.", "answer": "Social position that a person holds.", "difficulty": "Easy" },
+            { "id": "y1s1-s-u1-12", "question": "Define 'Role'.", "answer": "Behavior expected of someone who holds a particular status.", "difficulty": "Easy" },
+            { "id": "y1s1-s-u1-13", "question": "What is 'Deviance'?", "answer": "Recognized violation of cultural norms.", "difficulty": "Moderate" },
+            { "id": "y1s1-s-u1-14", "question": "Define 'Stigma'.", "answer": "Powerfully negative label that greatly changes a person's self-concept and social identity.", "difficulty": "Hard" },
+            { "id": "y1s1-s-u1-15", "question": "Define 'Ethnocentrism'.", "answer": "Practice of judging another culture by the standards of one's own culture.", "difficulty": "Hard" }
           ]
         }
       ]
