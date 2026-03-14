@@ -1,271 +1,329 @@
 {
   "metadata": {
     "program": "National Diploma in Nursing",
-    "level": "Year 1",
-    "semester": "Semester 1",
-    "last_updated": "2026-03-02"
+    "accrediting_bodies": ["NBTE", "Nursing and Midwifery Council of Nigeria (N&MCN)"],
+    "duration_years": 3,
+    "version": "2.1",
+    "generated": "2026-03-14"
   },
   "courses": [
     {
       "id": "anat-101",
-      "course_code": "NUS 113",
-      "title": "Anatomy & Physiology I",
+      "code": "NUS 113",
+      "title": "Anatomy and Physiology I",
+      "year": 1,
+      "semester": 1,
       "units": [
         {
           "unit_number": "Unit I",
           "title": "Introduction to Anatomy and Physiology & Organization of the Human Body",
           "flashcards": [
-            { "id": "y1s1-a-u1-1", "question": "Define Anatomy and Physiology.", "answer": "Anatomy is the study of structure; Physiology is the study of function.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u1-2", "question": "What is the anatomical position?", "answer": "Standing erect, facing forward, arms at sides, palms facing forward.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u1-3", "question": "Define the Sagittal plane.", "answer": "A vertical plane that divides the body into right and left parts.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u1-4", "question": "What is Homeostasis?", "answer": "The maintenance of a stable internal environment.", "difficulty": "Moderate", "important": true },
-            { "id": "y1s1-a-u1-5", "question": "List the levels of structural organization.", "answer": "Chemical, Cellular, Tissue, Organ, System, Organism.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u1-6", "question": "What is the basic unit of the body?", "answer": "The Cell.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u1-7", "question": "Define 'Distal'.", "answer": "Farther from the point of attachment or trunk.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u1-8", "question": "Define 'Proximal'.", "answer": "Nearer to the point of attachment or trunk.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u1-9", "question": "What is the function of Mitochondria?", "answer": "ATP (energy) production.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u1-10", "question": "Define Metabolism.", "answer": "Sum of all chemical reactions in the body.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u1-11", "question": "What is Cell Theory?", "answer": "Cells are the basic unit of life; all life comes from cells.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u1-12", "question": "Define 'Transverse Plane'.", "answer": "Divides body into superior and inferior parts.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u1-13", "question": "Function of Golgi Apparatus?", "answer": "Packaging and modifying proteins.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u1-14", "question": "Define 'Anabolism'.", "answer": "Building complex substances from simpler ones.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u1-15", "question": "Define 'Catabolism'.", "answer": "Breaking down complex substances into simpler ones.", "difficulty": "Moderate" }
+            { "id": "anat-101-u1-001", "question": "What are the three main anatomical planes and how do they divide the body?", "answer": "Sagittal plane divides body into left and right; Coronal (frontal) plane divides into anterior and posterior; Transverse (horizontal) plane divides into superior and inferior.", "difficulty": "beginner" },
+            { "id": "anat-101-u1-002", "question": "Name the major body cavities and list the organs found in each.", "answer": "Dorsal cavity: cranial (brain) and spinal (spinal cord). Ventral cavity: thoracic (heart, lungs) and abdominopelvic (stomach, intestines, liver, bladder, reproductive organs).", "difficulty": "beginner" },
+            { "id": "anat-101-u1-003", "question": "State the cell theory.", "answer": "All living organisms are composed of one or more cells; the cell is the basic unit of life; all cells arise from pre-existing cells.", "difficulty": "beginner" },
+            { "id": "anat-101-u1-004", "question": "List four main tissue types and give one function of each.", "answer": "Epithelial: covers and lines; Connective: supports and connects; Muscle: contracts for movement; Nervous: conducts impulses.", "difficulty": "beginner" },
+            { "id": "anat-101-u1-005", "question": "Define homeostasis and give an example of a negative feedback mechanism.", "answer": "Homeostasis is the maintenance of a stable internal environment. Example: regulation of body temperature – when body temperature rises, sweating cools the body.", "difficulty": "intermediate" },
+            { "id": "anat-101-u1-006", "question": "What is the difference between anatomy and physiology?", "answer": "Anatomy is the study of structure; physiology is the study of function.", "difficulty": "beginner" },
+            { "id": "anat-101-u1-007", "question": "What are the four quadrants of the abdomen?", "answer": "Right upper quadrant (RUQ), left upper quadrant (LUQ), right lower quadrant (RLQ), left lower quadrant (LLQ).", "difficulty": "beginner" },
+            { "id": "anat-101-u1-008", "question": "Describe the structure and function of a typical cell membrane.", "answer": "The cell membrane is a phospholipid bilayer with embedded proteins. It controls the movement of substances in and out of the cell (selective permeability), provides protection, and facilitates cell signaling.", "difficulty": "intermediate" },
+            { "id": "anat-101-u1-009", "question": "What are organelles? Give three examples.", "answer": "Organelles are specialized structures within a cell that perform specific functions. Examples: nucleus (contains DNA), mitochondria (produces ATP), endoplasmic reticulum (protein synthesis and lipid metabolism).", "difficulty": "beginner" },
+            { "id": "anat-101-u1-010", "question": "Explain the concept of adaptation at the cellular level.", "answer": "Adaptation refers to changes in cells in response to environmental stress, such as hypertrophy (increase in size), atrophy (decrease in size), hyperplasia (increase in number), metaplasia (change in cell type).", "difficulty": "advanced" },
+            { "id": "anat-101-u1-011", "question": "What is the anatomical position?", "answer": "Standing erect, facing forward, arms at sides, palms facing forward, and feet slightly apart.", "difficulty": "beginner" },
+            { "id": "anat-101-u1-012", "question": "Define the term 'peripheral' in anatomy.", "answer": "Away from the center or surface of the body; opposite of central.", "difficulty": "beginner" },
+            { "id": "anat-101-u1-013", "question": "What is the function of the Golgi apparatus?", "answer": "Modifies, sorts, and packages proteins and lipids for secretion or delivery to other organelles.", "difficulty": "intermediate" },
+            { "id": "anat-101-u1-014", "question": "Name the 9 regions of the abdomen.", "answer": "Right hypochondriac, Epigastric, Left hypochondriac, Right lumbar, Umbilical, Left lumbar, Right iliac, Hypogastric, Left iliac.", "difficulty": "advanced" },
+            { "id": "anat-101-u1-015", "question": "Explain the difference between a sign and a symptom.", "answer": "A sign is objective evidence of disease (observable by others); a symptom is subjective evidence (felt only by the patient).", "difficulty": "intermediate" }
           ]
         },
         {
           "unit_number": "Unit II",
           "title": "Blood and Cardiovascular System",
           "flashcards": [
-            { "id": "y1s1-a-u2-1", "question": "Normal pH of blood?", "answer": "7.35 to 7.45.", "difficulty": "Moderate", "important": true },
-            { "id": "y1s1-a-u2-2", "question": "Three main types of blood cells?", "answer": "Erythrocytes, Leukocytes, Thrombocytes.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u2-3", "question": "Primary function of Hemoglobin?", "answer": "Transporting oxygen.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u2-4", "question": "Define Systole and Diastole.", "answer": "Systole: contraction; Diastole: relaxation.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u2-5", "question": "Universal donor blood type?", "answer": "O Negative.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u2-6", "question": "Universal recipient blood type?", "answer": "AB Positive.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u2-7", "question": "Natural pacemaker of the heart?", "answer": "SA Node.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u2-8", "question": "Where is the SA Node located?", "answer": "Right atrium.", "difficulty": "Hard" },
-            { "id": "y1s1-a-u2-9", "question": "Function of Platelets?", "answer": "Hemostasis (blood clotting).", "difficulty": "Easy" },
-            { "id": "y1s1-a-u2-10", "question": "Define Cardiac Output.", "answer": "SV x HR; volume pumped per minute.", "difficulty": "Hard", "important": true },
-            { "id": "y1s1-a-u2-11", "question": "Lifespan of a Red Blood Cell?", "answer": "120 days.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u2-12", "question": "Define Erythropoiesis.", "answer": "Production of RBCs.", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u2-13", "question": "What is the Rhesus Factor?", "answer": "Antigen on RBC surface (+ or -).", "difficulty": "Moderate" },
-            { "id": "y1s1-a-u2-14", "question": "What are Arteries?", "answer": "Vessels carrying blood away from the heart.", "difficulty": "Easy" },
-            { "id": "y1s1-a-u2-15", "question": "What are Veins?", "answer": "Vessels carrying blood towards the heart.", "difficulty": "Easy" }
+            { "id": "anat-101-u2-001", "question": "What are the components of blood and their approximate percentages?", "answer": "Plasma (55%), formed elements: red blood cells (erythrocytes), white blood cells (leukocytes), and platelets (thrombocytes) (45%).", "difficulty": "beginner" },
+            { "id": "anat-101-u2-002", "question": "Explain the ABO blood group system and Rh factor.", "answer": "ABO system: Type A has A antigens and anti-B antibodies; Type B has B antigens and anti-A antibodies; Type AB has both antigens, no antibodies (universal recipient); Type O has no antigens, both antibodies (universal donor). Rh factor: Rh-positive has D antigen; Rh-negative lacks it.", "difficulty": "intermediate" },
+            { "id": "anat-101-u2-003", "question": "Describe the three stages of hemostasis (clotting).", "answer": "1. Vascular spasm: vessel constricts. 2. Platelet plug formation: platelets adhere and aggregate. 3. Coagulation cascade: intrinsic and extrinsic pathways lead to fibrin clot.", "difficulty": "advanced" },
+            { "id": "anat-101-u2-004", "question": "Trace the path of blood through the heart starting from the vena cava.", "answer": "Vena cava → right atrium → tricuspid valve → right ventricle → pulmonary valve → pulmonary artery → lungs → pulmonary veins → left atrium → mitral valve → left ventricle → aortic valve → aorta.", "difficulty": "intermediate" },
+            { "id": "anat-101-u2-005", "question": "What factors affect blood pressure?", "answer": "Cardiac output, peripheral vascular resistance, blood volume, blood viscosity, and elasticity of arteries.", "difficulty": "intermediate" },
+            { "id": "anat-101-u2-006", "question": "What are the different types of blood vessels and their functions?", "answer": "Arteries carry blood away from heart; arterioles regulate blood flow; capillaries exchange nutrients and wastes; venules collect blood from capillaries; veins return blood to heart.", "difficulty": "beginner" },
+            { "id": "anat-101-u2-007", "question": "Define systole and diastole.", "answer": "Systole is the contraction phase of the heart, ejecting blood. Diastole is the relaxation phase, allowing filling.", "difficulty": "beginner" },
+            { "id": "anat-101-u2-008", "question": "What is the function of the lymphatic system?", "answer": "Returns interstitial fluid to blood, transports fats from digestive system, and plays a role in immunity.", "difficulty": "beginner" },
+            { "id": "anat-101-u2-009", "question": "List the components of the heart's conduction system.", "answer": "Sinoatrial (SA) node, atrioventricular (AV) node, bundle of His, right and left bundle branches, Purkinje fibers.", "difficulty": "intermediate" },
+            { "id": "anat-101-u2-010", "question": "What is an ECG and what does it measure?", "answer": "Electrocardiogram records the electrical activity of the heart. It shows P wave (atrial depolarization), QRS complex (ventricular depolarization), T wave (ventricular repolarization).", "difficulty": "intermediate" },
+            { "id": "anat-101-u2-011", "question": "What is the pericardium?", "answer": "The double-walled sac containing the heart and the roots of the great vessels.", "difficulty": "intermediate" },
+            { "id": "anat-101-u2-012", "question": "Define anemia and list one common cause.", "answer": "Anemia is a condition where the blood lacks enough healthy red blood cells or hemoglobin. Common cause: Iron deficiency.", "difficulty": "intermediate" },
+            { "id": "anat-101-u2-013", "question": "What is the role of coronary arteries?", "answer": "They supply oxygenated blood to the heart muscle (myocardium).", "difficulty": "intermediate" },
+            { "id": "anat-101-u2-014", "question": "Explain the 'Frank-Starling law' of the heart.", "answer": "States that the stroke volume of the heart increases in response to an increase in the volume of blood filling the heart (end diastolic volume).", "difficulty": "advanced" },
+            { "id": "anat-101-u2-015", "question": "What are the signs of inflammation?", "answer": "Redness (rubor), heat (calor), swelling (tumor), pain (dolor), and loss of function (functio laesa).", "difficulty": "intermediate" }
+          ]
+        },
+        {
+          "unit_number": "Unit III",
+          "title": "The Respiratory System",
+          "flashcards": [
+            { "id": "anat-101-u3-001", "question": "List the organs of the respiratory tract in order from nose to alveoli.", "answer": "Nose → pharynx → larynx → trachea → bronchi → bronchioles → alveolar ducts → alveoli.", "difficulty": "beginner" },
+            { "id": "anat-101-u3-002", "question": "Explain the mechanism of gas exchange in the alveoli.", "answer": "Oxygen diffuses from alveoli (high partial pressure) into pulmonary capillaries (low partial pressure); carbon dioxide diffuses from capillaries into alveoli.", "difficulty": "intermediate" },
+            { "id": "anat-101-u3-003", "question": "Define tidal volume, inspiratory reserve volume, expiratory reserve volume, and residual volume.", "answer": "Tidal volume: volume of air per normal breath. Inspiratory reserve volume: additional air inhaled after normal inspiration. Expiratory reserve volume: additional air exhaled after normal expiration. Residual volume: air remaining after maximal exhalation.", "difficulty": "intermediate" },
+            { "id": "anat-101-u3-004", "question": "What is vital capacity and how is it calculated?", "answer": "Vital capacity = tidal volume + inspiratory reserve volume + expiratory reserve volume. It is the maximum air exhaled after maximal inspiration.", "difficulty": "intermediate" },
+            { "id": "anat-101-u3-005", "question": "Where is the respiratory center located and what are its main parts?", "answer": "Located in the medulla oblongata and pons. Includes the dorsal respiratory group (inspiration), ventral respiratory group (forced expiration), and pneumotaxic center (limits inspiration).", "difficulty": "advanced" },
+            { "id": "anat-101-u3-006", "question": "What is the function of surfactant?", "answer": "Surfactant reduces surface tension in the alveoli, preventing collapse and facilitating lung expansion.", "difficulty": "intermediate" },
+            { "id": "anat-101-u3-007", "question": "How is oxygen and carbon dioxide transported in the blood?", "answer": "Oxygen is mostly bound to hemoglobin; a small amount dissolved in plasma. Carbon dioxide is transported as bicarbonate (70%), bound to hemoglobin (23%), and dissolved in plasma (7%).", "difficulty": "advanced" },
+            { "id": "anat-101-u3-008", "question": "What factors influence the rate of respiration?", "answer": "Chemoreceptors detect CO2, O2, and pH levels; also stretch receptors, emotions, and voluntary control.", "difficulty": "intermediate" },
+            { "id": "anat-101-u3-009", "question": "Define hypoxia and list its types.", "answer": "Hypoxia is deficiency of oxygen at tissue level. Types: hypoxic (low PaO2), anemic (low hemoglobin), stagnant (poor circulation), histotoxic (cells can't use oxygen).", "difficulty": "advanced" },
+            { "id": "anat-101-u3-010", "question": "What is the difference between external and internal respiration?", "answer": "External respiration is gas exchange between lungs and blood. Internal respiration is gas exchange between blood and tissues.", "difficulty": "beginner" },
+            { "id": "anat-101-u3-011", "question": "What is the carina?", "answer": "A cartilaginous ridge at the site of the tracheal bifurcation (where the trachea divides into left and right main bronchi).", "difficulty": "intermediate" },
+            { "id": "anat-101-u3-012", "question": "Define 'compliance' in lung physiology.", "answer": "The ability of the lungs and thorax to expand (stretch) in response to pressure changes.", "difficulty": "advanced" },
+            { "id": "anat-101-u3-013", "question": "What is the role of the diaphragm during inspiration?", "answer": "It contracts and moves downward, increasing the volume of the thoracic cavity and creating negative pressure to draw air in.", "difficulty": "intermediate" },
+            { "id": "anat-101-u3-014", "question": "Explain the Hering-Breuer reflex.", "answer": "A protective mechanism that prevents over-inflation of the lungs by sending inhibitory signals to the respiratory center via the vagus nerve when stretch receptors are activated.", "difficulty": "advanced" },
+            { "id": "anat-101-u3-015", "question": "What is the normal pH range of arterial blood?", "answer": "7.35 to 7.45.", "difficulty": "intermediate" }
           ]
         }
       ]
     },
     {
       "id": "fon-101",
-      "course_code": "NUR 111",
+      "code": "NUR 111",
       "title": "Foundation of Nursing I",
+      "year": 1,
+      "semester": 1,
       "units": [
         {
-          "unit_number": "Unit I", "title": "Introduction to Nursing",
+          "unit_number": "Unit I",
+          "title": "Introduction to Nursing",
           "flashcards": [
-            { "id": "y1s1-f-u1-1", "question": "Founder of modern nursing?", "answer": "Florence Nightingale.", "difficulty": "Easy" },
-            { "id": "y1s1-f-u1-2", "question": "Nursing Metaparadigm concepts?", "answer": "Person, Health, Environment, Nursing.", "difficulty": "Moderate", "important": true },
-            { "id": "y1s1-f-u1-3", "question": "Define Nursing (ICN).", "answer": "Autonomous and collaborative care for all ages.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u1-4", "question": "Goal of nursing profession?", "answer": "Promote health, prevent illness, restore health.", "difficulty": "Easy" },
-            { "id": "y1s1-f-u1-5", "question": "What is 'Concept of Health'?", "answer": "Complete physical, mental, social well-being.", "difficulty": "Easy" },
-            { "id": "y1s1-f-u1-6", "question": "What is the polyvalent nurse?", "answer": "A nurse skilled in many areas of care.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u1-7", "question": "National professional org for nurses in Nigeria?", "answer": "NANNM.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u1-8", "question": "Define 'Professionalism'.", "answer": "Maintaining high standards of knowledge and ethics.", "difficulty": "Easy" },
-            { "id": "y1s1-f-u1-9", "question": "Define 'Ethics'.", "answer": "Moral principles that govern behavior.", "difficulty": "Easy" },
-            { "id": "y1s1-f-u1-10", "question": "What is the ICN Code of Ethics?", "answer": "Ethical standards for nurses globally.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u1-11", "question": "Who is the 'Lady with the Lamp'?", "answer": "Florence Nightingale.", "difficulty": "Easy" },
-            { "id": "y1s1-f-u1-12", "question": "Define 'Environment' in metaparadigm.", "answer": "Internal and external surroundings affecting the person.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u1-13", "question": "Define 'Health' in metaparadigm.", "answer": "The degree of wellness or well-being the person experiences.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u1-14", "question": "What is 'Illness-Wellness Continuum'?", "answer": "Scale showing ranging health status.", "difficulty": "Easy" },
-            { "id": "y1s1-f-u1-15", "question": "What is 'Evidence-Based Practice'?", "answer": "Integration of research, clinical expertise, and patient values.", "difficulty": "Hard" }
+            { "id": "fon-101-u1-001", "question": "Define nursing according to the International Council of Nurses (ICN).", "answer": "Nursing encompasses autonomous and collaborative care of individuals of all ages, families, groups and communities, sick or well in all settings. It includes promotion of health, prevention of illness, and care of ill, disabled and dying people.", "difficulty": "beginner" },
+            { "id": "fon-101-u1-002", "question": "Name two key figures in the history of nursing and their contributions.", "answer": "Florence Nightingale: founded modern nursing, improved sanitation during Crimean War. Clara Barton: founded American Red Cross.", "difficulty": "beginner" },
+            { "id": "fon-101-u1-003", "question": "What is the WHO definition of health?", "answer": "Health is a state of complete physical, mental, and social well-being and not merely the absence of disease or infirmity.", "difficulty": "beginner" },
+            { "id": "fon-101-u1-004", "question": "List Maslow's hierarchy of needs in order.", "answer": "Physiological needs, safety needs, love and belonging, esteem, self-actualization.", "difficulty": "intermediate" },
+            { "id": "fon-101-u1-005", "question": "Name three international nursing organizations.", "answer": "International Council of Nurses (ICN), Sigma Theta Tau International, World Health Organization (WHO) nursing unit.", "difficulty": "beginner" },
+            { "id": "fon-101-u1-006", "question": "What are the characteristics of a polyvalent nurse?", "answer": "Comprehensive knowledge, adaptability, critical thinking, cultural competence, strong communication, technical proficiency, leadership, ethical decision-making, health promotion focus, collaborative mindset.", "difficulty": "intermediate" },
+            { "id": "fon-101-u1-007", "question": "Differentiate between illness and disease.", "answer": "Illness is the subjective experience of symptoms and suffering; disease is the objective pathological condition.", "difficulty": "beginner" },
+            { "id": "fon-101-u1-008", "question": "What is the role of the Nursing and Midwifery Council of Nigeria (N&MCN)?", "answer": "Regulates nursing and midwifery education, practice, licensing, and discipline in Nigeria.", "difficulty": "beginner" },
+            { "id": "fon-101-u1-009", "question": "Explain the concept of basic human needs.", "answer": "Basic human needs are essential requirements for survival and well-being, such as food, water, safety, love, and esteem. Nursing helps patients meet these needs when they cannot do so independently.", "difficulty": "intermediate" },
+            { "id": "fon-101-u1-010", "question": "What is the significance of professional organizations in nursing?", "answer": "They set standards, provide continuing education, advocate for the profession, and offer networking opportunities.", "difficulty": "intermediate" },
+            { "id": "fon-101-u1-011", "question": "What is the significance of the Nightingale Pledge?", "answer": "A statement of ethics and principles of the nursing profession, often recited by new nurses.", "difficulty": "intermediate" },
+            { "id": "fon-101-u1-012", "question": "Define 'Advocacy' in nursing.", "answer": "Protecting the rights, health, and safety of the patient.", "difficulty": "intermediate" },
+            { "id": "fon-101-u1-013", "question": "What is the nursing social contract?", "answer": "The relationship between the nursing profession and society, involving professional obligations and public trust.", "difficulty": "advanced" },
+            { "id": "fon-101-u1-014", "question": "What are the core values of nursing?", "answer": "Altruism, autonomy, human dignity, integrity, and social justice.", "difficulty": "intermediate" },
+            { "id": "fon-101-u1-015", "question": "What is evidence-based practice (EBP)?", "answer": "Integrating the best available research evidence with clinical expertise and patient values to make care decisions.", "difficulty": "intermediate" }
           ]
         },
         {
-          "unit_number": "Unit III", "title": "Tools of Nursing",
+          "unit_number": "Unit II",
+          "title": "Health Care Institutions",
           "flashcards": [
-            { "id": "y1s1-f-u3-1", "question": "Steps of Nursing Process?", "answer": "Assessment, Diagnosis, Planning, Implementation, Evaluation.", "difficulty": "Easy", "important": true },
-            { "id": "y1s1-f-u3-2", "question": "Define 'Objective Data'.", "answer": "Observable/measurable signs (e.g., BP).", "difficulty": "Easy" },
-            { "id": "y1s1-f-u3-3", "question": "Define 'Subjective Data'.", "answer": "What the patient states (e.g., pain).", "difficulty": "Easy" },
-            { "id": "y1s1-f-u3-4", "question": "What is 'Therapeutic Communication'?", "answer": "Techniques to support patient well-being.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u3-5", "question": "Define 'Nursing Diagnosis'.", "answer": "Clinical judgment about human response to health states.", "difficulty": "Hard" },
-            { "id": "y1s1-f-u3-6", "question": "What is Maslow's Hierarchy first level?", "answer": "Physiological needs.", "difficulty": "Easy" },
-            { "id": "y1s1-f-u3-7", "question": "Define 'Empathy'.", "answer": "Understanding/sharing feelings of another.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u3-8", "question": "Define 'Confidentiality'.", "answer": "Protecting private patient info.", "difficulty": "Easy" },
-            { "id": "y1s1-f-u3-9", "question": "First step of Nursing Process?", "answer": "Assessment.", "difficulty": "Easy" },
-            { "id": "y1s1-f-u3-10", "question": "What is a 'Care Plan'?", "answer": "Written guide for patient care.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u3-11", "question": "Define 'Active Listening'.", "answer": "Full concentration on the speaker.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u3-12", "question": "Define 'Critical Thinking'.", "answer": "Disciplined conceptualizing/analyzing of info.", "difficulty": "Hard" },
-            { "id": "y1s1-f-u3-13", "question": "What is 'Interprofessional Relationship'?", "answer": "Working with other health disciplines.", "difficulty": "Moderate" },
-            { "id": "y1s1-f-u3-14", "question": "What is 'Reporting'?", "answer": "Verbal/written exchange of patient info.", "difficulty": "Easy" },
-            { "id": "y1s1-f-u3-15", "question": "What is 'Evaluation' step goal?", "answer": "Assess if goals were met.", "difficulty": "Moderate" }
+            { "id": "fon-101-u2-001", "question": "Describe the three levels of health care in Nigeria.", "answer": "Primary: health centers, clinics (first contact). Secondary: general hospitals (district level). Tertiary: teaching hospitals, federal medical centers (specialized care).", "difficulty": "beginner" },
+            { "id": "fon-101-u2-002", "question": "What is the procedure for admitting a patient to a hospital ward?", "answer": "Receive patient, verify identity, orient to ward, take vital signs, perform initial assessment, document, initiate care plan.", "difficulty": "intermediate" },
+            { "id": "fon-101-u2-003", "question": "What information should be included in a discharge summary?", "answer": "Diagnosis, treatment received, discharge medications, follow-up appointments, home care instructions, and any referrals.", "difficulty": "intermediate" },
+            { "id": "fon-101-u2-004", "question": "Define referral in healthcare.", "answer": "Referral is the process of directing a patient to another healthcare provider or level of care for further management.", "difficulty": "beginner" },
+            { "id": "fon-101-u2-005", "question": "What are the principles of health education?", "answer": "Credibility, interest, participation, motivation, comprehension, reinforcement, learning by doing, known to unknown.", "difficulty": "intermediate" },
+            { "id": "fon-101-u2-006", "question": "How does the nurse involve the family in patient care?", "answer": "By educating family members, encouraging participation in care decisions, providing emotional support, and teaching home care skills.", "difficulty": "intermediate" },
+            { "id": "fon-101-u2-007", "question": "What is the role of the nurse in a health care team?", "answer": "Coordinate care, advocate for patient, provide direct nursing care, educate patients and families, collaborate with other disciplines.", "difficulty": "intermediate" },
+            { "id": "fon-101-u2-008", "question": "Name three types of health care facilities at the primary level.", "answer": "Primary health center, clinic, dispensary.", "difficulty": "beginner" },
+            { "id": "fon-101-u2-009", "question": "What is the purpose of hospital accreditation?", "answer": "To ensure quality and safety of care, meet standards, and improve patient outcomes.", "difficulty": "intermediate" },
+            { "id": "fon-101-u2-010", "question": "Explain the concept of continuity of care.", "answer": "Continuity of care means that care is coordinated and consistent across different providers and settings over time, ensuring seamless transitions.", "difficulty": "intermediate" },
+            { "id": "fon-101-u2-011", "question": "What is 'Patient-Centered Care'?", "answer": "Providing care that is respectful of and responsive to individual patient preferences, needs, and values.", "difficulty": "intermediate" },
+            { "id": "fon-101-u2-012", "question": "What is a 'Unit' in a hospital setting?", "answer": "A specific area or department focused on a particular type of care (e.g., ICU, Pediatric unit).", "difficulty": "beginner" },
+            { "id": "fon-101-u2-013", "question": "What is 'Inter-professional Collaboration'?", "answer": "When multiple health workers from different professional backgrounds work together with patients and families.", "difficulty": "intermediate" },
+            { "id": "fon-101-u2-014", "question": "Define 'Inpatient' and 'Outpatient'.", "answer": "Inpatient: Stayed overnight in the facility. Outpatient: Receives care without staying overnight.", "difficulty": "beginner" },
+            { "id": "fon-101-u2-015", "question": "What is a 'Managed Care' system?", "answer": "A system of health care in which patients agree to visit only certain doctors and hospitals, and in which the cost of treatment is monitored by a managing company.", "difficulty": "advanced" }
+          ]
+        },
+        {
+          "unit_number": "Unit III",
+          "title": "Tools of Nursing",
+          "flashcards": [
+            { "id": "fon-101-u3-001", "question": "What are the five steps of the nursing process?", "answer": "Assessment, Diagnosis, Planning, Implementation, Evaluation (ADPIE).", "difficulty": "beginner" },
+            { "id": "fon-101-u3-002", "question": "Define therapeutic communication and give an example.", "answer": "Therapeutic communication is a purposeful interaction that promotes understanding and supports patient well-being. Example: using open-ended questions to explore feelings.", "difficulty": "intermediate" },
+            { "id": "fon-101-u3-003", "question": "List three techniques of effective listening.", "answer": "Active listening, maintaining eye contact, paraphrasing, reflecting, clarifying.", "difficulty": "beginner" },
+            { "id": "fon-101-u3-004", "question": "What is the purpose of a nursing care plan?", "answer": "To guide individualized care, ensure continuity, document progress, and communicate among team members.", "difficulty": "beginner" },
+            { "id": "fon-101-u3-005", "question": "Explain Orem's Self-Care Deficit Theory.", "answer": "Orem's theory states that nursing is needed when individuals cannot meet their self-care needs. It includes wholly compensatory, partly compensatory, and supportive-educative systems.", "difficulty": "advanced" },
+            { "id": "fon-101-u3-006", "question": "What is the difference between subjective and objective data?", "answer": "Subjective data are what the patient says (symptoms). Objective data are measurable or observable by the nurse (signs).", "difficulty": "beginner" },
+            { "id": "fon-101-u3-007", "question": "Name three types of nursing diagnoses according to NANDA.", "answer": "Actual nursing diagnosis, risk nursing diagnosis, health promotion nursing diagnosis.", "difficulty": "intermediate" },
+            { "id": "fon-101-u3-008", "question": "What is the purpose of reporting and recording in nursing?", "answer": "To document care, ensure legal record, communicate with team, track patient progress, and support research.", "difficulty": "beginner" },
+            { "id": "fon-101-u3-009", "question": "Describe the SBAR communication tool.", "answer": "Situation (what is happening), Background (context), Assessment (what I think), Recommendation (what I suggest). Used for handover and communication.", "difficulty": "intermediate" },
+            { "id": "fon-101-u3-010", "question": "What is the difference between a nursing order and a medical order?", "answer": "A nursing order is an action initiated by a nurse based on nursing judgment; a medical order is prescribed by a physician.", "difficulty": "intermediate" },
+            { "id": "fon-101-u3-011", "question": "What is 'Critical Thinking' in nursing?", "answer": "A disciplined process of analyzing and evaluating information to reach a judgment.", "difficulty": "advanced" },
+            { "id": "fon-101-u3-012", "question": "Define 'Inference' in the assessment process.", "answer": "A conclusion or judgment based on collected data.", "difficulty": "intermediate" },
+            { "id": "fon-101-u3-013", "question": "What are 'Smart Goals' in nursing planning?", "answer": "Specific, Measurable, Attainable, Relevant, Time-bound goals.", "difficulty": "intermediate" },
+            { "id": "fon-101-u3-014", "question": "What is 'Reflection' in nursing practice?", "answer": "Thinking back on a situation to learn from it and improve future practice.", "difficulty": "intermediate" },
+            { "id": "fon-101-u3-015", "question": "Define 'Clinical Judgment'.", "answer": "The outcome of critical thinking and decision making in a clinical context.", "difficulty": "advanced" }
+          ]
+        },
+        {
+          "unit_number": "Unit IV",
+          "title": "Comfort and Safety Measures",
+          "flashcards": [
+            { "id": "fon-101-u4-001", "question": "What are common pressure points for pressure ulcer development?", "answer": "Sacrum, heels, elbows, shoulders, occiput, trochanters, ankles.", "difficulty": "beginner" },
+            { "id": "fon-101-u4-002", "question": "List three interventions to prevent pressure ulcers.", "answer": "Reposition every 2 hours, use pressure-relieving devices, keep skin clean and dry, provide adequate nutrition.", "difficulty": "intermediate" },
+            { "id": "fon-101-u4-003", "question": "Describe the correct technique for making an occupied bed.", "answer": "Lower side rail, loosen linen, cover patient with bath blanket, remove top linen, roll soiled linen toward patient, place clean linen, tuck and miter corners, roll patient to other side, remove soiled linen, complete making bed.", "difficulty": "intermediate" },
+            { "id": "fon-101-u4-004", "question": "What positions are used for a patient with dyspnea?", "answer": "High Fowler's position (sitting upright) or orthopneic position (leaning forward on overbed table).", "difficulty": "beginner" },
+            { "id": "fon-101-u4-005", "question": "What is the purpose of using a bed cradle?", "answer": "To keep bedding off the patient's legs, preventing pressure and promoting comfort.", "difficulty": "beginner" },
+            { "id": "fon-101-u4-006", "question": "How should a patient be lifted from bed to stretcher to prevent injury?", "answer": "Use a transfer board or lift sheet, coordinate with team, keep patient's arms crossed, count to three and slide, ensure proper body mechanics.", "difficulty": "intermediate" },
+            { "id": "fon-101-u4-007", "question": "What is the nurse's role in promoting rest and sleep?", "answer": "Provide comfortable environment, reduce noise, offer warm drink, administer sleep aids as ordered, address pain or anxiety.", "difficulty": "beginner" },
+            { "id": "fon-101-u4-008", "question": "Name three types of special beds used in nursing.", "answer": "Cardiac bed, post-operative bed, orthopedic bed.", "difficulty": "beginner" },
+            { "id": "fon-101-u4-009", "question": "What is the proper use of sand bags for patient positioning?", "answer": "Sand bags are used to support and immobilize limbs, maintain position, and prevent rotation.", "difficulty": "beginner" },
+            { "id": "fon-101-u4-010", "question": "Why is it important to use a lift sheet rather than dragging the patient?", "answer": "To prevent shearing forces that can cause skin damage and pressure ulcers, and to protect staff from injury.", "difficulty": "intermediate" },
+            { "id": "fon-101-u4-011", "question": "What is the 'Trendelenburg Position'?", "answer": "Head of bed lowered and foot of bed raised; used for shock or hypotension.", "difficulty": "intermediate" },
+            { "id": "fon-101-u4-012", "question": "Define 'Body Mechanics'.", "answer": "The efficient use of the body as a machine and as a means of locomotion.", "difficulty": "beginner" },
+            { "id": "fon-101-u4-013", "question": "What is 'Shearing'?", "answer": "Tissue layers sliding against each other, causing damage to blood vessels.", "difficulty": "intermediate" },
+            { "id": "fon-101-u4-014", "question": "List two risks of prolonged immobility.", "answer": "DVT (Deep Vein Thrombosis) and pneumonia.", "difficulty": "intermediate" },
+            { "id": "fon-101-u4-015", "question": "What is an 'Egg-crate Mattress'?", "answer": "A foam mattress with a wavy surface used to help prevent pressure ulcers.", "difficulty": "beginner" }
+          ]
+        },
+        {
+          "unit_number": "Unit V",
+          "title": "Basic Client/Patient Care",
+          "flashcards": [
+            { "id": "fon-101-u5-001", "question": "Describe the steps for providing a bed bath.", "answer": "Explain procedure, provide privacy, offer bedpan, wash from cleanest to dirtiest (face to perineal), use separate water for perineal area, dry thoroughly, apply lotion, change linen.", "difficulty": "intermediate" },
+            { "id": "fon-101-u5-002", "question": "What is oral hygiene and why is it important?", "answer": "Oral hygiene is cleaning the mouth, teeth, and gums. It prevents infections, maintains appetite, and provides comfort.", "difficulty": "beginner" },
+            { "id": "fon-101-u5-003", "question": "How do you care for a patient's dentures?", "answer": "Remove and rinse after meals, brush with soft brush, soak in denture cleaner overnight, store in labeled container, clean mouth tissues.", "difficulty": "beginner" },
+            { "id": "fon-101-u5-004", "question": "What are standard precautions?", "answer": "Infection control practices applied to all patients: hand hygiene, use of PPE (gloves, gown, mask), safe injection practices, respiratory hygiene, handling of contaminated equipment, environmental cleaning.", "difficulty": "intermediate" },
+            { "id": "fon-101-u5-005", "question": "How do you assist a patient with feeding?", "answer": "Position patient upright, offer small bites, allow time to chew, provide adaptive utensils if needed, monitor for aspiration, encourage independence.", "difficulty": "intermediate" },
+            { "id": "fon-101-u5-006", "question": "What is the correct technique for giving a bedpan?", "answer": "Warm bedpan, lower head of bed, assist patient to lift hips, slide bedpan under, elevate head for comfort, provide privacy, remove promptly, clean perineal area.", "difficulty": "intermediate" },
+            { "id": "fon-101-u5-007", "question": "How do you care for a patient's hair and nails?", "answer": "Brush hair daily, wash as needed, trim nails straight across, file edges, check for ingrown nails or infections.", "difficulty": "beginner" },
+            { "id": "fon-101-u5-008", "question": "What is the purpose of environmental hygiene in patient care?", "answer": "To reduce pathogens, prevent infections, and provide a safe, comfortable environment.", "difficulty": "beginner" },
+            { "id": "fon-101-u5-009", "question": "How do you bathe a baby?", "answer": "Gather supplies, ensure warm room, test water temperature, clean eyes first, wash body with gentle soap, rinse thoroughly, dry and dress.", "difficulty": "intermediate" },
+            { "id": "fon-101-u5-010", "question": "What are the principles of community-centered care?", "answer": "Focus on population health, involve community in planning, address social determinants, provide accessible care, emphasize prevention.", "difficulty": "advanced" },
+            { "id": "fon-101-u5-011", "question": "Define 'Asepsis'.", "answer": "Absence of disease-producing microorganisms.", "difficulty": "beginner" },
+            { "id": "fon-101-u5-012", "question": "What is 'Medical Asepsis'?", "answer": "Clean technique; reducing the number and transfer of pathogens.", "difficulty": "beginner" },
+            { "id": "fon-101-u5-013", "question": "What is 'Surgical Asepsis'?", "answer": "Sterile technique; keeping an area or object free of all microorganisms.", "difficulty": "intermediate" },
+            { "id": "fon-101-u5-014", "question": "When should hand hygiene be performed?", "answer": "Before/after patient contact, before/after clean/sterile procedures, after body fluid exposure risk, after touching patient surroundings.", "difficulty": "beginner" },
+            { "id": "fon-101-u5-015", "question": "What is the correct way to wash hands?", "answer": "Wet hands, apply soap, rub palms, back of hands, between fingers, thumbs, fingernails, and wrists for at least 20 seconds; rinse and dry.", "difficulty": "beginner" }
+          ]
+        },
+        {
+          "unit_number": "Unit VI",
+          "title": "Diagnostic Measures",
+          "flashcards": [
+            { "id": "fon-101-u6-001", "question": "What are vital signs and their normal ranges for adults?", "answer": "Temperature: 36.5-37.5°C; Pulse: 60-100 beats/min; Respiration: 12-20 breaths/min; Blood pressure: 100-120/60-80 mmHg.", "difficulty": "beginner" },
+            { "id": "fon-101-u6-002", "question": "How is a head-to-toe physical examination conducted?", "answer": "Start with general survey, then head (eyes, ears, nose, mouth), neck, chest, abdomen, extremities, neurological assessment, using inspection, palpation, percussion, auscultation.", "difficulty": "intermediate" },
+            { "id": "fon-101-u6-003", "question": "What is the apex beat and how is it assessed?", "answer": "The apex beat is the point of maximal impulse of the heart, normally at the 5th intercostal space, midclavicular line. Assessed by palpation.", "difficulty": "intermediate" },
+            { "id": "fon-101-u6-004", "question": "How do you measure height and weight accurately?", "answer": "Use calibrated scale; patient stands barefoot, minimal clothing. For height, use stadiometer with patient standing straight, heels together.", "difficulty": "beginner" },
+            { "id": "fon-101-u6-005", "question": "What is the correct procedure for collecting a sputum specimen?", "answer": "Instruct patient to cough deeply, expectorate into sterile container, preferably early morning, avoid saliva, send to lab promptly.", "difficulty": "intermediate" },
+            { "id": "fon-101-u6-006", "question": "How is a midstream urine specimen collected?", "answer": "Patient cleans genital area, begins urinating, then collects midstream in sterile container, finishes urinating. Prevents contamination.", "difficulty": "intermediate" },
+            { "id": "fon-101-u6-007", "question": "What precautions are taken when collecting a specimen?", "answer": "Use sterile containers, wear gloves, label correctly, transport immediately, avoid contamination.", "difficulty": "beginner" },
+            { "id": "fon-101-u6-008", "question": "What is a diagnostic instrument used for measuring blood pressure?", "answer": "Sphygmomanometer (with cuff) and stethoscope.", "difficulty": "beginner" },
+            { "id": "fon-101-u6-009", "question": "Why is it important to observe vomitus?", "answer": "To note color, consistency, amount, and presence of blood (hematemesis) which can indicate bleeding in upper GI tract.", "difficulty": "beginner" },
+            { "id": "fon-101-u6-010", "question": "What is the purpose of anthropometric measurements?", "answer": "To assess nutritional status, growth, and body composition (e.g., BMI, skinfold thickness).", "difficulty": "intermediate" },
+            { "id": "fon-101-u6-011", "question": "What is 'Tachycardia' and 'Bradycardia'?", "answer": "Tachycardia: Pulse > 100 bpm. Bradycardia: Pulse < 60 bpm.", "difficulty": "beginner" },
+            { "id": "fon-101-u6-012", "question": "Define 'Hypertension' and 'Hypotension'.", "answer": "Hypertension: High BP (e.g., >140/90). Hypotension: Low BP (e.g., <90/60).", "difficulty": "beginner" },
+            { "id": "fon-101-u6-013", "question": "What is 'Inspection' in physical assessment?", "answer": "Deliberate and systematic observation of the patient.", "difficulty": "beginner" },
+            { "id": "fon-101-u6-014", "question": "What is 'Auscultation'?", "answer": "Listening to sounds produced within the body, usually with a stethoscope.", "difficulty": "beginner" },
+            { "id": "fon-101-u6-015", "question": "Define 'Palpation'.", "answer": "Using the hands to touch and feel parts of the body during physical examination.", "difficulty": "beginner" }
+          ]
+        },
+        {
+          "unit_number": "Unit VII",
+          "title": "First Aid",
+          "flashcards": [
+            { "id": "fon-101-u7-001", "question": "What are the priorities in emergency management (primary survey)?", "answer": "A – Airway (with cervical spine protection), B – Breathing, C – Circulation, D – Disability (neurological), E – Exposure.", "difficulty": "intermediate" },
+            { "id": "fon-101-u7-002", "question": "How do you manage a patient with asphyxia?", "answer": "Open airway (chin lift/jaw thrust), check breathing, give rescue breaths if not breathing, call for help, start CPR if no pulse.", "difficulty": "advanced" },
+            { "id": "fon-101-u7-003", "question": "What is the first aid for severe hemorrhage?", "answer": "Apply direct pressure on wound, elevate injured part if no fracture, apply pressure bandage, monitor for shock.", "difficulty": "intermediate" },
+            { "id": "fon-101-u7-004", "question": "List the signs and symptoms of shock.", "answer": "Hypotension, tachycardia, pale cool skin, weak pulse, altered mental status, oliguria.", "difficulty": "intermediate" },
+            { "id": "fon-101-u7-005", "question": "How do you immobilize a suspected fracture?", "answer": "Splint the limb including joints above and below fracture, use padded splints, check circulation before and after, avoid moving patient unnecessarily.", "difficulty": "intermediate" },
+            { "id": "fon-101-u7-006", "question": "What is the first aid for poisoning?", "answer": "Identify poison, call poison control, do not induce vomiting unless instructed, give activated charcoal if advised, maintain airway.", "difficulty": "advanced" },
+            { "id": "fon-101-u7-007", "question": "How do you treat a snake bite?", "answer": "Keep victim calm, immobilize limb, remove constrictive clothing, transport to hospital, do not apply tourniquet or cut the wound.", "difficulty": "intermediate" },
+            { "id": "fon-101-u7-008", "question": "What is the psychological management of casualties?", "answer": "Provide reassurance, calm environment, listen to concerns, give clear information, involve family, refer for counseling if needed.", "difficulty": "intermediate" },
+            { "id": "fon-101-u7-009", "question": "How do you transport a casualty safely?", "answer": "Use appropriate stretcher, immobilize spine if needed, maintain airway, monitor vital signs, communicate with receiving facility.", "difficulty": "intermediate" },
+            { "id": "fon-101-u7-010", "question": "What are the principles of triage in mass casualty?", "answer": "Sort patients by severity; treat those with highest priority first (immediate), then delayed, minor, and deceased. Use color codes: red (immediate), yellow (delayed), green (minor), black (dead).", "difficulty": "advanced" },
+            { "id": "fon-101-u7-011", "question": "What is 'CPR'?", "answer": "Cardiopulmonary Resuscitation; an emergency procedure combining chest compressions and artificial ventilation.", "difficulty": "intermediate" },
+            { "id": "fon-101-u7-012", "question": "What is the compression-to-ventilation ratio for adult CPR?", "answer": "30 compressions to 2 breaths.", "difficulty": "intermediate" },
+            { "id": "fon-101-u7-013", "question": "What is 'Epistaxis' and how is it managed in first aid?", "answer": "Nosebleed. Sit up, lean forward, pinch the soft part of the nose for 10 minutes.", "difficulty": "beginner" },
+            { "id": "fon-101-u7-014", "question": "What is the 'Heimlich Maneuver'?", "answer": "Abdominal thrusts used to treat upper airway obstructions (choking).", "difficulty": "intermediate" },
+            { "id": "fon-101-u7-015", "question": "What is 'Triage'?", "answer": "The process of determining the priority of patients' treatments based on the severity of their condition.", "difficulty": "intermediate" }
           ]
         }
       ]
     },
     {
       "id": "ni-101",
-      "course_code": "NUR 1xx",
+      "code": "NUR 1xx",
       "title": "Introduction to Nursing Informatics",
+      "year": 1,
+      "semester": 1,
       "units": [
         {
           "unit_number": "Unit I",
-          "title": "Informatics Basics",
+          "title": "Introduction to Nursing Informatics",
           "flashcards": [
-            { "id": "y1s1-ni-u1-1", "question": "Define Nursing Informatics.", "answer": "Specialty that integrates nursing science with computer and information sciences.", "difficulty": "Moderate" },
-            { "id": "y1s1-ni-u1-2", "question": "What is an EHR?", "answer": "Electronic Health Record; digital version of a patient's chart.", "difficulty": "Easy" },
-            { "id": "y1s1-ni-u1-3", "question": "What is Telehealth?", "answer": "Use of digital technologies to deliver health services remotely.", "difficulty": "Easy" },
-            { "id": "y1s1-ni-u1-4", "question": "Define 'Data' in informatics.", "answer": "Discrete entities without interpretation.", "difficulty": "Moderate" },
-            { "id": "y1s1-ni-u1-5", "question": "Define 'Information' in informatics.", "answer": "Interpreted, organized, or structured data.", "difficulty": "Moderate" },
-            { "id": "y1s1-ni-u1-6", "question": "What is 'Knowledge'?", "answer": "Synthesized information where relationships are identified.", "difficulty": "Moderate" },
-            { "id": "y1s1-ni-u1-7", "question": "Define 'Wisdom'.", "answer": "Appropriate use of knowledge to solve problems.", "difficulty": "Hard" },
-            { "id": "y1s1-ni-u1-8", "question": "What is CDSS?", "answer": "Clinical Decision Support System; provides knowledge to enhance health care.", "difficulty": "Hard" },
-            { "id": "y1s1-ni-u1-9", "question": "Define 'Interoperability'.", "answer": "Ability of systems to communicate and exchange data.", "difficulty": "Hard" },
-            { "id": "y1s1-ni-u1-10", "question": "What is HIPAA?", "answer": "Act that protects patient data privacy and security.", "difficulty": "Moderate" },
-            { "id": "y1s1-ni-u1-11", "question": "Define 'eMAR'.", "answer": "Electronic Medication Administration Record.", "difficulty": "Easy" },
-            { "id": "y1s1-ni-u1-12", "question": "What is 'mHealth'?", "answer": "Mobile health; use of mobile devices for health services.", "difficulty": "Easy" },
-            { "id": "y1s1-ni-u1-13", "question": "Define 'Cybersecurity'.", "answer": "Protection of electronic info from unauthorized access.", "difficulty": "Moderate" },
-            { "id": "y1s1-ni-u1-14", "question": "What is a 'Database'?", "answer": "Organized collection of structured data.", "difficulty": "Moderate" },
-            { "id": "y1s1-ni-u1-15", "question": "What is 'Data Mining'?", "answer": "Process of discovering patterns in large data sets.", "difficulty": "Hard" }
+            { "id": "ni-101-u1-001", "question": "Define nursing informatics.", "answer": "Nursing informatics is the specialty that integrates nursing science, computer science, and information science to manage and communicate data, information, knowledge, and wisdom in nursing practice.", "difficulty": "beginner" },
+            { "id": "ni-101-u1-002", "question": "What are the components of a computer system?", "answer": "Hardware (physical devices), software (programs), data (information), people (users), and procedures.", "difficulty": "beginner" },
+            { "id": "ni-101-u1-003", "question": "Name three types of computers by size.", "answer": "Mainframe, minicomputer, microcomputer (including desktops, laptops, tablets).", "difficulty": "beginner" },
+            { "id": "ni-101-u1-004", "question": "What is the internet and how is it used in nursing?", "answer": "The internet is a global network of computers. In nursing, it is used for research, continuing education, telemedicine, and accessing electronic health records.", "difficulty": "beginner" },
+            { "id": "ni-101-u1-005", "question": "What are the basic functions of Microsoft Word, Excel, and PowerPoint?", "answer": "Word: word processing. Excel: spreadsheets, data analysis. PowerPoint: presentations.", "difficulty": "beginner" },
+            { "id": "ni-101-u1-006", "question": "Explain the importance of nursing informatics.", "answer": "Improves patient safety, enhances documentation, supports evidence-based practice, facilitates communication, and increases efficiency.", "difficulty": "intermediate" },
+            { "id": "ni-101-u1-007", "question": "What are the different types of nursing informatics?", "answer": "Clinical informatics, administrative informatics, educational informatics, research informatics.", "difficulty": "intermediate" },
+            { "id": "ni-101-u1-008", "question": "List some tools used in nursing informatics.", "answer": "Electronic health records (EHR), computerized provider order entry (CPOE), clinical decision support systems (CDSS), barcode medication administration, telehealth systems.", "difficulty": "intermediate" },
+            { "id": "ni-101-u1-009", "question": "What is the difference between data and information?", "answer": "Data are raw facts; information is data that has been processed and given meaning.", "difficulty": "beginner" },
+            { "id": "ni-101-u1-010", "question": "How does nursing informatics support evidence-based practice?", "answer": "By providing access to research databases, tracking outcomes, and facilitating data analysis to guide clinical decisions.", "difficulty": "advanced" },
+            { "id": "ni-101-u1-011", "question": "What is 'CPOE'?", "answer": "Computerized Provider Order Entry; a process for electronic entry of medical practitioner instructions.", "difficulty": "intermediate" },
+            { "id": "ni-101-u1-012", "question": "What is 'CDSS'?", "answer": "Clinical Decision Support System; provides clinicians/patients with knowledge and person-specific information to enhance health and healthcare.", "difficulty": "advanced" },
+            { "id": "ni-101-u1-013", "question": "Define 'Interoperability'.", "answer": "The ability of different information systems and software applications to communicate and exchange data.", "difficulty": "advanced" },
+            { "id": "ni-101-u1-014", "question": "What is 'HIPAA'?", "answer": "Health Insurance Portability and Accountability Act; a US law designed to provide privacy standards to protect patients' medical records.", "difficulty": "intermediate" },
+            { "id": "ni-101-u1-015", "question": "Define 'E-health'.", "answer": "The use of information and communication technologies (ICT) for health.", "difficulty": "beginner" }
           ]
-        }
-      ]
-    },
-    {
-      "id": "eng-101",
-      "course_code": "GNS 102",
-      "title": "The Use of English Language",
-      "units": [
-        {
-          "unit_number": "Unit I",
-          "title": "Grammatical Conversation",
-          "flashcards": [
-            { "id": "y1s1-e-u1-1", "question": "What are the 8 parts of speech?", "answer": "Noun, Pronoun, Verb, Adjective, Adverb, Preposition, Conjunction, Interjection.", "difficulty": "Easy" },
-            { "id": "y1s1-e-u1-2", "question": "Define a Noun.", "answer": "A word identifying people, places, or things.", "difficulty": "Easy" },
-            { "id": "y1s1-e-u1-3", "question": "What is a Verb?", "answer": "A word describing action, state, or occurrence.", "difficulty": "Easy" },
-            { "id": "y1s1-e-u1-4", "question": "What is a Pronoun?", "answer": "A word that substitutes for a noun.", "difficulty": "Easy" },
-            { "id": "y1s1-e-u1-5", "question": "Define an Adjective.", "answer": "A word modifying or describing a noun.", "difficulty": "Easy" },
-            { "id": "y1s1-e-u1-6", "question": "What is an Adverb?", "answer": "A word modifying a verb, adjective, or another adverb.", "difficulty": "Easy" },
-            { "id": "y1s1-e-u1-7", "question": "Define a Preposition.", "answer": "A word expressing relation to another word (e.g., 'in', 'on').", "difficulty": "Moderate" },
-            { "id": "y1s1-e-u1-8", "question": "What is a Conjunction?", "answer": "A word used to connect clauses or sentences.", "difficulty": "Easy" },
-            { "id": "y1s1-e-u1-9", "question": "What is an Interjection?", "answer": "An abrupt remark expressing emotion.", "difficulty": "Easy" },
-            { "id": "y1s1-e-u1-10", "question": "Define Punctuation.", "answer": "Signs used to aid understanding of written text.", "difficulty": "Moderate" },
-            { "id": "y1s1-e-u1-11", "question": "What is the use of a Comma?", "answer": "To indicate a slight pause or separate items in a list.", "difficulty": "Easy" },
-            { "id": "y1s1-e-u1-12", "question": "Define 'Concord' in English.", "answer": "Agreement between subject and verb in a sentence.", "difficulty": "Hard" },
-            { "id": "y1s1-e-u1-13", "question": "What is a 'Tense'?", "answer": "A category expressing time reference.", "difficulty": "Moderate" },
-            { "id": "y1s1-e-u1-14", "question": "Define 'Intonation'.", "answer": "The rise and fall of the voice in speaking.", "difficulty": "Moderate" },
-            { "id": "y1s1-e-u1-15", "question": "What is a 'Homophone'?", "answer": "Words sounding same but with different meanings/spellings.", "difficulty": "Easy" }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "phys-101",
-      "course_code": "NUS 112",
-      "title": "Applied Physics",
-      "units": [
+        },
         {
           "unit_number": "Unit II",
-          "title": "Molecular Phenomena",
+          "title": "Nursing Information Management",
           "flashcards": [
-            { "id": "y1s1-p-u2-1", "question": "Define Surface Tension.", "answer": "Tension of a liquid surface caused by particle attraction.", "difficulty": "Moderate" },
-            { "id": "y1s1-p-u2-2", "question": "What is Osmosis?", "answer": "Movement of water through a semi-permeable membrane.", "difficulty": "Moderate" },
-            { "id": "y1s1-p-u2-3", "question": "Define Capillarity.", "answer": "Tendency of liquid to rise/fall in a narrow tube.", "difficulty": "Moderate" },
-            { "id": "y1s1-p-u2-4", "question": "What are the three states of matter?", "answer": "Solid, Liquid, Gas.", "difficulty": "Easy" },
-            { "id": "y1s1-p-u2-5", "question": "What is Diffusion?", "answer": "Movement of particles from high to low concentration.", "difficulty": "Easy" },
-            { "id": "y1s1-p-u2-6", "question": "Define Viscosity.", "answer": "Resistance of a fluid to flow.", "difficulty": "Moderate" },
-            { "id": "y1s1-p-u2-7", "question": "What is Archimedes' Principle?", "answer": "Buoyant force equals weight of displaced fluid.", "difficulty": "Hard" },
-            { "id": "y1s1-p-u2-8", "question": "Define Pressure.", "answer": "Force per unit area.", "difficulty": "Easy" },
-            { "id": "y1s1-p-u2-9", "question": "What is Pascal's Law?", "answer": "Pressure in fluid transmitted equally in all directions.", "difficulty": "Hard" },
-            { "id": "y1s1-p-u2-10", "question": "Define Density.", "answer": "Mass per unit volume.", "difficulty": "Easy" },
-            { "id": "y1s1-p-u2-11", "question": "What is Boyle's Law?", "answer": "Pressure inversely proportional to volume at constant temp.", "difficulty": "Hard" },
-            { "id": "y1s1-p-u2-12", "question": "Define Work.", "answer": "Force applied over a distance (F x d).", "difficulty": "Moderate" },
-            { "id": "y1s1-p-u2-13", "question": "What is Energy?", "answer": "Capacity to do work.", "difficulty": "Easy" },
-            { "id": "y1s1-p-u2-14", "question": "Define Power.", "answer": "Rate at which work is done.", "difficulty": "Moderate" },
-            { "id": "y1s1-p-u2-15", "question": "What is a Lever?", "answer": "Simple machine with beam and fulcrum.", "difficulty": "Moderate" }
+            { "id": "ni-101-u2-001", "question": "What is an Electronic Health Record (EHR)?", "answer": "A digital version of a patient's medical history, including demographics, progress notes, medications, vital signs, past medical history, immunizations, lab data, and radiology reports.", "difficulty": "beginner" },
+            { "id": "ni-101-u2-002", "question": "What are the types of EHR systems?", "answer": "Standalone, integrated, cloud-based, and interoperable systems.", "difficulty": "intermediate" },
+            { "id": "ni-101-u2-003", "question": "How does integration of nursing data improve patient care?", "answer": "It allows comprehensive view of patient, reduces duplication, improves coordination, and supports clinical decision-making.", "difficulty": "intermediate" },
+            { "id": "ni-101-u2-004", "question": "What is the importance of data quality in healthcare?", "answer": "Accurate, complete, and timely data ensures safe patient care, reliable reporting, and valid research.", "difficulty": "intermediate" },
+            { "id": "ni-101-u2-005", "question": "What are the key elements of data security in nursing informatics?", "answer": "Confidentiality, integrity, availability, authentication, authorization, and audit trails.", "difficulty": "intermediate" },
+            { "id": "ni-101-u2-006", "question": "What is an information retrieval system?", "answer": "A system that helps users find and access information from databases, such as PubMed, CINAHL, or hospital data repositories.", "difficulty": "beginner" },
+            { "id": "ni-101-u2-007", "question": "How is patient assessment documented in an EHR?", "answer": "Through structured templates, free text, flow sheets, and checklists, capturing subjective and objective data.", "difficulty": "beginner" },
+            { "id": "ni-101-u2-008", "question": "What is data access and why is it regulated?", "answer": "Data access refers to who can view or use patient information. It is regulated to protect privacy and comply with laws like HIPAA or NDPR.", "difficulty": "intermediate" },
+            { "id": "ni-101-u2-009", "question": "What is the role of the nurse in ensuring data quality?", "answer": "Nurses must document accurately and timely, avoid errors, use standardized terminology, and report discrepancies.", "difficulty": "intermediate" },
+            { "id": "ni-101-u2-010", "question": "What are the common challenges in nursing information management?", "answer": "Interoperability issues, user resistance, data entry errors, security breaches, high cost of implementation.", "difficulty": "advanced" },
+            { "id": "ni-101-u2-011", "question": "Define 'Standardized Terminology' in nursing.", "answer": "A common language used by nurses to describe nursing care (e.g., NANDA-I, NIC, NOC).", "difficulty": "intermediate" },
+            { "id": "ni-101-u2-012", "question": "What is 'Data Mining'?", "answer": "The process of discovering patterns in large data sets.", "difficulty": "advanced" },
+            { "id": "ni-101-u2-013", "question": "What is a 'Patient Portal'?", "answer": "A secure online website that gives patients 24-hour access to personal health information.", "difficulty": "beginner" },
+            { "id": "ni-101-u2-014", "question": "What is 'Encryption'?", "answer": "The process of converting information or data into a code, especially to prevent unauthorized access.", "difficulty": "intermediate" },
+            { "id": "ni-101-u2-015", "question": "Define 'Inter-professional Information Exchange'.", "answer": "The sharing of health information across different healthcare disciplines.", "difficulty": "intermediate" }
           ]
-        }
-      ]
-    },
-    {
-      "id": "chem-101",
-      "course_code": "NUS 111",
-      "title": "Applied Chemistry",
-      "units": [
+        },
         {
-          "unit_number": "Unit II",
-          "title": "Nature of Matter",
+          "unit_number": "Unit III",
+          "title": "ICT in Nursing Practice",
           "flashcards": [
-            { "id": "y1s1-c-u2-1", "question": "What is an Atom?", "answer": "Basic unit of a chemical element.", "difficulty": "Easy" },
-            { "id": "y1s1-c-u2-2", "question": "Define 'Molecule'.", "answer": "Two or more atoms bonded together.", "difficulty": "Easy" },
-            { "id": "y1s1-c-u2-3", "question": "Define 'Atomic Number'.", "answer": "Number of protons in an atom.", "difficulty": "Moderate" },
-            { "id": "y1s1-c-u2-4", "question": "What is 'Mass Number'?", "answer": "Number of protons plus neutrons.", "difficulty": "Moderate" },
-            { "id": "y1s1-c-u2-5", "question": "Define 'Isotopes'.", "answer": "Atoms of same element with different neutron counts.", "difficulty": "Moderate" },
-            { "id": "y1s1-c-u2-6", "question": "What is a 'Covalent Bond'?", "answer": "Bond where atoms share electrons.", "difficulty": "Hard" },
-            { "id": "y1s1-c-u2-7", "question": "Define 'Ionic Bond'.", "answer": "Bond formed by electron transfer.", "difficulty": "Hard" },
-            { "id": "y1s1-c-u2-8", "question": "What is 'Matter'?", "answer": "Anything with mass that takes up space.", "difficulty": "Easy" },
-            { "id": "y1s1-c-u2-9", "question": "Define 'Element'.", "answer": "Pure substance that cannot be broken down further.", "difficulty": "Easy" },
-            { "id": "y1s1-c-u2-10", "question": "What is a 'Compound'?", "answer": "Substance made of different elements chemically bonded.", "difficulty": "Moderate" },
-            { "id": "y1s1-c-u2-11", "question": "Define 'Mixture'.", "answer": "Substances physically combined but not chemically.", "difficulty": "Moderate" },
-            { "id": "y1s1-c-u2-12", "question": "What is 'Physical Change'?", "answer": "Change in form without identity change.", "difficulty": "Easy" },
-            { "id": "y1s1-c-u2-13", "question": "Define 'Chemical Change'.", "answer": "Change that produces new substances.", "difficulty": "Easy" },
-            { "id": "y1s1-c-u2-14", "question": "What is the 'pH scale'?", "answer": "Measure of acidity or alkalinity (0-14).", "difficulty": "Easy" },
-            { "id": "y1s1-c-u2-15", "question": "Define 'Acid'.", "answer": "Substance that donates hydrogen ions in solution.", "difficulty": "Moderate" }
+            { "id": "ni-101-u3-001", "question": "Define telemedicine and telenursing.", "answer": "Telemedicine is the use of telecommunications to provide clinical healthcare at a distance. Telenursing is the use of technology to deliver nursing care remotely.", "difficulty": "beginner" },
+            { "id": "ni-101-u3-002", "question": "What are wearable devices in healthcare? Give examples.", "answer": "Wearable devices are electronic devices worn on the body that monitor health parameters. Examples: fitness trackers, smartwatches with heart rate monitors, continuous glucose monitors.", "difficulty": "beginner" },
+            { "id": "ni-101-u3-003", "question": "What is mobile health (mHealth)?", "answer": "mHealth is the use of mobile devices such as smartphones and tablets for health services, information, and data collection.", "difficulty": "beginner" },
+            { "id": "ni-101-u3-004", "question": "Explain the concept of human-computer interface.", "answer": "The human-computer interface is the point of interaction between the user and the computer, including screens, keyboards, mice, and voice commands, designed for ease of use.", "difficulty": "intermediate" },
+            { "id": "ni-101-u3-005", "question": "What are ergonomic considerations when using computers in the workplace?", "answer": "Proper chair height, monitor at eye level, adequate lighting, regular breaks, and proper posture to prevent strain and injury.", "difficulty": "beginner" },
+            { "id": "ni-101-u3-006", "question": "How is ICT applied to clinical practice?", "answer": "Through EHRs, e-prescribing, clinical decision support, telehealth, mobile apps for patient education, and online scheduling.", "difficulty": "intermediate" },
+            { "id": "ni-101-u3-007", "question": "Name three electronic communication tools used in healthcare.", "answer": "Zoom, Microsoft Teams, Skype, secure messaging apps.", "difficulty": "beginner" },
+            { "id": "ni-101-u3-008", "question": "What are the benefits of telehealth for patients?", "answer": "Convenience, reduced travel, access to specialists, lower costs, and continuity of care.", "difficulty": "intermediate" },
+            { "id": "ni-101-u3-009", "question": "What are the challenges of tele-nursing?", "answer": "Lack of physical assessment, technology access issues, privacy concerns, reimbursement issues, and need for training.", "difficulty": "advanced" },
+            { "id": "ni-101-u3-010", "question": "How can ICT improve patient education?", "answer": "By providing online resources, videos, interactive apps, and personalized messaging to reinforce learning.", "difficulty": "intermediate" },
+            { "id": "ni-101-u3-011", "question": "What is 'E-prescribing'?", "answer": "Electronic transmission of prescription information from a prescriber to a pharmacy.", "difficulty": "intermediate" },
+            { "id": "ni-101-u3-012", "question": "Define 'Virtual Care'.", "answer": "A broad term that encompasses all the ways healthcare providers remotely interact with their patients.", "difficulty": "beginner" },
+            { "id": "ni-101-u3-013", "question": "What is 'Remote Patient Monitoring' (RPM)?", "answer": "A subcategory of homecare that allows patients to use mobile medical devices to gather and send data to healthcare professionals.", "difficulty": "intermediate" },
+            { "id": "ni-101-u3-014", "question": "What is 'Digital Literacy' in nursing?", "answer": "The ability to find, evaluate, and communicate information through various digital platforms.", "difficulty": "intermediate" },
+            { "id": "ni-101-u3-015", "question": "How does technology facilitate lifelong learning for nurses?", "answer": "Through online courses, webinars, electronic journals, and discussion forums.", "difficulty": "beginner" }
           ]
-        }
-      ]
-    },
-    {
-      "id": "micro-101",
-      "course_code": "NUS 117",
-      "title": "Microbiology",
-      "units": [
+        },
         {
-          "unit_number": "Unit II",
-          "title": "Infectious Process",
+          "unit_number": "Unit IV",
+          "title": "Monitoring & Care Devices",
           "flashcards": [
-            { "id": "y1s1-m-u2-1", "question": "What is the 'Chain of Infection'?", "answer": "Pathogen, Reservoir, Portal of Exit, Transmission, Portal of Entry, Susceptible Host.", "difficulty": "Hard", "important": true },
-            { "id": "y1s1-m-u2-2", "question": "Define 'Reservoir'.", "answer": "Natural habitat of an infectious agent.", "difficulty": "Moderate" },
-            { "id": "y1s1-m-u2-3", "question": "Define 'Asepsis'.", "answer": "Absence of pathogenic microorganisms.", "difficulty": "Moderate" },
-            { "id": "y1s1-m-u2-4", "question": "What is 'Sterilization'?", "answer": "Destruction of all forms of microbial life.", "difficulty": "Easy" },
-            { "id": "y1s1-m-u2-5", "question": "Define 'Disinfection'.", "answer": "Elimination of most pathogens from inanimate objects.", "difficulty": "Easy" },
-            { "id": "y1s1-m-u2-6", "question": "What are 'Standard Precautions'?", "answer": "Infection control practices applied to all patients.", "difficulty": "Moderate", "important": true },
-            { "id": "y1s1-m-u2-7", "question": "Define 'Vector'.", "answer": "Organism (like mosquito) transmitting disease.", "difficulty": "Easy" },
-            { "id": "y1s1-m-u2-8", "question": "What is 'Pathogenicity'?", "answer": "Ability of a microbial agent to cause disease.", "difficulty": "Moderate" },
-            { "id": "y1s1-m-u2-9", "question": "Define 'Virulence'.", "answer": "Degree of pathogenicity of a microorganism.", "difficulty": "Hard" },
-            { "id": "y1s1-m-u2-10", "question": "What is a 'Fomite'?", "answer": "Inanimate object capable of carrying infectious organisms.", "difficulty": "Moderate" },
-            { "id": "y1s1-m-u2-11", "question": "Define 'Endemic'.", "answer": "Disease constantly present in a population or region.", "difficulty": "Easy" },
-            { "id": "y1s1-m-u2-12", "question": "Define 'Epidemic'.", "answer": "Sudden increase in cases of a disease above normal levels.", "difficulty": "Easy" },
-            { "id": "y1s1-m-u2-13", "question": "Define 'Pandemic'.", "answer": "Epidemic that has spread over several countries or continents.", "difficulty": "Easy" },
-            { "id": "y1s1-m-u2-14", "question": "What is 'Zoonosis'?", "answer": "Infectious disease that has jumped from a non-human animal to humans.", "difficulty": "Moderate" },
-            { "id": "y1s1-m-u2-15", "question": "Define 'Incubation Period'.", "answer": "Time between exposure to pathogen and onset of symptoms.", "difficulty": "Easy" }
-          ]
-        }
-      ]
-    },
-    {
-      "id": "sbs-101",
-      "course_code": "NUS 115",
-      "title": "Social and Behavioural Science",
-      "units": [
-        {
-          "unit_number": "Unit I",
-          "title": "Nature and Scope of Sociology",
-          "flashcards": [
-            { "id": "y1s1-s-u1-1", "question": "Define Sociology.", "answer": "Study of society and social behavior.", "difficulty": "Easy" },
-            { "id": "y1s1-s-u1-2", "question": "Who is Auguste Comte?", "answer": "The father of sociology.", "difficulty": "Moderate" },
-            { "id": "y1s1-s-u1-3", "question": "Define 'Social Stratification'.", "answer": "Hierarchical ranking of people in society.", "difficulty": "Moderate" },
-            { "id": "y1s1-s-u1-4", "question": "Define 'Culture'.", "answer": "Shared ways of life of a group.", "difficulty": "Easy" },
-            { "id": "y1s1-s-u1-5", "question": "What are 'Social Norms'?", "answer": "Accepted standards of behavior in a group.", "difficulty": "Easy" },
-            { "id": "y1s1-s-u1-6", "question": "Define 'Socialization'.", "answer": "Lifelong process of learning one's culture.", "difficulty": "Moderate" },
-            { "id": "y1s1-s-u1-7", "question": "What is an 'Institution'?", "answer": "Stable system of social patterns (e.g., family).", "difficulty": "Moderate" },
-            { "id": "y1s1-s-u1-8", "question": "Define 'Psychology'.", "answer": "Study of the mind and behavior.", "difficulty": "Easy" },
-            { "id": "y1s1-s-u1-9", "question": "Define 'Social Class'.", "answer": "Group based on wealth, power, and prestige.", "difficulty": "Moderate" },
-            { "id": "y1s1-s-u1-10", "question": "What is 'Social Interaction'?", "answer": "Process by which people act and react to each other.", "difficulty": "Moderate" },
-            { "id": "y1s1-s-u1-11", "question": "Define 'Status'.", "answer": "Social position that a person holds.", "difficulty": "Easy" },
-            { "id": "y1s1-s-u1-12", "question": "Define 'Role'.", "answer": "Behavior expected of someone who holds a particular status.", "difficulty": "Easy" },
-            { "id": "y1s1-s-u1-13", "question": "What is 'Deviance'?", "answer": "Recognized violation of cultural norms.", "difficulty": "Moderate" },
-            { "id": "y1s1-s-u1-14", "question": "Define 'Stigma'.", "answer": "Powerfully negative label that greatly changes a person's self-concept and social identity.", "difficulty": "Hard" },
-            { "id": "y1s1-s-u1-15", "question": "Define 'Ethnocentrism'.", "answer": "Practice of judging another culture by the standards of one's own culture.", "difficulty": "Hard" }
+            { "id": "ni-101-u4-001", "question": "What is a pulse oximeter and what does it measure?", "answer": "A pulse oximeter is a non-invasive device that measures oxygen saturation (SpO2) and pulse rate by passing light through skin.", "difficulty": "beginner" },
+            { "id": "ni-101-u4-002", "question": "What is a cardiac monitor used for?", "answer": "It continuously displays the heart's electrical activity (ECG) and alerts for arrhythmias.", "difficulty": "beginner" },
+            { "id": "ni-101-u4-003", "question": "Describe the use of an infusion pump.", "answer": "An infusion pump delivers fluids, medications, or nutrients at a controlled rate intravenously.", "difficulty": "beginner" },
+            { "id": "ni-101-u4-004", "question": "What is barcode medication administration (BCMA)?", "answer": "BCMA uses barcodes on patient wristbands and medication labels to ensure the right patient, right drug, right dose, right route, right time, and document administration.", "difficulty": "intermediate" },
+            { "id": "ni-101-u4-005", "question": "What are robotic devices used for in patient care?", "answer": "Robots can assist with lifting, transferring patients, dispensing medications, and performing surgeries.", "difficulty": "intermediate" },
+            { "id": "ni-101-u4-006", "question": "What is an automated wheelchair?", "answer": "A powered wheelchair that helps patients with mobility impairments move independently.", "difficulty": "beginner" },
+            { "id": "ni-101-u4-007", "question": "How does an electronic inventory system work in healthcare?", "answer": "It tracks supplies, medications, and equipment using barcodes or RFID, automatically updating stock levels and generating orders when low.", "difficulty": "intermediate" },
+            { "id": "ni-101-u4-008", "question": "What is video surveillance used for in healthcare settings?", "answer": "To monitor patients at risk of falls, seizures, or wandering; also for security and monitoring of isolation rooms.", "difficulty": "beginner" },
+            { "id": "ni-101-u4-009", "question": "Name three diagnostic devices used in radiology.", "answer": "Ultrasound, CT scanner, MRI scanner.", "difficulty": "beginner" },
+            { "id": "ni-101-u4-010", "question": "What is a radio frequency identification (RFID) system used for?", "answer": "RFID tags are used to track equipment, patients, and medications, improving asset management and patient safety.", "difficulty": "intermediate" },
+            { "id": "ni-101-u4-011", "question": "What is an 'Intelligent Infusion Pump'?", "answer": "A pump with dose error reduction systems (DERS) or software to prevent medication errors.", "difficulty": "advanced" },
+            { "id": "ni-101-u4-012", "question": "What is a 'Glucometer'?", "answer": "A device used for determining the approximate concentration of glucose in the blood.", "difficulty": "beginner" },
+            { "id": "ni-101-u4-013", "question": "Define 'Telemetry'.", "answer": "Automated communications process by which measurements and other data are collected at remote or inaccessible points and transmitted to receiving equipment for monitoring.", "difficulty": "intermediate" },
+            { "id": "ni-101-u4-014", "question": "What are 'Smart Beds'?", "answer": "Beds equipped with sensors to monitor patient weight, movement, and vital signs, and to alert nurses of potential falls.", "difficulty": "intermediate" },
+            { "id": "ni-101-u4-015", "question": "What is the purpose of a 'Ventilator'?", "answer": "A machine that provides mechanical ventilation by moving breathable air into and out of the lungs.", "difficulty": "intermediate" }
           ]
         }
       ]

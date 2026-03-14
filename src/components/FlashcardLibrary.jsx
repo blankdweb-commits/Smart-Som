@@ -83,10 +83,11 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   const upcomingExamSubjects = useMemo(() => {
     return exams
       .filter(e => {
+        if (!e || !e.title) return false;
         const diff = new Date(e.date).getTime() - new Date().getTime();
         return diff > 0 && diff <= (7 * 24 * 3600 * 1000); // Next 7 days
       })
-      .map(e => e.title.toLowerCase());
+      .map(e => (e.title || '').toLowerCase());
   }, [exams]);
 
   const filteredCards = useMemo(() => {

@@ -12,102 +12,124 @@ const ClinicalSearchAssistant = () => {
 
   const mockKnowledgeBase = [
     {
-      keywords: ['episiotomy', 'perineum', 'incision', 'tears'],
-      title: "Episiotomy Care & Indications",
-      content: "An episiotomy is a surgical incision of the perineum. Indications include fetal distress, operative vaginal delivery (forceps/vacuum), and rigid perineum. Post-procedure care involves frequent perineal hygiene, sitz baths, and monitoring for signs of infection (REEDA scale: Redness, Edema, Ecchymosis, Discharge, Approximation).",
-      source: "WHO Guidelines for Intrapartum Care",
-      tags: ["Obstetrics", "Midwifery"]
+      keywords: ['heart', 'cardiovascular', 'chambers', 'valves', 'anatomy'],
+      title: "Heart Anatomy & Labelling Diagram",
+      content: "Descriptive Diagram of the Heart. Key Labels: 1. Right Atrium (RA), 2. Right Ventricle (RV), 3. Left Atrium (LA), 4. Left Ventricle (LV), 5. Aorta, 6. Pulmonary Artery, 7. Superior Vena Cava, 8. Mitral Valve, 9. Tricuspid Valve.",
+      source: "Clinical Anatomy Essentials",
+      youtube: "https://www.youtube.com/watch?v=X90Xp_U7Yy0",
+      tags: ["Anatomy", "Cardiovascular"]
     },
     {
-      keywords: ['preeclampsia', 'hypertension', 'pregnancy', 'blood pressure', 'proteinuria'],
-      title: "Management of Preeclampsia",
-      content: "Preeclampsia is defined by hypertension (BP >140/90) and proteinuria after 20 weeks gestation. Severe features include BP >160/110, headache, visual changes, and epigastric pain. Management includes Magnesium Sulfate for seizure prophylaxis (monitor for toxicity: decreased DTRs, respiratory depression) and antihypertensives like Labetalol or Hydralazine.",
-      source: "ACOG Practice Bulletin",
-      tags: ["High-Risk Pregnancy", "Pharmacology"]
+      keywords: ['kidney', 'nephron', 'urinary', 'renal', 'anatomy'],
+      title: "Nephron Structure & Labelling",
+      content: "Detailed Diagram of the Nephron. Labels: 1. Bowman's Capsule, 2. Glomerulus, 3. Proximal Convoluted Tubule (PCT), 4. Loop of Henle (Descending & Ascending), 5. Distal Convoluted Tubule (DCT), 6. Collecting Duct.",
+      source: "Renal Physiology Guide",
+      youtube: "https://www.youtube.com/watch?v=vNvZaGcLzpg",
+      tags: ["Anatomy", "Renal"]
     },
     {
-      keywords: ['digoxin', 'lanoxin', 'heart failure', 'toxicity', 'pulse'],
-      title: "Digoxin (Lanoxin) Nursing Considerations",
-      content: "Digoxin is an inotropic agent used in heart failure. Key nursing actions: Always check apical pulse for 1 full minute (hold if <60 bpm). Monitor for toxicity signs: nausea, vomiting, anorexia, blurred vision, and yellow-green halos. Therapeutic range: 0.5 - 2.0 ng/mL. Potassium levels must be monitored as hypokalemia increases risk of toxicity.",
-      source: "Davis's Drug Guide",
-      tags: ["Pharmacology", "Cardiac Nursing"]
+      keywords: ['lung', 'respiratory', 'alveoli', 'bronchi', 'anatomy'],
+      title: "Respiratory System & Alveoli Diagram",
+      content: "Comprehensive Respiratory Diagram. Labels: 1. Trachea, 2. Bronchi, 3. Bronchioles, 4. Alveolar Sacs, 5. Diaphragm, 6. Pleural Space, 7. Larynx (Voice Box).",
+      source: "Respiratory Clinical Manual",
+      youtube: "https://www.youtube.com/watch?v=mOKmjYwfDGU",
+      tags: ["Anatomy", "Respiratory"]
     },
     {
-      keywords: ['ng tube', 'nasogastric', 'placement', 'aspiration', 'gastric'],
-      title: "NG Tube Placement Verification",
-      content: "Verification of NG tube placement is critical. The gold standard is an X-ray. Bedside methods include pH testing of gastric aspirate (pH <5.5). Avoid the 'air bolus' method as it is unreliable for confirming placement in the stomach. Always measure from nose to earlobe to xiphoid process (NEX).",
-      source: "Evidence-Based Nursing Practice Manual",
-      tags: ["Fundamentals", "Skills"]
+      keywords: ['skin', 'integumentary', 'epidermis', 'dermis', 'layers'],
+      title: "Integumentary System (Skin) Layers Diagram",
+      content: "Cross-section of the Skin. Labels: 1. Epidermis, 2. Dermis, 3. Hypodermis (Subcutaneous), 4. Hair Follicle, 5. Sweat Gland, 6. Sebaceous Gland, 7. Nerve Endings.",
+      source: "Dermatology for Nurses",
+      youtube: "https://www.youtube.com/watch?v=z5Vn_97S6S8",
+      tags: ["Anatomy", "Integumentary"]
     },
     {
-      keywords: ['cyanosis', 'blue', 'oxygen', 'hypoxia'],
-      title: "Clinical Significance of Cyanosis",
-      content: "Cyanosis is a bluish discoloration of the skin and mucous membranes due to high levels of deoxygenated hemoglobin. Central cyanosis (lips, tongue) indicates systemic hypoxemia, while peripheral cyanosis (fingertips) may indicate local vasoconstriction or low cardiac output.",
-      source: "Medical-Surgical Nursing: Concepts for Interprofessional Collaborative Care",
-      tags: ["Pathophysiology", "Assessment"]
+      keywords: ['brain', 'nervous system', 'cerebrum', 'cerebellum', 'lobes'],
+      title: "Brain Anatomy & Functional Lobes Diagram",
+      content: "Major parts of the Brain. Labels: 1. Cerebrum, 2. Cerebellum, 3. Brainstem (Medulla, Pons, Midbrain), 4. Frontal Lobe, 5. Parietal Lobe, 6. Occipital Lobe, 7. Temporal Lobe.",
+      source: "Neurological Clinical Handbook",
+      youtube: "https://www.youtube.com/watch?v=eeTpxM_o9S8",
+      tags: ["Anatomy", "Neurology"]
     },
     {
-      keywords: ['tachycardia', 'heart rate', 'fast pulse'],
-      title: "Understanding Tachycardia",
-      content: "Tachycardia is defined as a heart rate >100 bpm in adults. Common causes include fever, pain, stress, dehydration, anemia, and hyperthyroidism. Treatment focuses on identifying and managing the underlying cause. Monitor for decreased cardiac output (dizziness, chest pain).",
-      source: "AACN Core Curriculum for High Acuity",
-      tags: ["Cardiac Nursing", "Fundamentals"]
+      keywords: ['digestive', 'stomach', 'intestine', 'liver', 'anatomy'],
+      title: "Digestive System Overview Diagram",
+      content: "Complete Digestive Tract. Labels: 1. Esophagus, 2. Stomach, 3. Liver, 4. Gallbladder, 5. Pancreas, 6. Small Intestine (Duodenum, Jejunum, Ileum), 7. Large Intestine (Colon), 8. Rectum.",
+      source: "Gastrointestinal Nursing Guide",
+      youtube: "https://www.youtube.com/watch?v=Og5xAdC8EUI",
+      tags: ["Anatomy", "Digestive"]
     },
     {
-      keywords: ['auscultation', 'breath sounds', 'heart sounds', 'stethoscope'],
-      title: "Principles of Auscultation",
-      content: "Auscultation is the process of listening to sounds produced within the body. Use the diaphragm for high-pitched sounds (lung, bowel, normal heart sounds) and the bell for low-pitched sounds (murmurs, bruits, extra heart sounds like S3/S4).",
-      source: "Bates' Guide to Physical Examination",
-      tags: ["Assessment", "Fundamentals"]
+      keywords: ['pelvis', 'female reproductive', 'uterus', 'ovary', 'anatomy'],
+      title: "Female Reproductive System Diagram",
+      content: "Internal Female Reproductive Organs. Labels: 1. Uterus, 2. Fallopian Tubes, 3. Ovaries, 4. Cervix, 5. Vagina, 6. Endometrium, 7. Fundus.",
+      source: "Midwifery Essentials",
+      youtube: "https://www.youtube.com/watch?v=RfC0R_pC6Fw",
+      tags: ["Anatomy", "Midwifery"]
     },
     {
-      keywords: ['preeclampsia', 'eclampsia', 'seizures', 'pregnancy'],
-      title: "Eclampsia Emergency Management",
-      content: "Eclampsia is the occurrence of seizures in a woman with preeclampsia. Immediate actions: Call for help, protect the airway, place in left lateral position, and administer Magnesium Sulfate IV bolus. Monitor fetal well-being after stabilizing the mother.",
-      source: "NICE Guidelines",
-      tags: ["Midwifery", "Emergency Nursing"]
+      keywords: ['skeleton', 'bones', 'axial', 'appendicular', 'anatomy'],
+      title: "Human Skeletal System Diagram",
+      content: "Major Bones of the Body. Labels: 1. Skull, 2. Clavicle, 3. Scapula, 4. Sternum, 5. Humerus, 6. Radius/Ulna, 7. Pelvis, 8. Femur, 9. Tibia/Fibula, 10. Vertebral Column.",
+      source: "Orthopedic Nursing Manual",
+      youtube: "https://www.youtube.com/watch?v=f-f5wzw247c",
+      tags: ["Anatomy", "Orthopedic"]
     },
     {
-      keywords: ['insulin', 'diabetes', 'hypoglycemia', 'hyperglycemia'],
-      title: "Insulin Administration & Safety",
-      content: "Insulin must be administered via the subcutaneous route (except Regular insulin which can be IV). Always rotate injection sites to prevent lipodystrophy. Monitor for signs of hypoglycemia: shakiness, sweating, confusion, and palpitations. Rapid-acting insulin (Lispro) must be given within 15 minutes of a meal.",
-      source: "ADA Standards of Medical Care in Diabetes",
-      tags: ["Endocrinology", "Pharmacology"]
+      keywords: ['eye', 'vision', 'retina', 'cornea', 'anatomy'],
+      title: "Anatomy of the Human Eye Diagram",
+      content: "Structure of the Eye. Labels: 1. Cornea, 2. Iris, 3. Pupil, 4. Lens, 5. Retina, 6. Optic Nerve, 7. Sclera, 8. Vitreous Humor, 9. Choroid.",
+      source: "Ophthalmology Nursing",
+      youtube: "https://www.youtube.com/watch?v=RE1MvRmw66U",
+      tags: ["Anatomy", "Special Senses"]
     },
     {
-      keywords: ['furosemide', 'lasix', 'diuretic', 'potassium', 'heart failure'],
-      title: "Furosemide (Lasix) Nursing Guidelines",
-      content: "Furosemide is a loop diuretic used to treat edema and hypertension. Monitor for hypokalemia (potassium depletion), which can lead to arrhythmias. Assess blood pressure and fluid intake/output. Teach patients to consume potassium-rich foods (e.g., bananas, oranges).",
-      source: "Pharmacology for Nurses",
-      tags: ["Pharmacology", "Cardiac"]
+      keywords: ['ear', 'hearing', 'cochlea', 'tympanic', 'anatomy'],
+      title: "Human Ear Structure Diagram",
+      content: "Parts of the Ear. Labels: 1. Pinna (Outer Ear), 2. Auditory Canal, 3. Tympanic Membrane (Eardrum), 4. Ossicles (Malleus, Incus, Stapes), 5. Cochlea, 6. Semicircular Canals, 7. Eustachian Tube.",
+      source: "ENT Clinical Guide",
+      youtube: "https://www.youtube.com/watch?v=3GZ_re7R68Q",
+      tags: ["Anatomy", "Special Senses"]
     },
     {
-      keywords: ['warfarine', 'coumadin', 'anticoagulant', 'bleeding', 'vitamin k'],
-      title: "Warfarin (Coumadin) Therapy Management",
-      content: "Warfarin is an oral anticoagulant. Monitor PT/INR (therapeutic INR usually 2.0 - 3.0). Assess for signs of bleeding (bruising, epistaxis). The antidote is Vitamin K. Advise patients to maintain consistent intake of green leafy vegetables.",
-      source: "N&MCN Pharmacology Manual",
-      tags: ["Pharmacology", "Hematology"]
+      keywords: ['injection', 'im', 'subcutaneous', 'intradermal', 'sites'],
+      title: "Injection Sites & Angles Diagram",
+      content: "Nursing Procedure: Injection Mapping. Labels: 1. Deltoid (IM), 2. Ventrogluteal (IM), 3. Vastus Lateralis (IM - Infants), 4. Abdomen/Thigh (SubQ), 5. Forearm (Intradermal). Angles: 90° (IM), 45° (SubQ), 15° (ID).",
+      source: "Foundation of Nursing Procedures",
+      youtube: "https://www.youtube.com/watch?v=v_y86RpkY-E",
+      tags: ["Procedures", "Nursing"]
     },
     {
-      keywords: ['apical pulse', 'heart rate', 'assessment', 'landmark'],
-      title: "Apical Pulse Assessment Technique",
-      content: "The apical pulse is the most accurate pulse point. Located at the 5th intercostal space at the left midclavicular line (the apex of the heart). Always listen for 1 full minute if the rhythm is irregular or if the patient is taking cardiac medications like Digoxin.",
-      source: "Fundamentals of Nursing: Clinical Skills",
-      tags: ["Assessment", "Fundamentals"]
+      keywords: ['wound', 'pressure ulcer', 'stages', 'skin', 'injury'],
+      title: "Pressure Ulcer Staging Diagram",
+      content: "Wound Assessment Guide. Labels: Stage 1 (Non-blanchable erythema), Stage 2 (Partial thickness), Stage 3 (Full thickness skin loss), Stage 4 (Full thickness tissue loss, bone/muscle visible), Unstageable (Eschar/Slough).",
+      source: "Wound Care Standards",
+      youtube: "https://www.youtube.com/watch?v=LSTG16S6-h0",
+      tags: ["Assessment", "Wound Care"]
     },
     {
-      keywords: ['postpartum hemorrhage', 'bleeding', 'uterus', 'fundal massage'],
-      title: "Postpartum Hemorrhage (PPH) Management",
-      content: "PPH is defined as blood loss >500ml (vaginal) or >1000ml (C-section). The most common cause is uterine atony. Nursing actions: Immediate fundal massage to express clots and contract the uterus, administer uterotonics (Oxytocin), and monitor vital signs for shock.",
-      source: "WHO Safe Motherhood Guidelines",
-      tags: ["Midwifery", "Obstetrics"]
+      keywords: ['fetal', 'placenta', 'umbilical cord', 'pregnancy', 'midwifery'],
+      title: "Fetal Circulation & Placenta Diagram",
+      content: "Midwifery Focus: Fetal-Maternal Exchange. Labels: 1. Placenta, 2. Umbilical Vein (Oxygenated), 3. Umbilical Arteries (2), 4. Ductus Venosus, 5. Foramen Ovale, 6. Ductus Arteriosus.",
+      source: "Midwifery Clinical Handbook",
+      youtube: "https://www.youtube.com/watch?v=N807T_p70Fk",
+      tags: ["Anatomy", "Midwifery"]
     },
     {
-      keywords: ['triage', 'emergency', 'classification', 'red', 'yellow', 'green'],
-      title: "Disaster Triage (START Method)",
-      content: "Triage categories: RED (Immediate - life-threatening but treatable), YELLOW (Delayed - serious but stable), GREEN (Minor - walking wounded), BLACK (Deceased/Expectant). Focused on prioritizing care to save the maximum number of lives.",
-      source: "Emergency Nurses Association (ENA)",
-      tags: ["Emergency", "Disaster Nursing"]
+      keywords: ['liver', 'hepatic', 'biliary', 'gallbladder', 'anatomy'],
+      title: "Liver & Biliary System Diagram",
+      content: "Digestive Accessory Organs. Labels: 1. Right/Left Hepatic Lobes, 2. Gallbladder, 3. Common Bile Duct, 4. Cystic Duct, 5. Hepatic Portal Vein, 6. Falciform Ligament.",
+      source: "GI Clinical Manual",
+      youtube: "https://www.youtube.com/watch?v=kS8p5kK2Csk",
+      tags: ["Anatomy", "Digestive"]
+    },
+    {
+      keywords: ['heart', 'conduction', 'electrical', 'sa node', 'av node'],
+      title: "Cardiac Conduction System Diagram",
+      content: "Electrical Pathway of the Heart. Labels: 1. SA Node (Pacemaker), 2. Intermodal Pathways, 3. AV Node, 4. Bundle of His, 5. Right/Left Bundle Branches, 6. Purkinje Fibers.",
+      source: "Cardiology for Nurses",
+      youtube: "https://www.youtube.com/watch?v=RYZ4daFwV88",
+      tags: ["Anatomy", "Cardiovascular"]
     }
   ];
 
@@ -166,9 +188,9 @@ const ClinicalSearchAssistant = () => {
           <Globe size={14} className="animate-pulse" />
           Live Clinical Research Assistant
         </div>
-        <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Search Any Medical Term</h2>
+        <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Clinical Diagram & Labelling Assistant</h2>
         <p className="text-slate-500 dark:text-slate-400 font-medium max-w-xl mx-auto italic">
-          "Accurate, evidence-based answers for difficult nursing concepts."
+          "Visual guides and descriptive labelling for high-yield clinical structures."
         </p>
       </header>
 
@@ -181,7 +203,7 @@ const ClinicalSearchAssistant = () => {
             value={query}
             onChange={(e) => setQuery(e.target.value)}
             onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-            placeholder="Ask about medications, procedures, or pathophysiology..."
+            placeholder="Search for diagrams (e.g., heart, kidney, brain)..."
             className="w-full pl-16 pr-6 py-5 bg-transparent outline-none text-lg font-bold text-slate-800 dark:text-white placeholder:text-slate-300"
           />
         </div>
@@ -227,16 +249,29 @@ const ClinicalSearchAssistant = () => {
                 </p>
 
                 <div className="pt-6 border-t border-slate-50 dark:border-slate-700 flex flex-col sm:flex-row justify-between items-center gap-4">
-                  <div className="flex items-center gap-2 text-medical-600 bg-medical-50 dark:bg-medical-900/20 px-4 py-2 rounded-xl">
-                    <BookOpen size={16} />
-                    <span className="text-xs font-black uppercase tracking-widest">Source: {result.source}</span>
+                  <div className="flex flex-wrap gap-2">
+                    <div className="flex items-center gap-2 text-medical-600 bg-medical-50 dark:bg-medical-900/20 px-4 py-2 rounded-xl">
+                      <BookOpen size={16} />
+                      <span className="text-xs font-black uppercase tracking-widest">Source: {result.source}</span>
+                    </div>
+                    {result.youtube && (
+                      <a
+                        href={result.youtube}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="flex items-center gap-2 text-red-600 bg-red-50 dark:bg-red-900/20 px-4 py-2 rounded-xl hover:bg-red-100 transition-colors"
+                      >
+                        <Globe size={16} />
+                        <span className="text-xs font-black uppercase tracking-widest">Watch Tutorial</span>
+                      </a>
+                    )}
                   </div>
                   <button
                     onClick={() => {
                       addFlashcard({
-                        question: `What are the key points of ${result.title}?`,
+                        question: `Describe the components and labelling of ${result.title.replace(' Diagram', '')}.`,
                         answer: result.content,
-                        subject: result.tags?.[0] || 'Research',
+                        subject: result.tags?.[0] || 'Anatomy',
                         topic: result.title,
                         difficulty: 'Moderate'
                       });

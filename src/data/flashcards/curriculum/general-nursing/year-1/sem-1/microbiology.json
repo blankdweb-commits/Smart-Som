@@ -1,0 +1,34 @@
+{
+  "courses": [
+    {
+      "id": "micro-101",
+      "code": "NUS 111",
+      "title": "Microbiology and Parasitology",
+      "year": 1,
+      "semester": 1,
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Introduction to Microbiology",
+          "flashcards": [
+            { "id": "micro-u1-001", "question": "Define microbiology.", "answer": "Microbiology is the study of microscopic organisms, such as bacteria, viruses, archaea, fungi, and protozoa.", "difficulty": "beginner" },
+            { "id": "micro-u1-002", "question": "List four types of microorganisms.", "answer": "Bacteria, Viruses, Fungi, Protozoa.", "difficulty": "beginner" },
+            { "id": "micro-u1-003", "question": "What is the difference between prokaryotic and eukaryotic cells?", "answer": "Prokaryotic cells lack a nucleus and membrane-bound organelles (e.g., bacteria); eukaryotic cells have them (e.g., human cells, fungi).", "difficulty": "intermediate" },
+            { "id": "micro-u1-004", "question": "State the germ theory of disease.", "answer": "The germ theory states that many diseases are caused by the presence and actions of specific microorganisms.", "difficulty": "intermediate" },
+            { "id": "micro-u1-005", "question": "Name the father of microbiology and his contribution.", "answer": "Antonie van Leeuwenhoek (first to observe microbes) or Louis Pasteur (pasteurization, vaccines, disproving spontaneous generation).", "difficulty": "beginner" },
+            { "id": "micro-u1-006", "question": "What is the role of microorganisms in the environment?", "answer": "Decomposition, nutrient cycling (nitrogen fixation), oxygen production (photosynthetic microbes), and as part of the food chain.", "difficulty": "intermediate" },
+            { "id": "micro-u1-007", "question": "Define normal flora.", "answer": "Microorganisms that normally reside on or in the body without causing disease under normal conditions.", "difficulty": "beginner" },
+            { "id": "micro-u1-008", "question": "What is binomial nomenclature?", "answer": "The system of naming organisms using two names: Genus (capitalized) and species (lowercase), both italicized or underlined.", "difficulty": "beginner" },
+            { "id": "micro-u1-009", "question": "Explain the importance of microbiology in nursing.", "answer": "Infection control, understanding disease processes, administering antibiotics, and maintaining sterile environments.", "difficulty": "intermediate" },
+            { "id": "micro-u1-010", "question": "What are pathogens?", "answer": "Microorganisms capable of causing disease.", "difficulty": "beginner" },
+            { "id": "micro-u1-011", "question": "What is spontaneous generation?", "answer": "The obsolete theory that living organisms can originate from non-living matter.", "difficulty": "intermediate" },
+            { "id": "micro-u1-012", "question": "Name the scientist who developed Koch's postulates.", "answer": "Robert Koch.", "difficulty": "beginner" },
+            { "id": "micro-u1-013", "question": "What are Koch's postulates used for?", "answer": "To establish a causal relationship between a microbe and a disease.", "difficulty": "advanced" },
+            { "id": "micro-u1-014", "question": "Define sterilization.", "answer": "The process of destroying all forms of microbial life, including spores.", "difficulty": "intermediate" },
+            { "id": "micro-u1-015", "question": "Define disinfection.", "answer": "The process of eliminating most pathogenic microorganisms on inanimate objects.", "difficulty": "intermediate" }
+          ]
+        }
+      ]
+    }
+  ]
+}
