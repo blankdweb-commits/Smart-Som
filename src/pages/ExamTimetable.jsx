@@ -3,7 +3,7 @@ import { useAppContext } from '../context/AppContext';
 import ExamForm from '../components/ExamForm';
 import Toast from '../components/Toast';
 import { Plus, Calendar as CalendarIcon, MapPin, Clock, Edit2, Trash2, Download, AlertCircle, LayoutGrid, List, Award } from 'lucide-react';
-import { format, differenceInDays, isSameDay, parseISO } from 'date-fns';
+import { format, differenceInDays, isSameDay } from 'date-fns';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Calendar from 'react-calendar';
@@ -23,7 +23,12 @@ const ExamTimetable = () => {
       return diff >= 0 && diff <= 3;
     });
     if (upcomingSoon.length > 0) {
-      setToast({ message: `You have ${upcomingSoon.length} exams coming up within 3 days! Keep studying.`, type: 'info' });
+      // Use setTimeout to avoid synchronous setState in effect warning if necessary,
+      // or just ensure we're not causing a loop.
+      const timer = setTimeout(() => {
+        setToast({ message: `You have ${upcomingSoon.length} exams coming up within 3 days! Keep studying.`, type: 'info' });
+      }, 0);
+      return () => clearTimeout(timer);
     }
   }, [exams]);
 
@@ -158,70 +163,99 @@ const ExamTimetable = () => {
         </div>
       </div>
 
-      <div ref={timetableRef} className="bg-white dark:bg-slate-800 p-6 rounded-xl shadow-sm border border-slate-200 dark:border-slate-700">
+      <div ref={timetableRef} className="bg-white dark:bg-slate-800 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-700 overflow-hidden">
         {view === 'list' ? (
-          <>
-            <div className="hidden md:grid grid-cols-5 gap-4 pb-4 border-b border-slate-200 dark:border-slate-700 text-sm font-bold text-slate-500 dark:text-slate-400">
-              <div className="col-span-2">Course Title</div>
-              <div>Date & Time</div>
-              <div>Venue</div>
-              <div className="text-right">Status</div>
-            </div>
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse">
+              <thead>
+                <tr className="bg-slate-50 dark:bg-slate-900/50">
+                  <th className="px-6 py-5 text-xs font-black uppercase tracking-widest text-slate-400 border-b border-slate-100 dark:border-slate-700">Course & Venue</th>
+                  <th className="px-6 py-5 text-xs font-black uppercase tracking-widest text-slate-400 border-b border-slate-100 dark:border-slate-700">Schedule (Local Time)</th>
+                  <th className="px-6 py-5 text-xs font-black uppercase tracking-widest text-slate-400 border-b border-slate-100 dark:border-slate-700">Countdown</th>
+                  <th className="px-6 py-5 text-xs font-black uppercase tracking-widest text-slate-400 border-b border-slate-100 dark:border-slate-700 text-right">Actions</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50 dark:divide-slate-700">
+                {sortedExams.length > 0 ? sortedExams.map((exam) => {
+                  const examDate = new Date(exam.date);
+                  const timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
 
-            <div className="divide-y divide-slate-100 dark:divide-slate-700">
-              {sortedExams.length > 0 ? sortedExams.map((exam) => (
-                <div key={exam.id} className="grid grid-cols-1 md:grid-cols-5 gap-4 py-6 items-center group">
-                  <div className="md:col-span-2">
-                    <h4 className="font-bold text-lg group-hover:text-medical-600 transition-colors">{exam.title}</h4>
-                    <div className="flex md:hidden items-center mt-2 space-x-4 text-sm text-slate-500">
-                      <span className="flex items-center"><CalendarIcon size={14} className="mr-1"/> {format(new Date(exam.date), 'MMM dd')}</span>
-                      <span className="flex items-center"><Clock size={14} className="mr-1"/> {exam.time}</span>
-                    </div>
-                  </div>
-
-                  <div className="hidden md:block">
-                    <div className="flex items-center text-sm font-medium">
-                      <CalendarIcon size={16} className="mr-2 text-slate-400" />
-                      {format(new Date(exam.date), 'EEEE, MMM dd, yyyy')}
-                    </div>
-                    <div className="flex items-center text-sm text-slate-500 mt-1">
-                      <Clock size={16} className="mr-2 text-slate-400" />
-                      {exam.time}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center text-sm text-slate-600 dark:text-slate-400">
-                    <MapPin size={16} className="mr-2 text-slate-400" />
-                    {exam.venue}
-                  </div>
-
-                  <div className="flex flex-col items-end space-y-2">
-                    <span className={`px-3 py-1 rounded-full text-xs font-bold ${getStatusColor(exam.date)}`}>
-                      {getStatusLabel(exam.date)}
-                    </span>
-                    <span className="text-xs font-medium text-slate-500">
-                      {getCountdown(exam.date)}
-                    </span>
-                    <div className="flex space-x-2 pt-2 md:opacity-0 group-hover:opacity-100 transition-opacity">
-                      <button onClick={() => handleEdit(exam)} className="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg hover:text-medical-600 transition-colors"><Edit2 size={16}/></button>
-                      <button onClick={() => handleDelete(exam.id)} className="p-2 bg-slate-100 dark:bg-slate-700 rounded-lg hover:text-red-500 transition-colors"><Trash2 size={16}/></button>
-                    </div>
-                  </div>
-                </div>
-              )) : (
-                <div className="py-20 text-center">
-                  <CalendarIcon className="mx-auto text-slate-300 mb-4" size={48} />
-                  <p className="text-slate-500 text-lg">Your exam timetable is empty.</p>
-                  <button
-                    onClick={() => setIsFormOpen(true)}
-                    className="mt-4 text-medical-600 font-semibold hover:underline"
-                  >
-                    Schedule your first exam
-                  </button>
-                </div>
-              )}
-            </div>
-          </>
+                  return (
+                    <tr key={exam.id} className="group hover:bg-medical-50/30 dark:hover:bg-medical-900/10 transition-colors">
+                      <td className="px-6 py-6">
+                        <div className="flex flex-col gap-1">
+                          <span className="text-lg font-black text-slate-800 dark:text-white group-hover:text-medical-600 transition-colors">{exam.title}</span>
+                          <div className="flex items-center text-xs font-bold text-slate-400 uppercase tracking-tight">
+                            <MapPin size={12} className="mr-1" />
+                            {exam.venue}
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-6">
+                        <div className="space-y-1">
+                          <div className="flex items-center gap-2 text-sm font-bold text-slate-600 dark:text-slate-300">
+                            <CalendarIcon size={14} className="text-medical-500" />
+                            {format(examDate, 'EEE, MMM dd, yyyy')}
+                          </div>
+                          <div className="flex items-center gap-2 text-xs font-medium text-slate-400">
+                            <Clock size={14} />
+                            {exam.time} <span className="opacity-60">({timezone.split('/')[1]?.replace('_', ' ') || timezone})</span>
+                          </div>
+                        </div>
+                      </td>
+                      <td className="px-6 py-6">
+                        <div className="flex flex-col gap-1.5">
+                          <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-widest w-fit shadow-sm ${getStatusColor(exam.date)}`}>
+                            <div className="w-1.5 h-1.5 rounded-full bg-current animate-pulse" />
+                            {getStatusLabel(exam.date)}
+                          </div>
+                          <span className="text-xs font-bold text-slate-500 ml-1">
+                            {getCountdown(exam.date)}
+                          </span>
+                        </div>
+                      </td>
+                      <td className="px-6 py-6 text-right">
+                        <div className="flex items-center justify-end gap-2 opacity-0 group-hover:opacity-100 transition-all transform translate-x-2 group-hover:translate-x-0">
+                          <button
+                            onClick={() => handleEdit(exam)}
+                            className="p-2.5 bg-white dark:bg-slate-700 text-slate-400 hover:text-medical-600 hover:shadow-soft rounded-xl transition-all border border-slate-100 dark:border-slate-600"
+                          >
+                            <Edit2 size={16} />
+                          </button>
+                          <button
+                            onClick={() => handleDelete(exam.id)}
+                            className="p-2.5 bg-white dark:bg-slate-700 text-slate-400 hover:text-red-500 hover:shadow-soft rounded-xl transition-all border border-slate-100 dark:border-slate-600"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
+                      </td>
+                    </tr>
+                  );
+                }) : (
+                  <tr>
+                    <td colSpan="4" className="py-24 text-center">
+                      <div className="flex flex-col items-center gap-4">
+                        <div className="w-20 h-20 bg-slate-50 dark:bg-slate-900 rounded-full flex items-center justify-center text-slate-200">
+                          <CalendarIcon size={40} />
+                        </div>
+                        <div className="space-y-1">
+                          <p className="text-lg font-black text-slate-300 uppercase tracking-widest">No Exams Scheduled</p>
+                          <p className="text-slate-400 text-sm font-medium italic">"Preparation is the key to clinical excellence."</p>
+                        </div>
+                        <button
+                          onClick={() => setIsFormOpen(true)}
+                          className="mt-4 px-6 py-3 bg-medical-600 hover:bg-medical-700 text-white rounded-2xl font-black uppercase tracking-widest text-xs transition-all active:scale-95 shadow-lg shadow-medical-600/20"
+                        >
+                          Schedule First Exam
+                        </button>
+                      </div>
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         ) : (
           <div className="flex flex-col md:flex-row gap-8">
             <div className="flex-1">

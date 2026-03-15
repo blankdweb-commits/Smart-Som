@@ -1,6 +1,5 @@
 import React, { useState, useEffect } from 'react';
 import { X, Sparkles, Loader2 } from 'lucide-react';
-import { useAppContext } from '../context/AppContext';
 import { generateFlashcardWithAI } from '../utils/ai';
 
 const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
@@ -21,13 +20,14 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
 
   useEffect(() => {
     if (initialData) {
-      setFormData({
-        ...formData,
+      setFormData(prev => ({
+        ...prev,
         ...initialData,
         hint: initialData.hint || ''
-      });
+      }));
     } else {
-      setFormData({
+      setFormData(prev => ({
+        ...prev,
         subject: '',
         topic: '',
         question: '',
@@ -38,7 +38,7 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
         category: 'Academic',
         level: 'Year 1',
         semester: 'Semester 1'
-      });
+      }));
     }
   }, [initialData, isOpen]);
 

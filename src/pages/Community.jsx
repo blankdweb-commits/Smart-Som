@@ -1,6 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MessageSquare, Send, ThumbsUp, User, Clock, Share2, Award, Info, Image as ImageIcon, X } from 'lucide-react';
-import { useAppContext } from '../context/AppContext';
 import { supabase, isSupabaseConfigured } from '../utils/supabase';
 
 const Community = () => {
@@ -12,15 +11,10 @@ const Community = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [replyTo, setReplyTo] = useState(null);
   const fileInputRef = useRef(null);
-  const replyInputRef = useRef(null);
 
-  useEffect(() => {
-    fetchPosts();
-  }, []);
-
-  const fetchPosts = async () => {
+  const fetchPosts = React.useCallback(async () => {
     if (isSupabaseConfigured()) {
-      const { data, error } = await supabase
+      const { data } = await supabase
         .from('posts')
         .select('*, replies (*)')
         .order('created_at', { ascending: false });
@@ -48,7 +42,12 @@ const Community = () => {
         localStorage.setItem('nursing_community_posts', JSON.stringify(initialPosts));
       }
     }
-  };
+  }, []);
+
+  useEffect(() => {
+    const timer = setTimeout(() => fetchPosts(), 0);
+    return () => clearTimeout(timer);
+  }, [fetchPosts]);
 
   const handlePost = async (e) => {
     e.preventDefault();

@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { Star, Edit2, Trash2, HelpCircle, Info, Share2, Volume2 } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 
 const FlashcardCard = ({ card, onEdit, onDelete, onToggleImportant, onShare, isStudyMode = false }) => {
   const [isFlipped, setIsFlipped] = useState(false);
@@ -21,11 +20,9 @@ const FlashcardCard = ({ card, onEdit, onDelete, onToggleImportant, onShare, isS
   };
 
   return (
-    <motion.div
-      className={`relative h-72 sm:h-64 w-full cursor-pointer group flashcard-container`}
+    <div
+      className={`relative h-72 sm:h-64 w-full cursor-pointer group flashcard-container active:scale-[0.98] transition-transform`}
       onClick={handleFlip}
-      whileHover={{ y: -4 }}
-      whileTap={{ scale: 0.98 }}
     >
       <div className={`flashcard-inner w-full h-full ${isFlipped ? 'flipped' : ''} transition-all duration-500 ease-out`}>
         {/* Front */}
@@ -87,18 +84,13 @@ const FlashcardCard = ({ card, onEdit, onDelete, onToggleImportant, onShare, isS
                 >
                   <HelpCircle size={14} className="mr-1" /> {showHint ? 'Hide Hint' : 'Show Hint'}
                 </button>
-                <AnimatePresence>
-                  {showHint && (
-                    <motion.div
-                      initial={{ opacity: 0, height: 0 }}
-                      animate={{ opacity: 1, height: 'auto' }}
-                      exit={{ opacity: 0, height: 0 }}
-                      className="mt-2 text-sm text-slate-500 italic text-center bg-slate-50 dark:bg-slate-900/50 p-2 rounded-lg border border-slate-100 dark:border-slate-800"
-                    >
-                      {card.hint}
-                    </motion.div>
-                  )}
-                </AnimatePresence>
+                {showHint && (
+                  <div
+                    className="mt-2 text-sm text-slate-500 italic text-center bg-slate-50 dark:bg-slate-900/50 p-2 rounded-lg border border-slate-100 dark:border-slate-800 animate-in fade-in slide-in-from-top-1"
+                  >
+                    {card.hint}
+                  </div>
+                )}
               </div>
             )}
           </div>
@@ -134,7 +126,7 @@ const FlashcardCard = ({ card, onEdit, onDelete, onToggleImportant, onShare, isS
           <p className="mt-6 text-[10px] opacity-60 font-bold uppercase tracking-widest">Click to flip back</p>
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 };
 

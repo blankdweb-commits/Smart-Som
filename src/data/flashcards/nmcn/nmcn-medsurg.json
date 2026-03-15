@@ -1,1 +1,52 @@
-[]
+[
+  {
+    "id": "nmcn-ms-1",
+    "subject": "NMCN-MedSurg",
+    "topic": "Diabetes Mellitus",
+    "question": "What is the classic triad of symptoms for diabetes mellitus?",
+    "answer": "Polyuria (excessive urination), Polydipsia (excessive thirst), and Polyphagia (excessive hunger).",
+    "difficulty": "Easy",
+    "important": true,
+    "category": "NMCN"
+  },
+  {
+    "id": "nmcn-ms-2",
+    "subject": "NMCN-MedSurg",
+    "topic": "Hypertension",
+    "question": "Define 'Hypertensive Crisis' according to NMCN clinical guidelines.",
+    "answer": "A severe increase in blood pressure (usually >180/120 mmHg) that can lead to a stroke or organ damage.",
+    "difficulty": "Moderate",
+    "important": true,
+    "category": "NMCN"
+  },
+  {
+    "id": "nmcn-ms-3",
+    "subject": "NMCN-MedSurg",
+    "topic": "Asthma",
+    "question": "What is the characteristic sound heard on auscultation during an acute asthma attack?",
+    "answer": "Wheezing (high-pitched whistling sound), particularly on expiration.",
+    "difficulty": "Easy",
+    "important": false,
+    "category": "NMCN"
+  },
+  {
+    "id": "nmcn-ms-4",
+    "subject": "NMCN-MedSurg",
+    "topic": "Peptic Ulcer",
+    "question": "What is the most common cause of Peptic Ulcer Disease (PUD)?",
+    "answer": "Infection with the bacterium Helicobacter pylori (H. pylori).",
+    "difficulty": "Moderate",
+    "important": true,
+    "category": "NMCN"
+  },
+  {
+    "id": "nmcn-ms-5",
+    "subject": "NMCN-MedSurg",
+    "topic": "Renal Failure",
+    "question": "What is the most reliable indicator of renal function?",
+    "answer": "Serum Creatinine and Glomerular Filtration Rate (GFR).",
+    "difficulty": "Moderate",
+    "important": true,
+    "category": "NMCN"
+  }
+]

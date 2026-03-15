@@ -1,15 +1,14 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Sun, Moon, Menu, X, Award, Users, Search } from 'lucide-react';
-import { useAppContext } from '../context/AppContext';
+import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Award, Users, Search, Brain } from 'lucide-react';
 
 const Sidebar = () => {
-  const { darkMode } = useAppContext();
 
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
     { name: 'Academic Cards', icon: BookOpen, path: '/flashcards' },
     { name: 'Professional Prep', icon: Award, path: '/prep' },
+    { name: 'Quiz Mode', icon: Brain, path: '/quiz' },
     { name: 'Exam Timetable', icon: Calendar, path: '/exams' },
     { name: 'Clinical Search', icon: Search, path: '/search' },
     { name: 'Pronunciation', icon: Volume2, path: '/pronunciation' },

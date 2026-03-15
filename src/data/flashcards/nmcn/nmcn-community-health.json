@@ -1,1 +1,57 @@
-[]
+[
+  {
+    "id": "nmcn-ch-1",
+    "subject": "Community Health",
+    "topic": "Primary Health Care",
+    "question": "Name the 8 essential components of Primary Health Care (PHC) as defined by the Alma Ata Declaration.",
+    "answer": "1. Education on health problems. 2. Promotion of food supply and nutrition. 3. Adequate supply of safe water and basic sanitation. 4. Maternal and child health care (including family planning). 5. Immunization. 6. Prevention and control of local endemic diseases. 7. Appropriate treatment of common diseases and injuries. 8. Provision of essential drugs.",
+    "difficulty": "Hard",
+    "isHighYield": true,
+    "level": "Professional",
+    "category": "Nursing"
+  },
+  {
+    "id": "nmcn-ch-2",
+    "subject": "Community Health",
+    "topic": "Immunization",
+    "question": "According to the National Programme on Immunization (NPI) in Nigeria, at what age is the Measles vaccine administered?",
+    "answer": "9 months.",
+    "difficulty": "Easy",
+    "isHighYield": true,
+    "level": "Professional",
+    "category": "Nursing"
+  },
+  {
+    "id": "nmcn-ch-3",
+    "subject": "Community Health",
+    "topic": "Cold Chain",
+    "question": "What is the recommended temperature range for storing vaccines at the health facility level in the cold chain?",
+    "answer": "+2°C to +8°C.",
+    "difficulty": "Moderate",
+    "isHighYield": true,
+    "level": "Professional",
+    "category": "Nursing"
+  },
+  {
+    "id": "nmcn-ch-4",
+    "subject": "Community Health",
+    "topic": "Home Visit",
+    "question": "What are the three main phases of a nursing home visit?",
+    "answer": "1. Pre-visit (planning). 2. Visit (actual interaction/care). 3. Post-visit (documentation and follow-up).",
+    "difficulty": "Moderate",
+    "isHighYield": false,
+    "level": "Professional",
+    "category": "Nursing"
+  },
+  {
+    "id": "nmcn-ch-5",
+    "subject": "Community Health",
+    "topic": "Epidemiology",
+    "question": "Define the 'Epidemiological Triad'.",
+    "answer": "The relationship between three factors: Agent, Host, and Environment.",
+    "difficulty": "Easy",
+    "isHighYield": true,
+    "level": "Professional",
+    "category": "Nursing"
+  }
+]

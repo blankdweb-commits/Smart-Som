@@ -1,1 +1,52 @@
-[]
+[
+  {
+    "id": "nmcn-ph-1",
+    "subject": "NMCN-Pharmacology",
+    "topic": "Antibiotics",
+    "question": "What is the primary mechanism of action for Penicillins?",
+    "answer": "Inhibition of bacterial cell wall synthesis.",
+    "difficulty": "Moderate",
+    "important": true,
+    "category": "NMCN"
+  },
+  {
+    "id": "nmcn-ph-2",
+    "subject": "NMCN-Pharmacology",
+    "topic": "Anticoagulants",
+    "question": "What is the antidote for Warfarin toxicity?",
+    "answer": "Vitamin K.",
+    "difficulty": "Easy",
+    "important": true,
+    "category": "NMCN"
+  },
+  {
+    "id": "nmcn-ph-3",
+    "subject": "NMCN-Pharmacology",
+    "topic": "Analgesics",
+    "question": "Which organ is primarily at risk in Paracetamol (Acetaminophen) overdose?",
+    "answer": "The Liver (Hepatotoxicity).",
+    "difficulty": "Easy",
+    "important": true,
+    "category": "NMCN"
+  },
+  {
+    "id": "nmcn-ph-4",
+    "subject": "NMCN-Pharmacology",
+    "topic": "Insulin",
+    "question": "Which type of insulin can be administered intravenously (IV)?",
+    "answer": "Regular (Short-acting) Insulin.",
+    "difficulty": "Moderate",
+    "important": true,
+    "category": "NMCN"
+  },
+  {
+    "id": "nmcn-ph-5",
+    "subject": "NMCN-Pharmacology",
+    "topic": "Antihypertensives",
+    "question": "What is a common side effect of ACE inhibitors like Enalapril?",
+    "answer": "A persistent dry cough.",
+    "difficulty": "Moderate",
+    "important": false,
+    "category": "NMCN"
+  }
+]

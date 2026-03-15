@@ -4,7 +4,7 @@ import { allBuiltInFlashcards } from '../data/loadFlashcards';
 
 const AppContext = createContext();
 
-export const AppProvider = ({ children }) => {
+export function AppProvider({ children }) {
   const [flashcards, setFlashcards] = useState(() => {
     const saved = localStorage.getItem('flashcards');
     const builtIn = [...initialFlashcards, ...allBuiltInFlashcards];
@@ -161,6 +161,9 @@ export const AppProvider = ({ children }) => {
       {children}
     </AppContext.Provider>
   );
-};
+}
 
-export const useAppContext = () => useContext(AppContext);
+// eslint-disable-next-line react-refresh/only-export-components
+export function useAppContext() {
+  return useContext(AppContext);
+}

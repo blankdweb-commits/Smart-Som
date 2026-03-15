@@ -11,14 +11,16 @@ const ExamForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
 
   useEffect(() => {
     if (initialData) {
-      setFormData(initialData);
+      const timer = setTimeout(() => setFormData(initialData), 0);
+      return () => clearTimeout(timer);
     } else {
-      setFormData({
+      const timer = setTimeout(() => setFormData({
         title: '',
         date: '',
         time: '',
         venue: ''
-      });
+      }), 0);
+      return () => clearTimeout(timer);
     }
   }, [initialData, isOpen]);
 

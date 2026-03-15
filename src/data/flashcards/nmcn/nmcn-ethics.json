@@ -1,1 +1,57 @@
-[]
+[
+  {
+    "id": "nmcn-ethics-1",
+    "subject": "Professional Ethics",
+    "topic": "Nursing Code of Ethics",
+    "question": "What is the primary responsibility of a nurse according to the ICN Code of Ethics?",
+    "answer": "To promote health, prevent illness, restore health, and alleviate suffering.",
+    "difficulty": "Moderate",
+    "isHighYield": true,
+    "level": "Professional",
+    "category": "Ethics"
+  },
+  {
+    "id": "nmcn-ethics-2",
+    "subject": "Nursing Jurisprudence",
+    "topic": "Negligence",
+    "question": "Define 'Professional Negligence' (Malpractice) in nursing.",
+    "answer": "A failure to exercise the degree of care that a reasonable and prudent nurse would exercise under similar circumstances, resulting in injury to the patient.",
+    "difficulty": "Hard",
+    "isHighYield": true,
+    "level": "Professional",
+    "category": "Ethics"
+  },
+  {
+    "id": "nmcn-ethics-3",
+    "subject": "Nursing Ethics",
+    "topic": "Autonomy",
+    "question": "What ethical principle involves the patient's right to make their own decisions about their healthcare?",
+    "answer": "Autonomy.",
+    "difficulty": "Easy",
+    "isHighYield": true,
+    "level": "Professional",
+    "category": "Ethics"
+  },
+  {
+    "id": "nmcn-ethics-4",
+    "subject": "Nursing Ethics",
+    "topic": "Beneficence vs Non-maleficence",
+    "question": "Contrast 'Beneficence' and 'Non-maleficence'.",
+    "answer": "Beneficence is the duty to do good and act in the best interest of the patient. Non-maleficence is the duty to 'do no harm'.",
+    "difficulty": "Moderate",
+    "isHighYield": true,
+    "level": "Professional",
+    "category": "Ethics"
+  },
+  {
+    "id": "nmcn-ethics-5",
+    "subject": "Nursing Jurisprudence",
+    "topic": "Informed Consent",
+    "question": "Who is primarily responsible for obtaining informed consent for a surgical procedure?",
+    "answer": "The surgeon/physician performing the procedure. The nurse's role is typically to witness the signature and ensure the patient is competent.",
+    "difficulty": "Moderate",
+    "isHighYield": true,
+    "level": "Professional",
+    "category": "Ethics"
+  }
+]

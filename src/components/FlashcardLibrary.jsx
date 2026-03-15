@@ -5,21 +5,19 @@ import FlashcardForm from '../components/FlashcardForm';
 import ShareModal from '../components/ShareModal';
 import Toast from '../components/Toast';
 import { Plus, Search, Filter, Play, Shuffle, List, ChevronLeft, ChevronRight, Award, Download, Upload, Share2, Folder, Book, ArrowLeft, AlertCircle } from 'lucide-react';
-import { motion } from 'framer-motion';
 
 const SRSButton = ({ label, sublabel, color, onClick }) => (
-  <motion.button
-    whileTap={{ scale: 0.9 }}
+  <button
     onClick={(e) => { e.stopPropagation(); onClick(); }}
-    className={`${color} text-white p-4 rounded-2xl shadow-clinical hover:opacity-90 transition-all flex flex-col items-center justify-center min-h-[80px]`}
+    className={`${color} text-white p-4 rounded-2xl shadow-clinical hover:opacity-90 transition-all flex flex-col items-center justify-center min-h-[80px] active:scale-95`}
   >
     <span className="text-lg font-bold">{label}</span>
     <span className="text-[11px] opacity-80 font-medium tracking-wide">{sublabel}</span>
-  </motion.button>
+  </button>
 );
 
 const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
-  const { flashcards, exams, addFlashcard, updateFlashcard, deleteFlashcard, importFlashcards, incrementCardsStudied, updateCardProgress } = useAppContext();
+  const { flashcards, exams, addFlashcard, updateFlashcard, deleteFlashcard, incrementCardsStudied, updateCardProgress } = useAppContext();
 
   // Navigation State
   const [currentProgram, setCurrentProgram] = useState(null); // 'General Nursing' or 'Midwifery'
@@ -108,8 +106,11 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   }, [categoryCards, searchTerm, currentLevel, currentSemester, currentSubject, filterDifficulty, isExamPriority, upcomingExamSubjects]);
 
   useEffect(() => {
-    setVisibleCount(12);
-  }, [searchTerm, currentLevel, currentSemester, currentSubject, filterDifficulty]);
+    const timer = setTimeout(() => {
+      setVisibleCount(12);
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [searchTerm, currentLevel, currentSemester, currentSubject, filterDifficulty, isExamPriority]);
 
   const startStudyMode = (shuffle = false, srsOnly = false) => {
     let cardsToStudy = [...filteredCards];
@@ -152,12 +153,6 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
     setEditingCard(null);
   };
 
-  const resetNav = () => {
-    setCurrentProgram(null);
-    setCurrentLevel(null);
-    setCurrentSemester(null);
-    setCurrentSubject(null);
-  };
 
   // Render Directory View
   if (viewMode === 'list' && !currentSubject && initialCategory === 'Academic') {

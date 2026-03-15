@@ -10,6 +10,7 @@ import ClinicalSearchAssistant from './pages/ClinicalSearchAssistant';
 import NclexPrep from './pages/NclexPrep';
 import NmcnPrep from './pages/NmcnPrep';
 import Prep from './pages/Prep';
+import Quiz from './pages/Quiz';
 import Community from './pages/Community';
 import Settings from './pages/Settings';
 
@@ -25,7 +26,7 @@ const ImportHandler = () => {
       try {
         const decoded = JSON.parse(atob(importData));
         const cards = Array.isArray(decoded) ? decoded : [decoded];
-        const count = importFlashcards(cards);
+        importFlashcards(cards);
 
         // Remove the param from URL to prevent re-importing on refresh
         params.delete('import');
@@ -55,6 +56,7 @@ function App() {
             <Route path="/prep" element={<Prep />} />
             <Route path="/nclex" element={<NclexPrep />} />
             <Route path="/nmcn" element={<NmcnPrep />} />
+            <Route path="/quiz" element={<Quiz />} />
             <Route path="/exams" element={<ExamTimetable />} />
             <Route path="/search" element={<ClinicalSearchAssistant />} />
             <Route path="/pronunciation" element={<PronunciationHelper />} />

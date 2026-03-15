@@ -1,1 +1,57 @@
-[]
+[
+  {
+    "id": "nmcn-ana-1",
+    "subject": "Anatomy",
+    "topic": "Cardiovascular",
+    "question": "Name the valve between the left atrium and the left ventricle.",
+    "answer": "Mitral (Bicuspid) valve.",
+    "difficulty": "Easy",
+    "isHighYield": true,
+    "level": "Professional",
+    "category": "Nursing"
+  },
+  {
+    "id": "nmcn-ana-2",
+    "subject": "Anatomy",
+    "topic": "Nervous System",
+    "question": "Which part of the brain is responsible for balance and coordination?",
+    "answer": "Cerebellum.",
+    "difficulty": "Moderate",
+    "isHighYield": true,
+    "level": "Professional",
+    "category": "Nursing"
+  },
+  {
+    "id": "nmcn-ana-3",
+    "subject": "Anatomy",
+    "topic": "Renal System",
+    "question": "What is the functional unit of the kidney?",
+    "answer": "The Nephron.",
+    "difficulty": "Easy",
+    "isHighYield": true,
+    "level": "Professional",
+    "category": "Nursing"
+  },
+  {
+    "id": "nmcn-ana-4",
+    "subject": "Anatomy",
+    "topic": "Skeletal System",
+    "question": "Name the longest and strongest bone in the human body.",
+    "answer": "Femur.",
+    "difficulty": "Easy",
+    "isHighYield": true,
+    "level": "Professional",
+    "category": "Nursing"
+  },
+  {
+    "id": "nmcn-ana-5",
+    "subject": "Anatomy",
+    "topic": "Respiratory",
+    "question": "Where does gas exchange occur in the lungs?",
+    "answer": "In the Alveoli.",
+    "difficulty": "Easy",
+    "isHighYield": true,
+    "level": "Professional",
+    "category": "Nursing"
+  }
+]

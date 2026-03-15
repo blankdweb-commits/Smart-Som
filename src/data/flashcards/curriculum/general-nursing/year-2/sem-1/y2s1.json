@@ -1,59 +1,589 @@
 {
   "metadata": {
     "program": "National Diploma in Nursing",
-    "level": "Year 2",
-    "semester": "Semester 1",
-    "last_updated": "2026-03-02"
+    "level": "200",
+    "semester": "1",
+    "generated": "2026-03-14"
   },
   "courses": [
     {
-      "id": "ms-201",
-      "course_code": "NUR 222",
-      "title": "Medical-Surgical Nursing II",
+      "id": "phc-101",
+      "code": "NUR 122",
+      "title": "Primary Health Care I",
+      "year": 2,
+      "semester": 1,
       "units": [
         {
-          "unit_number": "Unit I", "title": "Respiratory Problems",
+          "unit_number": "Unit I",
+          "title": "Introduction to Primary Health Care",
           "flashcards": [
-            { "id": "y2s1-ms-u1-1", "question": "What is a Tracheostomy?", "answer": "Surgical opening in the trachea to provide an airway.", "difficulty": "Moderate" },
-            { "id": "y2s1-ms-u1-2", "question": "List 3 signs of Respiratory Distress.", "answer": "Tachypnea, use of accessory muscles, cyanosis.", "difficulty": "Easy", "important": true },
-            { "id": "y2s1-ms-u1-3", "question": "Define 'Thoracentesis'.", "answer": "Procedure to remove fluid or air from the pleural space.", "difficulty": "Moderate" },
-            { "id": "y2s1-ms-u1-4", "question": "What is the priority nursing action for a patient with a PE (Pulmonary Embolism)?", "answer": "Oxygen administration and elevating the head of the bed.", "difficulty": "Hard", "important": true },
-            { "id": "y2s1-ms-u1-5", "question": "Define COPD.", "answer": "Chronic Obstructive Pulmonary Disease, a group of lung diseases that block airflow.", "difficulty": "Easy" },
-            { "id": "y2s1-ms-u1-6", "question": "What is 'Pneumothorax'?", "answer": "Air in the pleural cavity causing lung collapse.", "difficulty": "Moderate" },
-            { "id": "y2s1-ms-u1-7", "question": "What are the classic signs of TB (Tuberculosis)?", "answer": "Night sweats, weight loss, hemoptysis (bloody sputum), persistent cough.", "difficulty": "Moderate", "important": true },
-            { "id": "y2s1-ms-u1-8", "question": "What is 'Cyanosis'?", "answer": "Bluish discoloration of the skin indicating low oxygen saturation.", "difficulty": "Easy" },
-            { "id": "y2s1-ms-u1-9", "question": "Define 'Atelectasis'.", "answer": "Collapse of alveoli preventing gas exchange.", "difficulty": "Moderate" },
-            { "id": "y2s1-ms-u1-10", "question": "What is an Incentive Spirometer used for?", "answer": "To promote deep breathing and prevent post-op pneumonia.", "difficulty": "Easy" },
-            { "id": "y2s1-ms-u1-11", "question": "Define 'Hemoptysis'.", "answer": "Coughing up blood from the respiratory tract.", "difficulty": "Moderate" },
-            { "id": "y2s1-ms-u1-12", "question": "What is 'Pulmonary Edema'?", "answer": "Accumulation of fluid in the lungs, often due to left-sided heart failure.", "difficulty": "Hard", "important": true },
-            { "id": "y2s1-ms-u1-13", "question": "Define 'Orthopnea'.", "answer": "Shortness of breath that occurs when lying flat.", "difficulty": "Moderate" },
-            { "id": "y2s1-ms-u1-14", "question": "What are the early signs of Laryngeal Cancer?", "answer": "Persistent hoarseness and a change in voice quality.", "difficulty": "Moderate" },
-            { "id": "y2s1-ms-u1-15", "question": "Define 'Epistaxis'.", "answer": "A nosebleed.", "difficulty": "Easy" },
-            { "id": "y2s1-ms-u1-16", "question": "What is 'Chest Physiotherapy' (CPT)?", "answer": "Techniques (percussion, vibration) used to loosen and drain secretions from the lungs.", "difficulty": "Moderate" },
-            { "id": "y2s1-ms-u1-17", "question": "What is the primary medication class for Asthma exacerbations?", "answer": "Short-acting beta agonists (SABA) like Albuterol.", "difficulty": "Easy", "important": true },
-            { "id": "y2s1-ms-u1-18", "question": "Define 'Pleural Effusion'.", "answer": "Abnormal collection of fluid between the layers of the pleura.", "difficulty": "Moderate" },
-            { "id": "y2s1-ms-u1-19", "question": "What is 'Hypoxemic Respiratory Failure'?", "answer": "PaO2 less than 60 mmHg despite supplemental oxygen.", "difficulty": "Hard", "important": true },
-            { "id": "y2s1-ms-u1-20", "question": "What is 'Kussmaul Breathing'?", "answer": "Deep, rapid breathing often seen in metabolic acidosis (like DKA).", "difficulty": "Hard" }
+            {
+              "id": "phc-101-u1-001",
+              "question": "What is Primary Health Care (PHC) according to the Alma-Ata Declaration?",
+              "answer": "PHC is essential health care made universally accessible to individuals and families in the community through their full participation, at a cost the community and country can afford."
+            },
+            {
+              "id": "phc-101-u1-002",
+              "question": "List the eight essential components of PHC.",
+              "answer": "1. Health education, 2. Proper nutrition, 3. Safe water and basic sanitation, 4. Maternal and child health including family planning, 5. Immunization, 6. Prevention of endemic diseases, 7. Treatment of common diseases, 8. Provision of essential drugs."
+            }
           ]
         },
         {
-          "unit_number": "Unit III", "title": "Genito-Urinary Problems",
+          "unit_number": "Unit II",
+          "title": "The Community: Structure and Function",
           "flashcards": [
-            { "id": "y2s1-ms-u3-1", "question": "Define 'Glomerulonephritis'.", "answer": "Inflammation of the tiny filters in the kidneys (glomeruli).", "difficulty": "Moderate" },
-            { "id": "y2s1-ms-u3-2", "question": "What are the hallmarks of Nephrotic Syndrome?", "answer": "Severe proteinuria, hypoalbuminemia, and generalized edema (anasarca).", "difficulty": "Hard", "important": true },
-            { "id": "y2s1-ms-u3-3", "question": "What is 'Acute Renal Failure' (ARF)?", "answer": "Sudden loss of kidney function, often reversible with treatment.", "difficulty": "Moderate", "important": true },
-            { "id": "y2s1-ms-u3-4", "question": "Define 'Chronic Renal Failure' (CRF).", "answer": "Progressive, irreversible loss of kidney function over time.", "difficulty": "Hard", "important": true },
-            { "id": "y2s1-ms-u3-5", "question": "What is 'Uremia'?", "answer": "A condition involving abnormally high levels of waste products in the blood.", "difficulty": "Moderate" },
-            { "id": "y2s1-ms-u3-6", "question": "Define 'Oliguria'.", "answer": "Production of abnormally small amounts of urine (usually < 400ml/day).", "difficulty": "Easy" },
-            { "id": "y2s1-ms-u3-7", "question": "Define 'Anuria'.", "answer": "Failure of the kidneys to produce urine (usually < 100ml/day).", "difficulty": "Easy" },
-            { "id": "y2s1-ms-u3-8", "question": "What is 'Hemodialysis'?", "answer": "A process of purifying the blood of a person whose kidneys are not working normally.", "difficulty": "Moderate" },
-            { "id": "y2s1-ms-u3-9", "question": "What is 'Peritoneal Dialysis'?", "answer": "A treatment for kidney failure that uses the lining of the abdomen to filter blood.", "difficulty": "Moderate" },
-            { "id": "y2s1-ms-u3-10", "question": "Define 'Pyelonephritis'.", "answer": "Inflammation of the kidney, typically due to a bacterial infection.", "difficulty": "Moderate" },
-            { "id": "y2s1-ms-u3-11", "question": "What is 'Cystitis'?", "answer": "Inflammation of the urinary bladder.", "difficulty": "Easy" },
-            { "id": "y2s1-ms-u3-12", "question": "What are common signs of Kidney Stones (Renal Calculi)?", "answer": "Severe flank pain, hematuria, and nausea/vomiting.", "difficulty": "Moderate", "important": true },
-            { "id": "y2s1-ms-u3-13", "question": "What is 'Benign Prostatic Hyperplasia' (BPH)?", "answer": "Noncancerous enlargement of the prostate gland.", "difficulty": "Easy" },
-            { "id": "y2s1-ms-u3-14", "question": "Define 'Dysuria'.", "answer": "Painful or difficult urination.", "difficulty": "Easy" },
-            { "id": "y2s1-ms-u3-15", "question": "What is the primary risk factor for bladder cancer?", "answer": "Smoking.", "difficulty": "Easy" }
+            {
+              "id": "phc-101-u2-001",
+              "question": "Who are the key PHC workers in Nigeria?",
+              "answer": "Community Health Extension Workers (CHEW), Community Health Officers (CHO), Midwives, Public Health Nurses, Community physicians, Village Health Workers, Traditional Birth Attendants."
+            },
+            {
+              "id": "phc-101-u2-002",
+              "question": "What is the role of a Traditional Birth Attendant (TBA) in PHC?",
+              "answer": "TBAs assist with home deliveries, provide maternal and child health advice, and refer complications to health facilities."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit III",
+          "title": "Community Diagnosis",
+          "flashcards": [
+            {
+              "id": "phc-101-u3-001",
+              "question": "What is community diagnosis?",
+              "answer": "A process of identifying the health problems, needs, and resources of a community through data collection and analysis."
+            },
+            {
+              "id": "phc-101-u3-002",
+              "question": "List the steps in conducting a community diagnosis.",
+              "answer": "1. Define the community, 2. Engage community members, 3. Collect data, 4. Analyze data, 5. Identify problems and resources, 6. Prioritize problems, 7. Develop action plan."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit IV",
+          "title": "Community Mobilization",
+          "flashcards": [
+            {
+              "id": "phc-101-u4-001",
+              "question": "Define community mobilization.",
+              "answer": "The process of bringing together community members to identify needs, take collective action, and achieve common goals."
+            },
+            {
+              "id": "phc-101-u4-002",
+              "question": "What is the role of the Village Development Committee in PHC?",
+              "answer": "To mobilize community resources, identify local health needs, and participate in planning and implementation of PHC activities."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit V",
+          "title": "Information, Education and Communication (IEC)",
+          "flashcards": [
+            {
+              "id": "phc-101-u5-001",
+              "question": "What is Behavioural Change Communication (BCC)?",
+              "answer": "A process of promoting healthy behaviors through communication strategies that address knowledge, attitudes, and practices."
+            },
+            {
+              "id": "phc-101-u5-002",
+              "question": "List the principles of health education.",
+              "answer": "1. Credibility, 2. Interest, 3. Participation, 4. Motivation, 5. Comprehension, 6. Reinforcement, 7. Learning by doing, 8. Known to unknown."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit VI",
+          "title": "Clinical Skills in Primary Health Care",
+          "flashcards": [
+            {
+              "id": "phc-101-u6-001",
+              "question": "What is a shaker strip used for?",
+              "answer": "To measure mid-upper arm circumference (MUAC) for nutritional assessment."
+            },
+            {
+              "id": "phc-101-u6-002",
+              "question": "What are standing orders in PHC?",
+              "answer": "Written protocols that authorize nurses and community health workers to diagnose and treat common conditions without direct physician supervision."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "pharm-101",
+      "code": "NUS 125",
+      "title": "Pharmacology I",
+      "year": 2,
+      "semester": 1,
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Introduction to Pharmacology",
+          "flashcards": [
+            {
+              "id": "pharm-101-u1-001",
+              "question": "Define pharmacology.",
+              "answer": "The study of drugs and their interactions with living systems."
+            },
+            {
+              "id": "pharm-101-u1-002",
+              "question": "What is the difference between pharmacokinetics and pharmacodynamics?",
+              "answer": "Pharmacokinetics is what the body does to the drug (ADME); pharmacodynamics is what the drug does to the body."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit II",
+          "title": "Sources and Classification of Drugs",
+          "flashcards": [
+            {
+              "id": "pharm-101-u2-001",
+              "question": "List the sources of drugs.",
+              "answer": "Plants, animals, minerals, synthetic, semi-synthetic, microorganisms, and genetic engineering."
+            },
+            {
+              "id": "pharm-101-u2-002",
+              "question": "How are drugs classified according to their functions?",
+              "answer": "By therapeutic use, e.g., analgesics, antibiotics, antihypertensives."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit III",
+          "title": "Preparation of Drugs",
+          "flashcards": [
+            {
+              "id": "pharm-101-u3-001",
+              "question": "What is the formula for calculating drug dosages?",
+              "answer": "Desired dose ÷ Stock strength × Quantity = Amount to administer."
+            },
+            {
+              "id": "pharm-101-u3-002",
+              "question": "How do you calculate the flow rate for an IV infusion in ml/hr?",
+              "answer": "Total volume (ml) ÷ Time (hours) = ml/hr."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit IV",
+          "title": "Routes of Drug Administration",
+          "flashcards": [
+            {
+              "id": "pharm-101-u4-001",
+              "question": "What are the five rights of drug administration?",
+              "answer": "Right patient, right drug, right dose, right route, right time."
+            },
+            {
+              "id": "pharm-101-u4-002",
+              "question": "What is the correct angle for an intramuscular injection?",
+              "answer": "90 degrees."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit V",
+          "title": "Safety in Drug Administration",
+          "flashcards": [
+            {
+              "id": "pharm-101-u5-001",
+              "question": "What safety measures should be taken when storing drugs?",
+              "answer": "Store in a cool, dry place away from light; keep out of reach of children; separate look-alike drugs; check expiry dates."
+            },
+            {
+              "id": "pharm-101-u5-002",
+              "question": "What is the nurse's responsibility when a patient refuses medication?",
+              "answer": "Respect the refusal, explore reasons, document, and report to the physician."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit VI",
+          "title": "Mechanism of Drug Action",
+          "flashcards": [
+            {
+              "id": "pharm-101-u6-001",
+              "question": "Define pharmacokinetics.",
+              "answer": "The study of drug movement in the body: absorption, distribution, metabolism, and excretion."
+            },
+            {
+              "id": "pharm-101-u6-002",
+              "question": "What is a drug receptor?",
+              "answer": "A specific macromolecule that a drug binds to produce a response."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "anat-102",
+      "code": "NUS 121",
+      "title": "Anatomy and Physiology II",
+      "year": 2,
+      "semester": 1,
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "The Musculoskeletal System",
+          "flashcards": [
+            {
+              "id": "anat-102-u1-001",
+              "question": "What are the functions of the skeletal system?",
+              "answer": "Support, protection, movement, mineral storage, blood cell production."
+            },
+            {
+              "id": "anat-102-u1-002",
+              "question": "Explain the sliding filament theory of muscle contraction.",
+              "answer": "Calcium release allows actin and myosin to interact, causing sarcomere shortening; requires ATP."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit II",
+          "title": "The Digestive System",
+          "flashcards": [
+            {
+              "id": "anat-102-u2-001",
+              "question": "List the accessory organs of the digestive system.",
+              "answer": "Salivary glands, liver, gallbladder, pancreas."
+            },
+            {
+              "id": "anat-102-u2-002",
+              "question": "What is the function of bile?",
+              "answer": "Emulsifies fats for digestion."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit III",
+          "title": "The Urinary System",
+          "flashcards": [
+            {
+              "id": "anat-102-u3-001",
+              "question": "What is the functional unit of the kidney?",
+              "answer": "The nephron."
+            },
+            {
+              "id": "anat-102-u3-002",
+              "question": "What is the function of antidiuretic hormone (ADH)?",
+              "answer": "Increases water reabsorption in the kidneys to conserve water."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit IV",
+          "title": "The Female Reproductive System",
+          "flashcards": [
+            {
+              "id": "anat-102-u4-001",
+              "question": "Name the phases of the menstrual cycle.",
+              "answer": "Menstrual, proliferative (follicular), ovulation, secretory (luteal)."
+            },
+            {
+              "id": "anat-102-u4-002",
+              "question": "What hormone is primarily responsible for ovulation?",
+              "answer": "Luteinizing hormone (LH)."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit V",
+          "title": "The Male Reproductive System",
+          "flashcards": [
+            {
+              "id": "anat-102-u5-001",
+              "question": "Define spermatogenesis.",
+              "answer": "The process of sperm production in the seminiferous tubules."
+            },
+            {
+              "id": "anat-102-u5-002",
+              "question": "What hormone stimulates testosterone production?",
+              "answer": "Luteinizing hormone (LH)."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit VI",
+          "title": "Foetal Development",
+          "flashcards": [
+            {
+              "id": "anat-102-u6-001",
+              "question": "What are the functions of the placenta?",
+              "answer": "Respiration, nutrition, excretion, endocrine, barrier."
+            },
+            {
+              "id": "anat-102-u6-002",
+              "question": "What is the foetal circulation shunt that bypasses the lungs?",
+              "answer": "Ductus arteriosus and foramen ovale."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit VII",
+          "title": "Physiological Changes During Pregnancy",
+          "flashcards": [
+            {
+              "id": "anat-102-u7-001",
+              "question": "What cardiovascular changes occur in pregnancy?",
+              "answer": "Increased blood volume, cardiac output, heart rate; decreased BP in second trimester."
+            },
+            {
+              "id": "anat-102-u7-002",
+              "question": "Why does pyelonephritis occur more frequently in pregnancy?",
+              "answer": "Ureteral dilation and stasis due to progesterone and compression from the uterus."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fon-102",
+      "code": "NUR 121",
+      "title": "Foundation of Nursing II",
+      "year": 2,
+      "semester": 1,
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Administration of Drugs",
+          "flashcards": [
+            {
+              "id": "fon-102-u1-001",
+              "question": "What are the principles of drug administration?",
+              "answer": "Check order, verify patient, explain procedure, calculate dose correctly, use aseptic technique, document."
+            },
+            {
+              "id": "fon-102-u1-002",
+              "question": "What is the nurse's responsibility in administering controlled drugs?",
+              "answer": "Verify order, witness wasting, document accurately, secure storage, count every shift."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit II",
+          "title": "Aseptic Techniques",
+          "flashcards": [
+            {
+              "id": "fon-102-u2-001",
+              "question": "What is the difference between sterilization and disinfection?",
+              "answer": "Sterilization kills all microorganisms including spores; disinfection reduces pathogens but not spores."
+            },
+            {
+              "id": "fon-102-u2-002",
+              "question": "What are the principles of surgical asepsis?",
+              "answer": "Only sterile items touch sterile areas; keep sterile field dry; avoid talking over sterile field; monitor expiration dates."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit III",
+          "title": "Injection Safety",
+          "flashcards": [
+            {
+              "id": "fon-102-u3-001",
+              "question": "List risks associated with unsafe injection practices.",
+              "answer": "HIV, Hepatitis B/C transmission, abscess, nerve damage, needlestick injuries."
+            },
+            {
+              "id": "fon-102-u3-002",
+              "question": "What are WHO recommendations for injection safety?",
+              "answer": "Use sterile equipment, one needle one syringe, safe sharps disposal, no recapping."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit IV",
+          "title": "Unsafe Injection Practices",
+          "flashcards": [
+            {
+              "id": "fon-102-u4-001",
+              "question": "What is a needlestick injury?",
+              "answer": "Accidental puncture of skin by a contaminated needle, posing infection risk."
+            },
+            {
+              "id": "fon-102-u4-002",
+              "question": "Why do patients sometimes insist on unsafe injections?",
+              "answer": "Belief that injections are more effective, lack of education, or pressure from peers."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit V",
+          "title": "Healthcare Waste Management",
+          "flashcards": [
+            {
+              "id": "fon-102-u5-001",
+              "question": "How is healthcare waste classified?",
+              "answer": "Infectious, pathological, sharps, pharmaceutical, chemical, radioactive, general."
+            },
+            {
+              "id": "fon-102-u5-002",
+              "question": "What are the key steps in healthcare waste management?",
+              "answer": "Segregation, collection, storage, transport, treatment, disposal."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ms-101",
+      "code": "NUR 213",
+      "title": "Medical-Surgical Nursing I",
+      "year": 2,
+      "semester": 1,
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Concepts and Terms",
+          "flashcards": [
+            {
+              "id": "ms-101-u1-001",
+              "question": "Define holistic care.",
+              "answer": "Treating the whole person – physical, emotional, social, and spiritual needs."
+            },
+            {
+              "id": "ms-101-u1-002",
+              "question": "What is primary nursing?",
+              "answer": "One nurse is responsible for total care of assigned patients 24/7."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit II",
+          "title": "Diagnostic Measures",
+          "flashcards": [
+            {
+              "id": "ms-101-u2-001",
+              "question": "What are the steps of physical examination?",
+              "answer": "Inspection, palpation, percussion, auscultation."
+            },
+            {
+              "id": "ms-101-u2-002",
+              "question": "What is the purpose of a CT scan?",
+              "answer": "To obtain detailed cross-sectional images of the body for diagnosis."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit III",
+          "title": "Common Situations that Threaten Adaptation",
+          "flashcards": [
+            {
+              "id": "ms-101-u3-001",
+              "question": "Define shock and list its types.",
+              "answer": "Shock is inadequate tissue perfusion. Types: hypovolemic, cardiogenic, distributive (septic, anaphylactic, neurogenic), obstructive."
+            },
+            {
+              "id": "ms-101-u3-002",
+              "question": "What are the stages of fever?",
+              "answer": "Prodromal, chill, flush, defervescence."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit IV",
+          "title": "Management of Patients with Infectious Diseases",
+          "flashcards": [
+            {
+              "id": "ms-101-u4-001",
+              "question": "What are body defense mechanisms against infection?",
+              "answer": "Skin, mucous membranes, inflammatory response, immune system (antibodies, white blood cells)."
+            },
+            {
+              "id": "ms-101-u4-002",
+              "question": "What is the chain of infection?",
+              "answer": "Infectious agent, reservoir, portal of exit, mode of transmission, portal of entry, susceptible host."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit V",
+          "title": "Principles of Operating Room Nursing",
+          "flashcards": [
+            {
+              "id": "ms-101-u5-001",
+              "question": "What are the roles of the circulating nurse?",
+              "answer": "Manage environment, document, supply additional items, monitor patient."
+            },
+            {
+              "id": "ms-101-u5-002",
+              "question": "What is the role of the scrub nurse?",
+              "answer": "Set up sterile field, pass instruments, maintain sterility, count sponges and needles."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit VI",
+          "title": "Principles and Practice of Rehabilitation",
+          "flashcards": [
+            {
+              "id": "ms-101-u6-001",
+              "question": "Define rehabilitation.",
+              "answer": "Process of restoring function and independence after illness or injury."
+            },
+            {
+              "id": "ms-101-u6-002",
+              "question": "What is the role of the family in rehabilitation?",
+              "answer": "Provide support, assist with exercises, and encourage independence."
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "ethics-101",
+      "code": "NUR 1xx",
+      "title": "Nursing Ethics and Jurisprudence",
+      "year": 2,
+      "semester": 1,
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Ethical Concepts in Nursing",
+          "flashcards": [
+            {
+              "id": "ethics-101-u1-001",
+              "question": "What is the ICN Code of Ethics?",
+              "answer": "A guide for ethical nursing practice based on four elements: nurses and people, nurses and practice, nurses and profession, nurses and co-workers."
+            },
+            {
+              "id": "ethics-101-u1-002",
+              "question": "What is informed consent?",
+              "answer": "Patient's voluntary agreement to treatment after being informed of risks, benefits, and alternatives."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit II",
+          "title": "Regulation of Nursing",
+          "flashcards": [
+            {
+              "id": "ethics-101-u2-001",
+              "question": "What is the role of the Nursing and Midwifery Council of Nigeria (N&MCN)?",
+              "answer": "Regulates nursing education, practice, licensing, and discipline in Nigeria."
+            },
+            {
+              "id": "ethics-101-u2-002",
+              "question": "What is Continuing Professional Development (CPD)?",
+              "answer": "Ongoing learning to maintain and improve professional competence."
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit III",
+          "title": "Legal Aspects of Nursing",
+          "flashcards": [
+            {
+              "id": "ethics-101-u3-001",
+              "question": "Define negligence and malpractice.",
+              "answer": "Negligence: failure to act as a reasonable nurse. Malpractice: professional negligence causing harm."
+            },
+            {
+              "id": "ethics-101-u3-002",
+              "question": "What is vicarious liability?",
+              "answer": "Employer's responsibility for employee's actions."
+            }
           ]
         }
       ]
