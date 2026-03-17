@@ -4,7 +4,7 @@ import FlashcardCard from '../components/FlashcardCard';
 import FlashcardForm from '../components/FlashcardForm';
 import ShareModal from '../components/ShareModal';
 import Toast from '../components/Toast';
-import { Plus, Search, Filter, Play, Shuffle, List, ChevronLeft, ChevronRight, Award, Download, Upload, Share2, Folder, Book, ArrowLeft, AlertCircle } from 'lucide-react';
+import { Plus, Search, Filter, Play, Shuffle, List, ChevronLeft, ChevronRight, Award, Download, Upload, Share2, Folder, Book, ArrowLeft, AlertCircle, CheckCircle2 } from 'lucide-react';
 
 const SRSButton = ({ label, sublabel, color, onClick }) => (
   <button
@@ -40,15 +40,20 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
 
   // Derive hierarchy options
   const categoryCards = useMemo(() => {
+    // Professional tracks (NCLEX/NMCN) don't depend on Academic Program selection
+    if (initialCategory !== 'Academic') {
+      return flashcards.filter(c => c.category === initialCategory);
+    }
+
     if (!currentProgram) return [];
 
     const programSlug = currentProgram.toLowerCase().replace(/\s+/g, '-');
 
     // Core filtering logic for built-in vs user cards
     return flashcards.filter(c => {
-      // Professional track specific filtering
-      if (initialCategory === 'NCLEX') return c.category === 'NCLEX';
-      if (initialCategory === 'NMCN') return c.category === 'NMCN';
+      // Special Handling for Professional Tracks
+      if (programSlug === 'nclex') return c.category === 'NCLEX';
+      if (programSlug === 'nmcn') return c.category === 'NMCN';
 
       // Academic curriculum filtering
       if (c.program) {
@@ -178,7 +183,7 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
         </header>
 
         {!currentProgram ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
             <button
               onClick={() => setCurrentProgram('General Nursing')}
               className="p-10 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-soft hover:shadow-clinical border-2 border-transparent hover:border-medical-500 transition-all text-left group relative overflow-hidden"
@@ -206,6 +211,44 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
               <p className="text-slate-500 dark:text-slate-400 mt-3 text-lg relative z-10">Specialized tracks focusing on reproductive health, neonatal care, and obstetric excellence.</p>
               <div className="mt-8 flex items-center text-pink-600 font-bold relative z-10">
                 Browse Levels <ChevronRight size={20} className="ml-1 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </button>
+
+            <button
+              onClick={() => {
+                setCurrentProgram('NCLEX');
+                setCurrentLevel('Professional');
+                setCurrentSemester('Exam Prep');
+              }}
+              className="p-10 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-soft hover:shadow-clinical border-2 border-transparent hover:border-blue-500 transition-all text-left group relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 dark:bg-blue-900/10 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110" />
+              <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-3xl flex items-center justify-center text-blue-600 mb-8 relative z-10">
+                <Award size={40} />
+              </div>
+              <h3 className="text-3xl font-bold text-slate-900 dark:text-white relative z-10">NCLEX-RN</h3>
+              <p className="text-slate-500 dark:text-slate-400 mt-3 text-lg relative z-10">Intensive preparation for the National Council Licensure Examination.</p>
+              <div className="mt-8 flex items-center text-blue-600 font-bold relative z-10">
+                Start Prep <ChevronRight size={20} className="ml-1 group-hover:translate-x-1 transition-transform" />
+              </div>
+            </button>
+
+            <button
+              onClick={() => {
+                setCurrentProgram('NMCN');
+                setCurrentLevel('Professional');
+                setCurrentSemester('Exam Prep');
+              }}
+              className="p-10 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-soft hover:shadow-clinical border-2 border-transparent hover:border-emerald-500 transition-all text-left group relative overflow-hidden"
+            >
+              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 dark:bg-emerald-900/10 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110" />
+              <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-3xl flex items-center justify-center text-emerald-600 mb-8 relative z-10">
+                <CheckCircle2 size={40} />
+              </div>
+              <h3 className="text-3xl font-bold text-slate-900 dark:text-white relative z-10">NMCN Council</h3>
+              <p className="text-slate-500 dark:text-slate-400 mt-3 text-lg relative z-10">Nursing and Midwifery Council of Nigeria professional exam preparation.</p>
+              <div className="mt-8 flex items-center text-emerald-600 font-bold relative z-10">
+                Start Prep <ChevronRight size={20} className="ml-1 group-hover:translate-x-1 transition-transform" />
               </div>
             </button>
           </div>
@@ -236,7 +279,7 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
               <h3 className="text-2xl font-bold flex items-center gap-2">
                 <span className="text-medical-600">{currentProgram}</span>
                 <span className="text-slate-300 dark:text-slate-600">/</span>
-                <span>{currentLevel}</span>
+                <span className="dark:text-white">{currentLevel}</span>
               </h3>
               <button onClick={() => setCurrentLevel(null)} className="text-medical-600 font-bold text-sm hover:bg-medical-50 dark:hover:bg-medical-900/20 px-4 py-2 rounded-xl transition-colors">
                 Change Year

@@ -6,8 +6,7 @@ const Sidebar = () => {
 
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
-    { name: 'Academic Cards', icon: BookOpen, path: '/flashcards' },
-    { name: 'Professional Prep', icon: Award, path: '/prep' },
+    { name: 'Flashcards', icon: BookOpen, path: '/flashcards' },
     { name: 'Quiz Mode', icon: Brain, path: '/quiz' },
     { name: 'Exam Timetable', icon: Calendar, path: '/exams' },
     { name: 'Clinical Search', icon: Search, path: '/search' },

@@ -1,9 +1,7 @@
 import React, { useState, useEffect } from 'react';
-import { X, Sparkles, Loader2 } from 'lucide-react';
-import { generateFlashcardWithAI } from '../utils/ai';
+import { X } from 'lucide-react';
 
 const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
-  const [isGenerating, setIsGenerating] = useState(false);
   const [formData, setFormData] = useState({
     subject: '',
     topic: '',
@@ -19,27 +17,33 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   });
 
   useEffect(() => {
-    if (initialData) {
-      setFormData(prev => ({
-        ...prev,
-        ...initialData,
-        hint: initialData.hint || ''
-      }));
-    } else {
-      setFormData(prev => ({
-        ...prev,
-        subject: '',
-        topic: '',
-        question: '',
-        answer: '',
-        hint: '',
-        difficulty: 'Moderate',
-        important: false,
-        category: 'Academic',
-        level: 'Year 1',
-        semester: 'Semester 1'
-      }));
-    }
+    if (!isOpen) return;
+
+    const timeoutId = setTimeout(() => {
+      if (initialData) {
+        setFormData(prev => ({
+          ...prev,
+          ...initialData,
+          hint: initialData.hint || ''
+        }));
+      } else {
+        setFormData({
+          subject: '',
+          topic: '',
+          question: '',
+          answer: '',
+          hint: '',
+          difficulty: 'Moderate',
+          important: false,
+          category: 'Academic',
+          level: '100L',
+          semester: 'Semester 1',
+          program: 'nd-nursing'
+        });
+      }
+    }, 0);
+
+    return () => clearTimeout(timeoutId);
   }, [initialData, isOpen]);
 
   const handleChange = (e) => {
@@ -48,27 +52,6 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
       ...prev,
       [name]: type === 'checkbox' ? checked : value
     }));
-  };
-
-  const handleAiGenerate = async () => {
-    if (!formData.topic || !formData.subject) {
-      alert('Please enter a Subject and Topic first');
-      return;
-    }
-
-    setIsGenerating(true);
-    try {
-      const result = await generateFlashcardWithAI(formData.topic, formData.subject);
-      setFormData(prev => ({
-        ...prev,
-        question: result.question,
-        answer: result.answer
-      }));
-    } catch (error) {
-      alert(error.message);
-    } finally {
-      setIsGenerating(false);
-    }
   };
 
   const handleSubmit = (e) => {
@@ -181,19 +164,6 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
           <div>
             <div className="flex justify-between items-center mb-1">
               <label className="block text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest ml-1">Topic</label>
-              <button
-                type="button"
-                onClick={handleAiGenerate}
-                disabled={isGenerating || !formData.topic || !formData.subject}
-                className="hidden sm:flex items-center gap-2 px-3 py-1 bg-medical-50 dark:bg-medical-900/30 text-[10px] font-black uppercase tracking-widest text-medical-600 dark:text-medical-400 rounded-full hover:bg-medical-100 transition-all disabled:opacity-50"
-              >
-                {isGenerating ? (
-                  <Loader2 size={12} className="animate-spin" />
-                ) : (
-                  <Sparkles size={12} />
-                )}
-                AI Assist
-              </button>
             </div>
             <input
               type="text"

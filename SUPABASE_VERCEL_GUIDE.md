@@ -44,7 +44,6 @@ Navigate to **Authentication > Policies** and add these rules for the `community
 3. Add the following keys from your Supabase Dashboard (**Settings > API**):
    - `VITE_SUPABASE_URL`: Your Project URL.
    - `VITE_SUPABASE_ANON_KEY`: Your `anon` public key.
-   - `VITE_DEEPSEEK_API_KEY`: (Optional) Your DeepSeek AI key for card generation.
 
 ## 4. SPA Routing Configuration
 Ensure your `vercel.json` in the root directory looks like this to avoid 404 errors on refresh:

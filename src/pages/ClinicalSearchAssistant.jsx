@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { Search, Sparkles, Loader2, Globe, BookOpen, AlertCircle, ChevronRight, CheckCircle2, Plus } from 'lucide-react';
+import { Search, Sparkles, Loader2, Globe, BookOpen, AlertCircle, ChevronRight, CheckCircle2, Plus, List } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 
 const ClinicalSearchAssistant = () => {

@@ -1,6 +1,8 @@
 {
   "metadata": {
     "program": "National Diploma in Nursing",
+    "level": "100",
+    "semester": "1",
     "accrediting_bodies": ["NBTE", "Nursing and Midwifery Council of Nigeria (N&MCN)"],
     "duration_years": 3,
     "version": "2.1",

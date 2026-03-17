@@ -12,10 +12,10 @@ export const allBuiltInFlashcards = Object.entries(modules).flatMap(([path, modu
   let inferredLevel, inferredSemester, inferredProgram;
   if (inferredCategory === 'Curriculum') {
     inferredProgram = parts[fIdx + 2]; // e.g. 'nd-nursing'
-    inferredLevel = parts[fIdx + 3] ? parts[fIdx + 3].replace('year-', 'Year ') : 'Year 1';
+    inferredLevel = parts[fIdx + 3] ? parts[fIdx + 3].replace('year-', '').replace('1', '100L').replace('2', '200L').replace('3', '300L') : '100L';
     inferredSemester = parts[fIdx + 4] ? parts[fIdx + 4].replace('sem-', 'Semester ') : 'Semester 1';
   } else {
-    inferredLevel = parts[fIdx + 2] ? parts[fIdx + 2].replace('year-', 'Year ') : 'Year 1';
+    inferredLevel = parts[fIdx + 2] ? parts[fIdx + 2].replace('year-', '').replace('1', '100L').replace('2', '200L').replace('3', '300L') : '100L';
     inferredSemester = parts[fIdx + 3] ? parts[fIdx + 3].replace('sem-', 'Semester ') : 'Semester 1';
   }
 
@@ -56,10 +56,17 @@ export const allBuiltInFlashcards = Object.entries(modules).flatMap(([path, modu
       .replace(/\s+/g, ' ')
       .trim();
 
+    // Map numeric levels to L format for consistency
+    const finalLevel = card.level || inferredLevel;
+    const normalizedLevel = String(finalLevel).includes('L') ? finalLevel :
+      (String(finalLevel) === '1' || String(finalLevel) === '100' || String(finalLevel) === 'Year 1' ? '100L' :
+       String(finalLevel) === '2' || String(finalLevel) === '200' || String(finalLevel) === 'Year 2' ? '200L' :
+       String(finalLevel) === '3' || String(finalLevel) === '300' || String(finalLevel) === 'Year 3' ? '300L' : finalLevel);
+
     return {
       category: finalCategory,
-      level: inferredLevel,
-      semester: inferredSemester,
+      level: normalizedLevel,
+      semester: card.semester || inferredSemester,
       program: inferredProgram,
       ...card, // Original card properties override inferred ones
       subject: normalizedSubject,

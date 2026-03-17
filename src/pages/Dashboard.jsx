@@ -25,13 +25,18 @@ const Dashboard = () => {
   }, [flashcards]);
 
   const levelProgress = React.useMemo(() => {
-    const levels = ['Year 1', 'Year 2', 'Year 3', 'Professional'];
-    return levels.map(level => {
-      const cards = flashcards.filter(c => c.level === level);
+    const levels = [
+      { id: '100L', label: '100L' },
+      { id: '200L', label: '200L' },
+      { id: '300L', label: '300L' },
+      { id: 'Professional', label: 'Licensing' }
+    ];
+    return levels.map(l => {
+      const cards = flashcards.filter(c => c.level === l.id);
       const total = cards.length;
       const learned = cards.filter(c => c.srs?.reps > 0).length;
       return {
-        level,
+        level: l.label,
         total,
         learned,
         percent: total > 0 ? Math.round((learned / total) * 100) : 0
