@@ -183,74 +183,92 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
         </header>
 
         {!currentProgram ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 sm:gap-8">
-            <button
-              onClick={() => setCurrentProgram('General Nursing')}
-              className="p-10 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-soft hover:shadow-clinical border-2 border-transparent hover:border-medical-500 transition-all text-left group relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-medical-50 dark:bg-medical-900/10 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110" />
-              <div className="w-20 h-20 bg-medical-100 dark:bg-medical-900/30 rounded-3xl flex items-center justify-center text-medical-600 mb-8 relative z-10">
-                <Book size={40} />
-              </div>
-              <h3 className="text-3xl font-bold text-slate-900 dark:text-white relative z-10">General Nursing</h3>
-              <p className="text-slate-500 dark:text-slate-400 mt-3 text-lg relative z-10">Complete curriculum for RN training, covering all clinical and theoretical domains.</p>
-              <div className="mt-8 flex items-center text-medical-600 font-bold relative z-10">
-                Browse Levels <ChevronRight size={20} className="ml-1 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </button>
+          <div className="space-y-12">
+            <section>
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-6 flex items-center gap-3">
+                <div className="h-px bg-slate-200 dark:bg-slate-800 flex-1" />
+                Academic Curriculum
+                <div className="h-px bg-slate-200 dark:bg-slate-800 flex-1" />
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                <button
+                  onClick={() => setCurrentProgram('General Nursing')}
+                  className="p-10 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-soft hover:shadow-clinical border-2 border-transparent hover:border-medical-500 transition-all text-left group relative overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-medical-50 dark:bg-medical-900/10 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110" />
+                  <div className="w-20 h-20 bg-medical-100 dark:bg-medical-900/30 rounded-3xl flex items-center justify-center text-medical-600 mb-8 relative z-10">
+                    <Book size={40} />
+                  </div>
+                  <h3 className="text-3xl font-bold text-slate-900 dark:text-white relative z-10">General Nursing</h3>
+                  <p className="text-slate-500 dark:text-slate-400 mt-3 text-lg relative z-10">Complete curriculum for RN training, covering all clinical and theoretical domains.</p>
+                  <div className="mt-8 flex items-center text-medical-600 font-bold relative z-10">
+                    Browse Levels <ChevronRight size={20} className="ml-1 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </button>
 
-            <button
-              onClick={() => setCurrentProgram('Midwifery')}
-              className="p-10 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-soft hover:shadow-clinical border-2 border-transparent hover:border-pink-500 transition-all text-left group relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-pink-50 dark:bg-pink-900/10 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110" />
-              <div className="w-20 h-20 bg-pink-100 dark:bg-pink-900/30 rounded-3xl flex items-center justify-center text-pink-600 mb-8 relative z-10">
-                <Award size={40} />
+                <button
+                  onClick={() => setCurrentProgram('Midwifery')}
+                  className="p-10 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-soft hover:shadow-clinical border-2 border-transparent hover:border-pink-500 transition-all text-left group relative overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-pink-50 dark:bg-pink-900/10 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110" />
+                  <div className="w-20 h-20 bg-pink-100 dark:bg-pink-900/30 rounded-3xl flex items-center justify-center text-pink-600 mb-8 relative z-10">
+                    <Award size={40} />
+                  </div>
+                  <h3 className="text-3xl font-bold text-slate-900 dark:text-white relative z-10">Midwifery</h3>
+                  <p className="text-slate-500 dark:text-slate-400 mt-3 text-lg relative z-10">Specialized tracks focusing on reproductive health, neonatal care, and obstetric excellence.</p>
+                  <div className="mt-8 flex items-center text-pink-600 font-bold relative z-10">
+                    Browse Levels <ChevronRight size={20} className="ml-1 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </button>
               </div>
-              <h3 className="text-3xl font-bold text-slate-900 dark:text-white relative z-10">Midwifery</h3>
-              <p className="text-slate-500 dark:text-slate-400 mt-3 text-lg relative z-10">Specialized tracks focusing on reproductive health, neonatal care, and obstetric excellence.</p>
-              <div className="mt-8 flex items-center text-pink-600 font-bold relative z-10">
-                Browse Levels <ChevronRight size={20} className="ml-1 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </button>
+            </section>
 
-            <button
-              onClick={() => {
-                setCurrentProgram('NCLEX');
-                setCurrentLevel('Professional');
-                setCurrentSemester('Exam Prep');
-              }}
-              className="p-10 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-soft hover:shadow-clinical border-2 border-transparent hover:border-blue-500 transition-all text-left group relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 dark:bg-blue-900/10 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110" />
-              <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-3xl flex items-center justify-center text-blue-600 mb-8 relative z-10">
-                <Award size={40} />
-              </div>
-              <h3 className="text-3xl font-bold text-slate-900 dark:text-white relative z-10">NCLEX-RN</h3>
-              <p className="text-slate-500 dark:text-slate-400 mt-3 text-lg relative z-10">Intensive preparation for the National Council Licensure Examination.</p>
-              <div className="mt-8 flex items-center text-blue-600 font-bold relative z-10">
-                Start Prep <ChevronRight size={20} className="ml-1 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </button>
+            <section>
+              <h3 className="text-xs font-black uppercase tracking-[0.2em] text-slate-400 mb-6 flex items-center gap-3">
+                <div className="h-px bg-slate-200 dark:bg-slate-800 flex-1" />
+                Professional Licensing
+                <div className="h-px bg-slate-200 dark:bg-slate-800 flex-1" />
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                <button
+                  onClick={() => {
+                    setCurrentProgram('NCLEX');
+                    setCurrentLevel('Professional');
+                    setCurrentSemester('Exam Prep');
+                  }}
+                  className="p-10 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-soft hover:shadow-clinical border-2 border-transparent hover:border-blue-500 transition-all text-left group relative overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-blue-50 dark:bg-blue-900/10 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110" />
+                  <div className="w-20 h-20 bg-blue-100 dark:bg-blue-900/30 rounded-3xl flex items-center justify-center text-blue-600 mb-8 relative z-10">
+                    <Award size={40} />
+                  </div>
+                  <h3 className="text-3xl font-bold text-slate-900 dark:text-white relative z-10">NCLEX-RN</h3>
+                  <p className="text-slate-500 dark:text-slate-400 mt-3 text-lg relative z-10">Intensive preparation for the National Council Licensure Examination.</p>
+                  <div className="mt-8 flex items-center text-blue-600 font-bold relative z-10">
+                    Start Prep <ChevronRight size={20} className="ml-1 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </button>
 
-            <button
-              onClick={() => {
-                setCurrentProgram('NMCN');
-                setCurrentLevel('Professional');
-                setCurrentSemester('Exam Prep');
-              }}
-              className="p-10 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-soft hover:shadow-clinical border-2 border-transparent hover:border-emerald-500 transition-all text-left group relative overflow-hidden"
-            >
-              <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 dark:bg-emerald-900/10 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110" />
-              <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-3xl flex items-center justify-center text-emerald-600 mb-8 relative z-10">
-                <CheckCircle2 size={40} />
+                <button
+                  onClick={() => {
+                    setCurrentProgram('NMCN');
+                    setCurrentLevel('Professional');
+                    setCurrentSemester('Exam Prep');
+                  }}
+                  className="p-10 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-soft hover:shadow-clinical border-2 border-transparent hover:border-emerald-500 transition-all text-left group relative overflow-hidden"
+                >
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-emerald-50 dark:bg-emerald-900/10 rounded-full -mr-16 -mt-16 transition-transform group-hover:scale-110" />
+                  <div className="w-20 h-20 bg-emerald-100 dark:bg-emerald-900/30 rounded-3xl flex items-center justify-center text-emerald-600 mb-8 relative z-10">
+                    <CheckCircle2 size={40} />
+                  </div>
+                  <h3 className="text-3xl font-bold text-slate-900 dark:text-white relative z-10">NMCN Council</h3>
+                  <p className="text-slate-500 dark:text-slate-400 mt-3 text-lg relative z-10">Nursing and Midwifery Council of Nigeria professional exam preparation.</p>
+                  <div className="mt-8 flex items-center text-emerald-600 font-bold relative z-10">
+                    Start Prep <ChevronRight size={20} className="ml-1 group-hover:translate-x-1 transition-transform" />
+                  </div>
+                </button>
               </div>
-              <h3 className="text-3xl font-bold text-slate-900 dark:text-white relative z-10">NMCN Council</h3>
-              <p className="text-slate-500 dark:text-slate-400 mt-3 text-lg relative z-10">Nursing and Midwifery Council of Nigeria professional exam preparation.</p>
-              <div className="mt-8 flex items-center text-emerald-600 font-bold relative z-10">
-                Start Prep <ChevronRight size={20} className="ml-1 group-hover:translate-x-1 transition-transform" />
-              </div>
-            </button>
+            </section>
           </div>
         ) : !currentLevel ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6 sm:gap-8">
@@ -373,12 +391,18 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
 
   // Study/List View
   return (
-    <div className="space-y-6 pb-20">
+    <div className={`space-y-6 ${viewMode === 'study' ? 'pb-0' : 'pb-20'}`}>
       {/* Mobile Breadcrumb/Back button for Study View */}
       {viewMode === 'study' && (
-        <button onClick={() => setViewMode('list')} className="flex items-center text-medical-600 text-sm font-bold bg-white dark:bg-slate-800 px-4 py-2 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 active:scale-95 transition-transform">
-          <ArrowLeft size={16} className="mr-2" /> Back to Decks
-        </button>
+        <div className="fixed top-0 left-0 right-0 z-[100] p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md flex items-center justify-between border-b border-slate-100 dark:border-slate-800 lg:static lg:bg-transparent lg:border-none lg:p-0">
+          <button onClick={() => setViewMode('list')} className="flex items-center text-medical-600 text-sm font-bold bg-white dark:bg-slate-800 px-4 py-2 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 active:scale-95 transition-transform">
+            <ArrowLeft size={16} className="mr-2" /> Exit
+          </button>
+          <div className="lg:hidden text-[10px] font-black uppercase tracking-widest text-slate-400">
+            Card {studyIndex + 1} of {shuffledCards.length}
+          </div>
+          <div className="w-10 lg:hidden" /> {/* Spacer */}
+        </div>
       )}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="animate-in slide-in-from-left-4 duration-500">
@@ -477,29 +501,42 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
           )}
         </>
       ) : (
-        /* Study Mode */
-        <div className="flex flex-col items-center justify-center max-w-2xl mx-auto space-y-8 mt-10">
-          <div className="w-full flex justify-between items-center px-4">
+        /* Study Mode - Fullscreen on Mobile */
+        <div className="fixed inset-0 z-50 bg-slate-50 dark:bg-slate-900 flex flex-col lg:relative lg:z-0 lg:bg-transparent lg:mt-10 lg:space-y-8">
+          <div className="hidden lg:flex w-full max-w-2xl mx-auto justify-between items-center px-4">
             <span className="text-sm font-medium text-slate-500">Card {studyIndex + 1} of {shuffledCards.length}</span>
             <div className="w-48 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
               <div className="h-full bg-medical-500 transition-all" style={{ width: `${((studyIndex + 1) / shuffledCards.length) * 100}%` }}></div>
             </div>
           </div>
 
-          <div className="w-full h-80">
-            {shuffledCards.length > 0 && <FlashcardCard key={shuffledCards[studyIndex].id} card={shuffledCards[studyIndex]} isStudyMode={true} />}
+          <div className="flex-1 flex items-center justify-center p-4 lg:p-0">
+            <div className="w-full max-w-2xl aspect-[3/4] sm:aspect-video lg:h-80 relative">
+              {shuffledCards.length > 0 && (
+                <FlashcardCard
+                  key={shuffledCards[studyIndex].id}
+                  card={shuffledCards[studyIndex]}
+                  isStudyMode={true}
+                  isFullscreen={true}
+                  onSwipeLeft={() => handleNext()}
+                  onSwipeRight={() => handlePrev()}
+                />
+              )}
+            </div>
           </div>
 
-          <div className="w-full flex flex-col items-center gap-6">
-            <div className="grid grid-cols-4 gap-3 w-full max-w-lg">
-              <SRSButton label="Again" sublabel="< 1m" color="bg-red-500/90 dark:bg-red-600/80" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 1); handleNext(1); }} />
-              <SRSButton label="Hard" sublabel="1d" color="bg-orange-500/90 dark:bg-orange-600/80" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 3); handleNext(3); }} />
-              <SRSButton label="Good" sublabel="4d" color="bg-green-500/90 dark:bg-green-600/80" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 4); handleNext(4); }} />
-              <SRSButton label="Easy" sublabel="7d+" color="bg-blue-500/90 dark:bg-blue-600/80" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 5); handleNext(5); }} />
-            </div>
-            <div className="flex items-center space-x-6">
-              <button onClick={handlePrev} disabled={studyIndex === 0} className="p-3 rounded-full bg-white dark:bg-slate-800 shadow-md disabled:opacity-30"><ChevronLeft size={24} /></button>
-              <button onClick={handleNext} disabled={studyIndex === shuffledCards.length - 1} className="p-3 rounded-full bg-medical-600 text-white shadow-lg disabled:opacity-30"><ChevronRight size={24} /></button>
+          <div className="bg-white dark:bg-slate-800 p-6 border-t border-slate-100 dark:border-slate-800 lg:bg-transparent lg:border-none lg:p-0">
+            <div className="max-w-lg mx-auto space-y-6">
+              <div className="grid grid-cols-4 gap-2 sm:gap-3">
+                <SRSButton label="Again" sublabel="< 1m" color="bg-red-500/90 dark:bg-red-600/80" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 1); handleNext(1); }} />
+                <SRSButton label="Hard" sublabel="1d" color="bg-orange-500/90 dark:bg-orange-600/80" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 3); handleNext(3); }} />
+                <SRSButton label="Good" sublabel="4d" color="bg-green-500/90 dark:bg-green-600/80" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 4); handleNext(4); }} />
+                <SRSButton label="Easy" sublabel="7d+" color="bg-blue-500/90 dark:bg-blue-600/80" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 5); handleNext(5); }} />
+              </div>
+              <div className="flex items-center justify-center space-x-8">
+                <button onClick={handlePrev} disabled={studyIndex === 0} className="p-4 rounded-full bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 disabled:opacity-30"><ChevronLeft size={28} /></button>
+                <button onClick={handleNext} disabled={studyIndex === shuffledCards.length - 1} className="p-4 rounded-full bg-medical-600 text-white shadow-xl shadow-medical-600/20 disabled:opacity-30"><ChevronRight size={28} /></button>
+              </div>
             </div>
           </div>
         </div>
