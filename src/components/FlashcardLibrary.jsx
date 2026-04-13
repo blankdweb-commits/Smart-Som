@@ -4,7 +4,8 @@ import FlashcardCard from '../components/FlashcardCard';
 import FlashcardForm from '../components/FlashcardForm';
 import ShareModal from '../components/ShareModal';
 import Toast from '../components/Toast';
-import { Plus, Search, Filter, Play, Shuffle, List, ChevronLeft, ChevronRight, Award, Download, Upload, Share2, Folder, Book, ArrowLeft, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Plus, Search, Filter, Play, Shuffle, List, ChevronLeft, ChevronRight, Award, Download, Upload, Share2, Folder, Book, ArrowLeft, AlertCircle, CheckCircle2, FileUp, Loader2 } from 'lucide-react';
+import { extractTextFromFile, parseQuestionsAndAnswers } from '../utils/fileParser';
 
 const SRSButton = ({ label, sublabel, color, onClick }) => (
   <button
@@ -17,7 +18,7 @@ const SRSButton = ({ label, sublabel, color, onClick }) => (
 );
 
 const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
-  const { flashcards, exams, addFlashcard, updateFlashcard, deleteFlashcard, incrementCardsStudied, updateCardProgress } = useAppContext();
+  const { flashcards, exams, addFlashcard, updateFlashcard, deleteFlashcard, incrementCardsStudied, updateCardProgress, importFlashcards } = useAppContext();
 
   // Navigation State
   const [currentProgram, setCurrentProgram] = useState(null); // 'General Nursing' or 'Midwifery'
@@ -37,6 +38,7 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   const [shuffledCards, setShuffledCards] = useState([]);
   const [toast, setToast] = useState(null);
   const [visibleCount, setVisibleCount] = useState(12);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Derive hierarchy options
   const categoryCards = useMemo(() => {
@@ -156,6 +158,40 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
     if (editingCard) updateFlashcard(editingCard.id, data);
     else addFlashcard({ ...data, category: initialCategory, level: currentLevel, semester: currentSemester });
     setEditingCard(null);
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setToast({ message: "Analyzing document...", type: 'info' });
+
+    try {
+      const text = await extractTextFromFile(file);
+      const parsedCards = parseQuestionsAndAnswers(text);
+
+      if (parsedCards.length > 0) {
+        const enhancedCards = parsedCards.map(card => ({
+          ...card,
+          category: initialCategory,
+          level: currentLevel || 'Year 1',
+          semester: currentSemester || 'Semester 1',
+          subject: currentSubject || 'Imported'
+        }));
+
+        const count = importFlashcards(enhancedCards);
+        setToast({ message: `Successfully imported ${count} cards!`, type: 'success' });
+      } else {
+        setToast({ message: "No questions found in the document.", type: 'error' });
+      }
+    } catch (error) {
+      console.error(error);
+      setToast({ message: "Failed to parse file: " + error.message, type: 'error' });
+    } finally {
+      setIsUploading(false);
+      e.target.value = null; // Reset input
+    }
   };
 
 
@@ -436,6 +472,11 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
               <button onClick={() => startStudyMode(false)} className="flex items-center px-4 py-2 bg-medical-600 text-white rounded-lg font-bold hover:bg-medical-700 transition-all shadow-sm active:scale-95 text-sm">
                 <Play size={18} className="mr-2" /> Study All
               </button>
+              <label className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition-all shadow-sm active:scale-95 text-sm cursor-pointer">
+                {isUploading ? <Loader2 size={18} className="mr-2 animate-spin" /> : <FileUp size={18} className="mr-2" />}
+                {isUploading ? 'Parsing...' : 'Upload PQ'}
+                <input type="file" className="hidden" onChange={handleFileUpload} accept=".pdf,.docx,.txt,image/*" disabled={isUploading} />
+              </label>
               <button onClick={() => setIsFormOpen(true)} className="flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-sm active:scale-95 text-sm">
                 <Plus size={18} className="mr-2" /> Add Card
               </button>

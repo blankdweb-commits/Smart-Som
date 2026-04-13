@@ -12,7 +12,7 @@ const ClinicalSearchAssistant = () => {
 
   const mockKnowledgeBase = [
     {
-      keywords: ['heart', 'cardiovascular', 'chambers', 'valves', 'anatomy', 'blood flow'],
+      keywords: ['heart', 'cardiovascular', 'chambers', 'valves', 'anatomy', 'blood flow', 'circulatory'],
       title: "Heart Anatomy & Labelling Diagram",
       content: "Comprehensive Visual Guide to Cardiac Structures. Labels: 1. Right Atrium (Receives deoxygenated blood), 2. Right Ventricle (Pumps to lungs), 3. Left Atrium (Receives oxygenated blood), 4. Left Ventricle (Pumps to systemic circulation), 5. Ascending Aorta, 6. Pulmonary Trunk, 7. Superior Vena Cava, 8. Mitral/Bicuspid Valve, 9. Tricuspid Valve, 10. Aortic Valve, 11. Interventricular Septum.",
       source: "Clinical Anatomy Essentials (2024)",
@@ -21,7 +21,7 @@ const ClinicalSearchAssistant = () => {
       tags: ["Anatomy", "Cardiovascular"]
     },
     {
-      keywords: ['kidney', 'nephron', 'urinary', 'renal', 'anatomy', 'filtration'],
+      keywords: ['kidney', 'nephron', 'urinary', 'renal', 'anatomy', 'filtration', 'excretory'],
       title: "Nephron Structure & Labelling",
       content: "Detailed Functional Mapping of the Nephron. Labels: 1. Bowman's Capsule (Filtration start), 2. Glomerulus (Capillary tuft), 3. Proximal Convoluted Tubule (PCT - major reabsorption), 4. Descending Loop of Henle, 5. Ascending Loop of Henle, 6. Distal Convoluted Tubule (DCT - hormonal control), 7. Collecting Duct, 8. Afferent/Efferent Arterioles.",
       source: "Renal Physiology & Clinical Nursing Guide",
@@ -30,7 +30,7 @@ const ClinicalSearchAssistant = () => {
       tags: ["Anatomy", "Renal"]
     },
     {
-      keywords: ['lung', 'respiratory', 'alveoli', 'bronchi', 'anatomy', 'gas exchange'],
+      keywords: ['lung', 'respiratory', 'alveoli', 'bronchi', 'anatomy', 'gas exchange', 'breathing'],
       title: "Respiratory System & Alveolar Anatomy",
       content: "High-Resolution Mapping of the Respiratory Tract. Labels: 1. Nasal Cavity (Filtration), 2. Pharynx, 3. Larynx (Vocal cords), 4. Trachea (C-shaped cartilage), 5. Primary/Secondary Bronchi, 6. Terminal Bronchioles, 7. Alveolar Sacs (Site of gas exchange), 8. Visceral/Parietal Pleura, 9. Diaphragm (Primary muscle of respiration).",
       source: "Respiratory Clinical Manual (Advanced)",
@@ -39,7 +39,7 @@ const ClinicalSearchAssistant = () => {
       tags: ["Anatomy", "Respiratory"]
     },
     {
-      keywords: ['skin', 'integumentary', 'epidermis', 'dermis', 'layers'],
+      keywords: ['skin', 'integumentary', 'epidermis', 'dermis', 'layers', 'hypodermis'],
       title: "Integumentary System (Skin) Layers Diagram",
       content: "Cross-section of the Skin. Labels: 1. Epidermis, 2. Dermis, 3. Hypodermis (Subcutaneous), 4. Hair Follicle, 5. Sweat Gland, 6. Sebaceous Gland, 7. Nerve Endings.",
       source: "Dermatology for Nurses",
@@ -48,7 +48,7 @@ const ClinicalSearchAssistant = () => {
       tags: ["Anatomy", "Integumentary"]
     },
     {
-      keywords: ['brain', 'nervous system', 'cerebrum', 'cerebellum', 'lobes'],
+      keywords: ['brain', 'nervous system', 'cerebrum', 'cerebellum', 'lobes', 'neuro', 'central nervous system'],
       title: "Brain Anatomy & Functional Lobes Diagram",
       content: "Major parts of the Brain. Labels: 1. Cerebrum, 2. Cerebellum, 3. Brainstem (Medulla, Pons, Midbrain), 4. Frontal Lobe, 5. Parietal Lobe, 6. Occipital Lobe, 7. Temporal Lobe.",
       source: "Neurological Clinical Handbook",
@@ -57,7 +57,7 @@ const ClinicalSearchAssistant = () => {
       tags: ["Anatomy", "Neurology"]
     },
     {
-      keywords: ['digestive', 'stomach', 'intestine', 'liver', 'anatomy'],
+      keywords: ['digestive', 'stomach', 'intestine', 'liver', 'anatomy', 'gi tract', 'gastrointestinal'],
       title: "Digestive System Overview Diagram",
       content: "Complete Digestive Tract. Labels: 1. Esophagus, 2. Stomach, 3. Liver, 4. Gallbladder, 5. Pancreas, 6. Small Intestine (Duodenum, Jejunum, Ileum), 7. Large Intestine (Colon), 8. Rectum.",
       source: "Gastrointestinal Nursing Guide",
@@ -66,7 +66,7 @@ const ClinicalSearchAssistant = () => {
       tags: ["Anatomy", "Digestive"]
     },
     {
-      keywords: ['pelvis', 'female reproductive', 'uterus', 'ovary', 'anatomy'],
+      keywords: ['pelvis', 'female reproductive', 'uterus', 'ovary', 'anatomy', 'midwifery', 'reproductive'],
       title: "Female Reproductive System Diagram",
       content: "Internal Female Reproductive Organs. Labels: 1. Uterus, 2. Fallopian Tubes, 3. Ovaries, 4. Cervix, 5. Vagina, 6. Endometrium, 7. Fundus.",
       source: "Midwifery Essentials",
@@ -75,7 +75,7 @@ const ClinicalSearchAssistant = () => {
       tags: ["Anatomy", "Midwifery"]
     },
     {
-      keywords: ['skeleton', 'bones', 'axial', 'appendicular', 'anatomy'],
+      keywords: ['skeleton', 'bones', 'axial', 'appendicular', 'anatomy', 'orthopedic'],
       title: "Human Skeletal System Diagram",
       content: "Major Bones of the Body. Labels: 1. Skull, 2. Clavicle, 3. Scapula, 4. Sternum, 5. Humerus, 6. Radius/Ulna, 7. Pelvis, 8. Femur, 9. Tibia/Fibula, 10. Vertebral Column.",
       source: "Orthopedic Nursing Manual",
@@ -84,7 +84,7 @@ const ClinicalSearchAssistant = () => {
       tags: ["Anatomy", "Orthopedic"]
     },
     {
-      keywords: ['eye', 'vision', 'retina', 'cornea', 'anatomy'],
+      keywords: ['eye', 'vision', 'retina', 'cornea', 'anatomy', 'ocular', 'ophthalmology'],
       title: "Anatomy of the Human Eye Diagram",
       content: "Structure of the Eye. Labels: 1. Cornea, 2. Iris, 3. Pupil, 4. Lens, 5. Retina, 6. Optic Nerve, 7. Sclera, 8. Vitreous Humor, 9. Choroid.",
       source: "Ophthalmology Nursing",
@@ -93,7 +93,7 @@ const ClinicalSearchAssistant = () => {
       tags: ["Anatomy", "Special Senses"]
     },
     {
-      keywords: ['ear', 'hearing', 'cochlea', 'tympanic', 'anatomy'],
+      keywords: ['ear', 'hearing', 'cochlea', 'tympanic', 'anatomy', 'auditory', 'vestibular'],
       title: "Human Ear Structure Diagram",
       content: "Parts of the Ear. Labels: 1. Pinna (Outer Ear), 2. Auditory Canal, 3. Tympanic Membrane (Eardrum), 4. Ossicles (Malleus, Incus, Stapes), 5. Cochlea, 6. Semicircular Canals, 7. Eustachian Tube.",
       source: "ENT Clinical Guide",
@@ -102,7 +102,7 @@ const ClinicalSearchAssistant = () => {
       tags: ["Anatomy", "Special Senses"]
     },
     {
-      keywords: ['injection', 'im', 'subcutaneous', 'intradermal', 'sites'],
+      keywords: ['injection', 'im', 'subcutaneous', 'intradermal', 'sites', 'angles', 'nursing procedure'],
       title: "Injection Sites & Angles Diagram",
       content: "Nursing Procedure: Injection Mapping. Labels: 1. Deltoid (IM), 2. Ventrogluteal (IM), 3. Vastus Lateralis (IM - Infants), 4. Abdomen/Thigh (SubQ), 5. Forearm (Intradermal). Angles: 90° (IM), 45° (SubQ), 15° (ID).",
       source: "Foundation of Nursing Procedures",
@@ -111,7 +111,7 @@ const ClinicalSearchAssistant = () => {
       tags: ["Procedures", "Nursing"]
     },
     {
-      keywords: ['wound', 'pressure ulcer', 'stages', 'skin', 'injury'],
+      keywords: ['wound', 'pressure ulcer', 'stages', 'skin', 'injury', 'decubitus'],
       title: "Pressure Ulcer Staging Diagram",
       content: "Wound Assessment Guide. Labels: Stage 1 (Non-blanchable erythema), Stage 2 (Partial thickness), Stage 3 (Full thickness skin loss), Stage 4 (Full thickness tissue loss, bone/muscle visible), Unstageable (Eschar/Slough).",
       source: "Wound Care Standards",
@@ -120,7 +120,7 @@ const ClinicalSearchAssistant = () => {
       tags: ["Assessment", "Wound Care"]
     },
     {
-      keywords: ['fetal', 'placenta', 'umbilical cord', 'pregnancy', 'midwifery', 'shunts'],
+      keywords: ['fetal', 'placenta', 'umbilical cord', 'pregnancy', 'midwifery', 'shunts', 'circulation'],
       title: "Fetal Circulation & Placenta Anatomy",
       content: "Advanced Midwifery Mapping: Intrauterine Circulation. Labels: 1. Placenta (Gas/Nutrient exchange), 2. Umbilical Vein (Carries oxygenated blood), 3. Umbilical Arteries (Carry deoxygenated blood to placenta), 4. Ductus Venosus (Bypasses liver), 5. Foramen Ovale (Bypasses right ventricle), 6. Ductus Arteriosus (Bypasses lungs).",
       source: "Midwifery Clinical Handbook (Gold Standard)",
@@ -129,7 +129,7 @@ const ClinicalSearchAssistant = () => {
       tags: ["Anatomy", "Midwifery"]
     },
     {
-      keywords: ['liver', 'hepatic', 'biliary', 'gallbladder', 'anatomy'],
+      keywords: ['liver', 'hepatic', 'biliary', 'gallbladder', 'anatomy', 'bile'],
       title: "Liver & Biliary System Diagram",
       content: "Digestive Accessory Organs. Labels: 1. Right/Left Hepatic Lobes, 2. Gallbladder, 3. Common Bile Duct, 4. Cystic Duct, 5. Hepatic Portal Vein, 6. Falciform Ligament.",
       source: "GI Clinical Manual",
@@ -138,7 +138,7 @@ const ClinicalSearchAssistant = () => {
       tags: ["Anatomy", "Digestive"]
     },
     {
-      keywords: ['heart', 'conduction', 'electrical', 'sa node', 'av node'],
+      keywords: ['heart', 'conduction', 'electrical', 'sa node', 'av node', 'cardiac', 'impulse'],
       title: "Cardiac Conduction System Diagram",
       content: "Electrical Pathway of the Heart. Labels: 1. SA Node (Pacemaker), 2. Intermodal Pathways, 3. AV Node, 4. Bundle of His, 5. Right/Left Bundle Branches, 6. Purkinje Fibers.",
       source: "Cardiology for Nurses",
@@ -147,7 +147,7 @@ const ClinicalSearchAssistant = () => {
       tags: ["Anatomy", "Cardiovascular"]
     },
     {
-      keywords: ['liver', 'biliary', 'gallbladder', 'hepatic', 'pancreas', 'anatomy'],
+      keywords: ['liver', 'biliary', 'gallbladder', 'hepatic', 'pancreas', 'anatomy', 'exocrine', 'endocrine'],
       title: "Liver, Gallbladder & Biliary Tree Anatomy",
       content: "Detailed mapping of the Hepato-biliary System. Labels: 1. Right/Left Hepatic Ducts, 2. Common Hepatic Duct, 3. Gallbladder (Bile storage), 4. Cystic Duct, 5. Common Bile Duct (CBD), 6. Pancreas (Exocrine/Endocrine), 7. Pancreatic Duct, 8. Sphincter of Oddi (Hepatopancreatic sphincter), 9. Duodenum.",
       source: "Gastrointestinal Nursing Advanced Guide",
@@ -156,7 +156,7 @@ const ClinicalSearchAssistant = () => {
       tags: ["Anatomy", "Digestive"]
     },
     {
-      keywords: ['spinal cord', 'vertebrae', 'nerve', 'neurology', 'anatomy'],
+      keywords: ['spinal cord', 'vertebrae', 'nerve', 'neurology', 'anatomy', 'reflex arc', 'grey matter', 'white matter'],
       title: "Spinal Cord & Reflex Arc Diagram",
       content: "Neurological Anatomy Guide. Labels: 1. Grey Matter (H-shape), 2. White Matter (Myelinated axons), 3. Dorsal Root (Sensory), 4. Ventral Root (Motor), 5. Spinal Nerve, 6. Interneuron, 7. Receptor, 8. Effector (Muscle/Gland).",
       source: "Neurology for Clinical Practice",
@@ -165,7 +165,7 @@ const ClinicalSearchAssistant = () => {
       tags: ["Anatomy", "Neurology"]
     },
     {
-      keywords: ['lungs', 'lobes', 'fissures', 'thoracic', 'anatomy'],
+      keywords: ['lungs', 'lobes', 'fissures', 'thoracic', 'anatomy', 'pulmonary'],
       title: "Lungs & Lobar Anatomy Diagram",
       content: "Detailed structure of the lungs. Labels: 1. Right Superior Lobe, 2. Right Middle Lobe, 3. Right Inferior Lobe, 4. Left Superior Lobe, 5. Left Inferior Lobe, 6. Horizontal Fissure (Right), 7. Oblique Fissures, 8. Cardiac Notch (Left), 9. Apex, 10. Base/Diaphragmatic Surface.",
       source: "Thoracic Anatomy Essentials",
@@ -174,7 +174,7 @@ const ClinicalSearchAssistant = () => {
       tags: ["Anatomy", "Respiratory"]
     },
     {
-      keywords: ['stomach', 'gastric', 'sphincter', 'anatomy'],
+      keywords: ['stomach', 'gastric', 'sphincter', 'anatomy', 'rugae'],
       title: "Stomach Anatomy & Histology Diagram",
       content: "Functional anatomy of the stomach. Labels: 1. Esophagus, 2. Lower Esophageal Sphincter (Cardiac), 3. Fundus, 4. Body, 5. Antrum, 6. Pylorus, 7. Pyloric Sphincter, 8. Rugae (Gastric folds), 9. Greater Curvature, 10. Lesser Curvature.",
       source: "GI Clinical Handbook",
@@ -183,7 +183,7 @@ const ClinicalSearchAssistant = () => {
       tags: ["Anatomy", "Digestive"]
     },
     {
-      keywords: ['ecg', 'ekg', 'electrocardiogram', 'waves', 'p-wave', 'qrs'],
+      keywords: ['ecg', 'ekg', 'electrocardiogram', 'waves', 'p-wave', 'qrs', 't-wave', 'rhythm'],
       title: "ECG Waveforms & Intervals Guide",
       content: "Standard 12-lead ECG mapping. Labels: 1. P Wave (Atrial depolarization), 2. PR Interval (AV conduction), 3. QRS Complex (Ventricular depolarization), 4. T Wave (Ventricular repolarization), 5. ST Segment (Platea phase), 6. QT Interval.",
       source: "Advanced Cardiac Nursing",
@@ -192,13 +192,58 @@ const ClinicalSearchAssistant = () => {
       tags: ["Cardiology", "ECG"]
     },
     {
-      keywords: ['skull', 'cranial', 'bones', 'facial', 'anatomy'],
+      keywords: ['skull', 'cranial', 'bones', 'facial', 'anatomy', 'osteology'],
       title: "Human Skull (Anterior View) Labelling",
       content: "Detailed Cranio-facial structures. Labels: 1. Frontal bone, 2. Parietal bone, 3. Temporal bone, 4. Occipital bone, 5. Sphenoid bone, 6. Zygomatic bone, 7. Maxilla, 8. Mandible, 9. Nasal bone.",
       source: "Osteology for Nurses",
       image: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/bc/Human_skull_front_simplified_%28bones%29.svg/800px-Human_skull_front_simplified_%28bones%29.svg.png",
       youtube: "https://www.youtube.com/watch?v=f-f5wzw247c",
       tags: ["Anatomy", "Skeletal"]
+    },
+    {
+      keywords: ['artery', 'vein', 'circulatory', 'vessel', 'blood', 'vascular', 'anatomy'],
+      title: "Blood Vessel Structure (Artery vs Vein)",
+      content: "Comparison of arterial and venous anatomy. Labels: 1. Tunica Adventitia (Outer layer), 2. Tunica Media (Muscle layer - thicker in arteries), 3. Tunica Intima (Inner endothelium), 4. Valve (Present in veins), 5. Lumen (Larger in veins).",
+      source: "Vascular Clinical Guide",
+      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Artery_vein.svg/800px-Artery_vein.svg.png",
+      youtube: "https://www.youtube.com/watch?v=v43ej5lCeBo",
+      tags: ["Anatomy", "Cardiovascular"]
+    },
+    {
+      keywords: ['cell', 'organelle', 'nucleus', 'mitochondria', 'cytology', 'biology'],
+      title: "Animal Cell Structure & Organelles",
+      content: "Functional components of a human cell. Labels: 1. Nucleus (Genetic control), 2. Mitochondria (ATP production), 3. Ribosomes (Protein synthesis), 4. Endoplasmic Reticulum (Transport), 5. Golgi Apparatus (Packaging), 6. Lysosomes (Digestion), 7. Cell Membrane.",
+      source: "Foundations of Nursing Science",
+      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/4/48/Animal_cell_structure_en.svg/800px-Animal_cell_structure_en.svg.png",
+      youtube: "https://www.youtube.com/watch?v=URUJD5NEXC8",
+      tags: ["Cell Biology", "Foundations"]
+    },
+    {
+      keywords: ['reflex', 'knee jerk', 'patellar', 'neural pathway', 'anatomy'],
+      title: "Patellar Reflex Arc Mapping",
+      content: "Mechanism of the monosynaptic reflex. Labels: 1. Muscle Spindle (Receptor), 2. Afferent Neuron (Sensory), 3. Spinal Cord Integration, 4. Efferent Neuron (Motor), 5. Quadriceps (Effector).",
+      source: "Clinical Neurology Essentials",
+      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/a/a2/Patellar_Reflex.png/800px-Patellar_Reflex.png",
+      youtube: "https://www.youtube.com/watch?v=qW28OhuTshU",
+      tags: ["Neurology", "Assessment"]
+    },
+    {
+      keywords: ['endocrine', 'hormones', 'glands', 'pituitary', 'thyroid', 'adrenal', 'anatomy'],
+      title: "Major Endocrine Glands & Locations",
+      content: "Mapping of the human endocrine system. Labels: 1. Hypothalamus, 2. Pituitary Gland (Master gland), 3. Thyroid Gland (Metabolism), 4. Parathyroid Glands (Calcium), 5. Adrenal Glands (Stress), 6. Pancreas (Blood sugar), 7. Ovaries/Testes.",
+      source: "Endocrinology for Clinical Practice",
+      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/d/da/Endocrine_central_nervous_system_en.svg/800px-Endocrine_central_nervous_system_en.svg.png",
+      youtube: "https://www.youtube.com/watch?v=ER49EweKwW8",
+      tags: ["Anatomy", "Endocrine"]
+    },
+    {
+      keywords: ['handwashing', 'hygiene', 'infection control', 'procedure', 'nursing'],
+      title: "WHO Hand Hygiene Technique Diagram",
+      content: "Standard clinical handwashing steps. Labels: 1. Palm to palm, 2. Back of hands, 3. Between fingers, 4. Back of fingers, 5. Thumbs, 6. Fingernails/Tips, 7. Wrists. Total time: 40-60 seconds.",
+      source: "WHO Infection Control Guidelines",
+      image: "https://upload.wikimedia.org/wikipedia/commons/thumb/b/b3/Hand_washing_technique_A.png/800px-Hand_washing_technique_A.png",
+      youtube: "https://www.youtube.com/watch?v=3PmVJQUCm4E",
+      tags: ["Procedures", "Infection Control"]
     }
   ];
 
@@ -236,7 +281,7 @@ const ClinicalSearchAssistant = () => {
 
       setResults(matched.length > 0 ? matched : [{
         title: "Clinical Search Result",
-        content: `Based on a clinical search for "${query}", current evidence suggests focusing on the nursing process (ADPIE) and prioritizing patient safety. For specific dosages or protocols, always refer to your institution's standing orders.`,
+        content: `Based on a clinical search for "${query}", current evidence suggests focusing on the nursing process (ADPIE) and prioritizing patient safety. For specific diagrams like ${query}, ensure you are using exact anatomical terms.`,
         source: "General Clinical Knowledge Base",
         tags: ["General"]
       }]);
@@ -308,9 +353,8 @@ const ClinicalSearchAssistant = () => {
                   <img
                     src={result.image}
                     alt={result.title}
-                    crossOrigin="anonymous"
                     loading="lazy"
-                    className="max-w-full max-h-full object-contain mix-blend-multiply dark:mix-blend-normal group-hover:scale-105 transition-transform duration-700"
+                    className="max-w-full max-h-full object-contain group-hover:scale-105 transition-transform duration-700"
                     onError={(e) => {
                       e.target.onerror = null;
                       // Fallback to a placeholder if Wikipedia link fails
@@ -340,9 +384,19 @@ const ClinicalSearchAssistant = () => {
                     <List size={14} />
                     Labelling & Description
                   </p>
-                  <p className="text-xl text-slate-700 dark:text-slate-300 leading-relaxed font-bold">
-                    {result.content}
-                  </p>
+                  <div className="text-xl text-slate-700 dark:text-slate-300 leading-relaxed font-bold">
+                    {result.content.split('Labels:').map((part, i) => (
+                      <div key={i} className={i === 1 ? "mt-4 grid grid-cols-1 md:grid-cols-2 gap-2 text-base font-medium" : ""}>
+                        {i === 1 ? <span className="col-span-full text-xs font-black text-medical-600 uppercase tracking-[0.2em] mb-1">Key Labels:</span> : null}
+                        {i === 1 ? part.split(',').map((label, j) => (
+                          <div key={j} className="flex items-start gap-2 bg-white dark:bg-slate-800 p-2 rounded-xl border border-slate-100 dark:border-slate-700 shadow-sm">
+                            <span className="w-5 h-5 flex items-center justify-center bg-medical-100 dark:bg-medical-900/40 text-medical-600 rounded-full text-[10px] font-black shrink-0">{j+1}</span>
+                            <span>{label.replace(/^\s*\d+\.\s*/, '').trim()}</span>
+                          </div>
+                        )) : part}
+                      </div>
+                    ))}
+                  </div>
                 </div>
 
                 <div className="pt-8 border-t border-slate-50 dark:border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-6">
@@ -389,7 +443,14 @@ const ClinicalSearchAssistant = () => {
 
       {/* Helper Info */}
       {!results && !isSearching && (
-        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <div className="p-6 bg-blue-50 dark:bg-blue-900/10 rounded-2xl border border-blue-100 dark:border-blue-900/30 flex gap-4">
+            <Search className="text-blue-600 shrink-0" size={24} />
+            <div>
+              <h4 className="font-bold text-blue-900 dark:text-blue-400 uppercase text-xs tracking-widest mb-1">Anatomy Search</h4>
+              <p className="text-sm text-blue-800/80 dark:text-blue-400/80 leading-snug font-medium">Search for specific organs or systems (e.g. "heart anatomy", "nephron", "brain lobes").</p>
+            </div>
+          </div>
           <div className="p-6 bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-100 dark:border-amber-900/30 flex gap-4">
             <AlertCircle className="text-amber-600 shrink-0" size={24} />
             <div>

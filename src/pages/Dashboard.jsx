@@ -26,9 +26,9 @@ const Dashboard = () => {
 
   const levelProgress = React.useMemo(() => {
     const levels = [
-      { id: '100L', label: '100L' },
-      { id: '200L', label: '200L' },
-      { id: '300L', label: '300L' },
+      { id: 'Year 1', label: 'Year 1' },
+      { id: 'Year 2', label: 'Year 2' },
+      { id: 'Year 3', label: 'Year 3' },
       { id: 'Professional', label: 'Licensing' }
     ];
     return levels.map(l => {

@@ -36,7 +36,7 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
           difficulty: 'Moderate',
           important: false,
           category: 'Academic',
-          level: '100L',
+          level: 'Year 1',
           semester: 'Semester 1',
           program: 'nd-nursing'
         });
