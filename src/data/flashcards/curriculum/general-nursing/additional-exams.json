@@ -1,0 +1,167 @@
+[
+  {
+    "id": "exam-y1-001",
+    "question": "Define homeostasis and explain its importance in nursing assessment.",
+    "answer": "Homeostasis is the state of steady internal, physical, and chemical conditions maintained by living systems. In nursing, it is critical for identifying deviations from a patient's normal physiological baseline and responding to health changes.",
+    "difficulty": "Moderate",
+    "level": "Year 1",
+    "subject": "Anatomy and Physiology I",
+    "topic": "Introduction to Anatomy",
+    "semester": "Semester 1",
+    "program": "nd-nursing"
+  },
+  {
+    "id": "exam-y1-002",
+    "question": "List the six links in the chain of infection.",
+    "answer": "1. Infectious agent (e.g., bacteria), 2. Reservoir (e.g., human body), 3. Portal of exit (e.g., respiratory tract), 4. Mode of transmission (e.g., direct contact), 5. Portal of entry (e.g., broken skin), 6. Susceptible host.",
+    "difficulty": "Moderate",
+    "level": "Year 1",
+    "subject": "Microbiology",
+    "topic": "Infectious Process",
+    "semester": "Semester 1",
+    "program": "nd-nursing"
+  },
+  {
+    "id": "exam-y1-003",
+    "question": "Apply the nursing process (ADPIE) to a patient with postoperative pain.",
+    "answer": "Assessment: Evaluate pain intensity (scale 0-10). Diagnosis: Acute pain related to surgical incision. Planning: Patient will report pain <3/10 within 30 mins. Implementation: Administer prescribed analgesics and reposition. Evaluation: Re-assess pain level.",
+    "difficulty": "Hard",
+    "level": "Year 1",
+    "subject": "Foundation of Nursing I",
+    "topic": "Nursing Process",
+    "semester": "Semester 1",
+    "program": "nd-nursing"
+  },
+  {
+    "id": "exam-y1-004",
+    "question": "What is the purpose of a pulse oximeter and how does a nurse use it?",
+    "answer": "Purpose: To non-invasively measure the oxygen saturation (SpO2) of arterial blood. Use: Attach the sensor to a finger, toe, or earlobe, ensure good perfusion, and monitor the percentage reading on the device.",
+    "difficulty": "Easy",
+    "level": "Year 1",
+    "subject": "Nursing Informatics",
+    "topic": "Monitoring Devices",
+    "semester": "Semester 1",
+    "program": "nd-nursing"
+  },
+  {
+    "id": "exam-y1-005",
+    "question": "List three characteristics of a polyvalent nurse.",
+    "answer": "1. Versatility in various clinical settings, 2. Proficiency in multi-disciplinary care, 3. Strong critical thinking and problem-solving abilities in holistic patient management.",
+    "difficulty": "Moderate",
+    "level": "Year 1",
+    "subject": "Foundation of Nursing I",
+    "topic": "Introduction to Nursing",
+    "semester": "Semester 1",
+    "program": "nd-nursing"
+  },
+  {
+    "id": "exam-y2-001",
+    "question": "List the 12 cranial nerves in order.",
+    "answer": "I: Olfactory, II: Optic, III: Oculomotor, IV: Trochlear, V: Trigeminal, VI: Abducent, VII: Facial, VIII: Vestibulocochlear, IX: Glossopharyngeal, X: Vagus, XI: Accessory, XII: Hypoglossal.",
+    "difficulty": "Hard",
+    "level": "Year 2",
+    "subject": "Anatomy and Physiology III",
+    "topic": "Nervous System",
+    "semester": "Semester 1",
+    "program": "nd-nursing"
+  },
+  {
+    "id": "exam-y2-002",
+    "question": "Describe the procedure for nasogastric tube (NGT) insertion.",
+    "answer": "1. Measure tube from nose to earlobe to xiphoid process. 2. Lubricate tip. 3. Insert through nostril, asking patient to swallow. 4. Advance to mark. 5. Verify placement by aspirating gastric contents (pH <5.5) or X-ray.",
+    "difficulty": "Hard",
+    "level": "Year 2",
+    "subject": "Foundation of Nursing III",
+    "topic": "Feeding Problems",
+    "semester": "Semester 1",
+    "program": "nd-nursing"
+  },
+  {
+    "id": "exam-y2-003",
+    "question": "List the diseases preventable by immunization in the Nigerian EPI schedule.",
+    "answer": "Tuberculosis (BCG), Polio, Diphtheria, Pertussis, Tetanus, Measles, Hepatitis B, Yellow Fever, and Haemophilus influenzae type b (Hib).",
+    "difficulty": "Moderate",
+    "level": "Year 2",
+    "subject": "Primary Health Care II",
+    "topic": "Components of PHC",
+    "semester": "Semester 1",
+    "program": "nd-nursing"
+  },
+  {
+    "id": "exam-y2-004",
+    "question": "Explain the concept of pharmacovigilance.",
+    "answer": "Pharmacovigilance is the science and activities relating to the detection, assessment, understanding, and prevention of adverse effects or any other drug-related problems to ensure patient safety.",
+    "difficulty": "Moderate",
+    "level": "Year 2",
+    "subject": "Pharmacology II",
+    "topic": "Pharmacovigilance",
+    "semester": "Semester 1",
+    "program": "nd-nursing"
+  },
+  {
+    "id": "exam-y2-005",
+    "question": "What are the primary stages of grief according to Elizabeth Kubler-Ross?",
+    "answer": "1. Denial (refusal to accept), 2. Anger (frustration), 3. Bargaining (negotiating for time), 4. Depression (deep sadness), 5. Acceptance (peace with reality).",
+    "difficulty": "Moderate",
+    "level": "Year 2",
+    "subject": "Foundation of Nursing IV",
+    "topic": "The Dying Patient",
+    "semester": "Semester 2",
+    "program": "nd-nursing"
+  },
+  {
+    "id": "exam-y3-001",
+    "question": "Define the Glasgow Coma Scale (GCS) and its components.",
+    "answer": "GCS is a neurological scale to record the conscious state of a person. Components: Eye Opening (1-4), Verbal Response (1-5), and Motor Response (1-6). Minimum score is 3, maximum is 15.",
+    "difficulty": "Hard",
+    "level": "Year 3",
+    "subject": "Medical Surgical Nursing III",
+    "topic": "Neurological Disorders",
+    "semester": "Semester 1",
+    "program": "nd-nursing"
+  },
+  {
+    "id": "exam-y3-002",
+    "question": "Describe the 'ABCDEF' of resuscitation in emergency management.",
+    "answer": "A: Airway maintenance, B: Breathing and ventilation, C: Circulation and hemorrhage control, D: Disability (neurological status), E: Exposure/Environmental control, F: Full set of vitals/Family presence.",
+    "difficulty": "Hard",
+    "level": "Year 3",
+    "subject": "Emergency and Disaster Nursing",
+    "topic": "Emergency Management",
+    "semester": "Semester 1",
+    "program": "nd-nursing"
+  },
+  {
+    "id": "exam-y3-003",
+    "question": "Explain the difference between benign and malignant tumors.",
+    "answer": "Benign: Non-cancerous, encapsulated, slow-growing, does not spread. Malignant: Cancerous, invasive, rapid growth, can metastasize to distant organs via blood or lymph.",
+    "difficulty": "Moderate",
+    "level": "Year 3",
+    "subject": "Medical Surgical Nursing V",
+    "topic": "Oncology",
+    "semester": "Semester 2",
+    "program": "nd-nursing"
+  },
+  {
+    "id": "exam-y3-004",
+    "question": "What are the components of the IMCI assessment for a sick child?",
+    "answer": "Assess for General Danger Signs, Cough or Difficult Breathing, Diarrhea, Fever, Ear Problems, and Malnutrition/Anemia. Then check immunization and vitamin A status.",
+    "difficulty": "Hard",
+    "level": "Year 3",
+    "subject": "Reproductive Health V",
+    "topic": "IMCI",
+    "semester": "Semester 2",
+    "program": "nd-nursing"
+  },
+  {
+    "id": "exam-y3-005",
+    "question": "Define vicarious liability in nursing management.",
+    "answer": "Vicarious liability is a legal doctrine where an employer is held liable for the negligent actions of an employee that occur within the scope of their professional duties and employment.",
+    "difficulty": "Moderate",
+    "level": "Year 3",
+    "subject": "Principle of Management and Teaching",
+    "topic": "Administrative Laws",
+    "semester": "Semester 2",
+    "program": "nd-nursing"
+  }
+]
