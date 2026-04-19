@@ -1,0 +1,77 @@
+{
+  "courses": [
+    {
+      "id": "osce-comp",
+      "title": "OSCE Procedures",
+      "category": "OSCE",
+      "units": [
+        {
+          "unit_number": "Category A",
+          "title": "Administration of drugs",
+          "flashcards": [
+            {
+              "id": "osce-A1-001",
+              "question": "What are the legal requirements for administering a controlled/dangerous drug?",
+              "answer": "Prescription must be written; two nurses must witness preparation and waste; documentation in controlled drug register; secure storage in a locked cabinet.",
+              "difficulty": "Hard"
+            },
+            {
+              "id": "osce-A1-002",
+              "question": "A patient requires morphine for severe pain. What steps must the nurse take before administration?",
+              "answer": "Verify order, check patient identity, assess pain level, check for allergies, witness drawing up of drug with another nurse, and document.",
+              "difficulty": "Hard"
+            },
+            {
+              "id": "osce-A1-003",
+              "question": "What should a nurse do if a patient refuses a dose of a dangerous drug?",
+              "answer": "Respect refusal, explore reasons, document, and notify the prescribing physician.",
+              "difficulty": "Moderate"
+            },
+            {
+              "id": "osce-A1-004",
+              "question": "What is the correct procedure for wasting a portion of a controlled drug?",
+              "answer": "A second nurse must witness the wasting, both sign the controlled drug register, and the wasted amount is recorded.",
+              "difficulty": "Moderate"
+            },
+            {
+              "id": "osce-A1-005",
+              "question": "How often should controlled drug stock be counted in a ward?",
+              "answer": "At every shift change, or as per facility policy (usually every 8 hours).",
+              "difficulty": "Moderate"
+            },
+            {
+              "id": "osce-A3-001",
+              "question": "List the equipment needed to set up an intravenous infusion.",
+              "answer": "IV fluid bag, administration set, cannula, dressing, tourniquet, antiseptic swabs, tape, and IV pole.",
+              "difficulty": "Moderate"
+            },
+            {
+              "id": "osce-A3-002",
+              "question": "Calculate the drip rate for 1000 ml of normal saline to be infused over 8 hours using a giving set with a drop factor of 20 drops/ml.",
+              "answer": "Total minutes = 8 × 60 = 480 minutes. Drops/min = (1000 × 20) ÷ 480 = 41.7 ≈ 42 drops/min.",
+              "difficulty": "Hard"
+            },
+            {
+              "id": "osce-A3-003",
+              "question": "What are the signs of infiltration of an IV line?",
+              "answer": "Swelling, pallor, coolness around the site, decreased flow rate, and patient discomfort.",
+              "difficulty": "Moderate"
+            },
+            {
+              "id": "osce-A3-004",
+              "question": "A patient's IV site becomes red, warm, and tender. What complication do you suspect and what is your immediate action?",
+              "answer": "Phlebitis. Immediate action: stop infusion, remove cannula, apply warm compress, and restart IV in a different vein.",
+              "difficulty": "Hard"
+            },
+            {
+              "id": "osce-A3-005",
+              "question": "What is the correct procedure for changing an IV bag?",
+              "answer": "Perform hand hygiene, clamp old tubing, remove old bag, spike new bag, unclamp, adjust rate, label with date/time, and document.",
+              "difficulty": "Moderate"
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

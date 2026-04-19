@@ -1,0 +1,33 @@
+{
+  "courses": [
+    {
+      "id": "mental-301-comp",
+      "title": "Mental Health Nursing",
+      "year": 3,
+      "semester": 1,
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Introduction to Mental Health",
+          "flashcards": [
+            { "id": "mhn-u1-001", "question": "Define 'Mental Health' according to WHO.", "answer": "A state of well-being in which every individual realizes his or her own potential, can cope with the normal stresses of life, can work productively and fruitfully, and is able to make a contribution to her or his community.", "difficulty": "Moderate" },
+            { "id": "mhn-u1-002", "question": "What is 'Mental Illness'?", "answer": "Health conditions involving changes in emotion, thinking, or behavior (or a combination of these) associated with distress and/or problems functioning in social, work, or family activities.", "difficulty": "Moderate" },
+            { "id": "mhn-u1-003", "question": "List four warning signs of mental illness.", "answer": "1. Excessive fear or anxiety, 2. Long-lasting sadness or irritability, 3. Social withdrawal, 4. Dramatic changes in eating or sleeping habits.", "difficulty": "Easy" },
+            { "id": "mhn-u1-004", "question": "What is the difference between Psychosis and Neurosis?", "answer": "Psychosis involves a loss of contact with reality (e.g., hallucinations, delusions). Neurosis involves distressing symptoms (e.g., anxiety, depression) but reality testing remains intact.", "difficulty": "Hard" },
+            { "id": "mhn-u1-005", "question": "Define 'Hallucination'.", "answer": "A sensory perception (seeing, hearing, smelling, tasting, or feeling) that occurs in the absence of an external stimulus.", "difficulty": "Moderate" },
+            { "id": "mhn-u1-006", "question": "Define 'Delusion'.", "answer": "A fixed, false belief that is resistant to reason or contrary to actual fact, maintained despite evidence to the contrary.", "difficulty": "Moderate" },
+            { "id": "mhn-u1-007", "question": "What is 'Schizophrenia'?", "answer": "A chronic and severe mental disorder that affects how a person thinks, feels, and behaves, often characterized by psychotic symptoms.", "difficulty": "Hard" },
+            { "id": "mhn-u1-008", "question": "List the three main components of a Mental Status Examination (MSE).", "answer": "1. Appearance and behavior, 2. Mood and affect, 3. Thought process and content.", "difficulty": "Moderate" },
+            { "id": "mhn-u1-009", "question": "What is 'Therapeutic Communication' in mental health nursing?", "answer": "An interactive process between the nurse and the patient that helps the patient overcome temporary stress, to get along with others, to adjust the unalterable, and to overcome psychological blocks.", "difficulty": "Moderate" },
+            { "id": "mhn-u1-010", "question": "Define 'Anxiety'.", "answer": "A feeling of unease, such as worry or fear, that can be mild or severe, often accompanied by physical symptoms like rapid heartbeat.", "difficulty": "Easy" },
+            { "id": "mhn-u1-011", "question": "What is 'Clinical Depression' (MDD)?", "answer": "A mood disorder that causes a persistent feeling of sadness and loss of interest, significantly impairing daily life.", "difficulty": "Moderate" },
+            { "id": "mhn-u1-012", "question": "Define 'Bipolar Disorder'.", "answer": "A mental disorder marked by alternating periods of elation (mania) and depression.", "difficulty": "Moderate" },
+            { "id": "mhn-u1-013", "question": "What is 'Crisis Intervention'?", "answer": "Short-term psychological care intended to help individuals in a crisis situation to restore equilibrium and prevent long-term trauma.", "difficulty": "Hard" },
+            { "id": "mhn-u1-014", "question": "Explain 'Deinstitutionalization'.", "answer": "The policy of moving severely mentally ill people out of large state institutions and then closing part or all of those institutions.", "difficulty": "Moderate" },
+            { "id": "mhn-u1-015", "question": "What is the nurse's primary role in psychiatric emergencies (e.g., suicidal patient)?", "answer": "To ensure the immediate safety of the patient, establish a 'no-harm' contract, provide continuous observation, and facilitate urgent psychiatric evaluation.", "difficulty": "Hard" }
+          ]
+        }
+      ]
+    }
+  ]
+}

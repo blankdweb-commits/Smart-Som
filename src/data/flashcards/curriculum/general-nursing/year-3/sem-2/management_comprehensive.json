@@ -1,0 +1,33 @@
+{
+  "courses": [
+    {
+      "id": "mgmt-302-comp",
+      "title": "Principle of Management and Teaching",
+      "year": 3,
+      "semester": 2,
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Management Functions",
+          "flashcards": [
+            { "id": "pmt-u1-001", "question": "List the five functions of management.", "answer": "1. Planning, 2. Organizing, 3. Staffing, 4. Directing, 5. Controlling.", "difficulty": "Moderate" },
+            { "id": "pmt-u1-002", "question": "What is 'Management by Objectives' (MBO)?", "answer": "A strategic management model that aims to improve organizational performance by clearly defining objectives that are agreed to by both management and employees.", "difficulty": "Hard" },
+            { "id": "pmt-u1-003", "question": "Define 'Delegation' in nursing.", "answer": "The process of transferring the authority and responsibility to another team member to perform a task, while retaining accountability for the outcome.", "difficulty": "Moderate" },
+            { "id": "pmt-u1-004", "question": "List three leadership styles.", "answer": "1. Autocratic (centralized decision-making), 2. Democratic (participative), 3. Laissez-faire (hands-off).", "difficulty": "Easy" },
+            { "id": "pmt-u1-005", "question": "What is the difference between authority and responsibility?", "answer": "Authority is the power or right to give orders and make decisions. Responsibility is the obligation to perform assigned tasks.", "difficulty": "Moderate" },
+            { "id": "pmt-u1-006", "question": "Define 'Conflict Management'.", "answer": "The process of limiting the negative aspects of conflict while increasing the positive aspects of conflict.", "difficulty": "Moderate" },
+            { "id": "pmt-u1-007", "question": "What is a 'Job Description'?", "answer": "A written statement of the tasks, duties, and responsAuthority required of a specific job.", "difficulty": "Easy" },
+            { "id": "pmt-u1-008", "question": "Explain 'Span of Control'.", "answer": "The number of subordinates a supervisor can efficiently and effectively direct.", "difficulty": "Moderate" },
+            { "id": "pmt-u1-009", "question": "What is 'Quality Assurance' in healthcare?", "answer": "A systematic process of evaluating and monitoring healthcare services to ensure they meet established standards of quality.", "difficulty": "Hard" },
+            { "id": "pmt-u1-010", "question": "Define 'Nursing Audit'.", "answer": "The systematic and critical examination of nursing care records to evaluate the quality of nursing care provided.", "difficulty": "Hard" },
+            { "id": "pmt-u1-011", "question": "List four resources in nursing management.", "answer": "1. Human (staff), 2. Material (supplies), 3. Financial (budget), 4. Time.", "difficulty": "Easy" },
+            { "id": "pmt-u1-012", "question": "What is 'Interprofessional Collaboration'?", "answer": "When multiple health workers from different professional backgrounds work together with patients and families to deliver the highest quality of care.", "difficulty": "Moderate" },
+            { "id": "pmt-u1-013", "question": "Define 'Administrative Law' in nursing.", "answer": "Rules and regulations developed by government agencies (like N&MCN) to oversee professional practice and public safety.", "difficulty": "Hard" },
+            { "id": "pmt-u1-014", "question": "Explain the concept of 'Just Culture'.", "answer": "An environment where front-line operators and others are not punished for actions, omissions, or decisions taken by them that are commensurate with their experience and training, but where gross negligence is not tolerated.", "difficulty": "Hard" },
+            { "id": "pmt-u1-015", "question": "What is 'Vicarious Liability'?", "answer": "A legal doctrine that assigns responsibility to an employer for the actions of their employees while they are working within the scope of their employment.", "difficulty": "Hard" }
+          ]
+        }
+      ]
+    }
+  ]
+}
