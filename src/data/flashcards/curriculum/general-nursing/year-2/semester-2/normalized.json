@@ -1,0 +1,244 @@
+{
+  "metadata": {
+    "program": "General Nursing",
+    "level": "Year 2",
+    "semester": "Semester 2",
+    "version": "3.1"
+  },
+  "courses": [
+    {
+      "title": "Foundation of Nursing IV",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "flashcards": [
+            {
+              "question": "What is the care for a patient in a Plaster of Paris (POP)?",
+              "answer": "Check circulation, keep dry, avoid weight bearing until set, and monitor for skin irritation.",
+              "difficulty": "intermediate",
+              "important": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Medical Surgical Nursing III",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "flashcards": [
+            {
+              "question": "Define a Fracture.",
+              "answer": "A break in the continuity of a bone.",
+              "difficulty": "beginner",
+              "important": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Pharmacology III",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "flashcards": [
+            {
+              "question": "What is the primary use of Anti-hypertensive drugs?",
+              "answer": "To lower and manage high blood pressure.",
+              "difficulty": "beginner",
+              "important": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Research methodology II",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "flashcards": [
+            {
+              "question": "What is a Cross-sectional study?",
+              "answer": "A study that analyzes data from a population at a specific point in time.",
+              "difficulty": "advanced",
+              "important": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Community Health Nursing I",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "flashcards": [
+            {
+              "question": "Explain the Multi-disciplinary approach in community health.",
+              "answer": "Collaboration between different health professionals (doctors, nurses, social workers) to provide comprehensive care.",
+              "difficulty": "intermediate",
+              "important": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Reproductive Health II",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "flashcards": [
+            {
+              "question": "What are the four pillars of Safe Motherhood?",
+              "answer": "1. Family Planning, 2. Antenatal Care, 3. Clean and Safe Delivery, 4. Essential Obstetric Care.",
+              "difficulty": "Moderate",
+              "important": false
+            },
+            {
+              "question": "Define 'Maternal Mortality Ratio'.",
+              "answer": "The number of maternal deaths per 100,000 live births during a specified time period.",
+              "difficulty": "Hard",
+              "important": false
+            },
+            {
+              "question": "List three components of the Mother-Baby Package.",
+              "answer": "1. Before and during pregnancy care, 2. During delivery care, 3. After delivery care (postpartum and newborn).",
+              "difficulty": "Moderate",
+              "important": false
+            },
+            {
+              "question": "What is the goal of Antenatal Care (ANC)?",
+              "answer": "To monitor the progress of pregnancy, detect and manage complications early, and prepare the woman for childbirth and motherhood.",
+              "difficulty": "Easy",
+              "important": false
+            },
+            {
+              "question": "Name the four stages of labor.",
+              "answer": "1. Dilation, 2. Expulsion (delivery of baby), 3. Placental stage (delivery of placenta), 4. Recovery stage.",
+              "difficulty": "Moderate",
+              "important": false
+            },
+            {
+              "question": "What is 'Exclusive Breastfeeding'?",
+              "answer": "Giving a baby only breast milk (including expressed milk) for the first six months, with no other liquids or solids, except vitamins/medicines.",
+              "difficulty": "Easy",
+              "important": false
+            },
+            {
+              "question": "Define 'Eclampsia'.",
+              "answer": "The new onset of grand mal seizures in a woman with preeclampsia.",
+              "difficulty": "Hard",
+              "important": false
+            },
+            {
+              "question": "List three signs of fetal distress during labor.",
+              "answer": "1. Abnormal fetal heart rate (tachycardia/bradycardia), 2. Meconium-stained liquor, 3. Decreased fetal movement.",
+              "difficulty": "Hard",
+              "important": false
+            },
+            {
+              "question": "What is the purpose of a 'Partograph'?",
+              "answer": "A graphical tool used to monitor labor progress, detect prolonged or obstructed labor, and guide timely interventions.",
+              "difficulty": "Moderate",
+              "important": false
+            },
+            {
+              "question": "Define 'Postpartum Hemorrhage' (PPH).",
+              "answer": "Blood loss of 500 ml or more within 24 hours after a vaginal birth, or 1000 ml or more after a cesarean section.",
+              "difficulty": "Hard",
+              "important": false
+            },
+            {
+              "question": "What is 'Active Management of the Third Stage of Labor' (AMTSL)?",
+              "answer": "Interventions (uterotonics, controlled cord traction, uterine massage) to prevent PPH during placenta delivery.",
+              "difficulty": "Hard",
+              "important": false
+            },
+            {
+              "question": "List three benefits of Family Planning.",
+              "answer": "1. Reduced maternal/infant mortality, 2. Prevention of unintended pregnancies, 3. Empowerment of women and economic stability.",
+              "difficulty": "Moderate",
+              "important": false
+            },
+            {
+              "question": "What is 'Puerperal Sepsis'?",
+              "answer": "Infection of the genital tract occurring at any time between the onset of rupture of membranes or labor, and the 42nd day postpartum.",
+              "difficulty": "Hard",
+              "important": false
+            },
+            {
+              "question": "Define 'Neonatal Tetanus'.",
+              "answer": "A severe form of tetanus occurring in newborns, usually due to unsterile umbilical cord care.",
+              "difficulty": "Moderate",
+              "important": false
+            },
+            {
+              "question": "What is 'Emergency Obstetric Care' (EmOC)?",
+              "answer": "Life-saving services for maternal and newborn complications provided by facilities and health professionals.",
+              "difficulty": "Moderate",
+              "important": false
+            },
+            {
+              "question": "What is the goal of Safe Motherhood?",
+              "answer": "To ensure that all women receive the care they need to be safe and healthy throughout pregnancy and childbirth.",
+              "difficulty": "beginner",
+              "important": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Nutrition and Dietetics",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "flashcards": [
+            {
+              "question": "What is the biological importance of Vitamins?",
+              "answer": "They are essential for various biochemical reactions and overall health, despite being needed in small amounts.",
+              "difficulty": "intermediate",
+              "important": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Introduction to professional Writing and seminar in Nursing",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "flashcards": [
+            {
+              "question": "What is a Nursing Case Study?",
+              "answer": "An in-depth analysis of an individual patient's care, diagnosis, and outcomes.",
+              "difficulty": "intermediate",
+              "important": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Politics and Governance in Nursing",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "flashcards": [
+            {
+              "question": "How does the Constitution affect nursing practice?",
+              "answer": "It provides the legal framework for citizen rights, including the right to health and professional regulation.",
+              "difficulty": "advanced",
+              "important": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

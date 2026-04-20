@@ -13,7 +13,12 @@ export const allBuiltInFlashcards = Object.entries(modules).flatMap(([path, modu
   if (inferredCategory === 'Curriculum') {
     inferredProgram = parts[fIdx + 2]; // e.g. 'nd-nursing'
     inferredLevel = parts[fIdx + 3] ? parts[fIdx + 3].replace('year-', 'Year ') : 'Year 1';
-    inferredSemester = parts[fIdx + 4] ? parts[fIdx + 4].replace('sem-', 'Semester ') : 'Semester 1';
+    // Normalize Year capitalization
+    inferredLevel = inferredLevel.charAt(0).toUpperCase() + inferredLevel.slice(1);
+
+    inferredSemester = parts[fIdx + 4] ? parts[fIdx + 4].replace('sem-', 'Semester ').replace('semester-', 'Semester ') : 'Semester 1';
+    // Normalize Semester capitalization
+    inferredSemester = inferredSemester.charAt(0).toUpperCase() + inferredSemester.slice(1);
   } else {
     inferredLevel = parts[fIdx + 2] ? parts[fIdx + 2].replace('year-', 'Year ') : 'Year 1';
     inferredSemester = parts[fIdx + 3] ? parts[fIdx + 3].replace('sem-', 'Semester ') : 'Semester 1';

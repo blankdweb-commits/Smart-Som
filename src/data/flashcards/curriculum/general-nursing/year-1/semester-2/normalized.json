@@ -1,0 +1,150 @@
+{
+  "metadata": {
+    "program": "General Nursing",
+    "level": "Year 1",
+    "semester": "Semester 2",
+    "version": "3.1"
+  },
+  "courses": [
+    {
+      "title": "Primary Health Care I",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "flashcards": [
+            {
+              "question": "What are the elements of PHC?",
+              "answer": "Education, nutrition, safe water/sanitation, maternal/child health, immunization, prevention of endemic diseases, appropriate treatment, and essential drugs.",
+              "difficulty": "intermediate",
+              "important": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Pharmacology I",
+      "units": [
+        {
+          "unit_number": "Unit IV",
+          "flashcards": [
+            {
+              "question": "Name five rights of drug administration.",
+              "answer": "Right patient, Right drug, Right dose, Right route, Right time.",
+              "difficulty": "beginner",
+              "important": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Anatomy and Physiology II",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "flashcards": [
+            {
+              "question": "Differentiate between compact and cancellous bone.",
+              "answer": "Compact bone is dense; cancellous bone is spongy and light.",
+              "difficulty": "intermediate",
+              "important": false
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit II",
+          "flashcards": [
+            {
+              "question": "What is the function of the small intestine?",
+              "answer": "Absorption of nutrients and further digestion.",
+              "difficulty": "intermediate",
+              "important": false
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit III",
+          "flashcards": [
+            {
+              "question": "What is the functional unit of the kidney?",
+              "answer": "The Nephron.",
+              "difficulty": "beginner",
+              "important": false
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit IV",
+          "flashcards": [
+            {
+              "question": "What is the function of the Ovaries?",
+              "answer": "Producing eggs (ova) and female sex hormones.",
+              "difficulty": "beginner",
+              "important": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Foundation of nursing II",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "flashcards": [
+            {
+              "question": "What is the role of the nurse in drug administration?",
+              "answer": "Verification, preparation, administration, and monitoring for side effects.",
+              "difficulty": "intermediate",
+              "important": false
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit II",
+          "flashcards": [
+            {
+              "question": "Define Asepsis.",
+              "answer": "Freedom from infection or infectious material.",
+              "difficulty": "beginner",
+              "important": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Medico/Surgical Nursing I",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "flashcards": [
+            {
+              "question": "Define Holistic care.",
+              "answer": "Care that treats the whole person, taking into account mental and social factors, rather than just the physical symptoms of a disease.",
+              "difficulty": "intermediate",
+              "important": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Nursing Ethics and Jurisprudence",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "flashcards": [
+            {
+              "question": "What is Informed Consent?",
+              "answer": "Permission granted by a patient to a doctor for treatment with full knowledge of the risks and benefits.",
+              "difficulty": "intermediate",
+              "important": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,272 @@
+{
+  "metadata": {
+    "program": "General Nursing",
+    "level": "Year 2",
+    "semester": "Semester 1",
+    "version": "3.1"
+  },
+  "courses": [
+    {
+      "title": "Anatomy and Physiology III",
+      "units": [
+        {
+          "unit_number": "Unit i",
+          "flashcards": [
+            {
+              "question": "What is the function of the Dermis?",
+              "answer": "Provides structural support, contains nerves, blood vessels, and hair follicles.",
+              "difficulty": "intermediate",
+              "important": false
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit ii",
+          "flashcards": [
+            {
+              "question": "What is the function of the Thyroid gland?",
+              "answer": "Regulates metabolism, growth, and development via thyroid hormones.",
+              "difficulty": "intermediate",
+              "important": false
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit iii",
+          "flashcards": [
+            {
+              "question": "What are the two divisions of the Autonomic Nervous System?",
+              "answer": "Sympathetic (fight or flight) and Parasympathetic (rest and digest).",
+              "difficulty": "intermediate",
+              "important": false
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit iv",
+          "flashcards": [
+            {
+              "question": "Explain the mechanism of vision.",
+              "answer": "Light entering the eye is focused by the lens onto the retina, which sends signals to the brain.",
+              "difficulty": "advanced",
+              "important": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Foundation of Nursing II",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "flashcards": [
+            {
+              "question": "What is a Flatus Tube used for?",
+              "answer": "To relieve abdominal distension caused by gas.",
+              "difficulty": "intermediate",
+              "important": false
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit II",
+          "flashcards": [
+            {
+              "question": "What is a Bladder Irrigation?",
+              "answer": "A procedure to flush the bladder to prevent or treat blood clots after surgery.",
+              "difficulty": "advanced",
+              "important": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Medical/Surgical Nursing II",
+      "units": [
+        {
+          "unit_number": "Unit 1",
+          "flashcards": [
+            {
+              "question": "What is an Underwater Seal Drainage?",
+              "answer": "A system used to remove air or fluid from the pleural space while preventing it from returning.",
+              "difficulty": "advanced",
+              "important": false
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit II",
+          "flashcards": [
+            {
+              "question": "Describe the signs of a Peptic Ulcer.",
+              "answer": "Abdominal pain, bloating, heartburn, and nausea.",
+              "difficulty": "intermediate",
+              "important": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Primary Health Care II",
+      "units": [
+        {
+          "unit_number": "Unit 1",
+          "flashcards": [
+            {
+              "question": "What is the goal of Maternal and Child Health Services?",
+              "answer": "To reduce morbidity and mortality among mothers and children through preventive and curative care.",
+              "difficulty": "intermediate",
+              "important": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Pharmacology II",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "flashcards": [
+            {
+              "question": "What is the Essential Drugs Concept?",
+              "answer": "It focuses on providing medicines that satisfy the priority healthcare needs of the population, selected with due regard to public health relevance, evidence on efficacy and safety, and comparative cost-effectiveness.",
+              "difficulty": "Moderate",
+              "important": false
+            },
+            {
+              "question": "Define 'Pharmacovigilance'.",
+              "answer": "The science and activities relating to the detection, assessment, understanding, and prevention of adverse effects or any other drug-related problems.",
+              "difficulty": "Moderate",
+              "important": false
+            },
+            {
+              "question": "List three roles of a nurse in the Essential Drug Programme.",
+              "answer": "1. Ensuring rational use of drugs, 2. Educating patients on adherence, 3. Monitoring and reporting adverse drug reactions (ADRs).",
+              "difficulty": "Moderate",
+              "important": false
+            },
+            {
+              "question": "What is the purpose of the Nigerian National Formulary?",
+              "answer": "To provide health professionals with up-to-date, accurate, and unbiased information on medicines available in Nigeria for rational prescribing and dispensing.",
+              "difficulty": "Moderate",
+              "important": false
+            },
+            {
+              "question": "What are 'Generic' medicines?",
+              "answer": "Pharmaceutical products which are intended to be interchangeable with an innovator product that is manufactured without a license from the innovator company.",
+              "difficulty": "Easy",
+              "important": false
+            },
+            {
+              "question": "Explain 'Drug Revolving Fund' (DRF).",
+              "answer": "A financial mechanism where drugs are sold at a cost-recovery price plus a small markup to ensure continuous availability of essential medicines.",
+              "difficulty": "Moderate",
+              "important": false
+            },
+            {
+              "question": "List four sources of drugs.",
+              "answer": "Plants (e.g., morphine), Animals (e.g., insulin), Minerals (e.g., iron), and Synthetic (e.g., paracetamol).",
+              "difficulty": "Easy",
+              "important": false
+            },
+            {
+              "question": "What is an 'Adverse Drug Reaction' (ADR)?",
+              "answer": "An appreciably harmful or unpleasant reaction, resulting from an intervention related to the use of a medicinal product.",
+              "difficulty": "Moderate",
+              "important": false
+            },
+            {
+              "question": "Define 'Drug Abuse'.",
+              "answer": "The habitual taking of addictive or illegal drugs, or the use of prescribed drugs in a way not intended by the prescriber.",
+              "difficulty": "Moderate",
+              "important": false
+            },
+            {
+              "question": "What is the 'Therapeutic Index' of a drug?",
+              "answer": "A comparison of the amount of a therapeutic agent that causes the therapeutic effect to the amount that causes toxicity.",
+              "difficulty": "Hard",
+              "important": false
+            },
+            {
+              "question": "Explain 'Pharmacokinetics'.",
+              "answer": "The study of what the body does to a drug (Absorption, Distribution, Metabolism, Excretion - ADME).",
+              "difficulty": "Moderate",
+              "important": false
+            },
+            {
+              "question": "Explain 'Pharmacodynamics'.",
+              "answer": "The study of what a drug does to the body (biochemical and physiological effects).",
+              "difficulty": "Moderate",
+              "important": false
+            },
+            {
+              "question": "What are the 'Five Rights' of drug administration?",
+              "answer": "Right Patient, Right Drug, Right Dose, Right Route, Right Time.",
+              "difficulty": "Easy",
+              "important": false
+            },
+            {
+              "question": "Define 'Teratogenicity'.",
+              "answer": "The ability of a drug to cause abnormalities or defects in a developing fetus.",
+              "difficulty": "Moderate",
+              "important": false
+            },
+            {
+              "question": "What is 'Polypharmacy' and why is it a concern?",
+              "answer": "The use of multiple medications by a patient. Concern: increased risk of drug-drug interactions and adverse effects.",
+              "difficulty": "Moderate",
+              "important": false
+            }
+          ]
+        },
+        {
+          "unit_number": "Unit 1",
+          "flashcards": [
+            {
+              "question": "Why is a National Drug Policy important?",
+              "answer": "To ensure the availability, safety, and rational use of essential medicines.",
+              "difficulty": "advanced",
+              "important": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Reproductive Health I",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "flashcards": [
+            {
+              "question": "Define Reproductive Health.",
+              "answer": "A state of complete physical, mental, and social well-being in all matters relating to the reproductive system.",
+              "difficulty": "intermediate",
+              "important": false
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "title": "Research and statistics I",
+      "units": [
+        {
+          "unit_number": "Unit 1",
+          "flashcards": [
+            {
+              "question": "What is the importance of Referencing in research?",
+              "answer": "To acknowledge sources, avoid plagiarism, and allow readers to verify information.",
+              "difficulty": "beginner",
+              "important": false
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
