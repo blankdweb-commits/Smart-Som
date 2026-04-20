@@ -39,7 +39,7 @@ async def verify():
         await page.click("button:has-text('Research')")
 
         # Wait for results
-        await page.wait_for_selector("text=Heart Anatomy & Labelling Diagram", timeout=10000)
+        await page.wait_for_selector("text=Heart: External and Internal Anatomy", timeout=10000)
         print("Search Assistant returned correct result for 'heart'")
 
         # Verify "Generate Flashcard" button
