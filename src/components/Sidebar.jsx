@@ -9,7 +9,6 @@ const Sidebar = () => {
     { name: 'Flashcards', icon: BookOpen, path: '/flashcards' },
     { name: 'Quiz Mode', icon: Brain, path: '/quiz' },
     { name: 'Exam Timetable', icon: Calendar, path: '/exams' },
-    { name: 'Clinical Search', icon: Search, path: '/search' },
     { name: 'Pronunciation', icon: Volume2, path: '/pronunciation' },
     { name: 'Community', icon: Users, path: '/community' },
     { name: 'Settings', icon: Settings, path: '/settings' },

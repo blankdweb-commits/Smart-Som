@@ -6,7 +6,6 @@ import Dashboard from './pages/Dashboard';
 import Flashcards from './pages/Flashcards';
 import ExamTimetable from './pages/ExamTimetable';
 import PronunciationHelper from './pages/PronunciationHelper';
-import ClinicalSearchAssistant from './pages/ClinicalSearchAssistant';
 import Quiz from './pages/Quiz';
 import Community from './pages/Community';
 import Settings from './pages/Settings';
@@ -52,7 +51,6 @@ function App() {
             <Route path="/flashcards" element={<Flashcards />} />
             <Route path="/quiz" element={<Quiz />} />
             <Route path="/exams" element={<ExamTimetable />} />
-            <Route path="/search" element={<ClinicalSearchAssistant />} />
             <Route path="/pronunciation" element={<PronunciationHelper />} />
             <Route path="/community" element={<Community />} />
             <Route path="/settings" element={<Settings />} />

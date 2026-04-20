@@ -9,7 +9,6 @@ const BottomNav = () => {
     { name: 'Cards', icon: BookOpen, path: '/flashcards' },
     { name: 'Exams', icon: Calendar, path: '/exams' },
     { name: 'Circle', icon: Users, path: '/community' },
-    { name: 'Search', icon: Search, path: '/search' },
   ];
 
   return (

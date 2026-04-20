@@ -31,20 +31,14 @@ async def verify():
         await page.wait_for_selector("h3", timeout=5000)
         print("Found cards in Anatomy & Physiology I")
 
-        # Verify Search Assistant
+        # Verify Search Assistant is GONE
         await page.goto("http://localhost:5173/search")
-        # Fixed selector for placeholder
-        await page.wait_for_selector("input[placeholder*='Search for diagrams']")
-        await page.fill("input[placeholder*='Search for diagrams']", "heart")
-        await page.click("button:has-text('Research')")
-
-        # Wait for results
-        await page.wait_for_selector("text=Heart: External and Internal Anatomy", timeout=10000)
-        print("Search Assistant returned correct result for 'heart'")
-
-        # Verify "Generate Flashcard" button
-        await page.wait_for_selector("button:has-text('Generate Flashcard')")
-        print("Found Generate Flashcard button in search results")
+        # Should not find the search input
+        try:
+            await page.wait_for_selector("input[placeholder*='Search for diagrams']", timeout=2000)
+            print("ERROR: Search Assistant still exists!")
+        except:
+            print("Verified: Search Assistant is removed.")
 
         await browser.close()
 
