@@ -21,7 +21,21 @@ export function AppProvider({ children }) {
 
   const [exams, setExams] = useState(() => {
     const saved = localStorage.getItem('exams');
-    return saved ? JSON.parse(saved) : [];
+    const parsedExams = saved ? JSON.parse(saved) : [];
+
+    // Data Migration / Initialization for new fields
+    return parsedExams.map(exam => ({
+      ...exam,
+      lecturer: exam.lecturer || '',
+      type: exam.type || 'Written', // CBT, Written, Practical, Oral
+      priority: exam.priority || 'Medium', // High, Medium, Low
+      notes: exam.notes || '',
+      readiness: exam.readiness ?? 0,
+      topics: exam.topics || [],
+      reminders: exam.reminders || ['1 day before'],
+      studyMaterials: exam.studyMaterials || '',
+      acknowledgedReminders: exam.acknowledgedReminders || []
+    }));
   });
 
   const [darkMode, setDarkMode] = useState(() => {
