@@ -4,7 +4,7 @@ import ExamDashboard from '../components/ExamDashboard';
 import ExamCard from '../components/ExamCard';
 import ExamForm from '../components/ExamForm';
 import Toast from '../components/Toast';
-import { Plus, Download, Calendar as CalendarIcon, List, Share2, AlertCircle, Clock, CheckCircle2 } from 'lucide-react';
+import { Plus, Download, Calendar as CalendarIcon, List, Share2, AlertCircle, Clock, CheckCircle2 } from '../components/Icons';
 import { format, isSameDay, parseISO } from 'date-fns';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';

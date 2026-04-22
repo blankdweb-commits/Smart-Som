@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Star, Edit2, Trash2, HelpCircle, Info, Share2, Volume2 } from 'lucide-react';
+import { Star, Edit2, Trash2, HelpCircle, Info, Share2, Volume2 } from './Icons';
 import { motion, useMotionValue, useTransform } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
 const FlashcardCard = ({

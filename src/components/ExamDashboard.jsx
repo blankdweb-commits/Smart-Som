@@ -1,6 +1,6 @@
 import React from 'react';
 import { format, differenceInDays, isSameDay, isBefore, parseISO } from 'date-fns';
-import { Calendar, Clock, AlertTriangle, CheckCircle2, TrendingUp, Sparkles } from 'lucide-react';
+import { Calendar, Clock, AlertTriangle, CheckCircle2, TrendingUp, Sparkles } from './Icons';
 import { motion } from 'framer-motion';
 
 const ExamDashboard = ({ exams }) => {

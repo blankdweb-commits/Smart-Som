@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { format, differenceInDays, isSameDay, parseISO } from 'date-fns';
-import { MapPin, Clock, Edit2, Trash2, ChevronRight, CheckCircle2, AlertCircle, Calendar, User, BookOpen, ExternalLink, MoreVertical } from 'lucide-react';
+import { MapPin, Clock, Edit2, Trash2, ChevronRight, CheckCircle2, AlertCircle, Calendar, User, BookOpen, ExternalLink, MoreVertical } from './Icons';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ExamCard = ({ exam, onEdit, onDelete, onUpdateReadiness, onToggleTopic }) => {

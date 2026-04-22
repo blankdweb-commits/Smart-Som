@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Brain, CheckCircle2, XCircle, RefreshCw, ChevronRight, Trophy, AlertCircle } from 'lucide-react';
+import { Brain, CheckCircle2, XCircle, RefreshCw, ChevronRight, Trophy, AlertCircle } from '../components/Icons';
 
 const Quiz = () => {
   const { flashcards } = useAppContext();

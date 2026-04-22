@@ -1,6 +1,6 @@
 import React from 'react';
 import { useAppContext } from '../context/AppContext';
-import { BookOpen, Calendar, TrendingUp, Award } from 'lucide-react';
+import { BookOpen, Calendar, TrendingUp, Award } from '../components/Icons';
 import { format, differenceInDays } from 'date-fns';
 
 const Dashboard = () => {

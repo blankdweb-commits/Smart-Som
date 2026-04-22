@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Award, Users, Search, Brain } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Award, Users, Search, Brain } from './Icons';
 
 const Sidebar = () => {
 

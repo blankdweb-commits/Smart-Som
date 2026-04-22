@@ -1,5 +1,5 @@
 import React from 'react';
-import { Save, Key } from 'lucide-react';
+import { Save, Key } from '../components/Icons';
 
 const Settings = () => {
   return (

@@ -2,7 +2,7 @@ import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
-import { Sun, Moon, Calendar, Menu, Settings } from 'lucide-react';
+import { Sun, Moon, Calendar, Menu, Settings } from './Icons';
 import { useAppContext } from '../context/AppContext';
 
 const Layout = ({ children }) => {

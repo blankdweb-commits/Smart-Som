@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
-import { MessageSquare, Send, ThumbsUp, User, Clock, Share2, Award, Info, Image as ImageIcon, X } from 'lucide-react';
+import { MessageSquare, Send, ThumbsUp, User, Clock, Share2, Award, Info, ImageIcon, X } from '../components/Icons';
 import { supabase, isSupabaseConfigured } from '../utils/supabase';
 
 const Community = () => {

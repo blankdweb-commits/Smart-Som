@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Calendar, Award, Users, Volume2, Search, Brain } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Calendar, Award, Users, Volume2, Search, Brain } from './Icons';
 
 const BottomNav = () => {
   const navItems = [
