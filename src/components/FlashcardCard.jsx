@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, memo } from 'react';
 import { Star, Edit2, Trash2, HelpCircle, Info, Share2, Volume2 } from './Icons';
 import { motion, useMotionValue, useTransform } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
-const FlashcardCard = ({
+const FlashcardCard = memo(({
   card, onEdit, onDelete, onToggleImportant, onShare,
   isStudyMode = false, isFullscreen = false,
   onSwipeLeft, onSwipeRight
@@ -167,6 +167,6 @@ const FlashcardCard = ({
       </div>
     </motion.div>
   );
-};
+});
 
 export default FlashcardCard;

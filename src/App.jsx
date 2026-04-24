@@ -1,15 +1,23 @@
-import React, { useEffect } from 'react';
+import React, { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from 'react-router-dom';
 import { AppProvider, useAppContext } from './context/AppContext';
 import Layout from './components/Layout';
-import Dashboard from './pages/Dashboard';
-import Flashcards from './pages/Flashcards';
-import ExamTimetable from './pages/ExamTimetable';
-import PronunciationHelper from './pages/PronunciationHelper';
-import Quiz from './pages/Quiz';
-import MedicalDiagrams from './pages/MedicalDiagrams';
-import Community from './pages/Community';
-import Settings from './pages/Settings';
+
+// Lazy load pages for better mobile performance
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Flashcards = lazy(() => import('./pages/Flashcards'));
+const ExamTimetable = lazy(() => import('./pages/ExamTimetable'));
+const PronunciationHelper = lazy(() => import('./pages/PronunciationHelper'));
+const Quiz = lazy(() => import('./pages/Quiz'));
+const Community = lazy(() => import('./pages/Community'));
+const Settings = lazy(() => import('./pages/Settings'));
+
+// Loading component
+const PageLoader = () => (
+  <div className="flex items-center justify-center h-64">
+    <div className="w-12 h-12 border-4 border-medical-500 border-t-transparent rounded-full animate-spin"></div>
+  </div>
+);
 
 const ImportHandler = () => {
   const { importFlashcards } = useAppContext();
@@ -47,16 +55,17 @@ function App() {
       <Router>
         <ImportHandler />
         <Layout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/flashcards" element={<Flashcards />} />
-            <Route path="/quiz" element={<Quiz />} />
-            <Route path="/diagrams" element={<MedicalDiagrams />} />
-            <Route path="/exams" element={<ExamTimetable />} />
-            <Route path="/pronunciation" element={<PronunciationHelper />} />
-            <Route path="/community" element={<Community />} />
-            <Route path="/settings" element={<Settings />} />
-          </Routes>
+          <Suspense fallback={<PageLoader />}>
+            <Routes>
+              <Route path="/" element={<Dashboard />} />
+              <Route path="/flashcards" element={<Flashcards />} />
+              <Route path="/quiz" element={<Quiz />} />
+              <Route path="/exams" element={<ExamTimetable />} />
+              <Route path="/pronunciation" element={<PronunciationHelper />} />
+              <Route path="/community" element={<Community />} />
+              <Route path="/settings" element={<Settings />} />
+            </Routes>
+          </Suspense>
         </Layout>
       </Router>
     </AppProvider>

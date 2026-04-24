@@ -33,7 +33,15 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   const [editingCard, setEditingCard] = useState(null);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'study'
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [filterDifficulty, setFilterDifficulty] = useState('All');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
   const [isExamPriority, setIsExamPriority] = useState(false);
   const [studyIndex, setStudyIndex] = useState(0);
   const [shuffledCards, setShuffledCards] = useState([]);
@@ -111,11 +119,12 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   }, [exams]);
 
   const filteredCards = useMemo(() => {
+    const term = debouncedSearchTerm.toLowerCase();
     return categoryCards.filter(card => {
       const question = card.question || '';
       const topic = card.topic || '';
-      const matchesSearch = question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            topic.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = !term || question.toLowerCase().includes(term) ||
+                            topic.toLowerCase().includes(term);
       const matchesLevel = !currentLevel || card.level === currentLevel;
       const matchesSemester = !currentSemester || card.semester === currentSemester;
       const matchesSubject = !currentSubject || card.subject === currentSubject;
@@ -125,14 +134,11 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
 
       return matchesSearch && matchesLevel && matchesSemester && matchesSubject && matchesDifficulty && isPriority;
     });
-  }, [categoryCards, searchTerm, currentLevel, currentSemester, currentSubject, filterDifficulty, isExamPriority, upcomingExamSubjects]);
+  }, [categoryCards, debouncedSearchTerm, currentLevel, currentSemester, currentSubject, filterDifficulty, isExamPriority, upcomingExamSubjects]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setVisibleCount(12);
-    }, 0);
-    return () => clearTimeout(timer);
-  }, [searchTerm, currentLevel, currentSemester, currentSubject, filterDifficulty, isExamPriority]);
+    setVisibleCount(12);
+  }, [debouncedSearchTerm, currentLevel, currentSemester, currentSubject, filterDifficulty, isExamPriority]);
 
   const startStudyMode = (shuffle = false, srsOnly = false) => {
     let cardsToStudy = [...filteredCards];
@@ -162,12 +168,17 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
 
   const handlePrev = () => { if (studyIndex > 0) setStudyIndex(studyIndex - 1); };
 
-  const handleEdit = (card) => { setEditingCard(card); setIsFormOpen(true); };
+  const handleEdit = useCallback((card) => { setEditingCard(card); setIsFormOpen(true); }, []);
 
-  const handleShare = (card) => {
+  const handleShare = useCallback((card) => {
     setShareData(card);
     setIsShareModalOpen(true);
-  };
+  }, []);
+
+  const handleToggleImportant = useCallback((id) => {
+    const card = flashcards.find(c => c.id === id);
+    if (card) updateFlashcard(id, { important: !card.important });
+  }, [flashcards, updateFlashcard]);
 
   const [expandedUnits, setExpandedUnits] = useState({});
 
@@ -584,7 +595,7 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
               <FlashcardCard
                 key={card.id} card={card}
                 onEdit={handleEdit} onDelete={deleteFlashcard} onShare={handleShare}
-                onToggleImportant={(id) => updateFlashcard(id, { important: !card.important })}
+                onToggleImportant={handleToggleImportant}
               />
             ))}
           </div>

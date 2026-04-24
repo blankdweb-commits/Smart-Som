@@ -8,7 +8,6 @@ const Sidebar = () => {
     { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
     { name: 'Flashcards', icon: BookOpen, path: '/flashcards' },
     { name: 'Quiz Mode', icon: Brain, path: '/quiz' },
-    { name: 'Diagrams', icon: Award, path: '/diagrams' },
     { name: 'Exam Timetable', icon: Calendar, path: '/exams' },
     { name: 'Pronunciation', icon: Volume2, path: '/pronunciation' },
     { name: 'Community', icon: Users, path: '/community' },

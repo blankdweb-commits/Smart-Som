@@ -1,7 +1,7 @@
 const modules = import.meta.glob('./flashcards/**/*.json', { eager: true });
 
-export const allBuiltInFlashcards = Object.entries(modules).flatMap(([path, module]) => {
-  // Infer category, level, and semester from path if missing
+// Helper to extract data from a module
+const processModule = (path, module) => {
   // Path format: ./flashcards/academic/year-1/sem-1/file.json
   const parts = path.split('/');
   const fIdx = parts.indexOf('flashcards');
@@ -83,6 +83,10 @@ export const allBuiltInFlashcards = Object.entries(modules).flatMap(([path, modu
       }
     };
   });
+};
+
+export const allBuiltInFlashcards = Object.entries(modules).flatMap(([path, module]) => {
+  return processModule(path, module);
 }).filter((card, index, self) =>
   // Deduplicate based on question and answer
   index === self.findIndex((t) => (

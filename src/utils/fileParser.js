@@ -1,9 +1,7 @@
-import * as pdfjs from 'pdfjs-dist';
-import mammoth from 'mammoth';
-import Tesseract from 'tesseract.js';
-
-// Set up PDF.js worker
-pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
+// Dynamic imports for heavy libraries to reduce initial bundle size
+const getPdfJs = () => import('pdfjs-dist');
+const getMammoth = () => import('mammoth');
+const getTesseract = () => import('tesseract.js');
 
 export const extractTextFromFile = async (file) => {
   const fileType = file.type;
@@ -22,6 +20,10 @@ export const extractTextFromFile = async (file) => {
 };
 
 const extractTextFromPDF = async (file) => {
+  const pdfjs = await getPdfJs();
+  // Set up PDF.js worker
+  pdfjs.GlobalWorkerOptions.workerSrc = `https://cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjs.version}/pdf.worker.min.mjs`;
+
   const arrayBuffer = await file.arrayBuffer();
   const pdf = await pdfjs.getDocument({ data: arrayBuffer }).promise;
   let fullText = '';
@@ -37,12 +39,14 @@ const extractTextFromPDF = async (file) => {
 };
 
 const extractTextFromDOCX = async (file) => {
+  const mammoth = (await getMammoth()).default;
   const arrayBuffer = await file.arrayBuffer();
   const result = await mammoth.extractRawText({ arrayBuffer });
   return result.value;
 };
 
 const extractTextFromImage = async (file) => {
+  const Tesseract = (await getTesseract()).default;
   const result = await Tesseract.recognize(file, 'eng');
   return result.data.text;
 };

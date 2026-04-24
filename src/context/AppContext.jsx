@@ -49,11 +49,17 @@ export function AppProvider({ children }) {
   });
 
   useEffect(() => {
-    localStorage.setItem('flashcards', JSON.stringify(flashcards));
+    const timer = setTimeout(() => {
+      localStorage.setItem('flashcards', JSON.stringify(flashcards));
+    }, 1000);
+    return () => clearTimeout(timer);
   }, [flashcards]);
 
   useEffect(() => {
-    localStorage.setItem('exams', JSON.stringify(exams));
+    const timer = setTimeout(() => {
+      localStorage.setItem('exams', JSON.stringify(exams));
+    }, 1000);
+    return () => clearTimeout(timer);
   }, [exams]);
 
   useEffect(() => {
