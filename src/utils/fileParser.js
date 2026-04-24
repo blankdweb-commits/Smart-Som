@@ -62,7 +62,7 @@ export const parseQuestionsAndAnswers = (text) => {
   let currentQuestion = '';
   let currentAnswer = '';
 
-  const qRegex = /^(\d+[\.\)]\s*|Q:\s*|Question:\s*)/i;
+  const qRegex = /^(\d+[\.\)]\s*|Q:\s*|Question:\s*|What|How|Define|List|Explain|Describe|Identify|Analyze|State)/i;
   const aRegex = /^(Ans:|Answer:|A:)\s*/i;
 
   for (let i = 0; i < lines.length; i++) {

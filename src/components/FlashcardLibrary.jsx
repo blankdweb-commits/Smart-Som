@@ -189,29 +189,38 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
     if (!file) return;
 
     setIsUploading(true);
-    setToast({ message: "Analyzing document...", type: 'info' });
+    setToast({ message: "Starting AI Training...", type: 'info' });
 
     try {
+      // Step 1: Scan and Analyze
       const text = await extractTextFromFile(file);
+
+      setToast({ message: "Identifying key medical concepts...", type: 'info' });
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate AI analysis
+
       const parsedCards = parseQuestionsAndAnswers(text);
 
       if (parsedCards.length > 0) {
+        setToast({ message: `Simulating model training on ${parsedCards.length} samples...`, type: 'info' });
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
         const enhancedCards = parsedCards.map(card => ({
           ...card,
-          category: initialCategory,
+          category: 'User-Trained',
           level: currentLevel || 'Year 1',
           semester: currentSemester || 'Semester 1',
-          subject: currentSubject || 'Imported'
+          subject: currentSubject || 'AI Imported',
+          source: file.name
         }));
 
         const count = importFlashcards(enhancedCards);
-        setToast({ message: `Successfully imported ${count} cards!`, type: 'success' });
+        setToast({ message: `AI Training Complete! Generated ${count} high-yield cards.`, type: 'success' });
       } else {
-        setToast({ message: "No questions found in the document.", type: 'error' });
+        setToast({ message: "Analysis failed: No clear Q&A patterns detected.", type: 'error' });
       }
     } catch (error) {
       console.error(error);
-      setToast({ message: "Failed to parse file: " + error.message, type: 'error' });
+      setToast({ message: "AI Error: " + error.message, type: 'error' });
     } finally {
       setIsUploading(false);
       e.target.value = null; // Reset input

@@ -1,0 +1,1522 @@
+[
+  {
+    "id": "fc-diag-001-ident",
+    "question": "Describe the main components and purpose of the 'Anatomical Position and Planes' diagram.",
+    "answer": "A human figure standing erect, facing forward, arms at sides with palms forward, feet parallel. Three planes are shown cutting through the body. The key components include: Sagittal plane, Coronal (frontal) plane, Transverse (horizontal) plane, Anterior (ventral) surface, Posterior (dorsal) surface, Medial, Lateral, Proximal, Distal.",
+    "difficulty": "Moderate",
+    "subject": "Anatomy",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-001-clin",
+    "question": "What is the clinical relevance of understanding the 'Anatomical Position and Planes' in nursing practice?",
+    "answer": "Used to describe locations of organs, surgical incisions, and radiologic findings. Essential for clear communication among healthcare providers.",
+    "difficulty": "Advanced",
+    "subject": "Anatomy",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-001-sagittalplane",
+    "question": "In the context of the 'Anatomical Position and Planes', what is the function or definition of the 'Sagittal plane'?",
+    "answer": "divides into left and right",
+    "difficulty": "Moderate",
+    "subject": "Anatomy",
+    "topic": "Anatomical Position and Planes"
+  },
+  {
+    "id": "fc-diag-001-coronalfrontalplane",
+    "question": "In the context of the 'Anatomical Position and Planes', what is the function or definition of the 'Coronal (frontal) plane'?",
+    "answer": "divides into front and back",
+    "difficulty": "Moderate",
+    "subject": "Anatomy",
+    "topic": "Anatomical Position and Planes"
+  },
+  {
+    "id": "fc-diag-001-transversehorizontalplane",
+    "question": "In the context of the 'Anatomical Position and Planes', what is the function or definition of the 'Transverse (horizontal) plane'?",
+    "answer": "divides into top and bottom",
+    "difficulty": "Moderate",
+    "subject": "Anatomy",
+    "topic": "Anatomical Position and Planes"
+  },
+  {
+    "id": "fc-diag-001-anteriorventralsurface",
+    "question": "In the context of the 'Anatomical Position and Planes', what is the function or definition of the 'Anterior (ventral) surface'?",
+    "answer": "front of the body",
+    "difficulty": "Moderate",
+    "subject": "Anatomy",
+    "topic": "Anatomical Position and Planes"
+  },
+  {
+    "id": "fc-diag-001-posteriordorsalsurface",
+    "question": "In the context of the 'Anatomical Position and Planes', what is the function or definition of the 'Posterior (dorsal) surface'?",
+    "answer": "back of the body",
+    "difficulty": "Moderate",
+    "subject": "Anatomy",
+    "topic": "Anatomical Position and Planes"
+  },
+  {
+    "id": "fc-diag-001-medial",
+    "question": "In the context of the 'Anatomical Position and Planes', what is the function or definition of the 'Medial'?",
+    "answer": "toward midline",
+    "difficulty": "Moderate",
+    "subject": "Anatomy",
+    "topic": "Anatomical Position and Planes"
+  },
+  {
+    "id": "fc-diag-001-lateral",
+    "question": "In the context of the 'Anatomical Position and Planes', what is the function or definition of the 'Lateral'?",
+    "answer": "away from midline",
+    "difficulty": "Moderate",
+    "subject": "Anatomy",
+    "topic": "Anatomical Position and Planes"
+  },
+  {
+    "id": "fc-diag-001-proximal",
+    "question": "In the context of the 'Anatomical Position and Planes', what is the function or definition of the 'Proximal'?",
+    "answer": "closer to trunk",
+    "difficulty": "Moderate",
+    "subject": "Anatomy",
+    "topic": "Anatomical Position and Planes"
+  },
+  {
+    "id": "fc-diag-001-distal",
+    "question": "In the context of the 'Anatomical Position and Planes', what is the function or definition of the 'Distal'?",
+    "answer": "farther from trunk",
+    "difficulty": "Moderate",
+    "subject": "Anatomy",
+    "topic": "Anatomical Position and Planes"
+  },
+  {
+    "id": "fc-diag-002-ident",
+    "question": "Describe the main components and purpose of the 'Body Cavities' diagram.",
+    "answer": "Cross-sectional view of the torso showing dorsal and ventral cavities and their subdivisions. The key components include: Dorsal cavity, Ventral cavity, Diaphragm.",
+    "difficulty": "Moderate",
+    "subject": "Anatomy",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-002-clin",
+    "question": "What is the clinical relevance of understanding the 'Body Cavities' in nursing practice?",
+    "answer": "Helps in assessing pain location (e.g., RLQ pain suggests appendix), planning surgeries, and interpreting physical exam findings.",
+    "difficulty": "Advanced",
+    "subject": "Anatomy",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-002-dorsalcavity",
+    "question": "In the context of the 'Body Cavities', what is the function or definition of the 'Dorsal cavity'?",
+    "answer": "includes cranial (brain) and vertebral (spinal cord)",
+    "difficulty": "Moderate",
+    "subject": "Anatomy",
+    "topic": "Body Cavities"
+  },
+  {
+    "id": "fc-diag-002-ventralcavity",
+    "question": "In the context of the 'Body Cavities', what is the function or definition of the 'Ventral cavity'?",
+    "answer": "includes thoracic, abdominal, and pelvic cavities",
+    "difficulty": "Moderate",
+    "subject": "Anatomy",
+    "topic": "Body Cavities"
+  },
+  {
+    "id": "fc-diag-002-diaphragm",
+    "question": "In the context of the 'Body Cavities', what is the function or definition of the 'Diaphragm'?",
+    "answer": "separates thoracic and abdominal cavities",
+    "difficulty": "Moderate",
+    "subject": "Anatomy",
+    "topic": "Body Cavities"
+  },
+  {
+    "id": "fc-diag-003-ident",
+    "question": "Describe the main components and purpose of the 'The Cell (Generalized Animal Cell)' diagram.",
+    "answer": "Typical eukaryotic cell showing organelles. The key components include: Cell membrane, Nucleus, Mitochondria, Ribosomes, Endoplasmic reticulum, Golgi apparatus.",
+    "difficulty": "Moderate",
+    "subject": "Cell Biology",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-003-clin",
+    "question": "What is the clinical relevance of understanding the 'The Cell (Generalized Animal Cell)' in nursing practice?",
+    "answer": "Understanding cell structure is key to pharmacology (drug targets), pathophysiology (organelle dysfunction), and genetics.",
+    "difficulty": "Advanced",
+    "subject": "Cell Biology",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-003-cellmembrane",
+    "question": "In the context of the 'The Cell (Generalized Animal Cell)', what is the function or definition of the 'Cell membrane'?",
+    "answer": "selectively permeable barrier",
+    "difficulty": "Moderate",
+    "subject": "Cell Biology",
+    "topic": "The Cell (Generalized Animal Cell)"
+  },
+  {
+    "id": "fc-diag-003-nucleus",
+    "question": "In the context of the 'The Cell (Generalized Animal Cell)', what is the function or definition of the 'Nucleus'?",
+    "answer": "contains DNA",
+    "difficulty": "Moderate",
+    "subject": "Cell Biology",
+    "topic": "The Cell (Generalized Animal Cell)"
+  },
+  {
+    "id": "fc-diag-003-mitochondria",
+    "question": "In the context of the 'The Cell (Generalized Animal Cell)', what is the function or definition of the 'Mitochondria'?",
+    "answer": "power plant (ATP production)",
+    "difficulty": "Moderate",
+    "subject": "Cell Biology",
+    "topic": "The Cell (Generalized Animal Cell)"
+  },
+  {
+    "id": "fc-diag-003-ribosomes",
+    "question": "In the context of the 'The Cell (Generalized Animal Cell)', what is the function or definition of the 'Ribosomes'?",
+    "answer": "protein synthesis",
+    "difficulty": "Moderate",
+    "subject": "Cell Biology",
+    "topic": "The Cell (Generalized Animal Cell)"
+  },
+  {
+    "id": "fc-diag-003-endoplasmicreticulum",
+    "question": "In the context of the 'The Cell (Generalized Animal Cell)', what is the function or definition of the 'Endoplasmic reticulum'?",
+    "answer": "transport system",
+    "difficulty": "Moderate",
+    "subject": "Cell Biology",
+    "topic": "The Cell (Generalized Animal Cell)"
+  },
+  {
+    "id": "fc-diag-003-golgiapparatus",
+    "question": "In the context of the 'The Cell (Generalized Animal Cell)', what is the function or definition of the 'Golgi apparatus'?",
+    "answer": "packaging and secretion",
+    "difficulty": "Moderate",
+    "subject": "Cell Biology",
+    "topic": "The Cell (Generalized Animal Cell)"
+  },
+  {
+    "id": "fc-diag-004-ident",
+    "question": "Describe the main components and purpose of the 'Four Basic Tissues' diagram.",
+    "answer": "Microscopic views of epithelial, connective, muscle, and nervous tissues with labeled features. The key components include: Epithelial, Connective, Muscle, Nervous.",
+    "difficulty": "Moderate",
+    "subject": "Histology",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-004-clin",
+    "question": "What is the clinical relevance of understanding the 'Four Basic Tissues' in nursing practice?",
+    "answer": "Identifies origin of tumors (carcinomas from epithelium, sarcomas from connective tissue) and guides wound healing expectations.",
+    "difficulty": "Advanced",
+    "subject": "Histology",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-004-epithelial",
+    "question": "In the context of the 'Four Basic Tissues', what is the function or definition of the 'Epithelial'?",
+    "answer": "tightly packed cells, basement membrane",
+    "difficulty": "Moderate",
+    "subject": "Histology",
+    "topic": "Four Basic Tissues"
+  },
+  {
+    "id": "fc-diag-004-connective",
+    "question": "In the context of the 'Four Basic Tissues', what is the function or definition of the 'Connective'?",
+    "answer": "scattered cells in matrix",
+    "difficulty": "Moderate",
+    "subject": "Histology",
+    "topic": "Four Basic Tissues"
+  },
+  {
+    "id": "fc-diag-004-muscle",
+    "question": "In the context of the 'Four Basic Tissues', what is the function or definition of the 'Muscle'?",
+    "answer": "elongated cells with contractile proteins",
+    "difficulty": "Moderate",
+    "subject": "Histology",
+    "topic": "Four Basic Tissues"
+  },
+  {
+    "id": "fc-diag-004-nervous",
+    "question": "In the context of the 'Four Basic Tissues', what is the function or definition of the 'Nervous'?",
+    "answer": "neurons with dendrites, axon, and glial cells",
+    "difficulty": "Moderate",
+    "subject": "Histology",
+    "topic": "Four Basic Tissues"
+  },
+  {
+    "id": "fc-diag-005-ident",
+    "question": "Describe the main components and purpose of the 'Heart: External and Internal Anatomy' diagram.",
+    "answer": "Anterior view of heart showing chambers, valves, and major vessels. The key components include: Right atrium, Right ventricle, Left atrium, Left ventricle, Coronary arteries.",
+    "difficulty": "Moderate",
+    "subject": "Cardiovascular",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-005-clin",
+    "question": "What is the clinical relevance of understanding the 'Heart: External and Internal Anatomy' in nursing practice?",
+    "answer": "Essential for understanding heart murmurs (valve problems), myocardial infarction (coronary blockage), and ECG interpretation.",
+    "difficulty": "Advanced",
+    "subject": "Cardiovascular",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-005-rightatrium",
+    "question": "In the context of the 'Heart: External and Internal Anatomy', what is the function or definition of the 'Right atrium'?",
+    "answer": "Receives deoxygenated blood",
+    "difficulty": "Moderate",
+    "subject": "Cardiovascular",
+    "topic": "Heart: External and Internal Anatomy"
+  },
+  {
+    "id": "fc-diag-005-rightventricle",
+    "question": "In the context of the 'Heart: External and Internal Anatomy', what is the function or definition of the 'Right ventricle'?",
+    "answer": "Pumps blood to lungs",
+    "difficulty": "Moderate",
+    "subject": "Cardiovascular",
+    "topic": "Heart: External and Internal Anatomy"
+  },
+  {
+    "id": "fc-diag-005-leftatrium",
+    "question": "In the context of the 'Heart: External and Internal Anatomy', what is the function or definition of the 'Left atrium'?",
+    "answer": "Receives oxygenated blood",
+    "difficulty": "Moderate",
+    "subject": "Cardiovascular",
+    "topic": "Heart: External and Internal Anatomy"
+  },
+  {
+    "id": "fc-diag-005-leftventricle",
+    "question": "In the context of the 'Heart: External and Internal Anatomy', what is the function or definition of the 'Left ventricle'?",
+    "answer": "Pumps blood to body",
+    "difficulty": "Moderate",
+    "subject": "Cardiovascular",
+    "topic": "Heart: External and Internal Anatomy"
+  },
+  {
+    "id": "fc-diag-005-coronaryarteries",
+    "question": "In the context of the 'Heart: External and Internal Anatomy', what is the function or definition of the 'Coronary arteries'?",
+    "answer": "Supply blood to heart muscle",
+    "difficulty": "Moderate",
+    "subject": "Cardiovascular",
+    "topic": "Heart: External and Internal Anatomy"
+  },
+  {
+    "id": "fc-diag-006-ident",
+    "question": "Describe the main components and purpose of the 'Blood Flow Through the Heart' diagram.",
+    "answer": "Diagram showing the path of oxygenated and deoxygenated blood using red and blue arrows. The key components include: Deoxygenated path, Oxygenated path.",
+    "difficulty": "Moderate",
+    "subject": "Cardiovascular",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-006-clin",
+    "question": "What is the clinical relevance of understanding the 'Blood Flow Through the Heart' in nursing practice?",
+    "answer": "Key for understanding congenital heart defects, shunts, and hemodynamics in heart failure.",
+    "difficulty": "Advanced",
+    "subject": "Cardiovascular",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-006-deoxygenatedpath",
+    "question": "In the context of the 'Blood Flow Through the Heart', what is the function or definition of the 'Deoxygenated path'?",
+    "answer": "SVC/IVC -> RA -> RV -> pulmonary artery -> lungs",
+    "difficulty": "Moderate",
+    "subject": "Cardiovascular",
+    "topic": "Blood Flow Through the Heart"
+  },
+  {
+    "id": "fc-diag-006-oxygenatedpath",
+    "question": "In the context of the 'Blood Flow Through the Heart', what is the function or definition of the 'Oxygenated path'?",
+    "answer": "pulmonary veins -> LA -> LV -> aorta -> body",
+    "difficulty": "Moderate",
+    "subject": "Cardiovascular",
+    "topic": "Blood Flow Through the Heart"
+  },
+  {
+    "id": "fc-diag-007-ident",
+    "question": "Describe the main components and purpose of the 'Conducting System of the Heart and ECG' diagram.",
+    "answer": "Illustration of SA node, AV node, Bundle of His, Purkinje fibers, and corresponding ECG waves. The key components include: SA node, AV node, P wave, QRS complex, T wave.",
+    "difficulty": "Moderate",
+    "subject": "Cardiovascular",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-007-clin",
+    "question": "What is the clinical relevance of understanding the 'Conducting System of the Heart and ECG' in nursing practice?",
+    "answer": "Used to diagnose arrhythmias, heart blocks, and electrolyte imbalances.",
+    "difficulty": "Advanced",
+    "subject": "Cardiovascular",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-007-sanode",
+    "question": "In the context of the 'Conducting System of the Heart and ECG', what is the function or definition of the 'SA node'?",
+    "answer": "pacemaker",
+    "difficulty": "Moderate",
+    "subject": "Cardiovascular",
+    "topic": "Conducting System of the Heart and ECG"
+  },
+  {
+    "id": "fc-diag-007-avnode",
+    "question": "In the context of the 'Conducting System of the Heart and ECG', what is the function or definition of the 'AV node'?",
+    "answer": "delay",
+    "difficulty": "Moderate",
+    "subject": "Cardiovascular",
+    "topic": "Conducting System of the Heart and ECG"
+  },
+  {
+    "id": "fc-diag-007-pwave",
+    "question": "In the context of the 'Conducting System of the Heart and ECG', what is the function or definition of the 'P wave'?",
+    "answer": "atrial depolarization",
+    "difficulty": "Moderate",
+    "subject": "Cardiovascular",
+    "topic": "Conducting System of the Heart and ECG"
+  },
+  {
+    "id": "fc-diag-007-qrscomplex",
+    "question": "In the context of the 'Conducting System of the Heart and ECG', what is the function or definition of the 'QRS complex'?",
+    "answer": "ventricular depolarization",
+    "difficulty": "Moderate",
+    "subject": "Cardiovascular",
+    "topic": "Conducting System of the Heart and ECG"
+  },
+  {
+    "id": "fc-diag-007-twave",
+    "question": "In the context of the 'Conducting System of the Heart and ECG', what is the function or definition of the 'T wave'?",
+    "answer": "ventricular repolarization",
+    "difficulty": "Moderate",
+    "subject": "Cardiovascular",
+    "topic": "Conducting System of the Heart and ECG"
+  },
+  {
+    "id": "fc-diag-008-ident",
+    "question": "Describe the main components and purpose of the 'Blood Vessel Layers (Artery and Vein)' diagram.",
+    "answer": "Cross-section of an artery and a vein showing tunica intima, media, and adventitia. The key components include: Tunica intima, Tunica media, Tunica adventitia.",
+    "difficulty": "Moderate",
+    "subject": "Cardiovascular",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-008-clin",
+    "question": "What is the clinical relevance of understanding the 'Blood Vessel Layers (Artery and Vein)' in nursing practice?",
+    "answer": "Atherosclerosis affects intima; hypertension causes media hypertrophy; varicose veins result from valve failure.",
+    "difficulty": "Advanced",
+    "subject": "Cardiovascular",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-008-tunicaintima",
+    "question": "In the context of the 'Blood Vessel Layers (Artery and Vein)', what is the function or definition of the 'Tunica intima'?",
+    "answer": "endothelium, smooth lining",
+    "difficulty": "Moderate",
+    "subject": "Cardiovascular",
+    "topic": "Blood Vessel Layers (Artery and Vein)"
+  },
+  {
+    "id": "fc-diag-008-tunicamedia",
+    "question": "In the context of the 'Blood Vessel Layers (Artery and Vein)', what is the function or definition of the 'Tunica media'?",
+    "answer": "smooth muscle, thicker in arteries",
+    "difficulty": "Moderate",
+    "subject": "Cardiovascular",
+    "topic": "Blood Vessel Layers (Artery and Vein)"
+  },
+  {
+    "id": "fc-diag-008-tunicaadventitia",
+    "question": "In the context of the 'Blood Vessel Layers (Artery and Vein)', what is the function or definition of the 'Tunica adventitia'?",
+    "answer": "connective tissue",
+    "difficulty": "Moderate",
+    "subject": "Cardiovascular",
+    "topic": "Blood Vessel Layers (Artery and Vein)"
+  },
+  {
+    "id": "fc-diag-009-ident",
+    "question": "Describe the main components and purpose of the 'Lymphatic System' diagram.",
+    "answer": "Diagram showing lymph nodes, vessels, and organs. The key components include: Spleen, Thymus, Tonsils.",
+    "difficulty": "Moderate",
+    "subject": "Immunology",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-009-clin",
+    "question": "What is the clinical relevance of understanding the 'Lymphatic System' in nursing practice?",
+    "answer": "Lymphadenopathy indicates infection or malignancy; lymph node biopsy is done for cancer staging.",
+    "difficulty": "Advanced",
+    "subject": "Immunology",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-009-spleen",
+    "question": "In the context of the 'Lymphatic System', what is the function or definition of the 'Spleen'?",
+    "answer": "Filters blood and stores RBCs",
+    "difficulty": "Moderate",
+    "subject": "Immunology",
+    "topic": "Lymphatic System"
+  },
+  {
+    "id": "fc-diag-009-thymus",
+    "question": "In the context of the 'Lymphatic System', what is the function or definition of the 'Thymus'?",
+    "answer": "Site of T-cell maturation",
+    "difficulty": "Moderate",
+    "subject": "Immunology",
+    "topic": "Lymphatic System"
+  },
+  {
+    "id": "fc-diag-009-tonsils",
+    "question": "In the context of the 'Lymphatic System', what is the function or definition of the 'Tonsils'?",
+    "answer": "First line of defense in throat",
+    "difficulty": "Moderate",
+    "subject": "Immunology",
+    "topic": "Lymphatic System"
+  },
+  {
+    "id": "fc-diag-010-ident",
+    "question": "Describe the main components and purpose of the 'Respiratory Tract' diagram.",
+    "answer": "Anatomical diagram from nose to alveoli. The key components include: Trachea, Bronchi, Alveoli.",
+    "difficulty": "Moderate",
+    "subject": "Respiratory",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-010-clin",
+    "question": "What is the clinical relevance of understanding the 'Respiratory Tract' in nursing practice?",
+    "answer": "Used to explain airway management, endotracheal intubation, and sites of infection (bronchitis vs. pneumonia).",
+    "difficulty": "Advanced",
+    "subject": "Respiratory",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-010-trachea",
+    "question": "In the context of the 'Respiratory Tract', what is the function or definition of the 'Trachea'?",
+    "answer": "cartilage rings",
+    "difficulty": "Moderate",
+    "subject": "Respiratory",
+    "topic": "Respiratory Tract"
+  },
+  {
+    "id": "fc-diag-010-bronchi",
+    "question": "In the context of the 'Respiratory Tract', what is the function or definition of the 'Bronchi'?",
+    "answer": "primary, secondary, and tertiary branches",
+    "difficulty": "Moderate",
+    "subject": "Respiratory",
+    "topic": "Respiratory Tract"
+  },
+  {
+    "id": "fc-diag-010-alveoli",
+    "question": "In the context of the 'Respiratory Tract', what is the function or definition of the 'Alveoli'?",
+    "answer": "site of gas exchange",
+    "difficulty": "Moderate",
+    "subject": "Respiratory",
+    "topic": "Respiratory Tract"
+  },
+  {
+    "id": "fc-diag-011-ident",
+    "question": "Describe the main components and purpose of the 'Alveolus and Gas Exchange' diagram.",
+    "answer": "Detailed view of alveoli surrounded by capillaries showing O2 and CO2 exchange. The key components include: Type II pneumocyte, O2 diffusion, CO2 diffusion.",
+    "difficulty": "Moderate",
+    "subject": "Respiratory",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-011-clin",
+    "question": "What is the clinical relevance of understanding the 'Alveolus and Gas Exchange' in nursing practice?",
+    "answer": "Key to understanding ARDS, pneumonia, COPD, and the effect of surfactant deficiency in premature infants.",
+    "difficulty": "Advanced",
+    "subject": "Respiratory",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-011-typeiipneumocyte",
+    "question": "In the context of the 'Alveolus and Gas Exchange', what is the function or definition of the 'Type II pneumocyte'?",
+    "answer": "produces surfactant",
+    "difficulty": "Moderate",
+    "subject": "Respiratory",
+    "topic": "Alveolus and Gas Exchange"
+  },
+  {
+    "id": "fc-diag-011-odiffusion",
+    "question": "In the context of the 'Alveolus and Gas Exchange', what is the function or definition of the 'O2 diffusion'?",
+    "answer": "moves into blood",
+    "difficulty": "Moderate",
+    "subject": "Respiratory",
+    "topic": "Alveolus and Gas Exchange"
+  },
+  {
+    "id": "fc-diag-011-codiffusion",
+    "question": "In the context of the 'Alveolus and Gas Exchange', what is the function or definition of the 'CO2 diffusion'?",
+    "answer": "moves into alveolus",
+    "difficulty": "Moderate",
+    "subject": "Respiratory",
+    "topic": "Alveolus and Gas Exchange"
+  },
+  {
+    "id": "fc-diag-012-ident",
+    "question": "Describe the main components and purpose of the 'Nephron (Kidney Functional Unit)' diagram.",
+    "answer": "Detailed diagram of a nephron including glomerulus, tubules, and collecting duct. The key components include: Glomerulus, Proximal convoluted tubule, Loop of Henle.",
+    "difficulty": "Moderate",
+    "subject": "Renal",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-012-clin",
+    "question": "What is the clinical relevance of understanding the 'Nephron (Kidney Functional Unit)' in nursing practice?",
+    "answer": "Understanding diuretics (site of action), kidney stones (tubule blockage), and acute kidney injury.",
+    "difficulty": "Advanced",
+    "subject": "Renal",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-012-glomerulus",
+    "question": "In the context of the 'Nephron (Kidney Functional Unit)', what is the function or definition of the 'Glomerulus'?",
+    "answer": "filtration",
+    "difficulty": "Moderate",
+    "subject": "Renal",
+    "topic": "Nephron (Kidney Functional Unit)"
+  },
+  {
+    "id": "fc-diag-012-proximalconvolutedtubule",
+    "question": "In the context of the 'Nephron (Kidney Functional Unit)', what is the function or definition of the 'Proximal convoluted tubule'?",
+    "answer": "reabsorption",
+    "difficulty": "Moderate",
+    "subject": "Renal",
+    "topic": "Nephron (Kidney Functional Unit)"
+  },
+  {
+    "id": "fc-diag-012-loopofhenle",
+    "question": "In the context of the 'Nephron (Kidney Functional Unit)', what is the function or definition of the 'Loop of Henle'?",
+    "answer": "concentration of urine",
+    "difficulty": "Moderate",
+    "subject": "Renal",
+    "topic": "Nephron (Kidney Functional Unit)"
+  },
+  {
+    "id": "fc-diag-013-ident",
+    "question": "Describe the main components and purpose of the 'Brain \u2013 Lateral View with Lobes' diagram.",
+    "answer": "Side view of cerebrum showing frontal, parietal, temporal, occipital lobes, and cerebellum. The key components include: Frontal lobe, Occipital lobe, Cerebellum.",
+    "difficulty": "Moderate",
+    "subject": "Neurology",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-013-clin",
+    "question": "What is the clinical relevance of understanding the 'Brain \u2013 Lateral View with Lobes' in nursing practice?",
+    "answer": "Stroke localization: left frontal weakness = right-sided paralysis; temporal lesion = aphasia.",
+    "difficulty": "Advanced",
+    "subject": "Neurology",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-013-frontallobe",
+    "question": "In the context of the 'Brain \u2013 Lateral View with Lobes', what is the function or definition of the 'Frontal lobe'?",
+    "answer": "executive function, motor",
+    "difficulty": "Moderate",
+    "subject": "Neurology",
+    "topic": "Brain \u2013 Lateral View with Lobes"
+  },
+  {
+    "id": "fc-diag-013-occipitallobe",
+    "question": "In the context of the 'Brain \u2013 Lateral View with Lobes', what is the function or definition of the 'Occipital lobe'?",
+    "answer": "vision",
+    "difficulty": "Moderate",
+    "subject": "Neurology",
+    "topic": "Brain \u2013 Lateral View with Lobes"
+  },
+  {
+    "id": "fc-diag-013-cerebellum",
+    "question": "In the context of the 'Brain \u2013 Lateral View with Lobes', what is the function or definition of the 'Cerebellum'?",
+    "answer": "coordination",
+    "difficulty": "Moderate",
+    "subject": "Neurology",
+    "topic": "Brain \u2013 Lateral View with Lobes"
+  },
+  {
+    "id": "fc-diag-014-ident",
+    "question": "Describe the main components and purpose of the 'Cranial Nerves (Ventral View of Brain)' diagram.",
+    "answer": "Base of brain showing all 12 cranial nerves emerging. The key components include: I Olfactory, II Optic, X Vagus.",
+    "difficulty": "Moderate",
+    "subject": "Neurology",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-014-clin",
+    "question": "What is the clinical relevance of understanding the 'Cranial Nerves (Ventral View of Brain)' in nursing practice?",
+    "answer": "Cranial nerve assessment is part of neurological exam (e.g., pupil light reflex = II & III; gag reflex = IX & X).",
+    "difficulty": "Advanced",
+    "subject": "Neurology",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-014-iolfactory",
+    "question": "In the context of the 'Cranial Nerves (Ventral View of Brain)', what is the function or definition of the 'I Olfactory'?",
+    "answer": "smell",
+    "difficulty": "Moderate",
+    "subject": "Neurology",
+    "topic": "Cranial Nerves (Ventral View of Brain)"
+  },
+  {
+    "id": "fc-diag-014-iioptic",
+    "question": "In the context of the 'Cranial Nerves (Ventral View of Brain)', what is the function or definition of the 'II Optic'?",
+    "answer": "vision",
+    "difficulty": "Moderate",
+    "subject": "Neurology",
+    "topic": "Cranial Nerves (Ventral View of Brain)"
+  },
+  {
+    "id": "fc-diag-014-xvagus",
+    "question": "In the context of the 'Cranial Nerves (Ventral View of Brain)', what is the function or definition of the 'X Vagus'?",
+    "answer": "autonomic, cough, gag",
+    "difficulty": "Moderate",
+    "subject": "Neurology",
+    "topic": "Cranial Nerves (Ventral View of Brain)"
+  },
+  {
+    "id": "fc-diag-015-ident",
+    "question": "Describe the main components and purpose of the 'Spinal Cord and Reflex Arc' diagram.",
+    "answer": "Cross-section of spinal cord showing gray matter, white matter, and pathway of a reflex. The key components include: Sensory neuron, Motor neuron, Interneuron.",
+    "difficulty": "Moderate",
+    "subject": "Neurology",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-015-clin",
+    "question": "What is the clinical relevance of understanding the 'Spinal Cord and Reflex Arc' in nursing practice?",
+    "answer": "Explains deep tendon reflexes (patellar, biceps) and spinal cord injury levels (paraplegia, quadriplegia).",
+    "difficulty": "Advanced",
+    "subject": "Neurology",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-015-sensoryneuron",
+    "question": "In the context of the 'Spinal Cord and Reflex Arc', what is the function or definition of the 'Sensory neuron'?",
+    "answer": "afferent",
+    "difficulty": "Moderate",
+    "subject": "Neurology",
+    "topic": "Spinal Cord and Reflex Arc"
+  },
+  {
+    "id": "fc-diag-015-motorneuron",
+    "question": "In the context of the 'Spinal Cord and Reflex Arc', what is the function or definition of the 'Motor neuron'?",
+    "answer": "efferent",
+    "difficulty": "Moderate",
+    "subject": "Neurology",
+    "topic": "Spinal Cord and Reflex Arc"
+  },
+  {
+    "id": "fc-diag-015-interneuron",
+    "question": "In the context of the 'Spinal Cord and Reflex Arc', what is the function or definition of the 'Interneuron'?",
+    "answer": "relay",
+    "difficulty": "Moderate",
+    "subject": "Neurology",
+    "topic": "Spinal Cord and Reflex Arc"
+  },
+  {
+    "id": "fc-diag-016-ident",
+    "question": "Describe the main components and purpose of the 'Female Reproductive System' diagram.",
+    "answer": "Sagittal view of pelvis showing ovaries, fallopian tubes, uterus, cervix, vagina. The key components include: Ovary, Uterus, Fallopian tube.",
+    "difficulty": "Moderate",
+    "subject": "Reproductive",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-016-clin",
+    "question": "What is the clinical relevance of understanding the 'Female Reproductive System' in nursing practice?",
+    "answer": "Essential for understanding menstrual cycle, pregnancy, contraception, and gynecologic cancers.",
+    "difficulty": "Advanced",
+    "subject": "Reproductive",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-016-ovary",
+    "question": "In the context of the 'Female Reproductive System', what is the function or definition of the 'Ovary'?",
+    "answer": "produces ova and hormones",
+    "difficulty": "Moderate",
+    "subject": "Reproductive",
+    "topic": "Female Reproductive System"
+  },
+  {
+    "id": "fc-diag-016-uterus",
+    "question": "In the context of the 'Female Reproductive System', what is the function or definition of the 'Uterus'?",
+    "answer": "site of gestation",
+    "difficulty": "Moderate",
+    "subject": "Reproductive",
+    "topic": "Female Reproductive System"
+  },
+  {
+    "id": "fc-diag-016-fallopiantube",
+    "question": "In the context of the 'Female Reproductive System', what is the function or definition of the 'Fallopian tube'?",
+    "answer": "site of fertilization",
+    "difficulty": "Moderate",
+    "subject": "Reproductive",
+    "topic": "Female Reproductive System"
+  },
+  {
+    "id": "fc-diag-017-ident",
+    "question": "Describe the main components and purpose of the 'Male Reproductive System' diagram.",
+    "answer": "Lateral view of male pelvis and external genitalia. The key components include: Testis, Prostate gland.",
+    "difficulty": "Moderate",
+    "subject": "Reproductive",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-017-clin",
+    "question": "What is the clinical relevance of understanding the 'Male Reproductive System' in nursing practice?",
+    "answer": "Key for understanding BPH, prostate cancer, testicular torsion, and male infertility.",
+    "difficulty": "Advanced",
+    "subject": "Reproductive",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-017-testis",
+    "question": "In the context of the 'Male Reproductive System', what is the function or definition of the 'Testis'?",
+    "answer": "produces sperm and testosterone",
+    "difficulty": "Moderate",
+    "subject": "Reproductive",
+    "topic": "Male Reproductive System"
+  },
+  {
+    "id": "fc-diag-017-prostategland",
+    "question": "In the context of the 'Male Reproductive System', what is the function or definition of the 'Prostate gland'?",
+    "answer": "secretes fluid for semen",
+    "difficulty": "Moderate",
+    "subject": "Reproductive",
+    "topic": "Male Reproductive System"
+  },
+  {
+    "id": "fc-diag-018-ident",
+    "question": "Describe the main components and purpose of the 'Menstrual Cycle (Hormonal Changes)' diagram.",
+    "answer": "Graph showing FSH, LH, estrogen, progesterone levels and corresponding ovarian/endometrial changes. The key components include: Ovulation, Menstruation.",
+    "difficulty": "Moderate",
+    "subject": "Reproductive",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-018-clin",
+    "question": "What is the clinical relevance of understanding the 'Menstrual Cycle (Hormonal Changes)' in nursing practice?",
+    "answer": "Used to diagnose menstrual disorders, plan fertility treatments, and understand menopause.",
+    "difficulty": "Advanced",
+    "subject": "Reproductive",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-018-ovulation",
+    "question": "In the context of the 'Menstrual Cycle (Hormonal Changes)', what is the function or definition of the 'Ovulation'?",
+    "answer": "triggered by LH surge",
+    "difficulty": "Moderate",
+    "subject": "Reproductive",
+    "topic": "Menstrual Cycle (Hormonal Changes)"
+  },
+  {
+    "id": "fc-diag-018-menstruation",
+    "question": "In the context of the 'Menstrual Cycle (Hormonal Changes)', what is the function or definition of the 'Menstruation'?",
+    "answer": "shedding of endometrium",
+    "difficulty": "Moderate",
+    "subject": "Reproductive",
+    "topic": "Menstrual Cycle (Hormonal Changes)"
+  },
+  {
+    "id": "fc-diag-019-ident",
+    "question": "Describe the main components and purpose of the 'Fetal Skull' diagram.",
+    "answer": "Side view of fetal skull showing fontanelles and sutures. The key components include: Anterior fontanelle, Posterior fontanelle.",
+    "difficulty": "Moderate",
+    "subject": "Obstetrics",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-019-clin",
+    "question": "What is the clinical relevance of understanding the 'Fetal Skull' in nursing practice?",
+    "answer": "Important for understanding labor mechanisms (molding, engagement) and recognizing abnormal presentations.",
+    "difficulty": "Advanced",
+    "subject": "Obstetrics",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-019-anteriorfontanelle",
+    "question": "In the context of the 'Fetal Skull', what is the function or definition of the 'Anterior fontanelle'?",
+    "answer": "closes ~18 months",
+    "difficulty": "Moderate",
+    "subject": "Obstetrics",
+    "topic": "Fetal Skull"
+  },
+  {
+    "id": "fc-diag-019-posteriorfontanelle",
+    "question": "In the context of the 'Fetal Skull', what is the function or definition of the 'Posterior fontanelle'?",
+    "answer": "closes ~2 months",
+    "difficulty": "Moderate",
+    "subject": "Obstetrics",
+    "topic": "Fetal Skull"
+  },
+  {
+    "id": "fc-diag-020-ident",
+    "question": "Describe the main components and purpose of the 'Placenta and Fetal Circulation' diagram.",
+    "answer": "Diagram of uterus with placenta and fetal circulatory shunts. The key components include: Umbilical vein, Ductus venosus.",
+    "difficulty": "Moderate",
+    "subject": "Obstetrics",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-020-clin",
+    "question": "What is the clinical relevance of understanding the 'Placenta and Fetal Circulation' in nursing practice?",
+    "answer": "Understanding fetal circulation helps manage congenital heart disease and neonatal transition at birth.",
+    "difficulty": "Advanced",
+    "subject": "Obstetrics",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-020-umbilicalvein",
+    "question": "In the context of the 'Placenta and Fetal Circulation', what is the function or definition of the 'Umbilical vein'?",
+    "answer": "oxygenated blood to fetus",
+    "difficulty": "Moderate",
+    "subject": "Obstetrics",
+    "topic": "Placenta and Fetal Circulation"
+  },
+  {
+    "id": "fc-diag-020-ductusvenosus",
+    "question": "In the context of the 'Placenta and Fetal Circulation', what is the function or definition of the 'Ductus venosus'?",
+    "answer": "bypasses liver",
+    "difficulty": "Moderate",
+    "subject": "Obstetrics",
+    "topic": "Placenta and Fetal Circulation"
+  },
+  {
+    "id": "fc-diag-021-ident",
+    "question": "Describe the main components and purpose of the 'Endocrine Glands' diagram.",
+    "answer": "Diagram showing location of major endocrine glands. The key components include: Pituitary gland, Adrenal glands.",
+    "difficulty": "Moderate",
+    "subject": "Endocrine",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-021-clin",
+    "question": "What is the clinical relevance of understanding the 'Endocrine Glands' in nursing practice?",
+    "answer": "Essential for understanding hormonal disorders (diabetes, thyroid disease, Cushing's, Addison's).",
+    "difficulty": "Advanced",
+    "subject": "Endocrine",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-021-pituitarygland",
+    "question": "In the context of the 'Endocrine Glands', what is the function or definition of the 'Pituitary gland'?",
+    "answer": "master gland",
+    "difficulty": "Moderate",
+    "subject": "Endocrine",
+    "topic": "Endocrine Glands"
+  },
+  {
+    "id": "fc-diag-021-adrenalglands",
+    "question": "In the context of the 'Endocrine Glands', what is the function or definition of the 'Adrenal glands'?",
+    "answer": "stress response",
+    "difficulty": "Moderate",
+    "subject": "Endocrine",
+    "topic": "Endocrine Glands"
+  },
+  {
+    "id": "fc-diag-022-ident",
+    "question": "Describe the main components and purpose of the 'Skin Structure (Cross-section)' diagram.",
+    "answer": "Layers of epidermis, dermis, and hypodermis with appendages. The key components include: Epidermis, Dermis.",
+    "difficulty": "Moderate",
+    "subject": "Integumentary",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-022-clin",
+    "question": "What is the clinical relevance of understanding the 'Skin Structure (Cross-section)' in nursing practice?",
+    "answer": "Key for wound healing, pressure ulcer staging, burns, and skin cancer detection.",
+    "difficulty": "Advanced",
+    "subject": "Integumentary",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-022-epidermis",
+    "question": "In the context of the 'Skin Structure (Cross-section)', what is the function or definition of the 'Epidermis'?",
+    "answer": "outermost layer",
+    "difficulty": "Moderate",
+    "subject": "Integumentary",
+    "topic": "Skin Structure (Cross-section)"
+  },
+  {
+    "id": "fc-diag-022-dermis",
+    "question": "In the context of the 'Skin Structure (Cross-section)', what is the function or definition of the 'Dermis'?",
+    "answer": "contains glands and follicles",
+    "difficulty": "Moderate",
+    "subject": "Integumentary",
+    "topic": "Skin Structure (Cross-section)"
+  },
+  {
+    "id": "fc-diag-023-ident",
+    "question": "Describe the main components and purpose of the 'Pressure Ulcer Stages' diagram.",
+    "answer": "Illustrations of pressure injuries from stage 1 to 4 and unstageable. The key components include: Stage 1, Stage 4.",
+    "difficulty": "Moderate",
+    "subject": "Wound Care",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-023-clin",
+    "question": "What is the clinical relevance of understanding the 'Pressure Ulcer Stages' in nursing practice?",
+    "answer": "Used for assessment, documentation, and prevention of hospital-acquired pressure ulcers.",
+    "difficulty": "Advanced",
+    "subject": "Wound Care",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-023-stage",
+    "question": "In the context of the 'Pressure Ulcer Stages', what is the function or definition of the 'Stage 1'?",
+    "answer": "non-blanchable erythema",
+    "difficulty": "Moderate",
+    "subject": "Wound Care",
+    "topic": "Pressure Ulcer Stages"
+  },
+  {
+    "id": "fc-diag-023-stage",
+    "question": "In the context of the 'Pressure Ulcer Stages', what is the function or definition of the 'Stage 4'?",
+    "answer": "exposed bone, muscle, tendon",
+    "difficulty": "Moderate",
+    "subject": "Wound Care",
+    "topic": "Pressure Ulcer Stages"
+  },
+  {
+    "id": "fc-diag-024-ident",
+    "question": "Describe the main components and purpose of the 'Hand Hygiene Steps (WHO)' diagram.",
+    "answer": "Diagram of hands with numbered steps for handwashing with soap and water or alcohol rub. The key components include: Palm to palm, Rotational rubbing of thumbs.",
+    "difficulty": "Moderate",
+    "subject": "Infection Control",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-024-clin",
+    "question": "What is the clinical relevance of understanding the 'Hand Hygiene Steps (WHO)' in nursing practice?",
+    "answer": "Standard precaution to prevent healthcare-associated infections.",
+    "difficulty": "Advanced",
+    "subject": "Infection Control",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-024-palmtopalm",
+    "question": "In the context of the 'Hand Hygiene Steps (WHO)', what is the function or definition of the 'Palm to palm'?",
+    "answer": "step 1",
+    "difficulty": "Moderate",
+    "subject": "Infection Control",
+    "topic": "Hand Hygiene Steps (WHO)"
+  },
+  {
+    "id": "fc-diag-024-rotationalrubbingofthumbs",
+    "question": "In the context of the 'Hand Hygiene Steps (WHO)', what is the function or definition of the 'Rotational rubbing of thumbs'?",
+    "answer": "step 5",
+    "difficulty": "Moderate",
+    "subject": "Infection Control",
+    "topic": "Hand Hygiene Steps (WHO)"
+  },
+  {
+    "id": "fc-diag-025-ident",
+    "question": "Describe the main components and purpose of the 'Intramuscular Injection Sites' diagram.",
+    "answer": "Body outline showing ventrogluteal, dorsogluteal, vastus lateralis, and deltoid sites. The key components include: Ventrogluteal, Vastus lateralis.",
+    "difficulty": "Moderate",
+    "subject": "Medication Administration",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-025-clin",
+    "question": "What is the clinical relevance of understanding the 'Intramuscular Injection Sites' in nursing practice?",
+    "answer": "Prevents nerve injury, ensures proper absorption, and reduces pain.",
+    "difficulty": "Advanced",
+    "subject": "Medication Administration",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-025-ventrogluteal",
+    "question": "In the context of the 'Intramuscular Injection Sites', what is the function or definition of the 'Ventrogluteal'?",
+    "answer": "preferred for adults",
+    "difficulty": "Moderate",
+    "subject": "Medication Administration",
+    "topic": "Intramuscular Injection Sites"
+  },
+  {
+    "id": "fc-diag-025-vastuslateralis",
+    "question": "In the context of the 'Intramuscular Injection Sites', what is the function or definition of the 'Vastus lateralis'?",
+    "answer": "preferred for infants",
+    "difficulty": "Moderate",
+    "subject": "Medication Administration",
+    "topic": "Intramuscular Injection Sites"
+  },
+  {
+    "id": "fc-diag-026-ident",
+    "question": "Describe the main components and purpose of the 'Subcutaneous Injection Sites' diagram.",
+    "answer": "Areas suitable for SC injections: abdomen, outer arm, anterior thigh, upper back. The key components include: Abdomen, Outer arm.",
+    "difficulty": "Moderate",
+    "subject": "Medication Administration",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-026-clin",
+    "question": "What is the clinical relevance of understanding the 'Subcutaneous Injection Sites' in nursing practice?",
+    "answer": "Used for insulin, heparin, and vaccines that require slow absorption.",
+    "difficulty": "Advanced",
+    "subject": "Medication Administration",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-026-abdomen",
+    "question": "In the context of the 'Subcutaneous Injection Sites', what is the function or definition of the 'Abdomen'?",
+    "answer": "2 inches from umbilicus",
+    "difficulty": "Moderate",
+    "subject": "Medication Administration",
+    "topic": "Subcutaneous Injection Sites"
+  },
+  {
+    "id": "fc-diag-026-outerarm",
+    "question": "In the context of the 'Subcutaneous Injection Sites', what is the function or definition of the 'Outer arm'?",
+    "answer": "common for vaccines",
+    "difficulty": "Moderate",
+    "subject": "Medication Administration",
+    "topic": "Subcutaneous Injection Sites"
+  },
+  {
+    "id": "fc-diag-027-ident",
+    "question": "Describe the main components and purpose of the 'Intravenous Cannulation Sites' diagram.",
+    "answer": "Arm and hand veins suitable for IV access. The key components include: Median cubital vein, Cephalic vein.",
+    "difficulty": "Moderate",
+    "subject": "Medication Administration",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-027-clin",
+    "question": "What is the clinical relevance of understanding the 'Intravenous Cannulation Sites' in nursing practice?",
+    "answer": "Choosing appropriate vein for IV therapy, blood transfusion, or blood sampling.",
+    "difficulty": "Advanced",
+    "subject": "Medication Administration",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-027-mediancubitalvein",
+    "question": "In the context of the 'Intravenous Cannulation Sites', what is the function or definition of the 'Median cubital vein'?",
+    "answer": "preferred for blood draw",
+    "difficulty": "Moderate",
+    "subject": "Medication Administration",
+    "topic": "Intravenous Cannulation Sites"
+  },
+  {
+    "id": "fc-diag-027-cephalicvein",
+    "question": "In the context of the 'Intravenous Cannulation Sites', what is the function or definition of the 'Cephalic vein'?",
+    "answer": "lateral forearm",
+    "difficulty": "Moderate",
+    "subject": "Medication Administration",
+    "topic": "Intravenous Cannulation Sites"
+  },
+  {
+    "id": "fc-diag-028-ident",
+    "question": "Describe the main components and purpose of the 'Nasogastric Tube Insertion' diagram.",
+    "answer": "Anatomic landmarks for NG tube placement: nose, earlobe, xiphoid process. The key components include: NEX Measurement, Stomach.",
+    "difficulty": "Moderate",
+    "subject": "Gastrointestinal",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-028-clin",
+    "question": "What is the clinical relevance of understanding the 'Nasogastric Tube Insertion' in nursing practice?",
+    "answer": "Used for gastric decompression, feeding, or medication administration.",
+    "difficulty": "Advanced",
+    "subject": "Gastrointestinal",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-028-nexmeasurement",
+    "question": "In the context of the 'Nasogastric Tube Insertion', what is the function or definition of the 'NEX Measurement'?",
+    "answer": "Nose to Earlobe to Xiphoid",
+    "difficulty": "Moderate",
+    "subject": "Gastrointestinal",
+    "topic": "Nasogastric Tube Insertion"
+  },
+  {
+    "id": "fc-diag-028-stomach",
+    "question": "In the context of the 'Nasogastric Tube Insertion', what is the function or definition of the 'Stomach'?",
+    "answer": "final destination",
+    "difficulty": "Moderate",
+    "subject": "Gastrointestinal",
+    "topic": "Nasogastric Tube Insertion"
+  },
+  {
+    "id": "fc-diag-029-ident",
+    "question": "Describe the main components and purpose of the 'Urinary Catheterization (Female)' diagram.",
+    "answer": "Female perineal anatomy showing urethral meatus, vaginal opening, and anus. The key components include: Urethral meatus, Labia minora.",
+    "difficulty": "Moderate",
+    "subject": "Urinary",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-029-clin",
+    "question": "What is the clinical relevance of understanding the 'Urinary Catheterization (Female)' in nursing practice?",
+    "answer": "Essential for preventing UTI and trauma during catheterization.",
+    "difficulty": "Advanced",
+    "subject": "Urinary",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-029-urethralmeatus",
+    "question": "In the context of the 'Urinary Catheterization (Female)', what is the function or definition of the 'Urethral meatus'?",
+    "answer": "insertion point",
+    "difficulty": "Moderate",
+    "subject": "Urinary",
+    "topic": "Urinary Catheterization (Female)"
+  },
+  {
+    "id": "fc-diag-029-labiaminora",
+    "question": "In the context of the 'Urinary Catheterization (Female)', what is the function or definition of the 'Labia minora'?",
+    "answer": "spread for visualization",
+    "difficulty": "Moderate",
+    "subject": "Urinary",
+    "topic": "Urinary Catheterization (Female)"
+  },
+  {
+    "id": "fc-diag-030-ident",
+    "question": "Describe the main components and purpose of the 'Urinary Catheterization (Male)' diagram.",
+    "answer": "Male urethral anatomy with three constrictions. The key components include: Prostate gland, Urethral meatus.",
+    "difficulty": "Moderate",
+    "subject": "Urinary",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-030-clin",
+    "question": "What is the clinical relevance of understanding the 'Urinary Catheterization (Male)' in nursing practice?",
+    "answer": "Avoids false passage and trauma; important for patients with BPH.",
+    "difficulty": "Advanced",
+    "subject": "Urinary",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-030-prostategland",
+    "question": "In the context of the 'Urinary Catheterization (Male)', what is the function or definition of the 'Prostate gland'?",
+    "answer": "potential site of resistance",
+    "difficulty": "Moderate",
+    "subject": "Urinary",
+    "topic": "Urinary Catheterization (Male)"
+  },
+  {
+    "id": "fc-diag-030-urethralmeatus",
+    "question": "In the context of the 'Urinary Catheterization (Male)', what is the function or definition of the 'Urethral meatus'?",
+    "answer": "tip of penis",
+    "difficulty": "Moderate",
+    "subject": "Urinary",
+    "topic": "Urinary Catheterization (Male)"
+  },
+  {
+    "id": "fc-diag-031-ident",
+    "question": "Describe the main components and purpose of the 'Tracheostomy Care' diagram.",
+    "answer": "Tracheostomy tube parts and surrounding anatomy. The key components include: Inner cannula, Cuff.",
+    "difficulty": "Moderate",
+    "subject": "Respiratory",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-031-clin",
+    "question": "What is the clinical relevance of understanding the 'Tracheostomy Care' in nursing practice?",
+    "answer": "Prevents tube occlusion, infection, and accidental decannulation.",
+    "difficulty": "Advanced",
+    "subject": "Respiratory",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-031-innercannula",
+    "question": "In the context of the 'Tracheostomy Care', what is the function or definition of the 'Inner cannula'?",
+    "answer": "removable for cleaning",
+    "difficulty": "Moderate",
+    "subject": "Respiratory",
+    "topic": "Tracheostomy Care"
+  },
+  {
+    "id": "fc-diag-031-cuff",
+    "question": "In the context of the 'Tracheostomy Care', what is the function or definition of the 'Cuff'?",
+    "answer": "inflated to prevent aspiration",
+    "difficulty": "Moderate",
+    "subject": "Respiratory",
+    "topic": "Tracheostomy Care"
+  },
+  {
+    "id": "fc-diag-032-ident",
+    "question": "Describe the main components and purpose of the 'Cardiopulmonary Resuscitation (CPR) Hand Placement' diagram.",
+    "answer": "Adult chest with hands positioned on lower half of sternum. The key components include: Lower half of sternum, Depth.",
+    "difficulty": "Moderate",
+    "subject": "Emergency",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-032-clin",
+    "question": "What is the clinical relevance of understanding the 'Cardiopulmonary Resuscitation (CPR) Hand Placement' in nursing practice?",
+    "answer": "High-quality CPR increases survival from cardiac arrest.",
+    "difficulty": "Advanced",
+    "subject": "Emergency",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-032-lowerhalfofsternum",
+    "question": "In the context of the 'Cardiopulmonary Resuscitation (CPR) Hand Placement', what is the function or definition of the 'Lower half of sternum'?",
+    "answer": "compression site",
+    "difficulty": "Moderate",
+    "subject": "Emergency",
+    "topic": "Cardiopulmonary Resuscitation (CPR) Hand Placement"
+  },
+  {
+    "id": "fc-diag-032-depth",
+    "question": "In the context of the 'Cardiopulmonary Resuscitation (CPR) Hand Placement', what is the function or definition of the 'Depth'?",
+    "answer": "5-6 cm (2-2.4 inches)",
+    "difficulty": "Moderate",
+    "subject": "Emergency",
+    "topic": "Cardiopulmonary Resuscitation (CPR) Hand Placement"
+  },
+  {
+    "id": "fc-diag-033-ident",
+    "question": "Describe the main components and purpose of the 'Wound Dressing Layers' diagram.",
+    "answer": "Cross-section of a wound with different dressing components. The key components include: Primary dressing, Secondary dressing.",
+    "difficulty": "Moderate",
+    "subject": "Wound Care",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-033-clin",
+    "question": "What is the clinical relevance of understanding the 'Wound Dressing Layers' in nursing practice?",
+    "answer": "Maintains moist wound environment, prevents infection, and absorbs exudate.",
+    "difficulty": "Advanced",
+    "subject": "Wound Care",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-033-primarydressing",
+    "question": "In the context of the 'Wound Dressing Layers', what is the function or definition of the 'Primary dressing'?",
+    "answer": "contact layer",
+    "difficulty": "Moderate",
+    "subject": "Wound Care",
+    "topic": "Wound Dressing Layers"
+  },
+  {
+    "id": "fc-diag-033-secondarydressing",
+    "question": "In the context of the 'Wound Dressing Layers', what is the function or definition of the 'Secondary dressing'?",
+    "answer": "absorbent pad",
+    "difficulty": "Moderate",
+    "subject": "Wound Care",
+    "topic": "Wound Dressing Layers"
+  },
+  {
+    "id": "fc-diag-034-ident",
+    "question": "Describe the main components and purpose of the 'Suture Removal' diagram.",
+    "answer": "Technique showing cutting suture close to skin and pulling. The key components include: Cut close to skin, Pull toward wound line.",
+    "difficulty": "Moderate",
+    "subject": "Wound Care",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-034-clin",
+    "question": "What is the clinical relevance of understanding the 'Suture Removal' in nursing practice?",
+    "answer": "Prevents infection and scarring; timing depends on wound location.",
+    "difficulty": "Advanced",
+    "subject": "Wound Care",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-034-cutclosetoskin",
+    "question": "In the context of the 'Suture Removal', what is the function or definition of the 'Cut close to skin'?",
+    "answer": "prevents dragging external bacteria inward",
+    "difficulty": "Moderate",
+    "subject": "Wound Care",
+    "topic": "Suture Removal"
+  },
+  {
+    "id": "fc-diag-034-pulltowardwoundline",
+    "question": "In the context of the 'Suture Removal', what is the function or definition of the 'Pull toward wound line'?",
+    "answer": "prevents dehiscence",
+    "difficulty": "Moderate",
+    "subject": "Wound Care",
+    "topic": "Suture Removal"
+  },
+  {
+    "id": "fc-diag-035-ident",
+    "question": "Describe the main components and purpose of the 'Oxygen Delivery Devices' diagram.",
+    "answer": "Various masks and cannulas with flow rates and FiO2 ranges. The key components include: Nasal cannula, Non-rebreather mask.",
+    "difficulty": "Moderate",
+    "subject": "Respiratory",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-035-clin",
+    "question": "What is the clinical relevance of understanding the 'Oxygen Delivery Devices' in nursing practice?",
+    "answer": "Select appropriate device based on patient's oxygen requirement and condition.",
+    "difficulty": "Advanced",
+    "subject": "Respiratory",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-035-nasalcannula",
+    "question": "In the context of the 'Oxygen Delivery Devices', what is the function or definition of the 'Nasal cannula'?",
+    "answer": "1-6 L/min, 24-44% FiO2",
+    "difficulty": "Moderate",
+    "subject": "Respiratory",
+    "topic": "Oxygen Delivery Devices"
+  },
+  {
+    "id": "fc-diag-035-nonrebreathermask",
+    "question": "In the context of the 'Oxygen Delivery Devices', what is the function or definition of the 'Non-rebreather mask'?",
+    "answer": "10-15 L/min, 80-95% FiO2",
+    "difficulty": "Moderate",
+    "subject": "Respiratory",
+    "topic": "Oxygen Delivery Devices"
+  },
+  {
+    "id": "fc-diag-036-ident",
+    "question": "Describe the main components and purpose of the 'Lumbar Puncture Position' diagram.",
+    "answer": "Patient positioned in lateral recumbent fetal position. The key components include: Lateral recumbent, Insertion site.",
+    "difficulty": "Moderate",
+    "subject": "Diagnostic",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-036-clin",
+    "question": "What is the clinical relevance of understanding the 'Lumbar Puncture Position' in nursing practice?",
+    "answer": "Used to obtain CSF for meningitis diagnosis, measure pressure, or administer spinal anesthesia.",
+    "difficulty": "Advanced",
+    "subject": "Diagnostic",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-036-lateralrecumbent",
+    "question": "In the context of the 'Lumbar Puncture Position', what is the function or definition of the 'Lateral recumbent'?",
+    "answer": "fetal position",
+    "difficulty": "Moderate",
+    "subject": "Diagnostic",
+    "topic": "Lumbar Puncture Position"
+  },
+  {
+    "id": "fc-diag-036-insertionsite",
+    "question": "In the context of the 'Lumbar Puncture Position', what is the function or definition of the 'Insertion site'?",
+    "answer": "between L3-L4 or L4-L5",
+    "difficulty": "Moderate",
+    "subject": "Diagnostic",
+    "topic": "Lumbar Puncture Position"
+  },
+  {
+    "id": "fc-diag-037-ident",
+    "question": "Describe the main components and purpose of the 'Glasgow Coma Scale Chart' diagram.",
+    "answer": "Scoring table for eye, verbal, and motor responses. The key components include: Eye opening, Verbal response, Motor response.",
+    "difficulty": "Moderate",
+    "subject": "Neurology",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-037-clin",
+    "question": "What is the clinical relevance of understanding the 'Glasgow Coma Scale Chart' in nursing practice?",
+    "answer": "Standard tool for assessing level of consciousness in head injury, stroke, or intoxication.",
+    "difficulty": "Advanced",
+    "subject": "Neurology",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-037-eyeopening",
+    "question": "In the context of the 'Glasgow Coma Scale Chart', what is the function or definition of the 'Eye opening'?",
+    "answer": "1-4 points",
+    "difficulty": "Moderate",
+    "subject": "Neurology",
+    "topic": "Glasgow Coma Scale Chart"
+  },
+  {
+    "id": "fc-diag-037-verbalresponse",
+    "question": "In the context of the 'Glasgow Coma Scale Chart', what is the function or definition of the 'Verbal response'?",
+    "answer": "1-5 points",
+    "difficulty": "Moderate",
+    "subject": "Neurology",
+    "topic": "Glasgow Coma Scale Chart"
+  },
+  {
+    "id": "fc-diag-037-motorresponse",
+    "question": "In the context of the 'Glasgow Coma Scale Chart', what is the function or definition of the 'Motor response'?",
+    "answer": "1-6 points",
+    "difficulty": "Moderate",
+    "subject": "Neurology",
+    "topic": "Glasgow Coma Scale Chart"
+  },
+  {
+    "id": "fc-diag-038-ident",
+    "question": "Describe the main components and purpose of the 'Last Offices (Care of Deceased)' diagram.",
+    "answer": "Steps for preparing body after death. The key components include: Close eyes, Identification tags.",
+    "difficulty": "Moderate",
+    "subject": "End-of-Life",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-038-clin",
+    "question": "What is the clinical relevance of understanding the 'Last Offices (Care of Deceased)' in nursing practice?",
+    "answer": "Respects dignity, supports family, and follows legal requirements.",
+    "difficulty": "Advanced",
+    "subject": "End-of-Life",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-038-closeeyes",
+    "question": "In the context of the 'Last Offices (Care of Deceased)', what is the function or definition of the 'Close eyes'?",
+    "answer": "gentle pressure",
+    "difficulty": "Moderate",
+    "subject": "End-of-Life",
+    "topic": "Last Offices (Care of Deceased)"
+  },
+  {
+    "id": "fc-diag-038-identificationtags",
+    "question": "In the context of the 'Last Offices (Care of Deceased)', what is the function or definition of the 'Identification tags'?",
+    "answer": "essential for tracking",
+    "difficulty": "Moderate",
+    "subject": "End-of-Life",
+    "topic": "Last Offices (Care of Deceased)"
+  },
+  {
+    "id": "fc-diag-039-ident",
+    "question": "Describe the main components and purpose of the 'Breast Self-Examination (BSE)' diagram.",
+    "answer": "Steps for inspecting and palpating breasts. The key components include: Visual inspection, Circular palpation.",
+    "difficulty": "Moderate",
+    "subject": "Prevention",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-039-clin",
+    "question": "What is the clinical relevance of understanding the 'Breast Self-Examination (BSE)' in nursing practice?",
+    "answer": "Monthly self-exam helps detect breast lumps early.",
+    "difficulty": "Advanced",
+    "subject": "Prevention",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-039-visualinspection",
+    "question": "In the context of the 'Breast Self-Examination (BSE)', what is the function or definition of the 'Visual inspection'?",
+    "answer": "in mirror",
+    "difficulty": "Moderate",
+    "subject": "Prevention",
+    "topic": "Breast Self-Examination (BSE)"
+  },
+  {
+    "id": "fc-diag-039-circularpalpation",
+    "question": "In the context of the 'Breast Self-Examination (BSE)', what is the function or definition of the 'Circular palpation'?",
+    "answer": "use pads of fingers",
+    "difficulty": "Moderate",
+    "subject": "Prevention",
+    "topic": "Breast Self-Examination (BSE)"
+  },
+  {
+    "id": "fc-diag-040-ident",
+    "question": "Describe the main components and purpose of the 'Fetal Position in Utero (Presentations)' diagram.",
+    "answer": "Diagrams of cephalic, breech, and transverse lie. The key components include: Cephalic, Breech.",
+    "difficulty": "Moderate",
+    "subject": "Obstetrics",
+    "topic": "Diagram Analysis"
+  },
+  {
+    "id": "fc-diag-040-clin",
+    "question": "What is the clinical relevance of understanding the 'Fetal Position in Utero (Presentations)' in nursing practice?",
+    "answer": "Determines mode of delivery and need for external cephalic version or C-section.",
+    "difficulty": "Advanced",
+    "subject": "Obstetrics",
+    "topic": "Clinical Practice"
+  },
+  {
+    "id": "fc-diag-040-cephalic",
+    "question": "In the context of the 'Fetal Position in Utero (Presentations)', what is the function or definition of the 'Cephalic'?",
+    "answer": "head down",
+    "difficulty": "Moderate",
+    "subject": "Obstetrics",
+    "topic": "Fetal Position in Utero (Presentations)"
+  },
+  {
+    "id": "fc-diag-040-breech",
+    "question": "In the context of the 'Fetal Position in Utero (Presentations)', what is the function or definition of the 'Breech'?",
+    "answer": "buttocks or feet first",
+    "difficulty": "Moderate",
+    "subject": "Obstetrics",
+    "topic": "Fetal Position in Utero (Presentations)"
+  }
+]
