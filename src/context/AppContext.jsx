@@ -48,6 +48,38 @@ export function AppProvider({ children }) {
     return saved ? JSON.parse(saved) : { streak: 0, lastStudyDate: null, cardsStudied: 0 };
   });
 
+  const [userProfile, setUserProfile] = useState(() => {
+    const saved = localStorage.getItem('userProfile');
+    return saved ? JSON.parse(saved) : {
+      fullName: '',
+      matricNumber: '',
+      department: '',
+      level: '',
+      session: '2024/2025',
+      email: '',
+      phone: '',
+      isVerified: false,
+      isAdmin: false
+    };
+  });
+
+  const [feeDetails, setFeeDetails] = useState(() => {
+    const saved = localStorage.getItem('feeDetails');
+    return saved ? JSON.parse(saved) : {
+      totalFee: 450000, // Example tuition fee
+      amountPaid: 0,
+      currency: 'NGN',
+      dueDate: '2025-06-30',
+      status: 'Unpaid', // Paid, Partial, Unpaid, Overdue
+      installments: []
+    };
+  });
+
+  const [transactions, setTransactions] = useState(() => {
+    const saved = localStorage.getItem('transactions');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   useEffect(() => {
     const timer = setTimeout(() => {
       localStorage.setItem('flashcards', JSON.stringify(flashcards));
@@ -74,6 +106,18 @@ export function AppProvider({ children }) {
   useEffect(() => {
     localStorage.setItem('studyStats', JSON.stringify(studyStats));
   }, [studyStats]);
+
+  useEffect(() => {
+    localStorage.setItem('userProfile', JSON.stringify(userProfile));
+  }, [userProfile]);
+
+  useEffect(() => {
+    localStorage.setItem('feeDetails', JSON.stringify(feeDetails));
+  }, [feeDetails]);
+
+  useEffect(() => {
+    localStorage.setItem('transactions', JSON.stringify(transactions));
+  }, [transactions]);
 
   const addFlashcard = (card) => {
     setFlashcards([...flashcards, {
@@ -158,6 +202,34 @@ export function AppProvider({ children }) {
 
   const toggleDarkMode = () => setDarkMode(!darkMode);
 
+  const updateProfile = (data) => {
+    setUserProfile(prev => ({ ...prev, ...data, isVerified: true }));
+  };
+
+  const addTransaction = (transaction) => {
+    const newTransactions = [
+      {
+        ...transaction,
+        id: 'TXN-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
+        date: new Date().toISOString()
+      },
+      ...transactions
+    ];
+    setTransactions(newTransactions);
+
+    // Update fee details
+    const paidAmount = feeDetails.amountPaid + transaction.amount;
+    const status = paidAmount >= feeDetails.totalFee ? 'Paid' : (paidAmount > 0 ? 'Partial' : 'Unpaid');
+
+    setFeeDetails(prev => ({
+      ...prev,
+      amountPaid: paidAmount,
+      status
+    }));
+
+    return newTransactions[0];
+  };
+
   const incrementCardsStudied = () => {
     const today = new Date().toDateString();
     setStudyStats(prev => {
@@ -177,6 +249,8 @@ export function AppProvider({ children }) {
       darkMode, toggleDarkMode,
       studyStats, incrementCardsStudied,
       updateCardProgress,
+      userProfile, updateProfile,
+      feeDetails, transactions, addTransaction
     }}>
       {children}
     </AppContext.Provider>

@@ -2,6 +2,7 @@ import React from 'react';
 import { useAppContext } from '../context/AppContext';
 import { BookOpen, Calendar, TrendingUp, Award } from '../components/Icons';
 import { format, differenceInDays } from 'date-fns';
+import FeeDashboardWidget from '../components/FeeDashboardWidget';
 
 const Dashboard = () => {
   const { flashcards, exams, studyStats } = useAppContext();
@@ -87,6 +88,10 @@ const Dashboard = () => {
       <header>
         <h2 className="text-3xl font-bold text-slate-800 dark:text-white">Dashboard</h2>
         <p className="text-slate-600 dark:text-slate-400">Welcome back to your nursing study portal.</p>
+
+        <div className="mt-6">
+           <FeeDashboardWidget />
+        </div>
 
         {isExamSoon && (
           <div className="mt-4 p-5 bg-white dark:bg-slate-800 border border-red-100 dark:border-red-900/30 rounded-[2rem] flex flex-col sm:flex-row items-center justify-between gap-4 shadow-clinical">

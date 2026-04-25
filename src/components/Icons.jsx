@@ -17,9 +17,11 @@ import {
   ChevronUp,
   Clock,
   Copy,
+  CreditCard,
   Download,
   Edit2,
   ExternalLink,
+  FileText,
   FileUp,
   Filter,
   Folder,
@@ -46,6 +48,7 @@ import {
   Settings,
   Share2,
   Shield,
+  ShieldCheck,
   Shuffle,
   Sparkles,
   Star,
@@ -62,8 +65,6 @@ import {
   XCircle
 } from 'lucide-react';
 
-// Centralized icon export to ensure stability and reduce phantom dependencies
-// Aligned with the latest lucide-react version where CheckCircle2 might be renamed
 export {
   AlertCircle,
   AlertTriangle,
@@ -77,16 +78,18 @@ export {
   Calendar,
   Check,
   CheckCircle,
-  CheckCircle as CheckCircle2, // Fallback alias
+  CheckCircle as CheckCircle2,
   ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronUp,
   Clock,
   Copy,
+  CreditCard,
   Download,
   Edit2,
   ExternalLink,
+  FileText,
   FileUp,
   Filter,
   Folder,
@@ -113,6 +116,7 @@ export {
   Settings,
   Share2,
   Shield,
+  ShieldCheck,
   Shuffle,
   Sparkles,
   Star,

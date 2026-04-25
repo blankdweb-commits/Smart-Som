@@ -11,6 +11,8 @@ const PronunciationHelper = lazy(() => import('./pages/PronunciationHelper'));
 const Quiz = lazy(() => import('./pages/Quiz'));
 const Community = lazy(() => import('./pages/Community'));
 const Papers = lazy(() => import('./pages/Papers'));
+const Payments = lazy(() => import('./pages/Payments'));
+const AdminFinance = lazy(() => import('./pages/AdminFinance'));
 const Settings = lazy(() => import('./pages/Settings'));
 
 // Loading component
@@ -65,6 +67,8 @@ function App() {
               <Route path="/pronunciation" element={<PronunciationHelper />} />
               <Route path="/community" element={<Community />} />
               <Route path="/papers" element={<Papers />} />
+              <Route path="/payments" element={<Payments />} />
+              <Route path="/admin/finance" element={<AdminFinance />} />
               <Route path="/settings" element={<Settings />} />
             </Routes>
           </Suspense>
