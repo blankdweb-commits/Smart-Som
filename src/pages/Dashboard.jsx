@@ -126,11 +126,11 @@ const Dashboard = () => {
         )}
       </header>
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard title="Curriculum Decks" value={flashcards.length} icon={<BookOpen className="text-blue-500" />} color="bg-blue-50 dark:bg-blue-900/20" />
-        <StatsCard title="Cards Studied" value={studyStats.cardsStudied} icon={<TrendingUp className="text-green-500" />} color="bg-green-50 dark:bg-green-900/20" />
-        <StatsCard title="Study Streak" value={`${studyStats.streak} Days`} icon={<Award className="text-orange-500" />} color="bg-orange-50 dark:bg-orange-900/20" />
-        <StatsCard title="Due for Review" value={dueFlashcards.length} icon={<Award className="text-amber-500" />} color="bg-amber-50 dark:bg-amber-900/20" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 sm:gap-4">
+        <StatsCard title="Cards" value={flashcards.length} icon={<BookOpen className="text-blue-500" />} color="bg-blue-50 dark:bg-blue-900/20" />
+        <StatsCard title="Studied" value={studyStats.cardsStudied} icon={<TrendingUp className="text-green-500" />} color="bg-green-50 dark:bg-green-900/20" />
+        <StatsCard title="Streak" value={`${studyStats.streak}d`} icon={<Award className="text-orange-500" />} color="bg-orange-50 dark:bg-orange-900/20" />
+        <StatsCard title="Due" value={dueFlashcards.length} icon={<Award className="text-amber-500" />} color="bg-amber-50 dark:bg-amber-900/20" />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 sm:gap-6">

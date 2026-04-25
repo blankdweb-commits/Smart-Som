@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext';
 import FlashcardCard from '../components/FlashcardCard';
 import FlashcardForm from '../components/FlashcardForm';
@@ -497,11 +497,11 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
     <div className={`space-y-6 ${viewMode === 'study' ? 'pb-0' : 'pb-20'}`}>
       {/* Mobile Breadcrumb/Back button for Study View */}
       {viewMode === 'study' && (
-        <div className="fixed top-0 left-0 right-0 z-[100] p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md flex items-center justify-between border-b border-slate-100 dark:border-slate-800 lg:static lg:bg-transparent lg:border-none lg:p-0">
+        <div className="fixed top-0 left-0 right-0 z-[100] p-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md flex items-center justify-between border-b border-slate-100 dark:border-slate-800 lg:static lg:bg-transparent lg:border-none lg:p-0">
           <button onClick={() => setViewMode('list')} className="flex items-center text-medical-600 text-sm font-bold bg-white dark:bg-slate-800 px-4 py-2 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 active:scale-95 transition-transform">
             <ArrowLeft size={16} className="mr-2" /> Exit
           </button>
-          <div className="lg:hidden text-[10px] font-black uppercase tracking-widest text-slate-400">
+          <div className="hidden sm:block lg:hidden text-[10px] font-black uppercase tracking-widest text-slate-400">
             Card {studyIndex + 1} of {shuffledCards.length}
           </div>
           <div className="w-10 lg:hidden" /> {/* Spacer */}
@@ -610,16 +610,16 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
         </>
       ) : (
         /* Study Mode - Fullscreen on Mobile */
-        <div className="fixed inset-0 z-50 bg-slate-50 dark:bg-slate-900 flex flex-col lg:relative lg:z-0 lg:bg-transparent lg:mt-10 lg:space-y-8">
-          <div className="hidden lg:flex w-full max-w-2xl mx-auto justify-between items-center px-4">
-            <span className="text-sm font-medium text-slate-500">Card {studyIndex + 1} of {shuffledCards.length}</span>
-            <div className="w-48 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+        <div className="fixed inset-0 z-50 bg-slate-50 dark:bg-slate-900 flex flex-col lg:relative lg:z-0 lg:bg-transparent lg:mt-10 lg:space-y-8 overflow-hidden">
+          <div className="flex w-full max-w-2xl mx-auto justify-between items-center px-4 mt-20 lg:mt-0">
+            <span className="text-xs sm:text-sm font-medium text-slate-500">Card {studyIndex + 1} of {shuffledCards.length}</span>
+            <div className="w-24 sm:w-48 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
               <div className="h-full bg-medical-500 transition-all" style={{ width: `${((studyIndex + 1) / shuffledCards.length) * 100}%` }}></div>
             </div>
           </div>
 
           <div className="flex-1 flex items-center justify-center p-4 lg:p-0">
-            <div className="w-full max-w-2xl aspect-[3/4] sm:aspect-video lg:h-80 relative">
+            <div className="w-full max-w-2xl h-[70vh] lg:h-80 relative">
               {shuffledCards.length > 0 && (
                 <FlashcardCard
                   key={shuffledCards[studyIndex].id}

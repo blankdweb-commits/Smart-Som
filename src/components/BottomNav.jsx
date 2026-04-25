@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Calendar, Award, Users, Volume2, Search, Brain } from './Icons';
+import { LayoutDashboard, BookOpen, Calendar, Award, Users, Volume2, Search, Brain, FileUp } from './Icons';
 
 const BottomNav = () => {
   const navItems = [
@@ -8,6 +8,7 @@ const BottomNav = () => {
     { name: 'Quiz', icon: Brain, path: '/quiz' },
     { name: 'Cards', icon: BookOpen, path: '/flashcards' },
     { name: 'Exams', icon: Calendar, path: '/exams' },
+    { name: 'Papers', icon: FileUp, path: '/papers' },
     { name: 'Circle', icon: Users, path: '/community' },
   ];
 

@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Award, Users, Search, Brain } from './Icons';
+import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Award, Users, Search, Brain, FileUp } from './Icons';
 
 const Sidebar = () => {
 
@@ -9,6 +9,7 @@ const Sidebar = () => {
     { name: 'Flashcards', icon: BookOpen, path: '/flashcards' },
     { name: 'Quiz Mode', icon: Brain, path: '/quiz' },
     { name: 'Exam Timetable', icon: Calendar, path: '/exams' },
+    { name: 'Past Questions', icon: FileUp, path: '/papers' },
     { name: 'Pronunciation', icon: Volume2, path: '/pronunciation' },
     { name: 'Community', icon: Users, path: '/community' },
     { name: 'Settings', icon: Settings, path: '/settings' },

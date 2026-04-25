@@ -39,11 +39,11 @@ const FlashcardCard = memo(({
 
   return (
     <motion.div
-      style={{ x, rotate, opacity }}
+      style={{ x, rotate, opacity, touchAction: 'none' }}
       drag={isStudyMode ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
       onDragEnd={handleDragEnd}
-      className={`relative ${isFullscreen ? 'h-full flex items-center justify-center' : 'h-72 sm:h-64'} w-full cursor-pointer group flashcard-container active:scale-[0.98] transition-transform`}
+      className={`relative ${isFullscreen ? 'h-full flex items-center justify-center' : 'h-80 sm:h-64'} w-full cursor-pointer group flashcard-container active:scale-[0.98] transition-transform`}
       onClick={() => {
         // Prevent flip if we just dragged
         if (isStudyMode && Math.abs(x.get()) > 5) return;
@@ -52,7 +52,7 @@ const FlashcardCard = memo(({
     >
       <div className={`flashcard-inner w-full h-full ${isFlipped ? 'flipped' : ''} transition-all duration-500 ease-out`}>
         {/* Front */}
-        <div className={`flashcard-front absolute inset-0 bg-white dark:bg-slate-800 ${isFullscreen ? 'rounded-[2.5rem] shadow-clinical border-4 border-medical-500/20' : 'rounded-2xl shadow-sm border border-slate-200 dark:border-slate-700'} p-6 sm:p-12 flex flex-col justify-between overflow-hidden transition-all duration-500`}>
+        <div className={`flashcard-front absolute inset-0 bg-white dark:bg-slate-800 ${isFullscreen ? 'rounded-[2.5rem] shadow-clinical border-4 border-medical-500/20' : 'rounded-[2rem] shadow-premium border border-slate-100 dark:border-slate-700'} p-6 sm:p-12 flex flex-col justify-between overflow-hidden transition-all duration-500`}>
           {isFullscreen && (
             <div className="absolute top-0 left-0 w-full h-1.5 bg-slate-100 dark:bg-slate-700">
               <motion.div
