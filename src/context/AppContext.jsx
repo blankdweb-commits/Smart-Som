@@ -63,16 +63,69 @@ export function AppProvider({ children }) {
     };
   });
 
-  const [feeDetails, setFeeDetails] = useState(() => {
-    const saved = localStorage.getItem('feeDetails');
-    return saved ? JSON.parse(saved) : {
-      totalFee: 450000, // Example tuition fee
-      amountPaid: 0,
-      currency: 'NGN',
-      dueDate: '2025-06-30',
-      status: 'Unpaid', // Paid, Partial, Unpaid, Overdue
-      installments: []
-    };
+  const [paymentPurposes, setPaymentPurposes] = useState(() => {
+    const saved = localStorage.getItem('paymentPurposes');
+    return saved ? JSON.parse(saved) : [
+      {
+        id: 'p1',
+        title: 'Tuition Fee',
+        description: 'Standard academic tuition for the current session.',
+        amount: 450000,
+        currency: 'NGN',
+        targetDept: 'All',
+        targetLevel: 'All',
+        oneTime: true,
+        dueDate: '2025-06-30',
+        active: true,
+        code: 'TUI-2024'
+      },
+      {
+        id: 'p2',
+        title: 'Acceptance Fee',
+        description: 'Mandatory fee for new students.',
+        amount: 50000,
+        currency: 'NGN',
+        targetDept: 'All',
+        targetLevel: 'Year 1',
+        oneTime: true,
+        dueDate: '2025-01-15',
+        active: true,
+        code: 'ACC-2024'
+      },
+      {
+        id: 'p3',
+        title: 'ID Card Fee',
+        description: 'Biometric student identification card.',
+        amount: 5000,
+        currency: 'NGN',
+        targetDept: 'All',
+        targetLevel: 'All',
+        oneTime: true,
+        dueDate: '2025-02-28',
+        active: true,
+        code: 'IDC-2024'
+      },
+      {
+        id: 'p4',
+        title: 'Departmental Levy',
+        description: 'Annual faculty and department maintenance levy.',
+        amount: 15000,
+        currency: 'NGN',
+        targetDept: 'Nursing Science',
+        targetLevel: 'All',
+        oneTime: true,
+        dueDate: '2025-03-30',
+        active: true,
+        code: 'DPT-2024'
+      }
+    ];
+  });
+
+  const [feeDetails, setFeeDetails] = useState({
+    totalFee: 0,
+    amountPaid: 0,
+    currency: 'NGN',
+    status: 'Unpaid'
   });
 
   const [transactions, setTransactions] = useState(() => {
@@ -112,12 +165,34 @@ export function AppProvider({ children }) {
   }, [userProfile]);
 
   useEffect(() => {
-    localStorage.setItem('feeDetails', JSON.stringify(feeDetails));
-  }, [feeDetails]);
+    localStorage.setItem('paymentPurposes', JSON.stringify(paymentPurposes));
+  }, [paymentPurposes]);
 
   useEffect(() => {
     localStorage.setItem('transactions', JSON.stringify(transactions));
   }, [transactions]);
+
+  // Derived state for fees
+  useEffect(() => {
+    const relevantPurposes = paymentPurposes.filter(p =>
+      p.active &&
+      (p.targetDept === 'All' || p.targetDept === userProfile.department) &&
+      (p.targetLevel === 'All' || p.targetLevel === userProfile.level)
+    );
+
+    const total = relevantPurposes.reduce((acc, p) => acc + p.amount, 0);
+    const paid = transactions
+      .filter(t => t.status === 'Success')
+      .reduce((acc, t) => acc + t.amount, 0);
+
+    setFeeDetails({
+      totalFee: total,
+      amountPaid: paid,
+      currency: 'NGN',
+      status: paid >= total ? 'Paid' : (paid > 0 ? 'Partial' : 'Unpaid'),
+      pendingItems: relevantPurposes.length
+    });
+  }, [paymentPurposes, transactions, userProfile]);
 
   const addFlashcard = (card) => {
     setFlashcards([...flashcards, {
@@ -216,18 +291,19 @@ export function AppProvider({ children }) {
       ...transactions
     ];
     setTransactions(newTransactions);
-
-    // Update fee details
-    const paidAmount = feeDetails.amountPaid + transaction.amount;
-    const status = paidAmount >= feeDetails.totalFee ? 'Paid' : (paidAmount > 0 ? 'Partial' : 'Unpaid');
-
-    setFeeDetails(prev => ({
-      ...prev,
-      amountPaid: paidAmount,
-      status
-    }));
-
     return newTransactions[0];
+  };
+
+  const addPaymentPurpose = (purpose) => {
+    setPaymentPurposes([...paymentPurposes, { ...purpose, id: 'PURP-' + Date.now() }]);
+  };
+
+  const updatePaymentPurpose = (id, updated) => {
+    setPaymentPurposes(paymentPurposes.map(p => p.id === id ? { ...p, ...updated } : p));
+  };
+
+  const deletePaymentPurpose = (id) => {
+    setPaymentPurposes(paymentPurposes.filter(p => p.id !== id));
   };
 
   const incrementCardsStudied = () => {
@@ -250,6 +326,7 @@ export function AppProvider({ children }) {
       studyStats, incrementCardsStudied,
       updateCardProgress,
       userProfile, updateProfile,
+      paymentPurposes, addPaymentPurpose, updatePaymentPurpose, deletePaymentPurpose,
       feeDetails, transactions, addTransaction
     }}>
       {children}

@@ -20,7 +20,7 @@ import Toast from '../components/Toast';
 import { generateReceipt } from '../components/ReceiptSystem';
 
 const Payments = () => {
-  const { userProfile, feeDetails, transactions, addTransaction } = useAppContext();
+  const { userProfile, feeDetails, transactions, addTransaction, paymentPurposes } = useAppContext();
   const [showVerification, setShowVerification] = useState(!userProfile.isVerified);
   const [paymentStep, setPaymentStep] = useState('overview'); // overview, plan, simulate, success
   const [selectedPlan, setSelectedPlan] = useState(null);
@@ -30,15 +30,19 @@ const Payments = () => {
   const [otp, setOtp] = useState('');
   const [lastTxn, setLastTxn] = useState(null);
 
-  const presetPlans = [
-    { name: 'Full Payment', desc: 'Pay total outstanding balance', percent: 100 },
-    { name: 'Installment A', desc: '50% now, 50% later', percent: 50 },
-    { name: 'Installment B', desc: '60% now, 40% later', percent: 60 },
-    { name: 'Micro-Payment', desc: 'Pay 25% of total', percent: 25 },
-  ];
+  const relevantPurposes = paymentPurposes.filter(p =>
+    p.active &&
+    (p.targetDept === 'All' || p.targetDept === userProfile.department) &&
+    (p.targetLevel === 'All' || p.targetLevel === userProfile.level)
+  );
 
-  const handleStartPayment = (plan) => {
-    setSelectedPlan(plan);
+  const handleStartPayment = (purpose) => {
+    setSelectedPlan({
+      name: purpose.title,
+      desc: purpose.description,
+      amount: purpose.amount,
+      percent: 100
+    });
     setPaymentStep('simulate');
   };
 
@@ -88,8 +92,8 @@ const Payments = () => {
     <div className="max-w-4xl mx-auto pb-32 space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Finance Portal</h2>
-          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Manage your tuition and institutional payments.</p>
+          <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">School Payments</h2>
+          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Institutional payment hub for all official charges.</p>
         </div>
         <div className="flex bg-slate-100 dark:bg-slate-800 p-1.5 rounded-2xl w-full md:w-auto">
           <button
@@ -163,22 +167,26 @@ const Payments = () => {
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white dark:bg-slate-800 p-8 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-700 space-y-6">
                 <h4 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
-                  <TrendingUp size={20} className="text-medical-600" /> Installment Plans
+                  <TrendingUp size={20} className="text-medical-600" /> Pending Charges
                 </h4>
                 <div className="space-y-3">
-                  {presetPlans.map((plan) => (
-                    <button
-                      key={plan.name}
-                      onClick={() => handleStartPayment(plan)}
-                      className="w-full p-5 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 hover:border-medical-500 hover:bg-white dark:hover:bg-slate-800 transition-all group flex items-center justify-between text-left"
-                    >
-                      <div>
-                        <p className="font-black text-slate-900 dark:text-white">{plan.name}</p>
-                        <p className="text-xs text-slate-500 font-medium">{plan.desc}</p>
-                      </div>
-                      <ChevronRight size={20} className="text-slate-300 group-hover:text-medical-600 transform group-hover:translate-x-1 transition-all" />
-                    </button>
-                  ))}
+                  {relevantPurposes.map((p) => {
+                    const isPaid = transactions.some(t => t.type === p.title && t.status === 'Success');
+                    return (
+                      <button
+                        key={p.id}
+                        disabled={isPaid}
+                        onClick={() => handleStartPayment(p)}
+                        className={`w-full p-5 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 transition-all group flex items-center justify-between text-left ${isPaid ? 'opacity-50 grayscale cursor-not-allowed' : 'hover:border-medical-500 hover:bg-white dark:hover:bg-slate-800'}`}
+                      >
+                        <div>
+                          <p className="font-black text-slate-900 dark:text-white">{p.title}</p>
+                          <p className="text-[10px] font-black text-medical-600 uppercase tracking-widest">{p.currency} {p.amount.toLocaleString()}</p>
+                        </div>
+                        {isPaid ? <CheckCircle2 className="text-emerald-500" size={20} /> : <ChevronRight size={20} className="text-slate-300 group-hover:text-medical-600 transform group-hover:translate-x-1 transition-all" />}
+                      </button>
+                    );
+                  })}
                 </div>
               </div>
 

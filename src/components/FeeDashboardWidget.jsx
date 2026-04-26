@@ -31,8 +31,8 @@ const FeeDashboardWidget = () => {
       <div className="relative z-10">
         <div className="flex justify-between items-start mb-8">
           <div>
-            <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">School Fees</h3>
-            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm mt-1">Session: {userProfile.session || '2024/2025'}</p>
+            <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">School Payments</h3>
+            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm mt-1">{feeDetails.pendingItems} Pending Charges</p>
           </div>
           <span className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest ${getStatusColor()}`}>
             {feeDetails.status}
@@ -81,8 +81,8 @@ const FeeDashboardWidget = () => {
                 <Clock size={20} />
               </div>
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Next Deadline</p>
-                <p className="text-slate-900 dark:text-white font-bold">{new Date(feeDetails.dueDate).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}</p>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Status</p>
+                <p className="text-slate-900 dark:text-white font-bold">Official Payment Hub</p>
               </div>
             </div>
 
@@ -100,7 +100,7 @@ const FeeDashboardWidget = () => {
               onClick={() => navigate('/payments')}
               className="w-full mt-4 py-4 bg-medical-600 hover:bg-medical-700 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-medical-600/20 active:scale-95 transition-all flex items-center justify-center gap-2"
             >
-              Manage & Pay Fees
+              Make Payment
               <ArrowRight size={16} />
             </button>
           </div>

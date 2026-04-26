@@ -33,7 +33,7 @@ const FeeBanner = () => {
           </div>
           <div className="flex flex-col sm:flex-row sm:items-center gap-0 sm:gap-3 overflow-hidden">
             <span className="text-[10px] sm:text-xs font-black uppercase tracking-widest whitespace-nowrap">
-              School Fees: {percentage}% Paid
+              School Payments: {percentage}% Paid
             </span>
             <div className="hidden md:block w-32 h-1.5 bg-white/20 rounded-full overflow-hidden">
               <motion.div

@@ -1,0 +1,88 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - heading "NursingHub" [level=1] [ref=e7]
+      - paragraph [ref=e8]: Medical Learning
+    - navigation [ref=e9]:
+      - link "Dashboard" [ref=e10] [cursor=pointer]:
+        - /url: /
+        - img [ref=e11]
+        - generic [ref=e16]: Dashboard
+      - link "Flashcards" [ref=e17] [cursor=pointer]:
+        - /url: /flashcards
+        - img [ref=e18]
+        - generic [ref=e20]: Flashcards
+      - link "Quiz Mode" [ref=e21] [cursor=pointer]:
+        - /url: /quiz
+        - img [ref=e22]
+        - generic [ref=e30]: Quiz Mode
+      - link "Exam Timetable" [ref=e31] [cursor=pointer]:
+        - /url: /exams
+        - img [ref=e32]
+        - generic [ref=e34]: Exam Timetable
+      - link "Past Questions" [ref=e35] [cursor=pointer]:
+        - /url: /papers
+        - img [ref=e36]
+        - generic [ref=e40]: Past Questions
+      - link "Pronunciation" [ref=e41] [cursor=pointer]:
+        - /url: /pronunciation
+        - img [ref=e42]
+        - generic [ref=e46]: Pronunciation
+      - link "Community" [ref=e47] [cursor=pointer]:
+        - /url: /community
+        - img [ref=e48]
+        - generic [ref=e53]: Community
+      - link "Settings" [ref=e54] [cursor=pointer]:
+        - /url: /settings
+        - img [ref=e55]
+        - generic [ref=e58]: Settings
+  - main [ref=e59]:
+    - generic [ref=e60]:
+      - generic [ref=e62]:
+        - generic [ref=e63]: "N"
+        - generic [ref=e64]: NursingHub
+      - generic [ref=e65]:
+        - link [ref=e66] [cursor=pointer]:
+          - /url: /settings
+          - img [ref=e67]
+        - button "Toggle dark mode" [ref=e70]:
+          - img [ref=e71]
+    - generic [ref=e75]:
+      - generic [ref=e78]:
+        - img [ref=e80]
+        - heading "Student Verification" [level=2] [ref=e82]
+        - paragraph [ref=e83]: Verify your academic records before proceeding to payments.
+      - generic [ref=e85]:
+        - generic [ref=e86]:
+          - generic [ref=e87]:
+            - text: Full Name
+            - textbox "Enter full legal name" [ref=e88]
+          - generic [ref=e89]:
+            - text: Matric Number
+            - textbox "E.g. NS/2021/001" [ref=e90]
+        - generic [ref=e91]:
+          - generic [ref=e92]:
+            - text: Department
+            - combobox [ref=e93]:
+              - option "Select Department" [selected]
+              - option "Nursing Science"
+              - option "Midwifery"
+              - option "Public Health Nursing"
+              - option "Mental Health Nursing"
+              - option "Perioperative Nursing"
+          - generic [ref=e94]:
+            - text: Academic Level
+            - combobox [ref=e95]:
+              - option "Select Level" [selected]
+              - option "Year 1"
+              - option "Year 2"
+              - option "Year 3"
+              - option "Year 4"
+              - option "Year 5"
+        - button "Next Step" [ref=e96]:
+          - text: Next Step
+          - img [ref=e97]
+```
