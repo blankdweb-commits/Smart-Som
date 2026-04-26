@@ -1,0 +1,212 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - heading "NursingHub" [level=1] [ref=e7]
+      - paragraph [ref=e8]: Medical Learning
+    - navigation [ref=e9]:
+      - link "Dashboard" [ref=e10] [cursor=pointer]:
+        - /url: /
+        - img [ref=e11]
+        - generic [ref=e16]: Dashboard
+      - link "Flashcards" [ref=e17] [cursor=pointer]:
+        - /url: /flashcards
+        - img [ref=e18]
+        - generic [ref=e20]: Flashcards
+      - link "Quiz Mode" [ref=e21] [cursor=pointer]:
+        - /url: /quiz
+        - img [ref=e22]
+        - generic [ref=e30]: Quiz Mode
+      - link "Exam Timetable" [ref=e31] [cursor=pointer]:
+        - /url: /exams
+        - img [ref=e32]
+        - generic [ref=e34]: Exam Timetable
+      - link "Past Questions" [ref=e35] [cursor=pointer]:
+        - /url: /papers
+        - img [ref=e36]
+        - generic [ref=e40]: Past Questions
+      - link "Pronunciation" [ref=e41] [cursor=pointer]:
+        - /url: /pronunciation
+        - img [ref=e42]
+        - generic [ref=e46]: Pronunciation
+      - link "Community" [ref=e47] [cursor=pointer]:
+        - /url: /community
+        - img [ref=e48]
+        - generic [ref=e53]: Community
+      - link "Settings" [ref=e54] [cursor=pointer]:
+        - /url: /settings
+        - img [ref=e55]
+        - generic [ref=e58]: Settings
+  - main [ref=e59]:
+    - generic [ref=e60]:
+      - generic [ref=e62]:
+        - generic [ref=e63]: "N"
+        - generic [ref=e64]: NursingHub
+      - generic [ref=e65]:
+        - link [ref=e66] [cursor=pointer]:
+          - /url: /settings
+          - img [ref=e67]
+        - button "Toggle dark mode" [ref=e70]:
+          - img [ref=e71]
+    - generic [ref=e74]:
+      - generic [ref=e75]:
+        - img [ref=e77]
+        - generic [ref=e79]:
+          - generic [ref=e80]: "School Payments: 0% Paid"
+          - generic [ref=e82]: "Balance: NGN 455,000"
+      - button "Pay Now" [ref=e83]:
+        - text: Pay Now
+        - img [ref=e84]
+    - generic [ref=e87]:
+      - generic [ref=e88]:
+        - generic [ref=e89]:
+          - heading "Exam Central" [level=2] [ref=e90]
+          - paragraph [ref=e91]: Manage your academic milestones and readiness.
+        - generic [ref=e92]:
+          - button "Export" [ref=e93]:
+            - img [ref=e94]
+            - text: Export
+          - button "Schedule" [ref=e97]:
+            - img [ref=e98]
+            - text: Schedule
+      - generic [ref=e100]:
+        - generic [ref=e101]:
+          - generic [ref=e102]:
+            - img [ref=e104]
+            - generic [ref=e107]: "0"
+          - generic [ref=e108]:
+            - paragraph [ref=e109]: Today
+            - paragraph [ref=e110]: Assessments
+        - generic [ref=e111]:
+          - generic [ref=e112]:
+            - img [ref=e114]
+            - generic [ref=e116]: "0"
+          - generic [ref=e117]:
+            - paragraph [ref=e118]: Upcoming
+            - paragraph [ref=e119]: This Semester
+        - generic [ref=e120]:
+          - generic [ref=e121]:
+            - img [ref=e123]
+            - generic [ref=e126]: 0%
+          - generic [ref=e127]:
+            - paragraph [ref=e128]: Readiness
+            - paragraph [ref=e129]: Average Score
+        - generic [ref=e130]:
+          - generic [ref=e131]:
+            - img [ref=e133]
+            - generic [ref=e135]: "0"
+          - generic [ref=e136]:
+            - paragraph [ref=e137]: Missed
+            - paragraph [ref=e138]: Action Required
+      - generic [ref=e139]:
+        - generic [ref=e140]:
+          - button "List" [ref=e141]:
+            - img [ref=e142]
+            - text: List
+          - button "Calendar" [ref=e143]:
+            - img [ref=e144]
+            - text: Calendar
+        - button "I'm running late" [ref=e146]:
+          - img [ref=e147]
+          - text: I'm running late
+      - generic [ref=e152]:
+        - img [ref=e153]
+        - paragraph [ref=e155]: No Assessments Scheduled
+        - button "Add your first exam now" [ref=e156]
+      - generic [ref=e158]:
+        - generic [ref=e159]:
+          - generic [ref=e160]:
+            - heading "Schedule Exam" [level=3] [ref=e161]
+            - paragraph [ref=e162]: Academic & Clinical Assessment
+          - button [ref=e163]:
+            - img [ref=e164]
+        - generic [ref=e167]:
+          - generic [ref=e168]:
+            - heading "Basic Details" [level=4] [ref=e169]:
+              - img [ref=e170]
+              - text: Basic Details
+            - generic [ref=e172]:
+              - generic [ref=e174]:
+                - generic [ref=e175]: Assessment Title
+                - generic [ref=e176]:
+                  - img [ref=e178]
+                  - textbox "e.g., Medical Surgical Nursing I" [active] [ref=e180]: Anat
+                - generic [ref=e181]:
+                  - button "Anatomy" [ref=e182]:
+                    - generic [ref=e183]:
+                      - img [ref=e185]
+                      - generic [ref=e187]: Anatomy
+                  - button "Anatomy & Physiology I" [ref=e188]:
+                    - generic [ref=e189]:
+                      - img [ref=e191]
+                      - generic [ref=e193]: Anatomy & Physiology I
+                  - button "Anatomy & Physiology II" [ref=e194]:
+                    - generic [ref=e195]:
+                      - img [ref=e197]
+                      - generic [ref=e199]: Anatomy & Physiology II
+                  - button "Anatomy & Physiology III" [ref=e200]:
+                    - generic [ref=e201]:
+                      - img [ref=e203]
+                      - generic [ref=e205]: Anatomy & Physiology III
+              - generic [ref=e206]:
+                - generic [ref=e207]:
+                  - generic [ref=e208]: Date
+                  - textbox [ref=e209]
+                - generic [ref=e210]:
+                  - generic [ref=e211]: Time
+                  - textbox [ref=e212]
+              - generic [ref=e213]:
+                - generic [ref=e214]:
+                  - generic [ref=e215]: Venue
+                  - textbox "e.g., Clinical Lab 2" [ref=e216]
+                - generic [ref=e218]:
+                  - generic [ref=e219]: Lecturer
+                  - generic [ref=e220]:
+                    - img [ref=e222]
+                    - textbox "e.g., Dr. Smith" [ref=e224]
+          - generic [ref=e225]:
+            - heading "Exam Settings" [level=4] [ref=e226]:
+              - img [ref=e227]
+              - text: Exam Settings
+            - generic [ref=e229]:
+              - generic [ref=e230]:
+                - generic [ref=e231]: Exam Type
+                - generic [ref=e232]:
+                  - button "Written" [ref=e233]
+                  - button "CBT" [ref=e234]
+                  - button "Practical" [ref=e235]
+                  - button "Oral" [ref=e236]
+              - generic [ref=e237]:
+                - generic [ref=e238]: Priority Level
+                - generic [ref=e239]:
+                  - button "Low" [ref=e240]
+                  - button "Medium" [ref=e241]
+                  - button "High" [ref=e242]
+          - generic [ref=e243]:
+            - heading "Study Topics" [level=4] [ref=e244]:
+              - img [ref=e245]
+              - text: Study Topics
+            - generic [ref=e249]:
+              - textbox "Add a topic to study..." [ref=e250]
+              - button [ref=e251]:
+                - img [ref=e252]
+          - generic [ref=e253]:
+            - heading "Smart Reminders" [level=4] [ref=e254]:
+              - img [ref=e255]
+              - text: Smart Reminders
+            - generic [ref=e258]:
+              - button "1 week before" [ref=e259]
+              - button "3 days before" [ref=e260]
+              - button "1 day before" [ref=e261]
+              - button "1 hour before" [ref=e262]
+          - generic [ref=e263]:
+            - heading "Resources & Notes" [level=4] [ref=e264]:
+              - img [ref=e265]
+              - text: Resources & Notes
+            - generic [ref=e268]:
+              - textbox "Study Material Link (Google Drive, PDF, etc.)" [ref=e269]
+              - textbox "Additional notes for this exam..." [ref=e270]
+        - button "Confirm & Schedule" [ref=e272]
+```

@@ -133,6 +133,22 @@ export function AppProvider({ children }) {
     return saved ? JSON.parse(saved) : [];
   });
 
+  const [curriculumSubjects] = useState(() => {
+    const subjects = new Set();
+    allBuiltInFlashcards.forEach(card => {
+      if (card.subject) subjects.add(card.subject);
+    });
+
+    // Add common nursing subjects if not present
+    [
+      'Anatomy', 'Physiology', 'Pharmacology', 'Community Health Nursing',
+      'Medical Surgical Nursing', 'Midwifery', 'Pediatrics', 'Nutrition',
+      'Biochemistry', 'Medical Microbiology'
+    ].forEach(s => subjects.add(s));
+
+    return Array.from(subjects).sort();
+  });
+
   useEffect(() => {
     const timer = setTimeout(() => {
       localStorage.setItem('flashcards', JSON.stringify(flashcards));
@@ -327,7 +343,8 @@ export function AppProvider({ children }) {
       updateCardProgress,
       userProfile, updateProfile,
       paymentPurposes, addPaymentPurpose, updatePaymentPurpose, deletePaymentPurpose,
-      feeDetails, transactions, addTransaction
+      feeDetails, transactions, addTransaction,
+      curriculumSubjects
     }}>
       {children}
     </AppContext.Provider>

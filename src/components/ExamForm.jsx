@@ -1,8 +1,11 @@
-import React, { useState, useEffect } from 'react';
-import { X, Plus, Trash2, Bell, Shield, Info, LinkIcon, CheckCircle2 } from './Icons';
+import React, { useState, useEffect, useMemo } from 'react';
+import { X, Plus, Trash2, Bell, Shield, Info, LinkIcon, CheckCircle2, Book } from './Icons';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useAppContext } from '../context/AppContext';
+import AutocompleteInput from './AutocompleteInput';
 
 const ExamForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
+  const { curriculumSubjects, exams } = useAppContext();
   const [formData, setFormData] = useState({
     title: '',
     date: '',
@@ -18,6 +21,14 @@ const ExamForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   });
 
   const [newTopic, setNewTopic] = useState('');
+
+  const recentSubjects = useMemo(() => {
+    const subjects = new Set();
+    exams.forEach(e => {
+      if (e.title) subjects.add(e.title);
+    });
+    return Array.from(subjects).slice(0, 5);
+  }, [exams]);
 
   useEffect(() => {
     if (initialData) {
@@ -77,7 +88,22 @@ const ExamForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    onSubmit(formData);
+
+    // Auto-populate related fields if title matches an existing exam
+    let finalData = { ...formData };
+    if (!initialData) {
+      const match = exams.find(e => e.title.toLowerCase() === formData.title.toLowerCase());
+      if (match) {
+        finalData = {
+          ...finalData,
+          venue: formData.venue || match.venue,
+          lecturer: formData.lecturer || match.lecturer,
+          type: formData.type === 'Written' ? match.type : formData.type
+        };
+      }
+    }
+
+    onSubmit(finalData);
     onClose();
   };
 
@@ -112,12 +138,28 @@ const ExamForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
             </h4>
             <div className="space-y-4">
               <div className="group">
-                <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Assessment Title</label>
-                <input
-                  type="text" name="title" value={formData.title} onChange={handleChange} required
+                <AutocompleteInput
+                  label="Assessment Title"
+                  value={formData.title}
+                  onChange={(val) => setFormData(prev => ({ ...prev, title: val }))}
+                  suggestions={curriculumSubjects}
                   placeholder="e.g., Medical Surgical Nursing I"
-                  className="w-full px-6 py-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-medical-500 focus:bg-white dark:focus:bg-slate-800 outline-none transition-all font-bold dark:text-white"
                 />
+
+                {recentSubjects.length > 0 && (
+                  <div className="flex flex-wrap gap-2 mt-3 ml-1">
+                    <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest w-full mb-1">Recent</p>
+                    {recentSubjects.map(s => (
+                      <button
+                        key={s} type="button"
+                        onClick={() => setFormData(prev => ({ ...prev, title: s }))}
+                        className="px-3 py-1.5 bg-slate-100 dark:bg-slate-900 text-[10px] font-bold text-slate-500 dark:text-slate-400 rounded-lg hover:bg-medical-50 hover:text-medical-600 transition-all border border-transparent hover:border-medical-200"
+                      >
+                        {s}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
@@ -145,11 +187,13 @@ const ExamForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
                   />
                 </div>
                 <div>
-                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Lecturer</label>
-                  <input
-                    type="text" name="lecturer" value={formData.lecturer} onChange={handleChange}
+                  <AutocompleteInput
+                    label="Lecturer"
+                    value={formData.lecturer}
+                    onChange={(val) => setFormData(prev => ({ ...prev, lecturer: val }))}
+                    suggestions={Array.from(new Set(exams.map(e => e.lecturer).filter(Boolean)))}
                     placeholder="e.g., Dr. Smith"
-                    className="w-full px-6 py-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-medical-500 outline-none transition-all font-bold dark:text-white"
+                    icon={<Shield size={18} />}
                   />
                 </div>
               </div>
