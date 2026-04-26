@@ -1,0 +1,121 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - heading "NursingHub" [level=1] [ref=e7]
+      - paragraph [ref=e8]: Medical Learning
+    - navigation [ref=e9]:
+      - link "Dashboard" [ref=e10] [cursor=pointer]:
+        - /url: /
+        - img [ref=e11]
+        - generic [ref=e16]: Dashboard
+      - link "Flashcards" [ref=e17] [cursor=pointer]:
+        - /url: /flashcards
+        - img [ref=e18]
+        - generic [ref=e20]: Flashcards
+      - link "Quiz Mode" [ref=e21] [cursor=pointer]:
+        - /url: /quiz
+        - img [ref=e22]
+        - generic [ref=e30]: Quiz Mode
+      - link "Exam Timetable" [ref=e31] [cursor=pointer]:
+        - /url: /exams
+        - img [ref=e32]
+        - generic [ref=e34]: Exam Timetable
+      - link "Past Questions" [ref=e35] [cursor=pointer]:
+        - /url: /papers
+        - img [ref=e36]
+        - generic [ref=e40]: Past Questions
+      - link "Pronunciation" [ref=e41] [cursor=pointer]:
+        - /url: /pronunciation
+        - img [ref=e42]
+        - generic [ref=e46]: Pronunciation
+      - link "Community" [ref=e47] [cursor=pointer]:
+        - /url: /community
+        - img [ref=e48]
+        - generic [ref=e53]: Community
+      - link "Settings" [ref=e54] [cursor=pointer]:
+        - /url: /settings
+        - img [ref=e55]
+        - generic [ref=e58]: Settings
+  - main [ref=e59]:
+    - generic [ref=e60]:
+      - generic [ref=e62]:
+        - generic [ref=e63]: "N"
+        - generic [ref=e64]: NursingHub
+      - generic [ref=e65]:
+        - link [ref=e66] [cursor=pointer]:
+          - /url: /settings
+          - img [ref=e67]
+        - button "Toggle dark mode" [ref=e70]:
+          - img [ref=e71]
+    - generic [ref=e74]:
+      - generic [ref=e75]:
+        - img [ref=e77]
+        - generic [ref=e79]:
+          - generic [ref=e80]: "School Payments: 0% Paid"
+          - generic [ref=e82]: "Balance: NGN 455,000"
+      - button "Pay Now" [ref=e83]:
+        - text: Pay Now
+        - img [ref=e84]
+    - generic [ref=e87]:
+      - generic [ref=e88]:
+        - generic [ref=e89]:
+          - button [ref=e90]:
+            - img [ref=e91]
+          - generic [ref=e93]:
+            - heading "Bursary Control" [level=2] [ref=e94]:
+              - img [ref=e95]
+              - text: Bursary Control
+            - paragraph [ref=e98]: Institutional Treasury & Student Ledger Management.
+        - generic [ref=e99]:
+          - button "Audit Logs" [ref=e100]:
+            - img [ref=e101]
+            - text: Audit Logs
+          - button "Financial Report" [ref=e104]:
+            - img [ref=e105]
+            - text: Financial Report
+      - generic [ref=e108]:
+        - button "Overview" [ref=e109]:
+          - img [ref=e110]
+          - text: Overview
+        - button "Student Ledger" [ref=e113]:
+          - img [ref=e114]
+          - text: Student Ledger
+        - button "Payment Items" [ref=e119]:
+          - img [ref=e120]
+          - text: Payment Items
+        - button "Dispute Center" [ref=e121]:
+          - img [ref=e122]
+          - text: Dispute Center
+      - generic [ref=e124]:
+        - generic [ref=e125]:
+          - generic [ref=e126]:
+            - img [ref=e128]
+            - paragraph [ref=e131]: Revenue Today
+            - paragraph [ref=e132]: NGN 0
+          - generic [ref=e133]:
+            - img [ref=e135]
+            - paragraph [ref=e138]: Pending Verify
+            - paragraph [ref=e139]: "0"
+          - generic [ref=e140]:
+            - img [ref=e142]
+            - paragraph [ref=e144]: Funds Held
+            - paragraph [ref=e145]: NGN 0
+          - generic [ref=e146]:
+            - img [ref=e148]
+            - paragraph [ref=e150]: Active Disputes
+            - paragraph [ref=e151]: "0"
+        - generic [ref=e152]:
+          - generic [ref=e154]:
+            - heading "Recent Activity" [level=3] [ref=e155]
+            - button "View All" [ref=e156]:
+              - text: View All
+              - img [ref=e157]
+          - generic [ref=e159]:
+            - img [ref=e161]
+            - generic [ref=e163]:
+              - heading "Security Audit" [level=3] [ref=e164]
+              - button "Open Full Audit Trail" [ref=e165]
+```

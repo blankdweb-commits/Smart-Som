@@ -133,6 +133,11 @@ export function AppProvider({ children }) {
     return saved ? JSON.parse(saved) : [];
   });
 
+  const [auditLogs, setAuditLogs] = useState(() => {
+    const saved = localStorage.getItem('auditLogs');
+    return saved ? JSON.parse(saved) : [];
+  });
+
   const [curriculumSubjects] = useState(() => {
     const subjects = new Set();
     allBuiltInFlashcards.forEach(card => {
@@ -187,6 +192,10 @@ export function AppProvider({ children }) {
   useEffect(() => {
     localStorage.setItem('transactions', JSON.stringify(transactions));
   }, [transactions]);
+
+  useEffect(() => {
+    localStorage.setItem('auditLogs', JSON.stringify(auditLogs));
+  }, [auditLogs]);
 
   // Derived state for fees
   useEffect(() => {
@@ -298,16 +307,36 @@ export function AppProvider({ children }) {
   };
 
   const addTransaction = (transaction) => {
+    const txnId = 'TXN-' + Math.random().toString(36).substr(2, 9).toUpperCase();
     const newTransactions = [
       {
         ...transaction,
-        id: 'TXN-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-        date: new Date().toISOString()
+        id: txnId,
+        receiptNo: 'RCP-' + Date.now().toString().slice(-6),
+        date: new Date().toISOString(),
+        releaseStatus: 'Held', // Held, Released
+        disputeStatus: 'None', // None, Open, Investigating, Resolved
+        adminNotes: [],
+        verified: false
       },
       ...transactions
     ];
     setTransactions(newTransactions);
     return newTransactions[0];
+  };
+
+  const updateTransaction = (id, updates) => {
+    setTransactions(transactions.map(t => t.id === id ? { ...t, ...updates } : t));
+  };
+
+  const addAuditLog = (action, details) => {
+    setAuditLogs([{
+      id: 'LOG-' + Date.now(),
+      action,
+      details,
+      timestamp: new Date().toISOString(),
+      admin: userProfile.fullName || 'Admin'
+    }, ...auditLogs]);
   };
 
   const addPaymentPurpose = (purpose) => {
@@ -343,7 +372,8 @@ export function AppProvider({ children }) {
       updateCardProgress,
       userProfile, updateProfile,
       paymentPurposes, addPaymentPurpose, updatePaymentPurpose, deletePaymentPurpose,
-      feeDetails, transactions, addTransaction,
+      feeDetails, transactions, addTransaction, updateTransaction,
+      auditLogs, addAuditLog,
       curriculumSubjects
     }}>
       {children}

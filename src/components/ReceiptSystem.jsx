@@ -11,15 +11,18 @@ export const generateReceipt = async (transaction, profile, feeDetails) => {
   element.style.fontFamily = 'Arial, sans-serif';
 
   element.innerHTML = `
-    <div style="border: 2px solid #0f172a; padding: 40px; border-radius: 20px;">
-      <div style="display: flex; justify-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 20px; margin-bottom: 30px;">
+    <div style="border: 2px solid #0f172a; padding: 40px; border-radius: 20px; position: relative; overflow: hidden;">
+      <div style="position: absolute; top: -50px; right: -50px; width: 200px; height: 200px; background: #0d948810; border-radius: 50%;"></div>
+
+      <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 20px; margin-bottom: 30px; position: relative; z-index: 10;">
         <div>
-          <h1 style="color: #0d9488; margin: 0; font-size: 32px;">NursingHub</h1>
-          <p style="color: #64748b; margin: 5px 0 0 0; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;">Official Payment Receipt</p>
+          <h1 style="color: #0d9488; margin: 0; font-size: 32px; font-weight: 900;">NursingHub</h1>
+          <p style="color: #64748b; margin: 5px 0 0 0; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;">Bursary & Finance Division</p>
         </div>
         <div style="text-align: right;">
-          <p style="margin: 0; font-weight: bold; color: #0f172a;">Date: ${new Date(transaction.date).toLocaleDateString()}</p>
-          <p style="margin: 5px 0 0 0; color: #64748b;">ID: ${transaction.id}</p>
+          <p style="margin: 0; font-weight: bold; color: #0f172a; font-size: 14px;">Receipt No: ${transaction.receiptNo || 'N/A'}</p>
+          <p style="margin: 5px 0 0 0; color: #64748b; font-size: 12px;">Ref: ${transaction.id}</p>
+          <p style="margin: 5px 0 0 0; color: #64748b; font-size: 12px;">Date: ${new Date(transaction.date).toLocaleString()}</p>
         </div>
       </div>
 
@@ -60,11 +63,26 @@ export const generateReceipt = async (transaction, profile, feeDetails) => {
         </table>
       </div>
 
-      <div style="text-align: center; border-top: 1px solid #f1f5f9; padding-top: 30px;">
-        <p style="color: #059669; font-weight: bold; display: flex; align-items: center; justify-content: center; gap: 10px;">
-          ✓ TRANSACTION VERIFIED & SECURED
-        </p>
-        <p style="color: #94a3b8; font-size: 12px; margin-top: 10px;">This is a computer generated receipt and requires no physical signature.</p>
+      <div style="display: flex; justify-content: space-between; align-items: flex-end; border-top: 1px solid #f1f5f9; padding-top: 30px;">
+        <div style="text-align: left;">
+          <div style="width: 120px; height: 120px; border: 4px double #059669; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #059669; transform: rotate(-15deg); opacity: 0.6;">
+            <span style="font-weight: 900; font-size: 14px; text-transform: uppercase;">Verified</span>
+            <span style="font-weight: 900; font-size: 10px; text-transform: uppercase;">NursingHub</span>
+            <span style="font-weight: 900; font-size: 8px;">${new Date(transaction.date).toLocaleDateString()}</span>
+          </div>
+        </div>
+        <div style="text-align: right; flex: 1;">
+          <p style="color: #059669; font-weight: bold; margin-bottom: 5px;">
+            ✓ TRANSACTION ELECTRONICALLY VERIFIED
+          </p>
+          <p style="color: #94a3b8; font-size: 10px; line-height: 1.5; max-width: 300px; margin-left: auto;">
+            This document serves as an official confirmation of payment. Possession of a valid receipt is subject to fund clearance and institutional verification.
+          </p>
+        </div>
+      </div>
+
+      <div style="margin-top: 40px; text-align: center; font-size: 9px; color: #cbd5e1; text-transform: uppercase; letter-spacing: 1px;">
+        NursingHub Digital Finance • Secure Transaction Protocol v2.0
       </div>
     </div>
   `;
