@@ -12,7 +12,12 @@ import {
   Clock,
   ChevronRight,
   TrendingUp,
-  FileText
+  FileText,
+  Zap,
+  Shield,
+  History,
+  Star,
+  Sparkles
 } from '../components/Icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import StudentVerification from '../components/StudentVerification';
@@ -33,7 +38,9 @@ const Payments = () => {
   const relevantPurposes = paymentPurposes.filter(p =>
     p.active &&
     (p.targetDept === 'All' || p.targetDept === userProfile.department) &&
-    (p.targetLevel === 'All' || p.targetLevel === userProfile.level)
+    (p.targetLevel === 'All' || p.targetLevel === userProfile.level) &&
+    (p.targetProgram === 'All' || p.targetProgram === userProfile.programType) &&
+    (!p.targetMatric || p.targetMatric === userProfile.matricNumber)
   );
 
   const handleStartPayment = (purpose) => {
@@ -163,6 +170,37 @@ const Payments = () => {
               </div>
             </div>
 
+            {/* Trust Section */}
+            <div className="bg-gradient-to-br from-indigo-600 to-medical-600 rounded-[2.5rem] p-8 text-white relative overflow-hidden shadow-xl">
+              <div className="absolute top-0 right-0 p-8 opacity-10">
+                <Sparkles size={120} />
+              </div>
+              <div className="relative z-10">
+                <h3 className="text-2xl font-black mb-2 tracking-tight">Pay School Charges Easily in One Place</h3>
+                <p className="text-indigo-100 font-medium text-sm mb-8 opacity-90 max-w-lg">No queues, no stress. Official institutional payment channel trusted by students across campus.</p>
+
+                <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4 -mx-4 px-4 snap-x">
+                  {[
+                    { icon: <Zap />, title: "2 Minute Payment", desc: "Fast & Convenient" },
+                    { icon: <FileText />, title: "Instant Receipts", desc: "Verified & Official" },
+                    { icon: <Shield />, title: "Secure Checkout", desc: "End-to-end Protection" },
+                    { icon: <History />, title: "Payment Records", desc: "Full Transaction Log" },
+                    { icon: <Star />, title: "Trusted Channel", desc: "Official School Service" }
+                  ].map((feat, i) => (
+                    <div key={i} className="min-w-[180px] bg-white/10 backdrop-blur-md rounded-[1.5rem] p-5 snap-center border border-white/10 space-y-2">
+                       <div className="w-10 h-10 bg-white/20 rounded-xl flex items-center justify-center text-white">
+                          {React.cloneElement(feat.icon, { size: 20 })}
+                       </div>
+                       <div>
+                          <p className="text-xs font-black uppercase tracking-tight">{feat.title}</p>
+                          <p className="text-[10px] text-indigo-100 opacity-70 font-medium">{feat.desc}</p>
+                       </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            </div>
+
             {/* Payment Options Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
               <div className="bg-white dark:bg-slate-800 p-8 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-700 space-y-6">
@@ -173,52 +211,90 @@ const Payments = () => {
                   {relevantPurposes.map((p) => {
                     const isPaid = transactions.some(t => t.type === p.title && t.status === 'Success');
                     return (
-                      <button
+                      <div
                         key={p.id}
-                        disabled={isPaid}
-                        onClick={() => handleStartPayment(p)}
-                        className={`w-full p-5 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 transition-all group flex items-center justify-between text-left ${isPaid ? 'opacity-50 grayscale cursor-not-allowed' : 'hover:border-medical-500 hover:bg-white dark:hover:bg-slate-800'}`}
+                        className={`w-full p-6 bg-white dark:bg-slate-800/50 rounded-[2rem] border border-slate-100 dark:border-slate-800 transition-all flex flex-col gap-4 shadow-sm relative overflow-hidden group ${isPaid ? 'opacity-70' : 'hover:shadow-md hover:border-medical-200'}`}
                       >
-                        <div>
-                          <p className="font-black text-slate-900 dark:text-white">{p.title}</p>
-                          <p className="text-[10px] font-black text-medical-600 uppercase tracking-widest">{p.currency} {p.amount.toLocaleString()}</p>
+                        <div className="flex justify-between items-start">
+                          <div className="p-3 bg-slate-50 dark:bg-slate-900 rounded-2xl text-slate-400 group-hover:text-medical-600 transition-colors">
+                            <CreditCard size={24} />
+                          </div>
+                          {isPaid ? (
+                            <div className="flex items-center gap-1 px-3 py-1 bg-emerald-50 text-emerald-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+                               <CheckCircle2 size={12} /> Paid
+                            </div>
+                          ) : (
+                            <div className="px-3 py-1 bg-medical-50 text-medical-600 rounded-full text-[10px] font-black uppercase tracking-widest">
+                               Active
+                            </div>
+                          )}
                         </div>
-                        {isPaid ? <CheckCircle2 className="text-emerald-500" size={20} /> : <ChevronRight size={20} className="text-slate-300 group-hover:text-medical-600 transform group-hover:translate-x-1 transition-all" />}
-                      </button>
+
+                        <div>
+                          <p className="font-black text-slate-900 dark:text-white text-lg">{p.title}</p>
+                          <p className="text-xs text-slate-500 font-medium line-clamp-1">{p.description}</p>
+                        </div>
+
+                        <div className="flex items-end justify-between mt-2 pt-4 border-t border-slate-50 dark:border-slate-800">
+                           <div>
+                              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Amount Due</p>
+                              <p className="text-xl font-black text-slate-900 dark:text-white">NGN {p.amount.toLocaleString()}</p>
+                           </div>
+                           {!isPaid ? (
+                             <button
+                               onClick={() => handleStartPayment(p)}
+                               className="px-6 py-3 bg-medical-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-medical-600/20 active:scale-95 transition-all flex items-center gap-2"
+                             >
+                               Pay Now <ArrowRight size={14} />
+                             </button>
+                           ) : (
+                             <button
+                               onClick={() => setPaymentStep('history')}
+                               className="px-6 py-3 bg-slate-100 text-slate-600 rounded-xl text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all"
+                             >
+                               Receipt
+                             </button>
+                           )}
+                        </div>
+                      </div>
                     );
                   })}
                 </div>
               </div>
 
               <div className="bg-white dark:bg-slate-800 p-8 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-700 space-y-6">
-                <h4 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
-                  <CreditCard size={20} className="text-indigo-500" /> Custom Amount
-                </h4>
-                <div className="space-y-4">
-                  <div className="relative">
-                    <span className="absolute left-5 top-1/2 -translate-y-1/2 text-slate-400 font-black">{feeDetails.currency}</span>
-                    <input
-                      type="number"
-                      value={customAmount}
-                      onChange={e => setCustomAmount(e.target.value)}
-                      placeholder="Enter amount"
-                      className="w-full pl-16 pr-5 py-5 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none transition-all font-black text-lg"
-                    />
-                  </div>
-                  <button
-                    disabled={!customAmount || parseFloat(customAmount) <= 0}
-                    onClick={() => setPaymentStep('simulate')}
-                    className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-indigo-600/20 hover:bg-indigo-700 disabled:opacity-50 disabled:cursor-not-allowed transition-all active:scale-95 flex items-center justify-center gap-2"
-                  >
-                    Pay Custom Amount <ArrowRight size={16} />
-                  </button>
+                <div className="flex justify-between items-center mb-2">
+                  <h4 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight flex items-center gap-2">
+                    <History size={20} className="text-indigo-500" /> Recent Actions
+                  </h4>
+                  <button onClick={() => setPaymentStep('history')} className="text-[10px] font-black text-indigo-600 uppercase tracking-widest">View All</button>
+                </div>
+                <div className="space-y-3">
+                   {transactions.slice(0, 3).map(txn => (
+                     <div key={txn.id} className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                        <div>
+                           <p className="text-sm font-black text-slate-900 dark:text-white">{txn.type}</p>
+                           <p className="text-[10px] text-slate-400 font-bold uppercase">{new Date(txn.date).toLocaleDateString()}</p>
+                        </div>
+                        <div className="text-right">
+                           <p className="text-xs font-black text-medical-600">NGN {txn.amount.toLocaleString()}</p>
+                           <p className="text-[9px] font-black text-emerald-500 uppercase">Paid</p>
+                        </div>
+                     </div>
+                   ))}
+                   {transactions.length === 0 && (
+                     <div className="py-10 text-center space-y-2">
+                        <CreditCard size={32} className="mx-auto text-slate-300" />
+                        <p className="text-xs text-slate-400 font-medium">No recent payments. Pay charges in 2 minutes.</p>
+                     </div>
+                   )}
                 </div>
 
                 <div className="pt-4 border-t border-slate-100 dark:border-slate-700">
                   <div className="flex items-center gap-3 text-slate-400">
                     <ShieldCheck size={24} />
                     <p className="text-[10px] font-medium leading-tight">
-                      All payments are securely processed. We use bank-grade encryption to protect your financial data.
+                      Instant Confirmation. No Queue, No Stress. Official Institutional Channel.
                     </p>
                   </div>
                 </div>

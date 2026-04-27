@@ -58,6 +58,7 @@ export function AppProvider({ children }) {
       session: '2024/2025',
       email: '',
       phone: '',
+      programType: 'Full-Time',
       isVerified: false,
       isAdmin: false
     };
@@ -74,8 +75,12 @@ export function AppProvider({ children }) {
         currency: 'NGN',
         targetDept: 'All',
         targetLevel: 'All',
+        targetProgram: 'All',
+        session: '2024/2025',
         oneTime: true,
         dueDate: '2025-06-30',
+        latePenalty: 5000,
+        installmentEnabled: true,
         active: true,
         code: 'TUI-2024'
       },
@@ -317,7 +322,8 @@ export function AppProvider({ children }) {
         releaseStatus: 'Held', // Held, Released
         disputeStatus: 'None', // None, Open, Investigating, Resolved
         adminNotes: [],
-        verified: false
+        verified: false,
+        isRefunded: false
       },
       ...transactions
     ];
@@ -327,6 +333,10 @@ export function AppProvider({ children }) {
 
   const updateTransaction = (id, updates) => {
     setTransactions(transactions.map(t => t.id === id ? { ...t, ...updates } : t));
+  };
+
+  const refundTransaction = (id) => {
+    setTransactions(transactions.map(t => t.id === id ? { ...t, isRefunded: true, status: 'Refunded' } : t));
   };
 
   const addAuditLog = (action, details) => {
@@ -372,7 +382,7 @@ export function AppProvider({ children }) {
       updateCardProgress,
       userProfile, updateProfile,
       paymentPurposes, addPaymentPurpose, updatePaymentPurpose, deletePaymentPurpose,
-      feeDetails, transactions, addTransaction, updateTransaction,
+      feeDetails, transactions, addTransaction, updateTransaction, refundTransaction,
       auditLogs, addAuditLog,
       curriculumSubjects
     }}>

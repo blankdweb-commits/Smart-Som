@@ -37,6 +37,7 @@ const AdminFinance = () => {
     updatePaymentPurpose,
     deletePaymentPurpose,
     updateTransaction,
+    refundTransaction,
     auditLogs,
     addAuditLog
   } = useAppContext();
@@ -45,18 +46,26 @@ const AdminFinance = () => {
   const [activeTab, setActiveTab] = useState('overview'); // overview, ledger, purposes, disputes
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [editingPurpose, setEditingPurpose] = useState(null);
   const [selectedTxn, setSelectedTxn] = useState(null);
 
-  const [newPurpose, setNewPurpose] = useState({
+  const initialPurposeState = {
     title: '',
     description: '',
     amount: '',
     currency: 'NGN',
     targetDept: 'All',
     targetLevel: 'All',
+    targetProgram: 'All',
+    targetMatric: '', // For individual assignment
+    session: '2024/2025',
     dueDate: '',
+    latePenalty: 0,
+    installmentEnabled: false,
     active: true
-  });
+  };
+
+  const [newPurpose, setNewPurpose] = useState(initialPurposeState);
 
   // Calculate Granular Stats
   const stats = {
@@ -94,6 +103,20 @@ const AdminFinance = () => {
   const handleVerifyPayment = (txn) => {
     updateTransaction(txn.id, { verified: true, status: 'Success' });
     addAuditLog('Payment Verification', `Verified transaction ${txn.id}`);
+  };
+
+  const handleEditPurpose = (p) => {
+    setEditingPurpose(p);
+    setNewPurpose(p);
+    setShowAddModal(true);
+  };
+
+  const handleRefund = (txn) => {
+    if (window.confirm(`Initiate full refund of ${txn.currency} ${txn.amount.toLocaleString()}? This action is irreversible.`)) {
+      refundTransaction(txn.id);
+      addAuditLog('Refund', `Refunded ${txn.amount} for ${txn.id}`);
+      setSelectedTxn(null);
+    }
   };
 
   const handleDisputeAction = (txn, status) => {
@@ -351,13 +374,25 @@ const AdminFinance = () => {
                     </div>
                     <div className="flex gap-2">
                       <button
+                        onClick={() => handleEditPurpose(p)}
+                        className="p-2 bg-slate-50 text-slate-400 hover:text-medical-600 rounded-xl transition-all"
+                      >
+                        <Settings size={18} />
+                      </button>
+                      <button
                         onClick={() => updatePaymentPurpose(p.id, { active: !p.active })}
                         className={`p-2 rounded-xl transition-all ${p.active ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-400'}`}
+                        title={p.active ? 'Hide Charge' : 'Activate Charge'}
                       >
                         <CheckCircle2 size={18} />
                       </button>
                       <button
-                        onClick={() => deletePaymentPurpose(p.id)}
+                        onClick={() => {
+                          if(window.confirm('Delete this charge? Unpaid charges will disappear for students.')) {
+                            deletePaymentPurpose(p.id);
+                            addAuditLog('Item Deletion', `Deleted charge: ${p.title}`);
+                          }
+                        }}
                         className="p-2 bg-red-50 text-red-600 rounded-xl opacity-0 group-hover:opacity-100 transition-all"
                       >
                         <Trash2 size={18} />
@@ -497,12 +532,20 @@ const AdminFinance = () => {
                   </button>
                 )}
 
-                <button
-                  onClick={() => handleDisputeAction(selectedTxn, 'Investigating')}
-                  className="w-full py-4 border-2 border-red-100 text-red-500 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 active:scale-95 transition-all"
-                >
-                  <AlertTriangle size={16} /> Flag for Dispute
-                </button>
+                <div className="grid grid-cols-2 gap-3">
+                  <button
+                    onClick={() => handleDisputeAction(selectedTxn, 'Investigating')}
+                    className="py-4 border-2 border-red-100 text-red-500 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 active:scale-95 transition-all"
+                  >
+                    <AlertTriangle size={16} /> Dispute
+                  </button>
+                  <button
+                    onClick={() => handleRefund(selectedTxn)}
+                    className="py-4 border-2 border-orange-100 text-orange-500 rounded-2xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 active:scale-95 transition-all"
+                  >
+                    <Trash2 size={16} /> Refund
+                  </button>
+                </div>
               </div>
             </div>
           </motion.div>
@@ -518,8 +561,10 @@ const AdminFinance = () => {
             className="bg-white dark:bg-slate-800 w-full max-w-2xl rounded-[2.5rem] shadow-2xl overflow-hidden"
           >
             <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
-              <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Create Payment Item</h3>
-              <button onClick={() => setShowAddModal(false)} className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                {editingPurpose ? 'Edit Charge' : 'Create Payment Item'}
+              </h3>
+              <button onClick={() => { setShowAddModal(false); setEditingPurpose(null); setNewPurpose(initialPurposeState); }} className="p-2 text-slate-400 hover:text-slate-600 transition-colors">
                 <X size={24} />
               </button>
             </div>
@@ -558,7 +603,7 @@ const AdminFinance = () => {
                 />
               </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
                 <div className="space-y-1.5">
                   <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Target Department</label>
                   <select
@@ -585,21 +630,76 @@ const AdminFinance = () => {
                     <option value="Year 3">Year 3</option>
                   </select>
                 </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Program Type</label>
+                  <select
+                    value={newPurpose.targetProgram}
+                    onChange={e => setNewPurpose({...newPurpose, targetProgram: e.target.value})}
+                    className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 outline-none font-bold"
+                  >
+                    <option value="All">All Programs</option>
+                    <option value="Full-Time">Full-Time</option>
+                    <option value="Part-Time">Part-Time</option>
+                    <option value="Direct Entry">Direct Entry</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="space-y-1.5">
+                <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Target Specific Student (Optional Matric No)</label>
+                <input
+                  type="text"
+                  value={newPurpose.targetMatric}
+                  onChange={e => setNewPurpose({...newPurpose, targetMatric: e.target.value})}
+                  placeholder="e.g. NS/2021/042"
+                  className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 focus:ring-2 focus:ring-indigo-500 outline-none font-bold uppercase"
+                />
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                 <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Late Penalty (NGN)</label>
+                  <input
+                    type="number"
+                    value={newPurpose.latePenalty}
+                    onChange={e => setNewPurpose({...newPurpose, latePenalty: parseFloat(e.target.value)})}
+                    placeholder="0.00"
+                    className="w-full px-5 py-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 focus:ring-2 focus:ring-medical-500 outline-none font-bold"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="text-[10px] font-black uppercase tracking-widest text-slate-400 ml-2">Installment Payment</label>
+                  <div className="flex gap-2">
+                    {['Enabled', 'Disabled'].map(opt => (
+                      <button
+                        key={opt}
+                        type="button"
+                        onClick={() => setNewPurpose({...newPurpose, installmentEnabled: opt === 'Enabled'})}
+                        className={`flex-1 py-4 rounded-2xl font-bold transition-all border-2 ${ (newPurpose.installmentEnabled && opt === 'Enabled') || (!newPurpose.installmentEnabled && opt === 'Disabled') ? 'border-medical-500 bg-medical-50 text-medical-700' : 'border-slate-100 dark:border-slate-800 text-slate-400'}`}
+                      >
+                        {opt}
+                      </button>
+                    ))}
+                  </div>
+                </div>
               </div>
 
               <button
                 onClick={() => {
-                  addPaymentPurpose(newPurpose);
-                  addAuditLog('Item Creation', `Created new payment item: ${newPurpose.title}`);
+                  if (editingPurpose) {
+                    updatePaymentPurpose(editingPurpose.id, newPurpose);
+                    addAuditLog('Item Edit', `Updated charge: ${newPurpose.title}`);
+                  } else {
+                    addPaymentPurpose(newPurpose);
+                    addAuditLog('Item Creation', `Created new payment item: ${newPurpose.title}`);
+                  }
                   setShowAddModal(false);
-                  setNewPurpose({
-                    title: '', description: '', amount: '', currency: 'NGN',
-                    targetDept: 'All', targetLevel: 'All', dueDate: '', active: true
-                  });
+                  setEditingPurpose(null);
+                  setNewPurpose(initialPurposeState);
                 }}
                 className="w-full py-5 bg-medical-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-medical-600/20 active:scale-95 transition-all"
               >
-                Publish Payment Charge
+                {editingPurpose ? 'Save Changes' : 'Publish Payment Charge'}
               </button>
             </div>
           </motion.div>

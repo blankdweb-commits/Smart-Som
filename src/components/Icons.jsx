@@ -25,6 +25,7 @@ import {
   FileUp,
   Filter,
   Folder,
+  History,
   HelpCircle,
   Image,
   Info,
@@ -64,6 +65,7 @@ import {
   Users,
   Volume2,
   X,
+  Zap,
   XCircle
 } from 'lucide-react';
 
@@ -95,11 +97,12 @@ export {
   FileUp,
   Filter,
   Folder,
+  History,
   HelpCircle,
   Image as ImageIcon,
   Info,
-  Lock,
   Key,
+  Lock,
   LayoutDashboard,
   Link as LinkIcon,
   List,
@@ -134,5 +137,6 @@ export {
   Users,
   Volume2,
   X,
+  Zap,
   XCircle
 };
