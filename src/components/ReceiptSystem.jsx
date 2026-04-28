@@ -16,8 +16,8 @@ export const generateReceipt = async (transaction, profile, feeDetails) => {
 
       <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 2px solid #f1f5f9; padding-bottom: 20px; margin-bottom: 30px; position: relative; z-index: 10;">
         <div>
-          <h1 style="color: #0d9488; margin: 0; font-size: 32px; font-weight: 900;">NursingHub</h1>
-          <p style="color: #64748b; margin: 5px 0 0 0; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;">Bursary & Finance Division</p>
+          <h1 style="color: #2563eb; margin: 0; font-size: 32px; font-weight: 900;">Apex Scholars</h1>
+          <p style="color: #64748b; margin: 5px 0 0 0; font-size: 14px; text-transform: uppercase; letter-spacing: 2px; font-weight: bold;">Institutional Finance Division</p>
         </div>
         <div style="text-align: right;">
           <p style="margin: 0; font-weight: bold; color: #0f172a; font-size: 14px;">Receipt No: ${transaction.receiptNo || 'N/A'}</p>
@@ -67,7 +67,7 @@ export const generateReceipt = async (transaction, profile, feeDetails) => {
         <div style="text-align: left;">
           <div style="width: 120px; height: 120px; border: 4px double #059669; border-radius: 50%; display: flex; flex-direction: column; align-items: center; justify-content: center; color: #059669; transform: rotate(-15deg); opacity: 0.6;">
             <span style="font-weight: 900; font-size: 14px; text-transform: uppercase;">Verified</span>
-            <span style="font-weight: 900; font-size: 10px; text-transform: uppercase;">NursingHub</span>
+            <span style="font-weight: 900; font-size: 10px; text-transform: uppercase;">Apex Scholars</span>
             <span style="font-weight: 900; font-size: 8px;">${new Date(transaction.date).toLocaleDateString()}</span>
           </div>
         </div>
@@ -82,7 +82,7 @@ export const generateReceipt = async (transaction, profile, feeDetails) => {
       </div>
 
       <div style="margin-top: 40px; text-align: center; font-size: 9px; color: #cbd5e1; text-transform: uppercase; letter-spacing: 1px;">
-        NursingHub Digital Finance • Secure Transaction Protocol v2.0
+        Apex Scholars Digital Finance • Secure Transaction Protocol v2.0
       </div>
     </div>
   `;
@@ -96,7 +96,7 @@ export const generateReceipt = async (transaction, profile, feeDetails) => {
   const pdfHeight = (imgProps.height * pdfWidth) / imgProps.width;
 
   pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
-  pdf.save(`NursingHub-Receipt-${transaction.id}.pdf`);
+  pdf.save(`ApexScholars-Receipt-${transaction.id}.pdf`);
   document.body.removeChild(element);
 };
 

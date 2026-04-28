@@ -60,7 +60,8 @@ export function AppProvider({ children }) {
       phone: '',
       programType: 'Full-Time',
       isVerified: false,
-      isAdmin: false
+      isAdmin: false,
+      isActivated: false
     };
   });
 

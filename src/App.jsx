@@ -4,6 +4,7 @@ import { AppProvider, useAppContext } from './context/AppContext';
 import Layout from './components/Layout';
 
 // Lazy load pages for better mobile performance
+const Landing = lazy(() => import('./pages/Landing'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Flashcards = lazy(() => import('./pages/Flashcards'));
 const ExamTimetable = lazy(() => import('./pages/ExamTimetable'));
@@ -52,27 +53,45 @@ const ImportHandler = () => {
   return null;
 };
 
+const AppRoutes = () => {
+  const { userProfile } = useAppContext();
+
+  if (!userProfile.isActivated) {
+    return (
+      <Routes>
+        <Route path="*" element={<Landing />} />
+      </Routes>
+    );
+  }
+
+  return (
+    <Layout>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/" element={<Dashboard />} />
+          <Route path="/flashcards" element={<Flashcards />} />
+          <Route path="/quiz" element={<Quiz />} />
+          <Route path="/exams" element={<ExamTimetable />} />
+          <Route path="/pronunciation" element={<PronunciationHelper />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/papers" element={<Papers />} />
+          <Route path="/payments" element={<Payments />} />
+          <Route path="/admin/finance" element={<AdminFinance />} />
+          <Route path="/settings" element={<Settings />} />
+        </Routes>
+      </Suspense>
+    </Layout>
+  );
+};
+
 function App() {
   return (
     <AppProvider>
       <Router>
         <ImportHandler />
-        <Layout>
-          <Suspense fallback={<PageLoader />}>
-            <Routes>
-              <Route path="/" element={<Dashboard />} />
-              <Route path="/flashcards" element={<Flashcards />} />
-              <Route path="/quiz" element={<Quiz />} />
-              <Route path="/exams" element={<ExamTimetable />} />
-              <Route path="/pronunciation" element={<PronunciationHelper />} />
-              <Route path="/community" element={<Community />} />
-              <Route path="/papers" element={<Papers />} />
-              <Route path="/payments" element={<Payments />} />
-              <Route path="/admin/finance" element={<AdminFinance />} />
-              <Route path="/settings" element={<Settings />} />
-            </Routes>
-          </Suspense>
-        </Layout>
+        <Suspense fallback={<PageLoader />}>
+          <AppRoutes />
+        </Suspense>
       </Router>
     </AppProvider>
   );

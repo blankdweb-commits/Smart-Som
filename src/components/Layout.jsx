@@ -19,8 +19,8 @@ const Layout = ({ children }) => {
         <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 px-4 py-3 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-medical-600 rounded-lg flex items-center justify-center text-white font-bold text-xl shrink-0">N</div>
-              <span className="font-bold text-slate-800 dark:text-white truncate">NursingHub</span>
+              <div className="w-8 h-8 bg-apex-600 rounded-lg flex items-center justify-center text-white font-black text-lg shrink-0">A</div>
+              <span className="font-black text-slate-900 dark:text-white truncate tracking-tight">Apex Scholars</span>
             </div>
           </div>
 

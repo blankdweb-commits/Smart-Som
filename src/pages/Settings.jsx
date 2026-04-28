@@ -77,7 +77,7 @@ const Settings = () => {
             </h2>
             <div className="space-y-6">
               <p className="text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-                NursingHub is configured for local data persistence. Your study progress and flashcards are stored securely in your browser.
+                Apex Scholars is configured for local data persistence. Your study progress and flashcards are stored securely in your browser.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -138,7 +138,7 @@ const Settings = () => {
             </div>
             <h2 className="text-2xl font-black mb-4 relative z-10">About</h2>
             <p className="text-indigo-100 leading-relaxed font-medium relative z-10">
-              NursingHub is a clinical learning suite designed for Nursing and Midwifery students, featuring integrated curriculum data and spaced repetition tools.
+              Apex Scholars is a clinical learning suite designed for Nursing and Midwifery students, featuring integrated curriculum data and spaced repetition tools.
             </p>
             <div className="mt-8 pt-8 border-t border-white/20 relative z-10">
               <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Version</p>
