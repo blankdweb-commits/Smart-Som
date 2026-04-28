@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-import { ShieldCheck, Zap, Star, ArrowRight, Lock, Key, CreditCard, Sparkles, CheckCircle2, ChevronDown } from '../components/Icons';
+import { ShieldCheck, Zap, Star, ArrowRight, Lock, Key, CreditCard, Sparkles, CheckCircle2, ChevronDown, Clock } from '../components/Icons';
 import { useAppContext } from '../context/AppContext';
 
 const Landing = () => {
