@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-import { ShieldCheck, Zap, Star, ArrowRight, Lock, Key, CreditCard, Sparkles, CheckCircle2, ChevronDown, Clock } from '../components/Icons';
+import { ShieldCheck, Zap, Star, ArrowRight, Lock, Key, CreditCard, Sparkles, CheckCircle2, ChevronDown, Clock, TrendingUp, BookOpen, Calendar, Users } from '../components/Icons';
 import { useAppContext } from '../context/AppContext';
+import TreeScene from '../components/TreeScene';
 
 const Landing = () => {
   const { updateProfile } = useAppContext();
@@ -11,7 +12,12 @@ const Landing = () => {
   const [error, setError] = useState('');
 
   const { scrollYProgress } = useScroll();
-  const treeY = useTransform(scrollYProgress, [0, 1], ["0%", "-80%"]);
+  const [scrollVal, setScrollVal] = useState(0);
+
+  useEffect(() => {
+    return scrollYProgress.onChange(v => setScrollVal(v));
+  }, [scrollYProgress]);
+
   const glowOpacity = useTransform(scrollYProgress, [0.8, 1], [0, 1]);
 
   const handleActivate = async (e) => {
@@ -27,20 +33,25 @@ const Landing = () => {
   };
 
   const steps = [
-    { title: "Underground Roots", desc: "Confusion, exam fear, and lack of direction.", color: "text-slate-500", icon: "🌱" },
-    { title: "Strong Trunk", desc: "Discipline, flashcards, and consistency.", color: "text-amber-700", icon: "🪵" },
-    { title: "Confident Branches", desc: "Memory retention and exam readiness.", color: "text-emerald-600", icon: "🌿" },
-    { title: "Apex Crown", desc: "Academic prestige and a nursing future.", color: "text-apex-600", icon: "👑" }
+    { title: "Foundations", desc: "Every great nurse starts from the roots.", color: "text-slate-500", icon: "🌱", detail: "Exam Fear" },
+    { title: "Growth", desc: "Daily revision builds strength.", color: "text-amber-700", icon: "🪵", detail: "Consistency" },
+    { title: "Mastery", desc: "Knowledge expands with every session.", color: "text-emerald-600", icon: "🌿", detail: "Retention" },
+    { title: "Apex", desc: "Rise to the Apex.", color: "text-apex-600", icon: "👑", detail: "Success" }
+  ];
+
+  const floatingFeatures = [
+    { icon: <Zap size={14} />, text: "5,000+ Questions" },
+    { icon: <Clock size={14} />, text: "Exam Alerts" },
+    { icon: <BookOpen size={14} />, text: "Flashcards" },
+    { icon: <Shield size={14} />, text: "Clinical Revision" },
+    { icon: <Users size={14} />, text: "Trusted by Students" }
   ];
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-900 overflow-x-hidden selection:bg-apex-100 selection:text-apex-900">
       {/* 3D Journey Background */}
-      <div className="fixed inset-0 pointer-events-none z-0">
-        <motion.div
-          style={{ y: treeY }}
-          className="absolute left-1/2 -translate-x-1/2 w-1 h-[400vh] bg-gradient-to-b from-apex-500 via-emerald-500 to-amber-900 opacity-20"
-        />
+      <div className="fixed inset-0 pointer-events-none z-0 overflow-hidden">
+        <TreeScene scrollProgress={scrollVal} />
         <motion.div
           style={{ opacity: glowOpacity }}
           className="absolute top-0 left-0 w-full h-screen bg-gradient-to-b from-apex-500/20 to-transparent blur-3xl"
@@ -107,26 +118,59 @@ const Landing = () => {
 
         {/* Tree Journey Section */}
         <section className="py-32 px-6">
-          <div className="max-w-4xl mx-auto space-y-64">
+          <div className="max-w-4xl mx-auto space-y-96">
             {steps.map((step, i) => (
               <motion.div
                 key={i}
                 initial={{ x: i % 2 === 0 ? -50 : 50, opacity: 0 }}
                 whileInView={{ x: 0, opacity: 1 }}
-                viewport={{ margin: "-100px" }}
-                className={`flex flex-col ${i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} items-center gap-12`}
+                viewport={{ margin: "-200px" }}
+                className={`flex flex-col ${i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} items-center gap-16`}
               >
-                <div className="w-32 h-32 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-3d-glass flex items-center justify-center text-5xl border border-white dark:border-slate-700">
-                  {step.icon}
+                <div className="relative">
+                   <div className="w-40 h-40 bg-white/10 backdrop-blur-3xl dark:bg-slate-800/30 rounded-[3rem] shadow-3d-glass flex items-center justify-center text-6xl border border-white/20 dark:border-slate-700 relative z-10">
+                      {step.icon}
+                   </div>
+                   {/* Floating Feature Tags */}
+                   <motion.div
+                    animate={{ y: [0, -10, 0] }}
+                    transition={{ duration: 3, repeat: Infinity, delay: i * 0.5 }}
+                    className={`absolute ${i % 2 === 0 ? '-right-20' : '-left-20'} top-0 flex flex-col gap-3`}
+                   >
+                      <div className="bg-white dark:bg-slate-800 px-4 py-2 rounded-xl shadow-lg border border-slate-100 dark:border-slate-700 whitespace-nowrap">
+                         <p className={`text-[10px] font-black uppercase tracking-widest ${step.color}`}>{step.detail}</p>
+                      </div>
+                      {i === 3 && (
+                        <div className="bg-apex-600 px-4 py-2 rounded-xl shadow-lg shadow-apex-500/30 text-white whitespace-nowrap">
+                          <p className="text-[10px] font-black uppercase tracking-widest flex items-center gap-1"><Sparkles size={12} /> Apex Level</p>
+                        </div>
+                      )}
+                   </motion.div>
                 </div>
-                <div className={`text-center ${i % 2 === 0 ? 'md:text-left' : 'md:text-right'} space-y-4`}>
-                  <h3 className={`text-3xl font-black ${step.color}`}>{step.title}</h3>
-                  <p className="text-xl text-slate-500 font-medium max-w-sm">{step.desc}</p>
+
+                <div className={`text-center ${i % 2 === 0 ? 'md:text-left' : 'md:text-right'} space-y-6 flex-1`}>
+                  <div className="space-y-2">
+                    <p className="text-apex-500 font-black text-xs uppercase tracking-[0.4em]">Section {i+1}</p>
+                    <h3 className={`text-5xl font-black ${step.color} tracking-tighter leading-tight`}>{step.title}</h3>
+                  </div>
+                  <p className="text-2xl text-slate-500 dark:text-slate-400 font-medium leading-relaxed">{step.desc}</p>
                 </div>
               </motion.div>
             ))}
           </div>
         </section>
+
+        {/* Global Features Marquee-like section */}
+        <div className="py-20 overflow-hidden relative border-y border-slate-100 dark:border-slate-800 bg-white/50 dark:bg-slate-900/50 backdrop-blur-sm">
+           <div className="flex gap-8 items-center animate-infinite-scroll">
+              {[...floatingFeatures, ...floatingFeatures, ...floatingFeatures].map((f, idx) => (
+                <div key={idx} className="flex items-center gap-3 px-6 py-3 bg-white dark:bg-slate-800 rounded-2xl shadow-soft border border-slate-100 dark:border-slate-700 shrink-0">
+                   <div className="text-apex-600">{f.icon}</div>
+                   <span className="text-xs font-black text-slate-900 dark:text-white uppercase tracking-widest">{f.text}</span>
+                </div>
+              ))}
+           </div>
+        </div>
 
         {/* Pain to Success Conversion */}
         <section className="py-32 bg-slate-900 text-white overflow-hidden relative">

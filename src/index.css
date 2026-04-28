@@ -146,3 +146,20 @@ html {
 button, a {
   @apply touch-manipulation;
 }
+
+@layer utilities {
+  .animate-infinite-scroll {
+    animation: infinite-scroll 25s linear infinite;
+    display: flex;
+    width: max-content;
+  }
+
+  @keyframes infinite-scroll {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-33.3333%);
+    }
+  }
+}
