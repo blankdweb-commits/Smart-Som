@@ -55,16 +55,16 @@ const Papers = () => {
         <p className="text-slate-500 dark:text-slate-400 font-medium">Train your AI with past examination papers to generate high-yield flashcards.</p>
       </header>
 
-      <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl w-full sm:w-fit">
+      <div className="flex p-1 bg-slate-100 dark:bg-slate-800 rounded-2xl w-full sm:w-fit sticky top-20 z-30 shadow-sm">
         <button
           onClick={() => setActiveTab('upload')}
-          className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'upload' ? 'bg-white dark:bg-slate-700 text-medical-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+          className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-xl font-black text-[10px] sm:text-sm uppercase tracking-widest transition-all ${activeTab === 'upload' ? 'bg-white dark:bg-slate-700 text-medical-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
         >
           Upload & Train
         </button>
         <button
           onClick={() => setActiveTab('browse')}
-          className={`flex-1 sm:flex-none px-6 py-2.5 rounded-xl font-bold text-sm transition-all ${activeTab === 'browse' ? 'bg-white dark:bg-slate-700 text-medical-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
+          className={`flex-1 sm:flex-none px-4 sm:px-6 py-2.5 rounded-xl font-black text-[10px] sm:text-sm uppercase tracking-widest transition-all ${activeTab === 'browse' ? 'bg-white dark:bg-slate-700 text-medical-600 shadow-sm' : 'text-slate-500 hover:text-slate-700 dark:hover:text-slate-300'}`}
         >
           Browse Library
         </button>
@@ -72,7 +72,7 @@ const Papers = () => {
 
       {activeTab === 'upload' ? (
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-soft border border-slate-100 dark:border-slate-700 flex flex-col items-center justify-center text-center space-y-6 min-h-[400px]">
+          <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-[2.5rem] shadow-soft border border-slate-100 dark:border-slate-700 flex flex-col items-center justify-center text-center space-y-6 min-h-[300px] sm:min-h-[400px]">
             <div className="w-20 h-20 bg-medical-50 dark:bg-medical-900/30 text-medical-600 rounded-3xl flex items-center justify-center">
               {isUploading ? <Loader2 size={40} className="animate-spin" /> : <FileUp size={40} />}
             </div>

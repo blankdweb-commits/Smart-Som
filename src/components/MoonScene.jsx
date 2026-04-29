@@ -19,7 +19,7 @@ const Moon = ({ scrollProgress, quality }) => {
 
   // Ultra-high-fidelity procedural moon texture
   const textures = useMemo(() => {
-    const size = 2048;
+    const size = quality === 'high' ? 2048 : 1024;
     const canvas = document.createElement('canvas');
     canvas.width = size;
     canvas.height = size;
@@ -50,14 +50,16 @@ const Moon = ({ scrollProgress, quality }) => {
     });
 
     // 3. Procedural Noise / Surface Grain
-    for (let i = 0; i < 15000; i++) {
+    const grainCount = quality === 'high' ? 15000 : 5000;
+    for (let i = 0; i < grainCount; i++) {
       const lum = Math.random() * 40 + 10;
       ctx.fillStyle = `rgba(${lum},${lum},${lum},${Math.random() * 0.1})`;
       ctx.fillRect(Math.random() * size, Math.random() * size, 2, 2);
     }
 
     // 4. Craters with depth and rims
-    for (let i = 0; i < 2000; i++) {
+    const craterCount = quality === 'high' ? 2000 : 800;
+    for (let i = 0; i < craterCount; i++) {
       const x = Math.random() * size;
       const y = Math.random() * size;
       const r = Math.random() * 12 + 1;
@@ -208,13 +210,15 @@ const SceneContent = ({ scrollProgress, quality }) => {
       <Environment preset="night" />
 
       <EffectComposer multisampling={quality === 'high' ? 8 : 0}>
-        <Bloom
-          intensity={0.4 + scrollProgress * 1.6}
-          luminanceThreshold={0.15}
-          luminanceSmoothing={0.8}
-          mipmapBlur
-        />
-        <ChromaticAberration offset={[0.0008, 0.0008]} />
+        {quality === 'high' && (
+          <Bloom
+            intensity={0.4 + scrollProgress * 1.6}
+            luminanceThreshold={0.15}
+            luminanceSmoothing={0.8}
+            mipmapBlur
+          />
+        )}
+        {quality === 'high' && <ChromaticAberration offset={[0.0008, 0.0008]} />}
         <Noise opacity={0.03} />
         <Vignette eskil={false} offset={0.05} darkness={1.2} />
       </EffectComposer>
@@ -230,7 +234,7 @@ const MoonScene = ({ scrollProgress }) => {
   return (
     <div className="w-full h-full bg-[#020617]">
       <Canvas
-        shadows
+        shadows={{ type: THREE.PCFShadowMap }}
         dpr={[1, 2]}
         gl={{
           antialias: false,

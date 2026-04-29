@@ -155,7 +155,7 @@ const Landing = () => {
               initial={{ y: 20, opacity: 0 }}
               whileInView={{ y: 0, opacity: 1 }}
               viewport={{ once: true }}
-              className="text-6xl md:text-8xl lg:text-9xl font-black text-white tracking-tighter leading-[0.85] text-balance"
+              className="text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-black text-white tracking-tighter leading-[0.85] text-balance px-2"
             >
               Pass <span className="text-medical-500">with</span> <br/>
               <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-300 to-white/50">Confidence.</span>
@@ -166,7 +166,7 @@ const Landing = () => {
               whileInView={{ y: 0, opacity: 1 }}
               viewport={{ once: true }}
               transition={{ delay: 0.1 }}
-              className="text-xl md:text-2xl text-slate-400 font-bold max-w-2xl mx-auto leading-tight"
+              className="text-lg sm:text-xl md:text-2xl text-slate-400 font-bold max-w-2xl mx-auto leading-tight px-4"
             >
               Move from stress and confusion to clarity, mastery, and professional nursing success.
             </motion.p>
@@ -203,37 +203,37 @@ const Landing = () => {
         </section>
 
         {/* Eclipse Journey Section */}
-        <section className="py-64 px-6">
-          <div className="max-w-4xl mx-auto space-y-[60vh]">
+        <section className="py-32 md:py-64 px-6">
+          <div className="max-w-4xl mx-auto space-y-[40vh] md:space-y-[60vh]">
             {steps.map((step, i) => (
               <motion.div
                 key={i}
                 initial={{ y: 100, opacity: 0 }}
                 whileInView={{ y: 0, opacity: 1 }}
                 viewport={{ margin: "-100px" }}
-                className={`flex flex-col ${i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} items-center gap-20`}
+                className={`flex flex-col ${i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} items-center gap-12 md:gap-20`}
               >
                 <div className="relative">
-                   <div className="w-48 h-48 bg-white/5 backdrop-blur-3xl rounded-[4rem] shadow-2xl flex items-center justify-center text-5xl text-white border border-white/10 relative z-10 transition-transform hover:scale-105 duration-500">
+                   <div className="w-32 h-32 md:w-48 md:h-48 bg-white/5 backdrop-blur-3xl rounded-[2.5rem] md:rounded-[4rem] shadow-2xl flex items-center justify-center text-3xl md:text-5xl text-white border border-white/10 relative z-10 transition-transform hover:scale-105 duration-500">
                       {step.icon}
                    </div>
                    <motion.div
                     animate={{ y: [0, -15, 0] }}
                     transition={{ duration: 4, repeat: Infinity, delay: i * 0.7 }}
-                    className={`absolute ${i % 2 === 0 ? '-right-16' : '-left-16'} -top-8 flex flex-col gap-4 z-20`}
+                    className={`absolute ${i % 2 === 0 ? '-right-8 md:-right-16' : '-left-8 md:-left-16'} -top-6 md:-top-8 flex flex-col gap-4 z-20`}
                    >
-                      <div className="bg-white/10 backdrop-blur-xl px-6 py-3 rounded-2xl shadow-xl border border-white/10 whitespace-nowrap">
-                         <p className={`text-[10px] font-black uppercase tracking-[0.3em] ${step.color}`}>{step.detail}</p>
+                      <div className="bg-white/10 backdrop-blur-xl px-4 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl shadow-xl border border-white/10 whitespace-nowrap">
+                         <p className={`text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] ${step.color}`}>{step.detail}</p>
                       </div>
                    </motion.div>
                 </div>
 
-                <div className={`text-center ${i % 2 === 0 ? 'md:text-left' : 'md:text-right'} space-y-6 flex-1`}>
-                  <div className="space-y-3">
-                    <p className="text-medical-500 font-black text-[10px] uppercase tracking-[0.5em]">{step.phase}</p>
-                    <h3 className={`text-6xl font-black ${step.color} tracking-tighter leading-none`}>{step.title}</h3>
+                <div className={`text-center ${i % 2 === 0 ? 'md:text-left' : 'md:text-right'} space-y-4 md:space-y-6 flex-1`}>
+                  <div className="space-y-2 md:space-y-3">
+                    <p className="text-medical-500 font-black text-[8px] md:text-[10px] uppercase tracking-[0.5em]">{step.phase}</p>
+                    <h3 className={`text-4xl md:text-6xl font-black ${step.color} tracking-tighter leading-none`}>{step.title}</h3>
                   </div>
-                  <p className="text-2xl text-slate-400 font-bold leading-tight">{step.desc}</p>
+                  <p className="text-xl md:text-2xl text-slate-400 font-bold leading-tight">{step.desc}</p>
                 </div>
               </motion.div>
             ))}
@@ -253,26 +253,26 @@ const Landing = () => {
         </div>
 
         {/* Pricing Funnel */}
-        <section id="pricing" className="py-64 px-6 relative">
-           <div className="max-w-md mx-auto bg-white rounded-[4rem] shadow-2xl overflow-hidden relative">
-              <div className="bg-slate-950 p-10 text-white text-center space-y-4">
+        <section id="pricing" className="py-32 md:py-64 px-6 relative">
+           <div className="max-w-md mx-auto bg-white rounded-[2.5rem] md:rounded-[4rem] shadow-2xl overflow-hidden relative text-slate-900">
+              <div className="bg-slate-950 p-8 md:p-10 text-white text-center space-y-4">
                  <div className="flex flex-col items-center gap-2">
-                    <span className="px-4 py-2 bg-amber-100 text-amber-700 rounded-full text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
+                    <span className="px-4 py-2 bg-amber-100 text-amber-700 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
                       <Timer size={12} /> Ends in 7 Days
                     </span>
-                    <span className="text-[10px] font-bold text-red-500 uppercase tracking-widest animate-pulse">
+                    <span className="text-[8px] md:text-[10px] font-bold text-red-500 uppercase tracking-widest animate-pulse">
                       {slotsRemaining} slots remaining
                     </span>
                  </div>
-                 <h3 className="text-5xl font-black tracking-tighter">Claim Your Future</h3>
+                 <h3 className="text-4xl md:text-5xl font-black tracking-tighter">Claim Your Future</h3>
               </div>
 
-              <div className="p-12 space-y-10 text-center">
+              <div className="p-8 md:p-12 space-y-8 md:space-y-10 text-center">
                  <div className="space-y-2">
-                    <p className="text-slate-400 font-black text-xs line-through tracking-[0.2em] uppercase">Formerly ₦3,000</p>
+                    <p className="text-slate-400 font-black text-[10px] md:text-xs line-through tracking-[0.2em] uppercase">Formerly ₦3,000</p>
                     <div className="flex flex-col items-center justify-center gap-1">
-                       <span className="text-7xl font-black text-slate-900 tracking-tighter">₦1,999.9</span>
-                       <span className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-2">7 Days Premium Access</span>
+                       <span className="text-6xl md:text-7xl font-black text-slate-900 tracking-tighter">₦1,999.9</span>
+                       <span className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-2">7 Days Premium Access</span>
                     </div>
                  </div>
 
