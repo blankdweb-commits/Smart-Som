@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
-import { ShieldCheck, Zap, Star, ArrowRight, Lock, Key, CreditCard, Sparkles, CheckCircle2, ChevronDown, Clock, TrendingUp, BookOpen, Calendar, Users } from '../components/Icons';
+import { ShieldCheck, Zap, Star, ArrowRight, Lock, Key, CreditCard, Sparkles, CheckCircle2, ChevronDown, Clock, TrendingUp, BookOpen, Calendar, Users, Shield, AlertCircle } from '../components/Icons';
 import { useAppContext } from '../context/AppContext';
 import TreeScene from '../components/TreeScene';
 
