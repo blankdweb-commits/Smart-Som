@@ -32,9 +32,13 @@ const Dashboard = () => {
     .filter(e => new Date(e.date) >= new Date())
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 
+  const nearExams = upcomingExams.filter(e => {
+    const daysLeft = differenceInDays(new Date(e.date), new Date());
+    return daysLeft >= 0 && daysLeft <= 3;
+  });
+
   const immediateExam = upcomingExams[0];
-  const isExamSoon = immediateExam &&
-    (new Date(immediateExam.date).getTime() - new Date().getTime()) / (1000 * 3600 * 24) <= 2;
+  const isExamSoon = nearExams.length > 0;
 
   const dueFlashcards = flashcards.filter(c => {
     if (!c.srs?.nextReview) return true;
@@ -88,41 +92,42 @@ const Dashboard = () => {
           <FeeDashboardWidget />
 
           {isExamSoon && (
-            <motion.div
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="p-8 bg-gradient-to-br from-red-600 to-orange-600 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden group"
-            >
-              <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:rotate-12 transition-transform">
-                <Clock size={120} />
-              </div>
-              <div className="relative z-10 space-y-6">
-                <div className="flex items-center gap-3">
-                  <span className="px-3 py-1 bg-white/20 rounded-full text-[10px] font-black uppercase tracking-widest">Immediate Attention</span>
-                  <p className="text-white/80 font-bold text-xs uppercase tracking-widest">
-                    {differenceInDays(new Date(immediateExam.date), new Date()) === 0 ? 'Exam is Today!' : `Exam in ${differenceInDays(new Date(immediateExam.date), new Date())} Days`}
-                  </p>
-                </div>
-                <div>
-                  <h3 className="text-3xl font-black tracking-tight">{immediateExam.title}</h3>
-                  <p className="text-white/70 font-medium mt-1">Target Subject: {immediateExam.title.split(' ')[0]} Mastery</p>
-                </div>
-                <div className="flex flex-col sm:flex-row gap-4">
-                  <button
-                    onClick={() => navigate(`/flashcards?subject=${encodeURIComponent(immediateExam.title)}`)}
-                    className="px-8 py-4 bg-white text-red-600 rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all flex items-center justify-center gap-2"
+            <div className="space-y-4">
+              {nearExams.map((exam, idx) => {
+                const days = differenceInDays(new Date(exam.date), new Date());
+                const subject = exam.title.split(' ')[0];
+                return (
+                  <motion.div
+                    key={exam.id}
+                    initial={{ x: -20, opacity: 0 }}
+                    animate={{ x: 0, opacity: 1 }}
+                    transition={{ delay: idx * 0.1 }}
+                    className={`p-6 rounded-[2rem] text-white shadow-xl relative overflow-hidden group ${days === 0 ? 'bg-red-600' : 'bg-slate-900'}`}
                   >
-                    Open {immediateExam.title.split(' ')[0]} Flashcards <ArrowRight size={16} />
-                  </button>
-                  <button
-                    onClick={() => navigate('/exams')}
-                    className="px-8 py-4 bg-white/10 hover:bg-white/20 rounded-2xl font-black uppercase tracking-widest text-xs transition-all"
-                  >
-                    View Details
-                  </button>
-                </div>
-              </div>
-            </motion.div>
+                    <div className="absolute right-0 top-1/2 -translate-y-1/2 p-4 opacity-10">
+                      <AlertCircle size={80} />
+                    </div>
+                    <div className="relative z-10 flex flex-col sm:flex-row justify-between items-center gap-6">
+                      <div className="space-y-1 text-center sm:text-left">
+                        <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">
+                          {days === 0 ? 'Happening Now' : `${days} Day${days > 1 ? 's' : ''} Remaining`}
+                        </p>
+                        <h3 className="text-2xl font-black tracking-tight">{exam.title}</h3>
+                        <p className="text-white/60 text-xs font-medium italic">
+                          {days === 0 ? 'Final push! Open your cards now.' : `Review ${subject} mastery before the deadline.`}
+                        </p>
+                      </div>
+                      <button
+                        onClick={() => navigate(`/flashcards?subject=${encodeURIComponent(subject)}`)}
+                        className="px-6 py-3 bg-white text-slate-900 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all flex items-center gap-2 whitespace-nowrap"
+                      >
+                        Revise Now <ArrowRight size={14} />
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
           )}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <StatsCard title="Vault" value={flashcards.length} icon={<BookOpen className="text-apex-600" />} color="bg-white dark:bg-slate-800" />

@@ -66,7 +66,9 @@ import {
   Volume2,
   X,
   Zap,
-  XCircle
+  XCircle,
+  Target,
+  Timer
 } from 'lucide-react';
 
 export {
@@ -138,5 +140,7 @@ export {
   Volume2,
   X,
   Zap,
-  XCircle
+  XCircle,
+  Target,
+  Timer
 };

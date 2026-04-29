@@ -69,6 +69,21 @@ export function AppProvider({ children }) {
     const saved = localStorage.getItem('paymentPurposes');
     return saved ? JSON.parse(saved) : [
       {
+        id: 'sub1',
+        title: 'Apex Premium Access',
+        description: 'Full access to 7,200+ cards, AI tools, and exam mastery.',
+        amount: 1999.9,
+        currency: 'NGN',
+        targetDept: 'All',
+        targetLevel: 'All',
+        targetProgram: 'All',
+        session: 'Weekly Subscription',
+        oneTime: false,
+        dueDate: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+        active: true,
+        code: 'PREM-WK'
+      },
+      {
         id: 'p1',
         title: 'Tuition Fee',
         description: 'Standard academic tuition for the current session.',
