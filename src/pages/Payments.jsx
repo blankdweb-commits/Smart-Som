@@ -43,48 +43,36 @@ const Payments = () => {
     (!p.targetMatric || p.targetMatric === userProfile.matricNumber)
   );
 
-  const handleStartPayment = (purpose) => {
-    setSelectedPlan({
-      name: purpose.title,
-      desc: purpose.description,
-      amount: purpose.amount,
-      percent: 100
-    });
-    setPaymentStep('simulate');
-  };
-
-  const simulatePayment = async () => {
+  const handleStartPayment = async (purpose) => {
     setIsProcessing(true);
-    // Simulate network delay
-    await new Promise(r => setTimeout(r, 2000));
-    setPaymentStep('otp');
-    setIsProcessing(false);
-  };
+    try {
+      const response = await fetch('/api/payments/initialize', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email: userProfile.email,
+          amount: purpose.amount,
+          metadata: {
+            user_id: userProfile.id,
+            type: purpose.code === 'PREM-WK' ? 'subscription' : 'charge',
+            charge_id: purpose.id,
+            title: purpose.title,
+            activate_user: purpose.code === 'PREM-WK'
+          }
+        })
+      });
 
-  const verifyOtp = async () => {
-    if (otp.length < 4) {
-      setToast({ message: 'Please enter a valid OTP', type: 'error' });
-      return;
+      const data = await response.json();
+      if (data.status && data.data.authorization_url) {
+        window.location.href = data.data.authorization_url;
+      } else {
+        throw new Error('Failed to initialize Paystack');
+      }
+    } catch (err) {
+      setToast({ message: 'Payment initialization failed', type: 'error' });
+    } finally {
+      setIsProcessing(false);
     }
-
-    setIsProcessing(true);
-    await new Promise(r => setTimeout(r, 2000));
-
-    const amount = selectedPlan
-      ? (feeDetails.totalFee * (selectedPlan.percent / 100))
-      : parseFloat(customAmount);
-
-    const txn = addTransaction({
-      amount,
-      type: selectedPlan ? selectedPlan.name : 'Custom Payment',
-      status: 'Success',
-      method: 'Simulated Card'
-    });
-
-    setLastTxn(txn);
-    setPaymentStep('success');
-    setIsProcessing(false);
-    setToast({ message: 'Payment Successful!', type: 'success' });
   };
 
   if (showVerification) {

@@ -1,80 +1,79 @@
-# Apex Scholars: Flashcard Learning System for Nursing & Midwifery
+# Apex Scholars Production Setup Guide
 
-Apex Scholars is a comprehensive, mobile-responsive React application designed to help nursing and midwifery students excel in their clinical and theoretical studies. It features a robust curriculum-based flashcard system, an exam scheduler, professional prep tools (NCLEX/NMCN), and a clinical pronunciation helper.
+This guide provides instructions for deploying Apex Scholars with a production-ready Supabase backend, Paystack payments, and Vercel hosting.
 
-## 🚀 Key Features
+## 1. Supabase Setup
 
-- **Academic Curriculum**: 300+ preloaded cards covering Year 1-3 for General Nursing and Midwifery tracks.
-- **Smart Study (SRS)**: Implements the SM-2 Spaced Repetition Algorithm for optimized long-term retention.
-- **Exam Timetable**: Track clinical assessments with countdowns, color-coded alerts, and PDF export.
-- **Pronunciation Helper**: Searchable index of 400+ difficult medical terms with syllable breakdowns and Text-to-Speech (TTS).
-- **Professional Prep**: Dedicated modules for NCLEX-RN and NMCN Council exams.
-- **Community Portal**: Shared study feed with image support (backed by Supabase).
-- **Modern UI**: Soft medical-themed design with dark/light mode and mobile-first navigation.
+1. **Create Project**: Go to [Supabase](https://supabase.com/) and create a new project.
+2. **Database Schema**:
+   - Go to the **SQL Editor** in your Supabase dashboard.
+   - Copy the contents of `SUPABASE_SETUP.sql` from this repository.
+   - Run the script to create all tables, RLS policies, and triggers.
+3. **Storage Buckets**:
+   - Go to **Storage** -> **New Bucket**.
+   - Create the following buckets:
+     - `avatars` (Public: Yes)
+     - `receipts` (Public: No)
+     - `uploads` (Public: No)
+     - `branding` (Public: Yes)
+     - `disputes-proof` (Public: No)
+4. **Auth Configuration**:
+   - Go to **Authentication** -> **URL Configuration**.
+   - Set **Site URL** to your Vercel deployment URL (e.g., `https://apex-scholars.vercel.app`).
+   - Add redirect URLs as needed.
 
-## 🛠️ Tech Stack
+## 2. Paystack Setup
 
-- **Frontend**: React (Hooks, Context API), React Router 7
-- **Styling**: Tailwind CSS 4, Framer Motion
-- **Icons**: Lucide React
-- **Persistence**: LocalStorage + Supabase (for community features)
-- **Utilities**: SM-2 Algorithm, Web Speech API, jsPDF (Export)
+1. **Account**: Create an account at [Paystack](https://paystack.com/).
+2. **API Keys**:
+   - Go to **Settings** -> **API Keys & Webhooks**.
+   - Copy your **Secret Key** and **Public Key**.
+3. **Webhook**:
+   - In Paystack Settings, set the **Webhook URL** to:
+     `https://your-vercel-domain.com/api/payments/webhook`
+   - Ensure you are listening for the `charge.success` event.
 
-## 📦 Getting Started
+## 3. Vercel Deployment
 
-### Prerequisites
-- Node.js (v18+)
-- NPM or Bun
+1. **Connect Repo**: Push your code to GitHub and connect it to [Vercel](https://vercel.com/).
+2. **Environment Variables**:
+   Add the following variables in the Vercel dashboard:
 
-### Installation
-1. Clone the repository:
-   ```bash
-   git clone <repository-url>
-   cd nursinghub
-   ```
-2. Install dependencies:
-   ```bash
-   npm install
-   ```
-3. Create a `.env` file in the root and add your Supabase credentials (optional for community features):
    ```env
-   VITE_SUPABASE_URL=your_project_url
-   VITE_SUPABASE_ANON_KEY=your_anon_key
+   # Supabase
+   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
+
+   # Paystack
+   PAYSTACK_SECRET_KEY=your_paystack_secret_key
+   NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=your_paystack_public_key
+
+   # App
+   APP_URL=https://your-vercel-domain.com
    ```
-4. Start the development server:
-   ```bash
-   npm run dev
-   ```
 
-## ☁️ Deployment
+3. **Deploy**: Click **Deploy**.
 
-This project is optimized for deployment on **Vercel**.
+## 4. Admin Access
 
-1. Connect your repository to Vercel.
-2. Add the environment variables from your `.env` file in the Vercel dashboard.
-3. The `vercel.json` ensures SPA routing works correctly.
+1. **Initial User**: Sign up for an account via the app using `admin@apexscholars.com`.
+2. **Elevation**:
+   - Find your user's UUID in **Authentication** -> **Users**.
+   - In the **SQL Editor**, run:
+     ```sql
+     UPDATE public.profiles
+     SET role = 'super_admin', is_activated = true
+     WHERE id = 'YOUR_USER_ID_HERE';
+     ```
+3. **Dashboard**: Access the admin panel at `/admin/finance`.
 
-For detailed Supabase setup (database schemas and storage policies), refer to [SUPABASE_VERCEL_GUIDE.md](./SUPABASE_VERCEL_GUIDE.md).
+## 5. Local Development
 
-## 📂 Project Structure
-
-```text
-src/
-├── components/     # Reusable UI components
-├── context/        # Global state management
-├── data/           # Academic curriculum (JSON)
-├── pages/          # Main route views
-├── utils/          # SM-2 algorithm, AI helpers, PDF export
-└── App.jsx         # App entry and routing
-```
-
-## 🩺 Academic Coverage
-The system includes flashcards for courses such as:
-- Anatomy & Physiology
-- Pharmacology & Therapeutics
-- Medical-Surgical Nursing
-- Normal Labor and Birth (Midwifery)
-- Clinical Procedures (Oxygen therapy, Catheterization, etc.)
+1. Clone the repository.
+2. Create a `.env` file with the variables above.
+3. Run `npm install`.
+4. Run `npm run dev`.
 
 ---
-*Built for the next generation of healthcare professionals.*
+*Apex Scholars: Rise to Excellence.*

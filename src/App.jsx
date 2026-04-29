@@ -5,6 +5,8 @@ import Layout from './components/Layout';
 
 // Lazy load pages for better mobile performance
 const Landing = lazy(() => import('./pages/Landing'));
+const Auth = lazy(() => import('./pages/Auth'));
+const Activate = lazy(() => import('./pages/Activate'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Flashcards = lazy(() => import('./pages/Flashcards'));
 const ExamTimetable = lazy(() => import('./pages/ExamTimetable'));
@@ -54,12 +56,26 @@ const ImportHandler = () => {
 };
 
 const AppRoutes = () => {
-  const { userProfile } = useAppContext();
+  const { userProfile, session, loadingAuth } = useAppContext();
+
+  if (loadingAuth) return <PageLoader />;
+
+  if (!session) {
+    return (
+      <Routes>
+        <Route path="/login" element={<Auth />} />
+        <Route path="/signup" element={<Auth />} />
+        <Route path="*" element={<Landing />} />
+      </Routes>
+    );
+  }
 
   if (!userProfile.isActivated) {
     return (
       <Routes>
-        <Route path="*" element={<Landing />} />
+        <Route path="/activate" element={<Activate />} />
+        <Route path="/payments" element={<Payments />} />
+        <Route path="*" element={<Activate />} />
       </Routes>
     );
   }
@@ -69,6 +85,7 @@ const AppRoutes = () => {
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
+          <Route path="/activate" element={<Activate />} />
           <Route path="/flashcards" element={<Flashcards />} />
           <Route path="/quiz" element={<Quiz />} />
           <Route path="/exams" element={<ExamTimetable />} />

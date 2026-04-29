@@ -70,16 +70,16 @@ const AdminFinance = () => {
   // Calculate Granular Stats
   const stats = {
     todayRevenue: transactions
-      .filter(t => new Date(t.date).toDateString() === new Date().toDateString() && t.status === 'Success')
-      .reduce((acc, t) => acc + t.amount, 0),
-    pendingVerification: transactions.filter(t => t.status === 'Pending' || !t.verified).length,
+      .filter(t => new Date(t.created_at).toDateString() === new Date().toDateString() && t.status === 'success')
+      .reduce((acc, t) => acc + Number(t.amount), 0),
+    pendingVerification: transactions.filter(t => t.status === 'pending').length,
     fundsHeld: transactions
-      .filter(t => t.releaseStatus === 'Held' && t.status === 'Success')
-      .reduce((acc, t) => acc + t.amount, 0),
+      .filter(t => t.status === 'success')
+      .reduce((acc, t) => acc + Number(t.amount), 0),
     totalRevenue: transactions
-      .filter(t => t.status === 'Success')
-      .reduce((acc, t) => acc + t.amount, 0) + 12450000,
-    activeDisputes: transactions.filter(t => t.disputeStatus !== 'None' && t.disputeStatus !== 'Resolved').length
+      .filter(t => t.status === 'success')
+      .reduce((acc, t) => acc + Number(t.amount), 0),
+    activeDisputes: transactions.filter(t => t.disputeStatus && t.disputeStatus !== 'None' && t.disputeStatus !== 'Resolved').length
   };
 
   const handleReleaseFunds = (txn) => {
