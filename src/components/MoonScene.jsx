@@ -183,7 +183,7 @@ const SceneContent = ({ scrollProgress, quality }) => {
         intensity={0.1 + scrollProgress * 5}
         color="#ffffff"
         castShadow
-        shadow-mapSize={[2048, 2048]}
+        shadow-mapSize={quality === 'high' ? [2048, 2048] : [512, 512]}
       />
 
       {/* Subtle Rim / Earthshine light */}
@@ -219,8 +219,8 @@ const SceneContent = ({ scrollProgress, quality }) => {
           />
         )}
         {quality === 'high' && <ChromaticAberration offset={[0.0008, 0.0008]} />}
-        <Noise opacity={0.03} />
-        <Vignette eskil={false} offset={0.05} darkness={1.2} />
+        {quality === 'high' && <Noise opacity={0.03} />}
+        {quality === 'high' && <Vignette eskil={false} offset={0.05} darkness={1.2} />}
       </EffectComposer>
 
       <fog attach="fog" args={['#020617', 5, 40]} />
@@ -235,20 +235,20 @@ const MoonScene = ({ scrollProgress }) => {
     <div className="w-full h-full bg-[#020617]">
       <Canvas
         shadows={{ type: THREE.PCFShadowMap }}
-        dpr={[1, 2]}
+        dpr={[1, quality === 'high' ? 2 : 1.5]}
         gl={{
           antialias: false,
           stencil: false,
           depth: true,
           powerPreference: "high-performance",
-          logarithmicDepthBuffer: true
+          logarithmicDepthBuffer: false
         }}
       >
         <PerformanceMonitor
           onDecline={() => setQuality('low')}
           onIncline={() => setQuality('high')}
         />
-        <Suspense fallback={null}>
+        <Suspense fallback={<group><mesh><sphereGeometry args={[1, 16, 16]} /><meshBasicMaterial color="#020617" /></mesh></group>}>
           <SceneContent scrollProgress={scrollProgress} quality={quality} />
           <BakeShadows />
           <Preload all />
