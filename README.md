@@ -1,6 +1,6 @@
-# NursingHub: Flashcard Learning System for Nursing & Midwifery
+# Apex Scholars: Flashcard Learning System for Nursing & Midwifery
 
-NursingHub is a comprehensive, mobile-responsive React application designed to help nursing and midwifery students excel in their clinical and theoretical studies. It features a robust curriculum-based flashcard system, an exam scheduler, professional prep tools (NCLEX/NMCN), and a clinical pronunciation helper.
+Apex Scholars is a comprehensive, mobile-responsive React application designed to help nursing and midwifery students excel in their clinical and theoretical studies. It features a robust curriculum-based flashcard system, an exam scheduler, professional prep tools (NCLEX/NMCN), and a clinical pronunciation helper.
 
 ## 🚀 Key Features
 

@@ -1,6 +1,6 @@
 # Supabase Storage & JWT Integration Guide
 
-This guide explains how to set up the Supabase bucket system for the NursingHub app and integrate it with JWT authentication.
+This guide explains how to set up the Supabase bucket system for the Apex Scholars app and integrate it with JWT authentication.
 
 ## 1. Supabase Project Setup
 

@@ -1,6 +1,6 @@
-# Supabase + Vercel Integration Guide (NursingHub)
+# Supabase + Vercel Integration Guide (Apex Scholars)
 
-This guide provides a step-by-step method to integrate Supabase into your NursingHub deployment on Vercel for the Community features.
+This guide provides a step-by-step method to integrate Supabase into your Apex Scholars deployment on Vercel for the Community features.
 
 ## 1. Supabase Project Setup
 1. Create a free account at [supabase.com](https://supabase.com).

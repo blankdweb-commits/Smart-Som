@@ -50,6 +50,7 @@ const Landing = () => {
   }, []);
 
   const glowOpacity = useTransform(scrollYProgress, [0.8, 1], [0, 1]);
+  const overlayOpacity = useTransform(scrollYProgress, [0.7, 0.9], [0, 0.4]);
   const blurValue = useTransform(scrollYProgress, [0, 0.1], [0, 4]);
   const moonBlur = useMotionTemplate`blur(${blurValue}px)`;
 
@@ -116,6 +117,11 @@ const Landing = () => {
         className="fixed inset-0 z-0 overflow-hidden pointer-events-none"
       >
         <MoonScene scrollProgress={scrollVal} />
+        {/* Dynamic Vignette for readability against bright full moon */}
+        <motion.div
+          style={{ opacity: overlayOpacity }}
+          className="absolute inset-0 bg-slate-950/60 pointer-events-none"
+        />
         <motion.div
           style={{ opacity: glowOpacity }}
           className="absolute top-0 left-0 w-full h-screen bg-gradient-to-b from-medical-500/10 to-transparent blur-3xl"

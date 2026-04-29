@@ -4,174 +4,222 @@ import {
   PerspectiveCamera,
   Stars,
   Float,
-  MeshDistortMaterial,
   PerformanceMonitor,
-  ContactShadows,
   BakeShadows,
   Environment,
-  Sparkles
+  Sparkles,
+  Preload
 } from '@react-three/drei';
+import { EffectComposer, Bloom, Noise, Vignette, ChromaticAberration } from '@react-three/postprocessing';
 import * as THREE from 'three';
 
 const Moon = ({ scrollProgress, quality }) => {
   const moonRef = useRef();
+  const glowRef = useRef();
 
-  // Create a procedural cratered texture using Canvas
-  const moonTexture = useMemo(() => {
+  // Ultra-high-fidelity procedural moon texture
+  const textures = useMemo(() => {
+    const size = 2048;
     const canvas = document.createElement('canvas');
-    canvas.width = 1024;
-    canvas.height = 1024;
-    const context = canvas.getContext('2d');
+    canvas.width = size;
+    canvas.height = size;
+    const ctx = canvas.getContext('2d');
 
-    // Base color
-    context.fillStyle = '#1e1e1e';
-    context.fillRect(0, 0, 1024, 1024);
+    // 1. Base Regolith color (varied greys)
+    ctx.fillStyle = '#111111';
+    ctx.fillRect(0, 0, size, size);
 
-    // Add many craters
-    for (let i = 0; i < 500; i++) {
-      const x = Math.random() * 1024;
-      const y = Math.random() * 1024;
-      const r = Math.random() * 20 + 2;
-      const opacity = Math.random() * 0.5;
+    // 2. Maria (Lunar Seas) - Large dark patches
+    const maria = [
+      { x: 0.3, y: 0.35, r: 0.2, o: 0.8 },
+      { x: 0.6, y: 0.25, r: 0.15, o: 0.7 },
+      { x: 0.45, y: 0.55, r: 0.25, o: 0.9 },
+      { x: 0.75, y: 0.65, r: 0.12, o: 0.6 },
+      { x: 0.2, y: 0.7, r: 0.18, o: 0.75 }
+    ];
 
-      const gradient = context.createRadialGradient(x, y, 0, x, y, r);
-      gradient.addColorStop(0, `rgba(0,0,0,${opacity})`);
-      gradient.addColorStop(0.8, `rgba(50,50,50,${opacity})`);
-      gradient.addColorStop(1, `rgba(80,80,80,0)`);
+    maria.forEach(m => {
+      const grad = ctx.createRadialGradient(m.x*size, m.y*size, 0, m.x*size, m.y*size, m.r*size);
+      grad.addColorStop(0, `rgba(15,15,15,${m.o})`);
+      grad.addColorStop(0.7, `rgba(12,12,12,${m.o * 0.5})`);
+      grad.addColorStop(1, 'rgba(10,10,10,0)');
+      ctx.fillStyle = grad;
+      ctx.beginPath();
+      ctx.arc(m.x*size, m.y*size, m.r*size, 0, Math.PI*2);
+      ctx.fill();
+    });
 
-      context.fillStyle = gradient;
-      context.beginPath();
-      context.arc(x, y, r, 0, Math.PI * 2);
-      context.fill();
+    // 3. Procedural Noise / Surface Grain
+    for (let i = 0; i < 15000; i++) {
+      const lum = Math.random() * 40 + 10;
+      ctx.fillStyle = `rgba(${lum},${lum},${lum},${Math.random() * 0.1})`;
+      ctx.fillRect(Math.random() * size, Math.random() * size, 2, 2);
     }
 
-    const texture = new THREE.CanvasTexture(canvas);
-    texture.anisotropy = 8;
-    return texture;
+    // 4. Craters with depth and rims
+    for (let i = 0; i < 2000; i++) {
+      const x = Math.random() * size;
+      const y = Math.random() * size;
+      const r = Math.random() * 12 + 1;
+      const depth = Math.random() * 0.5 + 0.1;
+
+      // Shadow (inner)
+      ctx.beginPath();
+      ctx.arc(x, y, r, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(0,0,0,${depth})`;
+      ctx.fill();
+
+      // Highlight Rim (outer)
+      ctx.beginPath();
+      ctx.arc(x + (Math.random()-0.5)*2, y + (Math.random()-0.5)*2, r + 0.5, 0, Math.PI * 2);
+      ctx.strokeStyle = `rgba(150,150,150,${depth * 0.3})`;
+      ctx.lineWidth = 0.5;
+      ctx.stroke();
+
+      // Rays for large craters
+      if (r > 10 && Math.random() > 0.95) {
+         ctx.strokeStyle = `rgba(200,200,200,0.05)`;
+         for(let j=0; j<8; j++) {
+           ctx.beginPath();
+           ctx.moveTo(x, y);
+           ctx.lineTo(x + Math.cos(j)*r*5, y + Math.sin(j)*r*5);
+           ctx.stroke();
+         }
+      }
+    }
+
+    const tex = new THREE.CanvasTexture(canvas);
+    tex.anisotropy = 16;
+    return tex;
   }, []);
 
   useFrame((state) => {
     if (moonRef.current) {
-      // Slow rotation
-      moonRef.current.rotation.y += 0.001;
-      // Subtle float
-      moonRef.current.position.y = Math.sin(state.clock.elapsedTime * 0.5) * 0.1;
+      moonRef.current.rotation.y += 0.0003; // Very slow cinematic rotation
+      moonRef.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.05) * 0.01;
+    }
+    if (glowRef.current) {
+      // Subtle pulse to simulate atmospheric shimmer
+      glowRef.current.scale.setScalar(1.02 + Math.sin(state.clock.elapsedTime * 0.4) * 0.01);
     }
   });
 
-  // Calculate eclipse shadow position based on scroll
-  // scrollProgress 0 -> Dark
-  // scrollProgress 0.5 -> Partial
-  // scrollProgress 0.8 -> Diamond Ring (Glow)
-  // scrollProgress 1.0 -> Full Bright
-
   return (
     <group>
+      {/* The Core Moon Mesh */}
       <mesh ref={moonRef} castShadow receiveShadow>
-        <sphereGeometry args={[2, quality === 'high' ? 64 : 32, quality === 'high' ? 64 : 32]} />
+        <sphereGeometry args={[2, quality === 'high' ? 128 : 64, quality === 'high' ? 128 : 64]} />
         <meshStandardMaterial
-          map={moonTexture}
-          roughness={0.9}
-          metalness={0.1}
-          bumpMap={moonTexture}
-          bumpScale={0.05}
+          map={textures}
+          bumpMap={textures}
+          bumpScale={0.15}
+          roughness={0.7}
+          metalness={0.02}
+          color="#f1f5f9"
         />
       </mesh>
 
-      {/* Diamond Ring Glow - visible at high scroll */}
-      {scrollProgress > 0.7 && (
-        <group position={[0, 0, -0.1]}>
-           <mesh scale={1.05}>
-             <sphereGeometry args={[2.05, 32, 32]} />
-             <meshBasicMaterial
-               color="#ffffff"
-               transparent
-               opacity={(scrollProgress - 0.7) * 2}
-               side={THREE.BackSide}
-             />
-           </mesh>
-           {quality === 'high' && (
-             <Sparkles
-               count={20}
-               scale={5}
-               size={6}
-               speed={0.3}
-               opacity={(scrollProgress - 0.8) * 5}
-               color="#fff"
-             />
-           )}
-        </group>
+      {/* Atmospheric Glow Layer */}
+      <mesh ref={glowRef} scale={1.02}>
+        <sphereGeometry args={[2, 64, 64]} />
+        <meshBasicMaterial
+          color="#ffffff"
+          transparent
+          opacity={Math.pow(scrollProgress, 2) * 0.12}
+          side={THREE.BackSide}
+        />
+      </mesh>
+
+      {/* Volumetric Sparkles / Ice Dust in atmosphere */}
+      {scrollProgress > 0.8 && (
+        <Sparkles
+          count={quality === 'high' ? 60 : 25}
+          scale={7}
+          size={5}
+          speed={0.15}
+          opacity={(scrollProgress - 0.8) * 3}
+          color="#fff"
+        />
       )}
     </group>
   );
 };
 
 const SceneContent = ({ scrollProgress, quality }) => {
-  const { viewport } = useThree();
+  const { viewport, mouse } = useThree();
   const isMobile = viewport.width < 5;
+  const groupRef = useRef();
 
-  // Camera animation
-  const camZ = isMobile ? (10 - scrollProgress * 4) : (8 - scrollProgress * 3);
-  const camY = isMobile ? (0 + scrollProgress * 1) : 0;
+  useFrame(() => {
+    if (groupRef.current) {
+      // Smooth parallax based on mouse
+      const targetX = (mouse.x * viewport.width) / 15;
+      const targetY = (mouse.y * viewport.height) / 15;
+      groupRef.current.position.x += (targetX - groupRef.current.position.x) * 0.03;
+      groupRef.current.position.y += (targetY - groupRef.current.position.y) * 0.03;
+    }
+  });
 
-  // Light animation (The "Sun" causing the eclipse effect)
-  // At scroll 0, light is behind the moon (backlit, silhouette)
-  // At scroll 1, light is in front of the moon (full illumination)
-  const lightX = Math.sin(scrollProgress * Math.PI) * 10;
-  const lightZ = Math.cos(scrollProgress * Math.PI) * 10;
-
-  // We'll use a simpler approach for the "Eclipse" look:
-  // Move a directional light from back to front
+  // Eclipse Lighting Logic: Total Shadow -> Full Illumination
+  // The light "Sun" travels in an arc
+  const sunAngle = (scrollProgress * Math.PI) - (Math.PI / 2.2);
   const sunPos = [
-    Math.sin(scrollProgress * Math.PI - Math.PI/2) * 15,
-    Math.cos(scrollProgress * Math.PI - Math.PI/2) * 5,
-    Math.cos(scrollProgress * Math.PI - Math.PI/2) * 15
+    Math.sin(sunAngle) * 30,
+    Math.cos(sunAngle) * 10,
+    Math.cos(sunAngle) * 30
   ];
 
   return (
     <>
-      <PerspectiveCamera makeDefault position={[0, camY, camZ]} fov={isMobile ? 55 : 45} />
+      <PerspectiveCamera makeDefault position={[0, 0, isMobile ? 11 : 9]} fov={isMobile ? 50 : 40} />
 
-      {/* Ambient light increases with progress */}
-      <ambientLight intensity={0.05 + scrollProgress * 0.2} />
+      <ambientLight intensity={0.01 + scrollProgress * 0.1} />
 
-      {/* The main Sun/Light source */}
+      {/* Primary Sunlight - creates the sharp eclipse shadow */}
       <directionalLight
         position={sunPos}
-        intensity={0.5 + scrollProgress * 2.5}
-        color={scrollProgress > 0.8 ? "#fff" : "#ffd"}
+        intensity={0.1 + scrollProgress * 5}
+        color="#ffffff"
         castShadow
+        shadow-mapSize={[2048, 2048]}
       />
 
-      {/* Rim light for that "Diamond Ring" effect */}
-      {scrollProgress > 0.75 && (
-        <pointLight
-          position={[1.5, 1.5, -1]}
-          intensity={(scrollProgress - 0.75) * 20}
-          color="#fff"
-          distance={10}
-        />
-      )}
+      {/* Subtle Rim / Earthshine light */}
+      <pointLight
+        position={[-10, 5, -5]}
+        intensity={0.5 + scrollProgress * 1}
+        color="#334155"
+      />
 
-      <Float speed={1.5} rotationIntensity={0.2} floatIntensity={0.5}>
+      <group ref={groupRef}>
         <Moon scrollProgress={scrollProgress} quality={quality} />
-      </Float>
+      </group>
 
       <Stars
-        radius={100}
-        depth={50}
-        count={quality === 'high' ? 5000 : 2000}
-        factor={4}
+        radius={150}
+        depth={60}
+        count={quality === 'high' ? 10000 : 4000}
+        factor={6}
         saturation={0}
         fade
-        speed={1}
+        speed={0.3}
       />
 
-      {quality === 'high' && (
-        <Environment preset="night" />
-      )}
+      <Environment preset="night" />
 
-      <fog attach="fog" args={['#020617', 5, 25]} />
+      <EffectComposer multisampling={quality === 'high' ? 8 : 0}>
+        <Bloom
+          intensity={0.4 + scrollProgress * 1.6}
+          luminanceThreshold={0.15}
+          luminanceSmoothing={0.8}
+          mipmapBlur
+        />
+        <ChromaticAberration offset={[0.0008, 0.0008]} />
+        <Noise opacity={0.03} />
+        <Vignette eskil={false} offset={0.05} darkness={1.2} />
+      </EffectComposer>
+
+      <fog attach="fog" args={['#020617', 5, 40]} />
     </>
   );
 };
@@ -181,7 +229,17 @@ const MoonScene = ({ scrollProgress }) => {
 
   return (
     <div className="w-full h-full bg-[#020617]">
-      <Canvas shadows dpr={[1, 2]} gl={{ antialias: true }}>
+      <Canvas
+        shadows
+        dpr={[1, 2]}
+        gl={{
+          antialias: false,
+          stencil: false,
+          depth: true,
+          powerPreference: "high-performance",
+          logarithmicDepthBuffer: true
+        }}
+      >
         <PerformanceMonitor
           onDecline={() => setQuality('low')}
           onIncline={() => setQuality('high')}
@@ -189,6 +247,7 @@ const MoonScene = ({ scrollProgress }) => {
         <Suspense fallback={null}>
           <SceneContent scrollProgress={scrollProgress} quality={quality} />
           <BakeShadows />
+          <Preload all />
         </Suspense>
       </Canvas>
     </div>

@@ -1,5 +1,5 @@
 """
-NursingHub Clinical Research Scraper Bot
+Apex Scholars Clinical Research Scraper Bot
 ----------------------------------------
 This script demonstrates how to programmatically search for and scrape high-yield nursing information
 to generate accurate flashcards. It uses a structured search pattern for medical accuracy.
@@ -11,7 +11,7 @@ import random
 
 class ClinicalResearchBot:
     def __init__(self):
-        self.user_agent = "NursingHub-Bot/1.0 (Clinical Research Assistant)"
+        self.user_agent = "ApexScholars-Bot/1.0 (Clinical Research Assistant)"
         self.verified_sources = ["WHO", "N&MCN", "ACOG", "PubMed"]
 
     def research_term(self, term):
