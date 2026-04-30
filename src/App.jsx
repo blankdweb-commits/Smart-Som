@@ -60,6 +60,20 @@ const AppRoutes = () => {
 
   if (loadingAuth) return <PageLoader />;
 
+  // If Supabase is not configured, allow access for demo purposes or show warning
+  if (!import.meta.env.VITE_SUPABASE_URL && !session) {
+    return (
+      <Layout>
+        <Suspense fallback={<PageLoader />}>
+          <Routes>
+            <Route path="/" element={<Dashboard />} />
+            <Route path="*" element={<Dashboard />} />
+          </Routes>
+        </Suspense>
+      </Layout>
+    );
+  }
+
   if (!session) {
     return (
       <Routes>

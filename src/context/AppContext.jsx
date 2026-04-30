@@ -27,6 +27,11 @@ export function AppProvider({ children }) {
 
   // 1. Auth Listener
   useEffect(() => {
+    if (!supabase) {
+      setLoadingAuth(false);
+      return;
+    }
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setLoadingAuth(false);
@@ -54,6 +59,7 @@ export function AppProvider({ children }) {
   }, [session]);
 
   const fetchUserData = async () => {
+    if (!supabase || !session) return;
     const userId = session.user.id;
 
     // Profile
@@ -145,6 +151,7 @@ export function AppProvider({ children }) {
 
   // 3. Actions
   const updateProfile = async (data) => {
+    if (!supabase) return;
     const { error } = await supabase.from('profiles').update({
       full_name: data.fullName,
       phone: data.phone,
@@ -156,7 +163,8 @@ export function AppProvider({ children }) {
   };
 
   const addExam = async (exam) => {
-    const { data, error } = await supabase.from('exams').insert({
+    if (!supabase) return;
+    const { error, data } = await supabase.from('exams').insert({
       user_id: session.user.id,
       subject: exam.subject,
       exam_date: exam.date,
@@ -173,6 +181,11 @@ export function AppProvider({ children }) {
   };
 
   const updateCardProgress = async (id, quality) => {
+    if (!supabase) {
+      // Fallback to local state update if supabase is missing
+      setFlashcards(prev => prev.map(c => c.id === id ? { ...c, score: quality } : c));
+      return;
+    }
     const card = flashcards.find(c => c.id === id);
     const srs = card.srs || { interval: 0, reps: 0, efactor: 2.5 };
     let { interval, reps, efactor } = srs;
