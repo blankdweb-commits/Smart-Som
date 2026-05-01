@@ -247,6 +247,7 @@ export function AppProvider({ children }) {
       session, loadingAuth,
       flashcards, updateCardProgress,
       exams, addExam,
+      studyStats,
       userProfile, updateProfile, activateWithKey,
       darkMode, toggleDarkMode,
       paymentPurposes, transactions, feeDetails,
