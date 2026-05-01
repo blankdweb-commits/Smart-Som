@@ -67,6 +67,14 @@ const AppRoutes = () => {
         <Suspense fallback={<PageLoader />}>
           <Routes>
             <Route path="/" element={<Dashboard />} />
+            <Route path="/flashcards" element={<Flashcards />} />
+            <Route path="/quiz" element={<Quiz />} />
+            <Route path="/exams" element={<ExamTimetable />} />
+            <Route path="/pronunciation" element={<PronunciationHelper />} />
+            <Route path="/community" element={<Community />} />
+            <Route path="/papers" element={<Papers />} />
+            <Route path="/payments" element={<Payments />} />
+            <Route path="/settings" element={<Settings />} />
             <Route path="*" element={<Dashboard />} />
           </Routes>
         </Suspense>
