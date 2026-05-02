@@ -14,9 +14,7 @@ export const getSupabaseAdmin = () => {
 
 export const generateProductKey = () => {
   const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let key = '';
-  for (let i = 0; i < 17; i++) {
-    key += chars.charAt(Math.floor(Math.random() * chars.length));
-  }
-  return key;
+  const gen = (len) => Array.from({ length: len }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
+  const year = new Date().getFullYear();
+  return `APEX-${gen(5)}-${gen(5)}-${year}`;
 };

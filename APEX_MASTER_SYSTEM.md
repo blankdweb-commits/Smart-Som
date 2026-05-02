@@ -10,22 +10,22 @@ This document serves as the master specification for the **Apex Scholars** platf
 **Mission:** Transitioning students from "Doubt to Distinction" through clinical mastery.
 
 #### A. Pricing & Urgency Logic
-- **Current Subscription:** ₦1,999.90 / week (Institutional rate).
+- **Current Subscription:** ₦1,999.90 / 30 Days (Premium Access).
 - **Strike-through Price:** ₦3,000.00.
 - **Urgency Mechanism:** Randomly generated slots remaining (e.g., "Only 12 slots remaining at this price").
-- **Access Window:** 7-day rolling access per activation.
+- **Access Window:** 30-day rolling access per activation.
 
 #### B. Visual Identity (Conversion-First Design)
 - **2D Sales Hero:** High-impact typography focusing on outcomes ("Pass Your Nursing Exams").
 - **Visual Hierarchy:** Benefit-driven cards (Structured Curriculum, Practice Exams) with clear CTA buttons.
-- **Performance:** 2D landing ensures instant TTI (Time to Interactive) across all devices, while retaining 3D elements for internal dashboard interactions where appropriate.
+- **Performance:** 2D landing ensures instant TTI (Time to Interactive) across all devices.
 
 ---
 
 ### 2. Product Key Architecture (Licensing)
-The platform uses a "Key-First" access model.
+The platform uses a "Premium-Format" access model.
 
-- **Key Format:** 17-character alphanumeric (e.g., `APEX-XXXX-XXXX-XXXX`).
+- **Key Format:** APEX-XXXXX-XXXXX-YYYY (e.g., `APEX-7H3K9-LX2P1-2026`).
 - **Generation:** Server-side only via Vercel Functions using cryptographic randomness.
 - **Storage:** Keys are hashed before storage in Supabase `product_keys` table.
 - **Verification Logic:**

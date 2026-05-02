@@ -102,7 +102,7 @@ export default function Activate() {
               onClick={() => navigate('/payments')}
               className="w-full py-4 bg-apex-600/10 text-apex-400 border border-apex-600/20 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-apex-600/20 transition-all"
             >
-              Get 7-Day Access – ₦1999.9
+              Get 30-Day Access – ₦1999.9
             </button>
           </div>
 

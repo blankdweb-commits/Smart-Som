@@ -18,7 +18,8 @@ export function AppProvider({ children }) {
   const [studyStats, setStudyStats] = useState({ streak: 0, lastStudyDate: null, cardsStudied: 0 });
   const [userProfile, setUserProfile] = useState({
     fullName: '', matricNumber: '', department: '', level: '', session: '2024/2025',
-    email: '', phone: '', programType: 'Full-Time', isVerified: false, isAdmin: false, isActivated: false
+    email: '', phone: '', programType: 'Full-Time', isVerified: false, isAdmin: false, isActivated: false,
+    subscriptionExpiry: null
   });
   const [paymentPurposes, setPaymentPurposes] = useState([]);
   const [transactions, setTransactions] = useState([]);
@@ -64,14 +65,18 @@ export function AppProvider({ children }) {
 
     // Profile
     const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
+    const { data: subscription } = await supabase.from('subscriptions').select('*').eq('user_id', userId).eq('status', 'active').order('expires_at', { ascending: false }).limit(1).maybeSingle();
+
     if (profile) {
+      const isActivated = profile.is_activated || (subscription && new Date(subscription.expires_at) > new Date());
       setUserProfile({
         fullName: profile.full_name || '',
         email: profile.email || '',
         phone: profile.phone || '',
         department: profile.department || '',
         level: profile.level || '',
-        isActivated: profile.is_activated || false,
+        isActivated: isActivated,
+        subscriptionExpiry: subscription?.expires_at || null,
         isAdmin: profile.role === 'admin' || profile.role === 'super_admin',
         role: profile.role
       });

@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { BookOpen, Calendar, TrendingUp, Award, Zap, ArrowRight, Star, Clock, Lock } from '../components/Icons';
+import { BookOpen, Calendar, TrendingUp, Award, Zap, ArrowRight, Star, Clock, Lock, AlertCircle } from '../components/Icons';
 import { format, differenceInDays } from 'date-fns';
 import FeeDashboardWidget from '../components/FeeDashboardWidget';
 import { motion } from 'framer-motion';
@@ -44,6 +44,10 @@ const Dashboard = () => {
     if (!c.srs?.nextReview) return true;
     return new Date(c.srs.nextReview) <= new Date();
   });
+
+  const expiryDays = userProfile.subscriptionExpiry
+    ? differenceInDays(new Date(userProfile.subscriptionExpiry), new Date())
+    : null;
 
   const studyTips = [
     "Use the 'Shuffle' mode for flashcards to improve long-term retention.",
@@ -115,6 +119,54 @@ const Dashboard = () => {
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
+          {expiryDays !== null && expiryDays <= 3 && expiryDays >= 0 && (
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="p-6 bg-amber-50 border border-amber-200 rounded-[2rem] flex items-center justify-between gap-4 shadow-lg shadow-amber-500/5"
+            >
+              <div className="flex items-center gap-4 text-amber-900">
+                <div className="p-3 bg-amber-200 rounded-2xl">
+                  <Clock size={24} />
+                </div>
+                <div>
+                  <h4 className="font-black text-lg">Subscription Expiring Soon</h4>
+                  <p className="text-sm font-medium opacity-80">You have {expiryDays === 0 ? 'less than 24 hours' : `${expiryDays} days`} left. Renew now to avoid losing access.</p>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate('/activate')}
+                className="px-6 py-3 bg-amber-900 text-white rounded-xl font-black text-xs uppercase tracking-widest whitespace-nowrap"
+              >
+                Renew Access
+              </button>
+            </motion.div>
+          )}
+
+          {expiryDays !== null && expiryDays < 0 && (
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              className="p-6 bg-red-50 border border-red-200 rounded-[2rem] flex items-center justify-between gap-4 shadow-lg shadow-red-500/5"
+            >
+              <div className="flex items-center gap-4 text-red-900">
+                <div className="p-3 bg-red-200 rounded-2xl">
+                  <AlertCircle size={24} />
+                </div>
+                <div>
+                  <h4 className="font-black text-lg">Access Expired</h4>
+                  <p className="text-sm font-medium opacity-80">Your 30-day premium cycle has ended. Activate now to continue your clinical mastery.</p>
+                </div>
+              </div>
+              <button
+                onClick={() => navigate('/activate')}
+                className="px-6 py-3 bg-red-900 text-white rounded-xl font-black text-xs uppercase tracking-widest whitespace-nowrap"
+              >
+                Re-Activate
+              </button>
+            </motion.div>
+          )}
+
           <FeeDashboardWidget />
 
           {isExamSoon && (

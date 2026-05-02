@@ -20,6 +20,7 @@ CREATE TABLE public.profiles (
 CREATE TABLE public.subscriptions (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID REFERENCES public.profiles(id) ON DELETE CASCADE NOT NULL,
+    product_key TEXT UNIQUE,
     status TEXT NOT NULL CHECK (status IN ('active', 'expired', 'cancelled', 'pending')),
     starts_at TIMESTAMPTZ DEFAULT NOW(),
     expires_at TIMESTAMPTZ NOT NULL,

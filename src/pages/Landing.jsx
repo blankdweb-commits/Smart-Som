@@ -247,7 +247,7 @@ const Landing = () => {
             >
               Unlock Full Access – ₦1999.9
             </button>
-            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Start your 7-day premium cycle today</p>
+          <p className="mt-4 text-[10px] text-slate-400 font-black uppercase tracking-widest">Start your 30-day premium cycle today</p>
          </div>
       </section>
 
