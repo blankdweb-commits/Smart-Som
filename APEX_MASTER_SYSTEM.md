@@ -15,10 +15,10 @@ This document serves as the master specification for the **Apex Scholars** platf
 - **Urgency Mechanism:** Randomly generated slots remaining (e.g., "Only 12 slots remaining at this price").
 - **Access Window:** 7-day rolling access per activation.
 
-#### B. Visual Identity (Lunar Eclipse System)
-- **3D Hero:** A cinematic Lunar Eclipse rendering representing the "darkness of doubt" giving way to the "light of knowledge."
-- **Scroll Transition:** Post-processing effects (Bloom, Noise) and camera position must sync with scroll depth to visualize the progression.
-- **Adaptive Performance:** Mobile devices cap DPR at 1.5 and disable `logarithmicDepthBuffer` to prevent rendering black screens on mobile GPUs.
+#### B. Visual Identity (Conversion-First Design)
+- **2D Sales Hero:** High-impact typography focusing on outcomes ("Pass Your Nursing Exams").
+- **Visual Hierarchy:** Benefit-driven cards (Structured Curriculum, Practice Exams) with clear CTA buttons.
+- **Performance:** 2D landing ensures instant TTI (Time to Interactive) across all devices, while retaining 3D elements for internal dashboard interactions where appropriate.
 
 ---
 

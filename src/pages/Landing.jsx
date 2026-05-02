@@ -1,362 +1,263 @@
-import React, { useState, useEffect, useMemo } from 'react';
-import { motion, AnimatePresence, useScroll, useTransform, useMotionValueEvent, useMotionTemplate } from 'framer-motion';
+import React, { useState, useEffect } from 'react';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   ShieldCheck,
   Zap,
-  Star,
   ArrowRight,
-  Lock,
-  Key,
-  CreditCard,
-  Sparkles,
   CheckCircle2,
-  ChevronDown,
   Clock,
-  TrendingUp,
-  BookOpen,
-  Calendar,
-  Users,
-  Shield,
-  AlertCircle,
-  Timer,
   Trophy,
   Target,
-  Award
+  Award,
+  Star,
+  Users,
+  BookOpen
 } from '../components/Icons';
-import { useAppContext } from '../context/AppContext';
-import MoonScene from '../components/MoonScene';
+import { useNavigate } from 'react-router-dom';
 
 const Landing = () => {
-  const { updateProfile } = useAppContext();
-  const [activationMode, setActivationMode] = useState(false);
-  const [productKey, setProductKey] = useState('');
-  const [isVerifying, setIsVerifying] = useState(false);
-  const [error, setError] = useState('');
-  const [slotsRemaining, setSlotsRemaining] = useState(10);
+  const navigate = useNavigate();
+  const [slotsRemaining, setSlotsRemaining] = useState(12);
+  const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 45, seconds: 0 });
 
-  const { scrollYProgress } = useScroll();
-  const [scrollVal, setScrollVal] = useState(0);
-
-  useMotionValueEvent(scrollYProgress, "change", (latest) => {
-    setScrollVal(latest);
-  });
-
-  // Simulated urgency
+  // Urgency logic
   useEffect(() => {
     const timer = setInterval(() => {
       setSlotsRemaining(prev => prev > 3 ? prev - (Math.random() > 0.8 ? 1 : 0) : prev);
     }, 15000);
-    return () => clearInterval(timer);
+
+    const countdown = setInterval(() => {
+      setTimeLeft(prev => {
+        if (prev.seconds > 0) return { ...prev, seconds: prev.seconds - 1 };
+        if (prev.minutes > 0) return { ...prev, minutes: prev.minutes - 1, seconds: 59 };
+        return prev;
+      });
+    }, 10000);
+
+    return () => {
+      clearInterval(timer);
+      clearInterval(countdown);
+    };
   }, []);
 
-  const glowOpacity = useTransform(scrollYProgress, [0.8, 1], [0, 1]);
-  const overlayOpacity = useTransform(scrollYProgress, [0.7, 0.9], [0, 0.4]);
-  const blurValue = useTransform(scrollYProgress, [0, 0.1], [0, 4]);
-  const moonBlur = useMotionTemplate`blur(${blurValue}px)`;
-
-  const handleActivate = async (e) => {
-    e.preventDefault();
-    if (productKey.length < 8) {
-      setError('Invalid Product Key format.');
-      return;
-    }
-    setIsVerifying(true);
-    await new Promise(r => setTimeout(r, 2000));
-    updateProfile({ isActivated: true });
-    setIsVerifying(false);
-  };
-
-  const steps = [
-    {
-      title: "Clarity",
-      desc: "Stop memorizing and start understanding with visual clinical breakdowns.",
-      color: "text-slate-400",
-      icon: <Target />,
-      phase: "Phase 1",
-      detail: "Ending Confusion"
-    },
-    {
-      title: "Precision",
-      desc: "100% curriculum aligned. We only teach what you actually need for exams.",
-      color: "text-indigo-400",
-      icon: <Zap />,
-      phase: "Phase 2",
-      detail: "Smart Focus"
-    },
-    {
-      title: "Mastery",
-      desc: "Our AI algorithm identifies weak spots and fixes them in real-time.",
-      color: "text-emerald-400",
-      icon: <Award />,
-      phase: "Phase 3",
-      detail: "Confidence"
-    },
-    {
-      title: "Success",
-      desc: "Join 10,000+ nursing students who passed with absolute distinction.",
-      color: "text-white",
-      icon: <Trophy />,
-      phase: "Phase 4",
-      detail: "The Apex"
-    }
+  const features = [
+    { title: "Structured Curriculum", desc: "Every topic mapped to official nursing exams.", icon: <Target className="text-apex-500" /> },
+    { title: "Practice Exams", desc: "Real-time scoring and clinical insights.", icon: <Zap className="text-amber-500" /> },
+    { title: "Success Strategies", desc: "Used by top students to master difficult terms.", icon: <Trophy className="text-emerald-500" /> },
+    { title: "Progress Tracking", desc: "Visual data on your learning journey.", icon: <Award className="text-apex-500" /> }
   ];
 
-  const floatingFeatures = [
-    { icon: <Zap size={14} />, text: "7,000+ Flashcards" },
-    { icon: <Clock size={14} />, text: "Real-time Exam Alerts" },
-    { icon: <BookOpen size={14} />, text: "AI Past Question Parser" },
-    { icon: <Shield size={14} />, text: "Official Payment Hub" },
-    { icon: <Users size={14} />, text: "Clinical Community" }
+  const testimonials = [
+    { name: "Sarah O.", text: "Passed my professional exams with distinction! The flashcards are a lifesaver.", school: "LUTH Nursing" },
+    { name: "Daniel K.", text: "The AI parser for past questions is magic. Saved me weeks of study prep.", school: "University of Ibadan" }
   ];
 
   return (
-    <div className="min-h-screen bg-[#020617] overflow-x-hidden selection:bg-medical-500 selection:text-white">
-      {/* 3D Journey Background */}
-      <motion.div
-        style={{ filter: moonBlur }}
-        className="fixed inset-0 z-0 overflow-hidden pointer-events-none"
-      >
-        <MoonScene scrollProgress={scrollVal} />
-        {/* Dynamic Vignette for readability against bright full moon */}
-        <motion.div
-          style={{ opacity: overlayOpacity }}
-          className="absolute inset-0 bg-slate-950/60 pointer-events-none"
-        />
-        <motion.div
-          style={{ opacity: glowOpacity }}
-          className="absolute top-0 left-0 w-full h-screen bg-gradient-to-b from-medical-500/10 to-transparent blur-3xl"
-        />
-      </motion.div>
+    <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-apex-100 selection:text-apex-700">
+      {/* Sticky Bottom CTA for Mobile */}
+      <div className="md:hidden fixed bottom-0 left-0 right-0 p-4 bg-white/80 backdrop-blur-lg border-t border-slate-100 z-50">
+        <button
+          onClick={() => navigate('/signup')}
+          className="w-full py-4 bg-apex-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-apex-600/20 active:scale-95 transition-all"
+        >
+          Unlock Full Access – ₦1999.9
+        </button>
+      </div>
 
-      <div className="relative z-10">
-        {/* Hero Section */}
-        <section className="min-h-[100dvh] flex flex-col items-center justify-center p-6 text-center space-y-12">
-          <motion.div
-            initial={{ scale: 0.8, opacity: 0 }}
-            whileInView={{ scale: 1, opacity: 1 }}
-            viewport={{ once: true }}
-            className="w-20 h-20 bg-white rounded-3xl shadow-2xl flex items-center justify-center text-slate-950 font-black text-3xl mb-4"
+      {/* Nav */}
+      <nav className="p-6 flex justify-between items-center max-w-7xl mx-auto">
+        <div className="flex items-center gap-2">
+          <div className="w-8 h-8 bg-apex-600 rounded-lg flex items-center justify-center text-white font-black">A</div>
+          <span className="font-black tracking-tight text-xl">Apex Scholars</span>
+        </div>
+        <button
+          onClick={() => navigate('/login')}
+          className="px-6 py-2 text-sm font-bold text-slate-600 hover:text-apex-600 transition-colors"
+        >
+          Login
+        </button>
+      </nav>
+
+      {/* Hero Section */}
+      <section className="px-6 pt-12 pb-24 max-w-7xl mx-auto text-center space-y-8">
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-apex-50 border border-apex-100"
+        >
+          <span className="text-[10px] font-black uppercase tracking-widest text-apex-600">Limited-time student pricing</span>
+        </motion.div>
+
+        <motion.h1
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.1 }}
+          className="text-4xl md:text-7xl font-black tracking-tighter leading-tight text-balance"
+        >
+          Pass Your Nursing Exams <br className="hidden md:block" />
+          <span className="text-apex-600">Faster — Without Guesswork</span>
+        </motion.h1>
+
+        <motion.p
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.2 }}
+          className="text-lg md:text-xl text-slate-500 font-medium max-w-2xl mx-auto leading-relaxed"
+        >
+          Access structured lessons, exam simulations, and real success strategies used by top students.
+        </motion.p>
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.3 }}
+          className="flex flex-col sm:flex-row gap-4 justify-center items-center"
+        >
+          <button
+            onClick={() => navigate('/signup')}
+            className="px-10 py-5 bg-apex-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl shadow-apex-600/30 hover:bg-apex-700 transition-all flex items-center gap-3 active:scale-95"
           >
-            A
-          </motion.div>
+            Start for ₦1999.9 Now <ArrowRight size={18} />
+          </button>
+          <div className="flex items-center gap-2 text-slate-400">
+             <ShieldCheck size={16} />
+             <span className="text-[10px] font-bold uppercase tracking-widest">Verified by 1,000+ students</span>
+          </div>
+        </motion.div>
+      </section>
 
-          <div className="space-y-6 max-w-4xl px-4">
-            <motion.div
-              initial={{ y: 20, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              viewport={{ once: true }}
-              className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-white/5 backdrop-blur-md border border-white/10"
-            >
-              <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-white/80">From Doubt to Distinction</span>
-            </motion.div>
-
-            <motion.h1
-              initial={{ y: 20, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              viewport={{ once: true }}
-              className="text-5xl sm:text-6xl md:text-8xl lg:text-9xl font-black text-white tracking-tighter leading-[0.85] text-balance px-2"
-            >
-              Pass <span className="text-medical-500">with</span> <br/>
-              <span className="bg-clip-text text-transparent bg-gradient-to-r from-white via-slate-300 to-white/50">Confidence.</span>
-            </motion.h1>
-
-            <motion.p
-              initial={{ y: 20, opacity: 0 }}
-              whileInView={{ y: 0, opacity: 1 }}
-              viewport={{ once: true }}
-              transition={{ delay: 0.1 }}
-              className="text-lg sm:text-xl md:text-2xl text-slate-400 font-bold max-w-2xl mx-auto leading-tight px-4"
-            >
-              Move from stress and confusion to clarity, mastery, and professional nursing success.
-            </motion.p>
+      {/* Value Stacking */}
+      <section className="bg-slate-50 py-24 px-6">
+        <div className="max-w-7xl mx-auto">
+          <div className="text-center mb-16 space-y-4">
+             <h2 className="text-3xl md:text-5xl font-black tracking-tight">Everything You Need To Excel</h2>
+             <p className="text-slate-500 font-medium">Built specifically for the modern nursing curriculum.</p>
           </div>
 
-          <motion.div
-             initial={{ y: 20, opacity: 0 }}
-             whileInView={{ y: 0, opacity: 1 }}
-             viewport={{ once: true }}
-             transition={{ delay: 0.2 }}
-             className="flex flex-col sm:flex-row gap-5 w-full max-w-md px-4"
-          >
-            <button
-              onClick={() => document.getElementById('pricing').scrollIntoView({ behavior: 'smooth' })}
-              className="flex-[2] py-6 bg-white text-slate-950 rounded-3xl font-black uppercase tracking-[0.2em] text-[10px] shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3"
-            >
-              Get Started Now <ArrowRight size={16} />
-            </button>
-            <button
-              onClick={() => setActivationMode(true)}
-              className="flex-1 py-6 bg-white/5 backdrop-blur-md text-white rounded-3xl font-black uppercase tracking-[0.2em] text-[10px] shadow-soft border border-white/10 active:scale-95 transition-all"
-            >
-              Enter Key
-            </button>
-          </motion.div>
-
-          <motion.div
-            animate={{ y: [0, 10, 0] }}
-            transition={{ duration: 2, repeat: Infinity }}
-            className="absolute bottom-10 left-1/2 -translate-x-1/2 text-white/30"
-          >
-            <ChevronDown size={32} />
-          </motion.div>
-        </section>
-
-        {/* Eclipse Journey Section */}
-        <section className="py-32 md:py-64 px-6">
-          <div className="max-w-4xl mx-auto space-y-[40vh] md:space-y-[60vh]">
-            {steps.map((step, i) => (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+            {features.map((f, i) => (
               <motion.div
                 key={i}
-                initial={{ y: 100, opacity: 0 }}
-                whileInView={{ y: 0, opacity: 1 }}
-                viewport={{ margin: "-100px" }}
-                className={`flex flex-col ${i % 2 === 0 ? 'md:flex-row' : 'md:flex-row-reverse'} items-center gap-12 md:gap-20`}
+                whileHover={{ y: -5 }}
+                className="p-8 bg-white rounded-3xl border border-slate-100 shadow-soft"
               >
-                <div className="relative">
-                   <div className="w-32 h-32 md:w-48 md:h-48 bg-white/5 backdrop-blur-3xl rounded-[2.5rem] md:rounded-[4rem] shadow-2xl flex items-center justify-center text-3xl md:text-5xl text-white border border-white/10 relative z-10 transition-transform hover:scale-105 duration-500">
-                      {step.icon}
-                   </div>
-                   <motion.div
-                    animate={{ y: [0, -15, 0] }}
-                    transition={{ duration: 4, repeat: Infinity, delay: i * 0.7 }}
-                    className={`absolute ${i % 2 === 0 ? '-right-8 md:-right-16' : '-left-8 md:-left-16'} -top-6 md:-top-8 flex flex-col gap-4 z-20`}
-                   >
-                      <div className="bg-white/10 backdrop-blur-xl px-4 py-2 md:px-6 md:py-3 rounded-xl md:rounded-2xl shadow-xl border border-white/10 whitespace-nowrap">
-                         <p className={`text-[8px] md:text-[10px] font-black uppercase tracking-[0.3em] ${step.color}`}>{step.detail}</p>
-                      </div>
-                   </motion.div>
+                <div className="w-12 h-12 bg-slate-50 rounded-2xl flex items-center justify-center mb-6">
+                  {f.icon}
                 </div>
-
-                <div className={`text-center ${i % 2 === 0 ? 'md:text-left' : 'md:text-right'} space-y-4 md:space-y-6 flex-1`}>
-                  <div className="space-y-2 md:space-y-3">
-                    <p className="text-medical-500 font-black text-[8px] md:text-[10px] uppercase tracking-[0.5em]">{step.phase}</p>
-                    <h3 className={`text-4xl md:text-6xl font-black ${step.color} tracking-tighter leading-none`}>{step.title}</h3>
-                  </div>
-                  <p className="text-xl md:text-2xl text-slate-400 font-bold leading-tight">{step.desc}</p>
-                </div>
+                <h3 className="text-xl font-black mb-3">{f.title}</h3>
+                <p className="text-slate-500 text-sm font-medium leading-relaxed">{f.desc}</p>
               </motion.div>
             ))}
           </div>
-        </section>
+        </div>
+      </section>
 
-        {/* Global Features Marquee */}
-        <div className="py-24 overflow-hidden relative border-y border-white/5 bg-white/5 backdrop-blur-md">
-           <div className="flex gap-10 items-center animate-infinite-scroll">
-              {[...floatingFeatures, ...floatingFeatures, ...floatingFeatures].map((f, idx) => (
-                <div key={idx} className="flex items-center gap-4 px-8 py-4 bg-white/5 rounded-3xl shadow-soft border border-white/10 shrink-0">
-                   <div className="text-medical-500">{f.icon}</div>
-                   <span className="text-xs font-black text-white uppercase tracking-[0.2em]">{f.text}</span>
+      {/* Price Anchor Section */}
+      <section className="py-24 px-6 max-w-5xl mx-auto">
+        <div className="bg-slate-900 rounded-[3rem] p-8 md:p-16 text-white text-center space-y-10 relative overflow-hidden">
+          <div className="absolute top-0 right-0 p-8 opacity-10">
+            <Star size={120} />
+          </div>
+
+          <div className="space-y-4 relative z-10">
+            <h2 className="text-3xl md:text-6xl font-black tracking-tight">Unlock Full Access</h2>
+            <div className="flex items-center justify-center gap-4">
+              <span className="text-xl md:text-2xl text-slate-500 line-through font-bold">₦3,000</span>
+              <span className="text-5xl md:text-8xl font-black text-apex-400 tracking-tighter">₦1,999.9</span>
+            </div>
+            <p className="text-apex-400 font-black uppercase tracking-[0.2em] text-sm">Save ₦1,000 Today</p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto relative z-10">
+             <div className="flex items-center gap-3 text-left">
+                <CheckCircle2 size={24} className="text-emerald-500 shrink-0" />
+                <span className="text-sm font-bold">7,200+ Flashcards</span>
+             </div>
+             <div className="flex items-center gap-3 text-left">
+                <CheckCircle2 size={24} className="text-emerald-500 shrink-0" />
+                <span className="text-sm font-bold">AI Past Question Parser</span>
+             </div>
+             <div className="flex items-center gap-3 text-left">
+                <CheckCircle2 size={24} className="text-emerald-500 shrink-0" />
+                <span className="text-sm font-bold">Community Access</span>
+             </div>
+          </div>
+
+          <div className="pt-6 relative z-10">
+            <button
+              onClick={() => navigate('/signup')}
+              className="px-12 py-6 bg-apex-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl hover:bg-apex-500 transition-all active:scale-95"
+            >
+              Get Started – ₦1,999.9
+            </button>
+            <div className="mt-6 flex flex-col items-center gap-2">
+               <div className="flex items-center gap-2 text-red-400 animate-pulse">
+                  <Clock size={16} />
+                  <span className="text-xs font-black uppercase tracking-widest">Price increases back to ₦3,000 soon</span>
+               </div>
+               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Only {slotsRemaining} slots remaining at this price</p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Social Proof */}
+      <section className="py-24 px-6 bg-white overflow-hidden">
+        <div className="max-w-7xl mx-auto">
+           <div className="flex flex-col md:flex-row justify-between items-end mb-16 gap-8">
+              <div className="space-y-4">
+                 <div className="flex text-amber-400">
+                    {[1,2,3,4,5].map(i => <Star key={i} size={18} fill="currentColor" />)}
+                 </div>
+                 <h2 className="text-3xl md:text-5xl font-black tracking-tight">Loved by Nursing <br />Students Nationwide</h2>
+              </div>
+              <div className="flex items-center gap-4 px-8 py-4 bg-slate-50 rounded-2xl border border-slate-100">
+                 <Users size={24} className="text-apex-600" />
+                 <div className="flex flex-col">
+                    <span className="font-black text-xl leading-none">1,000+</span>
+                    <span className="text-[10px] font-bold text-slate-500 uppercase tracking-widest">Active Students</span>
+                 </div>
+              </div>
+           </div>
+
+           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              {testimonials.map((t, i) => (
+                <div key={i} className="p-8 bg-slate-50 rounded-3xl border border-slate-100 space-y-6">
+                   <p className="text-lg font-bold text-slate-700 italic leading-relaxed">"{t.text}"</p>
+                   <div className="flex items-center gap-4">
+                      <div className="w-10 h-10 bg-apex-100 rounded-full flex items-center justify-center text-apex-600 font-black">{t.name[0]}</div>
+                      <div>
+                         <p className="font-black text-sm">{t.name}</p>
+                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.school}</p>
+                      </div>
+                   </div>
                 </div>
               ))}
            </div>
         </div>
+      </section>
 
-        {/* Pricing Funnel */}
-        <section id="pricing" className="py-32 md:py-64 px-6 relative">
-           <div className="max-w-md mx-auto bg-white rounded-[2.5rem] md:rounded-[4rem] shadow-2xl overflow-hidden relative text-slate-900">
-              <div className="bg-slate-950 p-8 md:p-10 text-white text-center space-y-4">
-                 <div className="flex flex-col items-center gap-2">
-                    <span className="px-4 py-2 bg-amber-100 text-amber-700 rounded-full text-[8px] md:text-[10px] font-black uppercase tracking-widest flex items-center gap-2">
-                      <Timer size={12} /> Ends in 7 Days
-                    </span>
-                    <span className="text-[8px] md:text-[10px] font-bold text-red-500 uppercase tracking-widest animate-pulse">
-                      {slotsRemaining} slots remaining
-                    </span>
-                 </div>
-                 <h3 className="text-4xl md:text-5xl font-black tracking-tighter">Claim Your Future</h3>
-              </div>
+      {/* Final CTA */}
+      <section className="py-32 px-6 text-center space-y-10 border-t border-slate-100">
+         <h2 className="text-4xl md:text-6xl font-black tracking-tight leading-tight">Ready to master your <br />clinical future?</h2>
+         <div className="flex flex-col items-center gap-6">
+            <button
+              onClick={() => navigate('/signup')}
+              className="px-12 py-6 bg-apex-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl hover:bg-apex-500 transition-all active:scale-95"
+            >
+              Unlock Full Access – ₦1999.9
+            </button>
+            <p className="text-slate-400 font-bold uppercase tracking-widest text-[10px]">Start your 7-day premium cycle today</p>
+         </div>
+      </section>
 
-              <div className="p-8 md:p-12 space-y-8 md:space-y-10 text-center">
-                 <div className="space-y-2">
-                    <p className="text-slate-400 font-black text-[10px] md:text-xs line-through tracking-[0.2em] uppercase">Formerly ₦3,000</p>
-                    <div className="flex flex-col items-center justify-center gap-1">
-                       <span className="text-6xl md:text-7xl font-black text-slate-900 tracking-tighter">₦1,999.9</span>
-                       <span className="text-[8px] md:text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mt-2">7 Days Premium Access</span>
-                    </div>
-                 </div>
-
-                 <div className="space-y-4 text-left">
-                    {["Complete 7,200+ Flashcard Library", "AI Past Question Parser & Trainer", "Exam Readiness Prediction", "Clinical Success Roadmap", "Official School Fee Hub"].map(f => (
-                      <div key={f} className="flex items-center gap-4 text-sm font-black text-slate-600">
-                         <CheckCircle2 size={20} className="text-emerald-500 shrink-0" /> {f}
-                      </div>
-                    ))}
-                 </div>
-
-                 <div className="p-6 bg-slate-50 border border-slate-100 rounded-3xl flex flex-col gap-3 text-left">
-                    <div className="flex items-center gap-3">
-                       <AlertCircle size={20} className="text-amber-500 shrink-0" />
-                       <p className="text-[10px] text-slate-500 font-black uppercase tracking-widest">Subscription Rule</p>
-                    </div>
-                    <p className="text-xs font-bold text-slate-500 leading-tight">
-                      Valid for 7 days. Weekly renewal required for continuous AI access and library sync.
-                    </p>
-                 </div>
-
-                 <button
-                  onClick={() => document.getElementById('activation-section')?.scrollIntoView({ behavior: 'smooth' })}
-                  className="w-full py-6 bg-medical-600 text-white rounded-[2rem] font-black uppercase tracking-[0.3em] text-xs shadow-2xl shadow-medical-600/30 hover:bg-medical-700 transition-all active:scale-[0.98]"
-                 >
-                    Pay ₦1,999.9 & Unlock Access
-                 </button>
-
-                 <div className="flex items-center justify-center gap-2 opacity-40">
-                   <ShieldCheck size={12} />
-                   <p className="text-[9px] text-slate-900 font-black uppercase tracking-[0.2em]">Verified Payment • Instant Activation</p>
-                 </div>
-              </div>
-           </div>
-        </section>
-      </div>
-
-      {/* Activation Modal / Section */}
-      <div id="activation-section" className="py-32 px-6">
-        <div className="max-w-md mx-auto bg-white/5 backdrop-blur-3xl rounded-[3rem] border border-white/10 overflow-hidden">
-          <div className="p-10 border-b border-white/10 flex justify-between items-center">
-            <h3 className="text-2xl font-black text-white uppercase tracking-tighter">Enter Product Key</h3>
-            <div className="p-3 text-white/40 rounded-2xl bg-white/5"><Lock size={20} /></div>
-          </div>
-
-          <form onSubmit={handleActivate} className="p-12 space-y-10">
-              <div className="w-24 h-24 bg-white/5 text-white rounded-[2rem] flex items-center justify-center mx-auto border border-white/10">
-                <Key size={48} />
-              </div>
-
-              <div className="text-center space-y-3">
-                <h4 className="text-2xl font-black text-white uppercase tracking-tighter">Unlock The Apex</h4>
-                <p className="text-xs text-white/40 font-bold uppercase tracking-widest">Verify your payment code to begin.</p>
-              </div>
-
-              <div className="space-y-6">
-                <input
-                  type="text"
-                  value={productKey}
-                  onChange={e => {setProductKey(e.target.value); setError('');}}
-                  placeholder="XXXX-XXXX-XXXX"
-                  className="w-full text-center tracking-[0.3em] text-xl font-black py-6 bg-white/5 border-2 border-transparent focus:border-medical-500 text-white rounded-3xl outline-none transition-all uppercase placeholder:text-white/10"
-                />
-                {error && <p className="text-[10px] text-red-500 font-black text-center uppercase tracking-widest animate-bounce">{error}</p>}
-
-                <button
-                  disabled={isVerifying}
-                  type="submit"
-                  className="w-full py-6 bg-white text-slate-950 rounded-3xl font-black uppercase tracking-[0.3em] text-[10px] flex items-center justify-center gap-3 hover:bg-slate-200 active:scale-95 transition-all shadow-xl"
-                >
-                  {isVerifying ? <Zap size={16} className="animate-spin" /> : 'Begin Transformation'}
-                </button>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => document.getElementById('pricing').scrollIntoView({ behavior: 'smooth' })}
-                className="w-full text-[9px] font-black text-white/40 uppercase tracking-[0.4em] hover:text-white transition-colors"
-              >
-                I need a key • Pay ₦1,999.9
-              </button>
-          </form>
-        </div>
-      </div>
+      <footer className="py-12 px-6 border-t border-slate-50 text-center">
+         <div className="flex items-center justify-center gap-2 mb-4">
+            <div className="w-6 h-6 bg-apex-600 rounded flex items-center justify-center text-white font-black text-xs">A</div>
+            <span className="font-black tracking-tight text-sm text-slate-400">Apex Scholars</span>
+         </div>
+         <p className="text-[10px] font-bold text-slate-300 uppercase tracking-widest">© 2024 Institutional Productivity Hub. All rights reserved.</p>
+      </footer>
     </div>
   );
 };

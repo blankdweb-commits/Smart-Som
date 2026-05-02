@@ -48,9 +48,9 @@ export default function Activate() {
             <div className="w-20 h-20 bg-medical-500/10 rounded-3xl mx-auto mb-6 flex items-center justify-center text-medical-500">
               <Key className="w-10 h-10" />
             </div>
-            <h1 className="text-3xl font-bold text-white mb-3">Activate Access</h1>
+            <h1 className="text-3xl font-bold text-white mb-3">One Step Away</h1>
             <p className="text-slate-400">
-              Enter your 17-character product key to unlock Apex Scholars Premium features.
+              You’re one step away from full access to your personalized nursing curriculum and AI study tools.
             </p>
           </div>
 
@@ -97,12 +97,12 @@ export default function Activate() {
           </form>
 
           <div className="mt-10 pt-10 border-t border-white/5 text-center">
-            <p className="text-slate-500 text-sm mb-4">Don't have a key yet?</p>
+            <p className="text-slate-500 text-sm mb-4">Don't have a product key yet?</p>
             <button
               onClick={() => navigate('/payments')}
-              className="text-medical-400 font-semibold hover:text-medical-300 transition-colors"
+              className="w-full py-4 bg-apex-600/10 text-apex-400 border border-apex-600/20 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-apex-600/20 transition-all"
             >
-              Get Premium Access →
+              Get 7-Day Access – ₦1999.9
             </button>
           </div>
 

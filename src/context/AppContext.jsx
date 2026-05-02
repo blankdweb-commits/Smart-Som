@@ -115,7 +115,19 @@ export function AppProvider({ children }) {
 
     // Charges
     const { data: charges } = await supabase.from('payment_charges').select('*').eq('active', true);
-    if (charges) setPaymentPurposes(charges);
+    if (charges) {
+      setPaymentPurposes(charges);
+
+      // Calculate Fee Details
+      const total = charges.reduce((acc, c) => acc + (c.amount || 0), 0);
+      const paid = txns ? txns.filter(t => t.status === 'success').reduce((acc, t) => acc + (t.amount || 0), 0) : 0;
+      setFeeDetails({
+        totalFee: total,
+        amountPaid: paid,
+        currency: charges[0]?.currency || 'NGN',
+        status: paid >= total ? 'Fully Paid' : (paid > 0 ? 'Partially Paid' : 'Unpaid')
+      });
+    }
 
     // Check for migration
     const hasMigrated = localStorage.getItem(`migrated_${userId}`);

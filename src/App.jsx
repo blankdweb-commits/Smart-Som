@@ -60,25 +60,33 @@ const AppRoutes = () => {
 
   if (loadingAuth) return <PageLoader />;
 
-  // If Supabase is not configured, allow access for demo purposes or show warning
+  // If Supabase is not configured, allow access for demo purposes
   if (!import.meta.env.VITE_SUPABASE_URL && !session) {
     return (
-      <Layout>
-        <Suspense fallback={<PageLoader />}>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/flashcards" element={<Flashcards />} />
-            <Route path="/quiz" element={<Quiz />} />
-            <Route path="/exams" element={<ExamTimetable />} />
-            <Route path="/pronunciation" element={<PronunciationHelper />} />
-            <Route path="/community" element={<Community />} />
-            <Route path="/papers" element={<Papers />} />
-            <Route path="/payments" element={<Payments />} />
-            <Route path="/settings" element={<Settings />} />
-            <Route path="*" element={<Dashboard />} />
-          </Routes>
-        </Suspense>
-      </Layout>
+      <Suspense fallback={<PageLoader />}>
+        <Routes>
+          <Route path="/landing" element={<Landing />} />
+          <Route path="/login" element={<Auth />} />
+          <Route path="/signup" element={<Auth />} />
+          <Route path="*" element={
+            <Layout>
+              <Routes>
+                <Route path="/" element={<Dashboard />} />
+                <Route path="/flashcards" element={<Flashcards />} />
+                <Route path="/quiz" element={<Quiz />} />
+                <Route path="/exams" element={<ExamTimetable />} />
+                <Route path="/pronunciation" element={<PronunciationHelper />} />
+                <Route path="/community" element={<Community />} />
+                <Route path="/papers" element={<Papers />} />
+                <Route path="/payments" element={<Payments />} />
+                <Route path="/activate" element={<Activate />} />
+                <Route path="/settings" element={<Settings />} />
+                <Route path="*" element={<Dashboard />} />
+              </Routes>
+            </Layout>
+          } />
+        </Routes>
+      </Suspense>
     );
   }
 
@@ -92,31 +100,33 @@ const AppRoutes = () => {
     );
   }
 
-  if (!userProfile.isActivated) {
-    return (
-      <Routes>
-        <Route path="/activate" element={<Activate />} />
-        <Route path="/payments" element={<Payments />} />
-        <Route path="*" element={<Activate />} />
-      </Routes>
-    );
-  }
-
+  // Common Layout wrapper for logged-in but unactivated or restricted users
+  // Unactivated users can see the Dashboard (blurred) but other sections redirect to Activate
   return (
     <Layout>
       <Suspense fallback={<PageLoader />}>
         <Routes>
           <Route path="/" element={<Dashboard />} />
           <Route path="/activate" element={<Activate />} />
-          <Route path="/flashcards" element={<Flashcards />} />
-          <Route path="/quiz" element={<Quiz />} />
-          <Route path="/exams" element={<ExamTimetable />} />
-          <Route path="/pronunciation" element={<PronunciationHelper />} />
-          <Route path="/community" element={<Community />} />
-          <Route path="/papers" element={<Papers />} />
           <Route path="/payments" element={<Payments />} />
-          <Route path="/admin/finance" element={<AdminFinance />} />
           <Route path="/settings" element={<Settings />} />
+
+          {/* Gated Routes */}
+          {userProfile.isActivated ? (
+            <>
+              <Route path="/flashcards" element={<Flashcards />} />
+              <Route path="/quiz" element={<Quiz />} />
+              <Route path="/exams" element={<ExamTimetable />} />
+              <Route path="/pronunciation" element={<PronunciationHelper />} />
+              <Route path="/community" element={<Community />} />
+              <Route path="/papers" element={<Papers />} />
+              <Route path="/admin/finance" element={<AdminFinance />} />
+            </>
+          ) : (
+            <Route path="*" element={<Activate />} />
+          )}
+
+          <Route path="*" element={<Dashboard />} />
         </Routes>
       </Suspense>
     </Layout>
