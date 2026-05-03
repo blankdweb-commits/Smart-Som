@@ -14,11 +14,24 @@ import {
   BookOpen
 } from '../components/Icons';
 import { useNavigate } from 'react-router-dom';
+import { useAppContext } from '../context/AppContext';
 
 const Landing = () => {
   const navigate = useNavigate();
+  const { session, userProfile, loadingAuth } = useAppContext();
   const [slotsRemaining, setSlotsRemaining] = useState(12);
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 45, seconds: 0 });
+
+  // Auto-redirect for logged in users
+  useEffect(() => {
+    if (!loadingAuth && session) {
+      if (userProfile.isActivated) {
+        navigate('/dashboard');
+      } else {
+        navigate('/activate');
+      }
+    }
+  }, [session, userProfile.isActivated, loadingAuth, navigate]);
 
   // Urgency logic
   useEffect(() => {

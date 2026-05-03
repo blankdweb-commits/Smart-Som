@@ -65,13 +65,13 @@ const AppRoutes = () => {
     return (
       <Suspense fallback={<PageLoader />}>
         <Routes>
-          <Route path="/landing" element={<Landing />} />
+          <Route path="/" element={<Landing />} />
           <Route path="/login" element={<Auth />} />
           <Route path="/signup" element={<Auth />} />
           <Route path="*" element={
             <Layout>
               <Routes>
-                <Route path="/" element={<Dashboard />} />
+                <Route path="/dashboard" element={<Dashboard />} />
                 <Route path="/flashcards" element={<Flashcards />} />
                 <Route path="/quiz" element={<Quiz />} />
                 <Route path="/exams" element={<ExamTimetable />} />
@@ -93,6 +93,7 @@ const AppRoutes = () => {
   if (!session) {
     return (
       <Routes>
+        <Route path="/" element={<Landing />} />
         <Route path="/login" element={<Auth />} />
         <Route path="/signup" element={<Auth />} />
         <Route path="*" element={<Landing />} />
@@ -100,13 +101,12 @@ const AppRoutes = () => {
     );
   }
 
-  // Common Layout wrapper for logged-in but unactivated or restricted users
-  // Unactivated users can see the Dashboard (blurred) but other sections redirect to Activate
   return (
     <Layout>
       <Suspense fallback={<PageLoader />}>
         <Routes>
-          <Route path="/" element={<Dashboard />} />
+          <Route path="/" element={<Landing />} />
+          <Route path="/dashboard" element={<Dashboard />} />
           <Route path="/activate" element={<Activate />} />
           <Route path="/payments" element={<Payments />} />
           <Route path="/settings" element={<Settings />} />
@@ -123,7 +123,15 @@ const AppRoutes = () => {
               <Route path="/admin/finance" element={<AdminFinance />} />
             </>
           ) : (
-            <Route path="*" element={<Activate />} />
+            <>
+              <Route path="/flashcards" element={<Activate />} />
+              <Route path="/quiz" element={<Activate />} />
+              <Route path="/exams" element={<Activate />} />
+              <Route path="/pronunciation" element={<Activate />} />
+              <Route path="/community" element={<Activate />} />
+              <Route path="/papers" element={<Activate />} />
+              <Route path="/admin/finance" element={<Activate />} />
+            </>
           )}
 
           <Route path="*" element={<Dashboard />} />

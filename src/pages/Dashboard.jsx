@@ -7,8 +7,15 @@ import FeeDashboardWidget from '../components/FeeDashboardWidget';
 import { motion } from 'framer-motion';
 
 const Dashboard = () => {
-  const { flashcards, exams, studyStats, userProfile } = useAppContext();
+  const { flashcards, exams, studyStats, userProfile, session, loadingAuth } = useAppContext();
   const navigate = useNavigate();
+
+  // Redirect if not logged in
+  React.useEffect(() => {
+    if (!loadingAuth && !session) {
+      navigate('/');
+    }
+  }, [session, loadingAuth, navigate]);
 
   const subjectProgress = React.useMemo(() => {
     const stats = {};
