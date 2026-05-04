@@ -99,6 +99,18 @@ CREATE TABLE public.payment_charges (
     created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- TESTIMONIALS
+CREATE TABLE public.testimonials (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  name TEXT,
+  level TEXT,
+  quote TEXT,
+  image_url TEXT,
+  is_verified BOOLEAN DEFAULT true,
+  category TEXT DEFAULT 'general' CHECK (category IN ('general', 'struggle', 'value')),
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- 2. Row Level Security (RLS)
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
@@ -107,6 +119,7 @@ ALTER TABLE public.payments ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.exams ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.flashcard_progress ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payment_charges ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.testimonials ENABLE ROW LEVEL SECURITY;
 
 -- Policies
 CREATE POLICY "Public profiles are viewable by everyone." ON public.profiles FOR SELECT USING (true);
@@ -138,3 +151,10 @@ CREATE TRIGGER on_auth_user_created
   Run after creating a user in Supabase:
   UPDATE public.profiles SET role = 'super_admin', is_activated = true WHERE email = 'admin@example.com';
 */
+
+-- 5. Seed Testimonials
+INSERT INTO public.testimonials (name, level, quote, image_url, category) VALUES
+('Blessing O.', 'Final Year', '₦1999.9 per week sounded small, but after using it, I understood the value immediately. The AI parser for past questions is magic.', 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=400&h=400&auto=format&fit=crop', 'value'),
+('Musa A.', 'Year 3', 'The flashcards made it easier to remember things during exams. I don’t cram like before. My grades have improved significantly.', 'https://images.unsplash.com/photo-1522529599102-193c0d76b5b6?q=80&w=400&h=400&auto=format&fit=crop', 'general'),
+('Chioma E.', 'Student Nurse', 'I was struggling before. After one week, I started recognizing questions instead of guessing. Worth every Naira.', 'https://images.unsplash.com/photo-1523464862212-d6631d073194?q=80&w=400&h=400&auto=format&fit=crop', 'struggle'),
+('Daniel K.', 'Year 2', 'The community and structured curriculum help me stay focused. It feels like having a personal tutor 24/7.', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&h=400&auto=format&fit=crop', 'general');

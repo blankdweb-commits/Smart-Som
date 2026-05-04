@@ -21,6 +21,31 @@ const Landing = () => {
   const { session, userProfile, loadingAuth } = useAppContext();
   const [slotsRemaining, setSlotsRemaining] = useState(12);
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 45, seconds: 0 });
+  const [dynamicTestimonials, setDynamicTestimonials] = useState([]);
+
+  // Fetch Testimonials
+  useEffect(() => {
+    const fetchTestimonials = async () => {
+      const { supabase } = await import('../utils/supabase');
+      if (!supabase) return;
+
+      let query = supabase.from('testimonials').select('*');
+
+      // Contextual Logic: If logged in but not paid, prioritize 'value' category
+      if (session && !userProfile.isActivated) {
+        query = query.order('category', { ascending: false }); // 'value' comes after 'struggle'/'general' but we want to target it
+      } else if (!session) {
+        // Unauthenticated: focus on 'struggle'
+        query = query.order('category', { ascending: true });
+      }
+
+      const { data } = await query.limit(10);
+      if (data) {
+        setDynamicTestimonials(data.sort(() => Math.random() - 0.5));
+      }
+    };
+    fetchTestimonials();
+  }, [session, userProfile.isActivated]);
 
   // Auto-redirect for logged in users
   useEffect(() => {
@@ -60,10 +85,12 @@ const Landing = () => {
     { title: "Progress Tracking", desc: "Visual data on your learning journey.", icon: <Award className="text-apex-500" /> }
   ];
 
-  const testimonials = [
-    { name: "Sarah O.", text: "Passed my professional exams with distinction! The flashcards are a lifesaver.", school: "LUTH Nursing" },
-    { name: "Daniel K.", text: "The AI parser for past questions is magic. Saved me weeks of study prep.", school: "University of Ibadan" }
+  const defaultTestimonials = [
+    { name: "Sarah O.", quote: "Passed my professional exams with distinction! The flashcards are a lifesaver.", level: "LUTH Nursing", image_url: "https://images.unsplash.com/photo-1531123897727-8f129e1688ce?q=80&w=400&h=400&auto=format&fit=crop" },
+    { name: "Daniel K.", quote: "The AI parser for past questions is magic. Saved me weeks of study prep.", level: "University of Ibadan", image_url: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&h=400&auto=format&fit=crop" }
   ];
+
+  const activeTestimonials = dynamicTestimonials.length > 0 ? dynamicTestimonials : defaultTestimonials;
 
   return (
     <div className="min-h-screen bg-white text-slate-900 font-sans selection:bg-apex-100 selection:text-apex-700">
@@ -233,19 +260,34 @@ const Landing = () => {
               </div>
            </div>
 
-           <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-              {testimonials.map((t, i) => (
-                <div key={i} className="p-8 bg-slate-50 rounded-3xl border border-slate-100 space-y-6">
-                   <p className="text-lg font-bold text-slate-700 italic leading-relaxed">"{t.text}"</p>
-                   <div className="flex items-center gap-4">
-                      <div className="w-10 h-10 bg-apex-100 rounded-full flex items-center justify-center text-apex-600 font-black">{t.name[0]}</div>
-                      <div>
-                         <p className="font-black text-sm">{t.name}</p>
-                         <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.school}</p>
-                      </div>
-                   </div>
-                </div>
-              ))}
+           <div className="relative">
+              <div className="flex overflow-x-auto gap-8 pb-8 no-scrollbar scroll-smooth snap-x snap-mandatory">
+                {activeTestimonials.map((t, i) => (
+                  <motion.div
+                    key={i}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    whileInView={{ opacity: 1, scale: 1 }}
+                    viewport={{ once: true }}
+                    className="min-w-[300px] md:min-w-[450px] p-8 bg-slate-50 rounded-[2.5rem] border border-slate-100 space-y-6 snap-center"
+                  >
+                     <div className="flex text-amber-400 gap-1">
+                        {[1,2,3,4,5].map(star => <Star key={star} size={14} fill="currentColor" />)}
+                     </div>
+                     <p className="text-lg font-bold text-slate-700 italic leading-relaxed">"{t.quote}"</p>
+                     <div className="flex items-center gap-4">
+                        <img
+                          src={t.image_url}
+                          alt={t.name}
+                          className="w-12 h-12 rounded-2xl object-cover ring-4 ring-white shadow-soft"
+                        />
+                        <div>
+                           <p className="font-black text-sm">{t.name}</p>
+                           <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{t.level}</p>
+                        </div>
+                     </div>
+                  </motion.div>
+                ))}
+              </div>
            </div>
         </div>
       </section>
