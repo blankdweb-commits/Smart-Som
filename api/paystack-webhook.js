@@ -1,15 +1,16 @@
-import { getSupabaseAdmin, generateProductKey } from './_utils';
+import { createClient } from '@supabase/supabase-js';
 import crypto from 'crypto';
 
-export default async function handler(req, res) {
-  if (req.method !== 'POST') {
-    return res.status(405).json({ error: 'Method not allowed' });
-  }
+const supabase = createClient(
+  process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL,
+  process.env.SUPABASE_SERVICE_ROLE_KEY
+);
 
-  // 1. Verify Webhook Signature
-  const secret = process.env.PAYSTACK_SECRET_KEY;
-  const hash = crypto
-    .createHmac('sha512', secret)
+export default async function handler(req, res) {
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
+
+  // 1. Verify Signature
+  const hash = crypto.createHmac('sha512', process.env.PAYSTACK_SECRET_KEY)
     .update(JSON.stringify(req.body))
     .digest('hex');
 
@@ -17,57 +18,63 @@ export default async function handler(req, res) {
     return res.status(401).json({ error: 'Invalid signature' });
   }
 
-  const body = req.body;
-  const supabase = getSupabaseAdmin();
+  const event = req.body;
 
-  if (body.event === 'charge.success') {
-    const { reference, customer, amount, metadata } = body.data;
+  if (event.event === 'charge.success') {
+    const { reference, customer, amount } = event.data;
     const email = customer.email;
-    const userId = metadata?.user_id;
+    const actualAmount = amount / 100;
 
-    // 2. Log Transaction
-    await supabase.from('transactions').insert({
-      user_id: userId,
-      reference,
-      amount: amount / 100,
-      status: 'success',
-      metadata: body.data
-    });
+    try {
+      // Find User
+      const { data: profile } = await supabase
+        .from('profiles')
+        .select('id')
+        .eq('email', email)
+        .maybeSingle();
 
-    // 3. Find/Create Profile
-    let userRecordId = userId;
-    if (!userRecordId) {
-      const { data: profile } = await supabase.from('profiles').select('id').eq('email', email).single();
-      if (profile) userRecordId = profile.id;
-    }
+      if (!profile) return res.status(404).json({ error: 'User not found' });
 
-    if (userRecordId) {
-      // 4. Generate & Assign Product Key
-      const key = generateProductKey();
+      // Prevent duplicate
+      const { data: existing } = await supabase
+        .from('payments')
+        .select('id')
+        .eq('reference', reference)
+        .maybeSingle();
 
-      // Update profile status
-      await supabase.from('profiles').update({
-        is_activated: true,
-        last_payment_date: new Date().toISOString()
-      }).eq('id', userRecordId);
+      if (existing) return res.status(200).json({ message: 'Handled' });
 
-      // Create Subscription Record
+      // Insert Payment
+      await supabase.from('payments').insert({
+        user_id: profile.id,
+        email,
+        amount: actualAmount,
+        reference,
+        status: 'success'
+      });
+
+      // Activate Subscription
+      const now = new Date();
+      const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+      const graceUntil = new Date(expiresAt.getTime() + 2 * 24 * 60 * 60 * 1000);
+
       await supabase.from('subscriptions').insert({
-        user_id: userRecordId,
-        product_key: key,
+        user_id: profile.id,
         status: 'active',
-        expires_at: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString()
+        expires_at: expiresAt.toISOString(),
+        grace_until: graceUntil.toISOString(),
+        amount: actualAmount
       });
 
-      // Insert into product_keys table for redundancy/manual recovery
-      await supabase.from('product_keys').insert({
-        key: key, // In production, consider hashing this
-        status: 'used',
-        assigned_to: userRecordId,
-        activated_at: new Date().toISOString()
-      });
+      // Activate Profile
+      await supabase.from('profiles').update({ is_activated: true }).eq('id', profile.id);
+
+      return res.status(200).json({ message: 'Success' });
+    } catch (err) {
+      console.error('Webhook Error:', err);
+      return res.status(500).json({ error: 'Internal Error' });
     }
   }
 
-  return res.status(200).json({ status: 'ok' });
+  return res.status(200).json({ message: 'Ignored' });
 }
