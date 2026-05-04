@@ -5,7 +5,7 @@ import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Award, Users, S
 const Sidebar = () => {
 
   const navItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, path: '/' },
+    { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { name: 'Flashcards', icon: BookOpen, path: '/flashcards' },
     { name: 'Quiz Mode', icon: Brain, path: '/quiz' },
     { name: 'Exam Timetable', icon: Calendar, path: '/exams' },

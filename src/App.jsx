@@ -3,6 +3,7 @@ import { BrowserRouter as Router, Routes, Route, useLocation, useNavigate } from
 import { AppProvider, useAppContext } from './context/AppContext';
 import Layout from './components/Layout';
 import Dashboard from './pages/Dashboard';
+import Landing from './pages/Landing/Landing';
 import Flashcards from './pages/Flashcards';
 import ExamTimetable from './pages/ExamTimetable';
 import PronunciationHelper from './pages/PronunciationHelper';
@@ -46,18 +47,23 @@ function App() {
     <AppProvider>
       <Router>
         <ImportHandler />
-        <Layout>
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/flashcards" element={<Flashcards />} />
+        <Routes>
+          <Route path="/" element={<Landing />} />
+          <Route path="/*" element={
+            <Layout>
+              <Routes>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/flashcards" element={<Flashcards />} />
             <Route path="/quiz" element={<Quiz />} />
             <Route path="/exams" element={<ExamTimetable />} />
             <Route path="/search" element={<ClinicalSearchAssistant />} />
             <Route path="/pronunciation" element={<PronunciationHelper />} />
             <Route path="/community" element={<Community />} />
-            <Route path="/settings" element={<Settings />} />
-          </Routes>
-        </Layout>
+                <Route path="/settings" element={<Settings />} />
+              </Routes>
+            </Layout>
+          } />
+        </Routes>
       </Router>
     </AppProvider>
   );

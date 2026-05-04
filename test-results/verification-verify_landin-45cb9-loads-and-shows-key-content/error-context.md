@@ -1,0 +1,268 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e6]:
+    - generic [ref=e7]:
+      - generic [ref=e8]: Pass Your Nursing Exams in Weeks — Not Months
+      - heading "Nursing Success Simplified." [level=1] [ref=e9]:
+        - text: Nursing Success
+        - text: Simplified.
+      - paragraph [ref=e10]: Structured lessons, real exam questions, and smart revision tools used by serious Nigerian students.
+      - generic [ref=e11]:
+        - button "Start Weekly Access — ₦1999.9" [ref=e12]
+        - generic [ref=e13]:
+          - generic [ref=e14]:
+            - img "Student" [ref=e16]
+            - img "Student" [ref=e18]
+            - img "Student" [ref=e20]
+            - img "Student" [ref=e22]
+          - generic [ref=e23]: Join 1,000+ focused students
+    - generic [ref=e26]:
+      - generic [ref=e27]:
+        - generic [ref=e28]:
+          - generic [ref=e29]: Question Preview
+          - paragraph [ref=e30]: What is the primary function of the SA node?
+        - generic [ref=e32]: Tap to reveal answer
+      - generic [ref=e35]:
+        - generic [ref=e36]:
+          - generic [ref=e37]: Question Preview
+          - paragraph [ref=e38]: Define Nosocomial infection.
+        - generic [ref=e40]: Tap to reveal answer
+      - generic [ref=e43]:
+        - generic [ref=e44]:
+          - generic [ref=e45]: Question Preview
+          - paragraph [ref=e46]: What is the normal range for adult pulse rate?
+        - generic [ref=e48]: Tap to reveal answer
+      - generic [ref=e51]:
+        - generic [ref=e52]:
+          - generic [ref=e53]: Question Preview
+          - paragraph [ref=e54]: Name the 'Five Rights' of medication administration.
+        - generic [ref=e56]: Tap to reveal answer
+      - generic [ref=e59]:
+        - generic [ref=e60]:
+          - generic [ref=e61]: Question Preview
+          - paragraph [ref=e62]: What is the first step in the Nursing Process?
+        - generic [ref=e64]: Tap to reveal answer
+      - generic [ref=e67]:
+        - generic [ref=e68]:
+          - generic [ref=e69]: Question Preview
+          - paragraph [ref=e70]: What is the primary function of the SA node?
+        - generic [ref=e72]: Tap to reveal answer
+      - generic [ref=e75]:
+        - generic [ref=e76]:
+          - generic [ref=e77]: Question Preview
+          - paragraph [ref=e78]: Define Nosocomial infection.
+        - generic [ref=e80]: Tap to reveal answer
+      - generic [ref=e83]:
+        - generic [ref=e84]:
+          - generic [ref=e85]: Question Preview
+          - paragraph [ref=e86]: What is the normal range for adult pulse rate?
+        - generic [ref=e88]: Tap to reveal answer
+      - generic [ref=e91]:
+        - generic [ref=e92]:
+          - generic [ref=e93]: Question Preview
+          - paragraph [ref=e94]: Name the 'Five Rights' of medication administration.
+        - generic [ref=e96]: Tap to reveal answer
+      - generic [ref=e99]:
+        - generic [ref=e100]:
+          - generic [ref=e101]: Question Preview
+          - paragraph [ref=e102]: What is the first step in the Nursing Process?
+        - generic [ref=e104]: Tap to reveal answer
+  - generic [ref=e111]:
+    - generic [ref=e112]:
+      - generic [ref=e113]:
+        - img "Student Studying" [ref=e115]
+        - img "Group Study" [ref=e118]
+      - generic [ref=e121]: “Late-night prep. Early success.”
+    - generic [ref=e122]:
+      - heading "Built for the Next Generation of Nigerian Nurses." [level=2] [ref=e123]:
+        - text: Built for the
+        - text: Next Generation
+        - text: of Nigerian Nurses.
+      - paragraph [ref=e124]: We know how demanding nursing school is. That's why we built Apex Scholars—to give you the edge you need to master your curriculum and crush your exams.
+      - generic [ref=e125]:
+        - generic [ref=e129]: Realistic Exam Scenarios
+        - generic [ref=e133]: Nigerian Curriculum Focused
+        - generic [ref=e137]: Study Anywhere, Anytime
+  - generic [ref=e139]:
+    - generic [ref=e140]:
+      - heading "Trusted by Students" [level=2] [ref=e141]
+      - paragraph [ref=e142]: Join thousands of students who have upgraded their study game.
+    - generic [ref=e144]:
+      - generic [ref=e145]:
+        - generic [ref=e146]:
+          - generic [ref=e147]: ★
+          - generic [ref=e148]: ★
+          - generic [ref=e149]: ★
+          - generic [ref=e150]: ★
+          - generic [ref=e151]: ★
+        - paragraph [ref=e152]: "\"I used to fail past questions. After one week here, I understood patterns.\""
+        - generic [ref=e153]:
+          - paragraph [ref=e154]: Chioma
+          - paragraph [ref=e155]: Nursing Student (UNILAG)
+      - generic [ref=e156]:
+        - generic [ref=e157]:
+          - generic [ref=e158]: ★
+          - generic [ref=e159]: ★
+          - generic [ref=e160]: ★
+          - generic [ref=e161]: ★
+          - generic [ref=e162]: ★
+        - paragraph [ref=e163]: "\"The flashcards alone are worth it. I revise anywhere now.\""
+        - generic [ref=e164]:
+          - paragraph [ref=e165]: Musa
+          - paragraph [ref=e166]: Student Nurse
+      - generic [ref=e167]:
+        - generic [ref=e168]:
+          - generic [ref=e169]: ★
+          - generic [ref=e170]: ★
+          - generic [ref=e171]: ★
+          - generic [ref=e172]: ★
+          - generic [ref=e173]: ★
+        - paragraph [ref=e174]: "\"₦1999 is nothing compared to what I gained.\""
+        - generic [ref=e175]:
+          - paragraph [ref=e176]: Blessing
+          - paragraph [ref=e177]: Final Year
+      - generic [ref=e178]:
+        - generic [ref=e179]:
+          - generic [ref=e180]: ★
+          - generic [ref=e181]: ★
+          - generic [ref=e182]: ★
+          - generic [ref=e183]: ★
+          - generic [ref=e184]: ★
+        - paragraph [ref=e185]: "\"Apex Scholars made pharmacology so much easier to grasp.\""
+        - generic [ref=e186]:
+          - paragraph [ref=e187]: Ibrahim
+          - paragraph [ref=e188]: Nursing Student
+      - generic [ref=e189]:
+        - generic [ref=e190]:
+          - generic [ref=e191]: ★
+          - generic [ref=e192]: ★
+          - generic [ref=e193]: ★
+          - generic [ref=e194]: ★
+          - generic [ref=e195]: ★
+        - paragraph [ref=e196]: "\"I used to fail past questions. After one week here, I understood patterns.\""
+        - generic [ref=e197]:
+          - paragraph [ref=e198]: Chioma
+          - paragraph [ref=e199]: Nursing Student (UNILAG)
+      - generic [ref=e200]:
+        - generic [ref=e201]:
+          - generic [ref=e202]: ★
+          - generic [ref=e203]: ★
+          - generic [ref=e204]: ★
+          - generic [ref=e205]: ★
+          - generic [ref=e206]: ★
+        - paragraph [ref=e207]: "\"The flashcards alone are worth it. I revise anywhere now.\""
+        - generic [ref=e208]:
+          - paragraph [ref=e209]: Musa
+          - paragraph [ref=e210]: Student Nurse
+      - generic [ref=e211]:
+        - generic [ref=e212]:
+          - generic [ref=e213]: ★
+          - generic [ref=e214]: ★
+          - generic [ref=e215]: ★
+          - generic [ref=e216]: ★
+          - generic [ref=e217]: ★
+        - paragraph [ref=e218]: "\"₦1999 is nothing compared to what I gained.\""
+        - generic [ref=e219]:
+          - paragraph [ref=e220]: Blessing
+          - paragraph [ref=e221]: Final Year
+      - generic [ref=e222]:
+        - generic [ref=e223]:
+          - generic [ref=e224]: ★
+          - generic [ref=e225]: ★
+          - generic [ref=e226]: ★
+          - generic [ref=e227]: ★
+          - generic [ref=e228]: ★
+        - paragraph [ref=e229]: "\"Apex Scholars made pharmacology so much easier to grasp.\""
+        - generic [ref=e230]:
+          - paragraph [ref=e231]: Ibrahim
+          - paragraph [ref=e232]: Nursing Student
+  - generic [ref=e236]:
+    - generic [ref=e237]:
+      - heading "Why Pay for Apex Scholars?" [level=2] [ref=e238]
+      - paragraph [ref=e239]: The investment that pays off in your results.
+    - generic [ref=e240]:
+      - generic [ref=e241]:
+        - img [ref=e243]
+        - heading "Structured nursing lessons" [level=3] [ref=e245]
+        - paragraph [ref=e246]: Everything you need, organized by year and subject.
+      - generic [ref=e247]:
+        - img [ref=e249]
+        - heading "Smart flashcards" [level=3] [ref=e257]
+        - paragraph [ref=e258]: Spaced-repetition tech for fast, permanent revision.
+      - generic [ref=e259]:
+        - img [ref=e261]
+        - heading "Exam simulations" [level=3] [ref=e264]
+        - paragraph [ref=e265]: Real past questions to practice under pressure.
+      - generic [ref=e266]:
+        - img [ref=e268]
+        - heading "Progress tracking" [level=3] [ref=e270]
+        - paragraph [ref=e271]: See exactly where you stand in every subject.
+      - generic [ref=e272]:
+        - img [ref=e274]
+        - heading "Time-saving tools" [level=3] [ref=e277]
+        - paragraph [ref=e278]: Study 3x faster with focused curriculum paths.
+      - generic [ref=e279]:
+        - img [ref=e281]
+        - heading "Trusted content" [level=3] [ref=e284]
+        - paragraph [ref=e285]: Vetted by top nursing educators in Nigeria.
+  - generic [ref=e288]:
+    - generic [ref=e289]: Limited
+    - generic [ref=e290]:
+      - heading "Weekly Access" [level=2] [ref=e291]
+      - paragraph [ref=e292]: Unlock everything for 7 days
+    - generic [ref=e293]:
+      - generic [ref=e294]: ₦3000
+      - generic [ref=e295]:
+        - generic [ref=e296]: ₦1999.9
+        - generic [ref=e297]: Special Offer
+    - generic [ref=e298]:
+      - generic [ref=e299]:
+        - generic [ref=e300]: ✓
+        - generic [ref=e301]: Full Curriculum Library
+      - generic [ref=e302]:
+        - generic [ref=e303]: ✓
+        - generic [ref=e304]: Smart SRS Flashcards
+      - generic [ref=e305]:
+        - generic [ref=e306]: ✓
+        - generic [ref=e307]: Past Exam Database
+      - generic [ref=e308]:
+        - generic [ref=e309]: ✓
+        - generic [ref=e310]: Performance Analytics
+      - generic [ref=e311]:
+        - generic [ref=e312]: ✓
+        - generic [ref=e313]: Priority Support
+    - button "Get Access Now — ₦1999.9" [ref=e314]
+    - generic [ref=e315]:
+      - paragraph [ref=e316]: Price resets in
+      - generic [ref=e317]:
+        - generic [ref=e318]: "23"
+        - generic [ref=e319]: ":"
+        - generic [ref=e320]: "59"
+        - generic [ref=e321]: ":"
+        - generic [ref=e322]: "07"
+      - paragraph [ref=e323]: “Limited student pricing — may increase soon”
+      - paragraph [ref=e324]: Students are locking in this rate now
+  - generic [ref=e326]:
+    - generic [ref=e327]:
+      - heading "Your Dashboard is Waiting" [level=2] [ref=e328]
+      - paragraph [ref=e329]: “Your dashboard is ready — unlock access to continue”
+    - generic [ref=e332]:
+      - heading "Awaiting Activation" [level=3] [ref=e335]
+      - paragraph [ref=e336]: We've prepared your personalized learning path. Complete your weekly subscription to unlock all features immediately.
+      - button "Unlock Weekly Access — ₦1999.9" [ref=e337]
+  - contentinfo [ref=e338]:
+    - generic [ref=e339]:
+      - generic [ref=e340]:
+        - generic [ref=e341]: A
+        - generic [ref=e342]: Apex Scholars
+      - paragraph [ref=e343]: © 2026 Apex Scholars. All rights reserved.
+      - generic [ref=e344]:
+        - link "Privacy" [ref=e345] [cursor=pointer]:
+          - /url: "#"
+        - link "Terms" [ref=e346] [cursor=pointer]:
+          - /url: "#"
+        - link "Support" [ref=e347] [cursor=pointer]:
+          - /url: "#"
+```
