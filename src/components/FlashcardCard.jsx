@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { Star, Edit2, Trash2, HelpCircle, Info, Share2, Volume2 } from 'lucide-react';
+import React, { useState, memo } from 'react';
+import { Star, Edit2, Trash2, HelpCircle, Info, Share2, Volume2 } from './Icons';
 import { motion, useMotionValue, useTransform } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
-const FlashcardCard = ({
+const FlashcardCard = memo(({
   card, onEdit, onDelete, onToggleImportant, onShare,
   isStudyMode = false, isFullscreen = false,
   onSwipeLeft, onSwipeRight
@@ -39,11 +39,11 @@ const FlashcardCard = ({
 
   return (
     <motion.div
-      style={{ x, rotate, opacity }}
+      style={{ x, rotate, opacity, touchAction: 'none' }}
       drag={isStudyMode ? "x" : false}
       dragConstraints={{ left: 0, right: 0 }}
       onDragEnd={handleDragEnd}
-      className={`relative ${isFullscreen ? 'h-full' : 'h-72 sm:h-64'} w-full cursor-pointer group flashcard-container active:scale-[0.98] transition-transform`}
+      className={`relative ${isFullscreen ? 'h-full flex items-center justify-center' : 'h-80 sm:h-64'} w-full cursor-pointer group flashcard-container active:scale-[0.98] transition-transform`}
       onClick={() => {
         // Prevent flip if we just dragged
         if (isStudyMode && Math.abs(x.get()) > 5) return;
@@ -52,12 +52,25 @@ const FlashcardCard = ({
     >
       <div className={`flashcard-inner w-full h-full ${isFlipped ? 'flipped' : ''} transition-all duration-500 ease-out`}>
         {/* Front */}
-        <div className={`flashcard-front absolute inset-0 bg-white dark:bg-slate-800 ${isFullscreen ? 'rounded-[2.5rem]' : 'rounded-2xl'} shadow-sm border border-slate-200 dark:border-slate-700 p-6 sm:p-10 flex flex-col justify-between overflow-hidden`}>
+        <div className={`flashcard-front absolute inset-0 bg-white dark:bg-slate-800 ${isFullscreen ? 'rounded-[2.5rem] shadow-clinical border-4 border-medical-500/20' : 'rounded-[2rem] shadow-premium border border-slate-100 dark:border-slate-700'} p-6 sm:p-12 flex flex-col justify-between overflow-hidden transition-all duration-500`}>
+          {isFullscreen && (
+            <div className="absolute top-0 left-0 w-full h-1.5 bg-slate-100 dark:bg-slate-700">
+              <motion.div
+                className="h-full bg-medical-500"
+                initial={{ width: 0 }}
+                animate={{ width: '100%' }}
+                transition={{ duration: 0.5 }}
+              />
+            </div>
+          )}
           <div>
-            <div className="flex justify-between items-start mb-3">
-              <span className="text-[10px] sm:text-xs font-bold px-2 py-1 bg-medical-50 text-medical-600 dark:bg-medical-900/40 dark:text-medical-300 rounded uppercase tracking-wide truncate max-w-[120px]">
-                {card.subject}
-              </span>
+            <div className="flex justify-between items-start mb-6">
+              <div className="flex flex-col gap-1">
+                <span className="text-[10px] sm:text-xs font-black px-3 py-1 bg-medical-50 text-medical-600 dark:bg-medical-900/40 dark:text-medical-300 rounded-full uppercase tracking-[0.15em] border border-medical-100/50">
+                  {card.subject}
+                </span>
+                {isFullscreen && <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Exam Question Mode</span>}
+              </div>
               <div className="flex space-x-2">
                 {!isStudyMode && (
                   <>
@@ -98,7 +111,7 @@ const FlashcardCard = ({
               </div>
             </div>
             <p className="text-xs text-slate-400 dark:text-slate-500 font-bold mb-1 uppercase">{card.topic}</p>
-            <h3 className="text-lg sm:text-xl font-bold text-slate-800 dark:text-white mt-2 leading-snug text-center">
+            <h3 className={`${isFullscreen ? 'text-3xl sm:text-5xl' : 'text-lg sm:text-xl'} font-black text-slate-900 dark:text-white mt-8 leading-tight text-center tracking-tight drop-shadow-sm`}>
               {card.question}
             </h3>
 
@@ -137,7 +150,7 @@ const FlashcardCard = ({
         </div>
 
         {/* Back */}
-        <div className={`flashcard-back absolute inset-0 bg-medical-600 ${isFullscreen ? 'rounded-[2.5rem]' : 'rounded-2xl'} shadow-lg p-6 sm:p-10 flex flex-col items-center justify-center text-white text-center overflow-auto relative`}>
+        <div className={`flashcard-back absolute inset-0 bg-medical-600 ${isFullscreen ? 'rounded-[2.5rem] shadow-clinical ring-12 ring-medical-500/10' : 'rounded-2xl shadow-lg'} p-6 sm:p-12 flex flex-col items-center justify-center text-white text-center overflow-auto relative transition-all duration-500`}>
           <button
             onClick={(e) => handleSpeak(e, card.answer)}
             className="absolute top-4 right-4 p-2 text-white/50 hover:text-white transition-colors"
@@ -146,7 +159,7 @@ const FlashcardCard = ({
             <Volume2 size={20} />
           </button>
           <p className="text-[10px] uppercase tracking-wider mb-4 opacity-80 font-bold">Answer</p>
-          <p className="text-base sm:text-lg font-medium leading-relaxed">
+          <p className={`${isFullscreen ? 'text-2xl sm:text-4xl' : 'text-base sm:text-lg'} font-black leading-tight tracking-tight drop-shadow-md max-w-3xl mx-auto`}>
             {card.answer}
           </p>
           <p className="mt-6 text-[10px] opacity-60 font-bold uppercase tracking-widest">Click to flip back</p>
@@ -154,6 +167,6 @@ const FlashcardCard = ({
       </div>
     </motion.div>
   );
-};
+});
 
 export default FlashcardCard;
