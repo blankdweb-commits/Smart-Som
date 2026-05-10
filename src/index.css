@@ -22,7 +22,12 @@ body {
   place-content: center;
   min-width: 320px;
   min-height: 100vh;
+  min-height: -webkit-fill-available;
   overscroll-behavior-y: contain; /* Prevents pull-to-refresh on mobile */
+}
+
+html {
+  height: -webkit-fill-available;
 }
 
 #root {
@@ -107,6 +112,22 @@ body {
   background: linear-gradient(135deg, #0ea5e9 0%, #14b8a6 100%);
 }
 
+.shadow-clinical {
+  box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.05), 0 10px 10px -5px rgba(0, 0, 0, 0.02);
+}
+
+.shadow-soft {
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
+.shadow-premium {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+}
+
+.dark .shadow-premium {
+  box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
+}
+
 /* Clinical Tidy scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
@@ -124,4 +145,21 @@ body {
 /* Tap Target Improvements */
 button, a {
   @apply touch-manipulation;
+}
+
+@layer utilities {
+  .animate-infinite-scroll {
+    animation: infinite-scroll 25s linear infinite;
+    display: flex;
+    width: max-content;
+  }
+
+  @keyframes infinite-scroll {
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(-33.3333%);
+    }
+  }
 }

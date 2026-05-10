@@ -1,10 +1,12 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext';
 import FlashcardCard from '../components/FlashcardCard';
 import FlashcardForm from '../components/FlashcardForm';
 import ShareModal from '../components/ShareModal';
 import Toast from '../components/Toast';
-import { Plus, Search, Filter, Play, Shuffle, List, ChevronLeft, ChevronRight, Award, Download, Upload, Share2, Folder, Book, ArrowLeft, AlertCircle, CheckCircle2 } from 'lucide-react';
+import { Plus, Search, Filter, Play, Shuffle, List, ChevronLeft, ChevronRight, Award, Download, Upload, Share2, Folder, Book, ArrowLeft, AlertCircle, CheckCircle2, FileUp, Loader2, ChevronDown, ChevronUp } from './Icons';
+import { extractTextFromFile, parseQuestionsAndAnswers } from '../utils/fileParser';
+import { CURRICULUM_MASTER } from '../data/curriculumMaster';
 
 const SRSButton = ({ label, sublabel, color, onClick }) => (
   <button
@@ -17,7 +19,7 @@ const SRSButton = ({ label, sublabel, color, onClick }) => (
 );
 
 const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
-  const { flashcards, exams, addFlashcard, updateFlashcard, deleteFlashcard, incrementCardsStudied, updateCardProgress } = useAppContext();
+  const { flashcards, exams, addFlashcard, updateFlashcard, deleteFlashcard, incrementCardsStudied, updateCardProgress, importFlashcards } = useAppContext();
 
   // Navigation State
   const [currentProgram, setCurrentProgram] = useState(null); // 'General Nursing' or 'Midwifery'
@@ -31,12 +33,21 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   const [editingCard, setEditingCard] = useState(null);
   const [viewMode, setViewMode] = useState('list'); // 'list' or 'study'
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [filterDifficulty, setFilterDifficulty] = useState('All');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
   const [isExamPriority, setIsExamPriority] = useState(false);
   const [studyIndex, setStudyIndex] = useState(0);
   const [shuffledCards, setShuffledCards] = useState([]);
   const [toast, setToast] = useState(null);
   const [visibleCount, setVisibleCount] = useState(12);
+  const [isUploading, setIsUploading] = useState(false);
 
   // Derive hierarchy options
   const categoryCards = useMemo(() => {
@@ -70,17 +81,31 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
     });
   }, [flashcards, initialCategory, currentProgram]);
 
-  const levels = useMemo(() => [...new Set(categoryCards.map(c => c.level))].sort(), [categoryCards]);
+  const levels = useMemo(() => {
+    const defaultLevels = ['Year 1', 'Year 2', 'Year 3'];
+    const dataLevels = [...new Set(categoryCards.map(c => c.level))];
+    return defaultLevels.filter(l => dataLevels.includes(l));
+  }, [categoryCards]);
 
   const semesters = useMemo(() => {
     if (!currentLevel) return [];
-    return [...new Set(categoryCards.filter(c => c.level === currentLevel).map(c => c.semester))].sort();
+    const defaultSemesters = ['Semester 1', 'Semester 2'];
+    const dataSemesters = [...new Set(categoryCards.filter(c => c.level === currentLevel).map(c => c.semester))];
+    return defaultSemesters.filter(s => dataSemesters.includes(s));
   }, [categoryCards, currentLevel]);
 
   const subjects = useMemo(() => {
     if (!currentLevel || !currentSemester) return [];
-    return [...new Set(categoryCards.filter(c => c.level === currentLevel && c.semester === currentSemester).map(c => c.subject))].sort();
-  }, [categoryCards, currentLevel, currentSemester]);
+
+    // For general nursing, use the strict order from CURRICULUM_MASTER
+    if (currentProgram === 'General Nursing') {
+      const masterCourses = CURRICULUM_MASTER[currentLevel]?.[currentSemester] || [];
+      return masterCourses.map(c => c.course.replace(/\s+and\s+/gi, ' & ').trim());
+    }
+
+    const dataSubjects = [...new Set(categoryCards.filter(c => c.level === currentLevel && c.semester === currentSemester).map(c => c.subject))];
+    return dataSubjects.sort();
+  }, [categoryCards, currentLevel, currentSemester, currentProgram]);
 
   // Main filter logic
   const upcomingExamSubjects = useMemo(() => {
@@ -94,11 +119,12 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   }, [exams]);
 
   const filteredCards = useMemo(() => {
+    const term = debouncedSearchTerm.toLowerCase();
     return categoryCards.filter(card => {
       const question = card.question || '';
       const topic = card.topic || '';
-      const matchesSearch = question.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                            topic.toLowerCase().includes(searchTerm.toLowerCase());
+      const matchesSearch = !term || question.toLowerCase().includes(term) ||
+                            topic.toLowerCase().includes(term);
       const matchesLevel = !currentLevel || card.level === currentLevel;
       const matchesSemester = !currentSemester || card.semester === currentSemester;
       const matchesSubject = !currentSubject || card.subject === currentSubject;
@@ -108,14 +134,11 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
 
       return matchesSearch && matchesLevel && matchesSemester && matchesSubject && matchesDifficulty && isPriority;
     });
-  }, [categoryCards, searchTerm, currentLevel, currentSemester, currentSubject, filterDifficulty, isExamPriority, upcomingExamSubjects]);
+  }, [categoryCards, debouncedSearchTerm, currentLevel, currentSemester, currentSubject, filterDifficulty, isExamPriority, upcomingExamSubjects]);
 
   useEffect(() => {
-    const timer = setTimeout(() => {
-      setVisibleCount(12);
-    }, 0);
-    return () => clearTimeout(timer);
-  }, [searchTerm, currentLevel, currentSemester, currentSubject, filterDifficulty, isExamPriority]);
+    setVisibleCount(12);
+  }, [debouncedSearchTerm, currentLevel, currentSemester, currentSubject, filterDifficulty, isExamPriority]);
 
   const startStudyMode = (shuffle = false, srsOnly = false) => {
     let cardsToStudy = [...filteredCards];
@@ -145,17 +168,74 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
 
   const handlePrev = () => { if (studyIndex > 0) setStudyIndex(studyIndex - 1); };
 
-  const handleEdit = (card) => { setEditingCard(card); setIsFormOpen(true); };
+  const handleEdit = useCallback((card) => { setEditingCard(card); setIsFormOpen(true); }, []);
 
-  const handleShare = (card) => {
+  const handleShare = useCallback((card) => {
     setShareData(card);
     setIsShareModalOpen(true);
+  }, []);
+
+  const handleToggleImportant = useCallback((id) => {
+    const card = flashcards.find(c => c.id === id);
+    if (card) updateFlashcard(id, { important: !card.important });
+  }, [flashcards, updateFlashcard]);
+
+  const [expandedUnits, setExpandedUnits] = useState({});
+
+  const toggleUnit = (unitName) => {
+    setExpandedUnits(prev => ({
+      ...prev,
+      [unitName]: !prev[unitName]
+    }));
   };
 
   const handleFormSubmit = (data) => {
     if (editingCard) updateFlashcard(editingCard.id, data);
     else addFlashcard({ ...data, category: initialCategory, level: currentLevel, semester: currentSemester });
     setEditingCard(null);
+  };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+
+    setIsUploading(true);
+    setToast({ message: "Starting AI Training...", type: 'info' });
+
+    try {
+      // Step 1: Scan and Analyze
+      const text = await extractTextFromFile(file);
+
+      setToast({ message: "Identifying key medical concepts...", type: 'info' });
+      await new Promise(resolve => setTimeout(resolve, 1500)); // Simulate AI analysis
+
+      const parsedCards = parseQuestionsAndAnswers(text);
+
+      if (parsedCards.length > 0) {
+        setToast({ message: `Simulating model training on ${parsedCards.length} samples...`, type: 'info' });
+        await new Promise(resolve => setTimeout(resolve, 2000));
+
+        const enhancedCards = parsedCards.map(card => ({
+          ...card,
+          category: 'User-Trained',
+          level: currentLevel || 'Year 1',
+          semester: currentSemester || 'Semester 1',
+          subject: currentSubject || 'AI Imported',
+          source: file.name
+        }));
+
+        const count = importFlashcards(enhancedCards);
+        setToast({ message: `AI Training Complete! Generated ${count} high-yield cards.`, type: 'success' });
+      } else {
+        setToast({ message: "Analysis failed: No clear Q&A patterns detected.", type: 'error' });
+      }
+    } catch (error) {
+      console.error(error);
+      setToast({ message: "AI Error: " + error.message, type: 'error' });
+    } finally {
+      setIsUploading(false);
+      e.target.value = null; // Reset input
+    }
   };
 
 
@@ -337,49 +417,72 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
               </button>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+            <div className="grid grid-cols-1 gap-6">
               {subjects.map(subject => {
                 const cardCount = categoryCards.filter(c => c.level === currentLevel && c.semester === currentSemester && c.subject === subject).length;
 
-                return (
-                  <button
-                    key={subject}
-                    onClick={() => setCurrentSubject(subject)}
-                    className="p-5 bg-white dark:bg-slate-800 rounded-3xl shadow-sm border-2 border-transparent hover:border-medical-500 transition-all text-left group h-full flex flex-col justify-between overflow-hidden relative"
-                  >
-                    <div className="absolute top-0 right-0 w-16 h-16 bg-medical-50 dark:bg-medical-900/10 rounded-full -mr-8 -mt-8 transition-transform group-hover:scale-150" />
+                // Get matching course from master curriculum to show units/topics
+                const masterCourse = CURRICULUM_MASTER[currentLevel]?.[currentSemester]?.find(c =>
+                  c.course.replace(/\s+and\s+/gi, ' & ').toLowerCase() === subject.toLowerCase()
+                );
 
-                    <div>
-                      <div className="flex justify-between items-start mb-2 relative z-10">
-                        <h5 className="text-lg font-bold text-slate-800 dark:text-white leading-tight group-hover:text-medical-600 transition-colors">{subject}</h5>
-                        <div className="p-2 bg-slate-50 dark:bg-slate-900/50 rounded-xl text-slate-400 group-hover:text-medical-600 transition-colors">
-                          <Book size={18} />
+                return (
+                  <div key={subject} className="bg-white dark:bg-slate-800 rounded-[2rem] shadow-soft border border-slate-100 dark:border-slate-700 overflow-hidden">
+                    <div className="p-6 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-slate-50 dark:border-slate-700 bg-slate-50/30 dark:bg-slate-900/20">
+                      <div className="flex items-center gap-4">
+                        <div className="w-12 h-12 bg-medical-100 dark:bg-medical-900/40 text-medical-600 rounded-2xl flex items-center justify-center">
+                          <Book size={24} />
+                        </div>
+                        <div>
+                          <h4 className="text-xl font-black text-slate-900 dark:text-white leading-tight">{subject}</h4>
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">{cardCount} Flashcards Available</p>
                         </div>
                       </div>
+                      <button
+                        onClick={() => setCurrentSubject(subject)}
+                        className="w-full sm:w-auto px-6 py-3 bg-medical-600 hover:bg-medical-700 text-white rounded-xl font-black uppercase tracking-widest text-xs shadow-lg shadow-medical-600/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                      >
+                        <Play size={14} /> Start Study
+                      </button>
+                    </div>
 
-                      <div className="flex flex-wrap gap-1 mb-3 relative z-10">
-                        {[...new Set(categoryCards.filter(c => c.subject === subject).map(c => c.unit))].filter(Boolean).slice(0, 3).map(u => (
-                          <span key={u} className="text-[8px] font-black px-1.5 py-0.5 bg-slate-100 dark:bg-slate-700 text-slate-500 rounded uppercase">{u}</span>
-                        ))}
-                      </div>
+                    {masterCourse && (
+                      <div className="p-6 space-y-3">
+                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Course Syllabus & Units</p>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                          {masterCourse.units.map((unit, uIdx) => (
+                            <div key={uIdx} className="border border-slate-100 dark:border-slate-700 rounded-2xl overflow-hidden">
+                              <button
+                                onClick={() => toggleUnit(`${subject}-${unit.unit}`)}
+                                className="w-full p-4 flex items-center justify-between hover:bg-slate-50 dark:hover:bg-slate-700/50 transition-colors text-left"
+                              >
+                                <div className="flex items-center gap-3">
+                                  <div className="w-6 h-6 rounded-full bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 flex items-center justify-center text-[10px] font-black">
+                                    {uIdx + 1}
+                                  </div>
+                                  <span className="text-sm font-bold text-slate-700 dark:text-slate-300 truncate max-w-[200px]">{unit.unit}</span>
+                                </div>
+                                {expandedUnits[`${subject}-${unit.unit}`] ? <ChevronUp size={16} className="text-slate-400" /> : <ChevronDown size={16} className="text-slate-400" />}
+                              </button>
 
-                      <div className="flex items-center justify-between relative z-10">
-                        <span className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{cardCount} Flashcards</span>
-                        <div className="flex -space-x-1">
-                          {[1, 2, 3].map(i => (
-                            <div key={i} className="w-1.5 h-1.5 rounded-full bg-medical-200 dark:bg-medical-800" />
+                              {expandedUnits[`${subject}-${unit.unit}`] && (
+                                <div className="p-4 bg-slate-50/50 dark:bg-slate-900/40 border-t border-slate-100 dark:border-slate-700 animate-in slide-in-from-top-2 duration-300">
+                                  <ul className="space-y-2">
+                                    {unit.topics.map((topic, tIdx) => (
+                                      <li key={tIdx} className="flex items-start gap-2 text-xs font-medium text-slate-500 dark:text-slate-400">
+                                        <div className="w-1 h-1 rounded-full bg-medical-400 mt-1.5 shrink-0" />
+                                        {topic}
+                                      </li>
+                                    ))}
+                                  </ul>
+                                </div>
+                              )}
+                            </div>
                           ))}
                         </div>
                       </div>
-                    </div>
-
-                    <div className="mt-4 pt-4 border-t border-slate-50 dark:border-slate-700 flex justify-between items-center relative z-10">
-                      <span className="text-[10px] font-black text-medical-600 uppercase tracking-widest">Begin Session</span>
-                      <div className="p-1 bg-medical-600 text-white rounded-lg shadow-lg shadow-medical-600/20 group-hover:translate-x-1 transition-transform">
-                        <ChevronRight size={14} />
-                      </div>
-                    </div>
-                  </button>
+                    )}
+                  </div>
                 );
               })}
             </div>
@@ -394,11 +497,11 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
     <div className={`space-y-6 ${viewMode === 'study' ? 'pb-0' : 'pb-20'}`}>
       {/* Mobile Breadcrumb/Back button for Study View */}
       {viewMode === 'study' && (
-        <div className="fixed top-0 left-0 right-0 z-[100] p-4 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md flex items-center justify-between border-b border-slate-100 dark:border-slate-800 lg:static lg:bg-transparent lg:border-none lg:p-0">
+        <div className="fixed top-0 left-0 right-0 z-[100] p-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md flex items-center justify-between border-b border-slate-100 dark:border-slate-800 lg:static lg:bg-transparent lg:border-none lg:p-0">
           <button onClick={() => setViewMode('list')} className="flex items-center text-medical-600 text-sm font-bold bg-white dark:bg-slate-800 px-4 py-2 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 active:scale-95 transition-transform">
             <ArrowLeft size={16} className="mr-2" /> Exit
           </button>
-          <div className="lg:hidden text-[10px] font-black uppercase tracking-widest text-slate-400">
+          <div className="hidden sm:block lg:hidden text-[10px] font-black uppercase tracking-widest text-slate-400">
             Card {studyIndex + 1} of {shuffledCards.length}
           </div>
           <div className="w-10 lg:hidden" /> {/* Spacer */}
@@ -436,6 +539,11 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
               <button onClick={() => startStudyMode(false)} className="flex items-center px-4 py-2 bg-medical-600 text-white rounded-lg font-bold hover:bg-medical-700 transition-all shadow-sm active:scale-95 text-sm">
                 <Play size={18} className="mr-2" /> Study All
               </button>
+              <label className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition-all shadow-sm active:scale-95 text-sm cursor-pointer">
+                {isUploading ? <Loader2 size={18} className="mr-2 animate-spin" /> : <FileUp size={18} className="mr-2" />}
+                {isUploading ? 'Parsing...' : 'Upload PQ'}
+                <input type="file" className="hidden" onChange={handleFileUpload} accept=".pdf,.docx,.txt,image/*" disabled={isUploading} />
+              </label>
               <button onClick={() => setIsFormOpen(true)} className="flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-sm active:scale-95 text-sm">
                 <Plus size={18} className="mr-2" /> Add Card
               </button>
@@ -487,7 +595,7 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
               <FlashcardCard
                 key={card.id} card={card}
                 onEdit={handleEdit} onDelete={deleteFlashcard} onShare={handleShare}
-                onToggleImportant={(id) => updateFlashcard(id, { important: !card.important })}
+                onToggleImportant={handleToggleImportant}
               />
             ))}
           </div>
@@ -502,16 +610,16 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
         </>
       ) : (
         /* Study Mode - Fullscreen on Mobile */
-        <div className="fixed inset-0 z-50 bg-slate-50 dark:bg-slate-900 flex flex-col lg:relative lg:z-0 lg:bg-transparent lg:mt-10 lg:space-y-8">
-          <div className="hidden lg:flex w-full max-w-2xl mx-auto justify-between items-center px-4">
-            <span className="text-sm font-medium text-slate-500">Card {studyIndex + 1} of {shuffledCards.length}</span>
-            <div className="w-48 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+        <div className="fixed inset-0 z-50 bg-slate-50 dark:bg-slate-900 flex flex-col lg:relative lg:z-0 lg:bg-transparent lg:mt-10 lg:space-y-8 overflow-hidden">
+          <div className="flex w-full max-w-2xl mx-auto justify-between items-center px-4 mt-20 lg:mt-0">
+            <span className="text-xs sm:text-sm font-medium text-slate-500">Card {studyIndex + 1} of {shuffledCards.length}</span>
+            <div className="w-24 sm:w-48 h-2 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
               <div className="h-full bg-medical-500 transition-all" style={{ width: `${((studyIndex + 1) / shuffledCards.length) * 100}%` }}></div>
             </div>
           </div>
 
           <div className="flex-1 flex items-center justify-center p-4 lg:p-0">
-            <div className="w-full max-w-2xl aspect-[3/4] sm:aspect-video lg:h-80 relative">
+            <div className="w-full max-w-2xl h-[70vh] lg:h-80 relative">
               {shuffledCards.length > 0 && (
                 <FlashcardCard
                   key={shuffledCards[studyIndex].id}

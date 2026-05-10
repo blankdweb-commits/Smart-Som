@@ -1,0 +1,43 @@
+{
+  "metadata": {
+    "program": "National Diploma in Midwifery",
+    "level": "Year 1",
+    "semester": "1",
+    "last_updated": "2026-03-02"
+  },
+  "courses": [
+    {
+      "id": "mid-101",
+      "course_code": "MID 111",
+      "title": "Introduction to Midwifery",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Professional Midwifery",
+          "flashcards": [
+            { "id": "m1s1-i-1", "question": "Define Midwifery according to the ICM.", "answer": "Midwifery is the profession of caring for women during pregnancy, labor, and the postpartum period.", "difficulty": "Easy", "important": true },
+            { "id": "m1s1-i-2", "question": "What are the three components of the 'Third Stage' of labor?", "answer": "Delivery of the placenta, separation of the placenta, and uterine contraction.", "difficulty": "Moderate", "important": true },
+            { "id": "m1s1-i-3", "question": "What is the normal duration of the second stage of labor in primigravida?", "answer": "Up to 2 hours without anesthesia.", "difficulty": "Moderate" },
+            { "id": "m1s1-i-4", "question": "Define 'Quickening'.", "answer": "The first fetal movements felt by the mother, usually between 16-20 weeks.", "difficulty": "Easy" },
+            { "id": "m1s1-i-5", "question": "What is 'Lightening'?", "answer": "The sensation of the fetus descending into the true pelvis before labor.", "difficulty": "Easy" },
+            { "id": "m1s1-i-6", "question": "Define 'Episiotomy'.", "answer": "A surgical incision of the perineum to enlarge the vaginal opening during delivery.", "difficulty": "Moderate", "important": true },
+            { "id": "m1s1-i-7", "question": "What is 'Polyhydramnios'?", "answer": "Excessive accumulation of amniotic fluid (usually >2000mL).", "difficulty": "Hard" },
+            { "id": "m1s1-i-8", "question": "What is 'Oligohydramnios'?", "answer": "A deficiency of amniotic fluid (usually <500mL).", "difficulty": "Hard", "important": true },
+            { "id": "m1s1-i-9", "question": "What are the '4 Ps' of labor?", "answer": "Powers, Passage, Passenger, Psyche.", "difficulty": "Moderate" },
+            { "id": "m1s1-i-10", "question": "What is 'Naegele's Rule'?", "answer": "A formula to calculate the Estimated Date of Delivery: (LMP + 7 days - 3 months + 1 year).", "difficulty": "Hard", "important": true },
+            { "id": "m1s1-i-11", "question": "Define 'Precipitate Labor'.", "answer": "Labor that lasts less than 3 hours from onset to delivery.", "difficulty": "Hard" },
+            { "id": "m1s1-i-12", "question": "What is the 'Apgar Score'?", "answer": "A quick test performed on a baby at 1 and 5 minutes after birth (Heart rate, Respiratory effort, Muscle tone, Reflex irritability, Color).", "difficulty": "Moderate", "important": true },
+            { "id": "m1s1-i-13", "question": "What is 'Chadwick’s Sign'?", "answer": "Bluish-purple coloration of the vaginal mucosa and cervix during pregnancy.", "difficulty": "Moderate" },
+            { "id": "m1s1-i-14", "question": "What are 'Leopold Maneuvers'?", "answer": "A series of four manual palpations to determine the position and presentation of the fetus in the uterus.", "difficulty": "Hard", "important": true },
+            { "id": "m1s1-i-15", "question": "What is 'Fundal Height'?", "answer": "Distance from the pubic bone to the top of the uterus, used to estimate fetal growth.", "difficulty": "Easy" },
+            { "id": "m1s1-i-16", "question": "What is 'Involution'?", "answer": "The process by which the uterus returns to its non-pregnant state after childbirth.", "difficulty": "Moderate" },
+            { "id": "m1s1-i-17", "question": "Define 'Lochia'.", "answer": "The vaginal discharge after childbirth containing blood, mucus, and uterine tissue (Rubra, Serosa, Alba).", "difficulty": "Easy" },
+            { "id": "m1s1-i-18", "question": "What is the 'Golden Hour' in neonatal care?", "answer": "The first hour after birth, critical for skin-to-skin contact and initiating breastfeeding.", "difficulty": "Moderate", "important": true },
+            { "id": "m1s1-i-19", "question": "What is 'Preeclampsia'?", "answer": "A pregnancy complication characterized by high blood pressure and signs of damage to another organ system, often the kidneys.", "difficulty": "Hard", "important": true },
+            { "id": "m1s1-i-20", "question": "Define 'Fetal Distress'.", "answer": "Compromise of the fetus during antepartum or intrapartum period, often indicated by abnormal heart rate patterns.", "difficulty": "Hard", "important": true }
+          ]
+        }
+      ]
+    }
+  ]
+}

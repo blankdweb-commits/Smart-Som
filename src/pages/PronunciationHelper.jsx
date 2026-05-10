@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { medicalTerms } from '../data/initialData';
-import { Search, Volume2, Info, ChevronRight, PlayCircle } from 'lucide-react';
+import { Search, Volume2, Info, ChevronRight, PlayCircle } from '../components/Icons';
 
 const PronunciationHelper = () => {
   const [searchTerm, setSearchTerm] = useState('');
