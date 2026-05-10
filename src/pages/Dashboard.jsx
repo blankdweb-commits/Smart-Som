@@ -101,7 +101,7 @@ const Dashboard = () => {
                  Unlock full access to your personalized nursing curriculum and AI study tools.
               </p>
               <button
-                onClick={() => navigate('/activate')}
+                onClick={() => navigate('/dashboard/activate')}
                 className="w-full py-5 bg-apex-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-apex-600/20 active:scale-95 transition-all"
               >
                 Activate for ₦1,999.9
@@ -118,7 +118,7 @@ const Dashboard = () => {
         </div>
         <div className="flex gap-3">
            <button
-            onClick={() => navigate('/flashcards')}
+            onClick={() => navigate('/dashboard/flashcards')}
             className="p-4 bg-white dark:bg-slate-800 rounded-[1.5rem] shadow-soft border border-slate-100 dark:border-slate-700 hover:text-apex-600 transition-all"
            >
              <Zap size={24} />
@@ -144,7 +144,7 @@ const Dashboard = () => {
                 </div>
               </div>
               <button
-                onClick={() => navigate('/activate')}
+                onClick={() => navigate('/dashboard/activate')}
                 className="px-6 py-3 bg-amber-900 text-white rounded-xl font-black text-xs uppercase tracking-widest whitespace-nowrap"
               >
                 Renew Access
@@ -168,7 +168,7 @@ const Dashboard = () => {
                 </div>
               </div>
               <button
-                onClick={() => navigate('/activate')}
+                onClick={() => navigate('/dashboard/activate')}
                 className="px-6 py-3 bg-red-900 text-white rounded-xl font-black text-xs uppercase tracking-widest whitespace-nowrap"
               >
                 Re-Activate
@@ -206,7 +206,7 @@ const Dashboard = () => {
                         </p>
                       </div>
                       <button
-                        onClick={() => navigate(`/flashcards?subject=${encodeURIComponent(subject)}`)}
+                        onClick={() => navigate(`/dashboard/flashcards?subject=${encodeURIComponent(subject)}`)}
                         className="px-6 py-3 bg-white text-slate-900 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all flex items-center gap-2 whitespace-nowrap"
                       >
                         Revise Now <ArrowRight size={14} />

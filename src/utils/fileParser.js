@@ -1,7 +1,6 @@
 // Dynamic imports for heavy libraries to reduce initial bundle size
 const getPdfJs = () => import('pdfjs-dist');
 const getMammoth = () => import('mammoth');
-const getTesseract = () => import('tesseract.js');
 
 export const extractTextFromFile = async (file) => {
   const fileType = file.type;

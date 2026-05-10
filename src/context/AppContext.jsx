@@ -22,46 +22,14 @@ export function AppProvider({ children }) {
     subscriptionExpiry: null, graceUntil: null,
     subscriptionTier: 'none' // 'weekly' or 'monthly'
   });
-  const [paymentPurposes, setPaymentPurposes] = useState([]);
+  const [paymentPurposes, setPaymentPurposes] = useState([
+    { id: '1', title: 'Tuition Fee', amount: 150000, currency: 'NGN', active: true, targetDept: 'All', targetLevel: 'All', targetProgram: 'All', description: 'Institutional tuition for 2024/2025 session.' },
+    { id: '2', title: 'Portal Access', amount: 5000, currency: 'NGN', active: true, targetDept: 'All', targetLevel: 'All', targetProgram: 'All', description: 'Online resource and result portal maintenance.' }
+  ]);
   const [transactions, setTransactions] = useState([]);
-  const [feeDetails, setFeeDetails] = useState({ totalFee: 0, amountPaid: 0, currency: 'NGN', status: 'Unpaid' });
+  const [feeDetails, setFeeDetails] = useState({ totalFee: 155000, amountPaid: 0, currency: 'NGN', status: 'Unpaid', dueDate: '2025-12-31' });
 
-  // 1. Auth Listener
-  useEffect(() => {
-    if (!supabase) {
-      setLoadingAuth(false);
-      return;
-    }
-
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      setSession(session);
-      setLoadingAuth(false);
-    });
-
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
-      setSession(session);
-      setLoadingAuth(false);
-    });
-
-    return () => subscription.unsubscribe();
-  }, []);
-
-  // 2. Fetch Data from Supabase
-  useEffect(() => {
-    if (session) {
-      fetchUserData();
-    } else {
-      setExams([]);
-      setTransactions([]);
-      setFlashcards([...initialFlashcards, ...allBuiltInFlashcards]);
-      setUserProfile({
-        fullName: '', email: '', phone: '', department: '', level: '',
-        isActivated: false, isAdmin: false, subscriptionStatus: 'none'
-      });
-    }
-  }, [session]);
-
-  const fetchUserData = async () => {
+  const fetchUserData = React.useCallback(async () => {
     if (!supabase || !session) return;
     const userId = session.user.id;
 
@@ -122,7 +90,42 @@ export function AppProvider({ children }) {
     // Transactions/Payments
     const { data: pyts } = await supabase.from('payments').select('*').eq('user_id', userId).order('created_at', { ascending: false });
     if (pyts) setTransactions(pyts);
-  };
+  }, [session]);
+
+  // 1. Auth Listener
+  useEffect(() => {
+    if (!supabase) {
+      setLoadingAuth(false);
+      return;
+    }
+
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setLoadingAuth(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setLoadingAuth(false);
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // 2. Fetch Data from Supabase
+  useEffect(() => {
+    if (session) {
+      fetchUserData();
+    } else {
+      setExams([]);
+      setTransactions([]);
+      setFlashcards([...initialFlashcards, ...allBuiltInFlashcards]);
+      setUserProfile({
+        fullName: '', email: '', phone: '', department: '', level: '',
+        isActivated: false, isAdmin: false, subscriptionStatus: 'none'
+      });
+    }
+  }, [session]);
 
   const updateProfile = async (data) => {
     if (!supabase) return;
@@ -192,6 +195,15 @@ export function AppProvider({ children }) {
     if (!error) setExams(prev => prev.filter(e => e.id !== id));
   };
 
+  const addTransaction = async (txn) => {
+    if (!supabase) return;
+    const { data, error } = await supabase.from('payments').insert([{ ...txn, user_id: session.user.id }]).select();
+    if (!error && data) {
+      setTransactions(prev => [data[0], ...prev]);
+      setFeeDetails(prev => ({ ...prev, amountPaid: prev.amountPaid + txn.amount }));
+    }
+  };
+
   const incrementCardsStudied = () => {
     setStudyStats(prev => ({ ...prev, cardsStudied: prev.cardsStudied + 1 }));
   };
@@ -209,8 +221,8 @@ export function AppProvider({ children }) {
       studyStats, incrementCardsStudied,
       userProfile, updateProfile,
       darkMode, toggleDarkMode,
-      transactions, feeDetails,
-      fetchUserData
+      transactions, feeDetails, paymentPurposes,
+      addTransaction, fetchUserData
     }}>
       {children}
     </AppContext.Provider>

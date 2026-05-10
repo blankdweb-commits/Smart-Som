@@ -34,7 +34,7 @@ const PremiumIntelligenceWidget = () => {
               Unlock Intelligent Weakness Tracking and Priority Revision suggestions.
            </p>
            <button
-             onClick={() => navigate('/activate')}
+             onClick={() => navigate('/dashboard/activate')}
              className="px-6 py-3 bg-apex-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all"
            >
              Upgrade to Monthly
@@ -90,7 +90,7 @@ const PremiumIntelligenceWidget = () => {
                 Master <span className="text-amber-400">"{weaknesses[0]?.name}"</span> fundamentals before your next exam cycle.
              </p>
              <button
-                onClick={() => navigate(`/flashcards?subject=${encodeURIComponent(weaknesses[0]?.name)}`)}
+                onClick={() => navigate(`/dashboard/flashcards?subject=${encodeURIComponent(weaknesses[0]?.name)}`)}
                 className="px-6 py-3 bg-white text-indigo-600 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all flex items-center gap-2"
              >
                 Start Revision <ChevronRight size={14} />

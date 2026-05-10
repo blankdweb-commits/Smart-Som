@@ -52,9 +52,9 @@ const Landing = () => {
   useEffect(() => {
     if (!loadingAuth && session) {
       if (userProfile?.isActivated) {
-        navigate('/dashboard');
+        navigate('/dashboard/home');
       } else {
-        navigate('/activate');
+        navigate('/dashboard/activate');
       }
     }
   }, [session, userProfile?.isActivated, loadingAuth, navigate]);

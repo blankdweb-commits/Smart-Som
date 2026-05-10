@@ -97,7 +97,7 @@ const FeeDashboardWidget = () => {
             </div>
 
             <button
-              onClick={() => navigate('/payments')}
+              onClick={() => navigate('/dashboard/payments')}
               className="w-full mt-4 py-4 bg-medical-600 hover:bg-medical-700 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-medical-600/20 active:scale-95 transition-all flex items-center justify-center gap-2"
             >
               Make Payment

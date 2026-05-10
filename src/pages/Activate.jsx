@@ -45,7 +45,7 @@ export default function Activate() {
           const data = await res.json();
           if (data.success) {
             await fetchUserData();
-            navigate('/dashboard');
+            navigate('/dashboard/home');
           }
         } catch (e) {
           setError("Verification failed. Please contact support.");
@@ -73,7 +73,7 @@ export default function Activate() {
       const data = await res.json();
       if (data.success) {
         await fetchUserData();
-        navigate('/dashboard');
+        navigate('/dashboard/home');
       } else {
         setError(data.message || "Invalid product key");
       }

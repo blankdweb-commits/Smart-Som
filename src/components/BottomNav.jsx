@@ -4,12 +4,12 @@ import { LayoutDashboard, BookOpen, Calendar, Award, Users, Volume2, Search, Bra
 
 const BottomNav = () => {
   const navItems = [
-    { name: 'Home', icon: LayoutDashboard, path: '/' },
-    { name: 'Quiz', icon: Brain, path: '/quiz' },
-    { name: 'Cards', icon: BookOpen, path: '/flashcards' },
-    { name: 'Exams', icon: Calendar, path: '/exams' },
-    { name: 'Papers', icon: FileUp, path: '/papers' },
-    { name: 'Circle', icon: Users, path: '/community' },
+    { name: 'Home', icon: LayoutDashboard, path: '/dashboard/home' },
+    { name: 'Quiz', icon: Brain, path: '/dashboard/quiz' },
+    { name: 'Cards', icon: BookOpen, path: '/dashboard/flashcards' },
+    { name: 'Exams', icon: Calendar, path: '/dashboard/exams' },
+    { name: 'Papers', icon: FileUp, path: '/dashboard/papers' },
+    { name: 'Circle', icon: Users, path: '/dashboard/community' },
   ];
 
   return (

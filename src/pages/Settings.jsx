@@ -52,7 +52,7 @@ const Settings = () => {
               </h3>
               <div className="space-y-4">
                 <button
-                  onClick={() => navigate('/admin/finance')}
+                  onClick={() => navigate('/dashboard/admin/finance')}
                   className="w-full p-6 bg-white dark:bg-slate-800 rounded-2xl border border-medical-200 dark:border-medical-900 flex items-center justify-between group hover:border-medical-500 transition-all shadow-sm"
                 >
                   <div className="flex items-center gap-4 text-left">
