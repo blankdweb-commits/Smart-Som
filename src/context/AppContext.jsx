@@ -128,7 +128,7 @@ export function AppProvider({ children }) {
   }, [session]);
 
   const updateProfile = async (data) => {
-    if (!supabase) return;
+    if (!supabase || !session) return;
     const { error } = await supabase.from('profiles').update({
       full_name: data.fullName,
       phone: data.phone,
@@ -139,20 +139,20 @@ export function AppProvider({ children }) {
   };
 
   const addFlashcard = async (card) => {
-    if (!supabase) return;
+    if (!supabase || !session) return;
     const newCard = { ...card, user_id: session.user.id, created_at: new Date() };
     const { data, error } = await supabase.from('flashcards').insert([newCard]).select();
     if (!error && data) setFlashcards(prev => [...prev, data[0]]);
   };
 
   const updateFlashcard = async (id, updates) => {
-    if (!supabase) return;
+    if (!supabase || !session) return;
     const { error } = await supabase.from('flashcards').update(updates).eq('id', id);
     if (!error) setFlashcards(prev => prev.map(c => c.id === id ? { ...c, ...updates } : c));
   };
 
   const deleteFlashcard = async (id) => {
-    if (!supabase) return;
+    if (!supabase || !session) return;
     const { error } = await supabase.from('flashcards').delete().eq('id', id);
     if (!error) setFlashcards(prev => prev.filter(c => c.id !== id));
   };
@@ -178,25 +178,25 @@ export function AppProvider({ children }) {
   };
 
   const addExam = async (exam) => {
-    if (!supabase) return;
+    if (!supabase || !session) return;
     const { data, error } = await supabase.from('exams').insert([{ ...exam, user_id: session.user.id }]).select();
     if (!error && data) setExams(prev => [...prev, data[0]]);
   };
 
   const updateExam = async (id, updates) => {
-    if (!supabase) return;
+    if (!supabase || !session) return;
     const { error } = await supabase.from('exams').update(updates).eq('id', id);
     if (!error) setExams(prev => prev.map(e => e.id === id ? { ...e, ...updates } : e));
   };
 
   const deleteExam = async (id) => {
-    if (!supabase) return;
+    if (!supabase || !session) return;
     const { error } = await supabase.from('exams').delete().eq('id', id);
     if (!error) setExams(prev => prev.filter(e => e.id !== id));
   };
 
   const addTransaction = async (txn) => {
-    if (!supabase) return;
+    if (!supabase || !session) return;
     const { data, error } = await supabase.from('payments').insert([{ ...txn, user_id: session.user.id }]).select();
     if (!error && data) {
       setTransactions(prev => [data[0], ...prev]);

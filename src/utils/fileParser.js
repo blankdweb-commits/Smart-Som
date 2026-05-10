@@ -57,7 +57,7 @@ export const parseQuestionsAndAnswers = (text) => {
   let currentQuestion = '';
   let currentAnswer = '';
 
-  const qRegex = /^(\d+[\.\)]\s*|Q:\s*|Question:\s*|What|How|Define|List|Explain|Describe|Identify|Analyze|State)/i;
+  const qRegex = /^(\d+[.)]\s*|Q:\s*|Question:\s*|What|How|Define|List|Explain|Describe|Identify|Analyze|State)/i;
   const aRegex = /^(Ans:|Answer:|A:)\s*/i;
 
   for (let i = 0; i < lines.length; i++) {
@@ -101,14 +101,14 @@ export const parseQuestionsAndAnswers = (text) => {
   // If no cards found with explicit Ans: labels, try a more aggressive split
   if (cards.length === 0) {
      // Try splitting by common question starters
-     const splitPattern = /\n(?=\d+[\.\)])/;
+     const splitPattern = /\n(?=\d+[.)])/;
      const sections = text.split(splitPattern);
 
      sections.forEach(section => {
        const lines = section.split('\n').filter(l => l.trim());
        if (lines.length >= 2) {
          cards.push({
-           question: lines[0].replace(/^\d+[\.\)]\s*/, '').trim(),
+           question: lines[0].replace(/^\d+[.)]\s*/, '').trim(),
            answer: lines.slice(1).join(' ').trim(),
            difficulty: 'Moderate'
          });

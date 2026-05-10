@@ -25,6 +25,10 @@ export default function Auth() {
     setError(null);
 
     try {
+      if (!supabase) {
+        throw new Error("Authentication service is currently unavailable. Please check your connection or contact support.");
+      }
+
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({
           email: formData.email,

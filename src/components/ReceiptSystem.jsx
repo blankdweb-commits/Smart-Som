@@ -1,7 +1,8 @@
 import React from 'react';
 import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
-import { Download, CheckCircle2, ShieldCheck, Printer } from './Icons';
+import { Download } from './Icons';
+import { useAppContext } from '../context/AppContext';
 
 export const generateReceipt = async (transaction, profile, feeDetails) => {
   const element = document.createElement('div');
