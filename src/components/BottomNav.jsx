@@ -4,7 +4,7 @@ import { LayoutDashboard, BookOpen, Calendar, Award, Users, Volume2, Search, Bra
 
 const BottomNav = () => {
   const navItems = [
-    { name: 'Home', icon: LayoutDashboard, path: '/' },
+    { name: 'Home', icon: LayoutDashboard, path: '/dashboard' },
     { name: 'Quiz', icon: Brain, path: '/quiz' },
     { name: 'Cards', icon: BookOpen, path: '/flashcards' },
     { name: 'Exams', icon: Calendar, path: '/exams' },
