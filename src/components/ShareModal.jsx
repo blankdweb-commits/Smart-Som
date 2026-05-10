@@ -1,5 +1,5 @@
 import React from 'react';
-import { X, Copy, Download, Share2, Check } from 'lucide-react';
+import { X, Copy, Download, Share2, Check } from './Icons';
 import { useState } from 'react';
 
 const ShareModal = ({ isOpen, onClose, card }) => {

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Brain, CheckCircle2, XCircle, RefreshCw, ChevronRight, Trophy, AlertCircle } from 'lucide-react';
+import { Brain, CheckCircle2, XCircle, RefreshCw, ChevronRight, Trophy, AlertCircle } from '../components/Icons';
 
 const Quiz = () => {
   const { flashcards } = useAppContext();
@@ -10,6 +10,11 @@ const Quiz = () => {
   const [showResults, setShowResults] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
   const [quizQuestions, setQuizQuestions] = useState([]);
+  const [attempts, setAttempts] = useState(0);
+  const [showHint, setShowHint] = useState(false);
+  const [showRationale, setShowRationale] = useState(false);
+  const [isCorrect, setIsCorrect] = useState(null);
+  const [eliminatedOptions, setEliminatedOptions] = useState([]);
 
   // Generate a quiz from existing flashcards
   const startQuiz = () => {
@@ -42,20 +47,53 @@ const Quiz = () => {
     setScore(0);
     setShowResults(false);
     setSelectedOption(null);
+    setAttempts(0);
+    setShowHint(false);
+    setShowRationale(false);
+    setIsCorrect(null);
+    setEliminatedOptions([]);
   };
 
   const handleOptionClick = (option) => {
-    if (selectedOption !== null) return;
+    if (selectedOption !== null && isCorrect) return;
+    if (eliminatedOptions.includes(option)) return;
+
+    const currentQ = quizQuestions[currentQuestionIndex];
+    const correct = option === currentQ.correctAnswer;
 
     setSelectedOption(option);
-    const correct = option === quizQuestions[currentQuestionIndex].correctAnswer;
-    if (correct) setScore(score + 1);
+    setIsCorrect(correct);
+
+    if (correct) {
+      if (attempts === 0) setScore(score + 1);
+      setShowRationale(true);
+    } else {
+      const newAttempts = attempts + 1;
+      setAttempts(newAttempts);
+
+      if (newAttempts >= 2) {
+        setShowRationale(true);
+      }
+    }
+  };
+
+  const eliminateTwo = () => {
+    if (attempts > 0 || eliminatedOptions.length > 0) return;
+    const currentQ = quizQuestions[currentQuestionIndex];
+    const incorrectOptions = currentQ.options.filter(opt => opt !== currentQ.correctAnswer);
+    const toEliminate = incorrectOptions.sort(() => 0.5 - Math.random()).slice(0, 2);
+    setEliminatedOptions(toEliminate);
   };
 
   const nextQuestion = () => {
     if (currentQuestionIndex < quizQuestions.length - 1) {
       setCurrentQuestionIndex(currentQuestionIndex + 1);
       setSelectedOption(null);
+      setAttempts(0);
+      setShowHint(false);
+      setShowRationale(false);
+      setIsCorrect(null);
+      setEliminatedOptions([]);
     } else {
       setShowResults(true);
     }
@@ -161,47 +199,94 @@ const Quiz = () => {
         />
       </div>
 
-      <div className="bg-white dark:bg-slate-800 rounded-3xl p-8 shadow-sm border border-slate-100 dark:border-slate-700 space-y-8">
-        <h2 className="text-2xl sm:text-3xl font-bold text-slate-800 dark:text-white leading-tight">
-          {currentQ.question}
-        </h2>
+      <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-6 sm:p-10 shadow-clinical border border-slate-100 dark:border-slate-700 space-y-8 relative overflow-hidden">
+        {/* Intelligence Actions */}
+        <div className="flex gap-2 mb-4">
+           {!isCorrect && attempts === 0 && (
+              <>
+                <button
+                  onClick={() => setShowHint(true)}
+                  className="px-4 py-2 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-xl text-xs font-black uppercase tracking-widest border border-amber-100 dark:border-amber-900/30 hover:bg-amber-100 transition-all"
+                >
+                  💡 Use Hint
+                </button>
+                <button
+                  onClick={eliminateTwo}
+                  className="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-black uppercase tracking-widest border border-indigo-100 dark:border-indigo-900/30 hover:bg-indigo-100 transition-all"
+                >
+                  ✂️ Eliminate 2
+                </button>
+              </>
+           )}
+        </div>
 
-        <div className="grid gap-3">
+        <div className="space-y-4">
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white leading-tight tracking-tight">
+            {currentQ.question}
+          </h2>
+
+          {showHint && currentQ.hint && (
+             <div className="p-4 bg-amber-50/50 dark:bg-amber-900/10 border-l-4 border-amber-400 rounded-r-2xl animate-in slide-in-from-left-2">
+                <p className="text-xs font-black text-amber-600 uppercase tracking-widest mb-1">Clinical Hint</p>
+                <p className="text-sm font-medium text-slate-600 dark:text-slate-400 italic">"{currentQ.hint}"</p>
+             </div>
+          )}
+        </div>
+
+        <div className="grid gap-4">
           {currentQ.options.map((option, idx) => {
-            let style = "border-slate-200 dark:border-slate-700 hover:border-medical-500 hover:bg-medical-50 dark:hover:bg-medical-900/10";
-            if (selectedOption === option) {
+            const isEliminated = eliminatedOptions.includes(option);
+            let style = "border-slate-100 dark:border-slate-700 hover:border-medical-500 hover:bg-medical-50 dark:hover:bg-medical-900/10";
+
+            if (isEliminated) {
+              style = "opacity-30 grayscale cursor-not-allowed border-slate-100 dark:border-slate-800";
+            } else if (selectedOption === option) {
               style = option === currentQ.correctAnswer
                 ? "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400 ring-2 ring-green-500"
                 : "border-red-500 bg-red-50 dark:bg-red-900/20 text-red-700 dark:text-red-400 ring-2 ring-red-500";
-            } else if (selectedOption !== null && option === currentQ.correctAnswer) {
+            } else if (showRationale && option === currentQ.correctAnswer) {
               style = "border-green-500 bg-green-50 dark:bg-green-900/20 text-green-700 dark:text-green-400";
             }
 
             return (
               <button
                 key={idx}
-                disabled={selectedOption !== null}
+                disabled={(selectedOption !== null && isCorrect) || attempts >= 2 || isEliminated}
                 onClick={() => handleOptionClick(option)}
                 className={`w-full text-left p-5 rounded-2xl border-2 transition-all duration-200 flex items-center justify-between group ${style}`}
               >
-                <span className="font-semibold text-sm sm:text-base">{option}</span>
+                <span className="font-bold text-sm sm:text-base tracking-tight">{option}</span>
                 {selectedOption === option && (
                   option === currentQ.correctAnswer ? <CheckCircle2 size={20} /> : <XCircle size={20} />
                 )}
-                {selectedOption !== null && option === currentQ.correctAnswer && <CheckCircle2 size={20} />}
+                {showRationale && option === currentQ.correctAnswer && <CheckCircle2 size={20} />}
               </button>
             );
           })}
         </div>
+
+        {showRationale && (
+          <div className="mt-8 p-6 bg-slate-50 dark:bg-slate-900/50 rounded-[2rem] border border-slate-100 dark:border-slate-800 animate-in zoom-in duration-500">
+            <div className="flex items-center gap-2 mb-3">
+               <div className="p-1.5 bg-medical-100 dark:bg-medical-900/30 text-medical-600 rounded-lg">
+                  <AlertCircle size={16} />
+               </div>
+               <h4 className="text-xs font-black uppercase tracking-widest text-slate-400">Clinical Rationale</h4>
+            </div>
+            <p className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-300 leading-relaxed italic">
+              {currentQ.rationale || "The correct answer is derived from standard clinical protocols and the physiological basis of nursing practice."}
+            </p>
+          </div>
+        )}
       </div>
 
-      {selectedOption !== null && (
+      {(isCorrect || attempts >= 2) && (
         <div className="flex justify-end animate-in fade-in slide-in-from-right-4">
           <button
             onClick={nextQuestion}
-            className="flex items-center gap-2 px-8 py-4 bg-slate-800 dark:bg-white dark:text-slate-800 text-white rounded-2xl font-bold shadow-xl active:scale-95 transition-all"
+            className="flex items-center gap-2 px-10 py-5 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all"
           >
-            {currentQuestionIndex < quizQuestions.length - 1 ? 'Next Question' : 'View Results'}
+            {currentQuestionIndex < quizQuestions.length - 1 ? 'Next Challenge' : 'View Results'}
             <ChevronRight size={20} />
           </button>
         </div>

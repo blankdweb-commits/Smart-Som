@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Award, Users, Search, Brain } from 'lucide-react';
+import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Award, Users, Search, Brain, FileUp } from './Icons';
 
 const Sidebar = () => {
 
@@ -9,7 +9,7 @@ const Sidebar = () => {
     { name: 'Flashcards', icon: BookOpen, path: '/flashcards' },
     { name: 'Quiz Mode', icon: Brain, path: '/quiz' },
     { name: 'Exam Timetable', icon: Calendar, path: '/exams' },
-    { name: 'Clinical Search', icon: Search, path: '/search' },
+    { name: 'Past Questions', icon: FileUp, path: '/papers' },
     { name: 'Pronunciation', icon: Volume2, path: '/pronunciation' },
     { name: 'Community', icon: Users, path: '/community' },
     { name: 'Settings', icon: Settings, path: '/settings' },
@@ -21,8 +21,8 @@ const Sidebar = () => {
       <div className="hidden lg:block w-64 bg-white dark:bg-slate-800 border-r border-slate-100 dark:border-slate-800 transition-all duration-300">
         <div className="flex flex-col h-full sticky top-0">
           <div className="p-6">
-            <h1 className="text-2xl font-bold text-medical-600 dark:text-medical-400">NursingHub</h1>
-            <p className="text-xs text-slate-500 dark:text-slate-400 mt-1 font-bold uppercase tracking-widest">Medical Learning</p>
+            <h1 className="text-2xl font-black text-apex-600 dark:text-apex-400 tracking-tighter">Apex Scholars</h1>
+            <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-black uppercase tracking-widest">Rise to Excellence</p>
           </div>
 
           <nav className="flex-1 px-4 space-y-1 mt-4">

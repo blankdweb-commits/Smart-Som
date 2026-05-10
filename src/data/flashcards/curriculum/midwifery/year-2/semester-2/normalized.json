@@ -1,0 +1,33 @@
+{
+  "metadata": {
+    "program": "National Diploma in Midwifery",
+    "level": "Year 2",
+    "semester": "Semester 2",
+    "last_updated": "2026-03-02"
+  },
+  "courses": [
+    {
+      "id": "mid-202",
+      "course_code": "MID 221",
+      "title": "Complications of Labor",
+      "units": [
+        {
+          "unit_number": "Unit I",
+          "title": "Malpresentations",
+          "flashcards": [
+            { "id": "m2s2-c-1", "question": "Define 'Breech Presentation'.", "answer": "A delivery in which the fetus emerges with the buttocks or feet first instead of the head.", "difficulty": "Moderate", "important": true },
+            { "id": "m2s2-c-2", "question": "What is 'Complete Breech'?", "answer": "Fetus sits cross-legged with hips and knees flexed.", "difficulty": "Moderate" },
+            { "id": "m2s2-c-3", "question": "Define 'Frank Breech'.", "answer": "Hips flexed, knees extended (feet up by the head).", "difficulty": "Moderate" },
+            { "id": "m2s2-c-4", "question": "What is 'External Cephalic Version' (ECV)?", "answer": "A procedure used to turn a fetus from a breech position to a cephalic position before labor.", "difficulty": "Hard", "important": true },
+            { "id": "m2s2-c-5", "question": "Define 'Face Presentation'.", "answer": "When the fetal head is hyper-extended and the face is the presenting part.", "difficulty": "Moderate" },
+            { "id": "m2s2-c-6", "question": "What is the denominator in a Face presentation?", "answer": "The Mentum (chin).", "difficulty": "Hard" },
+            { "id": "m2s2-c-7", "question": "Define 'Transverse Lie'.", "answer": "When the long axis of the fetus is perpendicular to the long axis of the mother.", "difficulty": "Easy" },
+            { "id": "m2s2-c-8", "question": "What is the primary risk of a Transverse Lie during labor?", "answer": "Cord prolapse if membranes rupture.", "difficulty": "Hard", "important": true },
+            { "id": "m2s2-c-9", "question": "Define 'Oblique Lie'.", "answer": "When the long axis of the fetus is at an angle to the mother's long axis.", "difficulty": "Moderate" },
+            { "id": "m2s2-c-10", "question": "What is 'Shoulder Presentation'?", "answer": "A malpresentation in a transverse lie where the shoulder is the presenting part.", "difficulty": "Moderate" }
+          ]
+        }
+      ]
+    }
+  ]
+}
