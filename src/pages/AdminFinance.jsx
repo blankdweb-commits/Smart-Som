@@ -134,7 +134,7 @@ const AdminFinance = () => {
           <h2 className="text-3xl font-black text-slate-900 tracking-tight">Access Denied</h2>
           <p className="text-slate-500 max-w-md mx-auto mt-2">You do not have the required administrative permissions to view institutional financial data.</p>
         </div>
-        <button onClick={() => navigate('/dashboard/home')} className="px-8 py-3 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs active:scale-95 transition-all">
+        <button onClick={() => navigate('/')} className="px-8 py-3 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs active:scale-95 transition-all">
           Return to Dashboard
         </button>
       </div>
@@ -145,7 +145,7 @@ const AdminFinance = () => {
     <div className="pb-32 space-y-8 animate-in fade-in duration-700 max-w-[1600px] mx-auto">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/dashboard/settings')} className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:text-medical-600 transition-all">
+          <button onClick={() => navigate('/')} className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:text-medical-600 transition-all">
             <ArrowLeft size={20} />
           </button>
           <div>

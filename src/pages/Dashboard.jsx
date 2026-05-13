@@ -4,8 +4,6 @@ import { useAppContext } from '../context/AppContext';
 import { BookOpen, Calendar, TrendingUp, Award, Zap, ArrowRight, Star, Clock, Lock, AlertCircle } from '../components/Icons';
 import { format, differenceInDays } from 'date-fns';
 import FeeDashboardWidget from '../components/FeeDashboardWidget';
-import DailyChallengeWidget from '../components/DailyChallengeWidget';
-import PremiumIntelligenceWidget from '../components/PremiumIntelligenceWidget';
 import { motion } from 'framer-motion';
 
 const Dashboard = () => {
@@ -101,7 +99,7 @@ const Dashboard = () => {
                  Unlock full access to your personalized nursing curriculum and AI study tools.
               </p>
               <button
-                onClick={() => navigate('/dashboard/activate')}
+                onClick={() => navigate('/activate')}
                 className="w-full py-5 bg-apex-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-apex-600/20 active:scale-95 transition-all"
               >
                 Activate for ₦1,999.9
@@ -118,7 +116,7 @@ const Dashboard = () => {
         </div>
         <div className="flex gap-3">
            <button
-            onClick={() => navigate('/dashboard/flashcards')}
+            onClick={() => navigate('/flashcards')}
             className="p-4 bg-white dark:bg-slate-800 rounded-[1.5rem] shadow-soft border border-slate-100 dark:border-slate-700 hover:text-apex-600 transition-all"
            >
              <Zap size={24} />
@@ -144,7 +142,7 @@ const Dashboard = () => {
                 </div>
               </div>
               <button
-                onClick={() => navigate('/dashboard/activate')}
+                onClick={() => navigate('/activate')}
                 className="px-6 py-3 bg-amber-900 text-white rounded-xl font-black text-xs uppercase tracking-widest whitespace-nowrap"
               >
                 Renew Access
@@ -168,7 +166,7 @@ const Dashboard = () => {
                 </div>
               </div>
               <button
-                onClick={() => navigate('/dashboard/activate')}
+                onClick={() => navigate('/activate')}
                 className="px-6 py-3 bg-red-900 text-white rounded-xl font-black text-xs uppercase tracking-widest whitespace-nowrap"
               >
                 Re-Activate
@@ -177,7 +175,6 @@ const Dashboard = () => {
           )}
 
           <FeeDashboardWidget />
-          <DailyChallengeWidget />
 
           {isExamSoon && (
             <div className="space-y-4">
@@ -206,7 +203,7 @@ const Dashboard = () => {
                         </p>
                       </div>
                       <button
-                        onClick={() => navigate(`/dashboard/flashcards?subject=${encodeURIComponent(subject)}`)}
+                        onClick={() => navigate(`/flashcards?subject=${encodeURIComponent(subject)}`)}
                         className="px-6 py-3 bg-white text-slate-900 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all flex items-center gap-2 whitespace-nowrap"
                       >
                         Revise Now <ArrowRight size={14} />
@@ -254,8 +251,6 @@ const Dashboard = () => {
         </div>
 
         <div className="space-y-8">
-           <PremiumIntelligenceWidget />
-
            <div className="bg-apex-600 rounded-[2.5rem] p-8 text-white shadow-xl relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
               <Award size={120} />

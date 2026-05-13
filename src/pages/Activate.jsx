@@ -20,15 +20,13 @@ export default function Activate() {
     return () => { document.body.removeChild(script); };
   }, []);
 
-  const handlePay = (tier) => {
+  const handlePay = () => {
     if (!window.PaystackPop) return;
-
-    const amount = tier === 'weekly' ? 199990 : 699900;
 
     const handler = window.PaystackPop.setup({
       key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
       email: session.user.email,
-      amount: amount,
+      amount: 199990, // ₦1,999.90 in kobo
       currency: "NGN",
       callback: async (response) => {
         setLoading(true);
@@ -38,14 +36,13 @@ export default function Activate() {
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
               reference: response.reference,
-              user_id: session.user.id,
-              tier: tier
+              user_id: session.user.id
             })
           });
           const data = await res.json();
           if (data.success) {
             await fetchUserData();
-            navigate('/dashboard/home');
+            navigate('/dashboard');
           }
         } catch (e) {
           setError("Verification failed. Please contact support.");
@@ -73,7 +70,7 @@ export default function Activate() {
       const data = await res.json();
       if (data.success) {
         await fetchUserData();
-        navigate('/dashboard/home');
+        navigate('/dashboard');
       } else {
         setError(data.message || "Invalid product key");
       }
@@ -127,64 +124,24 @@ export default function Activate() {
         </div>
 
         {/* Right Side: Action Card */}
-        <div className="space-y-6">
-           {/* Weekly Plan */}
-           <div className="bg-white dark:bg-slate-900 rounded-[2.5rem] p-8 shadow-xl border border-slate-100 dark:border-slate-800 space-y-6 relative overflow-hidden group">
-              <div className="flex justify-between items-start">
-                 <div>
-                    <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">Weekly Plan</h3>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Standard Access</p>
-                 </div>
-                 <div className="text-right">
-                    <span className="text-2xl font-black text-slate-900 dark:text-white">₦1,999.9</span>
-                    <p className="text-[8px] font-bold text-slate-400 uppercase tracking-widest">Per 7 Days</p>
-                 </div>
+        <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-10 relative overflow-hidden">
+           <div className="text-center space-y-4">
+              <div className="flex items-center justify-center gap-3">
+                 <span className="text-slate-400 line-through font-bold">₦3,000</span>
+                 <span className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter">₦1,999.9</span>
               </div>
-
-              <button
-                onClick={() => handlePay('weekly')}
-                disabled={loading}
-                className="w-full py-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-apex-600 hover:text-white transition-all active:scale-95 flex items-center justify-center gap-2"
-              >
-                {loading ? <Zap size={14} className="animate-spin" /> : <>Activate Weekly <ArrowRight size={14} /></>}
-              </button>
+              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-apex-600">30-Day Premium Access</p>
            </div>
 
-           {/* Monthly Plan */}
-           <div className="bg-slate-900 dark:bg-white rounded-[2.5rem] p-8 shadow-2xl border-4 border-apex-600/30 space-y-6 relative overflow-hidden group">
-              <div className="absolute top-0 right-0 p-4">
-                 <div className="bg-apex-600 text-white text-[8px] font-black uppercase tracking-[0.2em] px-3 py-1 rounded-full">Most Popular</div>
-              </div>
+           <button
+             onClick={handlePay}
+             disabled={loading}
+             className="w-full py-6 bg-apex-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-apex-600/20 active:scale-95 transition-all flex items-center justify-center gap-3"
+           >
+             {loading ? <Zap className="animate-spin" /> : <>Pay Now <ArrowRight size={18} /></>}
+           </button>
 
-              <div className="flex justify-between items-start">
-                 <div>
-                    <h3 className="text-xl font-black text-white dark:text-slate-900 tracking-tight">Monthly Premium</h3>
-                    <p className="text-[10px] font-black uppercase tracking-widest text-white/50 dark:text-slate-400">Intelligent Suite</p>
-                 </div>
-                 <div className="text-right">
-                    <span className="text-2xl font-black text-white dark:text-slate-900">₦6,999</span>
-                    <p className="text-[8px] font-bold text-white/50 dark:text-slate-400 uppercase tracking-widest">Per 30 Days</p>
-                 </div>
-              </div>
-
-              <ul className="space-y-2">
-                 {["Unlimited AI Questions", "Weakness Tracking", "Priority Revision"].map((t, i) => (
-                    <li key={i} className="flex items-center gap-2 text-[10px] font-bold text-white/70 dark:text-slate-500">
-                       <Zap size={10} className="text-apex-500" /> {t}
-                    </li>
-                 ))}
-              </ul>
-
-              <button
-                onClick={() => handlePay('monthly')}
-                disabled={loading}
-                className="w-full py-5 bg-apex-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-apex-600/20 active:scale-95 transition-all flex items-center justify-center gap-2"
-              >
-                {loading ? <Zap size={16} className="animate-spin" /> : <>Activate Monthly <ArrowRight size={16} /></>}
-              </button>
-           </div>
-
-           <div className="relative pt-4">
+           <div className="relative">
               <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-100 dark:border-slate-800"></div></div>
               <div className="relative flex justify-center text-[10px] uppercase font-black text-slate-400 tracking-widest"><span className="bg-white dark:bg-slate-900 px-4">OR</span></div>
            </div>

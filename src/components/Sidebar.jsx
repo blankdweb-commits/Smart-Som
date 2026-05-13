@@ -5,13 +5,14 @@ import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Award, Users, S
 const Sidebar = () => {
 
   const navItems = [
-    { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard/home' },
-    { name: 'Flashcards', icon: BookOpen, path: '/dashboard/flashcards' },
-    { name: 'Quiz Mode', icon: Brain, path: '/dashboard/quiz' },
-    { name: 'Exam Timetable', icon: Calendar, path: '/dashboard/exams' },
-    { name: 'Past Questions', icon: FileUp, path: '/dashboard/papers' },
-    { name: 'Community', icon: Users, path: '/dashboard/community' },
-    { name: 'Settings', icon: Settings, path: '/dashboard/settings' },
+    { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
+    { name: 'Flashcards', icon: BookOpen, path: '/flashcards' },
+    { name: 'Quiz Mode', icon: Brain, path: '/quiz' },
+    { name: 'Exam Timetable', icon: Calendar, path: '/exams' },
+    { name: 'Past Questions', icon: FileUp, path: '/papers' },
+    { name: 'Pronunciation', icon: Volume2, path: '/pronunciation' },
+    { name: 'Community', icon: Users, path: '/community' },
+    { name: 'Settings', icon: Settings, path: '/settings' },
   ];
 
   return (

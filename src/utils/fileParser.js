@@ -1,6 +1,7 @@
 // Dynamic imports for heavy libraries to reduce initial bundle size
 const getPdfJs = () => import('pdfjs-dist');
 const getMammoth = () => import('mammoth');
+const getTesseract = () => import('tesseract.js');
 
 export const extractTextFromFile = async (file) => {
   const fileType = file.type;
@@ -11,8 +12,10 @@ export const extractTextFromFile = async (file) => {
     return await extractTextFromDOCX(file);
   } else if (fileType === 'text/plain') {
     return await file.text();
+  } else if (fileType.startsWith('image/')) {
+    return await extractTextFromImage(file);
   } else {
-    throw new Error('Unsupported file type. Please upload PDF, Word, or Text files.');
+    throw new Error('Unsupported file type');
   }
 };
 
@@ -42,6 +45,12 @@ const extractTextFromDOCX = async (file) => {
   return result.value;
 };
 
+const extractTextFromImage = async (file) => {
+  const Tesseract = (await getTesseract()).default;
+  const result = await Tesseract.recognize(file, 'eng');
+  return result.data.text;
+};
+
 export const parseQuestionsAndAnswers = (text) => {
   // Simple rule-based parser
   // Patterns to look for:
@@ -57,7 +66,7 @@ export const parseQuestionsAndAnswers = (text) => {
   let currentQuestion = '';
   let currentAnswer = '';
 
-  const qRegex = /^(\d+[.)]\s*|Q:\s*|Question:\s*|What|How|Define|List|Explain|Describe|Identify|Analyze|State)/i;
+  const qRegex = /^(\d+[\.\)]\s*|Q:\s*|Question:\s*|What|How|Define|List|Explain|Describe|Identify|Analyze|State)/i;
   const aRegex = /^(Ans:|Answer:|A:)\s*/i;
 
   for (let i = 0; i < lines.length; i++) {
@@ -69,9 +78,7 @@ export const parseQuestionsAndAnswers = (text) => {
         cards.push({
           question: currentQuestion,
           answer: currentAnswer,
-          difficulty: 'Moderate',
-          hint: 'Derived from ' + (currentQuestion.split(' ').slice(0, 3).join(' ')) + '...',
-          rationale: 'This question was automatically generated from your uploaded document to reinforce active recall of the identified concept.'
+          difficulty: 'Moderate'
         });
         currentAnswer = '';
       }
@@ -92,23 +99,21 @@ export const parseQuestionsAndAnswers = (text) => {
     cards.push({
       question: currentQuestion,
       answer: currentAnswer,
-      difficulty: 'Moderate',
-      hint: 'Derived from ' + (currentQuestion.split(' ').slice(0, 3).join(' ')) + '...',
-      rationale: 'This question was automatically generated from your uploaded document to reinforce active recall of the identified concept.'
+      difficulty: 'Moderate'
     });
   }
 
   // If no cards found with explicit Ans: labels, try a more aggressive split
   if (cards.length === 0) {
      // Try splitting by common question starters
-     const splitPattern = /\n(?=\d+[.)])/;
+     const splitPattern = /\n(?=\d+[\.\)])/;
      const sections = text.split(splitPattern);
 
      sections.forEach(section => {
        const lines = section.split('\n').filter(l => l.trim());
        if (lines.length >= 2) {
          cards.push({
-           question: lines[0].replace(/^\d+[.)]\s*/, '').trim(),
+           question: lines[0].replace(/^\d+[\.\)]\s*/, '').trim(),
            answer: lines.slice(1).join(' ').trim(),
            difficulty: 'Moderate'
          });

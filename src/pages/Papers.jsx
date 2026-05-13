@@ -5,7 +5,7 @@ import { extractTextFromFile, parseQuestionsAndAnswers } from '../utils/filePars
 import Toast from '../components/Toast';
 
 const Papers = () => {
-  const { importFlashcards, userProfile, flashcards } = useAppContext();
+  const { importFlashcards } = useAppContext();
   const [isUploading, setIsUploading] = useState(false);
   const [toast, setToast] = useState(null);
   const [activeTab, setActiveTab] = useState('upload'); // 'upload' or 'browse'
@@ -13,13 +13,6 @@ const Papers = () => {
   const handleFileUpload = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
-
-    // Limit check for Weekly users
-    const userCards = flashcards.filter(c => c.category === 'Past Question' || c.category === 'User-Trained');
-    if (userProfile.subscriptionTier === 'weekly' && userCards.length >= 50) {
-      setToast({ message: "Weekly limit reached (50 cards). Upgrade to Monthly for unlimited AI training.", type: 'error' });
-      return;
-    }
 
     setIsUploading(true);
     setToast({ message: "Starting AI Analysis...", type: 'info' });
@@ -89,7 +82,7 @@ const Papers = () => {
             </div>
             <label className={`cursor-pointer px-8 py-4 bg-medical-600 hover:bg-medical-700 text-white rounded-2xl font-bold shadow-lg shadow-medical-600/20 transition-all active:scale-95 flex items-center gap-2 ${isUploading ? 'opacity-50 pointer-events-none' : ''}`}>
               {isUploading ? 'Processing...' : 'Select File'}
-              <input type="file" className="hidden" onChange={handleFileUpload} accept=".pdf,.docx,.txt" disabled={isUploading} />
+              <input type="file" className="hidden" onChange={handleFileUpload} accept=".pdf,.docx,.txt,image/*" disabled={isUploading} />
             </label>
           </div>
 
@@ -117,7 +110,7 @@ const Papers = () => {
             <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700">
               <h4 className="text-slate-900 dark:text-white font-bold mb-4">Supported Formats</h4>
               <div className="grid grid-cols-2 gap-3">
-                {['PDF Documents', 'Word Files', 'Text Files'].map(format => (
+                {['PDF Documents', 'Word Files', 'Images/Photos', 'Text Files'].map(format => (
                   <div key={format} className="flex items-center gap-2 text-xs font-bold text-slate-500">
                     <CheckCircle2 size={14} className="text-emerald-500" />
                     {format}

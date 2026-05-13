@@ -10,9 +10,9 @@ const FeeBanner = () => {
   const location = useLocation();
 
   // Don't show if already paid or on certain pages
-  const isDashboard = location.pathname === '/dashboard/home';
-  const isSettings = location.pathname === '/dashboard/settings';
-  const isPayments = location.pathname === '/dashboard/payments';
+  const isDashboard = location.pathname === '/';
+  const isSettings = location.pathname === '/settings';
+  const isPayments = location.pathname === '/payments';
 
   if (feeDetails.status === 'Paid' && !isDashboard) return null;
   if (isPayments) return null;
@@ -50,7 +50,7 @@ const FeeBanner = () => {
         </div>
 
         <button
-          onClick={() => navigate('/dashboard/payments')}
+          onClick={() => navigate('/payments')}
           className="px-4 py-1.5 bg-white text-medical-600 rounded-full text-[10px] font-black uppercase tracking-widest hover:bg-slate-100 transition-colors shadow-sm active:scale-95 shrink-0 flex items-center gap-1"
         >
           {feeDetails.status === 'Paid' ? 'View Receipt' : 'Pay Now'}

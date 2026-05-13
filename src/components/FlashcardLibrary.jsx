@@ -542,7 +542,7 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
               <label className="flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg font-bold hover:bg-indigo-700 transition-all shadow-sm active:scale-95 text-sm cursor-pointer">
                 {isUploading ? <Loader2 size={18} className="mr-2 animate-spin" /> : <FileUp size={18} className="mr-2" />}
                 {isUploading ? 'Parsing...' : 'Upload PQ'}
-                <input type="file" className="hidden" onChange={handleFileUpload} accept=".pdf,.docx,.txt" disabled={isUploading} />
+                <input type="file" className="hidden" onChange={handleFileUpload} accept=".pdf,.docx,.txt,image/*" disabled={isUploading} />
               </label>
               <button onClick={() => setIsFormOpen(true)} className="flex items-center px-4 py-2 bg-emerald-600 text-white rounded-lg font-bold hover:bg-emerald-700 transition-all shadow-sm active:scale-95 text-sm">
                 <Plus size={18} className="mr-2" /> Add Card

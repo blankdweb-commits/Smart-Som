@@ -1,5 +1,5 @@
 import React, { useEffect, lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider, useAppContext } from './context/AppContext';
 import Layout from './components/Layout';
 
@@ -14,7 +14,6 @@ const Quiz = lazy(() => import('./pages/Quiz'));
 const Papers = lazy(() => import('./pages/Papers'));
 const Payments = lazy(() => import('./pages/Payments'));
 const AdminFinance = lazy(() => import('./pages/AdminFinance'));
-const Community = lazy(() => import('./pages/Community'));
 const Settings = lazy(() => import('./pages/Settings'));
 
 const PageLoader = () => (
@@ -30,10 +29,10 @@ const ProtectedRoute = ({ children, requireActivated = true }) => {
   if (!session) return <Navigate to="/" replace />;
 
   if (requireActivated && !userProfile.isActivated) {
-    return <Navigate to="/dashboard/activate" replace />;
+    return <Navigate to="/activate" replace />;
   }
 
-  return children ? children : <Outlet />;
+  return children;
 };
 
 const AppRoutes = () => {
@@ -49,35 +48,55 @@ const AppRoutes = () => {
         <Route path="/login" element={<Auth />} />
         <Route path="/signup" element={<Auth />} />
 
-        {/* Auth Gated - No Activation Needed */}
-        <Route path="/dashboard/activate" element={
+        {/* Auth Required, but not necessarily activated */}
+        <Route path="/activate" element={
           <ProtectedRoute requireActivated={false}>
-             <Activate />
+             <Layout><Activate /></Layout>
           </ProtectedRoute>
         } />
 
-        {/* Dashboard Nested Routes */}
         <Route path="/dashboard" element={
           <ProtectedRoute requireActivated={false}>
-            <Layout><Outlet /></Layout>
+             <Layout><Dashboard /></Layout>
           </ProtectedRoute>
-        }>
-          <Route path="home" element={<Dashboard />} />
-          <Route index element={<Navigate to="/dashboard/home" replace />} />
+        } />
 
-          {/* Protected Content - Activation Required */}
-          <Route element={<ProtectedRoute />}>
-             <Route path="flashcards" element={<Flashcards />} />
-             <Route path="quiz" element={<Quiz />} />
-             <Route path="exams" element={<ExamTimetable />} />
-             <Route path="papers" element={<Papers />} />
-             <Route path="payments" element={<Payments />} />
-             <Route path="community" element={<Community />} />
-             <Route path="admin/finance" element={<AdminFinance />} />
-          </Route>
-
-          <Route path="settings" element={<Settings />} />
-        </Route>
+        {/* Strictly Activated Routes */}
+        <Route path="/flashcards" element={
+          <ProtectedRoute>
+            <Layout><Flashcards /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/quiz" element={
+          <ProtectedRoute>
+            <Layout><Quiz /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/exams" element={
+          <ProtectedRoute>
+            <Layout><ExamTimetable /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/papers" element={
+          <ProtectedRoute>
+            <Layout><Papers /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/payments" element={
+          <ProtectedRoute>
+            <Layout><Payments /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/settings" element={
+          <ProtectedRoute requireActivated={false}>
+            <Layout><Settings /></Layout>
+          </ProtectedRoute>
+        } />
+        <Route path="/admin/finance" element={
+          <ProtectedRoute>
+            <Layout><AdminFinance /></Layout>
+          </ProtectedRoute>
+        } />
 
         {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />

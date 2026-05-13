@@ -35,34 +35,6 @@ const Payments = () => {
   const [otp, setOtp] = useState('');
   const [lastTxn, setLastTxn] = useState(null);
 
-  const simulatePayment = () => {
-    setIsProcessing(true);
-    setTimeout(() => {
-      setIsProcessing(false);
-      setPaymentStep('otp');
-    }, 1500);
-  };
-
-  const verifyOtp = async () => {
-    setIsProcessing(true);
-    try {
-      const txn = {
-        id: 'TXN-' + Math.random().toString(36).substr(2, 9).toUpperCase(),
-        type: selectedPlan ? selectedPlan.title : 'School Charge',
-        amount: selectedPlan ? (feeDetails.totalFee * selectedPlan.percent / 100) : parseFloat(customAmount),
-        date: new Date().toISOString(),
-        status: 'Success'
-      };
-      await addTransaction(txn);
-      setLastTxn(txn);
-      setPaymentStep('success');
-    } catch (err) {
-      setToast({ message: 'Verification failed', type: 'error' });
-    } finally {
-      setIsProcessing(false);
-    }
-  };
-
   const relevantPurposes = paymentPurposes.filter(p =>
     p.active &&
     (p.targetDept === 'All' || p.targetDept === userProfile.department) &&
