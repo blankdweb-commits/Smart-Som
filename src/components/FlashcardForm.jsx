@@ -8,6 +8,7 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     question: '',
     answer: '',
     hint: '',
+    rationale: '',
     difficulty: 'Moderate',
     important: false,
     category: 'Academic',
@@ -24,7 +25,8 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
         setFormData(prev => ({
           ...prev,
           ...initialData,
-          hint: initialData.hint || ''
+          hint: initialData.hint || '',
+          rationale: initialData.rationale || ''
         }));
       } else {
         setFormData({
@@ -210,7 +212,19 @@ const FlashcardForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
               required
               rows="3"
               className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-medical-500 outline-none transition-all font-bold text-sm resize-none"
-              placeholder="Back of card..."
+              placeholder="Key answer..."
+            ></textarea>
+          </div>
+
+          <div>
+            <label className="block text-xs font-black text-slate-400 dark:text-slate-500 uppercase tracking-widest mb-1 ml-1">Rationale (Clinical Explanation)</label>
+            <textarea
+              name="rationale"
+              value={formData.rationale}
+              onChange={handleChange}
+              rows="3"
+              className="w-full px-4 py-2 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 focus:border-medical-500 outline-none transition-all font-bold text-sm resize-none"
+              placeholder="Why is this answer correct? Clinical logic..."
             ></textarea>
           </div>
 

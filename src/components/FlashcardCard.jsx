@@ -162,6 +162,12 @@ const FlashcardCard = memo(({
           <p className={`${isFullscreen ? 'text-2xl sm:text-4xl' : 'text-base sm:text-lg'} font-black leading-tight tracking-tight drop-shadow-md max-w-3xl mx-auto`}>
             {card.answer}
           </p>
+          {card.rationale && (
+            <div className="mt-4 p-4 bg-white/10 rounded-2xl border border-white/10 max-w-2xl animate-in fade-in zoom-in duration-500">
+              <p className="text-[10px] font-black uppercase tracking-widest text-white/60 mb-2">Rationale</p>
+              <p className="text-xs sm:text-sm font-medium leading-relaxed italic">{card.rationale}</p>
+            </div>
+          )}
           <p className="mt-6 text-[10px] opacity-60 font-bold uppercase tracking-widest">Click to flip back</p>
         </div>
       </div>
