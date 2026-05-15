@@ -56,7 +56,8 @@ const Dashboard = () => {
     ? differenceInDays(new Date(userProfile.subscriptionExpiry), new Date())
     : null;
 
-  const showLockedDashboard = !userProfile.isActivated && userProfile.subscriptionStatus !== 'grace';
+  const DEV_MODE = import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
+  const showLockedDashboard = !userProfile.isActivated && userProfile.subscriptionStatus !== 'grace' && !DEV_MODE;
 
   const studyTips = [
     "Use the 'Shuffle' mode for flashcards to improve long-term retention.",

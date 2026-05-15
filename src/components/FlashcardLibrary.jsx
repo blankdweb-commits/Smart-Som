@@ -23,7 +23,8 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   const { flashcards, exams, userProfile, addFlashcard, updateFlashcard, deleteFlashcard, incrementCardsStudied, updateCardProgress, importFlashcards } = useAppContext();
   const navigate = useNavigate();
 
-  const isActivated = userProfile.isActivated || userProfile.subscriptionStatus === 'grace';
+  const DEV_MODE = import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
+  const isActivated = userProfile.isActivated || userProfile.subscriptionStatus === 'grace' || DEV_MODE;
 
   // Navigation State
   const [currentProgram, setCurrentProgram] = useState(null); // 'General Nursing' or 'Midwifery'

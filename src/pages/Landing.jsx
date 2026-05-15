@@ -49,6 +49,11 @@ const Landing = () => {
 
   // Auto-redirect for logged in users
   useEffect(() => {
+    const DEV_MODE = import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
+    if (DEV_MODE) {
+      navigate('/dashboard');
+      return;
+    }
     if (!loadingAuth && session) {
       if (userProfile.isActivated) {
         navigate('/dashboard');

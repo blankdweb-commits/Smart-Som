@@ -102,7 +102,8 @@ const Quiz = () => {
   };
 
   if (!quizStarted) {
-    const isActivated = userProfile.isActivated || userProfile.subscriptionStatus === 'grace';
+    const DEV_MODE = import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
+    const isActivated = userProfile.isActivated || userProfile.subscriptionStatus === 'grace' || DEV_MODE;
 
     return (
       <div className="max-w-2xl mx-auto mt-12 text-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
