@@ -61,29 +61,29 @@ const AppRoutes = () => {
           </ProtectedRoute>
         } />
 
-        {/* Strictly Activated Routes */}
+        {/* Strictly Activated Routes - Now allow preview (requireActivated=false) */}
         <Route path="/flashcards" element={
-          <ProtectedRoute>
+          <ProtectedRoute requireActivated={false}>
             <Layout><Flashcards /></Layout>
           </ProtectedRoute>
         } />
         <Route path="/quiz" element={
-          <ProtectedRoute>
+          <ProtectedRoute requireActivated={false}>
             <Layout><Quiz /></Layout>
           </ProtectedRoute>
         } />
         <Route path="/exams" element={
-          <ProtectedRoute>
+          <ProtectedRoute requireActivated={false}>
             <Layout><ExamTimetable /></Layout>
           </ProtectedRoute>
         } />
         <Route path="/papers" element={
-          <ProtectedRoute>
+          <ProtectedRoute requireActivated={false}>
             <Layout><Papers /></Layout>
           </ProtectedRoute>
         } />
         <Route path="/payments" element={
-          <ProtectedRoute>
+          <ProtectedRoute requireActivated={false}>
             <Layout><Payments /></Layout>
           </ProtectedRoute>
         } />

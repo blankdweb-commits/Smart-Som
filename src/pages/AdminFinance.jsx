@@ -33,20 +33,26 @@ const AdminFinance = () => {
     feeDetails,
     userProfile,
     paymentPurposes,
+    subscriptionPlans,
     addPaymentPurpose,
     updatePaymentPurpose,
     deletePaymentPurpose,
+    updateSubscriptionPlan,
+    addSubscriptionPlan,
+    deleteSubscriptionPlan,
     updateTransaction,
     refundTransaction,
-    auditLogs,
-    addAuditLog
+    auditLogs = [],
+    addAuditLog = () => {}
   } = useAppContext();
 
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('overview'); // overview, ledger, purposes, disputes
+  const [activeTab, setActiveTab] = useState('overview'); // overview, ledger, purposes, disputes, plans
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
+  const [showPlanModal, setShowPlanModal] = useState(false);
   const [editingPurpose, setEditingPurpose] = useState(null);
+  const [editingPlan, setEditingPlan] = useState(null);
   const [selectedTxn, setSelectedTxn] = useState(null);
 
   const initialPurposeState = {
@@ -171,7 +177,8 @@ const AdminFinance = () => {
           { id: 'ledger', label: 'Student Ledger', icon: <Users size={16} /> },
           { id: 'purposes', label: 'Payment Items', icon: <Plus size={16} /> },
           { id: 'disputes', label: 'Dispute Center', icon: <AlertCircle size={16} /> },
-        ].map(tab => (
+          { id: 'plans', label: 'Subscription Plans', icon: <Settings size={16} />, superOnly: true },
+        ].filter(tab => !tab.superOnly || userProfile.role === 'super_admin').map(tab => (
           <button
             key={tab.id}
             onClick={() => setActiveTab(tab.id)}
@@ -418,6 +425,69 @@ const AdminFinance = () => {
           </motion.div>
         )}
 
+        {activeTab === 'plans' && (
+          <motion.div
+            key="plans"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="space-y-6"
+          >
+            <div className="flex justify-between items-center">
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Subscription Plans</h3>
+              <button
+                onClick={() => {
+                  setEditingPlan(null);
+                  setShowPlanModal(true);
+                }}
+                className="px-6 py-3 bg-apex-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-apex-600/20 hover:bg-apex-700 transition-all flex items-center gap-2"
+              >
+                <Plus size={18} /> New Plan
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+              {subscriptionPlans.map(plan => (
+                <div key={plan.id} className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-700 shadow-clinical space-y-6 relative group">
+                  <div className="flex justify-between items-center">
+                    <div className="w-12 h-12 bg-apex-50 dark:bg-apex-900/30 text-apex-600 rounded-2xl flex items-center justify-center">
+                       <Settings size={24} />
+                    </div>
+                    <div className="flex gap-2">
+                       <button
+                         onClick={() => {
+                           setEditingPlan(plan);
+                           setShowPlanModal(true);
+                         }}
+                         className="p-2 bg-slate-50 text-slate-400 hover:text-apex-600 rounded-xl transition-all"
+                       >
+                         <Settings size={18} />
+                       </button>
+                       <button
+                         onClick={() => {
+                            if (window.confirm('Delete this plan?')) deleteSubscriptionPlan(plan.id);
+                         }}
+                         className="p-2 bg-red-50 text-red-600 rounded-xl opacity-0 group-hover:opacity-100 transition-all"
+                       >
+                         <Trash2 size={18} />
+                       </button>
+                    </div>
+                  </div>
+                  <div>
+                    <h4 className="text-xl font-black text-slate-900 dark:text-white">{plan.name}</h4>
+                    <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">{plan.duration_days} Days Access</p>
+                  </div>
+                  <div className="pt-6 border-t border-slate-50 dark:border-slate-700 flex justify-between items-center">
+                     <p className="text-2xl font-black text-apex-600">NGN {plan.price.toLocaleString()}</p>
+                     <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${plan.is_active ? 'bg-emerald-100 text-emerald-700' : 'bg-slate-100 text-slate-500'}`}>
+                        {plan.is_active ? 'Active' : 'Inactive'}
+                     </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </motion.div>
+        )}
+
         {activeTab === 'disputes' && (
           <motion.div
             key="disputes"
@@ -549,6 +619,61 @@ const AdminFinance = () => {
               </div>
             </div>
           </motion.div>
+        </div>
+      )}
+
+      {/* Plan Modal */}
+      {showPlanModal && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm">
+           <motion.div
+            initial={{ scale: 0.9, opacity: 0 }}
+            animate={{ scale: 1, opacity: 1 }}
+            className="bg-white dark:bg-slate-800 w-full max-w-md rounded-[2.5rem] shadow-2xl overflow-hidden"
+           >
+              <div className="p-8 border-b border-slate-100 dark:border-slate-800 flex justify-between items-center">
+                 <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">
+                    {editingPlan ? 'Edit Plan' : 'New Plan'}
+                 </h3>
+                 <button onClick={() => setShowPlanModal(false)} className="text-slate-400"><X size={24} /></button>
+              </div>
+              <form
+                className="p-8 space-y-6"
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  const formData = new FormData(e.target);
+                  const data = {
+                    name: formData.get('name'),
+                    price: parseFloat(formData.get('price')),
+                    duration_days: parseInt(formData.get('duration_days')),
+                    is_active: formData.get('is_active') === 'on'
+                  };
+
+                  if (editingPlan) updateSubscriptionPlan(editingPlan.id, data);
+                  else addSubscriptionPlan(data);
+                  setShowPlanModal(false);
+                }}
+              >
+                 <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Plan Name</label>
+                    <input name="name" defaultValue={editingPlan?.name} required className="w-full p-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl font-bold" />
+                 </div>
+                 <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Price (NGN)</label>
+                    <input name="price" type="number" defaultValue={editingPlan?.price} required className="w-full p-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl font-bold" />
+                 </div>
+                 <div className="space-y-1">
+                    <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Duration (Days)</label>
+                    <input name="duration_days" type="number" defaultValue={editingPlan?.duration_days} required className="w-full p-4 bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800 rounded-xl font-bold" />
+                 </div>
+                 <div className="flex items-center gap-3">
+                    <input name="is_active" type="checkbox" defaultChecked={editingPlan ? editingPlan.is_active : true} className="w-5 h-5 accent-apex-600" />
+                    <label className="text-sm font-bold text-slate-700 dark:text-slate-300">Active and Visible to Students</label>
+                 </div>
+                 <button type="submit" className="w-full py-5 bg-apex-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-apex-600/20 active:scale-95 transition-all">
+                    {editingPlan ? 'Save Plan' : 'Create Plan'}
+                 </button>
+              </form>
+           </motion.div>
         </div>
       )}
 

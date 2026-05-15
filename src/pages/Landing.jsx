@@ -22,29 +22,29 @@ const Landing = () => {
   const [slotsRemaining, setSlotsRemaining] = useState(12);
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 45, seconds: 0 });
   const [dynamicTestimonials, setDynamicTestimonials] = useState([]);
+  const [plans, setPlans] = useState([]);
 
-  // Fetch Testimonials
+  // Fetch Testimonials & Plans
   useEffect(() => {
-    const fetchTestimonials = async () => {
+    const fetchData = async () => {
       const { supabase } = await import('../utils/supabase');
       if (!supabase) return;
 
-      let query = supabase.from('testimonials').select('*');
-
-      // Contextual Logic: If logged in but not paid, prioritize 'value' category
+      // Fetch Testimonials
+      let testimonialQuery = supabase.from('testimonials').select('*');
       if (session && !userProfile.isActivated) {
-        query = query.order('category', { ascending: false }); // 'value' comes after 'struggle'/'general' but we want to target it
+        testimonialQuery = testimonialQuery.order('category', { ascending: false });
       } else if (!session) {
-        // Unauthenticated: focus on 'struggle'
-        query = query.order('category', { ascending: true });
+        testimonialQuery = testimonialQuery.order('category', { ascending: true });
       }
+      const { data: testimonials } = await testimonialQuery.limit(10);
+      if (testimonials) setDynamicTestimonials(testimonials.sort(() => Math.random() - 0.5));
 
-      const { data } = await query.limit(10);
-      if (data) {
-        setDynamicTestimonials(data.sort(() => Math.random() - 0.5));
-      }
+      // Fetch Plans
+      const { data: plansData } = await supabase.from('subscription_plans').select('*').eq('is_active', true).order('price', { ascending: true });
+      if (plansData) setPlans(plansData);
     };
-    fetchTestimonials();
+    fetchData();
   }, [session, userProfile.isActivated]);
 
   // Auto-redirect for logged in users
@@ -157,11 +157,11 @@ const Landing = () => {
             onClick={() => navigate('/signup')}
             className="px-10 py-5 bg-apex-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl shadow-apex-600/30 hover:bg-apex-700 transition-all flex items-center gap-3 active:scale-95"
           >
-            Start for ₦1999.9 Now <ArrowRight size={18} />
+            Start for {plans.length > 0 ? `₦${plans[0].price.toLocaleString()}` : '₦1999.9'} Now <ArrowRight size={18} />
           </button>
           <div className="flex items-center gap-2 text-slate-400">
              <ShieldCheck size={16} />
-             <span className="text-[10px] font-bold uppercase tracking-widest">Verified by 1,000+ students</span>
+             <span className="text-[10px] font-bold uppercase tracking-widest">10,000+ Questions & Flashcards</span>
           </div>
         </motion.div>
       </section>
@@ -192,52 +192,51 @@ const Landing = () => {
         </div>
       </section>
 
-      {/* Price Anchor Section */}
-      <section className="py-24 px-6 max-w-5xl mx-auto">
-        <div className="bg-slate-900 rounded-[3rem] p-8 md:p-16 text-white text-center space-y-10 relative overflow-hidden">
-          <div className="absolute top-0 right-0 p-8 opacity-10">
-            <Star size={120} />
-          </div>
+      {/* Pricing Section */}
+      <section className="py-24 px-6 max-w-7xl mx-auto">
+        <div className="text-center mb-16 space-y-4">
+          <h2 className="text-3xl md:text-5xl font-black tracking-tight">Choose Your Success Plan</h2>
+          <p className="text-slate-500 font-medium">Invest in your clinical future with flexible options.</p>
+        </div>
 
-          <div className="space-y-4 relative z-10">
-            <h2 className="text-3xl md:text-6xl font-black tracking-tight">Unlock Full Access</h2>
-            <div className="flex items-center justify-center gap-4">
-              <span className="text-xl md:text-2xl text-slate-500 line-through font-bold">₦3,000</span>
-              <span className="text-5xl md:text-8xl font-black text-apex-400 tracking-tighter">₦1,999.9</span>
-            </div>
-            <p className="text-apex-400 font-black uppercase tracking-[0.2em] text-sm">Save ₦1,000 Today</p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 max-w-3xl mx-auto relative z-10">
-             <div className="flex items-center gap-3 text-left">
-                <CheckCircle2 size={24} className="text-emerald-500 shrink-0" />
-                <span className="text-sm font-bold">7,200+ Flashcards</span>
-             </div>
-             <div className="flex items-center gap-3 text-left">
-                <CheckCircle2 size={24} className="text-emerald-500 shrink-0" />
-                <span className="text-sm font-bold">AI Past Question Parser</span>
-             </div>
-             <div className="flex items-center gap-3 text-left">
-                <CheckCircle2 size={24} className="text-emerald-500 shrink-0" />
-                <span className="text-sm font-bold">Community Access</span>
-             </div>
-          </div>
-
-          <div className="pt-6 relative z-10">
-            <button
-              onClick={() => navigate('/signup')}
-              className="px-12 py-6 bg-apex-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl hover:bg-apex-500 transition-all active:scale-95"
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+          {(plans.length > 0 ? plans : [
+            { id: '1', name: 'Weekly', price: 1999.9, duration_days: 7 },
+            { id: '2', name: 'Monthly', price: 6999, duration_days: 30 },
+            { id: '3', name: 'Yearly', price: 49999, duration_days: 365 }
+          ]).map((plan, i) => (
+            <motion.div
+              key={plan.id}
+              whileHover={{ y: -10 }}
+              className={`p-10 rounded-[3rem] border ${plan.name === 'Monthly' ? 'bg-slate-900 text-white border-slate-800 shadow-2xl scale-105 relative' : 'bg-white text-slate-900 border-slate-100 shadow-soft'}`}
             >
-              Get Started – ₦1,999.9
-            </button>
-            <div className="mt-6 flex flex-col items-center gap-2">
-               <div className="flex items-center gap-2 text-red-400 animate-pulse">
-                  <Clock size={16} />
-                  <span className="text-xs font-black uppercase tracking-widest">Price increases back to ₦3,000 soon</span>
-               </div>
-               <p className="text-[10px] text-slate-500 font-bold uppercase tracking-[0.2em]">Only {slotsRemaining} slots remaining at this price</p>
-            </div>
-          </div>
+              {plan.name === 'Monthly' && (
+                <div className="absolute -top-4 left-1/2 -translate-x-1/2 bg-apex-500 text-white px-4 py-1 rounded-full text-[10px] font-black uppercase tracking-widest">
+                  Most Popular
+                </div>
+              )}
+              <h3 className="text-2xl font-black mb-2">{plan.name} Access</h3>
+              <div className="flex items-baseline gap-1 mb-8">
+                <span className="text-4xl font-black">₦{plan.price.toLocaleString()}</span>
+                <span className={`text-xs font-bold ${plan.name === 'Monthly' ? 'text-slate-400' : 'text-slate-500'}`}>/ {plan.duration_days === 365 ? 'year' : plan.duration_days === 30 ? 'month' : 'week'}</span>
+              </div>
+
+              <ul className="space-y-4 mb-10">
+                {['10,000+ Questions', 'AI Performance Analysis', 'Community Support', 'Offline Mode'].map((item, j) => (
+                  <li key={j} className="flex items-center gap-3 text-sm font-medium">
+                    <CheckCircle2 size={18} className="text-emerald-500" /> {item}
+                  </li>
+                ))}
+              </ul>
+
+              <button
+                onClick={() => navigate('/signup')}
+                className={`w-full py-5 rounded-2xl font-black uppercase tracking-widest text-xs transition-all active:scale-95 ${plan.name === 'Monthly' ? 'bg-apex-600 text-white hover:bg-apex-700 shadow-xl shadow-apex-600/20' : 'bg-slate-100 text-slate-900 hover:bg-slate-200'}`}
+              >
+                Select {plan.name}
+              </button>
+            </motion.div>
+          ))}
         </div>
       </section>
 
@@ -300,9 +299,9 @@ const Landing = () => {
               onClick={() => navigate('/signup')}
               className="px-12 py-6 bg-apex-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-2xl hover:bg-apex-500 transition-all active:scale-95"
             >
-              Unlock Full Access – ₦1999.9
+              Start Your Success Journey
             </button>
-          <p className="mt-4 text-[10px] text-slate-400 font-black uppercase tracking-widest">Start your 30-day premium cycle today</p>
+          <p className="mt-4 text-[10px] text-slate-400 font-black uppercase tracking-widest">Join 1,000+ Students Already Smashing Their Exams</p>
          </div>
       </section>
 

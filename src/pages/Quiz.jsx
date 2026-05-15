@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Brain, CheckCircle2, XCircle, RefreshCw, ChevronRight, Trophy, AlertCircle } from '../components/Icons';
+import { Brain, CheckCircle2, XCircle, RefreshCw, ChevronRight, Trophy, AlertCircle, Lock } from '../components/Icons';
+import { useNavigate } from 'react-router-dom';
 
 const Quiz = () => {
-  const { flashcards } = useAppContext();
+  const { flashcards, userProfile } = useAppContext();
+  const navigate = useNavigate();
   const [quizStarted, setQuizStarted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -100,6 +102,8 @@ const Quiz = () => {
   };
 
   if (!quizStarted) {
+    const isActivated = userProfile.isActivated || userProfile.subscriptionStatus === 'grace';
+
     return (
       <div className="max-w-2xl mx-auto mt-12 text-center space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
         <div className="w-24 h-24 bg-medical-100 dark:bg-medical-900/30 rounded-3xl flex items-center justify-center text-medical-600 mx-auto">
@@ -112,6 +116,16 @@ const Quiz = () => {
           </p>
         </div>
 
+        {!isActivated && (
+          <div className="p-6 bg-apex-50 dark:bg-apex-900/20 border border-apex-200 dark:border-apex-900/30 rounded-2xl flex items-start gap-4 text-left">
+            <Lock className="text-apex-600 shrink-0 mt-1" />
+            <div>
+              <p className="font-bold text-apex-800 dark:text-apex-400">Premium Feature</p>
+              <p className="text-sm text-apex-700 dark:text-apex-500/80">Quizzes are only available for activated accounts. Join 1,000+ students already mastering their clinical futures.</p>
+            </div>
+          </div>
+        )}
+
         {flashcards.length < 4 ? (
           <div className="p-6 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-900/30 rounded-2xl flex items-start gap-4 text-left">
             <AlertCircle className="text-amber-600 shrink-0" />
@@ -122,10 +136,11 @@ const Quiz = () => {
           </div>
         ) : (
           <button
-            onClick={startQuiz}
-            className="px-12 py-4 bg-medical-600 text-white rounded-2xl font-bold text-lg shadow-xl shadow-medical-600/30 hover:bg-medical-700 active:scale-95 transition-all"
+            onClick={isActivated ? startQuiz : () => navigate('/activate')}
+            className={`px-12 py-4 text-white rounded-2xl font-bold text-lg shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3 mx-auto ${isActivated ? 'bg-medical-600 shadow-medical-600/30 hover:bg-medical-700' : 'bg-apex-600 shadow-apex-600/30 hover:bg-apex-700'}`}
           >
-            Start Quiz
+            {!isActivated && <Lock size={20} />}
+            {isActivated ? 'Start Quiz' : 'Unlock Now'}
           </button>
         )}
       </div>
