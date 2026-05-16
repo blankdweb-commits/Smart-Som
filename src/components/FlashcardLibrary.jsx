@@ -4,9 +4,10 @@ import FlashcardCard from '../components/FlashcardCard';
 import FlashcardForm from '../components/FlashcardForm';
 import ShareModal from '../components/ShareModal';
 import Toast from '../components/Toast';
-import { Plus, Search, Filter, Play, Shuffle, List, ChevronLeft, ChevronRight, Award, Download, Upload, Share2, Folder, Book, ArrowLeft, AlertCircle, CheckCircle2, FileUp, Loader2, ChevronDown, ChevronUp } from './Icons';
+import { Plus, Search, Filter, Play, Shuffle, List, ChevronLeft, ChevronRight, Award, Download, Upload, Share2, Folder, Book, ArrowLeft, AlertCircle, CheckCircle2, FileUp, Loader2, ChevronDown, ChevronUp, Lock } from './Icons';
 import { extractTextFromFile, parseQuestionsAndAnswers } from '../utils/fileParser';
 import { CURRICULUM_MASTER } from '../data/curriculumMaster';
+import { useNavigate } from 'react-router-dom';
 
 const SRSButton = ({ label, sublabel, color, onClick }) => (
   <button
@@ -19,7 +20,11 @@ const SRSButton = ({ label, sublabel, color, onClick }) => (
 );
 
 const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
-  const { flashcards, exams, addFlashcard, updateFlashcard, deleteFlashcard, incrementCardsStudied, updateCardProgress, importFlashcards } = useAppContext();
+  const { flashcards, exams, userProfile, addFlashcard, updateFlashcard, deleteFlashcard, incrementCardsStudied, updateCardProgress, importFlashcards } = useAppContext();
+  const navigate = useNavigate();
+
+  const DEV_MODE = import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
+  const isActivated = userProfile.isActivated || userProfile.subscriptionStatus === 'grace' || DEV_MODE;
 
   // Navigation State
   const [currentProgram, setCurrentProgram] = useState(null); // 'General Nursing' or 'Midwifery'
@@ -141,6 +146,11 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   }, [debouncedSearchTerm, currentLevel, currentSemester, currentSubject, filterDifficulty, isExamPriority]);
 
   const startStudyMode = (shuffle = false, srsOnly = false) => {
+    if (!isActivated) {
+      setToast({ message: "Upgrade required to start study sessions", type: 'error' });
+      navigate('/activate');
+      return;
+    }
     let cardsToStudy = [...filteredCards];
     if (srsOnly) {
       cardsToStudy = cardsToStudy.filter(c => !c.srs?.nextReview || new Date(c.srs.nextReview) <= new Date());
@@ -439,10 +449,14 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
                         </div>
                       </div>
                       <button
-                        onClick={() => setCurrentSubject(subject)}
-                        className="w-full sm:w-auto px-6 py-3 bg-medical-600 hover:bg-medical-700 text-white rounded-xl font-black uppercase tracking-widest text-xs shadow-lg shadow-medical-600/20 transition-all active:scale-95 flex items-center justify-center gap-2"
+                        onClick={() => {
+                          if (isActivated) setCurrentSubject(subject);
+                          else navigate('/activate');
+                        }}
+                        className="w-full sm:w-auto px-6 py-3 bg-medical-600 hover:bg-medical-700 text-white rounded-xl font-black uppercase tracking-widest text-xs shadow-lg shadow-medical-600/20 transition-all active:scale-95 flex items-center justify-center gap-2 relative overflow-hidden"
                       >
-                        <Play size={14} /> Start Study
+                        {!isActivated && <Lock size={12} className="mr-1" />}
+                        <Play size={14} /> {isActivated ? 'Start Study' : 'Unlock Track'}
                       </button>
                     </div>
 

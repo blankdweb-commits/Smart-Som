@@ -111,6 +111,18 @@ CREATE TABLE public.testimonials (
   created_at TIMESTAMPTZ DEFAULT NOW()
 );
 
+-- SUBSCRIPTION PLANS
+CREATE TABLE public.subscription_plans (
+    id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
+    name TEXT NOT NULL,
+    price NUMERIC NOT NULL,
+    duration_days INTEGER NOT NULL,
+    is_active BOOLEAN DEFAULT TRUE,
+    paystack_plan_code TEXT,
+    created_at TIMESTAMPTZ DEFAULT NOW(),
+    updated_at TIMESTAMPTZ DEFAULT NOW()
+);
+
 -- 2. Row Level Security (RLS)
 
 ALTER TABLE public.profiles ENABLE ROW LEVEL SECURITY;
@@ -120,16 +132,39 @@ ALTER TABLE public.exams ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.flashcard_progress ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.payment_charges ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.testimonials ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.subscription_plans ENABLE ROW LEVEL SECURITY;
 
--- Policies
+-- Profiles Policies
 CREATE POLICY "Public profiles are viewable by everyone." ON public.profiles FOR SELECT USING (true);
 CREATE POLICY "Users can update own profile." ON public.profiles FOR UPDATE USING (auth.uid() = id);
+CREATE POLICY "Super admins can manage all profiles." ON public.profiles FOR ALL USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'super_admin')
+);
 
+-- Exams Policies
 CREATE POLICY "Users can manage their own exams." ON public.exams FOR ALL USING (auth.uid() = user_id);
+CREATE POLICY "Admins can view exams." ON public.exams FOR SELECT USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('admin', 'super_admin'))
+);
+
+-- Flashcard Progress Policies
 CREATE POLICY "Users can manage their own flashcard progress." ON public.flashcard_progress FOR ALL USING (auth.uid() = user_id);
 
+-- Payment/Subscription Policies
 CREATE POLICY "Users can view own payments." ON public.payments FOR SELECT USING (auth.uid() = user_id);
 CREATE POLICY "Users can view own subscriptions." ON public.subscriptions FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "Admins can view all payments." ON public.payments FOR SELECT USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('admin', 'super_admin'))
+);
+CREATE POLICY "Admins can view all subscriptions." ON public.subscriptions FOR SELECT USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role IN ('admin', 'super_admin'))
+);
+
+-- Subscription Plans Policies
+CREATE POLICY "Public can view active plans." ON public.subscription_plans FOR SELECT USING (is_active = true);
+CREATE POLICY "Super admins can manage plans." ON public.subscription_plans FOR ALL USING (
+  EXISTS (SELECT 1 FROM public.profiles WHERE id = auth.uid() AND role = 'super_admin')
+);
 
 -- 3. Triggers for Profile Sync
 
@@ -158,3 +193,9 @@ INSERT INTO public.testimonials (name, level, quote, image_url, category) VALUES
 ('Musa A.', 'Year 3', 'The flashcards made it easier to remember things during exams. I don’t cram like before. My grades have improved significantly.', 'https://images.unsplash.com/photo-1522529599102-193c0d76b5b6?q=80&w=400&h=400&auto=format&fit=crop', 'general'),
 ('Chioma E.', 'Student Nurse', 'I was struggling before. After one week, I started recognizing questions instead of guessing. Worth every Naira.', 'https://images.unsplash.com/photo-1523464862212-d6631d073194?q=80&w=400&h=400&auto=format&fit=crop', 'struggle'),
 ('Daniel K.', 'Year 2', 'The community and structured curriculum help me stay focused. It feels like having a personal tutor 24/7.', 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?q=80&w=400&h=400&auto=format&fit=crop', 'general');
+
+-- 6. Seed Subscription Plans
+INSERT INTO public.subscription_plans (name, price, duration_days, paystack_plan_code) VALUES
+('Weekly', 1999.9, 7, 'PLN_weekly_demo'),
+('Monthly', 6999, 30, 'PLN_monthly_demo'),
+('Yearly', 49999, 365, 'PLN_yearly_demo');

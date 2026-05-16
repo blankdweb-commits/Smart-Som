@@ -22,6 +22,7 @@ export function AppProvider({ children }) {
     subscriptionExpiry: null, graceUntil: null
   });
   const [paymentPurposes, setPaymentPurposes] = useState([]);
+  const [subscriptionPlans, setSubscriptionPlans] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [feeDetails, setFeeDetails] = useState({ totalFee: 0, amountPaid: 0, currency: 'NGN', status: 'Unpaid' });
 
@@ -120,6 +121,14 @@ export function AppProvider({ children }) {
     // Transactions/Payments
     const { data: pyts } = await supabase.from('payments').select('*').eq('user_id', userId).order('created_at', { ascending: false });
     if (pyts) setTransactions(pyts);
+
+    // Subscription Plans (Global)
+    const { data: plans } = await supabase.from('subscription_plans').select('*').eq('is_active', true);
+    if (plans) setSubscriptionPlans(plans);
+
+    // Payment Charges (Institutional)
+    const { data: charges } = await supabase.from('payment_charges').select('*').eq('active', true);
+    if (charges) setPaymentPurposes(charges);
   };
 
   const updateProfile = async (data) => {
@@ -138,6 +147,42 @@ export function AppProvider({ children }) {
     localStorage.setItem('darkMode', JSON.stringify(!darkMode));
   };
 
+  const updateSubscriptionPlan = async (id, data) => {
+    if (!supabase) return;
+    const { error } = await supabase.from('subscription_plans').update(data).eq('id', id);
+    if (!error) fetchUserData();
+  };
+
+  const addSubscriptionPlan = async (data) => {
+    if (!supabase) return;
+    const { error } = await supabase.from('subscription_plans').insert(data);
+    if (!error) fetchUserData();
+  };
+
+  const deleteSubscriptionPlan = async (id) => {
+    if (!supabase) return;
+    const { error } = await supabase.from('subscription_plans').delete().eq('id', id);
+    if (!error) fetchUserData();
+  };
+
+  const updatePaymentPurpose = async (id, data) => {
+    if (!supabase) return;
+    const { error } = await supabase.from('payment_charges').update(data).eq('id', id);
+    if (!error) fetchUserData();
+  };
+
+  const addPaymentPurpose = async (data) => {
+    if (!supabase) return;
+    const { error } = await supabase.from('payment_charges').insert(data);
+    if (!error) fetchUserData();
+  };
+
+  const deletePaymentPurpose = async (id) => {
+    if (!supabase) return;
+    const { error } = await supabase.from('payment_charges').delete().eq('id', id);
+    if (!error) fetchUserData();
+  };
+
   return (
     <AppContext.Provider value={{
       session, loadingAuth,
@@ -147,6 +192,9 @@ export function AppProvider({ children }) {
       userProfile, updateProfile,
       darkMode, toggleDarkMode,
       transactions, feeDetails,
+      subscriptionPlans, paymentPurposes,
+      updateSubscriptionPlan, addSubscriptionPlan, deleteSubscriptionPlan,
+      updatePaymentPurpose, addPaymentPurpose, deletePaymentPurpose,
       fetchUserData
     }}>
       {children}

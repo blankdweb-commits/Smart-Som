@@ -6,7 +6,11 @@ export const getSupabaseAdmin = () => {
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !serviceKey) {
-    throw new Error('Supabase environment variables are missing');
+    if (process.env.NODE_ENV === 'production') {
+      throw new Error('Supabase environment variables are missing in production');
+    }
+    console.warn('Supabase environment variables are missing. Using local mock/fail mode.');
+    return null;
   }
 
   return createClient(url, serviceKey);

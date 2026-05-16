@@ -13,7 +13,9 @@ const FeeBanner = () => {
   const isDashboard = location.pathname === '/';
   const isSettings = location.pathname === '/settings';
   const isPayments = location.pathname === '/payments';
+  const DEV_MODE = import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
 
+  if (DEV_MODE) return null;
   if (feeDetails.status === 'Paid' && !isDashboard) return null;
   if (isPayments) return null;
 

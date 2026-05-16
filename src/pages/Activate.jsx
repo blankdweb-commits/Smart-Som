@@ -8,7 +8,7 @@ export default function Activate() {
   const [key, setKey] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
-  const { userProfile, session, fetchUserData } = useAppContext();
+  const { userProfile, session, fetchUserData, subscriptionPlans } = useAppContext();
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -20,14 +20,18 @@ export default function Activate() {
     return () => { document.body.removeChild(script); };
   }, []);
 
-  const handlePay = () => {
+  const handlePay = (plan) => {
     if (!window.PaystackPop) return;
 
     const handler = window.PaystackPop.setup({
       key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
       email: session.user.email,
-      amount: 199990, // ₦1,999.90 in kobo
+      amount: Math.round(plan.price * 100),
       currency: "NGN",
+      metadata: {
+        plan_id: plan.id,
+        user_id: session.user.id
+      },
       callback: async (response) => {
         setLoading(true);
         try {
@@ -98,7 +102,7 @@ export default function Activate() {
 
            <div className="space-y-4">
               {[
-                "Access 7,200+ Premium Flashcards",
+                "Access 10,000+ Questions & Flashcards",
                 "AI Past Question Parsing Engine",
                 "Personalized Exam Readiness Tracking",
                 "Clinical Reference Library"
@@ -124,22 +128,34 @@ export default function Activate() {
         </div>
 
         {/* Right Side: Action Card */}
-        <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-10 relative overflow-hidden">
-           <div className="text-center space-y-4">
-              <div className="flex items-center justify-center gap-3">
-                 <span className="text-slate-400 line-through font-bold">₦3,000</span>
-                 <span className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter">₦1,999.9</span>
-              </div>
-              <p className="text-[10px] font-black uppercase tracking-[0.2em] text-apex-600">30-Day Premium Access</p>
+        <div className="bg-white dark:bg-slate-900 rounded-[3rem] p-10 shadow-2xl border border-slate-100 dark:border-slate-800 space-y-8 relative overflow-hidden">
+           <div className="text-center">
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Select Plan</h3>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Instant Activation</p>
            </div>
 
-           <button
-             onClick={handlePay}
-             disabled={loading}
-             className="w-full py-6 bg-apex-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-apex-600/20 active:scale-95 transition-all flex items-center justify-center gap-3"
-           >
-             {loading ? <Zap className="animate-spin" /> : <>Pay Now <ArrowRight size={18} /></>}
-           </button>
+           <div className="space-y-4">
+              {(subscriptionPlans.length > 0 ? subscriptionPlans : [
+                { id: '1', name: 'Weekly', price: 1999.9 },
+                { id: '2', name: 'Monthly', price: 6999 },
+                { id: '3', name: 'Yearly', price: 49999 }
+              ]).map((plan) => (
+                <button
+                  key={plan.id}
+                  onClick={() => handlePay(plan)}
+                  disabled={loading}
+                  className="w-full p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 hover:border-apex-500 transition-all text-left flex justify-between items-center group active:scale-[0.98]"
+                >
+                  <div>
+                    <p className="font-black text-slate-900 dark:text-white">{plan.name} Access</p>
+                    <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">NGN {plan.price.toLocaleString()}</p>
+                  </div>
+                  <div className="w-10 h-10 bg-apex-600 rounded-xl flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity">
+                    <ArrowRight size={18} />
+                  </div>
+                </button>
+              ))}
+           </div>
 
            <div className="relative">
               <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-100 dark:border-slate-800"></div></div>
