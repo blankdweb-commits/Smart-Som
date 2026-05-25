@@ -1,19 +1,32 @@
-# Testing Credentials & Seed Data
+# Apex Scholars: System Manifest & Testing Guide
 
-This document provides test accounts and the SQL necessary to set them up in your Supabase environment for QA and testing.
+This document defines the core system configurations, test credentials, and dev-mode behaviors for the Apex Scholars platform.
 
-## 1. Test Accounts
+## 1. Environment Configuration: "Dashboard Mode"
 
-| Role | Email | Password | Status |
-|------|-------|----------|--------|
-| **Student** | `student@apexscholars.com` | `testing123` | Not Activated (unless in Dev Mode) |
-| **Admin** | `admin@apexscholars.com` | `testing123` | Super Admin |
+The application includes a specialized `VITE_DEV_DASHBOARD_MODE` toggle for rapid development and quality assurance.
 
-## 2. Supabase Seeding SQL
+### Activation
+Set `VITE_DEV_DASHBOARD_MODE=true` in your `.env` file and restart the development server.
 
-Run the following SQL in your Supabase SQL Editor to create these users and assign their roles.
+### Behaviors in Dev Mode
+- **Auto-Redirect**: The landing page (`/`) automatically redirects to `/dashboard`.
+- **Paywall Bypass**: All premium locks on Flashcards, Quizzes, and Clinical Tracks are disabled.
+- **UI Cleaning**: `FeeBanner` and `FeeDashboardWidget` are hidden to provide a clean workspace.
+- **Fast Login**: A "Fast Dev Login" button appears on the Auth page to auto-fill test credentials.
+- **Performance**: Framer Motion animations are globally set to `reducedMotion: "always"` for instantaneous navigation.
+- **System Indicator**: A persistent amber banner confirms "Testing Mode Active".
 
-> **Note:** You must first sign up these emails via the application UI to create the Auth records, then run this SQL to elevate their profiles.
+## 2. Testing Credentials
+
+| Role | Email | Password | Access Level |
+|------|-------|----------|--------------|
+| **Student** | `student@apexscholars.com` | `testing123` | Default (Activated in Dev Mode) |
+| **Admin** | `admin@apexscholars.com` | `testing123` | Super Admin / Financial Control |
+
+## 3. Database Seed SQL (Supabase)
+
+To prepare a fresh Supabase environment for these accounts, run the following in the SQL Editor:
 
 ```sql
 -- 1. Elevate the Admin User
@@ -33,24 +46,17 @@ SET
     subscription_status = 'none'
 WHERE email = 'student@apexscholars.com';
 
--- 3. Optional: Create a Sample Subscription Plan for testing
+-- 3. Core Subscription Plans
 INSERT INTO public.subscription_plans (name, price, duration_days)
 VALUES
 ('Weekly Sprint', 1999.9, 7),
 ('Monthly Mastery', 6999, 30),
-('Yearly Excellence', 49999, 365);
+('Yearly Excellence', 49999, 365)
+ON CONFLICT DO NOTHING;
 ```
 
-## 3. Testing "Dashboard Mode"
+## 4. Verification Checklist
 
-To bypass the landing page and paywalls locally:
-
-1. Create a `.env` file from `.env.example`.
-2. Set `VITE_DEV_DASHBOARD_MODE=true`.
-3. Restart the dev server: `npm run dev`.
-
-The app will now:
-- Redirect `/` to `/dashboard`.
-- Disable the activation overlay on the Dashboard.
-- Enable all Study and Quiz features even for un-activated accounts.
-- Reduce Framer Motion animations for faster navigation.
+1. [ ] **Build Check**: `npm run build` must complete without errors.
+2. [ ] **Auth Check**: Standard users must still be redirected to `/activate` when Dev Mode is `false`.
+3. [ ] **Payment Check**: Paystack webhook signature verification must remain active in all modes.
