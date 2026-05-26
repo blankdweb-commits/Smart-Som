@@ -24,6 +24,7 @@ export function AppProvider({ children }) {
   const [paymentPurposes, setPaymentPurposes] = useState([]);
   const [subscriptionPlans, setSubscriptionPlans] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [auditLogs, setAuditLogs] = useState([]);
   const [feeDetails, setFeeDetails] = useState({ totalFee: 0, amountPaid: 0, currency: 'NGN', status: 'Unpaid' });
 
   // 1. Auth Listener
@@ -43,7 +44,9 @@ export function AppProvider({ children }) {
       setLoadingAuth(false);
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      if (subscription) subscription.unsubscribe();
+    };
   }, []);
 
   // 2. Fetch Data from Supabase
@@ -129,6 +132,16 @@ export function AppProvider({ children }) {
     // Payment Charges (Institutional)
     const { data: charges } = await supabase.from('payment_charges').select('*').eq('active', true);
     if (charges) setPaymentPurposes(charges);
+
+    // Audit Logs (Admins only)
+    if (profile?.role === 'admin' || profile?.role === 'super_admin') {
+      const { data: logs } = await supabase
+        .from('audit_logs')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .limit(50);
+      if (logs) setAuditLogs(logs);
+    }
   };
 
   const updateProfile = async (data) => {
@@ -183,6 +196,16 @@ export function AppProvider({ children }) {
     if (!error) fetchUserData();
   };
 
+  const addAuditLog = async (action, details) => {
+    if (!supabase || !session) return;
+    const { error } = await supabase.from('audit_logs').insert({
+      user_id: session.user.id,
+      action,
+      details
+    });
+    if (!error) fetchUserData();
+  };
+
   return (
     <AppContext.Provider value={{
       session, loadingAuth,
@@ -191,10 +214,11 @@ export function AppProvider({ children }) {
       studyStats,
       userProfile, updateProfile,
       darkMode, toggleDarkMode,
-      transactions, feeDetails,
+      transactions, auditLogs, feeDetails,
       subscriptionPlans, paymentPurposes,
       updateSubscriptionPlan, addSubscriptionPlan, deleteSubscriptionPlan,
       updatePaymentPurpose, addPaymentPurpose, deletePaymentPurpose,
+      addAuditLog,
       fetchUserData
     }}>
       {children}
