@@ -9,7 +9,7 @@ import { useAppContext } from '../context/AppContext';
 const Layout = ({ children }) => {
   const location = useLocation();
   const { darkMode, toggleDarkMode } = useAppContext();
-  const DEV_MODE = import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
+  const DEV_MODE =  (import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true');
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-500 overflow-x-hidden">

@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 const FeeDashboardWidget = () => {
   const { feeDetails, userProfile } = useAppContext();
   const navigate = useNavigate();
-  const DEV_MODE = import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
+  const DEV_MODE =  (import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true');
 
   if (DEV_MODE) return null;
 

@@ -23,13 +23,13 @@ const PageLoader = () => (
   </div>
 );
 
-const DEV_MODE = import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
+const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
 
 const ProtectedRoute = ({ children, requireActivated = true }) => {
   const { session, userProfile, loadingAuth } = useAppContext();
 
   if (loadingAuth) return <PageLoader />;
-  if (!session) return <Navigate to={DEV_MODE ? "/login" : "/"} replace />;
+  if (!session && !DEV_MODE) return <Navigate to="/" replace />;
 
   if (requireActivated && !userProfile.isActivated && !DEV_MODE) {
     return <Navigate to="/activate" replace />;

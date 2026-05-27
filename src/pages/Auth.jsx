@@ -19,7 +19,7 @@ export default function Auth() {
     role: 'student'
   });
 
-  const DEV_MODE = import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
+  const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
 
   const handleDevLogin = () => {
     setFormData({

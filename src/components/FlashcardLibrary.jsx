@@ -7,7 +7,7 @@ import Toast from '../components/Toast';
 import { Plus, Search, Filter, Play, Shuffle, List, ChevronLeft, ChevronRight, Award, Download, Upload, Share2, Folder, Book, ArrowLeft, AlertCircle, CheckCircle2, FileUp, Loader2, ChevronDown, ChevronUp, Lock } from './Icons';
 import { extractTextFromFile, parseQuestionsAndAnswers } from '../utils/fileParser';
 import { CURRICULUM_MASTER } from '../data/curriculumMaster';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const SRSButton = ({ label, sublabel, color, onClick }) => (
   <button
@@ -22,8 +22,9 @@ const SRSButton = ({ label, sublabel, color, onClick }) => (
 const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   const { flashcards, exams, userProfile, addFlashcard, updateFlashcard, deleteFlashcard, incrementCardsStudied, updateCardProgress, importFlashcards } = useAppContext();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
 
-  const DEV_MODE = import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
+  const DEV_MODE =  (import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true');
   const isActivated = userProfile.isActivated || userProfile.subscriptionStatus === 'grace' || DEV_MODE;
 
   // Navigation State
@@ -31,6 +32,24 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   const [currentLevel, setCurrentLevel] = useState(null); // 'Year 1', etc.
   const [currentSemester, setCurrentSemester] = useState(null); // 'Semester 1', etc.
   const [currentSubject, setCurrentSubject] = useState(null);
+
+  // Deep Link Subject Support
+  useEffect(() => {
+    const subjectParam = searchParams.get('subject');
+    if (subjectParam) {
+      // Find the card to determine program/level/semester
+      const card = flashcards.find(c => c.subject === subjectParam);
+      if (card) {
+        setCurrentProgram(card.program === 'midwifery' ? 'Midwifery' : 'General Nursing');
+        setCurrentLevel(card.level);
+        setCurrentSemester(card.semester);
+        setCurrentSubject(subjectParam);
+      } else {
+         // Fallback if no cards found for this subject, at least try to set the subject
+         setCurrentSubject(subjectParam);
+      }
+    }
+  }, [searchParams, flashcards]);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
