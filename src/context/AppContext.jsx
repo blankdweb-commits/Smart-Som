@@ -116,45 +116,52 @@ export function AppProvider({ children }) {
 
   // 1. Auth Listener
   useEffect(() => {
+    // ALWAYS provide mock data if session is missing, to ensure "Dashboard First" experience
+    const setupMockData = () => {
+      setUserProfile({
+        fullName: 'Demo Student',
+        email: 'student@apexscholars.com',
+        phone: '08012345678',
+        department: 'Nursing Science',
+        level: 'Year 3',
+        isActivated: true,
+        isAdmin: true,
+        role: 'super_admin',
+        subscriptionStatus: 'active'
+      });
+      setTransactions([
+        { id: 'TXN-001', type: 'Clinical Fee', amount: 25000, status: 'success', date: new Date().toISOString(), created_at: new Date().toISOString(), receiptNo: 'RC-99210', releaseStatus: 'Released' },
+        { id: 'TXN-002', type: 'Exam Access', amount: 5000, status: 'success', date: new Date().toISOString(), created_at: new Date().toISOString(), receiptNo: 'RC-99211', releaseStatus: 'Held' },
+        { id: 'TXN-003', type: 'Portal Levy', amount: 2500, status: 'pending', date: new Date().toISOString(), created_at: new Date().toISOString(), receiptNo: 'RC-99212', releaseStatus: 'Held' }
+      ]);
+      setPaymentPurposes([
+        { id: 1, title: 'Tuition Fee', amount: 150000, currency: 'NGN', targetDept: 'All', targetLevel: 'All', active: true, description: 'Mandatory annual tuition' },
+        { id: 2, title: 'Library Resource', amount: 15000, currency: 'NGN', targetDept: 'Nursing Science', targetLevel: 'Year 3', active: true, description: 'Access to digital journals' }
+      ]);
+      setSubscriptionPlans([
+        { id: 1, name: 'Standard Month', price: 1999.9, duration_days: 30, is_active: true },
+        { id: 2, name: 'Professional Term', price: 4999.9, duration_days: 90, is_active: true }
+      ]);
+    };
+
     if (!supabase) {
-      if (DEV_MODE) {
-         setUserProfile({
-            fullName: 'Test Student',
-            email: 'student@apexscholars.com',
-            phone: '08012345678',
-            department: 'Nursing Science',
-            level: 'Year 3',
-            isActivated: true,
-            isAdmin: true,
-            role: 'super_admin',
-            subscriptionStatus: 'active'
-         });
-         setTransactions([
-           { id: 'TXN-001', type: 'Clinical Fee', amount: 25000, status: 'success', date: new Date().toISOString(), created_at: new Date().toISOString(), receiptNo: 'RC-99210', releaseStatus: 'Released' },
-           { id: 'TXN-002', type: 'Exam Access', amount: 5000, status: 'success', date: new Date().toISOString(), created_at: new Date().toISOString(), receiptNo: 'RC-99211', releaseStatus: 'Held' },
-           { id: 'TXN-003', type: 'Portal Levy', amount: 2500, status: 'pending', date: new Date().toISOString(), created_at: new Date().toISOString(), receiptNo: 'RC-99212', releaseStatus: 'Held' }
-         ]);
-         setPaymentPurposes([
-           { id: 1, title: 'Tuition Fee', amount: 150000, currency: 'NGN', targetDept: 'All', targetLevel: 'All', active: true, description: 'Mandatory annual tuition' },
-           { id: 2, title: 'Library Resource', amount: 15000, currency: 'NGN', targetDept: 'Nursing Science', targetLevel: 'Year 3', active: true, description: 'Access to digital journals' }
-         ]);
-         setSubscriptionPlans([
-           { id: 1, name: 'Standard Month', price: 1999.9, duration_days: 30, is_active: true },
-           { id: 2, name: 'Professional Term', price: 4999.9, duration_days: 90, is_active: true }
-         ]);
-         setLoadingAuth(false);
-      } else {
-         setLoadingAuth(false);
-      }
+      setupMockData();
+      setLoadingAuth(false);
       return;
     }
 
     supabase.auth.getSession().then(({ data: { session: currentSession } }) => {
+      if (!currentSession) {
+        setupMockData();
+      }
       setSession(currentSession);
       setLoadingAuth(false);
     });
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+      if (!currentSession) {
+        setupMockData();
+      }
       setSession(currentSession);
       setLoadingAuth(false);
     });

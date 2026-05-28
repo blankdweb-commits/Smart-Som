@@ -37,7 +37,10 @@ export default function Auth() {
 
     try {
       if (!supabase) {
-        throw new Error('Supabase is not configured. Please check your environment variables.');
+        // In Dashboard-first mode, we allow "bypass" even if Supabase is missing
+        console.warn('Supabase not configured, bypassing to dashboard with mock data');
+        navigate('/dashboard');
+        return;
       }
 
       if (isLogin) {
