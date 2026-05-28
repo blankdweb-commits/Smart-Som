@@ -1,5 +1,5 @@
 import React from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
 import FeeBanner from './FeeBanner';
@@ -9,7 +9,7 @@ import { useAppContext } from '../context/AppContext';
 const Layout = ({ children }) => {
   const location = useLocation();
   const { darkMode, toggleDarkMode } = useAppContext();
-  const DEV_MODE = import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
+  const DEV_MODE =  (import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true');
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-500 overflow-x-hidden">
@@ -55,7 +55,7 @@ const Layout = ({ children }) => {
         <FeeBanner />
 
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-          {children}
+          {children || <Outlet />}
         </div>
       </main>
       <BottomNav />

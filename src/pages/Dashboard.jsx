@@ -1,21 +1,23 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { BookOpen, Calendar, TrendingUp, Award, Zap, ArrowRight, Star, Clock, Lock, AlertCircle } from '../components/Icons';
-import { format, differenceInDays } from 'date-fns';
+import { BookOpen, Calendar, TrendingUp, Award, Zap, ArrowRight, Star, Clock, Lock, AlertCircle, Brain, Target } from '../components/Icons';
+import { differenceInDays } from 'date-fns';
 import FeeDashboardWidget from '../components/FeeDashboardWidget';
-import { motion } from 'framer-motion';
+import DailyChallengeWidget from '../components/DailyChallengeWidget';
+import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
 const Dashboard = () => {
-  const { flashcards, exams, studyStats, userProfile, session, loadingAuth } = useAppContext();
+  const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
+  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics } = useAppContext();
   const navigate = useNavigate();
 
   // Redirect if not logged in
   React.useEffect(() => {
-    if (!loadingAuth && !session) {
+    if (!loadingAuth && !session && !DEV_MODE) {
       navigate('/');
     }
-  }, [session, loadingAuth, navigate]);
+  }, [session, loadingAuth, navigate, DEV_MODE]);
 
   const subjectProgress = React.useMemo(() => {
     const stats = {};
@@ -44,7 +46,6 @@ const Dashboard = () => {
     return daysLeft >= 0 && daysLeft <= 3;
   });
 
-  const immediateExam = upcomingExams[0];
   const isExamSoon = nearExams.length > 0;
 
   const dueFlashcards = flashcards.filter(c => {
@@ -55,9 +56,6 @@ const Dashboard = () => {
   const expiryDays = userProfile.subscriptionExpiry
     ? differenceInDays(new Date(userProfile.subscriptionExpiry), new Date())
     : null;
-
-  const DEV_MODE = import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
-  const showLockedDashboard = !userProfile.isActivated && userProfile.subscriptionStatus !== 'grace' && !DEV_MODE;
 
   const studyTips = [
     "Use the 'Shuffle' mode for flashcards to improve long-term retention.",
@@ -85,27 +83,27 @@ const Dashboard = () => {
   }, [tipsCount]);
 
   return (
-    <div className={`relative space-y-8 pb-32 animate-in fade-in duration-700 max-w-5xl mx-auto ${showLockedDashboard ? 'max-h-[80vh] overflow-hidden' : ''}`}>
-      {showLockedDashboard && (
-        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center -mx-4 md:-mx-8 p-4">
-           <div className="absolute inset-0 bg-white/40 dark:bg-slate-900/40 backdrop-blur-md" />
+    <div className="relative space-y-8 pb-32 animate-in fade-in duration-700 max-w-5xl mx-auto">
+      {!userProfile.isActivated && !DEV_MODE && (
+        <div className="absolute inset-0 z-50 flex flex-col items-center justify-center -mx-4 md:-mx-8">
+           <div className="fixed inset-0 bg-slate-50/40 dark:bg-slate-900/40 backdrop-blur-md" />
            <motion.div
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="relative z-10 p-8 md:p-12 bg-white dark:bg-slate-800 rounded-[3rem] shadow-2xl border border-slate-100 dark:border-slate-700 text-center max-w-md"
+            className="relative z-10 p-8 md:p-12 bg-white dark:bg-slate-800 rounded-[3rem] shadow-2xl border border-slate-100 dark:border-slate-700 text-center max-w-md mx-4"
            >
               <div className="w-20 h-20 bg-apex-50 dark:bg-apex-900/30 text-apex-600 dark:text-apex-400 rounded-3xl flex items-center justify-center mx-auto mb-8">
                  <Lock size={40} />
               </div>
               <h3 className="text-3xl font-black mb-4 tracking-tight text-slate-900 dark:text-white">Your Dashboard is Ready</h3>
               <p className="text-slate-500 dark:text-slate-400 font-medium mb-8">
-                 Unlock 10,000+ nursing questions, AI study tools, and personalized clinical tracks.
+                 Unlock full access to your personalized nursing curriculum and AI study tools.
               </p>
               <button
                 onClick={() => navigate('/activate')}
                 className="w-full py-5 bg-apex-600 text-white rounded-2xl font-black uppercase tracking-widest text-sm shadow-xl shadow-apex-600/20 active:scale-95 transition-all"
               >
-                Activate Full Access
+                Activate for ₦1,999.9
               </button>
               <p className="mt-6 text-[10px] text-slate-400 font-black uppercase tracking-widest">Instant Activation • Secure Payment</p>
            </motion.div>
@@ -178,6 +176,37 @@ const Dashboard = () => {
           )}
 
           <FeeDashboardWidget />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <DailyChallengeWidget />
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
+              <div>
+                <h3 className="text-lg font-black flex items-center gap-2 text-slate-900 dark:text-white uppercase tracking-tight">
+                  <Target className="text-red-500" size={20} /> Attention Required
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">Focus on these topics to improve your score.</p>
+              </div>
+              <div className="mt-4 space-y-3">
+                {(DEV_MODE && learningAnalytics.weakTopics.length === 0 ? [
+                  { name: 'Pharmacology', count: 12, subject: 'Medical Surgical' },
+                  { name: 'Acid-Base Balance', count: 8, subject: 'Foundations' }
+                ] : learningAnalytics.weakTopics).map((topic, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
+                    <div>
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{topic.name}</p>
+                      <p className="text-[10px] text-slate-400 uppercase font-black">{topic.subject}</p>
+                    </div>
+                    <span className="text-xs font-black text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-lg">{topic.count} errors</span>
+                  </div>
+                ))}
+                {learningAnalytics.weakTopics.length === 0 && !DEV_MODE && (
+                   <div className="py-4 text-center">
+                      <p className="text-xs text-slate-400 italic">No critical weak spots detected yet. Keep studying!</p>
+                   </div>
+                )}
+              </div>
+            </div>
+          </div>
 
           {isExamSoon && (
             <div className="space-y-4">
@@ -284,13 +313,13 @@ const Dashboard = () => {
 };
 
 const StatsCard = ({ title, value, icon, color }) => (
-  <div className={`p-6 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-700 ${color} flex flex-col items-center justify-center text-center space-y-2 group transition-all hover:-translate-y-1`}>
-    <div className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-2xl mb-1 group-hover:scale-110 transition-transform">
-      {icon}
+  <div className={`p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-700 ${color} flex flex-col items-center justify-center text-center space-y-1 sm:space-y-2 group transition-all hover:-translate-y-1`}>
+    <div className="p-2 sm:p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl sm:rounded-2xl mb-1 group-hover:scale-110 transition-transform">
+      {React.cloneElement(icon, { size: 20 })}
     </div>
     <div>
-      <p className="text-[10px] text-slate-400 font-black uppercase tracking-widest">{title}</p>
-      <p className="text-xl font-black text-slate-900 dark:text-white tracking-tighter mt-0.5">{value}</p>
+      <p className="text-[9px] sm:text-[10px] text-slate-400 font-black uppercase tracking-widest">{title}</p>
+      <p className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tighter mt-0.5">{value}</p>
     </div>
   </div>
 );

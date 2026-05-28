@@ -23,13 +23,13 @@ const PageLoader = () => (
   </div>
 );
 
-const DEV_MODE = import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
+const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
 
 const ProtectedRoute = ({ children, requireActivated = true }) => {
   const { session, userProfile, loadingAuth } = useAppContext();
 
   if (loadingAuth) return <PageLoader />;
-  if (!session) return <Navigate to={DEV_MODE ? "/login" : "/"} replace />;
+  if (!session && !DEV_MODE) return <Navigate to="/" replace />;
 
   if (requireActivated && !userProfile.isActivated && !DEV_MODE) {
     return <Navigate to="/activate" replace />;
@@ -38,82 +38,64 @@ const ProtectedRoute = ({ children, requireActivated = true }) => {
   return children;
 };
 
-const AppRoutes = () => {
-  const { session, userProfile, loadingAuth } = useAppContext();
+// --- ROUTER TREES ---
 
-  if (loadingAuth) return <PageLoader />;
+const DashboardDevRouter = () => (
+  <Suspense fallback={<PageLoader />}>
+    <Routes>
+      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/login" element={<Auth />} />
+      <Route path="/signup" element={<Auth />} />
 
-  return (
-    <Suspense fallback={<PageLoader />}>
-      <Routes>
-        {/* Public Routes */}
-        <Route path="/" element={DEV_MODE ? <Navigate to="/dashboard" replace /> : <Landing />} />
-        <Route path="/login" element={<Auth />} />
-        <Route path="/signup" element={<Auth />} />
+      {/* Shared Layout Wrapper for Dashboard Routes */}
+      <Route element={<Layout />}>
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/activate" element={<Activate />} />
+        <Route path="/flashcards" element={<Flashcards />} />
+        <Route path="/quiz" element={<Quiz />} />
+        <Route path="/exams" element={<ExamTimetable />} />
+        <Route path="/papers" element={<Papers />} />
+        <Route path="/payments" element={<Payments />} />
+        <Route path="/settings" element={<Settings />} />
+        <Route path="/admin/finance" element={<AdminFinance />} />
+      </Route>
 
-        {/* Auth Required, but not necessarily activated */}
-        <Route path="/activate" element={
-          <ProtectedRoute requireActivated={false}>
-             <Layout><Activate /></Layout>
-          </ProtectedRoute>
-        } />
+      <Route path="*" element={<Navigate to="/dashboard" replace />} />
+    </Routes>
+  </Suspense>
+);
 
-        <Route path="/dashboard" element={
-          <ProtectedRoute requireActivated={false}>
-             <Layout><Dashboard /></Layout>
-          </ProtectedRoute>
-        } />
+const PublicRouter = () => (
+  <Suspense fallback={<PageLoader />}>
+    <Routes>
+      <Route path="/" element={<Landing />} />
+      <Route path="/login" element={<Auth />} />
+      <Route path="/signup" element={<Auth />} />
 
-        {/* Strictly Activated Routes - Now allow preview (requireActivated=false) */}
-        <Route path="/flashcards" element={
-          <ProtectedRoute requireActivated={false}>
-            <Layout><Flashcards /></Layout>
-          </ProtectedRoute>
-        } />
-        <Route path="/quiz" element={
-          <ProtectedRoute requireActivated={false}>
-            <Layout><Quiz /></Layout>
-          </ProtectedRoute>
-        } />
-        <Route path="/exams" element={
-          <ProtectedRoute requireActivated={false}>
-            <Layout><ExamTimetable /></Layout>
-          </ProtectedRoute>
-        } />
-        <Route path="/papers" element={
-          <ProtectedRoute requireActivated={false}>
-            <Layout><Papers /></Layout>
-          </ProtectedRoute>
-        } />
-        <Route path="/payments" element={
-          <ProtectedRoute requireActivated={false}>
-            <Layout><Payments /></Layout>
-          </ProtectedRoute>
-        } />
-        <Route path="/settings" element={
-          <ProtectedRoute requireActivated={false}>
-            <Layout><Settings /></Layout>
-          </ProtectedRoute>
-        } />
-        <Route path="/admin/finance" element={
-          <ProtectedRoute>
-            <Layout><AdminFinance /></Layout>
-          </ProtectedRoute>
-        } />
+      {/* Authenticated Layout Routes */}
+      <Route element={<Layout />}>
+        <Route path="/activate" element={<ProtectedRoute requireActivated={false}><Activate /></ProtectedRoute>} />
+        <Route path="/dashboard" element={<ProtectedRoute requireActivated={false}><Dashboard /></ProtectedRoute>} />
+        <Route path="/flashcards" element={<ProtectedRoute requireActivated={false}><Flashcards /></ProtectedRoute>} />
+        <Route path="/quiz" element={<ProtectedRoute requireActivated={false}><Quiz /></ProtectedRoute>} />
+        <Route path="/exams" element={<ProtectedRoute requireActivated={false}><ExamTimetable /></ProtectedRoute>} />
+        <Route path="/papers" element={<ProtectedRoute requireActivated={false}><Papers /></ProtectedRoute>} />
+        <Route path="/payments" element={<ProtectedRoute requireActivated={false}><Payments /></ProtectedRoute>} />
+        <Route path="/settings" element={<ProtectedRoute requireActivated={false}><Settings /></ProtectedRoute>} />
+        <Route path="/admin/finance" element={<ProtectedRoute><AdminFinance /></ProtectedRoute>} />
+      </Route>
 
-        {/* Fallback */}
-        <Route path="*" element={<Navigate to="/" replace />} />
-      </Routes>
-    </Suspense>
-  );
-};
+      <Route path="*" element={<Navigate to="/" replace />} />
+    </Routes>
+  </Suspense>
+);
 
 function App() {
   return (
     <AppProvider>
       <MotionConfig reducedMotion={DEV_MODE ? "always" : "user"}>
         <Router>
-          <AppRoutes />
+          {DEV_MODE ? <DashboardDevRouter /> : <PublicRouter />}
         </Router>
       </MotionConfig>
     </AppProvider>

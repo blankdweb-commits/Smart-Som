@@ -41,16 +41,17 @@ This guide provides instructions for deploying Apex Scholars with a production-r
 
    ```env
    # Supabase
-   NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
-   NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key
+   VITE_SUPABASE_URL=your_supabase_url
+   VITE_SUPABASE_ANON_KEY=your_supabase_anon_key
    SUPABASE_SERVICE_ROLE_KEY=your_supabase_service_role_key
 
    # Paystack
    PAYSTACK_SECRET_KEY=your_paystack_secret_key
-   NEXT_PUBLIC_PAYSTACK_PUBLIC_KEY=your_paystack_public_key
+   VITE_PAYSTACK_PUBLIC_KEY=your_paystack_public_key
 
    # App
    APP_URL=https://your-vercel-domain.com
+   VITE_DEV_DASHBOARD_MODE=true
    ```
 
 3. **Deploy**: Click **Deploy**.

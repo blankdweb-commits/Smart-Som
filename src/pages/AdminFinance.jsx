@@ -43,7 +43,8 @@ const AdminFinance = () => {
     updateTransaction,
     refundTransaction,
     auditLogs = [],
-    addAuditLog = () => {}
+    addAuditLog = () => {},
+    loadingAuth
   } = useAppContext();
 
   const navigate = useNavigate();
@@ -54,6 +55,15 @@ const AdminFinance = () => {
   const [editingPurpose, setEditingPurpose] = useState(null);
   const [editingPlan, setEditingPlan] = useState(null);
   const [selectedTxn, setSelectedTxn] = useState(null);
+  const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
+
+  if (loadingAuth) {
+    return (
+      <div className="flex items-center justify-center min-h-[60vh]">
+        <div className="w-12 h-12 border-4 border-medical-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
 
   const initialPurposeState = {
     title: '',
@@ -130,7 +140,7 @@ const AdminFinance = () => {
     addAuditLog('Dispute Update', `Set dispute status of ${txn.id} to ${status}`);
   };
 
-  if (!userProfile.isAdmin) {
+  if (!userProfile.isAdmin && !DEV_MODE) {
     return (
       <div className="min-h-[60vh] flex flex-col items-center justify-center text-center p-8 space-y-6">
         <div className="w-24 h-24 bg-red-50 text-red-500 rounded-full flex items-center justify-center">

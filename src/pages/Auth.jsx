@@ -19,12 +19,27 @@ export default function Auth() {
     role: 'student'
   });
 
+  const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
+
+  const handleDevLogin = () => {
+    setFormData({
+      ...formData,
+      email: 'student@apexscholars.com',
+      password: 'testing123'
+    });
+    setIsLogin(true);
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
     try {
+      if (!supabase) {
+        throw new Error('Supabase is not configured. Please check your environment variables.');
+      }
+
       if (isLogin) {
         const { error } = await supabase.auth.signInWithPassword({
           email: formData.email,
@@ -154,13 +169,23 @@ export default function Auth() {
             </button>
           </form>
 
-          <div className="mt-8 text-center">
+          <div className="mt-8 text-center space-y-4">
             <button
               onClick={() => setIsLogin(!isLogin)}
-              className="text-slate-400 hover:text-white transition-colors"
+              className="block w-full text-slate-400 hover:text-white transition-colors text-sm"
             >
               {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
             </button>
+
+            {DEV_MODE && (
+              <button
+                type="button"
+                onClick={handleDevLogin}
+                className="w-full py-3 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-amber-500/20 transition-all"
+              >
+                Fast Dev Login (Student)
+              </button>
+            )}
           </div>
 
           <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-center gap-2 text-slate-500 text-sm">
