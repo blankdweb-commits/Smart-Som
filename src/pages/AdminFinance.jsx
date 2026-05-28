@@ -295,71 +295,124 @@ const AdminFinance = () => {
                   </div>
                </div>
 
-               <div className="overflow-x-auto">
-                  <table className="w-full text-left border-separate border-spacing-y-3">
-                    <thead>
-                      <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-4">
-                        <th className="pb-4 pl-4">Transaction Details</th>
-                        <th className="pb-4">Amount</th>
-                        <th className="pb-4">Status</th>
-                        <th className="pb-4">Release</th>
-                        <th className="pb-4"></th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {transactions.filter(t =>
-                        t.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-                        t.type.toLowerCase().includes(searchTerm.toLowerCase())
-                      ).map(txn => (
-                        <tr key={txn.id} className="bg-slate-50 dark:bg-slate-900/40 hover:bg-white dark:hover:bg-slate-800 transition-all rounded-2xl group shadow-sm">
-                          <td className="py-4 pl-4 rounded-l-2xl">
-                             <div className="flex items-center gap-4">
-                                <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center font-black text-medical-600 shadow-sm border border-slate-100 dark:border-slate-700">
-                                  {txn.receiptNo?.slice(-2)}
-                                </div>
-                                <div>
-                                  <p className="text-sm font-black text-slate-900 dark:text-white">{txn.type}</p>
-                                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{txn.receiptNo} • {new Date(txn.date).toLocaleDateString()}</p>
-                                </div>
-                             </div>
-                          </td>
-                          <td className="py-4 font-black text-slate-900 dark:text-white">NGN {txn.amount.toLocaleString()}</td>
-                          <td className="py-4">
-                            <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
-                              txn.status === 'Success' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
-                            }`}>
-                              {txn.status}
-                            </span>
-                          </td>
-                          <td className="py-4">
-                             <div className="flex items-center gap-2">
-                                <div className={`w-2 h-2 rounded-full ${txn.releaseStatus === 'Released' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
-                                <span className="text-[10px] font-bold text-slate-500 uppercase">{txn.releaseStatus}</span>
-                             </div>
-                          </td>
-                          <td className="py-4 pr-4 rounded-r-2xl text-right">
-                             <div className="flex justify-end gap-2">
-                                {!txn.verified && (
-                                  <button
-                                    onClick={() => handleVerifyPayment(txn)}
-                                    className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg transition-all"
-                                    title="Verify Payment"
-                                  >
-                                    <ShieldCheck size={18} />
-                                  </button>
-                                )}
-                                <button
-                                  onClick={() => setSelectedTxn(txn)}
-                                  className="p-2 text-slate-400 hover:text-medical-600 transition-all"
-                                >
-                                  <MoreVertical size={18} />
-                                </button>
-                             </div>
-                          </td>
+               <div>
+                  {/* Desktop Table View */}
+                  <div className="hidden md:block overflow-x-auto">
+                    <table className="w-full text-left border-separate border-spacing-y-3">
+                      <thead>
+                        <tr className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-4">
+                          <th className="pb-4 pl-4">Transaction Details</th>
+                          <th className="pb-4">Amount</th>
+                          <th className="pb-4">Status</th>
+                          <th className="pb-4">Release</th>
+                          <th className="pb-4"></th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {transactions.filter(t =>
+                          t.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                          t.type.toLowerCase().includes(searchTerm.toLowerCase())
+                        ).map(txn => (
+                          <tr key={txn.id} className="bg-slate-50 dark:bg-slate-900/40 hover:bg-white dark:hover:bg-slate-800 transition-all rounded-2xl group shadow-sm">
+                            <td className="py-4 pl-4 rounded-l-2xl">
+                               <div className="flex items-center gap-4">
+                                  <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center font-black text-medical-600 shadow-sm border border-slate-100 dark:border-slate-700">
+                                    {txn.receiptNo?.slice(-2)}
+                                  </div>
+                                  <div>
+                                    <p className="text-sm font-black text-slate-900 dark:text-white">{txn.type}</p>
+                                    <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{txn.receiptNo} • {new Date(txn.date).toLocaleDateString()}</p>
+                                  </div>
+                               </div>
+                            </td>
+                            <td className="py-4 font-black text-slate-900 dark:text-white">NGN {txn.amount.toLocaleString()}</td>
+                            <td className="py-4">
+                              <span className={`px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                                txn.status === 'Success' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                              }`}>
+                                {txn.status}
+                              </span>
+                            </td>
+                            <td className="py-4">
+                               <div className="flex items-center gap-2">
+                                  <div className={`w-2 h-2 rounded-full ${txn.releaseStatus === 'Released' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                                  <span className="text-[10px] font-bold text-slate-500 uppercase">{txn.releaseStatus}</span>
+                               </div>
+                            </td>
+                            <td className="py-4 pr-4 rounded-r-2xl text-right">
+                               <div className="flex justify-end gap-2">
+                                  {!txn.verified && (
+                                    <button
+                                      onClick={() => handleVerifyPayment(txn)}
+                                      className="p-2 text-amber-500 hover:bg-amber-50 rounded-lg transition-all"
+                                      title="Verify Payment"
+                                    >
+                                      <ShieldCheck size={18} />
+                                    </button>
+                                  )}
+                                  <button
+                                    onClick={() => setSelectedTxn(txn)}
+                                    className="p-2 text-slate-400 hover:text-medical-600 transition-all"
+                                  >
+                                    <MoreVertical size={18} />
+                                  </button>
+                               </div>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+
+                  {/* Mobile Card View */}
+                  <div className="md:hidden space-y-4">
+                    {transactions.filter(t =>
+                      t.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+                      t.type.toLowerCase().includes(searchTerm.toLowerCase())
+                    ).map(txn => (
+                      <div key={txn.id} className="bg-slate-50 dark:bg-slate-900/40 p-5 rounded-2xl space-y-4 border border-slate-100 dark:border-slate-800 shadow-sm relative overflow-hidden">
+                        <div className="flex justify-between items-start">
+                          <div className="flex items-center gap-3">
+                            <div className="w-10 h-10 bg-white dark:bg-slate-800 rounded-xl flex items-center justify-center font-black text-medical-600 border border-slate-100 dark:border-slate-700">
+                              {txn.receiptNo?.slice(-2)}
+                            </div>
+                            <div>
+                              <p className="text-sm font-black text-slate-900 dark:text-white">{txn.type}</p>
+                              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-[0.1em]">{new Date(txn.date).toLocaleDateString()}</p>
+                            </div>
+                          </div>
+                          <button
+                            onClick={() => setSelectedTxn(txn)}
+                            className="p-2 text-slate-400 hover:text-medical-600"
+                          >
+                            <MoreVertical size={18} />
+                          </button>
+                        </div>
+
+                        <div className="flex justify-between items-center pt-2">
+                          <div>
+                            <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Amount</p>
+                            <p className="text-base font-black text-slate-900 dark:text-white">NGN {txn.amount.toLocaleString()}</p>
+                          </div>
+                          <div className="text-right">
+                             <span className={`px-2 py-1 rounded-lg text-[8px] font-black uppercase tracking-widest ${
+                                txn.status === 'Success' ? 'bg-emerald-100 text-emerald-700' : 'bg-amber-100 text-amber-700'
+                             }`}>
+                                {txn.status}
+                             </span>
+                          </div>
+                        </div>
+
+                        <div className="flex items-center justify-between pt-3 border-t border-slate-200/50 dark:border-slate-700/50">
+                           <div className="flex items-center gap-2">
+                              <div className={`w-2 h-2 rounded-full ${txn.releaseStatus === 'Released' ? 'bg-emerald-500' : 'bg-amber-500'}`} />
+                              <span className="text-[9px] font-bold text-slate-500 uppercase">{txn.releaseStatus}</span>
+                           </div>
+                           <p className="text-[8px] font-bold text-slate-400">{txn.id}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
                </div>
             </div>
           </motion.div>

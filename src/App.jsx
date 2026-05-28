@@ -5,7 +5,7 @@ import Layout from './components/Layout';
 import { MotionConfig } from 'framer-motion';
 
 // Lazy load pages
-// const Landing = lazy(() => import('./pages/Landing')); // Preserved for future use but detached
+const Landing = lazy(() => import('./pages/Landing')); // Detached from primary flow
 const Auth = lazy(() => import('./pages/Auth'));
 const Activate = lazy(() => import('./pages/Activate'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -48,6 +48,10 @@ const AppRouter = () => (
     <Routes>
       {/* Root now goes directly to Dashboard */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+      {/* Detached Marketing/Welcome Page */}
+      <Route path="/welcome" element={<Landing />} />
+      <Route path="/marketing" element={<Landing />} />
 
       {/* Auth routes preserved but usually bypassed in this mode */}
       <Route path="/login" element={<Auth />} />

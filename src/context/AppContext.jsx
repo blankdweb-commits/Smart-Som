@@ -19,7 +19,8 @@ export function AppProvider({ children }) {
   const [studyStats, setStudyStats] = useState({ streak: 0, lastStudyDate: null, cardsStudied: 0 });
   const [userProfile, setUserProfile] = useState({
     fullName: '', email: '', phone: '', department: '', level: '',
-    isActivated: false, isAdmin: false, subscriptionStatus: 'none',
+    isActivated: true, // Default to true for Dashboard-First stability
+    isAdmin: false, subscriptionStatus: 'none',
     subscriptionExpiry: null, graceUntil: null
   });
   const [paymentPurposes, setPaymentPurposes] = useState([]);
@@ -116,18 +117,24 @@ export function AppProvider({ children }) {
 
   // 1. Auth Listener
   useEffect(() => {
-    // ALWAYS provide mock data if session is missing, to ensure "Dashboard First" experience
+    // Priority Fallback: Injects mock data ONLY if no real session exists
     const setupMockData = () => {
-      setUserProfile({
-        fullName: 'Demo Student',
-        email: 'student@apexscholars.com',
-        phone: '08012345678',
-        department: 'Nursing Science',
-        level: 'Year 3',
-        isActivated: true,
-        isAdmin: true,
-        role: 'super_admin',
-        subscriptionStatus: 'active'
+      console.log("Auth: Injecting Mock 'Super Admin' for stability.");
+      setUserProfile(prev => {
+        // If we already have a real user (not the mock email) and a session, DON'T override
+        if (prev.email && prev.email !== 'student@apexscholars.com' && session) return prev;
+
+        return {
+          fullName: 'Demo Student',
+          email: 'student@apexscholars.com',
+          phone: '08012345678',
+          department: 'Nursing Science',
+          level: 'Year 3',
+          isActivated: true,
+          isAdmin: true,
+          role: 'super_admin',
+          subscriptionStatus: 'active'
+        };
       });
       setTransactions([
         { id: 'TXN-001', type: 'Clinical Fee', amount: 25000, status: 'success', date: new Date().toISOString(), created_at: new Date().toISOString(), receiptNo: 'RC-99210', releaseStatus: 'Released' },
@@ -158,7 +165,8 @@ export function AppProvider({ children }) {
       setLoadingAuth(false);
     });
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, currentSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
+      console.log('Auth change event:', event);
       if (!currentSession) {
         setupMockData();
       }
@@ -176,13 +184,10 @@ export function AppProvider({ children }) {
     if (session) {
       fetchUserData();
     } else {
+      // If no session, we keep the mock data initialized in the auth listener
+      // Do not reset to empty profile if we want to support Mock/Guest mode
       setExams([]);
-      setTransactions([]);
-      setFlashcards([...initialFlashcards, ...allBuiltInFlashcards]);
-      setUserProfile({
-        fullName: '', email: '', phone: '', department: '', level: '',
-        isActivated: false, isAdmin: false, subscriptionStatus: 'none'
-      });
+      // we keep the mock transactions and flashcards set by setupMockData if needed
     }
   }, [session, fetchUserData]);
 

@@ -47,21 +47,15 @@ const Landing = () => {
     fetchData();
   }, [session, userProfile.isActivated]);
 
-  // Auto-redirect for logged in users
+  // Auto-redirect removed to allow viewing /welcome or /marketing if explicitly navigated to
+  // but keeping logic in case we want to re-enable selective redirects later
+  /*
   useEffect(() => {
-    const DEV_MODE =  (import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true');
-    if (DEV_MODE) {
-      navigate('/dashboard');
-      return;
-    }
     if (!loadingAuth && session) {
-      if (userProfile.isActivated) {
-        navigate('/dashboard');
-      } else {
-        navigate('/activate');
-      }
+      navigate('/dashboard');
     }
-  }, [session, userProfile.isActivated, loadingAuth, navigate]);
+  }, [session, loadingAuth, navigate]);
+  */
 
   // Urgency logic
   useEffect(() => {

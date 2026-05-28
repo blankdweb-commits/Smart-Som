@@ -1,0 +1,150 @@
+# Page snapshot
+
+```yaml
+- generic [ref=e3]:
+  - generic [ref=e5]:
+    - generic [ref=e6]:
+      - heading "Apex Scholars" [level=1] [ref=e7]
+      - paragraph [ref=e8]: Rise to Excellence
+    - navigation [ref=e9]:
+      - link "Dashboard" [ref=e10] [cursor=pointer]:
+        - /url: /dashboard
+        - img [ref=e11]
+        - generic [ref=e16]: Dashboard
+      - link "Flashcards" [ref=e17] [cursor=pointer]:
+        - /url: /flashcards
+        - img [ref=e18]
+        - generic [ref=e20]: Flashcards
+      - link "Quiz Mode" [ref=e21] [cursor=pointer]:
+        - /url: /quiz
+        - img [ref=e22]
+        - generic [ref=e30]: Quiz Mode
+      - link "Exam Timetable" [ref=e31] [cursor=pointer]:
+        - /url: /exams
+        - img [ref=e32]
+        - generic [ref=e34]: Exam Timetable
+      - link "Past Questions" [ref=e35] [cursor=pointer]:
+        - /url: /papers
+        - img [ref=e36]
+        - generic [ref=e40]: Past Questions
+      - link "Pronunciation" [ref=e41] [cursor=pointer]:
+        - /url: /pronunciation
+        - img [ref=e42]
+        - generic [ref=e46]: Pronunciation
+      - link "Community" [ref=e47] [cursor=pointer]:
+        - /url: /community
+        - img [ref=e48]
+        - generic [ref=e53]: Community
+      - link "Settings" [ref=e54] [cursor=pointer]:
+        - /url: /settings
+        - img [ref=e55]
+        - generic [ref=e58]: Settings
+  - main [ref=e59]:
+    - generic [ref=e60]:
+      - generic [ref=e62]:
+        - generic [ref=e63]: A
+        - generic [ref=e64]: Apex Scholars
+      - generic [ref=e65]:
+        - link [ref=e66] [cursor=pointer]:
+          - /url: /dashboard/settings
+          - img [ref=e67]
+        - button "Toggle dark mode" [ref=e70]:
+          - img [ref=e71]
+    - generic [ref=e74]:
+      - generic [ref=e75]:
+        - generic [ref=e76]:
+          - heading "Apex Scholars" [level=2] [ref=e77]
+          - paragraph [ref=e78]: Institutional Productivity Hub • Year 3
+        - button [ref=e80]:
+          - img [ref=e81]
+      - generic [ref=e83]:
+        - generic [ref=e84]:
+          - generic [ref=e85]:
+            - generic [ref=e86]:
+              - img [ref=e88]
+              - generic [ref=e91]:
+                - heading "Daily Precision" [level=4] [ref=e92]
+                - heading "Today's Clinical Challenge" [level=3] [ref=e93]
+                - paragraph [ref=e94]: 5 randomized concepts tailored for Year 3.
+                - button "Start Challenge" [ref=e95]:
+                  - text: Start Challenge
+                  - img [ref=e96]
+            - generic [ref=e98]:
+              - generic [ref=e99]:
+                - heading "Attention Required" [level=3] [ref=e100]:
+                  - img [ref=e101]
+                  - text: Attention Required
+                - paragraph [ref=e105]: Focus on these topics to improve your score.
+              - generic [ref=e106]:
+                - generic [ref=e107]:
+                  - generic [ref=e108]:
+                    - paragraph [ref=e109]: Pharmacology
+                    - paragraph [ref=e110]: Medical Surgical
+                  - generic [ref=e111]: 12 errors
+                - generic [ref=e112]:
+                  - generic [ref=e113]:
+                    - paragraph [ref=e114]: Acid-Base Balance
+                    - paragraph [ref=e115]: Foundations
+                  - generic [ref=e116]: 8 errors
+          - generic [ref=e117]:
+            - generic [ref=e118]:
+              - img [ref=e120]
+              - generic [ref=e122]:
+                - paragraph [ref=e123]: Vault
+                - paragraph [ref=e124]: "7218"
+            - generic [ref=e125]:
+              - img [ref=e127]
+              - generic [ref=e130]:
+                - paragraph [ref=e131]: Mastery
+                - paragraph [ref=e132]: "0"
+            - generic [ref=e133]:
+              - img [ref=e135]
+              - generic [ref=e138]:
+                - paragraph [ref=e139]: Streak
+                - paragraph [ref=e140]: 0d
+            - generic [ref=e141]:
+              - img [ref=e143]
+              - generic [ref=e146]:
+                - paragraph [ref=e147]: Due
+                - paragraph [ref=e148]: "7218"
+          - generic [ref=e149]:
+            - heading "Subject Mastery" [level=3] [ref=e150]:
+              - img [ref=e151]
+              - text: Subject Mastery
+            - generic [ref=e153]:
+              - generic [ref=e155]:
+                - generic [ref=e156]: Applied Physics
+                - generic [ref=e157]: 0% learned
+              - generic [ref=e160]:
+                - generic [ref=e161]: Principle of Management & teaching
+                - generic [ref=e162]: 0% learned
+              - generic [ref=e165]:
+                - generic [ref=e166]: Reproductive Health I
+                - generic [ref=e167]: 0% learned
+              - generic [ref=e170]:
+                - generic [ref=e171]: Social & Behavioural Science
+                - generic [ref=e172]: 0% learned
+              - generic [ref=e175]:
+                - generic [ref=e176]: Reproductive health III
+                - generic [ref=e177]: 0% learned
+        - generic [ref=e179]:
+          - generic [ref=e180]:
+            - img [ref=e182]
+            - heading "Clinical Reference" [level=3] [ref=e185]
+            - generic [ref=e186]:
+              - generic [ref=e187]:
+                - paragraph [ref=e188]: Normal BP
+                - paragraph [ref=e189]: 120/80 mmHg
+              - generic [ref=e190]:
+                - paragraph [ref=e191]: Normal HR
+                - paragraph [ref=e192]: 60-100 bpm
+              - generic [ref=e193]:
+                - paragraph [ref=e194]: Normal Temp
+                - paragraph [ref=e195]: 36.5-37.5 °C
+              - generic [ref=e196]:
+                - paragraph [ref=e197]: Oxygen Sat
+                - paragraph [ref=e198]: 95-100%
+          - generic [ref=e199]:
+            - heading "Apex Mindset" [level=4] [ref=e200]
+            - paragraph [ref=e202]: "\"Use the 'Shuffle' mode for flashcards to improve long-term retention.\""
+```

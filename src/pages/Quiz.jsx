@@ -117,7 +117,8 @@ const Quiz = () => {
           </p>
         </div>
 
-        {!isActivated && (
+        {/* Activation Check - Temporarily bypassed */}
+        {false && !isActivated && (
           <div className="p-6 bg-apex-50 dark:bg-apex-900/20 border border-apex-200 dark:border-apex-900/30 rounded-2xl flex items-start gap-4 text-left">
             <Lock className="text-apex-600 shrink-0 mt-1" />
             <div>
@@ -137,11 +138,10 @@ const Quiz = () => {
           </div>
         ) : (
           <button
-            onClick={isActivated ? startQuiz : () => navigate('/activate')}
-            className={`px-12 py-4 text-white rounded-2xl font-bold text-lg shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3 mx-auto ${isActivated ? 'bg-medical-600 shadow-medical-600/30 hover:bg-medical-700' : 'bg-apex-600 shadow-apex-600/30 hover:bg-apex-700'}`}
+            onClick={startQuiz}
+            className={`px-12 py-4 text-white rounded-2xl font-bold text-lg shadow-xl active:scale-95 transition-all flex items-center justify-center gap-3 mx-auto bg-medical-600 shadow-medical-600/30 hover:bg-medical-700`}
           >
-            {!isActivated && <Lock size={20} />}
-            {isActivated ? 'Start Quiz' : 'Unlock Now'}
+            Start Quiz
           </button>
         )}
       </div>
@@ -215,35 +215,35 @@ const Quiz = () => {
         />
       </div>
 
-      <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-6 sm:p-10 shadow-clinical border border-slate-100 dark:border-slate-700 space-y-8 relative overflow-hidden">
+      <div className="bg-white dark:bg-slate-800 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-10 shadow-clinical border border-slate-100 dark:border-slate-700 space-y-6 sm:space-y-8 relative overflow-hidden">
         {/* Intelligence Actions */}
-        <div className="flex gap-2 mb-4">
+        <div className="flex gap-3">
            {!isCorrect && attempts === 0 && (
               <>
                 <button
                   onClick={() => setShowHint(true)}
-                  className="px-4 py-2 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-xl text-xs font-black uppercase tracking-widest border border-amber-100 dark:border-amber-900/30 hover:bg-amber-100 transition-all"
+                  className="flex-1 sm:flex-none px-4 py-3 bg-amber-50 dark:bg-amber-900/20 text-amber-600 dark:text-amber-400 rounded-xl text-[10px] font-black uppercase tracking-widest border border-amber-100 dark:border-amber-900/30 active:scale-95 transition-all"
                 >
-                  💡 Use Hint
+                  💡 Hint
                 </button>
                 <button
                   onClick={eliminateTwo}
-                  className="px-4 py-2 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl text-xs font-black uppercase tracking-widest border border-indigo-100 dark:border-indigo-900/30 hover:bg-indigo-100 transition-all"
+                  className="flex-1 sm:flex-none px-4 py-3 bg-indigo-50 dark:bg-indigo-900/20 text-indigo-600 dark:text-indigo-400 rounded-xl text-[10px] font-black uppercase tracking-widest border border-indigo-100 dark:border-indigo-900/30 active:scale-95 transition-all"
                 >
-                  ✂️ Eliminate 2
+                  ✂️ 50/50
                 </button>
               </>
            )}
         </div>
 
         <div className="space-y-4">
-          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white leading-tight tracking-tight">
+          <h2 className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white leading-tight tracking-tight">
             {currentQ.question}
           </h2>
 
           {showHint && currentQ.hint && (
              <div className="p-4 bg-amber-50/50 dark:bg-amber-900/10 border-l-4 border-amber-400 rounded-r-2xl animate-in slide-in-from-left-2">
-                <p className="text-xs font-black text-amber-600 uppercase tracking-widest mb-1">Clinical Hint</p>
+                <p className="text-[10px] font-black text-amber-600 uppercase tracking-widest mb-1">Clinical Hint</p>
                 <p className="text-sm font-medium text-slate-600 dark:text-slate-400 italic">"{currentQ.hint}"</p>
              </div>
           )}
@@ -269,27 +269,29 @@ const Quiz = () => {
                 key={idx}
                 disabled={(selectedOption !== null && isCorrect) || attempts >= 2 || isEliminated}
                 onClick={() => handleOptionClick(option)}
-                className={`w-full text-left p-5 rounded-2xl border-2 transition-all duration-200 flex items-center justify-between group ${style}`}
+                className={`w-full text-left p-4 sm:p-5 rounded-2xl border-2 transition-all duration-200 flex items-center justify-between group active:scale-[0.98] ${style}`}
               >
-                <span className="font-bold text-sm sm:text-base tracking-tight">{option}</span>
-                {selectedOption === option && (
-                  option === currentQ.correctAnswer ? <CheckCircle2 size={20} /> : <XCircle size={20} />
-                )}
-                {showRationale && option === currentQ.correctAnswer && <CheckCircle2 size={20} />}
+                <span className="font-bold text-sm sm:text-base tracking-tight leading-tight pr-4">{option}</span>
+                <div className="shrink-0">
+                  {selectedOption === option && (
+                    option === currentQ.correctAnswer ? <CheckCircle2 size={22} /> : <XCircle size={22} />
+                  )}
+                  {showRationale && option === currentQ.correctAnswer && <CheckCircle2 size={22} className="text-green-500" />}
+                </div>
               </button>
             );
           })}
         </div>
 
         {showRationale && (
-          <div className="mt-8 p-6 bg-slate-50 dark:bg-slate-900/50 rounded-[2rem] border border-slate-100 dark:border-slate-800 animate-in zoom-in duration-500">
+          <div className="mt-4 sm:mt-8 p-5 sm:p-6 bg-slate-50 dark:bg-slate-900/50 rounded-[1.5rem] sm:rounded-[2rem] border border-slate-100 dark:border-slate-800 animate-in zoom-in duration-500">
             <div className="flex items-center gap-2 mb-3">
                <div className="p-1.5 bg-medical-100 dark:bg-medical-900/30 text-medical-600 rounded-lg">
                   <AlertCircle size={16} />
                </div>
-               <h4 className="text-xs font-black uppercase tracking-widest text-slate-400">Clinical Rationale</h4>
+               <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Clinical Rationale</h4>
             </div>
-            <p className="text-sm sm:text-base font-medium text-slate-700 dark:text-slate-300 leading-relaxed italic">
+            <p className="text-sm font-medium text-slate-700 dark:text-slate-300 leading-relaxed italic">
               {currentQ.rationale || "The correct answer is derived from standard clinical protocols and the physiological basis of nursing practice."}
             </p>
           </div>
