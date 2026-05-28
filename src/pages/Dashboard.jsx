@@ -1,14 +1,15 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { BookOpen, Calendar, TrendingUp, Award, Zap, ArrowRight, Star, Clock, Lock, AlertCircle } from '../components/Icons';
+import { BookOpen, Calendar, TrendingUp, Award, Zap, ArrowRight, Star, Clock, Lock, AlertCircle, Brain, Target } from '../components/Icons';
 import { differenceInDays } from 'date-fns';
 import FeeDashboardWidget from '../components/FeeDashboardWidget';
+import DailyChallengeWidget from '../components/DailyChallengeWidget';
 import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
 const Dashboard = () => {
   const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
-  const { flashcards, exams, studyStats, userProfile, session, loadingAuth } = useAppContext();
+  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics } = useAppContext();
   const navigate = useNavigate();
 
   // Redirect if not logged in
@@ -175,6 +176,37 @@ const Dashboard = () => {
           )}
 
           <FeeDashboardWidget />
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <DailyChallengeWidget />
+            <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
+              <div>
+                <h3 className="text-lg font-black flex items-center gap-2 text-slate-900 dark:text-white uppercase tracking-tight">
+                  <Target className="text-red-500" size={20} /> Attention Required
+                </h3>
+                <p className="text-xs text-slate-500 mt-1">Focus on these topics to improve your score.</p>
+              </div>
+              <div className="mt-4 space-y-3">
+                {(DEV_MODE && learningAnalytics.weakTopics.length === 0 ? [
+                  { name: 'Pharmacology', count: 12, subject: 'Medical Surgical' },
+                  { name: 'Acid-Base Balance', count: 8, subject: 'Foundations' }
+                ] : learningAnalytics.weakTopics).map((topic, i) => (
+                  <div key={i} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
+                    <div>
+                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{topic.name}</p>
+                      <p className="text-[10px] text-slate-400 uppercase font-black">{topic.subject}</p>
+                    </div>
+                    <span className="text-xs font-black text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-lg">{topic.count} errors</span>
+                  </div>
+                ))}
+                {learningAnalytics.weakTopics.length === 0 && !DEV_MODE && (
+                   <div className="py-4 text-center">
+                      <p className="text-xs text-slate-400 italic">No critical weak spots detected yet. Keep studying!</p>
+                   </div>
+                )}
+              </div>
+            </div>
+          </div>
 
           {isExamSoon && (
             <div className="space-y-4">
