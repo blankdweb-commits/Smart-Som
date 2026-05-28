@@ -13,11 +13,6 @@ const Layout = ({ children }) => {
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-500 overflow-x-hidden">
-      {DEV_MODE && (
-        <div className="fixed top-0 left-0 right-0 z-[100] bg-amber-500 text-white text-[10px] font-black uppercase tracking-[0.3em] py-1 text-center pointer-events-none">
-          Testing Mode Active • Paywalls Disabled
-        </div>
-      )}
       <Sidebar />
 
       <main className="flex-1 min-w-0 mb-20 lg:mb-0">

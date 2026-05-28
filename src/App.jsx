@@ -5,7 +5,7 @@ import Layout from './components/Layout';
 import { MotionConfig } from 'framer-motion';
 
 // Lazy load pages
-const Landing = lazy(() => import('./pages/Landing'));
+const Landing = lazy(() => import('./pages/Landing')); // Detached from primary flow
 const Auth = lazy(() => import('./pages/Auth'));
 const Activate = lazy(() => import('./pages/Activate'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -23,31 +23,41 @@ const PageLoader = () => (
   </div>
 );
 
-const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
+const DASHBOARD_FIRST_MODE = true; // Hardcoded true to bypass blockers as requested
 
 const ProtectedRoute = ({ children, requireActivated = true }) => {
   const { session, userProfile, loadingAuth } = useAppContext();
 
   if (loadingAuth) return <PageLoader />;
-  if (!session && !DEV_MODE) return <Navigate to="/" replace />;
 
-  if (requireActivated && !userProfile.isActivated && !DEV_MODE) {
+  // If no session and NOT in dashboard-first-always-allow mode, go to login
+  // For now, DASHBOARD_FIRST_MODE is true, so we usually fall through to children
+  if (!session && !DASHBOARD_FIRST_MODE) return <Navigate to="/login" replace />;
+
+  if (requireActivated && !userProfile.isActivated && !DASHBOARD_FIRST_MODE) {
     return <Navigate to="/activate" replace />;
   }
 
   return children;
 };
 
-// --- ROUTER TREES ---
+// --- MAIN ROUTER ---
 
-const DashboardDevRouter = () => (
+const AppRouter = () => (
   <Suspense fallback={<PageLoader />}>
     <Routes>
+      {/* Root now goes directly to Dashboard */}
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
+
+      {/* Detached Marketing/Welcome Page */}
+      <Route path="/welcome" element={<Landing />} />
+      <Route path="/marketing" element={<Landing />} />
+
+      {/* Auth routes preserved but usually bypassed in this mode */}
       <Route path="/login" element={<Auth />} />
       <Route path="/signup" element={<Auth />} />
 
-      {/* Shared Layout Wrapper for Dashboard Routes */}
+      {/* Primary Dashboard Experience */}
       <Route element={<Layout />}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/activate" element={<Activate />} />
@@ -60,32 +70,8 @@ const DashboardDevRouter = () => (
         <Route path="/admin/finance" element={<AdminFinance />} />
       </Route>
 
+      {/* Fallback to Dashboard */}
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
-    </Routes>
-  </Suspense>
-);
-
-const PublicRouter = () => (
-  <Suspense fallback={<PageLoader />}>
-    <Routes>
-      <Route path="/" element={<Landing />} />
-      <Route path="/login" element={<Auth />} />
-      <Route path="/signup" element={<Auth />} />
-
-      {/* Authenticated Layout Routes */}
-      <Route element={<Layout />}>
-        <Route path="/activate" element={<ProtectedRoute requireActivated={false}><Activate /></ProtectedRoute>} />
-        <Route path="/dashboard" element={<ProtectedRoute requireActivated={false}><Dashboard /></ProtectedRoute>} />
-        <Route path="/flashcards" element={<ProtectedRoute requireActivated={false}><Flashcards /></ProtectedRoute>} />
-        <Route path="/quiz" element={<ProtectedRoute requireActivated={false}><Quiz /></ProtectedRoute>} />
-        <Route path="/exams" element={<ProtectedRoute requireActivated={false}><ExamTimetable /></ProtectedRoute>} />
-        <Route path="/papers" element={<ProtectedRoute requireActivated={false}><Papers /></ProtectedRoute>} />
-        <Route path="/payments" element={<ProtectedRoute requireActivated={false}><Payments /></ProtectedRoute>} />
-        <Route path="/settings" element={<ProtectedRoute requireActivated={false}><Settings /></ProtectedRoute>} />
-        <Route path="/admin/finance" element={<ProtectedRoute><AdminFinance /></ProtectedRoute>} />
-      </Route>
-
-      <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   </Suspense>
 );
@@ -93,9 +79,9 @@ const PublicRouter = () => (
 function App() {
   return (
     <AppProvider>
-      <MotionConfig reducedMotion={DEV_MODE ? "always" : "user"}>
+      <MotionConfig reducedMotion="user">
         <Router>
-          {DEV_MODE ? <DashboardDevRouter /> : <PublicRouter />}
+          <AppRouter />
         </Router>
       </MotionConfig>
     </AppProvider>

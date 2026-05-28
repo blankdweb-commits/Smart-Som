@@ -35,6 +35,32 @@ const Payments = () => {
   const [otp, setOtp] = useState('');
   const [lastTxn, setLastTxn] = useState(null);
 
+  const simulatePayment = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      setIsProcessing(false);
+      setPaymentStep('otp');
+    }, 2000);
+  };
+
+  const verifyOtp = () => {
+    setIsProcessing(true);
+    setTimeout(() => {
+      const mockTxn = {
+        id: `TXN-SIM-${Math.floor(Math.random() * 100000)}`,
+        type: 'School Fee Partial',
+        amount: selectedPlan ? (feeDetails.totalFee * selectedPlan.percent / 100) : parseFloat(customAmount),
+        status: 'Success',
+        date: new Date().toISOString(),
+        receiptNo: `RC-${Math.floor(Math.random() * 90000) + 10000}`
+      };
+      addTransaction(mockTxn);
+      setLastTxn(mockTxn);
+      setPaymentStep('success');
+      setIsProcessing(false);
+    }, 1500);
+  };
+
   const relevantPurposes = paymentPurposes.filter(p =>
     p.active &&
     (p.targetDept === 'All' || p.targetDept === userProfile.department) &&
@@ -46,6 +72,28 @@ const Payments = () => {
   const handleStartPayment = async (purpose) => {
     setIsProcessing(true);
     try {
+      // In DEV_MODE, we simulate the payment flow
+      const DEV_MODE =  (import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true');
+
+      if (DEV_MODE) {
+        setToast({ message: 'Simulating official gateway...', type: 'info' });
+        setTimeout(() => {
+          const mockTxn = {
+            id: `TXN-SIM-${Math.floor(Math.random() * 100000)}`,
+            type: purpose.title,
+            amount: purpose.amount,
+            status: 'Success',
+            date: new Date().toISOString(),
+            receiptNo: `RC-${Math.floor(Math.random() * 90000) + 10000}`
+          };
+          addTransaction(mockTxn);
+          setLastTxn(mockTxn);
+          setPaymentStep('success');
+          setIsProcessing(false);
+        }, 1500);
+        return;
+      }
+
       const response = await fetch('/api/payments/initialize', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
