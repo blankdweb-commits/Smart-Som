@@ -1,4 +1,4 @@
-import React, { useState, useMemo, useEffect } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Brain, CheckCircle2, XCircle, RefreshCw, ChevronRight, Trophy, AlertCircle, Lock, Star, Users, Share2, ArrowRight, Clock, Award, Shield, Target, BookOpen, Zap, Settings } from '../components/Icons';
 import { useNavigate } from 'react-router-dom';
@@ -15,6 +15,8 @@ const MILESTONES = [
 const Quiz = () => {
   const { flashcards, userProfile, studyStats, updateQuizStats } = useAppContext();
   const navigate = useNavigate();
+
+  // -- 1. STATE DECLARATIONS (Ordered for initialization safety) --
   const [quizMode, setQuizMode] = useState(null); // 'revision', 'speed', 'mastery', 'cbt'
   const [quizStarted, setQuizStarted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -28,29 +30,33 @@ const Quiz = () => {
   const [isCorrect, setIsCorrect] = useState(null);
   const [eliminatedOptions, setEliminatedOptions] = useState([]);
   const [isConfirming, setIsConfirming] = useState(false);
-  const [lifelinesUsed, setLifelinesUsed] = useState({ hint: false, fiftyFifty: false, askClass: false });
+  const [lifelinesUsed, setLifelinesUsed] = useState({ hint: false, fiftyFifty: false, askClass: false, askFriend: false });
   const [classPoll, setClassPoll] = useState(null);
+  const [colleagueAdvice, setColleagueAdvice] = useState(null);
 
-  // Speed mode state
+  // Speed mode specific state
   const [timeLeft, setTimeLeft] = useState(15);
   const [volumeOn, setVolumeOn] = useState(true);
   const [showSettings, setShowSettings] = useState(false);
 
-  // Timer logic for speed mode
+  // -- 2. SIDE EFFECTS --
   useEffect(() => {
     let timer;
-    if (quizStarted && quizMode === 'speed' && !showRationale && timeLeft > 0) {
+    if (quizStarted && quizMode === 'speed' && !showRationale && !showResults && !isConfirming && !colleagueAdvice && timeLeft > 0) {
       timer = setInterval(() => {
         setTimeLeft(prev => {
-          if (prev <= 6 && prev > 1) playSound('tick');
-          return prev - 1;
+          const next = prev - 1;
+          if (next <= 5 && next > 0) playSound('tick');
+          return next;
         });
       }, 1000);
-    } else if (timeLeft === 0 && !showRationale) {
-      confirmAnswer(); // Auto-submit on timeout
+    } else if (timeLeft === 0 && !showRationale && !showResults && quizMode === 'speed') {
+      // Small delay to ensure state is settled before auto-submitting
+      const timeout = setTimeout(() => confirmAnswer(), 100);
+      return () => clearTimeout(timeout);
     }
     return () => clearInterval(timer);
-  }, [quizStarted, quizMode, showRationale, timeLeft]);
+  }, [quizStarted, quizMode, showRationale, showResults, isConfirming, colleagueAdvice, timeLeft]);
 
   // Reset timer on next question
   const resetTimer = () => setTimeLeft(15);
@@ -172,22 +178,26 @@ const Quiz = () => {
     }
   };
 
-  const eliminateTwo = () => {
-    if (attempts > 0 || lifelinesUsed.fiftyFifty) return;
+  const eliminateTwo = useCallback(() => {
+    if (attempts > 0 || lifelinesUsed.fiftyFifty || !quizQuestions[currentQuestionIndex]) return;
+
     const currentQ = quizQuestions[currentQuestionIndex];
     const incorrectOptions = currentQ.options.filter(opt => opt !== currentQ.correctAnswer);
-    const toEliminate = incorrectOptions.sort(() => 0.5 - Math.random()).slice(0, 2);
+
+    // Select exactly 2 to eliminate
+    const shuffledIncorrect = [...incorrectOptions].sort(() => 0.5 - Math.random());
+    const toEliminate = shuffledIncorrect.slice(0, 2);
+
     setEliminatedOptions(toEliminate);
     setLifelinesUsed(prev => ({ ...prev, fiftyFifty: true }));
-  };
+  }, [attempts, lifelinesUsed.fiftyFifty, quizQuestions, currentQuestionIndex]);
 
-  const askClass = () => {
-    if (lifelinesUsed.askClass) return;
+  const askClass = useCallback(() => {
+    if (lifelinesUsed.askClass || !quizQuestions[currentQuestionIndex]) return;
     const currentQ = quizQuestions[currentQuestionIndex];
 
     // Advanced Simulation Algorithm
-    // Simulates a realistic student population poll
-    const isHardQuestion = (currentQ.question || '').length > 100; // Proxy for complexity
+    const isHardQuestion = (currentQ.question || '').length > 100;
     const accuracyBase = isHardQuestion ? 0.45 : 0.75;
     const isAudienceCorrect = Math.random() < accuracyBase;
 
@@ -223,15 +233,11 @@ const Quiz = () => {
 
     setClassPoll(results);
     setLifelinesUsed(prev => ({ ...prev, askClass: true }));
-  };
+  }, [lifelinesUsed.askClass, quizQuestions, currentQuestionIndex]);
 
-  const [colleagueAdvice, setColleagueAdvice] = useState(null);
-
-  const askColleague = () => {
-    if (lifelinesUsed.askFriend) return;
+  const askColleague = useCallback(() => {
+    if (lifelinesUsed.askFriend || !quizQuestions[currentQuestionIndex]) return;
     const currentQ = quizQuestions[currentQuestionIndex];
-
-    // Simulate a nursing colleague's reasoning
     const names = ["Nurse Tolu", "Dr. Emeka", "Senior Nurse Sarah", "Head Nurse Ibrahim"];
     const name = names[Math.floor(Math.random() * names.length)];
 
@@ -251,7 +257,7 @@ const Quiz = () => {
         : "I've seen this in the ward before, but it could be a tricky one."
     });
     setLifelinesUsed(prev => ({ ...prev, askFriend: true }));
-  };
+  }, [lifelinesUsed.askFriend, quizQuestions, currentQuestionIndex]);
 
   const nextQuestion = () => {
     if (currentQuestionIndex < quizQuestions.length - 1) {
@@ -386,9 +392,9 @@ const Quiz = () => {
 
   if (quizStarted && quizMode === 'speed') {
     return (
-      <div className="fixed inset-0 z-[60] bg-slate-900 flex flex-col overflow-hidden text-white font-sans">
+      <div className="fixed inset-0 z-[60] bg-slate-900 flex flex-col h-[100dvh] overflow-hidden text-white font-sans touch-none selection:bg-medical-500/30">
         {/* Speed Mode Header */}
-        <header className="p-4 flex justify-between items-center bg-slate-800/50 backdrop-blur-md border-b border-white/5">
+        <header className="shrink-0 p-3 sm:p-4 flex justify-between items-center bg-slate-800/50 backdrop-blur-md border-b border-white/5 z-10">
           <div className="flex items-center gap-4">
              <div className="w-12 h-12 rounded-full border-4 border-medical-500 flex items-center justify-center font-black text-xl">
                {timeLeft}
@@ -416,29 +422,30 @@ const Quiz = () => {
         </header>
 
         {/* Speed Mode Question Section */}
-        <main className="flex-1 flex flex-col p-4 sm:p-8 space-y-4 max-w-5xl mx-auto w-full">
+        <main className="flex-1 flex flex-col min-h-0 px-4 sm:px-8 py-2 sm:py-6 space-y-4 max-w-5xl mx-auto w-full overflow-y-auto overscroll-contain" style={{ WebkitOverflowScrolling: 'touch' }}>
            {/* Speed Lifelines Bar */}
-           <div className="flex justify-center gap-2 mb-2">
+           <div className="shrink-0 flex justify-center gap-2">
              <SpeedLifeline icon={<Shield size={18} />} label="50/50" used={lifelinesUsed.fiftyFifty} onClick={eliminateTwo} />
              <SpeedLifeline icon={<Users size={18} />} label="Class" used={lifelinesUsed.askClass} onClick={askClass} />
              <SpeedLifeline icon={<Brain size={18} />} label="Colleague" used={lifelinesUsed.askFriend} onClick={askColleague} />
            </div>
 
-           <div className="flex-1 flex flex-col items-center justify-center text-center space-y-8">
+           <div className="shrink-0 flex flex-col items-center justify-center text-center space-y-3 min-h-[15vh] max-h-[40vh] overscroll-contain">
               {currentQ.mediaUrl && (
-                <div className="w-full max-w-md aspect-video bg-slate-800 rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative group">
+                <div className="shrink-0 w-full max-w-[160px] sm:max-w-md aspect-video bg-slate-800 rounded-2xl overflow-hidden border border-white/10 shadow-2xl relative">
                   <img src={currentQ.mediaUrl} alt="Clinical Media" className="w-full h-full object-cover" />
-                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent" />
                 </div>
               )}
 
-              <h2 className={`font-black tracking-tight leading-tight transition-all duration-500 ${currentQ.mediaUrl ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-5xl'}`}>
-                {currentQ.question}
-              </h2>
+              <div className="max-h-[28vh] overflow-y-auto px-2 w-full custom-scrollbar overscroll-contain">
+                <h2 className="font-black tracking-tight leading-relaxed transition-all duration-500 break-words whitespace-normal text-balance" style={{ fontSize: 'clamp(0.95rem, 2vw, 1.15rem)' }}>
+                  {currentQ.question}
+                </h2>
+              </div>
            </div>
 
            {/* 2x2 Grid Options */}
-           <div className="grid grid-cols-2 gap-3 sm:gap-4 h-[40%] min-h-[300px]">
+           <div className="shrink-0 grid grid-cols-2 gap-3 pb-6 overscroll-contain" style={{ gridAutoRows: 'minmax(110px, auto)' }}>
               <SpeedOption
                 label={currentQ.options[0]}
                 color="bg-red-500"
@@ -553,9 +560,9 @@ const Quiz = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto space-y-8 pb-32 relative">
+    <div className="max-w-4xl mx-auto space-y-8 pb-32 relative min-h-[100dvh]">
       {/* Dynamic Header */}
-      <div className="flex justify-between items-end px-2">
+      <div className="flex justify-between items-end px-2 shrink-0">
         <div className="space-y-2">
            <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-medical-500 animate-pulse" />
@@ -573,7 +580,7 @@ const Quiz = () => {
       </div>
 
       {/* Lifelines Bar */}
-      <div className="grid grid-cols-4 gap-3">
+      <div className="grid grid-cols-4 gap-3 shrink-0">
         <LifelineButton
           icon={<Clock />} label="Hint" used={showHint || lifelinesUsed.hint}
           onClick={() => { setShowHint(true); setLifelinesUsed(p => ({...p, hint: true})); }}
@@ -593,9 +600,9 @@ const Quiz = () => {
       </div>
 
       {/* Main Question Card */}
-      <div className="relative">
+      <div className="relative flex-1 flex flex-col min-h-0">
         <div className="absolute inset-0 bg-slate-900 rounded-[3rem] blur-2xl opacity-10 dark:opacity-40" />
-        <div className="relative bg-slate-900 dark:bg-slate-950 rounded-[3rem] p-8 sm:p-12 border border-white/10 shadow-2xl overflow-hidden min-h-[400px] flex flex-col justify-center">
+        <div className="relative flex-1 flex flex-col bg-slate-900 dark:bg-slate-950 rounded-[3rem] p-6 sm:p-12 border border-white/10 shadow-2xl overflow-hidden min-h-[400px]">
 
            <AnimatePresence mode="wait">
              <motion.div
@@ -603,16 +610,18 @@ const Quiz = () => {
                initial={{ opacity: 0, scale: 0.9 }}
                animate={{ opacity: 1, scale: 1 }}
                exit={{ opacity: 0, scale: 1.1 }}
-               className="space-y-12"
+               className="flex-1 flex flex-col space-y-8 overflow-y-auto overscroll-contain custom-scrollbar px-2"
              >
-                <div className="text-center space-y-4">
+                <div className="shrink-0 text-center space-y-4 pt-4">
                    <p className="text-[10px] font-black uppercase tracking-[0.3em] text-medical-500/60">Subject: {currentQ.subject}</p>
-                   <h2 className="text-2xl sm:text-4xl font-black text-white leading-tight tracking-tight px-4">
-                     {currentQ.question}
-                   </h2>
+                   <div className="max-h-[30vh] overflow-y-auto px-4">
+                      <h2 className="text-xl sm:text-4xl font-black text-white leading-tight tracking-tight break-words">
+                        {currentQ.question}
+                      </h2>
+                   </div>
                 </div>
 
-                <div className="grid gap-3 sm:gap-4 relative">
+                <div className="shrink-0 grid gap-3 sm:gap-4 relative pb-8">
                   {currentQ.options.map((option, idx) => {
                     const isEliminated = eliminatedOptions.includes(option);
                     let state = "idle"; // idle, selected, correct, wrong, eliminated
@@ -841,47 +850,49 @@ const ModeCard = ({ title, description, icon, stats, onClick, color }) => {
   );
 };
 
-const LifelineButton = ({ icon, label, used, onClick }) => (
+const LifelineButton = React.memo(({ icon, label, used, onClick }) => (
   <button
     disabled={used}
     onClick={onClick}
-    className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all active:scale-95 ${used ? 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800 text-slate-300 grayscale' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-medical-600 hover:border-medical-500 shadow-sm'}`}
+    className={`flex flex-col items-center justify-center p-4 rounded-2xl border-2 transition-all active:scale-95 touch-manipulation ${used ? 'bg-slate-50 dark:bg-slate-900/50 border-slate-100 dark:border-slate-800 text-slate-300 grayscale' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-medical-600 hover:border-medical-500 shadow-sm'}`}
   >
     {React.cloneElement(icon, { size: 20 })}
     <span className="text-[9px] font-black uppercase tracking-widest mt-2">{label}</span>
   </button>
-);
+));
 
 const SpeedOption = ({ label, color, icon, onClick, disabled, state }) => {
   let stateStyles = "";
-  if (state === 'selected') stateStyles = "ring-4 ring-white ring-offset-4 ring-offset-slate-900 scale-95";
-  if (state === 'correct') stateStyles = "ring-4 ring-emerald-400 scale-100 shadow-[0_0_40px_rgba(52,211,153,0.4)]";
+  if (state === 'selected') stateStyles = "ring-4 ring-white ring-offset-2 ring-offset-slate-900 scale-95 z-10";
+  if (state === 'correct') stateStyles = "ring-4 ring-emerald-400 scale-100 shadow-[0_0_40px_rgba(52,211,153,0.4)] z-10";
   if (state === 'wrong') stateStyles = "opacity-40 grayscale scale-90";
 
   return (
     <button
       disabled={disabled}
       onClick={onClick}
-      className={`relative rounded-[2rem] sm:rounded-[3rem] p-6 flex flex-col items-center justify-center text-center transition-all duration-300 active:scale-95 overflow-hidden group ${color} ${stateStyles}`}
+      className={`relative min-h-[110px] rounded-[1.25rem] sm:rounded-[2.5rem] p-4 flex flex-col items-center justify-center text-center transition-all duration-300 active:scale-95 overflow-hidden group ${color} ${stateStyles} touch-manipulation overscroll-contain`}
     >
-      <div className="absolute top-4 left-4 opacity-40 group-hover:scale-125 transition-transform duration-500">
-        {icon}
+      <div className="absolute top-2 left-2 sm:top-3 sm:left-3 opacity-30 group-hover:scale-110 transition-transform">
+        {React.cloneElement(icon, { size: 16 })}
       </div>
-      <span className="text-lg sm:text-2xl font-black leading-tight px-4">{label}</span>
+      <span className="font-black leading-tight break-words overflow-wrap-anywhere whitespace-normal px-2" style={{ fontSize: 'clamp(0.82rem, 1.9vw, 1rem)' }}>
+        {label}
+      </span>
     </button>
   );
 };
 
-const SpeedLifeline = ({ icon, label, used, onClick }) => (
+const SpeedLifeline = React.memo(({ icon, label, used, onClick }) => (
   <button
     disabled={used}
     onClick={onClick}
-    className={`px-4 py-2 rounded-full border transition-all flex items-center gap-2 ${used ? 'bg-slate-800/50 border-white/5 text-slate-600' : 'bg-white/10 border-white/20 text-white hover:bg-white/20'}`}
+    className={`px-4 py-2 rounded-full border transition-all flex items-center gap-2 touch-manipulation ${used ? 'bg-slate-800/50 border-white/5 text-slate-600' : 'bg-white/10 border-white/20 text-white hover:bg-white/20'}`}
   >
     {icon}
     <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">{label}</span>
   </button>
-);
+));
 
 const SettingToggle = ({ label, active, onClick, disabled }) => (
   <div className={`flex items-center justify-between p-5 bg-slate-700/50 rounded-2xl border border-white/5 ${disabled ? 'opacity-50' : ''}`}>
@@ -896,7 +907,7 @@ const SettingToggle = ({ label, active, onClick, disabled }) => (
   </div>
 );
 
-const OptionButton = ({ label, index, state, pollValue, onClick, disabled }) => {
+const OptionButton = React.memo(({ label, index, state, pollValue, onClick, disabled }) => {
   const letters = ['A', 'B', 'C', 'D'];
 
   let styles = "bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:border-white/30";
@@ -936,7 +947,7 @@ const OptionButton = ({ label, index, state, pollValue, onClick, disabled }) => 
       )}
     </button>
   );
-};
+});
 
 const VolumeX = ({ size, className }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
