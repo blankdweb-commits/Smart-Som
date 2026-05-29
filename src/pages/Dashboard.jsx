@@ -287,7 +287,7 @@ const Dashboard = () => {
   );
 };
 
-const StatsCard = ({ title, value, icon, color }) => (
+const StatsCard = React.memo(({ title, value, icon, color }) => (
   <div className={`p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-700 ${color} flex flex-col items-center justify-center text-center space-y-1 sm:space-y-2 group transition-all hover:-translate-y-1`}>
     <div className="p-2 sm:p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl sm:rounded-2xl mb-1 group-hover:scale-110 transition-transform">
       {React.cloneElement(icon, { size: 20 })}
@@ -297,6 +297,6 @@ const StatsCard = ({ title, value, icon, color }) => (
       <p className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tighter mt-0.5">{value}</p>
     </div>
   </div>
-);
+));
 
 export default Dashboard;

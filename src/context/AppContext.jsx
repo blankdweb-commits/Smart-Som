@@ -366,25 +366,35 @@ export function AppProvider({ children }) {
     }));
   };
 
+  const value = React.useMemo(() => ({
+    session, loadingAuth,
+    flashcards,
+    exams,
+    studyStats,
+    userProfile, updateProfile,
+    darkMode, toggleDarkMode,
+    transactions, auditLogs, feeDetails,
+    subscriptionPlans, paymentPurposes,
+    learningAnalytics,
+    updateSubscriptionPlan, addSubscriptionPlan, deleteSubscriptionPlan,
+    updatePaymentPurpose, addPaymentPurpose, deletePaymentPurpose,
+    addAuditLog,
+    updateCardProgress,
+    incrementCardsStudied,
+    updateQuizStats,
+    fetchUserData
+  }), [
+    session, loadingAuth, flashcards, exams, studyStats, userProfile,
+    darkMode, transactions, auditLogs, feeDetails, subscriptionPlans,
+    paymentPurposes, learningAnalytics, updateProfile, toggleDarkMode,
+    updateSubscriptionPlan, addSubscriptionPlan, deleteSubscriptionPlan,
+    updatePaymentPurpose, addPaymentPurpose, deletePaymentPurpose,
+    addAuditLog, updateCardProgress, incrementCardsStudied, updateQuizStats,
+    fetchUserData
+  ]);
+
   return (
-    <AppContext.Provider value={{
-      session, loadingAuth,
-      flashcards,
-      exams,
-      studyStats,
-      userProfile, updateProfile,
-      darkMode, toggleDarkMode,
-      transactions, auditLogs, feeDetails,
-      subscriptionPlans, paymentPurposes,
-      learningAnalytics,
-      updateSubscriptionPlan, addSubscriptionPlan, deleteSubscriptionPlan,
-      updatePaymentPurpose, addPaymentPurpose, deletePaymentPurpose,
-      addAuditLog,
-      updateCardProgress,
-      incrementCardsStudied,
-      updateQuizStats,
-      fetchUserData
-    }}>
+    <AppContext.Provider value={value}>
       {children}
     </AppContext.Provider>
   );

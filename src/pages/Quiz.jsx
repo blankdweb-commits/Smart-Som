@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Brain, CheckCircle2, XCircle, RefreshCw, ChevronRight, Trophy, AlertCircle, Lock, Star, Users, Share2, ArrowRight, Clock, Award, Shield, Target } from '../components/Icons';
+import { Brain, CheckCircle2, XCircle, RefreshCw, ChevronRight, Trophy, AlertCircle, Lock, Star, Users, Share2, ArrowRight, Clock, Award, Shield, Target, BookOpen, Zap, Settings } from '../components/Icons';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -15,6 +15,7 @@ const MILESTONES = [
 const Quiz = () => {
   const { flashcards, userProfile, studyStats, updateQuizStats } = useAppContext();
   const navigate = useNavigate();
+  const [quizMode, setQuizMode] = useState(null); // 'revision', 'speed', 'mastery', 'cbt'
   const [quizStarted, setQuizStarted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -29,6 +30,30 @@ const Quiz = () => {
   const [isConfirming, setIsConfirming] = useState(false);
   const [lifelinesUsed, setLifelinesUsed] = useState({ hint: false, fiftyFifty: false, askClass: false });
   const [classPoll, setClassPoll] = useState(null);
+
+  // Speed mode state
+  const [timeLeft, setTimeLeft] = useState(15);
+  const [volumeOn, setVolumeOn] = useState(true);
+  const [showSettings, setShowSettings] = useState(false);
+
+  // Timer logic for speed mode
+  useEffect(() => {
+    let timer;
+    if (quizStarted && quizMode === 'speed' && !showRationale && timeLeft > 0) {
+      timer = setInterval(() => {
+        setTimeLeft(prev => {
+          if (prev <= 6 && prev > 1) playSound('tick');
+          return prev - 1;
+        });
+      }, 1000);
+    } else if (timeLeft === 0 && !showRationale) {
+      confirmAnswer(); // Auto-submit on timeout
+    }
+    return () => clearInterval(timer);
+  }, [quizStarted, quizMode, showRationale, timeLeft]);
+
+  // Reset timer on next question
+  const resetTimer = () => setTimeLeft(15);
 
   // Milestone logic
   const currentMilestone = MILESTONES[Math.min(Math.floor(score / 3), MILESTONES.length - 1)];
@@ -78,17 +103,66 @@ const Quiz = () => {
     setIsConfirming(true);
   };
 
+  const playSound = (type) => {
+    if (!volumeOn) return;
+    try {
+      const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+      const oscillator = audioCtx.createOscillator();
+      const gainNode = audioCtx.createGain();
+
+      oscillator.connect(gainNode);
+      gainNode.connect(audioCtx.destination);
+
+      if (type === 'correct') {
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(523.25, audioCtx.currentTime); // C5
+        oscillator.frequency.exponentialRampToValueAtTime(880, audioCtx.currentTime + 0.1); // A5
+        gainNode.gain.setValueAtTime(0.1, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.3);
+      } else if (type === 'wrong') {
+        oscillator.type = 'sawtooth';
+        oscillator.frequency.setValueAtTime(220, audioCtx.currentTime); // A3
+        oscillator.frequency.exponentialRampToValueAtTime(110, audioCtx.currentTime + 0.1); // A2
+        gainNode.gain.setValueAtTime(0.05, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.3);
+      } else if (type === 'tick') {
+        oscillator.type = 'sine';
+        oscillator.frequency.setValueAtTime(880, audioCtx.currentTime);
+        gainNode.gain.setValueAtTime(0.02, audioCtx.currentTime);
+        gainNode.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.05);
+        oscillator.start();
+        oscillator.stop(audioCtx.currentTime + 0.05);
+      }
+    } catch (e) {
+      console.warn("Audio feedback failed:", e);
+    }
+  };
+
   const confirmAnswer = () => {
     const currentQ = quizQuestions[currentQuestionIndex];
     const correct = selectedOption === currentQ.correctAnswer;
     setIsCorrect(correct);
     setIsConfirming(false);
 
+    if (quizMode === 'speed' || quizMode === 'mastery') {
+       playSound(correct ? 'correct' : 'wrong');
+    }
+
     if (correct) {
       if (attempts === 0) setScore(score + 1);
       setShowRationale(true);
       updateQuizStats({ quizStreak: (studyStats.quizStreak || 0) + 1 });
     } else {
+      if (quizMode === 'mastery') {
+        setAttempts(2);
+        setShowRationale(true);
+        updateQuizStats({ quizStreak: 0 });
+        return;
+      }
       const newAttempts = attempts + 1;
       setAttempts(newAttempts);
       if (newAttempts >= 2) {
@@ -113,7 +187,7 @@ const Quiz = () => {
 
     // Advanced Simulation Algorithm
     // Simulates a realistic student population poll
-    const isHardQuestion = currentQ.question.length > 100; // Proxy for complexity
+    const isHardQuestion = (currentQ.question || '').length > 100; // Proxy for complexity
     const accuracyBase = isHardQuestion ? 0.45 : 0.75;
     const isAudienceCorrect = Math.random() < accuracyBase;
 
@@ -151,27 +225,32 @@ const Quiz = () => {
     setLifelinesUsed(prev => ({ ...prev, askClass: true }));
   };
 
-  const [showShareModal, setShowShareModal] = useState(false);
+  const [colleagueAdvice, setColleagueAdvice] = useState(null);
 
-  const shareQuestion = (platform) => {
+  const askColleague = () => {
+    if (lifelinesUsed.askFriend) return;
     const currentQ = quizQuestions[currentQuestionIndex];
-    const baseUrl = window.location.origin;
-    const text = `🚨 CLINICAL CHALLENGE\n\nNurse, I need your brain! 🧠\n\nQ: ${currentQ.question}\n\nCan you solve this? Check it out on Apex Scholars:\n${baseUrl}`;
 
-    let url = '';
-    if (platform === 'whatsapp') {
-      url = `https://wa.me/?text=${encodeURIComponent(text)}`;
-    } else if (platform === 'telegram') {
-      url = `https://t.me/share/url?url=${encodeURIComponent(baseUrl)}&text=${encodeURIComponent(text)}`;
-    } else if (platform === 'copy') {
-      navigator.clipboard.writeText(text);
-      alert('Challenge copied to clipboard!');
-      setShowShareModal(false);
-      return;
-    }
+    // Simulate a nursing colleague's reasoning
+    const names = ["Nurse Tolu", "Dr. Emeka", "Senior Nurse Sarah", "Head Nurse Ibrahim"];
+    const name = names[Math.floor(Math.random() * names.length)];
 
-    if (url) window.open(url, '_blank');
-    setShowShareModal(false);
+    const isHard = (currentQ.question || '').length > 120;
+    const confidenceBase = isHard ? 0.6 : 0.85;
+    const isCorrect = Math.random() < confidenceBase;
+
+    const adviceOption = isCorrect ? currentQ.correctAnswer : currentQ.options.filter(o => o !== currentQ.correctAnswer)[0];
+    const confidence = Math.floor((isCorrect ? 70 : 40) + Math.random() * 25);
+
+    setColleagueAdvice({
+      name,
+      option: adviceOption,
+      confidence,
+      reasoning: isCorrect
+        ? "Based on clinical protocols, this is the most likely priority intervention."
+        : "I've seen this in the ward before, but it could be a tricky one."
+    });
+    setLifelinesUsed(prev => ({ ...prev, askFriend: true }));
   };
 
   const nextQuestion = () => {
@@ -184,6 +263,7 @@ const Quiz = () => {
       setIsCorrect(null);
       setEliminatedOptions([]);
       setClassPoll(null);
+      if (quizMode === 'speed') resetTimer();
     } else {
       setShowResults(true);
     }
@@ -196,47 +276,60 @@ const Quiz = () => {
 
   if (!quizStarted) {
     return (
-      <div className="max-w-2xl mx-auto mt-12 text-center space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
-        <div className="relative group">
-          <div className="absolute inset-0 bg-medical-500/20 blur-3xl rounded-full scale-150 group-hover:scale-175 transition-transform duration-700" />
-          <div className="relative w-32 h-32 bg-slate-900 rounded-[2.5rem] flex items-center justify-center text-medical-400 mx-auto border-2 border-medical-500/30 shadow-2xl">
-            <Brain size={64} className="animate-pulse" />
+      <div className="max-w-4xl mx-auto mt-8 space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700">
+        <div className="text-center space-y-4">
+          <div className="inline-flex p-3 bg-medical-50 dark:bg-medical-900/20 rounded-2xl text-medical-600 mb-2">
+            <Brain size={32} />
           </div>
-        </div>
-
-        <div className="space-y-4">
-          <h2 className="text-5xl font-black text-slate-900 dark:text-white tracking-tighter">Clinical Challenge</h2>
-          <p className="text-slate-500 dark:text-slate-400 text-xl font-medium">
-            Risk your streak to climb the nursing milestones. High-stakes, high-reward learning.
+          <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter">Clinical Quiz Hub</h2>
+          <p className="text-slate-500 dark:text-slate-400 text-lg font-medium max-w-2xl mx-auto">
+            Select a mode to begin your clinical mastery session.
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
-           <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-clinical">
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Current Streak</p>
-              <p className="text-3xl font-black text-slate-900 dark:text-white">{studyStats.quizStreak || 0}</p>
-           </div>
-           <div className="bg-white dark:bg-slate-800 p-6 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-clinical">
-              <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Milestone</p>
-              <p className="text-sm font-black text-medical-600 uppercase tracking-tight">{studyStats.milestone}</p>
-           </div>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <ModeCard
+            title="Standard Revision"
+            description="Deep learning with rationale and unlimited time."
+            icon={<BookOpen size={32} />}
+            stats={`${studyStats.quizStreak || 0} Streak`}
+            onClick={() => { setQuizMode('revision'); startQuiz(); }}
+            color="medical"
+          />
+          <ModeCard
+            title="Speed Challenge"
+            description="Kahoot-style rapid fire clinical reasoning."
+            icon={<Zap size={32} />}
+            stats="Timed Rounds"
+            onClick={() => { setQuizMode('speed'); startQuiz(); }}
+            color="amber"
+          />
+          <ModeCard
+            title="Mastery Challenge"
+            description="High-stakes mode. One wrong answer ends the streak."
+            icon={<Award size={32} />}
+            stats={studyStats.milestone}
+            onClick={() => { setQuizMode('mastery'); startQuiz(); }}
+            color="purple"
+          />
+          <ModeCard
+            title="Timed CBT Exam"
+            description="Full exam simulation with strictly timed blocks."
+            icon={<Clock size={32} />}
+            stats="Exam Format"
+            onClick={() => { setQuizMode('cbt'); startQuiz(); }}
+            color="slate"
+          />
         </div>
 
-        {flashcards.length < 4 ? (
+        {flashcards.length < 4 && (
           <div className="p-8 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30 rounded-[2rem] flex items-center gap-6 text-left">
             <div className="p-4 bg-white dark:bg-slate-800 rounded-2xl text-amber-500 shadow-sm"><AlertCircle size={32} /></div>
             <div>
               <p className="font-black text-amber-900 dark:text-amber-400 uppercase tracking-widest text-xs">Awaiting Data</p>
-              <p className="text-sm text-amber-800 dark:text-amber-500/80 font-medium mt-1">Add at least 4 flashcards to your clinical vault to activate Challenge Mode.</p>
+              <p className="text-sm text-amber-800 dark:text-amber-500/80 font-medium mt-1">Add at least 4 flashcards to your clinical vault to activate all modes.</p>
             </div>
           </div>
-        ) : (
-          <button
-            onClick={startQuiz}
-            className="w-full max-w-sm px-12 py-6 bg-slate-900 text-white rounded-[2rem] font-black text-lg shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-4 mx-auto hover:bg-slate-800 border-2 border-white/10 group"
-          >
-            Enter The Vault <ArrowRight className="group-hover:translate-x-2 transition-transform" />
-          </button>
         )}
       </div>
     );
@@ -291,6 +384,174 @@ const Quiz = () => {
 
   const currentQ = quizQuestions[currentQuestionIndex];
 
+  if (quizStarted && quizMode === 'speed') {
+    return (
+      <div className="fixed inset-0 z-[60] bg-slate-900 flex flex-col overflow-hidden text-white font-sans">
+        {/* Speed Mode Header */}
+        <header className="p-4 flex justify-between items-center bg-slate-800/50 backdrop-blur-md border-b border-white/5">
+          <div className="flex items-center gap-4">
+             <div className="w-12 h-12 rounded-full border-4 border-medical-500 flex items-center justify-center font-black text-xl">
+               {timeLeft}
+             </div>
+             <div>
+               <p className="text-[10px] font-black uppercase tracking-widest text-medical-400">Question</p>
+               <p className="font-black text-lg leading-none">{currentQuestionIndex + 1} of {quizQuestions.length}</p>
+             </div>
+          </div>
+
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => setVolumeOn(!volumeOn)}
+              className={`p-3 rounded-xl transition-all ${volumeOn ? 'bg-medical-500/20 text-medical-400' : 'bg-slate-700 text-slate-500'}`}
+            >
+              {volumeOn ? <Volume2 size={20} /> : <VolumeX size={20} />}
+            </button>
+            <button
+              onClick={() => setShowSettings(true)}
+              className="p-3 bg-slate-700 rounded-xl text-white"
+            >
+              <Settings size={20} />
+            </button>
+          </div>
+        </header>
+
+        {/* Speed Mode Question Section */}
+        <main className="flex-1 flex flex-col p-4 sm:p-8 space-y-4 max-w-5xl mx-auto w-full">
+           {/* Speed Lifelines Bar */}
+           <div className="flex justify-center gap-2 mb-2">
+             <SpeedLifeline icon={<Shield size={18} />} label="50/50" used={lifelinesUsed.fiftyFifty} onClick={eliminateTwo} />
+             <SpeedLifeline icon={<Users size={18} />} label="Class" used={lifelinesUsed.askClass} onClick={askClass} />
+             <SpeedLifeline icon={<Brain size={18} />} label="Colleague" used={lifelinesUsed.askFriend} onClick={askColleague} />
+           </div>
+
+           <div className="flex-1 flex flex-col items-center justify-center text-center space-y-8">
+              {currentQ.mediaUrl && (
+                <div className="w-full max-w-md aspect-video bg-slate-800 rounded-3xl overflow-hidden border border-white/10 shadow-2xl relative group">
+                  <img src={currentQ.mediaUrl} alt="Clinical Media" className="w-full h-full object-cover" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-slate-900/60 to-transparent" />
+                </div>
+              )}
+
+              <h2 className={`font-black tracking-tight leading-tight transition-all duration-500 ${currentQ.mediaUrl ? 'text-2xl sm:text-3xl' : 'text-3xl sm:text-5xl'}`}>
+                {currentQ.question}
+              </h2>
+           </div>
+
+           {/* 2x2 Grid Options */}
+           <div className="grid grid-cols-2 gap-3 sm:gap-4 h-[40%] min-h-[300px]">
+              <SpeedOption
+                label={currentQ.options[0]}
+                color="bg-red-500"
+                icon={<Triangle className="fill-white" size={24} />}
+                onClick={() => handleOptionClick(currentQ.options[0])}
+                disabled={showRationale}
+                state={showRationale ? (currentQ.options[0] === currentQ.correctAnswer ? 'correct' : (selectedOption === currentQ.options[0] ? 'wrong' : 'idle')) : (selectedOption === currentQ.options[0] ? 'selected' : 'idle')}
+              />
+              <SpeedOption
+                label={currentQ.options[1]}
+                color="bg-blue-500"
+                icon={<Diamond className="fill-white" size={24} />}
+                onClick={() => handleOptionClick(currentQ.options[1])}
+                disabled={showRationale}
+                state={showRationale ? (currentQ.options[1] === currentQ.correctAnswer ? 'correct' : (selectedOption === currentQ.options[1] ? 'wrong' : 'idle')) : (selectedOption === currentQ.options[1] ? 'selected' : 'idle')}
+              />
+              <SpeedOption
+                label={currentQ.options[2]}
+                color="bg-amber-500"
+                icon={<Circle className="fill-white" size={24} />}
+                onClick={() => handleOptionClick(currentQ.options[2])}
+                disabled={showRationale}
+                state={showRationale ? (currentQ.options[2] === currentQ.correctAnswer ? 'correct' : (selectedOption === currentQ.options[2] ? 'wrong' : 'idle')) : (selectedOption === currentQ.options[2] ? 'selected' : 'idle')}
+              />
+              <SpeedOption
+                label={currentQ.options[3]}
+                color="bg-emerald-500"
+                icon={<Square className="fill-white" size={24} />}
+                onClick={() => handleOptionClick(currentQ.options[3])}
+                disabled={showRationale}
+                state={showRationale ? (currentQ.options[3] === currentQ.correctAnswer ? 'correct' : (selectedOption === currentQ.options[3] ? 'wrong' : 'idle')) : (selectedOption === currentQ.options[3] ? 'selected' : 'idle')}
+              />
+           </div>
+        </main>
+
+        {/* Speed Mode Rationale Overlay */}
+        <AnimatePresence>
+          {showRationale && (
+            <motion.div
+              initial={{ opacity: 0, y: 100 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: 100 }}
+              className="absolute inset-0 z-[70] bg-slate-900/95 backdrop-blur-xl p-8 flex flex-col justify-center items-center text-center space-y-8"
+            >
+               <div className={`w-24 h-24 rounded-full flex items-center justify-center ${isCorrect ? 'bg-emerald-500' : 'bg-red-500'}`}>
+                 {isCorrect ? <CheckCircle2 size={48} /> : <XCircle size={48} />}
+               </div>
+               <div className="space-y-4 max-w-2xl">
+                 <h3 className="text-4xl font-black">{isCorrect ? 'GENIUS!' : 'NOT QUITE...'}</h3>
+                 <p className="text-xl text-slate-300 font-medium leading-relaxed">{currentQ.rationale || 'Keep pushing your clinical limits.'}</p>
+               </div>
+               <button
+                 onClick={nextQuestion}
+                 className="px-12 py-6 bg-white text-slate-900 rounded-3xl font-black text-xl shadow-2xl active:scale-95 transition-all"
+               >
+                 NEXT QUESTION
+               </button>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Settings Modal */}
+        <AnimatePresence>
+          {showSettings && (
+             <motion.div
+               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+               className="fixed inset-0 z-[100] bg-slate-900/90 backdrop-blur-md flex items-center justify-center p-4"
+             >
+                <div className="bg-slate-800 w-full max-w-md rounded-[3rem] p-10 border border-white/10 space-y-8">
+                   <h3 className="text-3xl font-black text-center uppercase tracking-tighter">Session Settings</h3>
+                   <div className="space-y-4">
+                      <SettingToggle label="Sound Effects" active={volumeOn} onClick={() => setVolumeOn(!volumeOn)} />
+                      <SettingToggle label="Auto-Advance" active={true} disabled />
+                      <SettingToggle label="Fast Animations" active={true} disabled />
+                   </div>
+                   <button
+                     onClick={() => setShowSettings(false)}
+                     className="w-full py-5 bg-medical-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs"
+                   >
+                     Done
+                   </button>
+                   <button
+                     onClick={() => { setQuizStarted(false); setQuizMode(null); setShowSettings(false); }}
+                     className="w-full py-5 bg-red-500/10 text-red-500 rounded-2xl font-black uppercase tracking-widest text-xs border border-red-500/20"
+                   >
+                     Quit Challenge
+                   </button>
+                </div>
+             </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Speed Mode Confirmation */}
+        <AnimatePresence>
+           {isConfirming && (
+             <motion.div
+               initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+               className="absolute inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-8"
+             >
+                <div className="text-center space-y-8">
+                   <h4 className="text-4xl font-black">Final Answer?</h4>
+                   <div className="flex gap-4">
+                      <button onClick={confirmAnswer} className="px-12 py-5 bg-medical-500 rounded-2xl font-black text-xl">YES</button>
+                      <button onClick={() => { setIsConfirming(false); setSelectedOption(null); }} className="px-12 py-5 bg-white/10 rounded-2xl font-black text-xl">NO</button>
+                   </div>
+                </div>
+             </motion.div>
+           )}
+        </AnimatePresence>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-4xl mx-auto space-y-8 pb-32 relative">
       {/* Dynamic Header */}
@@ -326,8 +587,8 @@ const Quiz = () => {
           onClick={askClass}
         />
         <LifelineButton
-          icon={<Share2 />} label="Friend"
-          onClick={() => setShowShareModal(true)}
+          icon={<Users />} label="Colleague" used={lifelinesUsed.askFriend}
+          onClick={askColleague}
         />
       </div>
 
@@ -422,9 +683,9 @@ const Quiz = () => {
         </div>
       </div>
 
-      {/* Social Share Modal */}
+      {/* Internal Colleague Advice Modal */}
       <AnimatePresence>
-        {showShareModal && (
+        {colleagueAdvice && (
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -434,39 +695,35 @@ const Quiz = () => {
             <motion.div
               initial={{ scale: 0.9, y: 20 }}
               animate={{ scale: 1, y: 0 }}
-              className="bg-white dark:bg-slate-800 w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl space-y-8"
+              className="bg-white dark:bg-slate-800 w-full max-w-sm rounded-[2.5rem] p-8 shadow-2xl space-y-6"
             >
-              <div className="text-center space-y-2">
-                <h3 className="text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Call For Backup</h3>
-                <p className="text-slate-500 font-medium text-sm">Send this clinical challenge to your colleagues.</p>
+              <div className="flex items-center gap-4">
+                <div className="w-12 h-12 bg-medical-100 dark:bg-medical-900/40 rounded-full flex items-center justify-center text-medical-600">
+                   <Users size={24} />
+                </div>
+                <div>
+                   <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">{colleagueAdvice.name}</h3>
+                   <p className="text-xs text-slate-500 font-bold uppercase tracking-widest">Colleague Advice</p>
+                </div>
               </div>
 
-              <div className="grid grid-cols-1 gap-3">
-                <button
-                  onClick={() => shareQuestion('whatsapp')}
-                  className="flex items-center justify-between p-4 bg-[#25D366]/10 text-[#25D366] rounded-2xl font-black uppercase tracking-widest text-[10px] border border-[#25D366]/20 hover:bg-[#25D366]/20 transition-all"
-                >
-                  Share via WhatsApp <Share2 size={18} />
-                </button>
-                <button
-                  onClick={() => shareQuestion('telegram')}
-                  className="flex items-center justify-between p-4 bg-[#0088cc]/10 text-[#0088cc] rounded-2xl font-black uppercase tracking-widest text-[10px] border border-[#0088cc]/20 hover:bg-[#0088cc]/20 transition-all"
-                >
-                  Share via Telegram <Send size={18} />
-                </button>
-                <button
-                  onClick={() => shareQuestion('copy')}
-                  className="flex items-center justify-between p-4 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 rounded-2xl font-black uppercase tracking-widest text-[10px] border border-transparent hover:bg-slate-200 transition-all"
-                >
-                  Copy Challenge Link <Copy size={18} />
-                </button>
+              <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-4">
+                 <p className="text-sm font-medium text-slate-600 dark:text-slate-300 italic">"{colleagueAdvice.reasoning}"</p>
+                 <div className="flex justify-between items-center pt-2 border-t border-slate-100 dark:border-slate-800">
+                    <span className="text-[10px] font-black uppercase text-slate-400">Suspected Answer</span>
+                    <span className="text-sm font-black text-medical-600">{colleagueAdvice.option}</span>
+                 </div>
+                 <div className="flex justify-between items-center">
+                    <span className="text-[10px] font-black uppercase text-slate-400">Confidence</span>
+                    <span className="text-sm font-black text-amber-500">{colleagueAdvice.confidence}%</span>
+                 </div>
               </div>
 
               <button
-                onClick={() => setShowShareModal(false)}
-                className="w-full py-4 text-slate-400 font-black uppercase tracking-[0.2em] text-[10px] hover:text-slate-600 transition-all"
+                onClick={() => setColleagueAdvice(null)}
+                className="w-full py-4 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs"
               >
-                Cancel Backup
+                Back to Challenge
               </button>
             </motion.div>
           </motion.div>
@@ -552,6 +809,38 @@ const Quiz = () => {
   );
 };
 
+const ModeCard = ({ title, description, icon, stats, onClick, color }) => {
+  const colorMap = {
+    medical: 'text-medical-600 bg-medical-50 dark:bg-medical-900/20 border-medical-100',
+    amber: 'text-amber-600 bg-amber-50 dark:bg-amber-900/20 border-amber-100',
+    purple: 'text-purple-600 bg-purple-50 dark:bg-purple-900/20 border-purple-100',
+    slate: 'text-slate-600 bg-slate-50 dark:bg-slate-900/20 border-slate-100'
+  };
+
+  return (
+    <button
+      onClick={onClick}
+      className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-700 shadow-clinical hover:shadow-xl transition-all text-left group flex flex-col justify-between"
+    >
+      <div className="space-y-4">
+        <div className={`w-16 h-16 rounded-[1.5rem] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform ${colorMap[color]}`}>
+          {icon}
+        </div>
+        <div>
+          <h3 className="text-xl font-black text-slate-900 dark:text-white tracking-tight">{title}</h3>
+          <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium">{description}</p>
+        </div>
+      </div>
+      <div className="mt-8 flex justify-between items-center">
+        <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{stats}</span>
+        <div className="p-2 bg-slate-900 text-white rounded-xl opacity-0 group-hover:opacity-100 transition-opacity">
+          <ArrowRight size={16} />
+        </div>
+      </div>
+    </button>
+  );
+};
+
 const LifelineButton = ({ icon, label, used, onClick }) => (
   <button
     disabled={used}
@@ -561,6 +850,50 @@ const LifelineButton = ({ icon, label, used, onClick }) => (
     {React.cloneElement(icon, { size: 20 })}
     <span className="text-[9px] font-black uppercase tracking-widest mt-2">{label}</span>
   </button>
+);
+
+const SpeedOption = ({ label, color, icon, onClick, disabled, state }) => {
+  let stateStyles = "";
+  if (state === 'selected') stateStyles = "ring-4 ring-white ring-offset-4 ring-offset-slate-900 scale-95";
+  if (state === 'correct') stateStyles = "ring-4 ring-emerald-400 scale-100 shadow-[0_0_40px_rgba(52,211,153,0.4)]";
+  if (state === 'wrong') stateStyles = "opacity-40 grayscale scale-90";
+
+  return (
+    <button
+      disabled={disabled}
+      onClick={onClick}
+      className={`relative rounded-[2rem] sm:rounded-[3rem] p-6 flex flex-col items-center justify-center text-center transition-all duration-300 active:scale-95 overflow-hidden group ${color} ${stateStyles}`}
+    >
+      <div className="absolute top-4 left-4 opacity-40 group-hover:scale-125 transition-transform duration-500">
+        {icon}
+      </div>
+      <span className="text-lg sm:text-2xl font-black leading-tight px-4">{label}</span>
+    </button>
+  );
+};
+
+const SpeedLifeline = ({ icon, label, used, onClick }) => (
+  <button
+    disabled={used}
+    onClick={onClick}
+    className={`px-4 py-2 rounded-full border transition-all flex items-center gap-2 ${used ? 'bg-slate-800/50 border-white/5 text-slate-600' : 'bg-white/10 border-white/20 text-white hover:bg-white/20'}`}
+  >
+    {icon}
+    <span className="text-[10px] font-black uppercase tracking-widest hidden sm:inline">{label}</span>
+  </button>
+);
+
+const SettingToggle = ({ label, active, onClick, disabled }) => (
+  <div className={`flex items-center justify-between p-5 bg-slate-700/50 rounded-2xl border border-white/5 ${disabled ? 'opacity-50' : ''}`}>
+    <span className="font-bold text-slate-200">{label}</span>
+    <button
+      disabled={disabled}
+      onClick={onClick}
+      className={`w-14 h-8 rounded-full relative transition-all ${active ? 'bg-medical-500' : 'bg-slate-600'}`}
+    >
+      <div className={`absolute top-1 w-6 h-6 bg-white rounded-full transition-all ${active ? 'left-7' : 'left-1'}`} />
+    </button>
+  </div>
 );
 
 const OptionButton = ({ label, index, state, pollValue, onClick, disabled }) => {
@@ -605,18 +938,41 @@ const OptionButton = ({ label, index, state, pollValue, onClick, disabled }) => 
   );
 };
 
-const HelpCircle = ({ size, className }) => (
+const VolumeX = ({ size, className }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <circle cx="12" cy="12" r="10" />
-    <path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" />
-    <line x1="12" y1="17" x2="12.01" y2="17" />
+    <path d="M11 5L6 9H2V15H6L11 19V5Z" /><line x1="23" y1="9" x2="17" y2="15" /><line x1="17" y1="9" x2="23" y2="15" />
   </svg>
 );
 
-const Zap = ({ size, className }) => (
+const Volume2 = ({ size, className }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14" /><path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
   </svg>
 );
+
+const Triangle = ({ size, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 2L2 20H22L12 2Z" />
+  </svg>
+);
+
+const Diamond = ({ size, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <path d="M12 2L2 12L12 22L22 12L12 2Z" />
+  </svg>
+);
+
+const Circle = ({ size, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <circle cx="12" cy="12" r="10" />
+  </svg>
+);
+
+const Square = ({ size, className }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+  </svg>
+);
+
 
 export default Quiz;

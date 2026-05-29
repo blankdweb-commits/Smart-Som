@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, BookOpen, Calendar, Award, Users, Volume2, Search, Brain, FileUp } from './Icons';
 
-const BottomNav = () => {
+const BottomNav = React.memo(() => {
   const navItems = [
     { name: 'Home', icon: LayoutDashboard, path: '/dashboard' },
     { name: 'Quiz', icon: Brain, path: '/quiz' },
@@ -44,6 +44,6 @@ const BottomNav = () => {
       </div>
     </nav>
   );
-};
+});
 
 export default BottomNav;

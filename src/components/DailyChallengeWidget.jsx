@@ -3,7 +3,7 @@ import { useAppContext } from '../context/AppContext';
 import { Brain, Sparkles, ChevronRight, CheckCircle2, XCircle, AlertCircle, Trophy, Target } from './Icons';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const DailyChallengeWidget = () => {
+const DailyChallengeWidget = React.memo(() => {
   const { flashcards, userProfile, studyStats } = useAppContext();
   const [challengeStarted, setChallengeStarted] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -152,6 +152,6 @@ const DailyChallengeWidget = () => {
        </AnimatePresence>
     </div>
   );
-};
+});
 
 export default DailyChallengeWidget;
