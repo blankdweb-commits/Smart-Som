@@ -58,7 +58,7 @@ const AppRouter = () => (
       <Route path="/signup" element={<Auth />} />
 
       {/* Primary Dashboard Experience */}
-      <Route element={<Layout />}>
+      <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/activate" element={<Activate />} />
         <Route path="/flashcards" element={<Flashcards />} />

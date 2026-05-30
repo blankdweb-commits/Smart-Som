@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Brain, CheckCircle2, XCircle, RefreshCw, ChevronRight, Trophy, AlertCircle, Lock, Star, Users, Share2, ArrowRight, Clock, Award, Shield, Target, BookOpen, Zap, Settings } from '../components/Icons';
+import { Brain, CheckCircle2, XCircle, RefreshCw, ChevronRight, Trophy, AlertCircle, Lock, Star, Users, Share2, ArrowRight, Clock, Award, Shield, Target, BookOpen, Zap, Settings, HelpCircle, Volume2 } from '../components/Icons';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -28,6 +28,7 @@ const Quiz = () => {
   const [showHint, setShowHint] = useState(false);
   const [showRationale, setShowRationale] = useState(false);
   const [isCorrect, setIsCorrect] = useState(null);
+  const [wrongAttempts, setWrongAttempts] = useState([]);
   const [eliminatedOptions, setEliminatedOptions] = useState([]);
   const [isConfirming, setIsConfirming] = useState(false);
   const [lifelinesUsed, setLifelinesUsed] = useState({ hint: false, fiftyFifty: false, askClass: false, askFriend: false });
@@ -50,10 +51,9 @@ const Quiz = () => {
           return next;
         });
       }, 1000);
-    } else if (timeLeft === 0 && !showRationale && !showResults && quizMode === 'speed') {
-      // Small delay to ensure state is settled before auto-submitting
-      const timeout = setTimeout(() => confirmAnswer(), 100);
-      return () => clearTimeout(timeout);
+    } else if (timeLeft === 0 && !showRationale && !showResults && !isConfirming && quizMode === 'speed') {
+      // Auto-submit when time runs out, but only if not already confirming
+      confirmAnswer();
     }
     return () => clearInterval(timer);
   }, [quizStarted, quizMode, showRationale, showResults, isConfirming, colleagueAdvice, timeLeft]);
@@ -99,6 +99,7 @@ const Quiz = () => {
     setShowHint(false);
     setShowRationale(false);
     setIsCorrect(null);
+    setWrongAttempts([]);
     setEliminatedOptions([]);
   };
 
@@ -148,8 +149,10 @@ const Quiz = () => {
     }
   };
 
-  const confirmAnswer = () => {
+  const confirmAnswer = useCallback(() => {
     const currentQ = quizQuestions[currentQuestionIndex];
+    if (!currentQ) return;
+
     const correct = selectedOption === currentQ.correctAnswer;
     setIsCorrect(correct);
     setIsConfirming(false);
@@ -163,20 +166,25 @@ const Quiz = () => {
       setShowRationale(true);
       updateQuizStats({ quizStreak: (studyStats.quizStreak || 0) + 1 });
     } else {
-      if (quizMode === 'mastery') {
-        setAttempts(2);
+      setWrongAttempts(prev => [...prev, selectedOption]);
+      if (quizMode === 'mastery' || quizMode === 'speed') {
+        setAttempts(2); // Bypass multi-attempt for speed/mastery
         setShowRationale(true);
         updateQuizStats({ quizStreak: 0 });
-        return;
-      }
-      const newAttempts = attempts + 1;
-      setAttempts(newAttempts);
-      if (newAttempts >= 2) {
-        setShowRationale(true);
-        updateQuizStats({ quizStreak: 0 });
+      } else {
+        const newAttempts = attempts + 1;
+        setAttempts(newAttempts);
+        if (newAttempts >= 2) {
+          setShowRationale(true);
+          updateQuizStats({ quizStreak: 0 });
+        } else {
+          // Allow second attempt
+          setIsCorrect(null);
+          setSelectedOption(null);
+        }
       }
     }
-  };
+  }, [quizQuestions, currentQuestionIndex, selectedOption, quizMode, attempts, score, studyStats.quizStreak, updateQuizStats]);
 
   const eliminateTwo = useCallback(() => {
     if (attempts > 0 || lifelinesUsed.fiftyFifty || !quizQuestions[currentQuestionIndex]) return;
@@ -267,6 +275,7 @@ const Quiz = () => {
       setShowHint(false);
       setShowRationale(false);
       setIsCorrect(null);
+      setWrongAttempts([]);
       setEliminatedOptions([]);
       setClassPoll(null);
       if (quizMode === 'speed') resetTimer();
@@ -390,6 +399,15 @@ const Quiz = () => {
 
   const currentQ = quizQuestions[currentQuestionIndex];
 
+  if (quizStarted && !currentQ) {
+    return (
+      <div className="flex flex-col items-center justify-center h-[60vh] space-y-4">
+        <RefreshCw className="animate-spin text-medical-600" size={48} />
+        <p className="text-slate-500 font-bold animate-pulse uppercase tracking-widest text-xs">Preparing Clinical Scenarios...</p>
+      </div>
+    );
+  }
+
   if (quizStarted && quizMode === 'speed') {
     return (
       <div className="fixed inset-0 z-[60] bg-slate-900 flex flex-col h-[100dvh] overflow-hidden text-white font-sans touch-none selection:bg-medical-500/30">
@@ -488,7 +506,7 @@ const Quiz = () => {
               initial={{ opacity: 0, y: 100 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0, y: 100 }}
-              className="absolute inset-0 z-[70] bg-slate-900/95 backdrop-blur-xl p-8 flex flex-col justify-center items-center text-center space-y-8"
+              className="absolute inset-0 z-[70] bg-slate-900 p-8 flex flex-col justify-center items-center text-center space-y-8"
             >
                <div className={`w-24 h-24 rounded-full flex items-center justify-center ${isCorrect ? 'bg-emerald-500' : 'bg-red-500'}`}>
                  {isCorrect ? <CheckCircle2 size={48} /> : <XCircle size={48} />}
@@ -554,6 +572,31 @@ const Quiz = () => {
                 </div>
              </motion.div>
            )}
+        </AnimatePresence>
+
+        {/* Speed Mode Colleague Advice */}
+        <AnimatePresence>
+          {colleagueAdvice && (
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
+              className="absolute inset-0 z-[100] bg-slate-900/90 backdrop-blur-lg flex items-center justify-center p-4"
+            >
+               <div className="bg-white dark:bg-slate-800 text-slate-900 dark:text-white w-full max-w-sm rounded-[2.5rem] p-8 space-y-6 border border-slate-100 dark:border-slate-700 shadow-2xl">
+                  <div className="flex items-center gap-4">
+                    <div className="w-12 h-12 bg-medical-100 dark:bg-medical-900/40 rounded-full flex items-center justify-center text-medical-600"><Users size={24} /></div>
+                    <h3 className="text-xl font-black uppercase tracking-tight">{colleagueAdvice.name}</h3>
+                  </div>
+                  <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 space-y-4">
+                     <p className="text-sm font-medium italic text-slate-600 dark:text-slate-300">"{colleagueAdvice.reasoning}"</p>
+                     <div className="flex justify-between border-t border-slate-100 dark:border-slate-800 pt-3">
+                        <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Suggestion</span>
+                        <span className="text-sm font-black text-medical-600 dark:text-medical-400">{colleagueAdvice.option}</span>
+                     </div>
+                  </div>
+                  <button onClick={() => setColleagueAdvice(null)} className="w-full py-4 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs active:scale-95 transition-all">Return to Challenge</button>
+               </div>
+            </motion.div>
+          )}
         </AnimatePresence>
       </div>
     );
@@ -624,9 +667,11 @@ const Quiz = () => {
                 <div className="shrink-0 grid gap-3 sm:gap-4 relative pb-8">
                   {currentQ.options.map((option, idx) => {
                     const isEliminated = eliminatedOptions.includes(option);
+                    const wasWrong = wrongAttempts.includes(option);
                     let state = "idle"; // idle, selected, correct, wrong, eliminated
 
                     if (isEliminated) state = "eliminated";
+                    else if (wasWrong) state = "wrong";
                     else if (selectedOption === option) {
                       if (isCorrect === null) state = "selected";
                       else state = isCorrect ? "correct" : "wrong";
@@ -642,7 +687,7 @@ const Quiz = () => {
                         state={state}
                         pollValue={classPoll?.[option]}
                         onClick={() => handleOptionClick(option)}
-                        disabled={isCorrect !== null || isEliminated}
+                        disabled={isCorrect === true || showRationale || isEliminated || wasWrong}
                       />
                     );
                   })}
@@ -955,11 +1000,6 @@ const VolumeX = ({ size, className }) => (
   </svg>
 );
 
-const Volume2 = ({ size, className }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className={className}>
-    <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5" /><path d="M19.07 4.93a10 10 0 0 1 0 14.14" /><path d="M15.54 8.46a5 5 0 0 1 0 7.07" />
-  </svg>
-);
 
 const Triangle = ({ size, className }) => (
   <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor" className={className}>

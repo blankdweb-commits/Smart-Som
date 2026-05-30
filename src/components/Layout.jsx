@@ -27,9 +27,9 @@ const Layout = ({ children }) => {
 
           <div className="flex items-center gap-1 sm:gap-2">
             <Link
-              to="/dashboard/settings"
+              to="/settings"
               className={`p-2 rounded-lg transition-all ${
-                location.pathname === '/dashboard/settings'
+                location.pathname === '/settings'
                   ? 'bg-medical-100 text-medical-700 dark:bg-medical-900/30'
                   : 'text-slate-500 hover:bg-slate-50'
               }`}
