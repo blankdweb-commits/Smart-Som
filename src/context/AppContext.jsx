@@ -98,6 +98,12 @@ export function AppProvider({ children }) {
     const { data: userExams } = await supabase.from('exams').select('*').eq('user_id', userId);
     if (userExams) setExams(userExams.map(e => ({
       ...e,
+      title: e.subject,
+      courseCode: e.course_code,
+      venue: e.venue,
+      date: e.exam_date,
+      enableReminders: e.reminder_enabled,
+      studyMaterials: e.study_materials,
       topics: e.topics || [],
       reminders: e.reminders || []
     })));
@@ -225,12 +231,96 @@ export function AppProvider({ children }) {
     if (session) {
       fetchUserData();
     } else {
-      // If no session, we keep the mock data initialized in the auth listener
-      // Do not reset to empty profile if we want to support Mock/Guest mode
-      setExams([]);
-      // we keep the mock transactions and flashcards set by setupMockData if needed
+      // If no session, load from local storage as fallback
+      const localExams = JSON.parse(localStorage.getItem('apex_local_exams') || '[]');
+      setExams(localExams);
     }
   }, [session, fetchUserData]);
+
+  const addExam = async (examData) => {
+    const tempId = crypto.randomUUID();
+    const newExam = { ...examData, id: tempId };
+
+    setExams(prev => [...prev, newExam]);
+
+    if (supabase && session) {
+      const dbExam = {
+        user_id: session.user.id,
+        subject: examData.title,
+        course_code: examData.courseCode,
+        venue: examData.venue,
+        exam_date: new Date(`${examData.date}T${examData.time || '00:00'}`).toISOString(),
+        reminder_enabled: examData.enableReminders,
+        lecturer: examData.lecturer,
+        type: examData.type,
+        priority: examData.priority,
+        notes: examData.notes,
+        readiness: examData.readiness || 0,
+        topics: examData.topics,
+        reminders: examData.reminders,
+        study_materials: examData.studyMaterials
+      };
+
+      const { data, error } = await supabase.from('exams').insert([dbExam]).select().single();
+      if (!error && data) {
+        setExams(prev => prev.map(e => e.id === tempId ? {
+          ...data,
+          title: data.subject,
+          courseCode: data.course_code,
+          venue: data.venue,
+          date: data.exam_date,
+          enableReminders: data.reminder_enabled,
+          studyMaterials: data.study_materials
+        } : e));
+      }
+    } else {
+      const savedExams = JSON.parse(localStorage.getItem('apex_local_exams') || '[]');
+      localStorage.setItem('apex_local_exams', JSON.stringify([...savedExams, newExam]));
+    }
+  };
+
+  const updateExam = async (id, examData) => {
+    setExams(prev => prev.map(e => e.id === id ? { ...e, ...examData } : e));
+
+    if (supabase && session && typeof id === 'string' && id.length > 30) { // Check if it looks like a UUID
+      const dbExam = {
+        subject: examData.title,
+        course_code: examData.courseCode,
+        venue: examData.venue,
+        exam_date: examData.date ? (examData.time ? new Date(`${examData.date}T${examData.time}`).toISOString() : examData.date) : undefined,
+        reminder_enabled: examData.enableReminders,
+        lecturer: examData.lecturer,
+        type: examData.type,
+        priority: examData.priority,
+        notes: examData.notes,
+        readiness: examData.readiness,
+        topics: examData.topics,
+        reminders: examData.reminders,
+        study_materials: examData.studyMaterials
+      };
+
+      // Remove undefined keys
+      Object.keys(dbExam).forEach(key => dbExam[key] === undefined && delete dbExam[key]);
+
+      await supabase.from('exams').update(dbExam).eq('id', id);
+    } else {
+      const savedExams = JSON.parse(localStorage.getItem('apex_local_exams') || '[]');
+      const updated = savedExams.map(e => e.id === id ? { ...e, ...examData } : e);
+      localStorage.setItem('apex_local_exams', JSON.stringify(updated));
+    }
+  };
+
+  const deleteExam = async (id) => {
+    setExams(prev => prev.filter(e => e.id !== id));
+
+    if (supabase && session && typeof id === 'string' && id.length > 30) {
+      await supabase.from('exams').delete().eq('id', id);
+    } else {
+      const savedExams = JSON.parse(localStorage.getItem('apex_local_exams') || '[]');
+      const filtered = savedExams.filter(e => e.id !== id);
+      localStorage.setItem('apex_local_exams', JSON.stringify(filtered));
+    }
+  };
 
   const updateProfile = async (data) => {
     if (!supabase) return;
@@ -396,7 +486,8 @@ export function AppProvider({ children }) {
     incrementCardsStudied,
     updateQuizStats,
     fetchUserData,
-    curriculumSubjects
+    curriculumSubjects,
+    addExam, updateExam, deleteExam
   }), [
     session, loadingAuth, flashcards, exams, studyStats, userProfile,
     darkMode, transactions, auditLogs, feeDetails, subscriptionPlans,
@@ -404,7 +495,7 @@ export function AppProvider({ children }) {
     updateSubscriptionPlan, addSubscriptionPlan, deleteSubscriptionPlan,
     updatePaymentPurpose, addPaymentPurpose, deletePaymentPurpose,
     addAuditLog, updateCardProgress, incrementCardsStudied, updateQuizStats,
-    fetchUserData, curriculumSubjects
+    fetchUserData, curriculumSubjects, addExam, updateExam, deleteExam
   ]);
 
   return (

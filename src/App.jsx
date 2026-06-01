@@ -16,6 +16,7 @@ const Quiz = lazy(() => import('./pages/Quiz'));
 const Papers = lazy(() => import('./pages/Papers'));
 const Payments = lazy(() => import('./pages/Payments'));
 const AdminFinance = lazy(() => import('./pages/AdminFinance'));
+const Community = lazy(() => import('./pages/Community'));
 const Settings = lazy(() => import('./pages/Settings'));
 
 const PageLoader = () => (
@@ -66,6 +67,7 @@ const AppRouter = () => (
         <Route path="/quiz" element={<Quiz />} />
         <Route path="/exams" element={<ExamTimetable />} />
         <Route path="/papers" element={<Papers />} />
+        <Route path="/community" element={<Community />} />
         <Route path="/payments" element={<Payments />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/admin/finance" element={<AdminFinance />} />

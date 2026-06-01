@@ -3,6 +3,7 @@ import { useAppContext } from '../context/AppContext';
 import { Brain, CheckCircle2, XCircle, RefreshCw, ChevronRight, Trophy, AlertCircle, Lock, Star, Users, Share2, ArrowRight, Clock, Award, Shield, Target, BookOpen, Zap, Settings, HelpCircle, Volume2, Triangle, Diamond, Circle, Square } from '../components/Icons';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
+import { FALLBACK_QUESTIONS } from '../data/fallbackQuestions';
 
 const MILESTONES = [
   "Clinical Beginner",
@@ -47,9 +48,9 @@ const Quiz = () => {
 
   const processAnswer = useCallback((option) => {
     const currentQ = quizQuestions[currentQuestionIndex];
-    if (!currentQ || option === null) return;
+    if (!currentQ) return;
 
-    const correct = option === currentQ.correctAnswer;
+    const correct = option !== null && option === currentQ.correctAnswer;
     setIsCorrect(correct);
 
     playSound(correct ? 'correct' : 'wrong');
@@ -59,11 +60,14 @@ const Quiz = () => {
       setShowRationale(true);
       updateQuizStats({ quizStreak: (studyStats.quizStreak || 0) + 1 });
     } else {
-      setWrongAttempts([option]);
-      // We don't showRationale immediately for Wrong attempts, we show the Wrong Modal first.
+      setWrongAttempts(option !== null ? [option] : []);
+      // In Speed mode, we show rationale immediately even for wrong answers to avoid freezing
+      if (quizMode === 'speed') {
+        setShowRationale(true);
+      }
       updateQuizStats({ quizStreak: 0 });
     }
-  }, [quizQuestions, currentQuestionIndex, updateQuizStats, studyStats.quizStreak]);
+  }, [quizQuestions, currentQuestionIndex, updateQuizStats, studyStats.quizStreak, quizMode]);
 
   // -- 2. SIDE EFFECTS --
   useEffect(() => {
@@ -86,18 +90,24 @@ const Quiz = () => {
   const currentMilestone = MILESTONES[Math.min(Math.floor(score / 3), MILESTONES.length - 1)];
 
   const startQuiz = () => {
-    if (flashcards.length < 4) return;
-    const shuffled = [...flashcards].sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, 10);
-    const questions = selected.map(card => {
-      const distractors = flashcards
-        .filter(c => c.id !== card.id)
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 3)
-        .map(c => c.answer);
-      const options = [card.answer, ...distractors].sort(() => 0.5 - Math.random());
-      return { ...card, options, correctAnswer: card.answer };
-    });
+    let questions = [];
+
+    if (flashcards.length >= 4) {
+      const shuffled = [...flashcards].sort(() => 0.5 - Math.random());
+      const selected = shuffled.slice(0, 10);
+      questions = selected.map(card => {
+        const distractors = flashcards
+          .filter(c => c.id !== card.id)
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 3)
+          .map(c => c.answer);
+        const options = [card.answer, ...distractors].sort(() => 0.5 - Math.random());
+        return { ...card, options, correctAnswer: card.answer };
+      });
+    } else {
+      // Use fallback questions if flashcards are insufficient
+      questions = [...FALLBACK_QUESTIONS].sort(() => 0.5 - Math.random()).slice(0, 10);
+    }
 
     setQuizQuestions(questions);
     setQuizStarted(true);
