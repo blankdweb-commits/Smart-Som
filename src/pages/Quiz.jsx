@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Brain, CheckCircle2, XCircle, RefreshCw, ChevronRight, Trophy, AlertCircle, Lock, Star, Users, Share2, ArrowRight, Clock, Award, Shield, Target, BookOpen, Zap, Settings, HelpCircle, Volume2 } from '../components/Icons';
+import { Brain, CheckCircle2, XCircle, RefreshCw, ChevronRight, Trophy, AlertCircle, Lock, Star, Users, Share2, ArrowRight, Clock, Award, Shield, Target, BookOpen, Zap, Settings, HelpCircle, Volume2, Triangle, Diamond, Circle, Square } from '../components/Icons';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -404,6 +404,7 @@ const Quiz = () => {
                   key={idx}
                   label={option}
                   color={idx === 0 ? "bg-red-500" : idx === 1 ? "bg-blue-500" : idx === 2 ? "bg-amber-500" : "bg-emerald-500"}
+                  icon={idx === 0 ? <Triangle size={24} fill="currentColor" /> : idx === 1 ? <Diamond size={24} fill="currentColor" /> : idx === 2 ? <Circle size={24} fill="currentColor" /> : <Square size={24} fill="currentColor" />}
                   onClick={() => handleOptionClick(option)}
                   disabled={showRationale || isCorrect !== null || eliminatedOptions.includes(option)}
                   state={showRationale ? (option === currentQ.correctAnswer ? 'correct' : (selectedOption === option ? 'wrong' : 'idle')) : (selectedOption === option ? 'selected' : (eliminatedOptions.includes(option) ? 'wrong' : 'idle'))}
@@ -446,7 +447,7 @@ const Quiz = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto flex flex-col h-[100dvh] lg:h-auto lg:min-h-screen space-y-6 pb-24 lg:pb-32 relative overflow-hidden px-4">
+    <div className="max-w-4xl mx-auto flex flex-col h-[100dvh] lg:h-auto lg:min-h-screen space-y-6 pb-24 lg:pb-32 relative overflow-hidden px-4 overscroll-none">
       <div className="flex justify-between items-end px-2 shrink-0 mt-4">
         <div className="space-y-2">
            <div className="flex items-center gap-2">
@@ -639,6 +640,9 @@ const SpeedOption = React.memo(({ label, color, icon, onClick, disabled, state }
   }, [state]);
   return (
     <button disabled={disabled} onClick={onClick} className={`relative min-h-[110px] rounded-[1.25rem] sm:rounded-[2.5rem] p-4 flex flex-col items-center justify-center text-center transition-all duration-300 active:scale-95 overflow-hidden group ${color} ${stateStyles} touch-manipulation overscroll-contain`}>
+      <div className="absolute top-3 left-3 opacity-30 group-hover:opacity-50 transition-opacity">
+        {icon}
+      </div>
       <span className="font-black leading-tight break-words overflow-wrap-anywhere whitespace-normal px-2" style={{ fontSize: 'clamp(0.82rem, 1.9vw, 1rem)' }}>{label}</span>
     </button>
   );

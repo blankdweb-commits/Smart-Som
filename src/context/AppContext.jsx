@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
 import { initialFlashcards } from '../data/initialData';
 import { allBuiltInFlashcards } from '../data/loadFlashcards';
+import { CURRICULUM_MASTER } from '../data/curriculumMaster';
 import { supabase } from '../utils/supabase';
 
 const AppContext = createContext();
@@ -41,6 +42,18 @@ export function AppProvider({ children }) {
     recommendedRevision: [],
     dailyChallenge: { id: null, question: '', answer: '', completed: false, lastDate: null }
   });
+
+  const curriculumSubjects = React.useMemo(() => {
+    const subjects = new Set();
+    Object.values(CURRICULUM_MASTER).forEach(year => {
+      Object.values(year).forEach(semester => {
+        semester.forEach(course => {
+          if (course.course) subjects.add(course.course);
+        });
+      });
+    });
+    return Array.from(subjects).sort();
+  }, []);
 
   const fetchUserData = useCallback(async () => {
     if (!supabase || !session) return;
@@ -382,7 +395,8 @@ export function AppProvider({ children }) {
     updateCardProgress,
     incrementCardsStudied,
     updateQuizStats,
-    fetchUserData
+    fetchUserData,
+    curriculumSubjects
   }), [
     session, loadingAuth, flashcards, exams, studyStats, userProfile,
     darkMode, transactions, auditLogs, feeDetails, subscriptionPlans,
@@ -390,7 +404,7 @@ export function AppProvider({ children }) {
     updateSubscriptionPlan, addSubscriptionPlan, deleteSubscriptionPlan,
     updatePaymentPurpose, addPaymentPurpose, deletePaymentPurpose,
     addAuditLog, updateCardProgress, incrementCardsStudied, updateQuizStats,
-    fetchUserData
+    fetchUserData, curriculumSubjects
   ]);
 
   return (

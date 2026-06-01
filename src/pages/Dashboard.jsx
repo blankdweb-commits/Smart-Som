@@ -1,24 +1,16 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { BookOpen, Calendar, TrendingUp, Award, Zap, ArrowRight, Star, Clock, Lock, AlertCircle, Brain, Target } from '../components/Icons';
+import { BookOpen, Calendar, TrendingUp, Award, Zap, ArrowRight, Star, Clock, Lock, AlertCircle, Brain, Target, ChevronRight } from '../components/Icons';
 import { differenceInDays } from 'date-fns';
 import FeeDashboardWidget from '../components/FeeDashboardWidget';
 import DailyChallengeWidget from '../components/DailyChallengeWidget';
-import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
+import { motion } from 'framer-motion';
 
 const Dashboard = () => {
   const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
   const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics } = useAppContext();
   const navigate = useNavigate();
-
-  // Redirect if not logged in - Only if not in DEV_MODE and NOT in Dashboard-First mode
-  // Since Dashboard-First is the primary experience, we usually don't want to redirect back to landing
-  React.useEffect(() => {
-    if (!loadingAuth && !session && !DEV_MODE) {
-      // navigate('/'); // Disabled to prevent redirect loops in Dashboard-First mode
-    }
-  }, [session, loadingAuth, navigate, DEV_MODE]);
 
   const subjectProgress = React.useMemo(() => {
     const stats = {};
@@ -84,7 +76,7 @@ const Dashboard = () => {
   }, [tipsCount]);
 
   return (
-    <div className="relative space-y-6 sm:space-y-8 pb-32 animate-in fade-in duration-700 max-w-5xl mx-auto px-1 sm:px-0 overflow-x-hidden">
+    <div className="relative space-y-6 sm:space-y-8 pb-32 animate-in fade-in duration-700 max-w-5xl mx-auto px-1 sm:px-0 overflow-x-hidden min-h-[100dvh]">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="w-full">
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">Apex Scholars</h2>
@@ -150,6 +142,67 @@ const Dashboard = () => {
             </motion.div>
           )}
 
+          {isExamSoon && (
+            <div className="space-y-4">
+              {nearExams.map((exam, idx) => {
+                const days = differenceInDays(new Date(exam.date), new Date());
+                const subject = exam.title;
+                return (
+                  <motion.div
+                    key={exam.id}
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: idx * 0.1 }}
+                    className={`p-6 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden group ${days === 0 ? 'bg-red-600' : 'bg-slate-900 border-2 border-slate-800'}`}
+                  >
+                    <div className="absolute right-0 top-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+                      <Calendar size={120} />
+                    </div>
+                    <div className="relative z-10 space-y-6">
+                      <div className="flex justify-between items-start">
+                        <div className="space-y-1">
+                          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60">
+                            {days === 0 ? 'Assessment Today' : `Coming up in ${days} Day${days > 1 ? 's' : ''}`}
+                          </p>
+                          <h3 className="text-2xl font-black tracking-tight uppercase">{exam.title}</h3>
+                          <div className="flex items-center gap-3 text-white/50 text-[10px] font-bold">
+                            <span className="flex items-center gap-1"><Clock size={12}/> {exam.time}</span>
+                            <span className="w-1 h-1 rounded-full bg-white/20" />
+                            <span>{exam.venue}</span>
+                          </div>
+                        </div>
+                        <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-md">
+                          <AlertCircle size={24} className={days === 0 ? 'animate-pulse text-white' : 'text-amber-400'} />
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                        <Link
+                          to={`/flashcards?subject=${encodeURIComponent(subject)}`}
+                          className="flex items-center justify-center gap-2 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
+                        >
+                          <BookOpen size={14} /> Revise Cards
+                        </Link>
+                        <Link
+                          to="/quiz"
+                          className="flex items-center justify-center gap-2 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
+                        >
+                          <Zap size={14} /> Start Quiz
+                        </Link>
+                        <Link
+                          to="/dashboard"
+                          className="hidden sm:flex items-center justify-center gap-2 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
+                        >
+                          <Target size={14} /> Weak Topics
+                        </Link>
+                      </div>
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </div>
+          )}
+
           <FeeDashboardWidget />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -183,44 +236,6 @@ const Dashboard = () => {
             </div>
           </div>
 
-          {isExamSoon && (
-            <div className="space-y-4">
-              {nearExams.map((exam, idx) => {
-                const days = differenceInDays(new Date(exam.date), new Date());
-                const subject = exam.title.split(' ')[0];
-                return (
-                  <motion.div
-                    key={exam.id}
-                    initial={{ x: -20, opacity: 0 }}
-                    animate={{ x: 0, opacity: 1 }}
-                    transition={{ delay: idx * 0.1 }}
-                    className={`p-6 rounded-[2rem] text-white shadow-xl relative overflow-hidden group ${days === 0 ? 'bg-red-600' : 'bg-slate-900'}`}
-                  >
-                    <div className="absolute right-0 top-1/2 -translate-y-1/2 p-4 opacity-10">
-                      <AlertCircle size={80} />
-                    </div>
-                    <div className="relative z-10 flex flex-col sm:flex-row justify-between items-center gap-6">
-                      <div className="space-y-1 text-center sm:text-left">
-                        <p className="text-[10px] font-black uppercase tracking-[0.3em] opacity-60">
-                          {days === 0 ? 'Happening Now' : `${days} Day${days > 1 ? 's' : ''} Remaining`}
-                        </p>
-                        <h3 className="text-2xl font-black tracking-tight">{exam.title}</h3>
-                        <p className="text-white/60 text-xs font-medium italic">
-                          {days === 0 ? 'Final push! Open your cards now.' : `Review ${subject} mastery before the deadline.`}
-                        </p>
-                      </div>
-                      <button
-                        onClick={() => navigate(`/flashcards?subject=${encodeURIComponent(subject)}`)}
-                        className="px-6 py-3 bg-white text-slate-900 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all flex items-center gap-2 whitespace-nowrap"
-                      >
-                        Revise Now <ArrowRight size={14} />
-                      </button>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          )}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <StatsCard title="Vault" value={flashcards.length} icon={<BookOpen className="text-apex-600" />} color="bg-white dark:bg-slate-800" />
             <StatsCard title="Mastery" value={studyStats.cardsStudied} icon={<TrendingUp className="text-emerald-500" />} color="bg-white dark:bg-slate-800" />

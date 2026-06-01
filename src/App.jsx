@@ -2,6 +2,7 @@ import React, { useEffect, lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider, useAppContext } from './context/AppContext';
 import Layout from './components/Layout';
+import ErrorBoundary from './components/ErrorBoundary';
 import { MotionConfig } from 'framer-motion';
 
 // Lazy load pages
@@ -78,13 +79,15 @@ const AppRouter = () => (
 
 function App() {
   return (
-    <AppProvider>
-      <MotionConfig reducedMotion="user">
-        <Router>
-          <AppRouter />
-        </Router>
-      </MotionConfig>
-    </AppProvider>
+    <ErrorBoundary>
+      <AppProvider>
+        <MotionConfig reducedMotion="user">
+          <Router>
+            <AppRouter />
+          </Router>
+        </MotionConfig>
+      </AppProvider>
+    </ErrorBoundary>
   );
 }
 

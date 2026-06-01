@@ -12,12 +12,14 @@ const ExamForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
     time: '',
     venue: '',
     lecturer: '',
+    courseCode: '',
     type: 'Written',
     priority: 'Medium',
     notes: '',
     studyMaterials: '',
     topics: [],
-    reminders: ['1 day before']
+    reminders: ['1 day before'],
+    enableReminders: true
   });
 
   const [newTopic, setNewTopic] = useState('');
@@ -36,7 +38,8 @@ const ExamForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
         ...formData,
         ...initialData,
         topics: initialData.topics || [],
-        reminders: initialData.reminders || ['1 day before']
+        reminders: initialData.reminders || ['1 day before'],
+        enableReminders: initialData.enableReminders !== undefined ? initialData.enableReminders : true
       });
     } else {
       setFormData({
@@ -45,12 +48,14 @@ const ExamForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
         time: '',
         venue: '',
         lecturer: '',
+        courseCode: '',
         type: 'Written',
         priority: 'Medium',
         notes: '',
         studyMaterials: '',
         topics: [],
-        reminders: ['1 day before']
+        reminders: ['1 day before'],
+        enableReminders: true
       });
     }
   }, [initialData, isOpen]);
@@ -137,14 +142,24 @@ const ExamForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
               <Info size={14} /> Basic Details
             </h4>
             <div className="space-y-4">
-              <div className="group">
-                <AutocompleteInput
-                  label="Assessment Title"
-                  value={formData.title}
-                  onChange={(val) => setFormData(prev => ({ ...prev, title: val }))}
-                  suggestions={curriculumSubjects}
-                  placeholder="e.g., Medical Surgical Nursing I"
-                />
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+                <div className="sm:col-span-2">
+                  <AutocompleteInput
+                    label="Assessment Title"
+                    value={formData.title}
+                    onChange={(val) => setFormData(prev => ({ ...prev, title: val }))}
+                    suggestions={curriculumSubjects}
+                    placeholder="e.g., Medical Surgical Nursing I"
+                  />
+                </div>
+                <div>
+                  <label className="block text-[10px] font-black text-slate-400 uppercase tracking-widest mb-2 ml-1">Course Code</label>
+                  <input
+                    type="text" name="courseCode" value={formData.courseCode} onChange={handleChange}
+                    placeholder="e.g., NSC 301"
+                    className="w-full px-6 py-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-medical-500 outline-none transition-all font-bold dark:text-white"
+                  />
+                </div>
 
                 {recentSubjects.length > 0 && (
                   <div className="flex flex-wrap gap-2 mt-3 ml-1">
@@ -272,10 +287,19 @@ const ExamForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
 
           {/* Smart Reminders Section */}
           <section className="space-y-6">
-            <h4 className="text-xs font-black text-orange-600 uppercase tracking-[0.2em] flex items-center gap-2">
-              <Bell size={14} /> Smart Reminders
-            </h4>
-            <div className="flex flex-wrap gap-2">
+            <div className="flex justify-between items-center">
+              <h4 className="text-xs font-black text-orange-600 uppercase tracking-[0.2em] flex items-center gap-2">
+                <Bell size={14} /> Smart Reminders
+              </h4>
+              <button
+                type="button"
+                onClick={() => setFormData(prev => ({ ...prev, enableReminders: !prev.enableReminders }))}
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-[10px] font-black uppercase transition-all ${formData.enableReminders ? 'bg-orange-100 text-orange-700' : 'bg-slate-100 text-slate-400'}`}
+              >
+                {formData.enableReminders ? 'Enabled' : 'Disabled'}
+              </button>
+            </div>
+            <div className={`flex flex-wrap gap-2 transition-opacity ${formData.enableReminders ? 'opacity-100' : 'opacity-40 pointer-events-none'}`}>
               {['1 week before', '3 days before', '1 day before', '1 hour before'].map(r => (
                 <button
                   key={r} type="button"
