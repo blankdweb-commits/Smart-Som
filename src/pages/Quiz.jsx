@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Brain, CheckCircle2, XCircle, RefreshCw, ChevronRight, Trophy, AlertCircle, Lock, Star, Users, Share2, ArrowRight, Clock, Award, Shield, Target, BookOpen, Zap, Settings, HelpCircle, Volume2, Triangle, Diamond, Circle, Square } from '../components/Icons';
+import { Brain, CheckCircle2, XCircle, RefreshCw, ChevronRight, Trophy, AlertCircle, Lock, Star, Users, Share2, ArrowRight, Clock, Award, Shield, Target, BookOpen, Zap, Settings, HelpCircle, Volume2, Triangle, Diamond, Circle, Square, Sparkles, TrendingUp } from '../components/Icons';
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FALLBACK_QUESTIONS } from '../data/fallbackQuestions';
@@ -14,11 +14,12 @@ const MILESTONES = [
 ];
 
 const Quiz = () => {
-  const { flashcards, userProfile, studyStats, updateQuizStats } = useAppContext();
+  const { flashcards, userProfile, studyStats, updateQuizStats, curriculumSubjects } = useAppContext();
   const navigate = useNavigate();
 
   // -- 1. STATE DECLARATIONS --
   const [quizMode, setQuizMode] = useState(null);
+  const [selectedSubject, setSelectedSubject] = useState(null);
   const [quizStarted, setQuizStarted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
@@ -89,12 +90,19 @@ const Quiz = () => {
   const resetTimer = () => setTimeLeft(15);
   const currentMilestone = MILESTONES[Math.min(Math.floor(score / 3), MILESTONES.length - 1)];
 
-  const startQuiz = () => {
+  const startQuiz = (mode, subject = null) => {
     let questions = [];
+    let pool = [...flashcards];
 
-    if (flashcards.length >= 4) {
-      const shuffled = [...flashcards].sort(() => 0.5 - Math.random());
-      const selected = shuffled.slice(0, 10);
+    if (subject) {
+      pool = pool.filter(c => c.subject === subject);
+    }
+
+    const count = mode === 'clinical' ? 20 : mode === 'speed' ? 15 : 10;
+
+    if (pool.length >= 4) {
+      const shuffled = [...pool].sort(() => 0.5 - Math.random());
+      const selected = shuffled.slice(0, count);
       questions = selected.map(card => {
         const distractors = flashcards
           .filter(c => c.id !== card.id)
@@ -106,7 +114,7 @@ const Quiz = () => {
       });
     } else {
       // Use fallback questions if flashcards are insufficient
-      questions = [...FALLBACK_QUESTIONS].sort(() => 0.5 - Math.random()).slice(0, 10);
+      questions = [...FALLBACK_QUESTIONS].sort(() => 0.5 - Math.random()).slice(0, Math.min(count, FALLBACK_QUESTIONS.length));
     }
 
     setQuizQuestions(questions);
@@ -269,37 +277,69 @@ const Quiz = () => {
 
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
           <ModeCard
-            title="Standard Revision"
-            description="Deep learning with rationale and unlimited time."
-            icon={<BookOpen size={32} />}
-            stats="Practice"
-            onClick={() => { setQuizMode('revision'); startQuiz(); }}
-            color="medical"
-          />
-          <ModeCard
-            title="Speed Challenge"
-            description="Kahoot-style rapid fire clinical reasoning."
-            icon={<Zap size={32} />}
-            stats="Timed"
-            onClick={() => { setQuizMode('speed'); startQuiz(); }}
-            color="amber"
-          />
-          <ModeCard
-            title="Mastery Challenge"
-            description="High-stakes mode. One wrong answer ends the streak."
+            title="Clinical Challenge"
+            description="NMCN-style exam simulation with score tracking."
             icon={<Award size={32} />}
-            stats="Expert"
-            onClick={() => { setQuizMode('mastery'); startQuiz(); }}
+            stats="Exam Prep"
+            onClick={() => { setQuizMode('clinical'); startQuiz('clinical'); }}
             color="purple"
           />
           <ModeCard
-            title="Timed CBT Exam"
-            description="Full exam simulation with strictly timed blocks."
-            icon={<Clock size={32} />}
-            stats="Exam"
-            onClick={() => { setQuizMode('cbt'); startQuiz(); }}
-            color="slate"
+            title="Quick Quiz"
+            description="Fast revision (5-10 questions) with immediate rationale."
+            icon={<BookOpen size={32} />}
+            stats="Rapid Learning"
+            onClick={() => { setQuizMode('quick'); startQuiz('quick'); }}
+            color="medical"
           />
+          <ModeCard
+            title="Subject Mastery"
+            description="Master one course. Progress tracked by subject."
+            icon={<Target size={32} />}
+            stats="Specialized"
+            onClick={() => setQuizMode('mastery_select')}
+            color="emerald"
+          />
+          <ModeCard
+            title="Speed Challenge"
+            description="High-intensity rapid fire. Streaks & bonus points."
+            icon={<Zap size={32} />}
+            stats="Timed"
+            onClick={() => { setQuizMode('speed'); startQuiz('speed'); }}
+            color="amber"
+          />
+        </div>
+      </div>
+    );
+  }
+
+  if (quizMode === 'mastery_select') {
+    return (
+      <div className="max-w-4xl mx-auto mt-8 space-y-8 animate-in fade-in duration-500 pb-24 px-4">
+        <div className="flex items-center gap-4">
+          <button onClick={() => setQuizMode(null)} className="p-3 bg-white dark:bg-slate-800 rounded-2xl text-slate-400 hover:text-medical-600 shadow-sm transition-all">
+            <ArrowRight size={24} className="rotate-180" />
+          </button>
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Subject Mastery</h2>
+        </div>
+
+        <p className="text-slate-500 dark:text-slate-400 font-medium">Select a nursing course to begin specialized revision.</p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+          {curriculumSubjects.map(subject => (
+            <button
+              key={subject}
+              onClick={() => {
+                setSelectedSubject(subject);
+                setQuizMode('mastery');
+                startQuiz('mastery', subject);
+              }}
+              className="p-6 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md hover:border-medical-500 transition-all text-left flex justify-between items-center group"
+            >
+              <span className="font-bold text-slate-700 dark:text-slate-200">{subject}</span>
+              <ChevronRight size={18} className="text-slate-300 group-hover:text-medical-600 transition-colors" />
+            </button>
+          ))}
         </div>
       </div>
     );
@@ -322,15 +362,33 @@ const Quiz = () => {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-2xl mx-auto px-2">
           <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-700 shadow-clinical">
-            <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Final Score</p>
-            <p className="text-4xl font-black text-slate-900 dark:text-white">{score}</p>
+            <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">Score</p>
+            <p className="text-3xl font-black text-slate-900 dark:text-white">{score}/{quizQuestions.length}</p>
           </div>
           <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-700 shadow-clinical">
-            <p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">New Streak</p>
-            <p className="text-4xl font-black text-medical-600">{studyStats.quizStreak || 0}</p>
+            <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">Mastery</p>
+            <p className="text-3xl font-black text-medical-600">{Math.round((score / (quizQuestions.length || 1)) * 100)}%</p>
           </div>
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-700 shadow-clinical">
+            <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">Streak</p>
+            <p className="text-3xl font-black text-amber-500">{studyStats.quizStreak || 0}</p>
+          </div>
+          <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-700 shadow-clinical">
+            <p className="text-[9px] font-black uppercase text-slate-400 tracking-widest mb-1">XP Gain</p>
+            <p className="text-3xl font-black text-indigo-500">+{score * 15}</p>
+          </div>
+        </div>
+
+        <div className="max-w-md mx-auto bg-medical-50 dark:bg-medical-900/10 p-6 rounded-[2rem] border border-medical-100 dark:border-medical-900/30 flex items-center gap-4">
+           <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center text-medical-600 shadow-sm shrink-0">
+              <TrendingUp size={24} />
+           </div>
+           <div className="text-left">
+              <p className="text-[10px] font-black uppercase text-medical-600 tracking-widest">Consistency Indicator</p>
+              <p className="text-sm font-bold text-slate-700 dark:text-slate-300">You're in the top 15% of clinical learners this week!</p>
+           </div>
         </div>
 
         <div className="flex flex-col gap-4 max-w-sm mx-auto">
@@ -457,14 +515,23 @@ const Quiz = () => {
   }
 
   return (
-    <div className="max-w-4xl mx-auto flex flex-col h-[100dvh] lg:h-auto lg:min-h-screen space-y-6 pb-24 lg:pb-32 relative overflow-hidden px-4 overscroll-none">
-      <div className="flex justify-between items-end px-2 shrink-0 mt-4">
-        <div className="space-y-2">
+    <div className="max-w-4xl mx-auto flex flex-col h-[calc(100dvh-120px)] lg:h-auto lg:min-h-screen space-y-4 pb-24 lg:pb-32 relative overflow-hidden px-2 sm:px-4 overscroll-none">
+      {/* Visual Progress Bar */}
+      <div className="w-full h-1 bg-slate-100 dark:bg-slate-800 rounded-full overflow-hidden shrink-0 mt-2 sm:mt-0">
+        <motion.div
+          className="h-full bg-medical-500"
+          initial={{ width: 0 }}
+          animate={{ width: `${((currentQuestionIndex + 1) / quizQuestions.length) * 100}%` }}
+        />
+      </div>
+
+      <div className="flex justify-between items-end px-2 shrink-0 mt-1 sm:mt-4">
+        <div className="space-y-1 sm:space-y-2">
            <div className="flex items-center gap-2">
               <div className="w-2 h-2 rounded-full bg-medical-500 animate-pulse" />
-              <span className="text-[10px] font-black uppercase tracking-[0.2em] text-medical-600 dark:text-medical-400">{currentMilestone}</span>
+              <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-medical-600 dark:text-medical-400">{currentMilestone}</span>
            </div>
-           <h3 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight">Question {currentQuestionIndex + 1}</h3>
+           <h3 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white tracking-tight">Question {currentQuestionIndex + 1}</h3>
         </div>
         <div className="flex flex-col items-end">
            <div className="flex items-center gap-2 mb-1">
@@ -484,7 +551,7 @@ const Quiz = () => {
 
       <div className="relative flex-1 flex flex-col min-h-0">
         <div className="absolute inset-0 bg-slate-900 rounded-[2rem] sm:rounded-[3rem] blur-2xl opacity-10 dark:opacity-40" />
-        <div className="relative flex-1 flex flex-col bg-slate-900 dark:bg-slate-950 rounded-[2rem] sm:rounded-[3rem] p-4 sm:p-8 border border-white/10 shadow-2xl overflow-hidden">
+        <div className="relative flex-1 flex flex-col bg-slate-900 dark:bg-slate-950 rounded-[2rem] sm:rounded-[3rem] p-3 sm:p-8 border border-white/10 shadow-2xl overflow-hidden">
 
            <AnimatePresence mode="wait">
              <motion.div
@@ -493,10 +560,10 @@ const Quiz = () => {
              >
                 <div className="flex-1 flex flex-col min-h-0">
                   <div className="flex-1 flex flex-col space-y-6 overflow-y-auto overscroll-contain custom-scrollbar px-2 pb-6">
-                    <div className="shrink-0 text-center space-y-4 pt-4">
+                    <div className="shrink-0 text-center space-y-4 pt-2 sm:pt-4">
                        <p className="text-[10px] font-black uppercase tracking-[0.3em] text-medical-500/60">Subject: {currentQ.subject}</p>
-                       <div className="max-h-[30vh] overflow-y-auto px-4 scrollbar-hide">
-                          <h2 className="text-xl sm:text-4xl font-black text-white leading-tight tracking-tight break-words">
+                       <div className="max-h-[35vh] overflow-y-auto px-4 scrollbar-hide">
+                          <h2 className="text-lg sm:text-4xl font-black text-white leading-tight tracking-tight break-words">
                             {currentQ.question}
                           </h2>
                        </div>
@@ -578,7 +645,7 @@ const Quiz = () => {
       <AnimatePresence>
         {showRationale && (
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="space-y-6">
-            <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-8 shadow-clinical border border-slate-100 dark:border-slate-700 overflow-hidden relative">
+            <div className="bg-white dark:bg-slate-800 rounded-[2rem] sm:rounded-[2.5rem] p-5 sm:p-8 shadow-clinical border border-slate-100 dark:border-slate-700 overflow-hidden relative">
                <div className="absolute top-0 right-0 p-8 opacity-5 text-slate-900 dark:text-white"><Award size={120} /></div>
                <div className="relative z-10 space-y-8">
                   <header className="flex justify-between items-center">
@@ -592,13 +659,35 @@ const Quiz = () => {
                         </div>
                      </div>
                   </header>
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                     <div className="space-y-4">
-                        <div className="flex items-center gap-2">
-                           <Target size={16} className="text-medical-500" />
-                           <p className="text-xs font-black uppercase tracking-widest text-slate-400">Clinical Insight</p>
+                  <div className="grid grid-cols-1 gap-4 sm:gap-8">
+                     <div className="space-y-4 sm:space-y-6">
+                        <div className="space-y-2 sm:space-y-4">
+                           <div className="flex items-center gap-2">
+                              <Target size={16} className="text-medical-500" />
+                              <p className="text-[10px] sm:text-xs font-black uppercase tracking-widest text-slate-400">Clinical Insight</p>
+                           </div>
+                           <p className="text-xs sm:text-base font-medium text-slate-600 dark:text-slate-300 leading-relaxed italic">{currentQ.rationale || "Rationale provided by Apex Scholars."}</p>
                         </div>
-                        <p className="text-sm sm:text-base font-medium text-slate-600 dark:text-slate-300 leading-relaxed italic">{currentQ.rationale || "Rationale provided by Apex Scholars."}</p>
+
+                        {(currentQ.examTip || currentQ.hint) && (
+                          <div className="p-4 sm:p-6 bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-100 dark:border-amber-900/30">
+                            <div className="flex items-center gap-2 mb-2">
+                               <Sparkles size={16} className="text-amber-500" />
+                               <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-amber-600">Exam Tip</p>
+                            </div>
+                            <p className="text-xs sm:text-sm text-amber-800 dark:text-amber-300 font-bold leading-relaxed">{currentQ.examTip || currentQ.hint}</p>
+                          </div>
+                        )}
+
+                        {currentQ.commonMistake && (
+                          <div className="p-4 sm:p-6 bg-red-50 dark:bg-red-900/10 rounded-2xl border border-red-100 dark:border-red-900/30">
+                            <div className="flex items-center gap-2 mb-2">
+                               <XCircle size={16} className="text-red-500" />
+                               <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-red-600">Common Mistake</p>
+                            </div>
+                            <p className="text-xs sm:text-sm text-red-800 dark:text-red-300 font-bold leading-relaxed">{currentQ.commonMistake}</p>
+                          </div>
+                        )}
                      </div>
                   </div>
                </div>
@@ -674,10 +763,10 @@ const OptionButton = React.memo(({ label, index, state, pollValue, onClick, disa
     return "bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:border-white/30";
   }, [state]);
   return (
-    <button disabled={disabled} onClick={onClick} className={`w-full group relative flex items-center p-4 sm:p-5 rounded-2xl border-2 transition-all duration-300 overflow-hidden ${styles}`}>
-      <div className="flex items-center gap-4 w-full relative z-10">
-         <span className={`w-8 h-8 rounded-lg flex items-center justify-center font-black text-xs border ${state === 'selected' ? 'bg-amber-500 border-amber-400 text-white' : 'bg-white/10 border-white/10'}`}>{letters[index]}</span>
-         <span className="flex-1 font-bold text-sm sm:text-base text-left leading-tight pr-8">{label}</span>
+    <button disabled={disabled} onClick={onClick} className={`w-full group relative flex items-center p-3 sm:p-5 rounded-2xl border-2 transition-all duration-300 overflow-hidden ${styles}`}>
+      <div className="flex items-center gap-3 sm:gap-4 w-full relative z-10">
+         <span className={`w-7 h-7 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-black text-xs border ${state === 'selected' ? 'bg-amber-500 border-amber-400 text-white' : 'bg-white/10 border-white/10'}`}>{letters[index]}</span>
+         <span className="flex-1 font-bold text-xs sm:text-base text-left leading-tight pr-4 sm:pr-8">{label}</span>
          {pollValue !== undefined && (
             <div className="text-right">
                <p className="text-lg font-black">{pollValue}%</p>
