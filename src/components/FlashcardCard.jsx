@@ -68,9 +68,16 @@ const FlashcardCard = memo(({
           <div>
             <div className="flex justify-between items-start mb-6">
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] sm:text-xs font-black px-3 py-1 bg-medical-50 text-medical-600 dark:bg-medical-900/40 dark:text-medical-300 rounded-full uppercase tracking-[0.15em] border border-medical-100/50">
-                  {card.subject}
-                </span>
+                <div className="flex flex-wrap items-center gap-2">
+                  <span className="text-[10px] sm:text-xs font-black px-3 py-1 bg-medical-50 text-medical-600 dark:bg-medical-900/40 dark:text-medical-300 rounded-full uppercase tracking-[0.15em] border border-medical-100/50">
+                    {card.subject}
+                  </span>
+                  {card.source && (
+                    <span className="text-[8px] sm:text-[9px] font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 px-2 py-0.5 rounded border border-indigo-100/50 uppercase tracking-tighter shadow-sm">
+                      {card.source}
+                    </span>
+                  )}
+                </div>
                 {isFullscreen && <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Exam Question Mode</span>}
               </div>
               <div className="flex space-x-2">
@@ -170,7 +177,14 @@ const FlashcardCard = memo(({
               <p className="text-xs sm:text-sm font-medium leading-relaxed italic">{card.rationale}</p>
             </div>
           )}
-          <p className="mt-6 text-[10px] opacity-60 font-bold uppercase tracking-widest">Click to flip back</p>
+          <div className="mt-auto pt-6 flex flex-col items-center gap-2">
+            {card.source && (
+              <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] px-3 py-1 border border-white/10 rounded-full">
+                Source: {card.source}
+              </span>
+            )}
+            <p className="text-[10px] opacity-60 font-bold uppercase tracking-widest">Click to flip back</p>
+          </div>
         </div>
       </div>
     </motion.div>

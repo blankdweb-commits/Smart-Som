@@ -6,7 +6,7 @@
     "subject": "Cardiovascular Nursing",
     "difficulty": "Intermediate",
     "important": true,
-    "source": "Cardiovascular Richards",
+    "source": "CARDIOVASCULAR RICHARD",
     "rationale": "Angina pain occurs because the heart muscle is not getting enough oxygen-rich blood (ischemia), typically due to coronary artery narrowing."
   },
   {
@@ -16,7 +16,7 @@
     "subject": "Cardiovascular Nursing",
     "difficulty": "Intermediate",
     "important": true,
-    "source": "Cardiovascular Richards",
+    "source": "CARDIOVASCULAR RICHARD",
     "rationale": "The myocardium (heart muscle) is made of specialized cardiac muscle cells called myocytes (cardiomyocytes)."
   },
   {
@@ -26,7 +26,7 @@
     "subject": "Cardiovascular Nursing",
     "difficulty": "Intermediate",
     "important": true,
-    "source": "Cardiovascular Richards",
+    "source": "CARDIOVASCULAR RICHARD",
     "rationale": "Heart failure more commonly causes oliguria (decreased urine output) due to poor renal perfusion, not polyuria."
   },
   {
@@ -57,7 +57,7 @@
     "difficulty": "Intermediate",
     "important": true,
     "source": "ENDOCRINE RICHARD",
-    "rationale": "Circadian rhythm refers to the body\u2019s internal 24-hour sleep-wake cycle."
+    "rationale": "Circadian rhythm refers to the body’s internal 24-hour sleep-wake cycle."
   },
   {
     "id": "end-004",
@@ -787,7 +787,7 @@
     "difficulty": "Intermediate",
     "important": true,
     "source": "ENDOCRINE RICHARD",
-    "rationale": "The pituitary is called the \u201cmaster gland.\u201d"
+    "rationale": "The pituitary is called the “master gland.”"
   },
   {
     "id": "end-077",
@@ -1167,7 +1167,7 @@
     "difficulty": "Intermediate",
     "important": true,
     "source": "ENDOCRINE RICHARD",
-    "rationale": "A calcium level of 7.2 mg/dL indicates hypocalcemia, which causes Trousseau\u2019s sign."
+    "rationale": "A calcium level of 7.2 mg/dL indicates hypocalcemia, which causes Trousseau’s sign."
   },
   {
     "id": "end-115",
@@ -1347,7 +1347,7 @@
     "difficulty": "Intermediate",
     "important": true,
     "source": "ENDOCRINE RICHARD",
-    "rationale": "This causes central obesity and \u201cbuffalo hump\u201d in Cushing syndrome."
+    "rationale": "This causes central obesity and “buffalo hump” in Cushing syndrome."
   },
   {
     "id": "end-133",
@@ -1501,7 +1501,7 @@
   },
   {
     "id": "end-148",
-    "question": "The \u2026. is responsible for secreting gonadotropin-releasing hormone:",
+    "question": "The …. is responsible for secreting gonadotropin-releasing hormone:",
     "answer": "Hypothalamus",
     "subject": "Anatomy & Physiology",
     "difficulty": "Intermediate",

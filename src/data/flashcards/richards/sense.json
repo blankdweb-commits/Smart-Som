@@ -1,0 +1,1002 @@
+[
+  {
+    "id": "sense-001",
+    "question": "Which of the following structures protects the eye by preventing perspiration?",
+    "answer": "Eyelid",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Eyelid — Eyelids help protect the eyes from sweat, dust, and injury."
+  },
+  {
+    "id": "sense-002",
+    "question": "Accumulation of endolymph causing distension and increased pressure within the membranous labyrinths with destruction of the sensory cells in the ampulla and cochlea is called....",
+    "answer": "Meniere's disease",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Meniere's disease — Caused by excess endolymphatic fluid in the membranous labyrinth."
+  },
+  {
+    "id": "sense-003",
+    "question": "Acoustic neuroma commonly affects the cranial nerve.",
+    "answer": "8th",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "8th — Acoustic neuroma affects the vestibulocochlear nerve (CN VIII)."
+  },
+  {
+    "id": "sense-004",
+    "question": "The eyeball keeps its spherical shape chiefly because it is filled with jellylike substance called:",
+    "answer": "Vitreous humor",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Vitreous humor — Jelly-like substance maintaining eyeball shape."
+  },
+  {
+    "id": "sense-005",
+    "question": "Motion sickness can be defined as..",
+    "answer": "Repetitive motion causing excessive stimulation of the semicircular canals and vestibular apparatus resulting in nausea and vomiting",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Motion sickness results from overstimulation of the vestibular apparatus."
+  },
+  {
+    "id": "sense-006",
+    "question": "Herbert's pits are seen in.",
+    "answer": "Trachoma",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Trachoma — Herbert’s pits are characteristic of trachoma."
+  },
+  {
+    "id": "sense-007",
+    "question": "The clouding or opacity within the crystalline lens that lead to gradual painless blurring and eventual loss of vision is called.",
+    "answer": "Cataract",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Cataract — Opacity of the lens causing painless vision loss."
+  },
+  {
+    "id": "sense-008",
+    "question": "The middle ear contains the hammer, anvil and stapes which are.",
+    "answer": "Very small bones that resemble the objects for which they were named",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "The ossicles are tiny bones: malleus, incus, and stapes."
+  },
+  {
+    "id": "sense-009",
+    "question": "The arterial supply to the retina is..",
+    "answer": "Central artery",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Central artery — Retina supplied by the central retinal artery."
+  },
+  {
+    "id": "sense-010",
+    "question": "Which of the following interventions is essential when instilling Cortisporin suspension, 2 gtt right ear?",
+    "answer": "Warming the solution to prevent dizziness",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Ear drops should be warmed to avoid vertigo/dizziness."
+  },
+  {
+    "id": "sense-011",
+    "question": "Which of the following structures has the highest refractive power?",
+    "answer": "Cornea",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Cornea — Cornea has the greatest refractive power."
+  },
+  {
+    "id": "sense-012",
+    "question": "Organ of Corti is situated in....",
+    "answer": "Scala media",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Scala media — Organ of Corti lies within the scala media."
+  },
+  {
+    "id": "sense-013",
+    "question": "Images are focused on the retina in which of the following position?",
+    "answer": "Inverted",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Inverted — Images on the retina are inverted."
+  },
+  {
+    "id": "sense-014",
+    "question": "Pallor can be checked from the",
+    "answer": "Conjunctiva",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Conjunctiva — Pallor is assessed in the conjunctiva."
+  },
+  {
+    "id": "sense-015",
+    "question": "Nerve deafness would most likely result from an injury or infection that damaged the:",
+    "answer": "Cochlear nerve",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Cochlear nerve — Damage causes nerve deafness."
+  },
+  {
+    "id": "sense-016",
+    "question": "Common cause of eustachian tube disease is due to....",
+    "answer": "Adenoids",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Adenoids — Enlarged adenoids commonly obstruct the Eustachian tube."
+  },
+  {
+    "id": "sense-017",
+    "question": "An inflammation of the conjunctiva involves the..",
+    "answer": "Delicate membrane lining the eyelids and covering the front of the eyeball",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Conjunctiva lines eyelids and covers anterior eyeball."
+  },
+  {
+    "id": "sense-018",
+    "question": "When teaching the client about Meniere's disease, which of the following instructions would a nurse give about vertigo?",
+    "answer": "Get up slowly, turning the entire body",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Slow movement reduces vertigo attacks."
+  },
+  {
+    "id": "sense-019",
+    "question": "Tears are produced by the.",
+    "answer": "Lacrimal glands",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Lacrimal glands — Produce tears."
+  },
+  {
+    "id": "sense-020",
+    "question": "Where are the ceruminous glands situated?",
+    "answer": "Exterior opening of auditory tube",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Ceruminous glands are in the external auditory canal."
+  },
+  {
+    "id": "sense-021",
+    "question": "The auricle and pinna constitute the part of ear:",
+    "answer": "External",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "External — Auricle/pinna form the external ear."
+  },
+  {
+    "id": "sense-022",
+    "question": "Before light is absorbed by cells in the retina, it travels through a number of structures at the front of the eye. What is the correct order of these structures?",
+    "answer": "Cornea; pupil; lens",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Light passes through cornea → pupil → lens."
+  },
+  {
+    "id": "sense-023",
+    "question": "In preparation for cataract surgery, the nurse is to administer prescribed eye drops. The nurse reviews the physician's orders, expecting which type of eye drops to be instilled?",
+    "answer": "A mydriatic medication",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "A mydriatic medication — Used to dilate pupils before cataract surgery."
+  },
+  {
+    "id": "sense-024",
+    "question": "Medication which may prevent rapid progress of cochlear otosclerosis is.",
+    "answer": "Fluorides",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Fluorides — Sodium fluoride may slow cochlear otosclerosis."
+  },
+  {
+    "id": "sense-025",
+    "question": "A labyrinthectomy can be performed to treat Meniere's syndrome. This procedure results in:",
+    "answer": "Permanent irreversible deafness",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Labyrinthectomy destroys hearing permanently in that ear."
+  },
+  {
+    "id": "sense-026",
+    "question": "Which of the following is an ocular change that may be found in the patient with hyperthyroidism?",
+    "answer": "Exophthalmos",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Exophthalmos — Common in hyperthyroidism/Graves disease."
+  },
+  {
+    "id": "sense-027",
+    "question": "The ear bones that transmit vibrations to the oval window of the cochlea are found in the:",
+    "answer": "Middle ear",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Middle ear — Ossicles are located in the middle ear."
+  },
+  {
+    "id": "sense-028",
+    "question": "When light rays enter the eye, they are refracted by the",
+    "answer": "Lens",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Lens — Lens refracts light for focusing."
+  },
+  {
+    "id": "sense-029",
+    "question": "The nurse is caring for a client that is hearing impaired. Which of the following approaches will facilitate communication?",
+    "answer": "Speak in a normal tone",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Speak in a normal tone — Shouting distorts sound."
+  },
+  {
+    "id": "sense-030",
+    "question": "Which of the following is a function of the eyelids?",
+    "answer": "Prevent the entry of excess light",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Eyelids regulate and block excess light."
+  },
+  {
+    "id": "sense-031",
+    "question": "What is the function of cerumen?",
+    "answer": "All of the above",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Cerumen protects and lubricates the ear."
+  },
+  {
+    "id": "sense-032",
+    "question": "The commonest extra cranial complication following mastoidectomy includes:",
+    "answer": "Post operative hematoma",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Post operative hematoma — Common extracranial complication."
+  },
+  {
+    "id": "sense-033",
+    "question": "Which of the following is not a typical feature of Ménière's disease?",
+    "answer": "Pulsatile tinnitus",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Pulsatile tinnitus — Not typical of Ménière’s disease."
+  },
+  {
+    "id": "sense-034",
+    "question": "Myringotomy is done on the... quadrant of the tympanic membrane",
+    "answer": "Antero inferior",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Antero inferior — Safest site for myringotomy."
+  },
+  {
+    "id": "sense-035",
+    "question": "Which of the following statements is true of the cornea?",
+    "answer": "A relatively diminished fluid volume is necessary for corneal transparency",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Corneal transparency requires relative dehydration."
+  },
+  {
+    "id": "sense-036",
+    "question": "A person having neural or nerve deafness would have some impairment in the function of the",
+    "answer": "Auditory nerve",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Auditory nerve — Nerve deafness involves CN VIII."
+  },
+  {
+    "id": "sense-037",
+    "question": "The nurse is reviewing the physician's orders for a client with Meniere's disease. Which diet will most likely be prescribed?",
+    "answer": "Low-sodium diet",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Low-sodium diet — Helps reduce endolymphatic pressure."
+  },
+  {
+    "id": "sense-038",
+    "question": "How many chambers are there in the human cochlea?",
+    "answer": "3",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "3 — Scala vestibuli, scala media, scala tympani."
+  },
+  {
+    "id": "sense-039",
+    "question": "Impairment of hearing due to noise starts at.....",
+    "answer": "4000 Hz",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "4000 Hz — Noise-induced hearing loss starts here."
+  },
+  {
+    "id": "sense-040",
+    "question": "The nurse is performing a voice test to assess hearing. Which of the following describes the accurate procedure for performing this test?",
+    "answer": "Whisper a statement and ask the client to repeat it.",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Whisper test involves whispering and asking repetition."
+  },
+  {
+    "id": "sense-041",
+    "question": "The normal length of external auditory meatus is.",
+    "answer": "24mm",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "24mm — Average external auditory canal length."
+  },
+  {
+    "id": "sense-042",
+    "question": "During a hearing assessment, the nurse notes that the sound lateralizes to the clients left ear with the Weber test. The nurse analyzes this result as:",
+    "answer": "A sensorineural or conductive loss",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Weber lateralization may indicate conductive or sensorineural loss."
+  },
+  {
+    "id": "sense-043",
+    "question": "The perilymph which is a clear fluid is found between the:",
+    "answer": "Bony and membranous labyrinths",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Perilymph lies between bony and membranous labyrinths."
+  },
+  {
+    "id": "sense-044",
+    "question": "In the nerve cells, the sound waves change to that race along nerve cells to the brain.",
+    "answer": "Electric signals",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Electric signals — Hair cells convert sound into nerve impulses."
+  },
+  {
+    "id": "sense-045",
+    "question": "Which of the following auditory bone is attached to the oval window?",
+    "answer": "Stapes",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Stapes — Footplate attached to oval window."
+  },
+  {
+    "id": "sense-046",
+    "question": "Before administering eye drops, the nurse should recognize that it is essential to consider which of the following?",
+    "answer": "The eye should be cleansed with warm water to remove any exudates before instilling the eye drops.",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Cleanse exudates before instilling drops."
+  },
+  {
+    "id": "sense-047",
+    "question": "Otosclerosis is a common cause of conductive hearing loss that causes partial hearing loss. What intervention would help the patient hearing?",
+    "answer": "Stapedectomy is the procedure of choice",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Stapedectomy is treatment of choice."
+  },
+  {
+    "id": "sense-048",
+    "question": "Perception is",
+    "answer": "An adequate representation of the world",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "An adequate representation of the world — Definition of perception."
+  },
+  {
+    "id": "sense-049",
+    "question": "Nurse Richard asked the client to use the Snellen's chart, which of the following is being tested?",
+    "answer": "Optic",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Optic — Snellen chart tests CN II."
+  },
+  {
+    "id": "sense-050",
+    "question": "In blast injury most common organ affected is",
+    "answer": "Eardrum",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Eardrum — Tympanic membrane most commonly injured in blasts."
+  },
+  {
+    "id": "sense-051",
+    "question": "What is the swollen enlargement on one side of semicircular canal called?",
+    "answer": "Ampulla",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Ampulla — Swelling at one end of semicircular canal."
+  },
+  {
+    "id": "sense-052",
+    "question": "Blepharitis is an inflammation of the",
+    "answer": "Eye margin",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Eye margin — Blepharitis affects eyelid margins."
+  },
+  {
+    "id": "sense-053",
+    "question": "A client with Meniere's disease is experiencing severe vertigo. Which instruction would the nurse give to the client to assist in controlling the vertigo?",
+    "answer": "Avoid sudden head movements",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Sudden movements worsen vertigo."
+  },
+  {
+    "id": "sense-054",
+    "question": "What are the desired symptoms of Acoustic Neuroma?",
+    "answer": "Hearing Loss",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Hearing Loss — Most common symptom of acoustic neuroma."
+  },
+  {
+    "id": "sense-055",
+    "question": "The commonest cause of suppurative otitis media is.",
+    "answer": "Pneumococcus",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Pneumococcus — Commonest cause of suppurative otitis media."
+  },
+  {
+    "id": "sense-056",
+    "question": "When a corneal transplant is done the surgeon replaces the....",
+    "answer": "Normally clear portion of the sclera that lies in front of the eyeball",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Corneal transplant replaces the transparent anterior scleral part."
+  },
+  {
+    "id": "sense-057",
+    "question": "Meniere's disease is manifested by all of the symptoms EXCEPT:",
+    "answer": "Otorrhoea",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Otorrhoea — Not typical of Ménière’s disease."
+  },
+  {
+    "id": "sense-058",
+    "question": "Which complaint is frequently expressed by a client with macular degeneration?",
+    "answer": "Problems with activities requiring focused vision such as sewing",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Macular degeneration affects central/focused vision."
+  },
+  {
+    "id": "sense-059",
+    "question": "The part of the ear that contains the receptors for hearing is the:",
+    "answer": "Cochlea",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Cochlea — Contains hearing receptors."
+  },
+  {
+    "id": "sense-060",
+    "question": "A client is diagnosed with a disorder involving the inner ear. Which of the following is the most common client complaint associated with a disorder in this part of the ear?",
+    "answer": "Tinnitus",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Tinnitus"
+  },
+  {
+    "id": "sense-061",
+    "question": "The part of the eye containing the pigment that determines the colour of the eye is called............",
+    "answer": "Iris",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Iris — Pigment determines eye color."
+  },
+  {
+    "id": "sense-062",
+    "question": "The triads of ear infection symptoms are",
+    "answer": "Tinnitus, vertigo and hearing loss",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Ménière’s triad: tinnitus, vertigo, hearing loss."
+  },
+  {
+    "id": "sense-063",
+    "question": "Which membrane encloses or surrounds the round window?",
+    "answer": "Secondary tympanic membrane",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Secondary tympanic membrane — Covers round window."
+  },
+  {
+    "id": "sense-064",
+    "question": "Causes of myopia include..",
+    "answer": "Excessive refractive power of lens",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Excess refractive power causes myopia."
+  },
+  {
+    "id": "sense-065",
+    "question": "Physiologically, the middle ear, containing the three ossicles, serves primarily to:",
+    "answer": "Amplify the energy of sound waves entering the ear",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Middle ear amplifies sound waves."
+  },
+  {
+    "id": "sense-066",
+    "question": "When light rays enter the eye they must be focused on the back wall of the eye to produce vision. The part of the eye that is sensitive to those light is called the...",
+    "answer": "Retina",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Retina — Light-sensitive layer."
+  },
+  {
+    "id": "sense-067",
+    "question": "What is the function of tectorial membrane?",
+    "answer": "Covers the hairs cells of organ of Corti",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Tectorial membrane overlies hair cells."
+  },
+  {
+    "id": "sense-068",
+    "question": "In Acoustic neuroma, one of the following is NOT seen:",
+    "answer": "Motor aphasia",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Motor aphasia — Not typical of acoustic neuroma."
+  },
+  {
+    "id": "sense-069",
+    "question": "The correct arrangement of ossicles is..........",
+    "answer": "Malleus, incus and stapes",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Correct order: malleus → incus → stapes."
+  },
+  {
+    "id": "sense-070",
+    "question": "The eyeball is protected by a tough outer covering or coat called the...",
+    "answer": "Sclera",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Sclera — Tough protective outer coat."
+  },
+  {
+    "id": "sense-071",
+    "question": "The nurse has noted that the physician has a diagnosis of presbycusis on the client's chart. The nurse plans care knowing the condition is:",
+    "answer": "A sensorineural hearing loss that occurs with aging",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Presbycusis is age-related sensorineural hearing loss."
+  },
+  {
+    "id": "sense-072",
+    "question": "When we say that light are refracted by the eye we mean that they are....",
+    "answer": "Bent so they will focus on the retina",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Refraction means bending light onto retina."
+  },
+  {
+    "id": "sense-073",
+    "question": "The pinna is a shell-like structure which is a part of....",
+    "answer": "Outer ear",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Outer ear — Pinna belongs to outer ear."
+  },
+  {
+    "id": "sense-074",
+    "question": "Abbreviation used to designate both eyes in the recording of eye test results is.",
+    "answer": "O.U",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "O.U — Oculus uterque = both eyes."
+  },
+  {
+    "id": "sense-075",
+    "question": "Which is used for the treatment of acute suppurative otitis media?",
+    "answer": "Penicillin",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Penicillin — Common treatment for acute suppurative otitis media."
+  },
+  {
+    "id": "sense-076",
+    "question": "The nurse is preparing a patient for an ophthalmic examination. Which action occurs when the nurse instills eye drops to produce mydriasis?",
+    "answer": "Extreme dilation of the pupil",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Mydriasis means pupil dilation."
+  },
+  {
+    "id": "sense-077",
+    "question": "The type of cells found in the retina are.",
+    "answer": "Amacrine cells",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Amacrine cells — Present in retina."
+  },
+  {
+    "id": "sense-078",
+    "question": "Which type of medication would be used to dilate the pupils before an eye examination?",
+    "answer": "Adrenergic agent",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Adrenergic agent — Causes pupil dilation."
+  },
+  {
+    "id": "sense-079",
+    "question": "The main function of the cornea present in the human eye is.",
+    "answer": "Bends light before it reaches the lens",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Cornea bends incoming light."
+  },
+  {
+    "id": "sense-080",
+    "question": "The part of the ear that contains the receptors for hearing is....",
+    "answer": "Middle ear",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Middle ear — Closest option given though technically cochlea is correct hearing receptor site."
+  },
+  {
+    "id": "sense-081",
+    "question": "A driver fails to notice a pedestrian who has just stepped out into the road. This is an example of",
+    "answer": "Inattentional blindness",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Inattentional blindness — Failure to notice visible object due to lack of attention."
+  },
+  {
+    "id": "sense-082",
+    "question": "Perception of sound in the absence of an acoustic stimulus which may be intermittent continuous or pulsative is called.",
+    "answer": "Tinnitus",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Tinnitus — Hearing sound without external stimulus."
+  },
+  {
+    "id": "sense-083",
+    "question": "Which of the following infectious agents can be linked to interstitial keratitis?",
+    "answer": "All of the Above",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "All can cause interstitial keratitis."
+  },
+  {
+    "id": "sense-084",
+    "question": "Which medication is used to produce meiosis following a diagnostic procedure?",
+    "answer": "Pilocarpine (Pilocar)",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Pilocarpine — Produces miosis."
+  },
+  {
+    "id": "sense-085",
+    "question": "The organ of Corti is responsible for..",
+    "answer": "Converting basilar membrane movement to brain activity",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Organ of Corti converts vibrations into nerve impulses."
+  },
+  {
+    "id": "sense-086",
+    "question": "Where will the image of a distant object be formed when a person using a concave lens to correct vision, is not using glasses?",
+    "answer": "In front of the retina",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "In front of the retina — Myopia focuses images anterior to retina."
+  },
+  {
+    "id": "sense-087",
+    "question": "Which is true regarding orbital anatomy?",
+    "answer": "The medial wall of the optic canal is formed by the lateral wall of the sphenoid sinus.",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Medial optic canal wall related to sphenoid sinus."
+  },
+  {
+    "id": "sense-088",
+    "question": "In the human eye, the photosensitive compound is composed of..",
+    "answer": "Opsin and retinal",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Opsin and retinal — Components of rhodopsin."
+  },
+  {
+    "id": "sense-089",
+    "question": "While talking about the human eye, what is the 'pupil'?",
+    "answer": "A hole of variable size",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Pupil is a variable-sized opening."
+  },
+  {
+    "id": "sense-090",
+    "question": "The eye lens is......",
+    "answer": "Biconvex",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Biconvex — Human lens shape."
+  },
+  {
+    "id": "sense-091",
+    "question": "The following are types of organic deafness EXCEPT:",
+    "answer": "Malingering deafness",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Malingering deafness — Non-organic deafness."
+  },
+  {
+    "id": "sense-092",
+    "question": "The risk of cataract development may be decreased by foods rich in?",
+    "answer": "Lutein",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Lutein — Protective antioxidant for lens/retina."
+  },
+  {
+    "id": "sense-093",
+    "question": "Which discharge instruction will the nurse include for a patient sent home from the clinic who is taking an adrenergic ophthalmic solution for an acute inflammation?",
+    "answer": "Avoid driving or operating machinery until blurring subsides.",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Avoid driving or operating machinery until blurring subsides."
+  },
+  {
+    "id": "sense-094",
+    "question": "What is the scientific term for the 'white of the eye', the part surrounding the eyeball?",
+    "answer": "Sclera",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Sclera — White part of the eye."
+  },
+  {
+    "id": "sense-095",
+    "question": "The term used in describing a hallucination of the sense of equilibrium and movement where the person feels that either his surroundings are going round him or he himself is rotating is.........",
+    "answer": "Vertigo",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Vertigo — Illusion of movement/rotation."
+  },
+  {
+    "id": "sense-096",
+    "question": "Meniere's disease is also called....",
+    "answer": "Endolymphatic hydrops",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Endolymphatic hydrops — Another name for Ménière’s disease."
+  },
+  {
+    "id": "sense-097",
+    "question": "During phacoemulsification, when the surgeon notes a tear in the posterior capsule, the first priority is?",
+    "answer": "Freeze the action and assess",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Freeze the action and assess — First response to capsule tear."
+  },
+  {
+    "id": "sense-098",
+    "question": "The innermost layer and the most delicate layer of the eyeball where the photoreceptors are located are.",
+    "answer": "Retina",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Retina — Innermost photoreceptor layer."
+  },
+  {
+    "id": "sense-099",
+    "question": "What is the action of timolol maleate, a beta adrenergic blocking agent?",
+    "answer": "Decreases the production of aqueous humor",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Timolol decreases aqueous humor production."
+  },
+  {
+    "id": "sense-100",
+    "question": "What is the thick, transparent fluid that comprises about 2/3rd of the eye's volume?",
+    "answer": "Vitreous",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "EAR & EYE RICHARD",
+    "rationale": "Vitreous — Fills most of eye volume."
+  }
+]
