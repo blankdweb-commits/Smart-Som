@@ -39,7 +39,13 @@ export function AppProvider({ children }) {
   const [subscriptionPlans, setSubscriptionPlans] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
-  const [feeDetails] = useState({ totalFee: 0, amountPaid: 0, currency: 'NGN', status: 'Unpaid' });
+  const [feeDetails, setFeeDetails] = useState({
+    totalFee: 150000,
+    amountPaid: 0,
+    currency: 'NGN',
+    status: 'Unpaid',
+    dueDate: new Date(new Date().getFullYear(), 11, 31).toISOString()
+  });
 
   const [learningAnalytics, setLearningAnalytics] = useState({
     weakTopics: [],
@@ -60,7 +66,15 @@ export function AppProvider({ children }) {
   }, []);
 
   const fetchUserData = useCallback(async () => {
-    if (!supabase || !session) return;
+    if (!supabase || !session) {
+      // Refresh local amountPaid from local transactions
+      const savedTxns = JSON.parse(localStorage.getItem('apex_local_txns') || '[]');
+      const paid = savedTxns
+        .filter(t => (t.type.toLowerCase().includes('fee') || t.type.toLowerCase().includes('tuition')) && t.status === 'Success')
+        .reduce((acc, t) => acc + Number(t.amount), 0);
+      setFeeDetails(prev => ({ ...prev, amountPaid: paid, status: paid >= prev.totalFee ? 'Paid' : paid > 0 ? 'Partial' : 'Unpaid' }));
+      return;
+    }
     const userId = session.user.id;
     console.log("Fetching real data for user:", userId);
 
@@ -125,7 +139,13 @@ export function AppProvider({ children }) {
 
     // Transactions/Payments
     const { data: pyts } = await supabase.from('payments').select('*').eq('user_id', userId).order('created_at', { ascending: false });
-    if (pyts) setTransactions(pyts);
+    if (pyts) {
+      setTransactions(pyts);
+      const paid = pyts
+        .filter(t => (t.type?.toLowerCase().includes('fee') || t.type?.toLowerCase().includes('tuition')) && t.status === 'success')
+        .reduce((acc, t) => acc + Number(t.amount), 0);
+      setFeeDetails(prev => ({ ...prev, amountPaid: paid, status: paid >= prev.totalFee ? 'Paid' : paid > 0 ? 'Partial' : 'Unpaid' }));
+    }
 
     // Subscription Plans (Global)
     const { data: plans } = await supabase.from('subscription_plans').select('*').eq('is_active', true);
@@ -490,6 +510,19 @@ export function AppProvider({ children }) {
     incrementCardsStudied,
     updateQuizStats,
     fetchUserData,
+    addTransaction: (txn) => {
+      setTransactions(prev => {
+        const updated = [txn, ...prev];
+        localStorage.setItem('apex_local_txns', JSON.stringify(updated));
+        return updated;
+      });
+      if (txn.type.toLowerCase().includes('fee') || txn.type.toLowerCase().includes('tuition')) {
+        setFeeDetails(prev => {
+          const newPaid = prev.amountPaid + txn.amount;
+          return { ...prev, amountPaid: newPaid, status: newPaid >= prev.totalFee ? 'Paid' : 'Partial' };
+        });
+      }
+    },
     curriculumSubjects,
     addExam, updateExam, deleteExam,
     richardsQuestions,

@@ -1,0 +1,1742 @@
+[
+  {
+    "id": "cv-001",
+    "question": "The pain of angina pectoris is produced primarily by:",
+    "answer": "Myocardial ischemia",
+    "subject": "Cardiovascular Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "Cardiovascular Richards",
+    "rationale": "Angina pain occurs because the heart muscle is not getting enough oxygen-rich blood (ischemia), typically due to coronary artery narrowing."
+  },
+  {
+    "id": "cv-002",
+    "question": "The myocardium is composed of specialized cells known as:",
+    "answer": "Myocyte",
+    "subject": "Cardiovascular Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "Cardiovascular Richards",
+    "rationale": "The myocardium (heart muscle) is made of specialized cardiac muscle cells called myocytes (cardiomyocytes)."
+  },
+  {
+    "id": "cv-003",
+    "question": "The following are features of heart failure EXCEPT:",
+    "answer": "Polyuria",
+    "subject": "Cardiovascular Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "Cardiovascular Richards",
+    "rationale": "Heart failure more commonly causes oliguria (decreased urine output) due to poor renal perfusion, not polyuria."
+  },
+  {
+    "id": "end-001",
+    "question": "Grave's disease is another name for..",
+    "answer": "Hyperthyroidism",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Graves' disease is the most common cause of hyperthyroidism, where excess thyroid hormone is produced."
+  },
+  {
+    "id": "end-002",
+    "question": "The largest gland in the body is the...",
+    "answer": "Liver",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "The Liver is the largest gland and performs metabolic, detoxification, and digestive functions."
+  },
+  {
+    "id": "end-003",
+    "question": "________ is a cardiac rhythm based on the day night pattern in a 24 hour cycle:",
+    "answer": "Circadian rhythm",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Circadian rhythm refers to the body\u2019s internal 24-hour sleep-wake cycle."
+  },
+  {
+    "id": "end-004",
+    "question": "A client with diabetes insipidus is receiving DDAVP (desmopressin acetate). Which lab finding indicates that the medication is having its intended effect?",
+    "answer": "Urine specific gravity 1.020",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Desmopressin works in diabetes insipidus by concentrating urine, increasing urine specific gravity."
+  },
+  {
+    "id": "end-005",
+    "question": "T-Lymphocytes are processed in the..",
+    "answer": "Thymus gland",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "T-lymphocytes mature in the Thymus."
+  },
+  {
+    "id": "end-006",
+    "question": "The anti inflammatory agent such as cortisone is a hormone produced by the.",
+    "answer": "Cortex of the adrenal gland",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Cortisone is a glucocorticoid produced by the adrenal cortex."
+  },
+  {
+    "id": "end-007",
+    "question": "Chief Eyo has been referred to an endocrinologist for evaluation of the following symptoms: infertility, hypogonadism, and delayed puberty. Which hormone from the pituitary is lacking in Chief Eyo?",
+    "answer": "FSH and LH",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Follicle-stimulating hormone and LH regulate sexual development and fertility."
+  },
+  {
+    "id": "end-008",
+    "question": "Hormone that lowers the level of calcium and phosphate in the blood is known as.",
+    "answer": "Calcitonin",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Calcitonin lowers blood calcium and phosphate levels."
+  },
+  {
+    "id": "end-009",
+    "question": "Mr. Falodun Twenty-eight-year-old has recently been diagnosed with hyperthyroidism. Signs and symptoms regarding hyperthyroidism include:",
+    "answer": "Tachycardia, sweating, and tremors",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "These are classic manifestations of hyperthyroidism due to increased metabolic activity."
+  },
+  {
+    "id": "end-010",
+    "question": "Which of the following hormones plays a major role in circadian rhythm:",
+    "answer": "Serotonine",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Serotonin helps regulate sleep and circadian rhythm and is a precursor of melatonin."
+  },
+  {
+    "id": "end-011",
+    "question": "A patient is diagnosed with pheochromocytoma. From your nursing knowledge, you know that the patient will present with hypertension, sweating, and palpations due to excessive catecholamine production from the?",
+    "answer": "Adrenal Medulla",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Pheochromocytoma originates from the adrenal medulla."
+  },
+  {
+    "id": "end-012",
+    "question": "Melatonin is secreted by..",
+    "answer": "The pineal gland",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Pineal gland secretes melatonin."
+  },
+  {
+    "id": "end-013",
+    "question": "Glands in the endocrine system are given this name because they:",
+    "answer": "Pour their secretions directly into the circulation",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Endocrine glands are ductless glands that release hormones directly into blood."
+  },
+  {
+    "id": "end-014",
+    "question": "The specific gravity of the urine of people suffering from diabetes insipidus is.....",
+    "answer": "Low",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "In diabetes insipidus, urine is dilute, causing low specific gravity."
+  },
+  {
+    "id": "end-015",
+    "question": "You are providing patient teaching for 46-year-old Anthony about his new medication levothyroxine. Treatment for hypothyroidism depends on:",
+    "answer": "Etiology of the disease",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Treatment depends mainly on the cause of hypothyroidism."
+  },
+  {
+    "id": "end-016",
+    "question": "When progressive enlargement of a multinodular goiter causes symptomatic tracheal compression, the preferred management in otherwise good-risk patients is:",
+    "answer": "Surgical resection of the abnormal thyroid",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Large multinodular goiters causing airway compression are treated surgically."
+  },
+  {
+    "id": "end-017",
+    "question": "Which of the following hormones is produced by the hypothalamic gland?",
+    "answer": "Growth hormone-releasing hormone (GHRH)",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "GHRH is produced by the hypothalamus and stimulates GH release."
+  },
+  {
+    "id": "end-018",
+    "question": "Hormones are ...",
+    "answer": "Chemical regulators secreted by endocrine glands",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Hormones regulate body activities through chemical signaling."
+  },
+  {
+    "id": "end-019",
+    "question": "Which of the following hormones is produced by the anterior lobe of the pituitary?",
+    "answer": "Growth hormone (somatotropin, GH)",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "GH is secreted by the anterior pituitary."
+  },
+  {
+    "id": "end-020",
+    "question": "The posterior pituitary does NOT secrete:",
+    "answer": "Growth hormone",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "The posterior pituitary releases ADH and oxytocin, not GH."
+  },
+  {
+    "id": "end-021",
+    "question": "Which of the following organs is a target for prolactin?",
+    "answer": "Mammary gland",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Prolactin stimulates milk production in mammary glands."
+  },
+  {
+    "id": "end-022",
+    "question": "You explain to Anthony that his symptoms should resolve as the medication reaches an appropriate level. Presenting signs and symptoms of hypothyroidism include:",
+    "answer": "Fatigue and cold intolerance",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "These are common features of hypothyroidism."
+  },
+  {
+    "id": "end-023",
+    "question": "The thyroid gland is located:",
+    "answer": "Near the larynx",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "The thyroid gland lies anterior to the trachea below the larynx."
+  },
+  {
+    "id": "end-024",
+    "question": "Which of the following nursing diagnoses is applicable for diabetes insipidus:",
+    "answer": "Fluid volume deficit",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Diabetes insipidus causes excessive urine loss leading to dehydration."
+  },
+  {
+    "id": "end-025",
+    "question": "The endocrine gland located in the neck is called the:",
+    "answer": "Thyroid",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "The thyroid is the endocrine gland located in the neck."
+  },
+  {
+    "id": "end-026",
+    "question": "The definitive treatment of choice for toxic multinodular goiter is?",
+    "answer": "Total thyroidectomy",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Toxic multinodular goiter is commonly treated definitively with total thyroidectomy."
+  },
+  {
+    "id": "end-027",
+    "question": "Hypertension in diabetes is usually caused by.",
+    "answer": "Diabetes Nephropathy",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Kidney damage from diabetes commonly causes hypertension."
+  },
+  {
+    "id": "end-028",
+    "question": "Melanocytes stimulating hormone is produced by",
+    "answer": "Anterior Pituitary gland",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "MSH is associated with the pars intermedia/anterior pituitary."
+  },
+  {
+    "id": "end-029",
+    "question": "A 67-year-old male client has been complaining of sleeping more, increased urination, anorexia, weakness, irritability, depression, and bone pain that interferes with her going outdoors. Based on these assessment findings, Nurse Richard would suspect which of the following disorders?",
+    "answer": "Hyperparathyroidism",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Bone pain, weakness, depression, and polyuria suggest hypercalcemia from hyperparathyroidism."
+  },
+  {
+    "id": "end-030",
+    "question": "Which of the following are normal systemic effects of glucocorticoids EXCEPT?",
+    "answer": "Diminished lipolysis",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Glucocorticoids increase lipolysis, not diminish it."
+  },
+  {
+    "id": "end-031",
+    "question": "The target tissue of ACTH is the:",
+    "answer": "Cortex of the adrenal gland",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "ACTH stimulates cortisol production in the adrenal cortex."
+  },
+  {
+    "id": "end-032",
+    "question": "Vasopressin causes the kidney to reabsorb more",
+    "answer": "Water",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Vasopressin (ADH) promotes water reabsorption in kidneys."
+  },
+  {
+    "id": "end-033",
+    "question": "A deficiency in the hormone from the parathyroid gland will produce:",
+    "answer": "Imbalance in the calcium level of the blood",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Parathyroid hormone regulates calcium balance."
+  },
+  {
+    "id": "end-034",
+    "question": "Adeoba has gone to her primary care provider for a routine physical. Some of her lab results indicated an endocrine disorder. In hyperparathyroidism which test results are typical?",
+    "answer": "Increased calcium and decreased phosphate",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Hyperparathyroidism causes hypercalcemia and hypophosphatemia."
+  },
+  {
+    "id": "end-035",
+    "question": "Sleeping pulse is monitored in patients with.",
+    "answer": "Thyrotoxicosis",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Sleeping pulse helps monitor severity of hyperthyroidism."
+  },
+  {
+    "id": "end-036",
+    "question": "The pituitary gland lies in the..",
+    "answer": "Sella-turcica of the sphenoid bone",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "The pituitary sits in the sella turcica of the sphenoid bone."
+  },
+  {
+    "id": "end-037",
+    "question": "What cells are responsible for secreting catecholamines?",
+    "answer": "Chromaffin",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Chromaffin cells of adrenal medulla secrete catecholamines."
+  },
+  {
+    "id": "end-038",
+    "question": "All of the following statements about growth hormone are true, EXCEPT:",
+    "answer": "It is contraindicated in subjects with closed epiphyses",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "GH can still be used in adults; excess causes acromegaly."
+  },
+  {
+    "id": "end-039",
+    "question": "Addison's disease frequently causes skin pigment changes. When teaching the patient about medications used for Addison's disease, it is important that he or she understands:",
+    "answer": "That they continue for life",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Addison's disease requires lifelong hormone replacement."
+  },
+  {
+    "id": "end-040",
+    "question": "Insulin is a polypeptide consisting of about fifty (50) amino acid:",
+    "answer": "True",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Insulin contains about 51 amino acids."
+  },
+  {
+    "id": "end-041",
+    "question": "In the female body, the luteinizing hormone:",
+    "answer": "Acts to promote progesterone production",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "LH stimulates ovulation and progesterone secretion."
+  },
+  {
+    "id": "end-042",
+    "question": "Vasopressin possesses the following:",
+    "answer": "Antidiuretic property",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Vasopressin reduces urine output."
+  },
+  {
+    "id": "end-043",
+    "question": "Nurse Richard should expect a client with hypothyroidism to report which health concerns?",
+    "answer": "Puffiness of the face and hands",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Myxedema causes swelling in hypothyroidism."
+  },
+  {
+    "id": "end-044",
+    "question": "The following are hormones produced by the adrenal cortex EXCEPT:",
+    "answer": "Catecholamine",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Catecholamines are produced by adrenal medulla, not cortex."
+  },
+  {
+    "id": "end-045",
+    "question": "A person having an increase in the production of thyroxin would be most likely to have:",
+    "answer": "An increase in the metabolic rate",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Thyroxine raises metabolic activity."
+  },
+  {
+    "id": "end-046",
+    "question": "The causes of Cushing syndrome may include the following EXCEPT?",
+    "answer": "Pheochromocytoma",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Pheochromocytoma causes catecholamine excess, not Cushing syndrome."
+  },
+  {
+    "id": "end-047",
+    "question": "The hormone responsible for stimulating contractions of the uterus is known as:",
+    "answer": "Oxytocin",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Oxytocin stimulates uterine contractions."
+  },
+  {
+    "id": "end-048",
+    "question": "The most precise diagnostic screening procedure for differentiating benign thyroid nodules from malignant ones is:",
+    "answer": "Fine-needle-aspiration biopsy (FNAB)",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "FNAB is the best method to distinguish benign from malignant thyroid nodules."
+  },
+  {
+    "id": "end-049",
+    "question": "The spermatogenesis in mammalian testis is controlled by",
+    "answer": "Follicle stimulating hormone (FSH)",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "FSH stimulates spermatogenesis."
+  },
+  {
+    "id": "end-050",
+    "question": "The hormone released by the medulla of the adrenal gland at times of emergency is called:",
+    "answer": "Epinephrine or adrenaline",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Adrenal medulla releases adrenaline during stress."
+  },
+  {
+    "id": "end-051",
+    "question": "Ayorinde has recently been diagnosed with Cushing's syndrome. The symptoms for which the primary care provider most likely tested the patient include:",
+    "answer": "Buffalo hump, moon facies, and central obesity",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "These are classic signs of Cushing syndrome."
+  },
+  {
+    "id": "end-052",
+    "question": "Estrogen is secreted by cells of......",
+    "answer": "Theca interna cells of developing Graafian follicles",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Estrogen production involves theca interna and granulosa cells."
+  },
+  {
+    "id": "end-053",
+    "question": "Prolactinomas of the pituitary:",
+    "answer": "May enlarge during pregnancy, requiring treatment with bromocriptine or surgery",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Prolactinomas can enlarge due to hormonal changes in pregnancy."
+  },
+  {
+    "id": "end-054",
+    "question": "The corticoids, which are hormones important for defense against stress or injury to the body are secreted by:",
+    "answer": "The adrenal cortex",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Corticoids are produced in adrenal cortex."
+  },
+  {
+    "id": "end-055",
+    "question": "The neurohypophysis is another name for the:",
+    "answer": "Posterior lobe of the pituitary gland",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Neurohypophysis = posterior pituitary."
+  },
+  {
+    "id": "end-056",
+    "question": "Alimatu is being treated for hyperthyroidism. In reviewing her lab results, you would expect to see:",
+    "answer": "Elevated thyroid hormone",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Hyperthyroidism causes increased T3 and T4."
+  },
+  {
+    "id": "end-057",
+    "question": "Male reproductive functions are controlled by",
+    "answer": "All of these",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Male reproductive function involves FSH, LH, and testosterone."
+  },
+  {
+    "id": "end-058",
+    "question": "A patient is receiving treatment for pheochromocytoma. What type of diet is best for this patient?",
+    "answer": "High calorie diet",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Pheochromocytoma increases metabolic demand."
+  },
+  {
+    "id": "end-059",
+    "question": "A 10-year-old child presents with hypertension, tachycardia, nervousness and sweating. The best initial diagnostic evaluation is which of the following?",
+    "answer": "Measurement of catecholamines and their degradation products in a 24-hour urine specimen",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "This is the standard initial diagnostic test for pheochromocytoma."
+  },
+  {
+    "id": "end-060",
+    "question": "A posterior pituitary hormone released during parturition is.........",
+    "answer": "Oxytocin",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Oxytocin is released during labor."
+  },
+  {
+    "id": "end-061",
+    "question": "A female client with hypothyroidism (myxedema) is receiving levothyroxine (Synthroid), 25 mcg P.O. daily. Which finding should nurse Hans recognize as an adverse drug effect?",
+    "answer": "Tachycardia",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Excess levothyroxine may cause hyperthyroid symptoms like tachycardia."
+  },
+  {
+    "id": "end-062",
+    "question": "Oxytocin produces the following effects:",
+    "answer": "All of the above",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Oxytocin affects uterine contractions, sperm movement, and milk ejection."
+  },
+  {
+    "id": "end-063",
+    "question": "Adam has just been diagnosed with diabetes insipidus. The most common presenting sign is:",
+    "answer": "Increase in urination",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Polyuria is the hallmark of diabetes insipidus."
+  },
+  {
+    "id": "end-064",
+    "question": "The function of cholecystokinin is to ....",
+    "answer": "Contract gall bladder",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Cholecystokinin stimulates gallbladder contraction."
+  },
+  {
+    "id": "end-065",
+    "question": "Which of these is NOT a pituitary hormone:",
+    "answer": "Progesterone",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Progesterone is produced mainly by ovaries, not pituitary."
+  },
+  {
+    "id": "end-066",
+    "question": "Olasewa, a 32-year-old female, has been diagnosed with metabolic syndrome. Your nursing interventions would include teaching her about the typical accompanying signs and symptoms, such as:",
+    "answer": "Hypertension, low HDL, and elevated triglycerides",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "These are features of metabolic syndrome."
+  },
+  {
+    "id": "end-067",
+    "question": "Which of the following hormones is produced by the thyroid gland?",
+    "answer": "Thyroxine",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "The thyroid secretes thyroxine (T4)."
+  },
+  {
+    "id": "end-068",
+    "question": "The oversecretion of HGH in adults may result in the condition called..",
+    "answer": "Acromegaly",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Excess GH in adults causes acromegaly."
+  },
+  {
+    "id": "end-069",
+    "question": "Hyperthyroidism can be caused by all of the following EXCEPT:",
+    "answer": "Hashimoto's disease",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Hashimoto thyroiditis usually causes hypothyroidism."
+  },
+  {
+    "id": "end-070",
+    "question": "Addison's disease is caused by under secretion of..",
+    "answer": "Cortin",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Addison disease results from deficiency of adrenal cortical hormones (corticosteroids)."
+  },
+  {
+    "id": "end-071",
+    "question": "The nurse is caring for a patient following a thyroidectomy. Which of the following is an early symptom of hypocalcemia?",
+    "answer": "Numbness or tingling of the toes and extremities",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Early hypocalcemia presents with paresthesia (tingling)."
+  },
+  {
+    "id": "end-072",
+    "question": "The preferred medication for treating hypothyroidism is:",
+    "answer": "Synthroid",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Levothyroxine is first-line treatment for hypothyroidism."
+  },
+  {
+    "id": "end-073",
+    "question": "A clinical manifestation usually associated with hypothyroidism is:",
+    "answer": "Muscular fatigability",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Hypothyroidism commonly causes muscle weakness and fatigue."
+  },
+  {
+    "id": "end-074",
+    "question": "Stimulation of both the adrenal medulla and cortex results in..",
+    "answer": "Increased blood glucose level",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Adrenal hormones increase blood glucose during stress."
+  },
+  {
+    "id": "end-075",
+    "question": "The principal blood supply to the parathyroid glands is which of the following?",
+    "answer": "Inferior thyroid arteries",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "These mainly supply the parathyroid glands."
+  },
+  {
+    "id": "end-076",
+    "question": "One of the endocrine glands is known as master gland:",
+    "answer": "Pituitary",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "The pituitary is called the \u201cmaster gland.\u201d"
+  },
+  {
+    "id": "end-077",
+    "question": "Exophthalmus is a condition seen in..",
+    "answer": "Grave's disease",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Exophthalmos is characteristic of Graves disease."
+  },
+  {
+    "id": "end-078",
+    "question": "Nursing care for a patient with hypothyroidism includes assessing for clinical manifestations associated with hypothyroidism. A manifestation not consistent with her diagnosis is a:",
+    "answer": "Weight loss of 10 lbs over a 2-week period",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Hypothyroidism usually causes weight gain, not loss."
+  },
+  {
+    "id": "end-079",
+    "question": "Most contraceptive pills contain.",
+    "answer": "Oestrogen and progesterone",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Most oral contraceptives combine estrogen and progesterone."
+  },
+  {
+    "id": "end-080",
+    "question": "The principle objective of medical management is to:",
+    "answer": "Replace the missing hormone",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Endocrine disorders are commonly managed with hormone replacement."
+  },
+  {
+    "id": "end-081",
+    "question": "The pituitary gland lies in the:",
+    "answer": "Inferior aspect of the brain",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "The pituitary is attached below the brain."
+  },
+  {
+    "id": "end-082",
+    "question": "Imaging of the adrenal gland is best achieved with which of the following techniques?",
+    "answer": "Computed tomography (CT)",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "CT is commonly used for adrenal imaging."
+  },
+  {
+    "id": "end-083",
+    "question": "The nurse is aware that the following is the most common cause of hyperaldosteronism?",
+    "answer": "An adrenal adenoma",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Primary hyperaldosteronism is usually caused by adrenal adenoma."
+  },
+  {
+    "id": "end-084",
+    "question": "Hormones may consist of all the following EXCEPT:",
+    "answer": "Carbohydrates",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Hormones are mainly steroids, proteins, or amines."
+  },
+  {
+    "id": "end-085",
+    "question": "Which of the following type of insulin is prescribed for a client with diabetic ketoacidosis?",
+    "answer": "Human Regular insulin",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Regular insulin is used IV in diabetic ketoacidosis."
+  },
+  {
+    "id": "end-086",
+    "question": "When caring for a male client with diabetes insipidus, nurse Juliet expects to administer:",
+    "answer": "Vasopressin (Pitressin Synthetic)",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Diabetes insipidus is treated with ADH replacement."
+  },
+  {
+    "id": "end-087",
+    "question": "The most abundant hormone synthesized by the anterior pituitary glands is.",
+    "answer": "Growth hormone (GH)",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "GH is the most abundant anterior pituitary hormone."
+  },
+  {
+    "id": "end-088",
+    "question": "The expulsion of milk from the breast during sucking by the child is brought about by.",
+    "answer": "Oxytocin",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Oxytocin causes milk let-down reflex."
+  },
+  {
+    "id": "end-089",
+    "question": "Name the condition when the concentration of Ketone body increases in urine:",
+    "answer": "Diabetes Mellitus",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Ketones in urine (ketonuria) occur in uncontrolled diabetes mellitus."
+  },
+  {
+    "id": "end-090",
+    "question": "Deficiency of parathormone in the blood causes..",
+    "answer": "Hypocalcemia",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Lack of parathyroid hormone lowers blood calcium."
+  },
+  {
+    "id": "end-091",
+    "question": "Which of the following is secreted by the Islets of Langerhans?",
+    "answer": "Insulin",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Islets of Langerhans produce insulin."
+  },
+  {
+    "id": "end-092",
+    "question": "Throughout pregnancy the hormones which remain low in plasma are .......",
+    "answer": "FSH and LH",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "High estrogen/progesterone suppress FSH and LH during pregnancy."
+  },
+  {
+    "id": "end-093",
+    "question": "Cells that respond to a hormone are:",
+    "answer": "Target cells",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Hormones act on specific target cells."
+  },
+  {
+    "id": "end-094",
+    "question": "For a male client with hyperglycemia, which assessment finding best supports a nursing diagnosis of Deficient fluid volume?",
+    "answer": "Decreased serum sodium level",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Hyperglycemia causes osmotic diuresis leading to dehydration and dilutional hyponatremia."
+  },
+  {
+    "id": "end-095",
+    "question": "Which of the following hormones is produced by the thyroid gland?",
+    "answer": "Triiodothyronine",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "T3 is produced by thyroid gland."
+  },
+  {
+    "id": "end-096",
+    "question": "Thyroid stimulating hormone regulates the following:",
+    "answer": "All of the above",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "TSH stimulates iodine uptake, hormone synthesis, and release."
+  },
+  {
+    "id": "end-097",
+    "question": "The most common cause of goitrous hypothyroidism in adults is:",
+    "answer": "Hashimoto's disease",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Hashimoto thyroiditis is the commonest cause of adult hypothyroidism."
+  },
+  {
+    "id": "end-098",
+    "question": "In Male the sex hormone that maintains sexual organs and secondary sex characteristics is.",
+    "answer": "Testosterone",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Testosterone maintains male reproductive organs and secondary sexual characteristics."
+  },
+  {
+    "id": "end-099",
+    "question": "Which of the following hormones is secreted by the adrenal cortex?",
+    "answer": "Aldosterone",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Aldosterone is a mineralocorticoid secreted by adrenal cortex."
+  },
+  {
+    "id": "end-100",
+    "question": "A decrease in level of oestrogen and progesterone causes.",
+    "answer": "Constriction of uterine blood vessels leading to sloughing of uterine epithelium",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Falling estrogen and progesterone levels trigger menstruation."
+  },
+  {
+    "id": "end-101",
+    "question": "The large endocrine gland located in the abdominal cavity is the:",
+    "answer": "Pancreas",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "The Pancreas is a large endocrine gland located in the abdominal cavity."
+  },
+  {
+    "id": "end-102",
+    "question": "Nursing comfort measures for a patient with hypothyroidism should include:",
+    "answer": "All of these",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Hypothyroid patients often feel fatigued, cold, and have dry skin, so all measures improve comfort."
+  },
+  {
+    "id": "end-103",
+    "question": "Therapy for Hashimoto's disease includes:",
+    "answer": "None of these",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Hashimoto thyroiditis is usually treated with thyroid hormone replacement, mainly levothyroxine."
+  },
+  {
+    "id": "end-104",
+    "question": "All the following hormones are produced by the anterior lobe of the pituitary gland EXCEPT:",
+    "answer": "Insulin",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Insulin is produced by pancreatic beta cells, not the anterior pituitary."
+  },
+  {
+    "id": "end-105",
+    "question": "The following pharmacologic agents can be used in the treatment of thyrotoxicosis to block the production of thyroid hormone EXCEPT?",
+    "answer": "Propranolol",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Propranolol controls symptoms of thyrotoxicosis but does not block thyroid hormone production."
+  },
+  {
+    "id": "end-106",
+    "question": "A male client is admitted for treatment of the syndrome of inappropriate antidiuretic hormone (SIADH). Which nursing intervention is appropriate?",
+    "answer": "Restricting fluids",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "SIADH causes water retention, so fluid restriction is essential."
+  },
+  {
+    "id": "end-107",
+    "question": "The endocrine gland which contributes to setting the body's biological clock is the",
+    "answer": "Pineal gland",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "The pineal gland regulates the biological clock through melatonin secretion."
+  },
+  {
+    "id": "end-108",
+    "question": "Which of the following adrenal lesions can be treated definitively by medical means?",
+    "answer": "Congenital adrenal hyperplasia",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "This adrenal disorder is commonly treated medically with corticosteroids."
+  },
+  {
+    "id": "end-109",
+    "question": "The products of the body's endocrine glands are:",
+    "answer": "Hormones",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Endocrine glands secrete hormones into the bloodstream."
+  },
+  {
+    "id": "end-110",
+    "question": "In the body, both the blood sodium and potassium levels are regulated by.",
+    "answer": "Aldosterone",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Aldosterone regulates sodium and potassium balance."
+  },
+  {
+    "id": "end-111",
+    "question": "Polyuria, unquenchable thirst, nocturia, dry skin, dehydration and constipation are common signs and symptoms of....",
+    "answer": "Diabetes insipidus",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Polyuria and intense thirst are classic signs of diabetes insipidus."
+  },
+  {
+    "id": "end-112",
+    "question": "The most common mass lesion in the sella turcica is which of the following?",
+    "answer": "Pituitary adenoma",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Pituitary adenoma is the most common lesion in the sella turcica."
+  },
+  {
+    "id": "end-113",
+    "question": "Synthesis and release of thyroid hormones are controlled by:",
+    "answer": "All of the above",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Thyroid hormone secretion is regulated by hypothalamus, pituitary, and feedback from thyroid hormone levels."
+  },
+  {
+    "id": "end-114",
+    "question": "A female client has a serum calcium level of 7.2 mg/dl. During the physical examination, nurse Noah expects to assess:",
+    "answer": "Trousseau's sign",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "A calcium level of 7.2 mg/dL indicates hypocalcemia, which causes Trousseau\u2019s sign."
+  },
+  {
+    "id": "end-115",
+    "question": "The hormone antagonistic to insulin is:",
+    "answer": "Glucagon",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Glucagon increases blood glucose and opposes insulin action."
+  },
+  {
+    "id": "end-116",
+    "question": "The following are studies of thyroid functions useful for diagnosing hypothyroidism EXCEPT:",
+    "answer": "Uterine fibroid",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Uterine fibroids are unrelated to thyroid function testing."
+  },
+  {
+    "id": "end-117",
+    "question": "Androgens are secreted from..",
+    "answer": "Leydig cells and adrenal cortex",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Androgens are secreted mainly by testes and adrenal cortex."
+  },
+  {
+    "id": "end-118",
+    "question": "In adults, insufficient thyroxine can lead to.",
+    "answer": "Myxedema",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Severe hypothyroidism in adults causes myxedema."
+  },
+  {
+    "id": "end-119",
+    "question": "During a class on exercise for diabetic clients, a female client asks the nurse educator how often to exercise. The nurse educator advises the clients to exercise how often to meet the goals of planned exercise?",
+    "answer": "At least five times a week",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Regular exercise most days helps diabetic control."
+  },
+  {
+    "id": "end-120",
+    "question": "Calcitonin is secreted by.",
+    "answer": "Parafollicular cells",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Calcitonin is secreted by parafollicular (C) cells of thyroid."
+  },
+  {
+    "id": "end-121",
+    "question": "Which endocrine gland stores its secretion in an extracellular space before discharging it into the blood?",
+    "answer": "Thyroid",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "The thyroid stores hormones extracellularly in colloid."
+  },
+  {
+    "id": "end-122",
+    "question": "The specific region of Hypothalamus, responsible for physiological sweat secretion,",
+    "answer": "Para-ventricular nucleus",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "This hypothalamic region is associated with autonomic functions including sweating."
+  },
+  {
+    "id": "end-123",
+    "question": "Which of these is a lipid soluble hormone:",
+    "answer": "Mineral corticoid",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Steroid hormones like mineralocorticoids are lipid soluble."
+  },
+  {
+    "id": "end-124",
+    "question": "A male client with type 1 diabetes mellitus asks the nurse about taking an oral antidiabetic agent. Nurse Richard explains that these medications are only effective if the client:",
+    "answer": "has type 2 diabetes",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Oral antidiabetic drugs work mainly in type 2 diabetes."
+  },
+  {
+    "id": "end-125",
+    "question": "The human chorionic gonadotrophin is secreted by.",
+    "answer": "Placenta",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Human chorionic gonadotropin (hCG) is secreted by the placenta."
+  },
+  {
+    "id": "end-126",
+    "question": "A reduction in one of the following laboratory measurement will provide an indication the treatment is successful in the treatment of Cushing syndrome",
+    "answer": "Serum glucose levels",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Treatment success in Cushing syndrome lowers hyperglycemia."
+  },
+  {
+    "id": "end-127",
+    "question": "The proper functioning of the body's immune system depends in part on the activity of the:",
+    "answer": "Thymus gland",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "The thymus is essential for T-cell maturation and immunity."
+  },
+  {
+    "id": "end-128",
+    "question": "The concentration of sodium and potassium ions in the blood and body fluid is regulated by hormones known as:",
+    "answer": "Mineralocorticoids",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Mineralocorticoids regulate sodium and potassium levels."
+  },
+  {
+    "id": "end-129",
+    "question": "The hormones of the adrenal glands complement the action of the:",
+    "answer": "Sympathetic nervous system",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Adrenal hormones complement sympathetic responses."
+  },
+  {
+    "id": "end-130",
+    "question": "In non stressful condition, the highest level of secretion of glucocorticoid occur between:",
+    "answer": "4am and 8am",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Glucocorticoid secretion peaks early in the morning."
+  },
+  {
+    "id": "end-131",
+    "question": "The hormone that influences the energy metabolism of most body cells and helps to resist stressor is..",
+    "answer": "Glucocorticoids",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Glucocorticoids influence metabolism and stress resistance."
+  },
+  {
+    "id": "end-132",
+    "question": "Nurse Richard is assessing a client with possible Cushing's syndrome. In a client with Cushing's syndrome, the nurse would expect to find:",
+    "answer": "Deposits of adipose tissue in the trunk and dorsocervical area",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "This causes central obesity and \u201cbuffalo hump\u201d in Cushing syndrome."
+  },
+  {
+    "id": "end-133",
+    "question": "The endocrine glands are controlled by the.",
+    "answer": "Hypothalamus",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "The hypothalamus controls endocrine glands through pituitary regulation."
+  },
+  {
+    "id": "end-134",
+    "question": "Reduced fluid losses in urine due to the retention of sodium and water is a result of..........",
+    "answer": "Aldosterone",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Aldosterone promotes sodium and water retention."
+  },
+  {
+    "id": "end-135",
+    "question": "One of the following is a chemical that exerts its effect on the same cell that secretes them:",
+    "answer": "Autocrines",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Autocrines act on the same cell that secreted them."
+  },
+  {
+    "id": "end-136",
+    "question": "Patient is admitted with type 2 diabetes develops gout, and allopurinol (Zyloprim) is prescribe. The patient is also taking metformin (Glucophage) and an over-the-counter non-steroidal anti-inflammatory drug (NSAID). When teaching about the administration of allopurinol, what should the nurse instruct the patient to follow in this case?",
+    "answer": "Monitor blood glucose levels more frequently",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Allopurinol and NSAIDs may affect glucose control."
+  },
+  {
+    "id": "end-137",
+    "question": "In Acromegaly, the following features will be present EXCEPT:",
+    "answer": "Abdominal enlargement",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Acromegaly causes enlarged extremities and facial changes, not typically abdominal enlargement."
+  },
+  {
+    "id": "end-138",
+    "question": "A clinical manifestation indicative of ketoacidosis is..",
+    "answer": "Kussmaul breathing",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Deep rapid breathing occurs in diabetic ketoacidosis."
+  },
+  {
+    "id": "end-139",
+    "question": "Increased nervous tension, accelerated pulse, loss of body weight and increased oxygen consumption in a child is as a result of over production of which of the following glands?",
+    "answer": "Thyroid gland",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Excess thyroid hormone causes hypermetabolism symptoms."
+  },
+  {
+    "id": "end-140",
+    "question": "Hyperaldosteronism occurs due to damage to the.",
+    "answer": "Adrenal gland",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Hyperaldosteronism results from adrenal gland dysfunction."
+  },
+  {
+    "id": "end-141",
+    "question": "The effect of glucocorticoids in pathological and pharmacological quantities include the following EXCEPT:",
+    "answer": "Facilitation of inflammatory process",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Glucocorticoids suppress inflammation, not facilitate it."
+  },
+  {
+    "id": "end-142",
+    "question": "Glands that secretes their product into intestinal fluid which flows into the blood are..",
+    "answer": "Endocrine gland",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Exocrine glands secrete into ducts leading to body surfaces or cavities."
+  },
+  {
+    "id": "end-143",
+    "question": "Galactorrhea is caused by overproduction of which hormone?",
+    "answer": "Prolactine",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Excess prolactin causes galactorrhea."
+  },
+  {
+    "id": "end-144",
+    "question": "The following are functions of thyroid gland hormones EXCEPT:",
+    "answer": "Increase the uptakes/absorption of calcium",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Calcium absorption is mainly regulated by vitamin D and parathyroid hormone."
+  },
+  {
+    "id": "end-145",
+    "question": "The following are cardinal signs and symptoms of diabetes mellitus EXCEPT:",
+    "answer": "Polycoria",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Polycoria means multiple pupils and is unrelated to diabetes mellitus."
+  },
+  {
+    "id": "end-146",
+    "question": "The procedure of compressing cricothyroid cartilage posteriorly against the vertebral body during endotracheal intubation is termed:",
+    "answer": "Sellick maneuver",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "The Sellick maneuver applies cricoid pressure during intubation."
+  },
+  {
+    "id": "end-147",
+    "question": "Insulin-dependent diabetes is the result of....",
+    "answer": "Beta cell destruction",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Type 1 diabetes results from autoimmune destruction of pancreatic beta cells."
+  },
+  {
+    "id": "end-148",
+    "question": "The \u2026. is responsible for secreting gonadotropin-releasing hormone:",
+    "answer": "Hypothalamus",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "The hypothalamus secretes GnRH."
+  },
+  {
+    "id": "end-149",
+    "question": "The digestion which is imperfect or incomplete is called.",
+    "answer": "Dyspepsia",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Dyspepsia means indigestion or incomplete digestion."
+  },
+  {
+    "id": "end-150",
+    "question": "The secretions from which of these glands differs between males and females?",
+    "answer": "Gonadal",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Gonadal secretions differ between males and females."
+  },
+  {
+    "id": "end-151",
+    "question": "All of the following are hormones of the anterior pituitary EXCEPT:",
+    "answer": "Parathyroid hormone (PTH)",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "PTH is secreted by parathyroid glands."
+  },
+  {
+    "id": "end-152",
+    "question": "The clusters of cells in the pancreas that produce hormones are the:",
+    "answer": "Islets of Langerhans",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "These pancreatic cell clusters produce hormones."
+  },
+  {
+    "id": "end-153",
+    "question": "The Glucagon is:",
+    "answer": "Accelerates the conversion of glycogen into glucose",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Glucagon increases blood glucose by glycogen breakdown."
+  },
+  {
+    "id": "end-154",
+    "question": "This is the most abundant hormone produced by the anterior pituitary:",
+    "answer": "GH",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Growth hormone is the most abundant anterior pituitary hormone."
+  },
+  {
+    "id": "end-155",
+    "question": "Which hormones of the adrenal glands supplement the sex hormones from the gonads?",
+    "answer": "Gonadocorticoids, such as the androgens",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Adrenal androgens supplement gonadal sex hormones."
+  },
+  {
+    "id": "end-156",
+    "question": "The pituitary hormone that stimulates the male testes to produce sperm and stimulates the development of the follicle in the female on a monthly cycle is:",
+    "answer": "Follicle-stimulating hormone",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "FSH stimulates spermatogenesis and ovarian follicle development."
+  },
+  {
+    "id": "end-157",
+    "question": "This is not a function of insulin:",
+    "answer": "Gluconeogenesis",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Insulin inhibits gluconeogenesis."
+  },
+  {
+    "id": "end-158",
+    "question": "The actions of ACTH include the following EXCEPT:",
+    "answer": "Induction of secretion of adrenomedullias",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "ACTH mainly affects adrenal cortex, not medulla."
+  },
+  {
+    "id": "end-159",
+    "question": "Insulin secretion is inhibited by:",
+    "answer": "Alpha adrenergic receptor stimulation",
+    "subject": "Pharmacology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Alpha stimulation inhibits insulin secretion."
+  },
+  {
+    "id": "end-160",
+    "question": "How do hormones from the thyroid and parathyroid regulate the calcium concentration of the blood?",
+    "answer": "Calcitonin lowers blood calcium; parathyroid hormone raises blood calcium",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "These hormones work oppositely to regulate calcium."
+  },
+  {
+    "id": "end-161",
+    "question": "The following factors have a direct marked effect on the adrenal cortex to stimulate the secretion of aldosterone EXCEPT:",
+    "answer": "Hypernatremia",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "High sodium suppresses aldosterone secretion."
+  },
+  {
+    "id": "end-162",
+    "question": "Stimuli for aldosterone regulation includes:",
+    "answer": "High serum potassium",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Hyperkalemia strongly stimulates aldosterone release."
+  },
+  {
+    "id": "end-163",
+    "question": "Which gland controls basal metabolic rate (BMR)?",
+    "answer": "Thyroid",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "The thyroid gland regulates basal metabolic rate."
+  },
+  {
+    "id": "end-164",
+    "question": "_________ is the smallest gland in the body:",
+    "answer": "Pineal gland",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "The pineal gland is considered the smallest endocrine gland."
+  },
+  {
+    "id": "end-165",
+    "question": "A ten (10) year old boy has high levels of the growth hormone. He is likely to develop:",
+    "answer": "Acromegaly",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Excess GH causes gigantism in children and acromegaly-like features."
+  },
+  {
+    "id": "end-166",
+    "question": "Which is not a function of the hypothalamus?",
+    "answer": "Secretes FSH",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "FSH is secreted by anterior pituitary, not hypothalamus."
+  },
+  {
+    "id": "end-167",
+    "question": "Which of these is not an endocrine property?",
+    "answer": "Rapid acting effects",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Endocrine effects are generally slower than nervous system effects."
+  },
+  {
+    "id": "end-168",
+    "question": "Effects of hypothyroidism include all but this:",
+    "answer": "Diarrhoea",
+    "subject": "Medical Surgical Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Hypothyroidism usually causes constipation, not diarrhea."
+  },
+  {
+    "id": "end-169",
+    "question": "Thyroid hormone actions include:",
+    "answer": "Increasing the numbers of Beta adrenergic receptors",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Thyroid hormones increase beta receptor sensitivity."
+  },
+  {
+    "id": "end-170",
+    "question": "A major regulator of bone growth is:",
+    "answer": "Growth hormone",
+    "subject": "Anatomy & Physiology",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Growth hormone is a major regulator of bone growth."
+  },
+  {
+    "id": "end-171",
+    "question": "Which of the following is a manifestation of Addison's disease:",
+    "answer": "Hypoglycemia",
+    "subject": "Adult Health Nursing",
+    "difficulty": "Intermediate",
+    "important": true,
+    "source": "ENDOCRINE RICHARD",
+    "rationale": "Addison's disease commonly presents with hypoglycemia, weight loss, and hyperpigmentation."
+  }
+]

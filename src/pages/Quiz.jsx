@@ -26,6 +26,7 @@ const Quiz = () => {
   const [score, setScore] = useState(0);
   const [showResults, setShowResults] = useState(false);
   const [selectedOption, setSelectedOption] = useState(null);
+  const [pendingOption, setPendingOption] = useState(null); // For "Final Answer" confirmation
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [showHint, setShowHint] = useState(false);
   const [showRationale, setShowRationale] = useState(false);
@@ -122,22 +123,23 @@ const Quiz = () => {
       return !isPlaceholder && hasMeaningfulAnswer;
     });
 
-    if (pool.length < 10) {
-      pool = [...pool, ...flashcards.filter(c => c.id && String(c.id).startsWith('ex_'))];
-    }
-
     if (subject) {
-      // Fuzzy match subject
+      // Strict matching for Subject Mastery to avoid cross-contamination
       const subLower = subject.toLowerCase();
       pool = pool.filter(c =>
-        (c.subject && c.subject.toLowerCase().includes(subLower)) ||
-        (c.topic && c.topic.toLowerCase().includes(subLower))
+        (c.subject && c.subject.toLowerCase() === subLower) ||
+        (c.topic && c.topic.toLowerCase() === subLower)
       );
+    } else {
+      // For general modes, exclude placeholders if possible
+      if (pool.length < 10) {
+        pool = [...pool, ...flashcards.filter(c => c.id && String(c.id).startsWith('ex_'))];
+      }
     }
 
     const count = mode === 'clinical' ? 20 : mode === 'speed' ? 15 : 10;
 
-    if (pool.length >= 4) {
+    if (pool.length >= 1) {
       // Sort to prioritize "important" cards or those with rationales
       const shuffled = [...pool].sort((a, b) => {
         if (a.important && !b.important) return -1;
@@ -147,16 +149,22 @@ const Quiz = () => {
 
       const selected = shuffled.slice(0, count);
       questions = selected.map(card => {
+        // If question already has options (Richards format), use them
+        if (card.options && Array.isArray(card.options) && card.options.length > 0) {
+          return { ...card, correctAnswer: card.correctAnswer || card.answer };
+        }
+
+        // Otherwise generate distractors from the full flashcard pool
         const distractors = flashcards
-          .filter(c => c.id !== card.id)
+          .filter(c => c.id !== card.id && c.answer !== card.answer)
           .sort(() => 0.5 - Math.random())
           .slice(0, 3)
           .map(c => c.answer);
         const options = [card.answer, ...distractors].sort(() => 0.5 - Math.random());
         return { ...card, options, correctAnswer: card.answer };
       });
-    } else {
-      // Use fallback questions if flashcards are insufficient
+    } else if (!subject) {
+      // ONLY use generic fallbacks for non-subject modes if nothing found
       questions = [...FALLBACK_QUESTIONS].sort(() => 0.5 - Math.random()).slice(0, Math.min(count, FALLBACK_QUESTIONS.length));
     }
 
@@ -178,12 +186,19 @@ const Quiz = () => {
   };
 
   const handleOptionClick = (option) => {
-    if (selectedOption !== null || showRationale || isCorrect !== null) return;
+    if (selectedOption !== null || pendingOption !== null || showRationale || isCorrect !== null) return;
     if (eliminatedOptions.includes(option)) return;
+
+    // Always use confirmation system for all modes as requested
+    setPendingOption(option);
+  };
+
+  const confirmFinalAnswer = () => {
+    if (!pendingOption) return;
+    const option = pendingOption;
+    setPendingOption(null);
     setSelectedOption(option);
-    setTimeout(() => {
-      processAnswer(option);
-    }, 400);
+    processAnswer(option);
   };
 
   const playSound = (type) => {
@@ -618,11 +633,29 @@ const Quiz = () => {
                   color={idx === 0 ? "bg-red-500" : idx === 1 ? "bg-blue-500" : idx === 2 ? "bg-amber-500" : "bg-emerald-500"}
                   icon={idx === 0 ? <Triangle size={24} fill="currentColor" /> : idx === 1 ? <Diamond size={24} fill="currentColor" /> : idx === 2 ? <Circle size={24} fill="currentColor" /> : <Square size={24} fill="currentColor" />}
                   onClick={() => handleOptionClick(option)}
-                  disabled={showRationale || isCorrect !== null || eliminatedOptions.includes(option)}
-                  state={showRationale ? (option === currentQ.correctAnswer ? 'correct' : (selectedOption === option ? 'wrong' : 'idle')) : (selectedOption === option ? 'selected' : (eliminatedOptions.includes(option) ? 'wrong' : 'idle'))}
+                  disabled={showRationale || isCorrect !== null || eliminatedOptions.includes(option) || pendingOption !== null}
+                  state={showRationale ? (option === currentQ.correctAnswer ? 'correct' : (selectedOption === option ? 'wrong' : 'idle')) : (selectedOption === option || pendingOption === option ? 'selected' : (eliminatedOptions.includes(option) ? 'wrong' : 'idle'))}
                 />
               ))}
            </div>
+
+           <AnimatePresence>
+             {pendingOption && (
+               <motion.div
+                 initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+                 className="absolute inset-x-4 bottom-24 z-50 bg-slate-800/95 backdrop-blur-xl p-6 rounded-[2rem] border border-white/20 shadow-2xl flex flex-col items-center gap-4 text-center"
+               >
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500">Final Confirmation</p>
+                    <h4 className="text-lg font-black">Is this your final answer?</h4>
+                  </div>
+                  <div className="flex gap-3 w-full">
+                    <button onClick={() => setPendingOption(null)} className="flex-1 py-4 bg-white/10 hover:bg-white/20 rounded-2xl font-black uppercase tracking-widest text-[10px]">Change</button>
+                    <button onClick={confirmFinalAnswer} className="flex-[2] py-4 bg-medical-500 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-medical-500/20">Confirm Answer</button>
+                  </div>
+               </motion.div>
+             )}
+           </AnimatePresence>
         </main>
 
         <AnimatePresence>
@@ -694,6 +727,24 @@ const Quiz = () => {
       </div>
 
       <div className="relative flex-1 flex flex-col min-h-0">
+        <AnimatePresence>
+             {pendingOption && (
+               <motion.div
+                 initial={{ opacity: 0, scale: 0.9 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0, scale: 0.9 }}
+                 className="absolute inset-x-4 bottom-24 z-50 bg-slate-800/95 backdrop-blur-xl p-6 rounded-[2rem] border border-white/20 shadow-2xl flex flex-col items-center gap-4 text-center"
+               >
+                  <div className="space-y-1">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-500">Final Confirmation</p>
+                    <h4 className="text-lg font-black text-white">Is this your final answer?</h4>
+                  </div>
+                  <div className="flex gap-3 w-full">
+                    <button onClick={() => setPendingOption(null)} className="flex-1 py-4 bg-white/10 hover:bg-white/20 rounded-2xl font-black text-white uppercase tracking-widest text-[10px]">Change</button>
+                    <button onClick={confirmFinalAnswer} className="flex-[2] py-4 bg-medical-500 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-medical-500/20">Confirm Answer</button>
+                  </div>
+               </motion.div>
+             )}
+        </AnimatePresence>
+
         <div className="absolute inset-0 bg-slate-900 rounded-[1.5rem] sm:rounded-[3rem] blur-2xl opacity-10 dark:opacity-40" />
         <div className="relative flex-1 flex flex-col bg-slate-900 dark:bg-slate-950 rounded-[1.5rem] sm:rounded-[3rem] p-2.5 sm:p-8 border border-white/10 shadow-2xl overflow-hidden">
 
@@ -705,6 +756,16 @@ const Quiz = () => {
                 <div className="flex-1 flex flex-col min-h-0">
                   <div className="flex-1 flex flex-col space-y-4 sm:space-y-6 overflow-y-auto overscroll-contain custom-scrollbar px-1 sm:px-2 pb-4 sm:pb-6">
                     <div className="shrink-0 text-center space-y-3 sm:space-y-4 pt-1 sm:pt-4">
+                       {currentQ.source && (currentQ.source.toLowerCase().includes('richard') || currentQ.source.toLowerCase().includes('bank')) && (
+                         <motion.div
+                           initial={{ opacity: 0, scale: 0.9 }}
+                           animate={{ opacity: 1, scale: 1 }}
+                           className="inline-flex items-center px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 shadow-[0_0_15px_rgba(59,130,246,0.2)] mb-2"
+                         >
+                            <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse mr-2 shadow-[0_0_8px_rgba(96,165,250,0.8)]" />
+                            <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">Source: Richard's Question Bank</span>
+                         </motion.div>
+                       )}
                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-medical-500/60">Subject: {currentQ.subject}</p>
                        <div className="max-h-[30vh] sm:max-h-[35vh] overflow-y-auto px-2 sm:px-4 scrollbar-hide overscroll-contain">
                           <h2 className="text-base sm:text-4xl font-black text-white leading-tight tracking-tight break-words whitespace-normal overflow-wrap-anywhere word-break-word">
