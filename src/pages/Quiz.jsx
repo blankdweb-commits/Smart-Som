@@ -4,6 +4,7 @@ import { Brain, CheckCircle2, XCircle, RefreshCw, ChevronRight, Trophy, AlertCir
 import { useNavigate } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 import { FALLBACK_QUESTIONS } from '../data/fallbackQuestions';
+import { RICHARDS_QUESTIONS } from '../data/richardsQuestions';
 
 const MILESTONES = [
   "Clinical Beginner",
@@ -14,7 +15,7 @@ const MILESTONES = [
 ];
 
 const Quiz = () => {
-  const { flashcards, userProfile, studyStats, updateQuizStats, curriculumSubjects } = useAppContext();
+  const { flashcards, userProfile, studyStats, updateQuizStats, curriculumSubjects, richardsQuestions } = useAppContext();
   const navigate = useNavigate();
 
   // -- 1. STATE DECLARATIONS --
@@ -92,6 +93,27 @@ const Quiz = () => {
 
   const startQuiz = (mode, subject = null) => {
     let questions = [];
+
+    if (mode === 'quick') {
+      const bank = (richardsQuestions && richardsQuestions.length > 0) ? richardsQuestions : RICHARDS_QUESTIONS;
+      questions = [...bank].sort(() => 0.5 - Math.random()).slice(0, 10);
+      setQuizQuestions(questions);
+      setQuizStarted(true);
+      setCurrentQuestionIndex(0);
+      setScore(0);
+      setShowResults(false);
+      setSelectedOption(null);
+      setShowHint(false);
+      setShowRationale(false);
+      setIsCorrect(null);
+      setWrongAttempts([]);
+      setEliminatedOptions([]);
+      setLifelinesUsed({ hint: false, fiftyFifty: false, askClass: false, askFriend: false });
+      setClassPoll(null);
+      setColleagueAdvice(null);
+      return;
+    }
+
     // Prioritize high-quality content (NMCN, NCLEX, or specific IDs)
     // Avoid IDs starting with 'ex_' which are generated placeholders
     let pool = flashcards.filter(c => {
@@ -283,6 +305,85 @@ const Quiz = () => {
     updateQuizStats({ milestone: currentMilestone });
     setShowResults(true);
   };
+
+  if (quizMode === 'mastery_select') {
+    const REQUIRED_SUBJECTS = [
+      'Anatomy', 'Physiology', 'Pharmacology',
+      'Medical Surgical Nursing', 'Community Health Nursing',
+      'Mental Health Nursing', 'Midwifery', 'Pediatrics',
+      'Entrepreneurship in Nursing'
+    ];
+
+    // Combine curriculum subjects with standard required categories to ensure they always appear
+    const uniqueSubjects = Array.from(new Set([...REQUIRED_SUBJECTS, ...curriculumSubjects]));
+
+    // Sort subjects so required ones come first
+    const sortedSubjects = uniqueSubjects.sort((a, b) => {
+      const aReqIdx = REQUIRED_SUBJECTS.findIndex(r => a.includes(r));
+      const bReqIdx = REQUIRED_SUBJECTS.findIndex(r => b.includes(r));
+
+      if (aReqIdx !== -1 && bReqIdx !== -1) return aReqIdx - bReqIdx;
+      if (aReqIdx !== -1) return -1;
+      if (bReqIdx !== -1) return 1;
+      return a.localeCompare(b);
+    });
+
+    const masteryStats = {
+      overallAccuracy: 85,
+      totalAttempted: 1240,
+      strongAreas: ['Pharmacology', 'Anatomy'],
+      weakAreas: ['Midwifery', 'Research Methods']
+    };
+
+    return (
+      <div className="max-w-4xl mx-auto mt-4 sm:mt-8 space-y-6 sm:space-y-8 animate-in fade-in duration-500 pb-32 px-4">
+        <div className="flex items-center gap-4">
+          <button onClick={() => { setQuizMode(null); setQuizStarted(false); }} className="p-3 bg-white dark:bg-slate-800 rounded-2xl text-slate-400 hover:text-medical-600 shadow-sm transition-all">
+            <ArrowRight size={24} className="rotate-180" />
+          </button>
+          <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white tracking-tight">Subject Mastery</h2>
+        </div>
+
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4">
+           <div className="bg-white dark:bg-slate-800 p-4 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm">
+              <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-1">Accuracy</p>
+              <p className="text-xl font-black text-emerald-600">{masteryStats.overallAccuracy}%</p>
+           </div>
+           <div className="bg-white dark:bg-slate-800 p-4 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm">
+              <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-1">Attempted</p>
+              <p className="text-xl font-black text-slate-900 dark:text-white">{masteryStats.totalAttempted}</p>
+           </div>
+           <div className="bg-white dark:bg-slate-800 p-4 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm col-span-2">
+              <p className="text-[8px] font-black uppercase text-slate-400 tracking-widest mb-2">Focus Topics</p>
+              <div className="flex flex-wrap gap-1.5">
+                 {masteryStats.weakAreas.map(t => (
+                   <span key={t} className="px-2 py-1 bg-red-50 text-red-600 rounded-lg text-[9px] font-bold"> {t} </span>
+                 ))}
+              </div>
+           </div>
+        </div>
+
+        <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Select a nursing course to begin specialized revision.</p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4">
+          {sortedSubjects.map(subject => (
+            <button
+              key={subject}
+              onClick={() => {
+                setSelectedSubject(subject);
+                setQuizMode('mastery');
+                startQuiz('mastery', subject);
+              }}
+              className="p-5 sm:p-6 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md hover:border-medical-500 transition-all text-left flex justify-between items-center group"
+            >
+              <span className="font-bold text-sm sm:text-base text-slate-700 dark:text-slate-200">{subject}</span>
+              <ChevronRight size={18} className="text-slate-300 group-hover:text-medical-600 transition-colors" />
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   if (!quizStarted) {
     return (
@@ -605,8 +706,8 @@ const Quiz = () => {
                   <div className="flex-1 flex flex-col space-y-4 sm:space-y-6 overflow-y-auto overscroll-contain custom-scrollbar px-1 sm:px-2 pb-4 sm:pb-6">
                     <div className="shrink-0 text-center space-y-3 sm:space-y-4 pt-1 sm:pt-4">
                        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-medical-500/60">Subject: {currentQ.subject}</p>
-                       <div className="max-h-[30vh] sm:max-h-[35vh] overflow-y-auto px-2 sm:px-4 scrollbar-hide">
-                          <h2 className="text-base sm:text-4xl font-black text-white leading-tight tracking-tight break-words">
+                       <div className="max-h-[30vh] sm:max-h-[35vh] overflow-y-auto px-2 sm:px-4 scrollbar-hide overscroll-contain">
+                          <h2 className="text-base sm:text-4xl font-black text-white leading-tight tracking-tight break-words whitespace-normal overflow-wrap-anywhere word-break-word">
                             {currentQ.question}
                           </h2>
                        </div>
@@ -806,10 +907,10 @@ const OptionButton = React.memo(({ label, index, state, pollValue, onClick, disa
     return "bg-white/5 border-white/10 text-white/70 hover:bg-white/10 hover:border-white/30";
   }, [state]);
   return (
-    <button disabled={disabled} onClick={onClick} className={`w-full group relative flex items-center p-2.5 sm:p-5 rounded-xl sm:rounded-2xl border-2 transition-all duration-300 overflow-hidden ${styles}`}>
+    <button disabled={disabled} onClick={onClick} className={`w-full group relative flex items-center p-2.5 sm:p-5 min-h-[64px] rounded-xl sm:rounded-2xl border-2 transition-all duration-300 overflow-hidden ${styles}`}>
       <div className="flex items-center gap-2.5 sm:gap-4 w-full relative z-10">
          <span className={`w-6 h-6 sm:w-8 sm:h-8 rounded-lg flex items-center justify-center font-black text-[10px] sm:text-xs border ${state === 'selected' ? 'bg-amber-500 border-amber-400 text-white' : 'bg-white/10 border-white/10'}`}>{letters[index]}</span>
-         <span className="flex-1 font-bold text-[11px] sm:text-base text-left leading-tight pr-2 sm:pr-8">{label}</span>
+         <span className="flex-1 font-bold text-[11px] sm:text-base text-left leading-tight pr-2 sm:pr-8 whitespace-normal overflow-wrap-anywhere word-break-word">{label}</span>
          {pollValue !== undefined && (
             <div className="text-right">
                <p className="text-sm sm:text-lg font-black">{pollValue}%</p>

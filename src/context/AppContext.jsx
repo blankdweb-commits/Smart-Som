@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { initialFlashcards } from '../data/initialData';
 import { allBuiltInFlashcards } from '../data/loadFlashcards';
 import { CURRICULUM_MASTER } from '../data/curriculumMaster';
@@ -12,6 +12,10 @@ export function AppProvider({ children }) {
   const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
 
   const [flashcards, setFlashcards] = useState([...initialFlashcards, ...allBuiltInFlashcards]);
+  const [richardsQuestions, setRichardsQuestions] = useState(() => {
+    const saved = localStorage.getItem('apex_richards_questions');
+    return saved ? JSON.parse(saved) : [];
+  });
   const [exams, setExams] = useState([]);
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
@@ -43,7 +47,7 @@ export function AppProvider({ children }) {
     dailyChallenge: { id: null, question: '', answer: '', completed: false, lastDate: null }
   });
 
-  const curriculumSubjects = React.useMemo(() => {
+  const curriculumSubjects = useMemo(() => {
     const subjects = new Set();
     Object.values(CURRICULUM_MASTER).forEach(year => {
       Object.values(year).forEach(semester => {
@@ -487,7 +491,15 @@ export function AppProvider({ children }) {
     updateQuizStats,
     fetchUserData,
     curriculumSubjects,
-    addExam, updateExam, deleteExam
+    addExam, updateExam, deleteExam,
+    richardsQuestions,
+    addRichardsQuestions: (qs) => {
+      setRichardsQuestions(prev => {
+        const updated = [...prev, ...qs];
+        localStorage.setItem('apex_richards_questions', JSON.stringify(updated));
+        return updated;
+      });
+    }
   }), [
     session, loadingAuth, flashcards, exams, studyStats, userProfile,
     darkMode, transactions, auditLogs, feeDetails, subscriptionPlans,
@@ -495,7 +507,8 @@ export function AppProvider({ children }) {
     updateSubscriptionPlan, addSubscriptionPlan, deleteSubscriptionPlan,
     updatePaymentPurpose, addPaymentPurpose, deletePaymentPurpose,
     addAuditLog, updateCardProgress, incrementCardsStudied, updateQuizStats,
-    fetchUserData, curriculumSubjects, addExam, updateExam, deleteExam
+    fetchUserData, curriculumSubjects, addExam, updateExam, deleteExam,
+    richardsQuestions
   ]);
 
   return (

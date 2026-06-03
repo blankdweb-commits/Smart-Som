@@ -26,6 +26,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { generateReceipt } from '../components/ReceiptSystem';
+import QuestionBankManager from '../components/QuestionBankManager';
 
 const AdminFinance = () => {
   const {
@@ -187,6 +188,7 @@ const AdminFinance = () => {
           { id: 'ledger', label: 'Student Ledger', icon: <Users size={16} /> },
           { id: 'purposes', label: 'Payment Items', icon: <Plus size={16} /> },
           { id: 'disputes', label: 'Dispute Center', icon: <AlertCircle size={16} /> },
+          { id: 'questions', label: 'Question Bank', icon: <FileText size={16} /> },
           { id: 'plans', label: 'Subscription Plans', icon: <Settings size={16} />, superOnly: true },
         ].filter(tab => !tab.superOnly || userProfile.role === 'super_admin').map(tab => (
           <button
@@ -548,6 +550,16 @@ const AdminFinance = () => {
                 </div>
               ))}
             </div>
+          </motion.div>
+        )}
+
+        {activeTab === 'questions' && (
+          <motion.div
+            key="questions"
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+          >
+            <QuestionBankManager />
           </motion.div>
         )}
 
