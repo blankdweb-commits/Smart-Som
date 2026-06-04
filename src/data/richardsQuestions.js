@@ -74,7 +74,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Liver",
     "explanation": "The Liver is the largest gland and performs metabolic, detoxification, and digestive functions.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "The Liver is the largest gland and performs metabolic, detoxification, and digestive functions.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -90,7 +90,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Circadian rhythm",
     "explanation": "Circadian rhythm refers to the body’s internal 24-hour sleep-wake cycle.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Circadian rhythm refers to the body’s internal 24-hour sleep-wake cycle.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -122,7 +122,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Thymus gland",
     "explanation": "T-lymphocytes mature in the Thymus.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "T-lymphocytes mature in the Thymus.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -170,7 +170,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Calcitonin",
     "explanation": "Calcitonin lowers blood calcium and phosphate levels.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Calcitonin lowers blood calcium and phosphate levels.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -202,7 +202,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Serotonine",
     "explanation": "Serotonin helps regulate sleep and circadian rhythm and is a precursor of melatonin.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Serotonin helps regulate sleep and circadian rhythm and is a precursor of melatonin.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -234,7 +234,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "The pineal gland",
     "explanation": "Pineal gland secretes melatonin.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Pineal gland secretes melatonin.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -250,7 +250,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Pour their secretions directly into the circulation",
     "explanation": "Endocrine glands are ductless glands that release hormones directly into blood.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Endocrine glands are ductless glands that release hormones directly into blood.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -314,7 +314,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Growth hormone-releasing hormone (GHRH)",
     "explanation": "GHRH is produced by the hypothalamus and stimulates GH release.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "GHRH is produced by the hypothalamus and stimulates GH release.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -330,7 +330,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Chemical regulators secreted by endocrine glands",
     "explanation": "Hormones regulate body activities through chemical signaling.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Hormones regulate body activities through chemical signaling.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -346,7 +346,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Growth hormone (somatotropin, GH)",
     "explanation": "GH is secreted by the anterior pituitary.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "GH is secreted by the anterior pituitary.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -362,7 +362,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Growth hormone",
     "explanation": "The posterior pituitary releases ADH and oxytocin, not GH.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "The posterior pituitary releases ADH and oxytocin, not GH.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -378,7 +378,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Mammary gland",
     "explanation": "Prolactin stimulates milk production in mammary glands.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Prolactin stimulates milk production in mammary glands.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -410,7 +410,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Near the larynx",
     "explanation": "The thyroid gland lies anterior to the trachea below the larynx.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "The thyroid gland lies anterior to the trachea below the larynx.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -442,7 +442,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Thyroid",
     "explanation": "The thyroid is the endocrine gland located in the neck.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "The thyroid is the endocrine gland located in the neck.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -490,7 +490,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Anterior Pituitary gland",
     "explanation": "MSH is associated with the pars intermedia/anterior pituitary.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "MSH is associated with the pars intermedia/anterior pituitary.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -538,7 +538,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Cortex of the adrenal gland",
     "explanation": "ACTH stimulates cortisol production in the adrenal cortex.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "ACTH stimulates cortisol production in the adrenal cortex.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -554,7 +554,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Water",
     "explanation": "Vasopressin (ADH) promotes water reabsorption in kidneys.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Vasopressin (ADH) promotes water reabsorption in kidneys.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -619,7 +619,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Sella-turcica of the sphenoid bone",
     "explanation": "The pituitary sits in the sella turcica of the sphenoid bone.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "The pituitary sits in the sella turcica of the sphenoid bone.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -635,7 +635,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Chromaffin",
     "explanation": "Chromaffin cells of adrenal medulla secrete catecholamines.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Chromaffin cells of adrenal medulla secrete catecholamines.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -683,7 +683,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "True",
     "explanation": "Insulin contains about 51 amino acids.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Insulin contains about 51 amino acids.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -699,7 +699,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Acts to promote progesterone production",
     "explanation": "LH stimulates ovulation and progesterone secretion.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "LH stimulates ovulation and progesterone secretion.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -747,7 +747,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Catecholamine",
     "explanation": "Catecholamines are produced by adrenal medulla, not cortex.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Catecholamines are produced by adrenal medulla, not cortex.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -795,7 +795,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Oxytocin",
     "explanation": "Oxytocin stimulates uterine contractions.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Oxytocin stimulates uterine contractions.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -827,7 +827,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Follicle stimulating hormone (FSH)",
     "explanation": "FSH stimulates spermatogenesis.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "FSH stimulates spermatogenesis.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -843,7 +843,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Epinephrine or adrenaline",
     "explanation": "Adrenal medulla releases adrenaline during stress.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Adrenal medulla releases adrenaline during stress.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -875,7 +875,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Theca interna cells of developing Graafian follicles",
     "explanation": "Estrogen production involves theca interna and granulosa cells.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Estrogen production involves theca interna and granulosa cells.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -908,7 +908,7 @@ export const RICHARDS_QUESTIONS = [
     "correct_answer": "d",
     "correctAnswer": "The adrenal cortex",
     "explanation": "Corticoids are produced in adrenal cortex.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Corticoids are produced in adrenal cortex.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -924,7 +924,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Posterior lobe of the pituitary gland",
     "explanation": "Neurohypophysis = posterior pituitary.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Neurohypophysis = posterior pituitary.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -956,7 +956,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "All of these",
     "explanation": "Male reproductive function involves FSH, LH, and testosterone.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Male reproductive function involves FSH, LH, and testosterone.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1004,7 +1004,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Oxytocin",
     "explanation": "Oxytocin is released during labor.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Oxytocin is released during labor.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1036,7 +1036,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "All of the above",
     "explanation": "Oxytocin affects uterine contractions, sperm movement, and milk ejection.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Oxytocin affects uterine contractions, sperm movement, and milk ejection.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1068,7 +1068,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Contract gall bladder",
     "explanation": "Cholecystokinin stimulates gallbladder contraction.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Cholecystokinin stimulates gallbladder contraction.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1084,7 +1084,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Progesterone",
     "explanation": "Progesterone is produced mainly by ovaries, not pituitary.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Progesterone is produced mainly by ovaries, not pituitary.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1116,7 +1116,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Thyroxine",
     "explanation": "The thyroid secretes thyroxine (T4).",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "The thyroid secretes thyroxine (T4).",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1228,7 +1228,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Increased blood glucose level",
     "explanation": "Adrenal hormones increase blood glucose during stress.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Adrenal hormones increase blood glucose during stress.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1244,7 +1244,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Inferior thyroid arteries",
     "explanation": "These mainly supply the parathyroid glands.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "These mainly supply the parathyroid glands.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1260,7 +1260,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Pituitary",
     "explanation": "The pituitary is called the “master gland.”",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "The pituitary is called the “master gland.”",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1340,7 +1340,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Inferior aspect of the brain",
     "explanation": "The pituitary is attached below the brain.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "The pituitary is attached below the brain.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1388,7 +1388,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Carbohydrates",
     "explanation": "Hormones are mainly steroids, proteins, or amines.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Hormones are mainly steroids, proteins, or amines.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1436,7 +1436,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Growth hormone (GH)",
     "explanation": "GH is the most abundant anterior pituitary hormone.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "GH is the most abundant anterior pituitary hormone.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1452,7 +1452,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Oxytocin",
     "explanation": "Oxytocin causes milk let-down reflex.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Oxytocin causes milk let-down reflex.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1500,7 +1500,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Insulin",
     "explanation": "Islets of Langerhans produce insulin.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Islets of Langerhans produce insulin.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1516,7 +1516,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "FSH and LH",
     "explanation": "High estrogen/progesterone suppress FSH and LH during pregnancy.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "High estrogen/progesterone suppress FSH and LH during pregnancy.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1532,7 +1532,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Target cells",
     "explanation": "Hormones act on specific target cells.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Hormones act on specific target cells.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1564,7 +1564,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Triiodothyronine",
     "explanation": "T3 is produced by thyroid gland.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "T3 is produced by thyroid gland.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1580,7 +1580,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "All of the above",
     "explanation": "TSH stimulates iodine uptake, hormone synthesis, and release.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "TSH stimulates iodine uptake, hormone synthesis, and release.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1612,7 +1612,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Testosterone",
     "explanation": "Testosterone maintains male reproductive organs and secondary sexual characteristics.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Testosterone maintains male reproductive organs and secondary sexual characteristics.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1628,7 +1628,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Aldosterone",
     "explanation": "Aldosterone is a mineralocorticoid secreted by adrenal cortex.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Aldosterone is a mineralocorticoid secreted by adrenal cortex.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1644,7 +1644,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Constriction of uterine blood vessels leading to sloughing of uterine epithelium",
     "explanation": "Falling estrogen and progesterone levels trigger menstruation.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Falling estrogen and progesterone levels trigger menstruation.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1660,7 +1660,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Pancreas",
     "explanation": "The Pancreas is a large endocrine gland located in the abdominal cavity.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "The Pancreas is a large endocrine gland located in the abdominal cavity.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1708,7 +1708,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Insulin",
     "explanation": "Insulin is produced by pancreatic beta cells, not the anterior pituitary.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Insulin is produced by pancreatic beta cells, not the anterior pituitary.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1756,7 +1756,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Pineal gland",
     "explanation": "The pineal gland regulates the biological clock through melatonin secretion.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "The pineal gland regulates the biological clock through melatonin secretion.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1788,7 +1788,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Hormones",
     "explanation": "Endocrine glands secrete hormones into the bloodstream.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Endocrine glands secrete hormones into the bloodstream.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1804,7 +1804,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Aldosterone",
     "explanation": "Aldosterone regulates sodium and potassium balance.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Aldosterone regulates sodium and potassium balance.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1852,7 +1852,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "All of the above",
     "explanation": "Thyroid hormone secretion is regulated by hypothalamus, pituitary, and feedback from thyroid hormone levels.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Thyroid hormone secretion is regulated by hypothalamus, pituitary, and feedback from thyroid hormone levels.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1884,7 +1884,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Glucagon",
     "explanation": "Glucagon increases blood glucose and opposes insulin action.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Glucagon increases blood glucose and opposes insulin action.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1916,7 +1916,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Leydig cells and adrenal cortex",
     "explanation": "Androgens are secreted mainly by testes and adrenal cortex.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Androgens are secreted mainly by testes and adrenal cortex.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1964,7 +1964,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Parafollicular cells",
     "explanation": "Calcitonin is secreted by parafollicular (C) cells of thyroid.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Calcitonin is secreted by parafollicular (C) cells of thyroid.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1980,7 +1980,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Thyroid",
     "explanation": "The thyroid stores hormones extracellularly in colloid.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "The thyroid stores hormones extracellularly in colloid.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -1996,7 +1996,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Para-ventricular nucleus",
     "explanation": "This hypothalamic region is associated with autonomic functions including sweating.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "This hypothalamic region is associated with autonomic functions including sweating.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2012,7 +2012,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Mineral corticoid",
     "explanation": "Steroid hormones like mineralocorticoids are lipid soluble.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Steroid hormones like mineralocorticoids are lipid soluble.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2044,7 +2044,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Placenta",
     "explanation": "Human chorionic gonadotropin (hCG) is secreted by the placenta.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Human chorionic gonadotropin (hCG) is secreted by the placenta.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2076,7 +2076,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Thymus gland",
     "explanation": "The thymus is essential for T-cell maturation and immunity.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "The thymus is essential for T-cell maturation and immunity.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2092,7 +2092,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Mineralocorticoids",
     "explanation": "Mineralocorticoids regulate sodium and potassium levels.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Mineralocorticoids regulate sodium and potassium levels.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2108,7 +2108,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Sympathetic nervous system",
     "explanation": "Adrenal hormones complement sympathetic responses.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Adrenal hormones complement sympathetic responses.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2124,7 +2124,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "4am and 8am",
     "explanation": "Glucocorticoid secretion peaks early in the morning.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Glucocorticoid secretion peaks early in the morning.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2172,7 +2172,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Hypothalamus",
     "explanation": "The hypothalamus controls endocrine glands through pituitary regulation.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "The hypothalamus controls endocrine glands through pituitary regulation.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2188,7 +2188,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Aldosterone",
     "explanation": "Aldosterone promotes sodium and water retention.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Aldosterone promotes sodium and water retention.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2204,7 +2204,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Autocrines",
     "explanation": "Autocrines act on the same cell that secreted them.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Autocrines act on the same cell that secreted them.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2316,7 +2316,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Endocrine gland",
     "explanation": "Exocrine glands secrete into ducts leading to body surfaces or cavities.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Exocrine glands secrete into ducts leading to body surfaces or cavities.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2348,7 +2348,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Increase the uptakes/absorption of calcium",
     "explanation": "Calcium absorption is mainly regulated by vitamin D and parathyroid hormone.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Calcium absorption is mainly regulated by vitamin D and parathyroid hormone.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2412,7 +2412,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Hypothalamus",
     "explanation": "The hypothalamus secretes GnRH.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "The hypothalamus secretes GnRH.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2444,7 +2444,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Gonadal",
     "explanation": "Gonadal secretions differ between males and females.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Gonadal secretions differ between males and females.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2460,7 +2460,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Parathyroid hormone (PTH)",
     "explanation": "PTH is secreted by parathyroid glands.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "PTH is secreted by parathyroid glands.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2476,7 +2476,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Islets of Langerhans",
     "explanation": "These pancreatic cell clusters produce hormones.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "These pancreatic cell clusters produce hormones.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2492,7 +2492,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Accelerates the conversion of glycogen into glucose",
     "explanation": "Glucagon increases blood glucose by glycogen breakdown.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Glucagon increases blood glucose by glycogen breakdown.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2508,7 +2508,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "GH",
     "explanation": "Growth hormone is the most abundant anterior pituitary hormone.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Growth hormone is the most abundant anterior pituitary hormone.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2524,7 +2524,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Gonadocorticoids, such as the androgens",
     "explanation": "Adrenal androgens supplement gonadal sex hormones.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Adrenal androgens supplement gonadal sex hormones.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2540,7 +2540,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Follicle-stimulating hormone",
     "explanation": "FSH stimulates spermatogenesis and ovarian follicle development.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "FSH stimulates spermatogenesis and ovarian follicle development.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2556,7 +2556,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Gluconeogenesis",
     "explanation": "Insulin inhibits gluconeogenesis.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Insulin inhibits gluconeogenesis.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2572,7 +2572,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Induction of secretion of adrenomedullias",
     "explanation": "ACTH mainly affects adrenal cortex, not medulla.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "ACTH mainly affects adrenal cortex, not medulla.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2604,7 +2604,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Calcitonin lowers blood calcium; parathyroid hormone raises blood calcium",
     "explanation": "These hormones work oppositely to regulate calcium.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "These hormones work oppositely to regulate calcium.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2620,7 +2620,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Hypernatremia",
     "explanation": "High sodium suppresses aldosterone secretion.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "High sodium suppresses aldosterone secretion.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2636,7 +2636,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "High serum potassium",
     "explanation": "Hyperkalemia strongly stimulates aldosterone release.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Hyperkalemia strongly stimulates aldosterone release.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2652,7 +2652,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Thyroid",
     "explanation": "The thyroid gland regulates basal metabolic rate.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "The thyroid gland regulates basal metabolic rate.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2668,7 +2668,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Pineal gland",
     "explanation": "The pineal gland is considered the smallest endocrine gland.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "The pineal gland is considered the smallest endocrine gland.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2700,7 +2700,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Secretes FSH",
     "explanation": "FSH is secreted by anterior pituitary, not hypothalamus.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "FSH is secreted by anterior pituitary, not hypothalamus.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2716,7 +2716,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Rapid acting effects",
     "explanation": "Endocrine effects are generally slower than nervous system effects.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Endocrine effects are generally slower than nervous system effects.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2748,7 +2748,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Increasing the numbers of Beta adrenergic receptors",
     "explanation": "Thyroid hormones increase beta receptor sensitivity.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Thyroid hormones increase beta receptor sensitivity.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2764,7 +2764,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Growth hormone",
     "explanation": "Growth hormone is a major regulator of bone growth.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Growth hormone is a major regulator of bone growth.",
     "source": "ENDOCRINE RICHARD",
     "important": true
@@ -2796,7 +2796,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Eyelid",
     "explanation": "Eyelid — Eyelids help protect the eyes from sweat, dust, and injury.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Eyelid — Eyelids help protect the eyes from sweat, dust, and injury.",
     "source": "EAR & EYE RICHARD",
     "important": true
@@ -2908,7 +2908,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Very small bones that resemble the objects for which they were named",
     "explanation": "The ossicles are tiny bones: malleus, incus, and stapes.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "The ossicles are tiny bones: malleus, incus, and stapes.",
     "source": "EAR & EYE RICHARD",
     "important": true
@@ -2924,7 +2924,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Central artery",
     "explanation": "Central artery — Retina supplied by the central retinal artery.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Central artery — Retina supplied by the central retinal artery.",
     "source": "EAR & EYE RICHARD",
     "important": true
@@ -2956,7 +2956,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Cornea",
     "explanation": "Cornea — Cornea has the greatest refractive power.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Cornea — Cornea has the greatest refractive power.",
     "source": "EAR & EYE RICHARD",
     "important": true
@@ -2972,7 +2972,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Scala media",
     "explanation": "Scala media — Organ of Corti lies within the scala media.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Scala media — Organ of Corti lies within the scala media.",
     "source": "EAR & EYE RICHARD",
     "important": true
@@ -3100,7 +3100,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Exterior opening of auditory tube",
     "explanation": "Ceruminous glands are in the external auditory canal.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Ceruminous glands are in the external auditory canal.",
     "source": "EAR & EYE RICHARD",
     "important": true
@@ -3132,7 +3132,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Cornea; pupil; lens",
     "explanation": "Light passes through cornea → pupil → lens.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Light passes through cornea → pupil → lens.",
     "source": "EAR & EYE RICHARD",
     "important": true
@@ -3724,7 +3724,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Cochlea",
     "explanation": "Cochlea — Contains hearing receptors.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Cochlea — Contains hearing receptors.",
     "source": "EAR & EYE RICHARD",
     "important": true
@@ -3836,7 +3836,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Retina",
     "explanation": "Retina — Light-sensitive layer.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Retina — Light-sensitive layer.",
     "source": "EAR & EYE RICHARD",
     "important": true
@@ -3948,7 +3948,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Outer ear",
     "explanation": "Outer ear — Pinna belongs to outer ear.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Outer ear — Pinna belongs to outer ear.",
     "source": "EAR & EYE RICHARD",
     "important": true
@@ -4060,7 +4060,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Middle ear",
     "explanation": "Middle ear — Closest option given though technically cochlea is correct hearing receptor site.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Middle ear — Closest option given though technically cochlea is correct hearing receptor site.",
     "source": "EAR & EYE RICHARD",
     "important": true
@@ -4188,7 +4188,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Opsin and retinal",
     "explanation": "Opsin and retinal — Components of rhodopsin.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Opsin and retinal — Components of rhodopsin.",
     "source": "EAR & EYE RICHARD",
     "important": true
@@ -4348,7 +4348,7 @@ export const RICHARDS_QUESTIONS = [
     ],
     "correctAnswer": "Retina",
     "explanation": "Retina — Innermost photoreceptor layer.",
-    "subject": "Anatomy & Physiology",
+    "subject": "Physiology",
     "rationale": "Retina — Innermost photoreceptor layer.",
     "source": "EAR & EYE RICHARD",
     "important": true

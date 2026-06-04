@@ -33,6 +33,8 @@ const Quiz = () => {
   const [isCorrect, setIsCorrect] = useState(null);
   const [wrongAttempts, setWrongAttempts] = useState([]);
   const [eliminatedOptions, setEliminatedOptions] = useState([]);
+  const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
+  const [noQuestionsFound, setNoQuestionsFound] = useState(false);
 
   // Lifeline state - persists through the quiz session
   const [lifelinesUsed, setLifelinesUsed] = useState({
@@ -93,6 +95,9 @@ const Quiz = () => {
   const currentMilestone = MILESTONES[Math.min(Math.floor(score / 3), MILESTONES.length - 1)];
 
   const startQuiz = (mode, subject = null) => {
+    setIsLoadingQuestions(true);
+    setNoQuestionsFound(false);
+    setQuizQuestions([]);
     let questions = [];
 
     if (mode === 'quick') {
@@ -126,10 +131,18 @@ const Quiz = () => {
     if (subject) {
       // Strict matching for Subject Mastery to avoid cross-contamination
       const subLower = subject.toLowerCase();
-      pool = pool.filter(c =>
-        (c.subject && c.subject.toLowerCase() === subLower) ||
-        (c.topic && c.topic.toLowerCase() === subLower)
-      );
+      pool = pool.filter(c => {
+        const cSubject = (c.subject || '').toLowerCase();
+        const cTopic = (c.topic || '').toLowerCase();
+
+        // Exact match or contains for compound names
+        return cSubject === subLower ||
+               cTopic === subLower ||
+               cSubject.includes(subLower) ||
+               (subLower.includes('community') && cSubject.includes('community')) ||
+               (subLower.includes('surgical') && cSubject.includes('surgical')) ||
+               (subLower.includes('mental') && cSubject.includes('mental'));
+      });
     } else {
       // For general modes, exclude placeholders if possible
       if (pool.length < 10) {
@@ -168,8 +181,16 @@ const Quiz = () => {
       questions = [...FALLBACK_QUESTIONS].sort(() => 0.5 - Math.random()).slice(0, Math.min(count, FALLBACK_QUESTIONS.length));
     }
 
-    setQuizQuestions(questions);
-    setQuizStarted(true);
+    if (questions.length > 0) {
+      setTimeout(() => {
+        setQuizQuestions(questions);
+        setQuizStarted(true);
+        setIsLoadingQuestions(false);
+      }, 400);
+    } else {
+      setIsLoadingQuestions(false);
+      setNoQuestionsFound(true);
+    }
     setCurrentQuestionIndex(0);
     setScore(0);
     setShowResults(false);
@@ -322,12 +343,7 @@ const Quiz = () => {
   };
 
   if (quizMode === 'mastery_select') {
-    const REQUIRED_SUBJECTS = [
-      'Anatomy', 'Physiology', 'Pharmacology',
-      'Medical Surgical Nursing', 'Community Health Nursing',
-      'Mental Health Nursing', 'Midwifery', 'Pediatrics',
-      'Entrepreneurship in Nursing'
-    ];
+    const REQUIRED_SUBJECTS = ["Pharmacology", "Medical Surgical Nursing", "Anatomy", "Physiology", "Community Health", "Mental Health Nursing", "Midwifery", "Pediatrics", "Nursing Ethics", "Research Methods", "Entrepreneurship in Nursing", "Pathophysiology"];
 
     // Combine curriculum subjects with standard required categories to ensure they always appear
     const uniqueSubjects = Array.from(new Set([...REQUIRED_SUBJECTS, ...curriculumSubjects]));
@@ -400,6 +416,44 @@ const Quiz = () => {
     );
   }
 
+  if (isLoadingQuestions) {
+    return (
+      <div className="flex flex-col items-center justify-center min-h-[60vh] space-y-6">
+        <div className="relative">
+          <div className="w-20 h-20 border-4 border-medical-100 border-t-medical-500 rounded-full animate-spin" />
+          <Brain className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 text-medical-500 animate-pulse" size={32} />
+        </div>
+        <div className="text-center">
+          <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-widest">Assembling Curated Bank</h3>
+          <p className="text-slate-500 font-bold text-sm mt-2">Strict clinical filters active...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (noQuestionsFound) {
+    return (
+      <div className="max-w-xl mx-auto mt-20 p-12 bg-white dark:bg-slate-800 rounded-[3rem] border-2 border-dashed border-slate-100 dark:border-slate-700 text-center space-y-8 animate-in zoom-in-95 duration-500 shadow-xl px-4">
+        <div className="w-24 h-24 bg-slate-50 dark:bg-slate-900/50 rounded-full flex items-center justify-center mx-auto text-slate-300">
+          <AlertCircle size={48} />
+        </div>
+        <div className="space-y-4">
+          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">No Questions Available Yet</h2>
+          <p className="text-slate-500 dark:text-slate-400 font-medium">
+            We are currently building the high-yield bank for <span className="text-medical-600 font-black">{selectedSubject || 'this category'}</span>.
+            Check back soon for NMCN-standard content.
+          </p>
+        </div>
+        <button
+          onClick={() => { setNoQuestionsFound(false); setQuizMode(null); setQuizStarted(false); }}
+          className="w-full py-5 bg-slate-900 text-white rounded-[2rem] font-black uppercase tracking-widest text-sm shadow-xl hover:scale-[1.02] active:scale-95 transition-all"
+        >
+          Return to Hub
+        </button>
+      </div>
+    );
+  }
+
   if (!quizStarted) {
     return (
       <div className="max-w-4xl mx-auto mt-4 sm:mt-8 space-y-8 sm:space-y-12 animate-in fade-in slide-in-from-bottom-4 duration-700 px-4">
@@ -452,124 +506,7 @@ const Quiz = () => {
   }
 
   if (quizMode === 'mastery_select') {
-    const REQUIRED_SUBJECTS = [
-      'Anatomy', 'Physiology', 'Pharmacology',
-      'Medical Surgical Nursing', 'Community Health Nursing',
-      'Mental Health Nursing', 'Midwifery', 'Pediatrics',
-      'Entrepreneurship in Nursing'
-    ];
-
-    // Combine curriculum subjects with standard required categories to ensure they always appear
-    const uniqueSubjects = Array.from(new Set([...REQUIRED_SUBJECTS, ...curriculumSubjects]));
-
-    // Sort subjects so required ones come first
-    const sortedSubjects = uniqueSubjects.sort((a, b) => {
-      const aReqIdx = REQUIRED_SUBJECTS.findIndex(r => a.includes(r));
-      const bReqIdx = REQUIRED_SUBJECTS.findIndex(r => b.includes(r));
-
-      if (aReqIdx !== -1 && bReqIdx !== -1) return aReqIdx - bReqIdx;
-      if (aReqIdx !== -1) return -1;
-      if (bReqIdx !== -1) return 1;
-      return a.localeCompare(b);
-    });
-
-    return (
-      <div className="max-w-4xl mx-auto mt-8 space-y-8 animate-in fade-in duration-500 pb-24 px-4">
-        <div className="flex items-center gap-4">
-          <button onClick={() => { setQuizMode(null); setQuizStarted(false); }} className="p-3 bg-white dark:bg-slate-800 rounded-2xl text-slate-400 hover:text-medical-600 shadow-sm transition-all">
-            <ArrowRight size={24} className="rotate-180" />
-          </button>
-          <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight">Subject Mastery</h2>
-        </div>
-
-        <p className="text-slate-500 dark:text-slate-400 font-medium">Select a nursing course to begin specialized revision.</p>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {sortedSubjects.map(subject => (
-            <button
-              key={subject}
-              onClick={() => {
-                setSelectedSubject(subject);
-                setQuizMode('mastery');
-                startQuiz('mastery', subject);
-              }}
-              className="p-6 bg-white dark:bg-slate-800 rounded-3xl border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-md hover:border-medical-500 transition-all text-left flex justify-between items-center group"
-            >
-              <span className="font-bold text-slate-700 dark:text-slate-200">{subject}</span>
-              <ChevronRight size={18} className="text-slate-300 group-hover:text-medical-600 transition-colors" />
-            </button>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  if (showResults) {
-    return (
-      <div className="max-w-2xl mx-auto mt-4 sm:mt-12 text-center space-y-6 sm:space-y-10 animate-in zoom-in duration-700 pb-24 sm:pb-32 px-4 overflow-y-auto max-h-[90vh]">
-        <div className="relative inline-block">
-          <div className="absolute inset-0 bg-amber-500/20 blur-3xl rounded-full scale-150" />
-          <div className="relative w-20 h-20 sm:w-32 sm:h-32 bg-slate-900 rounded-3xl sm:rounded-[2.5rem] flex items-center justify-center text-amber-400 mx-auto border-2 border-amber-500/30 shadow-2xl">
-            <Trophy size={40} className="sm:w-16 sm:h-16" />
-          </div>
-        </div>
-
-        <div className="space-y-2 sm:space-y-4">
-          <h2 className="text-3xl sm:text-5xl font-black text-slate-900 dark:text-white tracking-tighter">Challenge Results</h2>
-          <p className="text-slate-500 dark:text-slate-400 text-base sm:text-xl font-medium">
-            You've reached the milestone of <span className="text-medical-600 dark:text-medical-400 font-black">{currentMilestone}</span>
-          </p>
-        </div>
-
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-4 max-w-2xl mx-auto px-1 sm:px-2">
-          <div className="bg-white dark:bg-slate-800 p-3 sm:p-6 rounded-2xl sm:rounded-[2rem] border border-slate-100 dark:border-slate-700 shadow-clinical">
-            <p className="text-[8px] sm:text-[9px] font-black uppercase text-slate-400 tracking-widest mb-0.5 sm:mb-1">Score</p>
-            <p className="text-xl sm:text-3xl font-black text-slate-900 dark:text-white">{score}/{quizQuestions.length}</p>
-          </div>
-          <div className="bg-white dark:bg-slate-800 p-3 sm:p-6 rounded-2xl sm:rounded-[2rem] border border-slate-100 dark:border-slate-700 shadow-clinical">
-            <p className="text-[8px] sm:text-[9px] font-black uppercase text-slate-400 tracking-widest mb-0.5 sm:mb-1">Mastery</p>
-            <p className="text-xl sm:text-3xl font-black text-medical-600">{Math.round((score / (quizQuestions.length || 1)) * 100)}%</p>
-          </div>
-          <div className="bg-white dark:bg-slate-800 p-3 sm:p-6 rounded-2xl sm:rounded-[2rem] border border-slate-100 dark:border-slate-700 shadow-clinical">
-            <p className="text-[8px] sm:text-[9px] font-black uppercase text-slate-400 tracking-widest mb-0.5 sm:mb-1">Streak</p>
-            <p className="text-xl sm:text-3xl font-black text-amber-500">{studyStats.quizStreak || 0}</p>
-          </div>
-          <div className="bg-white dark:bg-slate-800 p-3 sm:p-6 rounded-2xl sm:rounded-[2rem] border border-slate-100 dark:border-slate-700 shadow-clinical">
-            <p className="text-[8px] sm:text-[9px] font-black uppercase text-slate-400 tracking-widest mb-0.5 sm:mb-1">XP Gain</p>
-            <p className="text-xl sm:text-3xl font-black text-indigo-500">+{score * 15}</p>
-          </div>
-        </div>
-
-        <div className="max-w-md mx-auto bg-medical-50 dark:bg-medical-900/10 p-3 sm:p-6 rounded-2xl sm:rounded-[2rem] border border-medical-100 dark:border-medical-900/30 flex items-center gap-3 sm:gap-4">
-           <div className="w-12 h-12 bg-white dark:bg-slate-800 rounded-2xl flex items-center justify-center text-medical-600 shadow-sm shrink-0">
-              <TrendingUp size={24} />
-           </div>
-           <div className="text-left">
-              <p className="text-[10px] font-black uppercase text-medical-600 tracking-widest">Consistency Indicator</p>
-              <p className="text-sm font-bold text-slate-700 dark:text-slate-300">You're in the top 15% of clinical learners this week!</p>
-           </div>
-        </div>
-
-        <div className="flex flex-col gap-4 max-w-sm mx-auto">
-          <button
-            onClick={startQuiz}
-            className="w-full py-6 bg-slate-900 text-white rounded-[2rem] font-black text-lg shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-4 hover:bg-slate-800 border-2 border-white/10 group"
-          >
-            <RefreshCw size={24} className="group-hover:rotate-180 transition-transform duration-500" />
-            New Challenge
-          </button>
-          <button
-            onClick={() => setQuizStarted(false)}
-            className="w-full py-5 bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 rounded-[2rem] font-black uppercase tracking-widest text-xs border border-slate-100 dark:border-slate-700 hover:bg-slate-50 transition-all"
-          >
-            Exit to Dashboard
-          </button>
-        </div>
-      </div>
-    );
-  }
-
-  const currentQ = quizQuestions[currentQuestionIndex];
+    const REQUIRED_SUBJECTS = ["Pharmacology", "Medical Surgical Nursing", "Anatomy", "Physiology", "Community Health Nursing", "Mental Health Nursing", "Midwifery", "Pediatrics", "Nursing Ethics", "Research Methods", "Entrepreneurship in Nursing", "Pathophysiology"];
 
   if (quizStarted && !currentQ) {
     return (
@@ -985,5 +922,6 @@ const OptionButton = React.memo(({ label, index, state, pollValue, onClick, disa
     </button>
   );
 });
+};
 
 export default Quiz;
