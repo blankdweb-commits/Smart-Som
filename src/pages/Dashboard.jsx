@@ -8,7 +8,7 @@ import DailyChallengeWidget from '../components/DailyChallengeWidget';
 import { motion } from 'framer-motion';
 
 const Dashboard = () => {
-  const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
+  const DEV_MODE = true;
   const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics } = useAppContext();
   const navigate = useNavigate();
 
@@ -110,7 +110,7 @@ const Dashboard = () => {
                 </div>
               </div>
               <button
-                onClick={() => navigate('/activate')}
+                onClick={() => navigate('/dashboard')}
                 className="px-6 py-3 bg-amber-900 text-white rounded-xl font-black text-xs uppercase tracking-widest whitespace-nowrap"
               >
                 Renew Access
@@ -134,7 +134,7 @@ const Dashboard = () => {
                 </div>
               </div>
               <button
-                onClick={() => navigate('/activate')}
+                onClick={() => navigate('/dashboard')}
                 className="px-6 py-3 bg-red-900 text-white rounded-xl font-black text-xs uppercase tracking-widest whitespace-nowrap"
               >
                 Re-Activate

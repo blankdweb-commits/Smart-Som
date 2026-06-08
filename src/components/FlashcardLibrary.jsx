@@ -168,7 +168,7 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
     // Activation bypass for development/production stability
     if (false && !isActivated) {
       setToast({ message: "Upgrade required to start study sessions", type: 'error' });
-      navigate('/activate');
+      navigate('/dashboard');
       return;
     }
     let cardsToStudy = [...filteredCards];

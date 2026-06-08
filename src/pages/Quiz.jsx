@@ -19,38 +19,18 @@ const Quiz = () => {
   const navigate = useNavigate();
 
   // -- 1. STATE DECLARATIONS --
-  const [quizMode, setQuizMode] = useState(() => {
-    const path = window.location.pathname;
-    if (path.includes("subject-mastery")) return "mastery_select";
-    return null;
-  });
-  const [selectedSubject, setSelectedSubject] = useState(() => {
-    const path = window.location.pathname;
-    if (path.includes("subject-mastery")) return "mastery_select";
-    return null;
-  });
+  const [quizMode, setQuizMode] = useState(null);
+  const [selectedSubject, setSelectedSubject] = useState(null);
   const [quizStarted, setQuizStarted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [score, setScore] = useState(0);
   const [showResults, setShowResults] = useState(false);
-  const [selectedOption, setSelectedOption] = useState(() => {
-    const path = window.location.pathname;
-    if (path.includes("subject-mastery")) return "mastery_select";
-    return null;
-  });
-  const [pendingOption, setPendingOption] = useState(() => {
-    const path = window.location.pathname;
-    if (path.includes("subject-mastery")) return "mastery_select";
-    return null;
-  }); // For "Final Answer" confirmation
+  const [selectedOption, setSelectedOption] = useState(null);
+  const [pendingOption, setPendingOption] = useState(null); // For "Final Answer" confirmation
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [showHint, setShowHint] = useState(false);
   const [showRationale, setShowRationale] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(() => {
-    const path = window.location.pathname;
-    if (path.includes("subject-mastery")) return "mastery_select";
-    return null;
-  });
+  const [isCorrect, setIsCorrect] = useState(null);
   const [wrongAttempts, setWrongAttempts] = useState([]);
   const [eliminatedOptions, setEliminatedOptions] = useState([]);
   const [isLoadingQuestions, setIsLoadingQuestions] = useState(false);
@@ -63,16 +43,8 @@ const Quiz = () => {
     askClass: false,
     askFriend: false
   });
-  const [classPoll, setClassPoll] = useState(() => {
-    const path = window.location.pathname;
-    if (path.includes("subject-mastery")) return "mastery_select";
-    return null;
-  });
-  const [colleagueAdvice, setColleagueAdvice] = useState(() => {
-    const path = window.location.pathname;
-    if (path.includes("subject-mastery")) return "mastery_select";
-    return null;
-  });
+  const [classPoll, setClassPoll] = useState(null);
+  const [colleagueAdvice, setColleagueAdvice] = useState(null);
 
   // Speed mode specific state
   const [timeLeft, setTimeLeft] = useState(15);

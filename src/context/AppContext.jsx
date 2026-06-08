@@ -7,9 +7,8 @@ import { supabase } from '../utils/supabase';
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
-  const [session, setSession] = useState(null);
-  const [loadingAuth, setLoadingAuth] = useState(true);
-  const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
+  const [session, setSession] = useState({ user: { id: 'dev-user', email: 'dev@apexscholars.com' } });
+  const [loadingAuth, setLoadingAuth] = useState(false);
 
   const [flashcards, setFlashcards] = useState([...initialFlashcards, ...allBuiltInFlashcards]);
   const [richardsQuestions, setRichardsQuestions] = useState(() => {
@@ -48,11 +47,20 @@ export function AppProvider({ children }) {
     xp: 0,
     xpHistory: {}
   });
+
   const [userProfile, setUserProfile] = useState({
-    fullName: 'Scholar', email: '', phone: '', department: '', level: 'Year 3',
-    isActivated: true, isAdmin: false, role: 'student',
-    subscriptionStatus: 'none', subscriptionExpiry: null
+    fullName: 'Development User',
+    email: 'dev@apexscholars.com',
+    phone: '0800-DEV-MODE',
+    department: 'Nursing Science',
+    level: 'Year 3',
+    isActivated: true,
+    isAdmin: true,
+    role: 'super_admin',
+    subscriptionStatus: 'active',
+    subscriptionExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
   });
+
   const [paymentPurposes, setPaymentPurposes] = useState([]);
   const [subscriptionPlans, setSubscriptionPlans] = useState([]);
   const [transactions, setTransactions] = useState([]);
@@ -86,68 +94,14 @@ export function AppProvider({ children }) {
     return Array.from(subjects).sort();
   }, []);
 
-  const setupMockData = useCallback(() => {
-    console.log("Injecting Enhanced Mock User for Development Mode");
-    setUserProfile({
-      fullName: 'Development User',
-      email: 'dev@apexscholars.com',
-      phone: '0800-DEV-MODE',
-      department: 'Nursing Science',
-      level: 'Year 3',
-      isActivated: true,
-      isAdmin: true,
-      role: 'super_admin',
-      subscriptionStatus: 'active',
-      subscriptionExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
-    });
+  // Mock fetch logic that always succeeds with dev data
+  const fetchUserData = useCallback(async () => {
+    console.log("Dashboard Only Mode: Using Mock Data");
   }, []);
 
-  const fetchUserData = useCallback(async () => {
-    if (!supabase || !session) {
-      if (DEV_MODE) setupMockData();
-      return;
-    }
-    const userId = session.user.id;
-    const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
-    if (profile) {
-      setUserProfile(prev => ({
-        ...prev,
-        fullName: profile.full_name || prev.fullName,
-        email: profile.email || prev.email,
-        isAdmin: profile.role === 'admin' || profile.role === 'super_admin',
-        role: profile.role,
-        isActivated: true
-      }));
-    }
-  }, [session, DEV_MODE, setupMockData]);
-
   useEffect(() => {
-    if (!supabase) {
-      if (DEV_MODE) setupMockData();
-      setLoadingAuth(false);
-      return;
-    }
-    supabase.auth.getSession().then(({ data: { session: s } }) => {
-      if (s) {
-        setSession(s);
-      } else if (DEV_MODE) {
-        setupMockData();
-      }
-      setLoadingAuth(false);
-    });
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
-      if (s) {
-        setSession(s);
-      } else if (DEV_MODE) {
-        setupMockData();
-      }
-    });
-    return () => subscription.unsubscribe();
-  }, [DEV_MODE, setupMockData]);
-
-  useEffect(() => {
-    if (session) fetchUserData();
-  }, [session, fetchUserData]);
+    fetchUserData();
+  }, [fetchUserData]);
 
   const updateQuizStats = (data) => {
     setStudyStats(prev => {

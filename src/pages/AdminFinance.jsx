@@ -27,7 +27,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { generateReceipt } from '../components/ReceiptSystem';
 import QuestionBankManager from '../components/QuestionBankManager';
-import AdminAnalytics from '../components/AdminAnalytics';
 
 const AdminFinance = () => {
   const {
@@ -50,19 +49,14 @@ const AdminFinance = () => {
   } = useAppContext();
 
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState(() => {
-    const path = window.location.pathname;
-    if (path.includes("analytics")) return "analytics";
-    if (path.includes("questions")) return "questions";
-    return "overview";
-  }); // overview, ledger, purposes, disputes, plans
+  const [activeTab, setActiveTab] = useState('overview'); // overview, ledger, purposes, disputes, plans
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [editingPurpose, setEditingPurpose] = useState(null);
   const [editingPlan, setEditingPlan] = useState(null);
   const [selectedTxn, setSelectedTxn] = useState(null);
-  const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === "true" || import.meta.env.VITE_DEV_DASHBOARD_MODE === "true";
+  const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
 
   if (loadingAuth) {
     return (
@@ -157,7 +151,7 @@ const AdminFinance = () => {
           <h2 className="text-3xl font-black text-slate-900 tracking-tight">Access Denied</h2>
           <p className="text-slate-500 max-w-md mx-auto mt-2">You do not have the required administrative permissions to view institutional financial data.</p>
         </div>
-        <button onClick={() => navigate('/')} className="px-8 py-3 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs active:scale-95 transition-all">
+        <button onClick={() => navigate('/dashboard')} className="px-8 py-3 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs active:scale-95 transition-all">
           Return to Dashboard
         </button>
       </div>
@@ -168,7 +162,7 @@ const AdminFinance = () => {
     <div className="pb-32 space-y-8 animate-in fade-in duration-700 max-w-[1600px] mx-auto">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="flex items-center gap-4">
-          <button onClick={() => navigate('/')} className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:text-medical-600 transition-all">
+          <button onClick={() => navigate('/dashboard')} className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 dark:border-slate-700 hover:text-medical-600 transition-all">
             <ArrowLeft size={20} />
           </button>
           <div>
@@ -208,9 +202,6 @@ const AdminFinance = () => {
       </div>
 
       <AnimatePresence mode="wait">
-        {activeTab === "analytics" && <AdminAnalytics />}
-        {activeTab === "questions" && <QuestionBankManager />}
-
         {activeTab === 'overview' && (
           <motion.div
             key="overview"
