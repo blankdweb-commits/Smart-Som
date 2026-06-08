@@ -1,9 +1,10 @@
-import React, { useEffect, lazy, Suspense } from 'react';
+import React, { useEffect, lazy, Suspense, useState } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { AppProvider, useAppContext } from './context/AppContext';
 import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
 import { MotionConfig } from 'framer-motion';
+import { X } from './components/Icons';
 
 // Lazy load pages
 const Landing = lazy(() => import('./pages/Landing'));
@@ -25,14 +26,28 @@ const PageLoader = () => (
   </div>
 );
 
-// Switch for development/QA bypass (Production ready)
-const DASHBOARD_FIRST_MODE = import.meta.env.VITE_DASHBOARD_FIRST_MODE === 'true';
+// Toggle via environment variable
+const DASHBOARD_FIRST_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
 
-const ProtectedRoute = ({ children, requireActivated = true, requireAdmin = false }) => {
+const DevBanner = () => {
+  const [visible, setVisible] = useState(true);
+  if (!DASHBOARD_FIRST_MODE || !visible) return null;
+  return (
+    <div className="fixed top-4 left-1/2 -translate-x-1/2 z-[9999] bg-amber-500 text-white px-4 py-2 rounded-full shadow-lg font-bold text-xs flex items-center gap-3 border border-amber-400/50 backdrop-blur-md animate-in slide-in-from-top-4 duration-500">
+      <span>🛠️ Development Mode Active – Dashboard First</span>
+      <button onClick={() => setVisible(false)} className="hover:bg-white/20 p-1 rounded-full transition-colors">
+        <X size={14} />
+      </button>
+    </div>
+  );
+};
+
+const ProtectedRoute = ({ children, requireActivated = true }) => {
   const { session, userProfile, loadingAuth } = useAppContext();
 
   if (loadingAuth) return <PageLoader />;
 
+  // Bypass all gates if in Dashboard-First mode
   if (DASHBOARD_FIRST_MODE) return children;
 
   if (!session) return <Navigate to="/login" replace />;
@@ -41,27 +56,29 @@ const ProtectedRoute = ({ children, requireActivated = true, requireAdmin = fals
     return <Navigate to="/activate" replace />;
   }
 
-  if (requireAdmin && userProfile.role !== 'admin' && userProfile.role !== 'super_admin') {
-    return <Navigate to="/dashboard" replace />;
-  }
-
   return children;
 };
+
+// --- MAIN ROUTER ---
 
 const AppRouter = () => {
   const { session } = useAppContext();
 
   return (
     <Suspense fallback={<PageLoader />}>
+      <DevBanner />
       <Routes>
+        {/* Root Route Handling */}
         <Route path="/" element={
           DASHBOARD_FIRST_MODE ? <Navigate to="/dashboard" replace /> :
           session ? <Navigate to="/dashboard" replace /> : <Landing />
         } />
 
+        {/* Auth routes */}
         <Route path="/login" element={<Auth />} />
         <Route path="/signup" element={<Auth />} />
 
+        {/* Primary Dashboard Experience */}
         <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
           <Route path="/dashboard" element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
           <Route path="/flashcards" element={<ErrorBoundary><Flashcards /></ErrorBoundary>} />
@@ -71,16 +88,18 @@ const AppRouter = () => {
           <Route path="/community" element={<Community />} />
           <Route path="/payments" element={<Payments />} />
           <Route path="/settings" element={<Settings />} />
+          <Route path="/admin" element={<AdminFinance />} />
+          <Route path="/admin/finance" element={<AdminFinance />} />
+          <Route path="/admin/questions" element={<AdminFinance />} />
+          <Route path="/admin/analytics" element={<AdminFinance />} />
+          <Route path="/subject-mastery" element={<Quiz />} />
         </Route>
 
         <Route element={<ProtectedRoute requireActivated={false}><Layout /></ProtectedRoute>}>
           <Route path="/activate" element={<ErrorBoundary><Activate /></ErrorBoundary>} />
         </Route>
 
-        <Route element={<ProtectedRoute requireAdmin={true}><Layout /></ProtectedRoute>}>
-          <Route path="/admin/finance" element={<AdminFinance />} />
-        </Route>
-
+        {/* Fallback */}
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </Suspense>

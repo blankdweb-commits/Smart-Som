@@ -9,7 +9,7 @@ const AppContext = createContext();
 export function AppProvider({ children }) {
   const [session, setSession] = useState(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
-  const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true' || import.meta.env.VITE_DASHBOARD_FIRST_MODE === 'true';
+  const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
 
   const [flashcards, setFlashcards] = useState([...initialFlashcards, ...allBuiltInFlashcards]);
   const [richardsQuestions, setRichardsQuestions] = useState(() => {
@@ -23,7 +23,6 @@ export function AppProvider({ children }) {
       answer: q.correctAnswer || q.answer,
       type: 'imported'
     }));
-    // Filter out duplicates if any (by id)
     const combined = [...flashcards, ...mappedRichards];
     const seen = new Set();
     return combined.filter(c => {
@@ -87,14 +86,27 @@ export function AppProvider({ children }) {
     return Array.from(subjects).sort();
   }, []);
 
-  const queueOfflineAction = (action, data) => {
-    const queue = JSON.parse(localStorage.getItem('apex_offline_sync') || '[]');
-    queue.push({ action, data, timestamp: new Date().toISOString() });
-    localStorage.setItem('apex_offline_sync', JSON.stringify(queue));
-  };
+  const setupMockData = useCallback(() => {
+    console.log("Injecting Enhanced Mock User for Development Mode");
+    setUserProfile({
+      fullName: 'Development User',
+      email: 'dev@apexscholars.com',
+      phone: '0800-DEV-MODE',
+      department: 'Nursing Science',
+      level: 'Year 3',
+      isActivated: true,
+      isAdmin: true,
+      role: 'super_admin',
+      subscriptionStatus: 'active',
+      subscriptionExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+    });
+  }, []);
 
   const fetchUserData = useCallback(async () => {
-    if (!supabase || !session) return;
+    if (!supabase || !session) {
+      if (DEV_MODE) setupMockData();
+      return;
+    }
     const userId = session.user.id;
     const { data: profile } = await supabase.from('profiles').select('*').eq('id', userId).single();
     if (profile) {
@@ -107,22 +119,31 @@ export function AppProvider({ children }) {
         isActivated: true
       }));
     }
-  }, [session]);
+  }, [session, DEV_MODE, setupMockData]);
 
   useEffect(() => {
     if (!supabase) {
+      if (DEV_MODE) setupMockData();
       setLoadingAuth(false);
       return;
     }
     supabase.auth.getSession().then(({ data: { session: s } }) => {
-      setSession(s);
+      if (s) {
+        setSession(s);
+      } else if (DEV_MODE) {
+        setupMockData();
+      }
       setLoadingAuth(false);
     });
     const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, s) => {
-      setSession(s);
+      if (s) {
+        setSession(s);
+      } else if (DEV_MODE) {
+        setupMockData();
+      }
     });
     return () => subscription.unsubscribe();
-  }, []);
+  }, [DEV_MODE, setupMockData]);
 
   useEffect(() => {
     if (session) fetchUserData();
@@ -142,7 +163,7 @@ export function AppProvider({ children }) {
         }
       }
 
-      const newState = {
+      return {
         ...prev,
         ...data,
         xp: (prev.xp || 0) + xpToAdd,
@@ -150,9 +171,6 @@ export function AppProvider({ children }) {
         quizStreak: data.quizStreak !== undefined ? data.quizStreak : prev.quizStreak,
         maxQuizStreak: (data.quizStreak > (prev.maxQuizStreak || 0)) ? data.quizStreak : prev.maxQuizStreak
       };
-
-      if (!isOnline) queueOfflineAction('updateQuizStats', data);
-      return newState;
     });
   };
 
@@ -168,17 +186,7 @@ export function AppProvider({ children }) {
     session, loadingAuth, allFlashcards, exams, studyStats, userProfile, darkMode,
     transactions, auditLogs, feeDetails, subscriptionPlans, paymentPurposes,
     isOnline, updateQuizStats, addRichardsQuestions, curriculumSubjects,
-    toggleDarkMode: () => setDarkMode(!darkMode),
-    addAuditLog: async (action, details) => {
-      if (!supabase || !session) return;
-      await supabase.from('audit_logs').insert({ user_id: session.user.id, action, details });
-    },
-    updateCardProgress: (id, quality) => {
-       setFlashcards(prev => prev.map(c => c.id === id ? { ...c, srs: { ...c.srs, reps: (c.srs?.reps || 0) + 1 } } : c));
-    },
-    incrementCardsStudied: () => {
-      setStudyStats(prev => ({ ...prev, cardsStudied: (prev.cardsStudied || 0) + 1 }));
-    }
+    toggleDarkMode: () => setDarkMode(!darkMode)
   }), [session, loadingAuth, allFlashcards, exams, studyStats, userProfile, darkMode, transactions, auditLogs, feeDetails, subscriptionPlans, paymentPurposes, isOnline, curriculumSubjects]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;

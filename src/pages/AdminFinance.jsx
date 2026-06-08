@@ -27,6 +27,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { generateReceipt } from '../components/ReceiptSystem';
 import QuestionBankManager from '../components/QuestionBankManager';
+import AdminAnalytics from '../components/AdminAnalytics';
 
 const AdminFinance = () => {
   const {
@@ -49,14 +50,19 @@ const AdminFinance = () => {
   } = useAppContext();
 
   const navigate = useNavigate();
-  const [activeTab, setActiveTab] = useState('overview'); // overview, ledger, purposes, disputes, plans
+  const [activeTab, setActiveTab] = useState(() => {
+    const path = window.location.pathname;
+    if (path.includes("analytics")) return "analytics";
+    if (path.includes("questions")) return "questions";
+    return "overview";
+  }); // overview, ledger, purposes, disputes, plans
   const [searchTerm, setSearchTerm] = useState('');
   const [showAddModal, setShowAddModal] = useState(false);
   const [showPlanModal, setShowPlanModal] = useState(false);
   const [editingPurpose, setEditingPurpose] = useState(null);
   const [editingPlan, setEditingPlan] = useState(null);
   const [selectedTxn, setSelectedTxn] = useState(null);
-  const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
+  const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === "true" || import.meta.env.VITE_DEV_DASHBOARD_MODE === "true";
 
   if (loadingAuth) {
     return (
@@ -202,6 +208,9 @@ const AdminFinance = () => {
       </div>
 
       <AnimatePresence mode="wait">
+        {activeTab === "analytics" && <AdminAnalytics />}
+        {activeTab === "questions" && <QuestionBankManager />}
+
         {activeTab === 'overview' && (
           <motion.div
             key="overview"
