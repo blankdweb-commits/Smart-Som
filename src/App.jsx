@@ -6,7 +6,7 @@ import ErrorBoundary from './components/ErrorBoundary';
 import { MotionConfig } from 'framer-motion';
 
 // Lazy load pages
-const Landing = lazy(() => import('./pages/Landing')); // Detached from primary flow
+const Landing = lazy(() => import('./pages/Landing'));
 const Auth = lazy(() => import('./pages/Auth'));
 const Activate = lazy(() => import('./pages/Activate'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -25,59 +25,67 @@ const PageLoader = () => (
   </div>
 );
 
-const DASHBOARD_FIRST_MODE = true; // Hardcoded true to bypass blockers as requested
+// Switch for development/QA bypass (Production ready)
+const DASHBOARD_FIRST_MODE = import.meta.env.VITE_DASHBOARD_FIRST_MODE === 'true';
 
-const ProtectedRoute = ({ children, requireActivated = true }) => {
+const ProtectedRoute = ({ children, requireActivated = true, requireAdmin = false }) => {
   const { session, userProfile, loadingAuth } = useAppContext();
 
   if (loadingAuth) return <PageLoader />;
 
-  // If no session and NOT in dashboard-first-always-allow mode, go to login
-  // For now, DASHBOARD_FIRST_MODE is true, so we usually fall through to children
-  if (!session && !DASHBOARD_FIRST_MODE) return <Navigate to="/login" replace />;
+  if (DASHBOARD_FIRST_MODE) return children;
 
-  if (requireActivated && !userProfile.isActivated && !DASHBOARD_FIRST_MODE) {
+  if (!session) return <Navigate to="/login" replace />;
+
+  if (requireActivated && !userProfile.isActivated) {
     return <Navigate to="/activate" replace />;
+  }
+
+  if (requireAdmin && userProfile.role !== 'admin' && userProfile.role !== 'super_admin') {
+    return <Navigate to="/dashboard" replace />;
   }
 
   return children;
 };
 
-// --- MAIN ROUTER ---
+const AppRouter = () => {
+  const { session } = useAppContext();
 
-const AppRouter = () => (
-  <Suspense fallback={<PageLoader />}>
-    <Routes>
-      {/* Root now goes directly to Dashboard */}
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        <Route path="/" element={
+          DASHBOARD_FIRST_MODE ? <Navigate to="/dashboard" replace /> :
+          session ? <Navigate to="/dashboard" replace /> : <Landing />
+        } />
 
-      {/* Detached Marketing/Welcome Page */}
-      <Route path="/welcome" element={<Landing />} />
-      <Route path="/marketing" element={<Landing />} />
+        <Route path="/login" element={<Auth />} />
+        <Route path="/signup" element={<Auth />} />
 
-      {/* Auth routes preserved but usually bypassed in this mode */}
-      <Route path="/login" element={<Auth />} />
-      <Route path="/signup" element={<Auth />} />
+        <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
+          <Route path="/dashboard" element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
+          <Route path="/flashcards" element={<ErrorBoundary><Flashcards /></ErrorBoundary>} />
+          <Route path="/quiz" element={<ErrorBoundary><Quiz /></ErrorBoundary>} />
+          <Route path="/exams" element={<ExamTimetable />} />
+          <Route path="/papers" element={<Papers />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/payments" element={<Payments />} />
+          <Route path="/settings" element={<Settings />} />
+        </Route>
 
-      {/* Primary Dashboard Experience */}
-      <Route element={<ProtectedRoute><Layout /></ProtectedRoute>}>
-        <Route path="/dashboard" element={<Dashboard />} />
-        <Route path="/activate" element={<Activate />} />
-        <Route path="/flashcards" element={<Flashcards />} />
-        <Route path="/quiz" element={<Quiz />} />
-        <Route path="/exams" element={<ExamTimetable />} />
-        <Route path="/papers" element={<Papers />} />
-        <Route path="/community" element={<Community />} />
-        <Route path="/payments" element={<Payments />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/admin/finance" element={<AdminFinance />} />
-      </Route>
+        <Route element={<ProtectedRoute requireActivated={false}><Layout /></ProtectedRoute>}>
+          <Route path="/activate" element={<ErrorBoundary><Activate /></ErrorBoundary>} />
+        </Route>
 
-      {/* Fallback to Dashboard */}
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
-    </Routes>
-  </Suspense>
-);
+        <Route element={<ProtectedRoute requireAdmin={true}><Layout /></ProtectedRoute>}>
+          <Route path="/admin/finance" element={<AdminFinance />} />
+        </Route>
+
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </Suspense>
+  );
+};
 
 function App() {
   return (

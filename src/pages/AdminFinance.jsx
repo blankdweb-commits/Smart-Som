@@ -167,9 +167,9 @@ const AdminFinance = () => {
           </button>
           <div>
             <h2 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight flex items-center gap-2">
-              <ShieldCheck className="text-medical-600" /> Bursary Control
+              <ShieldCheck className="text-medical-600" /> Apex Command Center
             </h2>
-            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Institutional Treasury & Student Ledger Management.</p>
+            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm">Institutional Intelligence & Question Management.</p>
           </div>
         </div>
         <div className="flex gap-3 w-full md:w-auto">
@@ -211,7 +211,7 @@ const AdminFinance = () => {
             className="space-y-8"
           >
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-              <AdminStatCard title="Revenue Today" value={`NGN ${stats.todayRevenue.toLocaleString()}`} icon={<TrendingUp />} color="bg-emerald-50 text-emerald-600" />
+              <AdminStatCard title="Active Learners" value={`NGN ${stats.todayRevenue.toLocaleString()}`} icon={<TrendingUp />} color="bg-emerald-50 text-emerald-600" />
               <AdminStatCard title="Pending Verify" value={stats.pendingVerification} icon={<Clock />} color="bg-amber-50 text-amber-600" />
               <AdminStatCard title="Funds Held" value={`NGN ${stats.fundsHeld.toLocaleString()}`} icon={<Shield />} color="bg-indigo-50 text-indigo-600" />
               <AdminStatCard title="Active Disputes" value={stats.activeDisputes} icon={<AlertCircle />} color="bg-red-50 text-red-600" />
