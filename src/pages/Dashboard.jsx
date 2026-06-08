@@ -215,10 +215,10 @@ const Dashboard = () => {
                 <p className="text-xs text-slate-500 mt-1">Focus on these topics to improve your score.</p>
               </div>
               <div className="mt-4 space-y-3">
-                {(DEV_MODE && learningAnalytics.weakTopics.length === 0 ? [
+                {(DEV_MODE &&  (learningAnalytics?.weakTopics || []) .length === 0 ? [
                   { name: 'Pharmacology', count: 12, subject: 'Medical Surgical' },
                   { name: 'Acid-Base Balance', count: 8, subject: 'Foundations' }
-                ] : learningAnalytics.weakTopics).map((topic, i) => (
+                ] :  (learningAnalytics?.weakTopics || []) ).map((topic, i) => (
                   <div key={i} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
                     <div>
                       <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{topic.name}</p>
@@ -227,7 +227,7 @@ const Dashboard = () => {
                     <span className="text-xs font-black text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-lg">{topic.count} errors</span>
                   </div>
                 ))}
-                {learningAnalytics.weakTopics.length === 0 && !DEV_MODE && (
+                { (learningAnalytics?.weakTopics || []) .length === 0 && !DEV_MODE && (
                    <div className="py-4 text-center">
                       <p className="text-xs text-slate-400 italic">No critical weak spots detected yet. Keep studying!</p>
                    </div>

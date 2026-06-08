@@ -37,6 +37,7 @@ export function AppProvider({ children }) {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : false;
   });
+
   const [studyStats, setStudyStats] = useState({
     streak: 0,
     lastStudyDate: null,
@@ -59,6 +60,12 @@ export function AppProvider({ children }) {
     role: 'super_admin',
     subscriptionStatus: 'active',
     subscriptionExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+  });
+
+  const [learningAnalytics, setLearningAnalytics] = useState({
+    weakTopics: [],
+    recommendedRevision: [],
+    dailyChallenge: { id: null, question: '', answer: '', completed: false, lastDate: null }
   });
 
   const [paymentPurposes, setPaymentPurposes] = useState([]);
@@ -94,16 +101,7 @@ export function AppProvider({ children }) {
     return Array.from(subjects).sort();
   }, []);
 
-  // Mock fetch logic that always succeeds with dev data
-  const fetchUserData = useCallback(async () => {
-    console.log("Dashboard Only Mode: Using Mock Data");
-  }, []);
-
-  useEffect(() => {
-    fetchUserData();
-  }, [fetchUserData]);
-
-  const updateQuizStats = (data) => {
+  const updateQuizStats = useCallback((data) => {
     setStudyStats(prev => {
       const now = Date.now();
       let xpToAdd = 0;
@@ -126,22 +124,31 @@ export function AppProvider({ children }) {
         maxQuizStreak: (data.quizStreak > (prev.maxQuizStreak || 0)) ? data.quizStreak : prev.maxQuizStreak
       };
     });
-  };
+  }, []);
 
-  const addRichardsQuestions = (qs) => {
+  const addRichardsQuestions = useCallback((qs) => {
     setRichardsQuestions(prev => {
       const updated = [...prev, ...qs];
       localStorage.setItem('apex_richards_questions', JSON.stringify(updated));
       return updated;
     });
-  };
+  }, []);
+
+  const updateCardProgress = useCallback((id, quality) => {
+     setFlashcards(prev => prev.map(c => c.id === id ? { ...c, srs: { ...c.srs, reps: (c.srs?.reps || 0) + 1 } } : c));
+  }, []);
+
+  const incrementCardsStudied = useCallback(() => {
+    setStudyStats(prev => ({ ...prev, cardsStudied: (prev.cardsStudied || 0) + 1 }));
+  }, []);
 
   const value = useMemo(() => ({
     session, loadingAuth, allFlashcards, exams, studyStats, userProfile, darkMode,
     transactions, auditLogs, feeDetails, subscriptionPlans, paymentPurposes,
-    isOnline, updateQuizStats, addRichardsQuestions, curriculumSubjects,
+    learningAnalytics, isOnline, updateQuizStats, addRichardsQuestions, curriculumSubjects,
+    updateCardProgress, incrementCardsStudied,
     toggleDarkMode: () => setDarkMode(!darkMode)
-  }), [session, loadingAuth, allFlashcards, exams, studyStats, userProfile, darkMode, transactions, auditLogs, feeDetails, subscriptionPlans, paymentPurposes, isOnline, curriculumSubjects]);
+  }), [session, loadingAuth, allFlashcards, exams, studyStats, userProfile, darkMode, transactions, auditLogs, feeDetails, subscriptionPlans, paymentPurposes, learningAnalytics, isOnline, updateQuizStats, addRichardsQuestions, curriculumSubjects, updateCardProgress, incrementCardsStudied]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

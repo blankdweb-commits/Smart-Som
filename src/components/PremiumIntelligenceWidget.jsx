@@ -34,7 +34,7 @@ const PremiumIntelligenceWidget = () => {
               Unlock Intelligent Weakness Tracking and Priority Revision suggestions.
            </p>
            <button
-             onClick={() => navigate('/dashboard/activate')}
+             onClick={() => navigate('/dashboard')}
              className="px-6 py-3 bg-apex-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all"
            >
              Upgrade to Monthly
