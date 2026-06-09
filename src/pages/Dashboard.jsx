@@ -9,12 +9,14 @@ import { motion } from 'framer-motion';
 
 const Dashboard = () => {
   const DEV_MODE = true;
-  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics } = useAppContext();
+  const { flashcards = [], exams = [], studyStats = {}, userProfile = {}, session, loadingAuth, learningAnalytics = {} } = useAppContext();
   const navigate = useNavigate();
 
   const subjectProgress = React.useMemo(() => {
     const stats = {};
-    flashcards.forEach(card => {
+    const safeFlashcards = Array.isArray(flashcards) ? flashcards : [];
+    safeFlashcards.forEach(card => {
+      if (!card) return;
       const sub = card.subject || 'General';
       if (!stats[sub]) {
         stats[sub] = { total: 0, learned: 0 };
@@ -30,30 +32,19 @@ const Dashboard = () => {
       .slice(0, 5);
   }, [flashcards]);
 
-  const upcomingExams = exams
-    .filter(e => new Date(e.date) >= new Date())
+  const upcomingExams = (Array.isArray(exams) ? exams : [])
+    .filter(e => e && e.date && new Date(e.date) >= new Date())
     .sort((a, b) => new Date(a.date) - new Date(b.date));
 
-  const nearExams = upcomingExams.filter(e => {
-    const daysLeft = differenceInDays(new Date(e.date), new Date());
-    return daysLeft >= 0 && daysLeft <= 3;
-  });
-
-  const isExamSoon = nearExams.length > 0;
-
-  const dueFlashcards = flashcards.filter(c => {
+  const dueFlashcards = (Array.isArray(flashcards) ? flashcards : []).filter(c => {
+    if (!c) return false;
     if (!c.srs?.nextReview) return true;
     return new Date(c.srs.nextReview) <= new Date();
   });
 
-  const expiryDays = userProfile.subscriptionExpiry
-    ? differenceInDays(new Date(userProfile.subscriptionExpiry), new Date())
-    : null;
-
   const studyTips = [
     "Use the 'Shuffle' mode for flashcards to improve long-term retention.",
     "Focus on 'High-Yield' topics during the last 3 days before an exam.",
-    "Break down long medical terms into syllables to master their pronunciation.",
     "Maintain a daily study streak to build consistent learning habits."
   ];
 
@@ -67,142 +58,24 @@ const Dashboard = () => {
     { label: "Blood pH", value: "7.35-7.45" }
   ];
 
-  const tipsCount = studyTips.length;
   React.useEffect(() => {
     const interval = setInterval(() => {
-      setCurrentTip(prev => (prev + 1) % tipsCount);
+      setCurrentTip(prev => (prev + 1) % studyTips.length);
     }, 10000);
     return () => clearInterval(interval);
-  }, [tipsCount]);
+  }, [studyTips.length]);
 
   return (
     <div className="relative space-y-6 sm:space-y-8 pb-32 animate-in fade-in duration-700 max-w-5xl mx-auto px-1 sm:px-0 overflow-x-hidden min-h-[100dvh]">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="w-full">
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">Apex Scholars</h2>
-          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1 text-sm sm:text-base">Institutional Productivity Hub • {userProfile.level}</p>
-        </div>
-        <div className="flex gap-3">
-           <button
-            onClick={() => navigate('/flashcards')}
-            className="p-4 bg-white dark:bg-slate-800 rounded-[1.5rem] shadow-soft border border-slate-100 dark:border-slate-700 hover:text-apex-600 transition-all"
-           >
-             <Zap size={24} />
-           </button>
+          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1 text-sm sm:text-base">Institutional Productivity Hub • {userProfile.level || 'Scholar'}</p>
         </div>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
-          {expiryDays !== null && expiryDays <= 3 && expiryDays >= 0 && (
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="p-6 bg-amber-50 border border-amber-200 rounded-[2rem] flex items-center justify-between gap-4 shadow-lg shadow-amber-500/5"
-            >
-              <div className="flex items-center gap-4 text-amber-900">
-                <div className="p-3 bg-amber-200 rounded-2xl">
-                  <Clock size={24} />
-                </div>
-                <div>
-                  <h4 className="font-black text-lg">Subscription Expiring Soon</h4>
-                  <p className="text-sm font-medium opacity-80">You have {expiryDays === 0 ? 'less than 24 hours' : `${expiryDays} days`} left. Renew now to avoid losing access.</p>
-                </div>
-              </div>
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="px-6 py-3 bg-amber-900 text-white rounded-xl font-black text-xs uppercase tracking-widest whitespace-nowrap"
-              >
-                Renew Access
-              </button>
-            </motion.div>
-          )}
-
-          {expiryDays !== null && expiryDays < 0 && (
-            <motion.div
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              className="p-6 bg-red-50 border border-red-200 rounded-[2rem] flex items-center justify-between gap-4 shadow-lg shadow-red-500/5"
-            >
-              <div className="flex items-center gap-4 text-red-900">
-                <div className="p-3 bg-red-200 rounded-2xl">
-                  <AlertCircle size={24} />
-                </div>
-                <div>
-                  <h4 className="font-black text-lg">Access Expired</h4>
-                  <p className="text-sm font-medium opacity-80">Your 30-day premium cycle has ended. Activate now to continue your clinical mastery.</p>
-                </div>
-              </div>
-              <button
-                onClick={() => navigate('/dashboard')}
-                className="px-6 py-3 bg-red-900 text-white rounded-xl font-black text-xs uppercase tracking-widest whitespace-nowrap"
-              >
-                Re-Activate
-              </button>
-            </motion.div>
-          )}
-
-          {isExamSoon && (
-            <div className="space-y-4">
-              {nearExams.map((exam, idx) => {
-                const days = differenceInDays(new Date(exam.date), new Date());
-                const subject = exam.title;
-                return (
-                  <motion.div
-                    key={exam.id}
-                    initial={{ y: 20, opacity: 0 }}
-                    animate={{ y: 0, opacity: 1 }}
-                    transition={{ delay: idx * 0.1 }}
-                    className={`p-6 rounded-[2.5rem] text-white shadow-2xl relative overflow-hidden group ${days === 0 ? 'bg-red-600' : 'bg-slate-900 border-2 border-slate-800'}`}
-                  >
-                    <div className="absolute right-0 top-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
-                      <Calendar size={120} />
-                    </div>
-                    <div className="relative z-10 space-y-6">
-                      <div className="flex justify-between items-start">
-                        <div className="space-y-1">
-                          <p className="text-[10px] font-black uppercase tracking-[0.3em] text-white/60">
-                            {days === 0 ? 'Assessment Today' : `Coming up in ${days} Day${days > 1 ? 's' : ''}`}
-                          </p>
-                          <h3 className="text-2xl font-black tracking-tight uppercase">{exam.title}</h3>
-                          <div className="flex items-center gap-3 text-white/50 text-[10px] font-bold">
-                            <span className="flex items-center gap-1"><Clock size={12}/> {exam.time}</span>
-                            <span className="w-1 h-1 rounded-full bg-white/20" />
-                            <span>{exam.venue}</span>
-                          </div>
-                        </div>
-                        <div className="p-3 bg-white/10 rounded-2xl backdrop-blur-md">
-                          <AlertCircle size={24} className={days === 0 ? 'animate-pulse text-white' : 'text-amber-400'} />
-                        </div>
-                      </div>
-
-                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
-                        <Link
-                          to={`/flashcards?subject=${encodeURIComponent(subject)}`}
-                          className="flex items-center justify-center gap-2 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
-                        >
-                          <BookOpen size={14} /> Revise Cards
-                        </Link>
-                        <Link
-                          to="/quiz"
-                          className="flex items-center justify-center gap-2 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
-                        >
-                          <Zap size={14} /> Start Quiz
-                        </Link>
-                        <Link
-                          to="/dashboard"
-                          className="hidden sm:flex items-center justify-center gap-2 py-3 bg-white/10 hover:bg-white/20 rounded-xl text-[9px] font-black uppercase tracking-widest transition-all"
-                        >
-                          <Target size={14} /> Weak Topics
-                        </Link>
-                      </div>
-                    </div>
-                  </motion.div>
-                );
-              })}
-            </div>
-          )}
-
           <FeeDashboardWidget />
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -212,13 +85,9 @@ const Dashboard = () => {
                 <h3 className="text-lg font-black flex items-center gap-2 text-slate-900 dark:text-white uppercase tracking-tight">
                   <Target className="text-red-500" size={20} /> Attention Required
                 </h3>
-                <p className="text-xs text-slate-500 mt-1">Focus on these topics to improve your score.</p>
               </div>
               <div className="mt-4 space-y-3">
-                {(DEV_MODE &&  (learningAnalytics?.weakTopics || []) .length === 0 ? [
-                  { name: 'Pharmacology', count: 12, subject: 'Medical Surgical' },
-                  { name: 'Acid-Base Balance', count: 8, subject: 'Foundations' }
-                ] :  (learningAnalytics?.weakTopics || []) ).map((topic, i) => (
+                {(learningAnalytics?.weakTopics || []).length > 0 ? (learningAnalytics.weakTopics.map((topic, i) => (
                   <div key={i} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
                     <div>
                       <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{topic.name}</p>
@@ -226,10 +95,9 @@ const Dashboard = () => {
                     </div>
                     <span className="text-xs font-black text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-lg">{topic.count} errors</span>
                   </div>
-                ))}
-                { (learningAnalytics?.weakTopics || []) .length === 0 && !DEV_MODE && (
+                ))) : (
                    <div className="py-4 text-center">
-                      <p className="text-xs text-slate-400 italic">No critical weak spots detected yet. Keep studying!</p>
+                      <p className="text-xs text-slate-400 italic">Keep studying to track weak spots!</p>
                    </div>
                 )}
               </div>
@@ -237,10 +105,10 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <StatsCard title="Vault" value={flashcards.length} icon={<BookOpen className="text-apex-600" />} color="bg-white dark:bg-slate-800" />
-            <StatsCard title="Mastery" value={studyStats.cardsStudied} icon={<TrendingUp className="text-emerald-500" />} color="bg-white dark:bg-slate-800" />
-            <StatsCard title="Streak" value={`${studyStats.streak}d`} icon={<Award className="text-amber-500" />} color="bg-white dark:bg-slate-800" />
-            <StatsCard title="Due" value={dueFlashcards.length} icon={<Clock className="text-red-500" />} color="bg-white dark:bg-slate-800" />
+            <StatsCard title="Vault" value={(flashcards || []).length} icon={<BookOpen className="text-apex-600" />} color="bg-white dark:bg-slate-800" />
+            <StatsCard title="Mastery" value={studyStats.cardsStudied || 0} icon={<TrendingUp className="text-emerald-500" />} color="bg-white dark:bg-slate-800" />
+            <StatsCard title="Streak" value={`${studyStats.streak || 0}d`} icon={<Award className="text-amber-500" />} color="bg-white dark:bg-slate-800" />
+            <StatsCard title="Due" value={(dueFlashcards || []).length} icon={<Clock className="text-red-500" />} color="bg-white dark:bg-slate-800" />
           </div>
 
           <div className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-clinical border border-slate-100 dark:border-slate-700">
@@ -257,16 +125,12 @@ const Dashboard = () => {
                       <span>{sub.percent}% learned</span>
                     </div>
                     <div className="w-full h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden p-0.5 border border-slate-50 dark:border-slate-800">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${sub.percent}%` }}
-                        className="h-full bg-apex-600 rounded-full"
-                      />
+                      <motion.div initial={{ width: 0 }} animate={{ width: `${sub.percent}%` }} className="h-full bg-apex-600 rounded-full" />
                     </div>
                   </div>
                 ))
               ) : (
-                <p className="text-sm text-slate-500 italic">Activate learning mode to track subject progress.</p>
+                <p className="text-sm text-slate-500 italic">No progress data yet.</p>
               )}
             </div>
           </div>
@@ -277,24 +141,15 @@ const Dashboard = () => {
             <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
               <Award size={120} />
             </div>
-            <h3 className="text-xl font-black mb-6 flex items-center relative z-10 uppercase tracking-tight">
-              Clinical Reference
-            </h3>
+            <h3 className="text-xl font-black mb-6 relative z-10 uppercase tracking-tight">Clinical Reference</h3>
             <div className="space-y-4 relative z-10">
               {quickReference.slice(0, 4).map((ref, i) => (
-                <div key={i} className="flex justify-between items-center bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10 transition-colors hover:bg-white/20">
+                <div key={i} className="flex justify-between items-center bg-white/10 backdrop-blur-md p-4 rounded-2xl border border-white/10">
                   <p className="text-[10px] uppercase font-black text-white/70 tracking-widest">{ref.label}</p>
                   <p className="text-sm font-black tracking-tight">{ref.value}</p>
                 </div>
               ))}
             </div>
-          </div>
-
-          <div className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-clinical border border-slate-100 dark:border-slate-700">
-             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Apex Mindset</h4>
-             <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-[1.5rem] border border-slate-100 dark:border-slate-800 min-h-[120px] flex items-center">
-                <p className="text-slate-600 dark:text-slate-300 italic font-medium leading-relaxed tracking-tight">"{studyTips[currentTip]}"</p>
-             </div>
           </div>
         </div>
       </div>

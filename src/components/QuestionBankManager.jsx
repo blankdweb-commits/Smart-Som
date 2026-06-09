@@ -32,9 +32,9 @@ const QuestionBankManager = () => {
         const end = Math.min(start + batchSize, total);
         const batch = rawCards.slice(start, end).map((q, idx) => ({
           id: `rich_${q.id || Math.random().toString(36).substr(2, 9)}_${Date.now()}_${start + idx}`,
-          question: q.question,
-          correctAnswer: q.answer_text || q.correct_answer || q.answer,
-          options: q.options || [],
+          question: q.question || "Untitled Question",
+          correctAnswer: q.answer_text || q.correct_answer || q.answer || "N/A",
+          options: Array.isArray(q.options) ? q.options : [],
           rationale: q.explanation || q.rationale || "Rationale provided by Apex Scholars.",
           hint: q.hint || q.tip || "Focus on clinical reasoning.",
           subject: q.subject || data.metadata?.title || 'General Nursing',
@@ -49,7 +49,7 @@ const QuestionBankManager = () => {
         await new Promise(resolve => setTimeout(resolve, 50));
       }
 
-      setStatus({ type: 'success', message: `Successfully imported ${total} questions from ${data.metadata?.source || 'Richard Bank'}` });
+      setStatus({ type: 'success', message: `Successfully imported ${total} questions.` });
       setJsonInput('');
     } catch (err) {
       setStatus({ type: 'error', message: `Import Failed: ${err.message}` });
@@ -76,14 +76,11 @@ const QuestionBankManager = () => {
             value={jsonInput}
             onChange={(e) => setJsonInput(e.target.value)}
             disabled={isProcessing}
-            placeholder='Paste JSON here... { "metadata": { ... }, "flashcards": [ ... ] }'
+            placeholder='Paste JSON here...'
             className="w-full h-64 p-6 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-slate-100 dark:border-slate-800 font-mono text-xs focus:ring-2 focus:ring-medical-500 outline-none resize-none"
           />
           {jsonInput && !isProcessing && (
-            <button
-              onClick={() => setJsonInput('')}
-              className="absolute top-4 right-4 p-2 bg-white dark:bg-slate-800 rounded-full shadow-md text-slate-400 hover:text-red-500"
-            >
+            <button onClick={() => setJsonInput('')} className="absolute top-4 right-4 p-2 bg-white dark:bg-slate-800 rounded-full shadow-md text-slate-400 hover:text-red-500">
               <X size={16} />
             </button>
           )}
@@ -99,26 +96,16 @@ const QuestionBankManager = () => {
         </div>
 
         {status.type && (
-          <motion.div
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className={`p-4 rounded-2xl flex items-center gap-3 ${status.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-red-50 text-red-700 border border-red-100'}`}
-          >
+          <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className={`p-4 rounded-2xl flex items-center gap-3 ${status.type === 'success' ? 'bg-emerald-50 text-emerald-700 border border-emerald-100' : 'bg-red-50 text-red-700 border border-red-100'}`}>
             {status.type === 'success' ? <CheckCircle2 size={18} /> : <AlertCircle size={18} />}
             <p className="text-xs font-bold">{status.message}</p>
           </motion.div>
         )}
 
-        <div className="flex gap-4">
-          <button
-            onClick={handleImport}
-            disabled={!jsonInput || isProcessing}
-            className="flex-1 py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
-          >
-            {isProcessing ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
-            {isProcessing ? 'Processing...' : 'Process Bulk Import'}
-          </button>
-        </div>
+        <button onClick={handleImport} disabled={!jsonInput || isProcessing} className="w-full py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50">
+           {isProcessing ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
+           {isProcessing ? 'Processing...' : 'Process Bulk Import'}
+        </button>
       </div>
     </div>
   );

@@ -1,18 +1,15 @@
 import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Brain, CheckCircle2, XCircle, RefreshCw, ChevronRight, Trophy, AlertCircle, Award, Shield, Target, Zap, Clock, Users, ArrowRight, Timer } from '../components/Icons';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const Quiz = () => {
-  const { allFlashcards, studyStats, updateQuizStats, curriculumSubjects } = useAppContext();
+  const { allFlashcards = [], studyStats = {}, updateQuizStats, curriculumSubjects = [] } = useAppContext();
   const navigate = useNavigate();
+  const location = useLocation();
 
-  const [quizMode, setQuizMode] = useState(() => {
-    const path = window.location.pathname;
-    if (path.includes("subject-mastery")) return "mastery_select";
-    return null;
-  });
+  const [quizMode, setQuizMode] = useState(null);
   const [selectedSubject, setSelectedSubject] = useState(null);
   const [quizStarted, setQuizStarted] = useState(false);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
@@ -26,7 +23,12 @@ const Quiz = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [noQuestions, setNoQuestions] = useState(false);
 
-  // Timer logic
+  useEffect(() => {
+    if (location.pathname.includes("subject-mastery")) {
+      setQuizMode("mastery_select");
+    }
+  }, [location.pathname]);
+
   useEffect(() => {
     let timer;
     if (quizStarted && !showResults && !showRationale && timeLeft > 0) {
@@ -49,15 +51,15 @@ const Quiz = () => {
     setIsLoading(true);
     setNoQuestions(false);
 
-    const flashcardsPool = Array.isArray(allFlashcards) ? allFlashcards : [];
-    let pool = flashcardsPool.filter(q => q && q.question && q.options && Array.isArray(q.options));
+    const pool = (Array.isArray(allFlashcards) ? allFlashcards : []).filter(q => q && q.question && Array.isArray(q.options));
 
+    let filteredPool = pool;
     if (subject) {
-      const targetSub = subject.toLowerCase().trim();
-      pool = pool.filter(q => (q.subject || "").toLowerCase().trim() === targetSub);
+      const target = (subject || "").toLowerCase().trim();
+      filteredPool = pool.filter(q => (q.subject || "").toLowerCase().trim() === target);
     }
 
-    if (pool.length === 0) {
+    if (filteredPool.length === 0) {
       setNoQuestions(true);
       setIsLoading(false);
       setQuizMode(mode);
@@ -65,7 +67,7 @@ const Quiz = () => {
       return;
     }
 
-    const shuffled = [...pool].sort(() => 0.5 - Math.random());
+    const shuffled = [...filteredPool].sort(() => 0.5 - Math.random());
     const count = mode === 'quick' ? 10 : 20;
 
     setQuizQuestions(shuffled.slice(0, count));
@@ -87,15 +89,15 @@ const Quiz = () => {
     const currentQ = quizQuestions[currentQuestionIndex];
     if (!currentQ) return;
 
-    const correct = option === currentQ.answer || option === currentQ.correctAnswer;
+    const correct = option !== null && (option === currentQ.answer || option === currentQ.correctAnswer);
 
     setIsCorrect(correct);
     setSelectedOption(option);
     if (correct) {
       setScore(prev => prev + 1);
-      updateQuizStats({ quizStreak: (studyStats?.quizStreak || 0) + 1, correctQuestionId: currentQ.id });
+      if (updateQuizStats) updateQuizStats({ quizStreak: (studyStats?.quizStreak || 0) + 1, correctQuestionId: currentQ.id });
     } else {
-      updateQuizStats({ quizStreak: 0 });
+      if (updateQuizStats) updateQuizStats({ quizStreak: 0 });
     }
     setShowRationale(true);
   };
@@ -118,8 +120,8 @@ const Quiz = () => {
     return (
       <div className="max-w-2xl mx-auto mt-20 p-12 bg-white dark:bg-slate-800 rounded-[3rem] text-center shadow-xl border border-slate-100 dark:border-slate-700">
         <AlertCircle size={64} className="mx-auto text-slate-300 mb-6" />
-        <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Empty Bank</h2>
-        <p className="text-slate-500 mt-4 text-lg">No questions available for <span className="text-medical-600 font-bold">{selectedSubject || "this course"}</span> yet.</p>
+        <h2 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight">No Questions Available</h2>
+        <p className="text-slate-500 mt-4 text-lg">No questions available for <span className="text-medical-600 font-bold">{selectedSubject || "this field"}</span> yet.</p>
         <button onClick={() => { setNoQuestions(false); setQuizMode(null); }} className="w-full mt-10 py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all">Back to Menu</button>
       </div>
     );
@@ -129,19 +131,18 @@ const Quiz = () => {
     return (
       <div className="max-w-2xl mx-auto mt-12 p-12 bg-white dark:bg-slate-800 rounded-[3rem] text-center shadow-xl border border-slate-100 dark:border-slate-700">
         <Trophy size={80} className="mx-auto text-amber-500 mb-6" />
-        <h2 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Quiz Complete</h2>
-        <p className="text-slate-500 mt-2 text-lg">You scored {score} out of {quizQuestions.length}</p>
+        <h2 className="text-4xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Session Complete</h2>
         <div className="mt-8 grid grid-cols-2 gap-4">
            <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-3xl">
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Accuracy</p>
-              <p className="text-3xl font-black text-medical-600">{Math.round((score/quizQuestions.length)*100)}%</p>
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Score</p>
+              <p className="text-3xl font-black text-medical-600">{score}/{quizQuestions.length}</p>
            </div>
            <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-3xl">
-              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">XP Earned</p>
-              <p className="text-3xl font-black text-indigo-600">{score * 10}</p>
+              <p className="text-xs font-black text-slate-400 uppercase tracking-widest">Accuracy</p>
+              <p className="text-3xl font-black text-indigo-600">{Math.round((score/quizQuestions.length)*100)}%</p>
            </div>
         </div>
-        <button onClick={() => setQuizStarted(false)} className="w-full mt-8 py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all">Finish</button>
+        <button onClick={() => setQuizStarted(false)} className="w-full mt-8 py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest active:scale-95 transition-all">Return to Hub</button>
       </div>
     );
   }
@@ -157,12 +158,10 @@ const Quiz = () => {
                  {formatTime(timeLeft)}
               </div>
               <div className="hidden sm:block">
-                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Progress</p>
-                 <h4 className="font-black text-slate-900 dark:text-white">{currentQuestionIndex + 1} of {quizQuestions.length}</h4>
+                 <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Scenario {currentQuestionIndex + 1} of {quizQuestions.length}</p>
               </div>
            </div>
            <div className="text-right">
-              <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Current Score</p>
               <h4 className="font-black text-medical-600">{score * 10} XP</h4>
            </div>
         </div>
@@ -171,23 +170,18 @@ const Quiz = () => {
            {currentQ.isImported && (
               <div className="inline-flex items-center px-4 py-1.5 rounded-full bg-blue-500/10 border border-blue-500/30 mb-6">
                  <div className="w-1.5 h-1.5 rounded-full bg-blue-400 animate-pulse mr-2" />
-                 <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">✓ VERIFIED SOURCE: {currentQ.source}</span>
+                 <span className="text-[10px] font-black uppercase tracking-widest text-blue-400">Verified Source: {currentQ.source}</span>
               </div>
            )}
-           <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white leading-tight">{currentQ.question}</h2>
+           <h2 className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white leading-tight tracking-tight">{currentQ.question}</h2>
            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mt-12">
               {(currentQ.options || []).map((option, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => handleAnswer(option)}
-                  disabled={showRationale}
+                <button key={idx} onClick={() => handleAnswer(option)} disabled={showRationale}
                   className={`p-6 rounded-[1.5rem] border-2 text-left font-bold transition-all ${
                     showRationale
                       ? (option === currentQ.answer || option === currentQ.correctAnswer)
                         ? 'border-emerald-500 bg-emerald-50 text-emerald-700'
-                        : selectedOption === option
-                          ? 'border-red-500 bg-red-50 text-red-700'
-                          : 'border-slate-100 opacity-50'
+                        : selectedOption === option ? 'border-red-500 bg-red-50 text-red-700' : 'border-slate-100 opacity-50'
                       : 'border-slate-100 hover:border-medical-500 hover:bg-medical-50'
                   }`}
                 >
@@ -201,13 +195,11 @@ const Quiz = () => {
                <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-8 p-8 bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-100">
                   <div className="flex items-center gap-2 mb-4">
                      <Target size={20} className="text-medical-600" />
-                     <p className="text-xs font-black uppercase tracking-widest text-slate-400">Rationale</p>
+                     <p className="text-xs font-black uppercase tracking-widest text-slate-400">Clinical Rationale</p>
                   </div>
-                  <p className="text-lg font-medium text-slate-700 dark:text-slate-300 italic">
-                    {currentQ.rationale || "Rationale provided by Apex Scholars."}
-                  </p>
+                  <p className="text-lg font-medium text-slate-700 dark:text-slate-300 italic">{currentQ.rationale || "Rationale provided by Apex Scholars."}</p>
                   <button onClick={nextQuestion} className="w-full mt-8 py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest flex items-center justify-center gap-2">
-                    {currentQuestionIndex < quizQuestions.length - 1 ? 'Next Question' : 'View Results'}
+                    {currentQuestionIndex < quizQuestions.length - 1 ? 'Next Scenario' : 'View Results'}
                     <ArrowRight size={18} />
                   </button>
                </motion.div>
@@ -219,29 +211,27 @@ const Quiz = () => {
   }
 
   if (quizMode === 'mastery_select') {
-    const flashcardsPool = Array.isArray(allFlashcards) ? allFlashcards : [];
-    const subjectsWithQs = [...new Set(flashcardsPool.map(q => q.subject).filter(Boolean))];
+    const pool = Array.isArray(allFlashcards) ? allFlashcards : [];
+    const subjectsWithQs = [...new Set(pool.map(q => q.subject).filter(Boolean))];
     const subjects = (curriculumSubjects && curriculumSubjects.length > 0) ? curriculumSubjects : subjectsWithQs;
 
     return (
       <div className="max-w-4xl mx-auto px-4 py-8">
-        <div className="flex items-center gap-4 mb-12">
-           <button onClick={() => setQuizMode(null)} className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100"><ArrowRight size={20} className="rotate-180" /></button>
+        <header className="mb-12 flex items-center gap-4">
+           <button onClick={() => setQuizMode(null)} className="p-3 bg-white dark:bg-slate-800 rounded-2xl shadow-sm border border-slate-100 hover:text-medical-600 transition-colors"><ArrowRight size={20} className="rotate-180" /></button>
            <div>
               <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight uppercase">Subject Mastery</h2>
-              <p className="text-slate-500 mt-1">Select a course to begin specialized revision.</p>
+              <p className="text-slate-500 mt-1">Select a specialized field to begin mastery.</p>
            </div>
-        </div>
+        </header>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
            {subjects.map(sub => {
-             const count = flashcardsPool.filter(q => (q.subject || "").toLowerCase().trim() === sub.toLowerCase().trim()).length;
+             const count = pool.filter(q => (q.subject || "").toLowerCase().trim() === sub.toLowerCase().trim()).length;
              return (
                <button key={sub} onClick={() => startQuiz('mastery', sub)} className="p-8 bg-white dark:bg-slate-800 rounded-[2.5rem] border border-slate-100 dark:border-slate-700 shadow-sm hover:shadow-xl hover:border-medical-500 transition-all text-left group relative overflow-hidden">
                   <div className="relative z-10">
                     <h4 className="text-lg font-black text-slate-900 dark:text-white group-hover:text-medical-600 transition-colors">{sub}</h4>
-                    <div className="mt-4 flex items-center text-xs font-bold text-slate-400 uppercase tracking-widest">
-                       {count} Questions Available
-                    </div>
+                    <p className="mt-4 text-xs font-bold text-slate-400 uppercase tracking-widest">{count} Items Available</p>
                   </div>
                   <div className="absolute right-[-10px] bottom-[-10px] opacity-5 group-hover:opacity-10 transition-opacity">
                     <Target size={80} />
@@ -256,30 +246,15 @@ const Quiz = () => {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-8">
-      <div className="text-center mb-12">
-         <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight uppercase">Clinical Quiz Hub</h2>
-         <p className="text-slate-500 mt-2">Select a mode to begin your mastery session.</p>
+      <div className="text-center mb-16">
+         <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tighter uppercase italic">Clinical Quiz Hub</h2>
+         <p className="text-slate-500 mt-2 font-medium">Select a mode to begin your mastery session.</p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <ModeCard
-          title="Clinical Challenge"
-          description="NMCN-style exam simulation with score tracking."
-          icon={<Award size={32} />}
-          onClick={() => startQuiz('clinical')}
-        />
-        <ModeCard
-          title="Quick Quiz"
-          description="Fast revision (5-10 questions) with immediate rationale."
-          icon={<Zap size={32} />}
-          onClick={() => startQuiz('quick')}
-        />
-        <ModeCard
-          title="Subject Mastery"
-          description="Master one course with progress tracked by subject."
-          icon={<Target size={32} />}
-          onClick={() => setQuizMode('mastery_select')}
-        />
+        <ModeCard title="Clinical Challenge" description="NMCN-style exam simulation with score tracking." icon={<Award size={32} />} onClick={() => startQuiz('clinical')} />
+        <ModeCard title="Quick Quiz" description="Fast revision (10 random questions) with immediate rationale." icon={<Zap size={32} />} onClick={() => startQuiz('quick')} />
+        <ModeCard title="Subject Mastery" description="Master one course with progress tracked by subject." icon={<Target size={32} />} onClick={() => setQuizMode('mastery_select')} />
       </div>
     </div>
   );
@@ -288,13 +263,11 @@ const Quiz = () => {
 const ModeCard = ({ title, description, icon, onClick }) => (
   <button onClick={onClick} className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] border border-slate-100 dark:border-slate-700 shadow-clinical hover:shadow-xl transition-all text-left flex flex-col justify-between h-full group">
     <div>
-      <div className="w-16 h-16 bg-medical-50 dark:bg-medical-900/20 text-medical-600 rounded-[1.5rem] flex items-center justify-center mb-6 group-hover:scale-110 transition-transform">{icon}</div>
+      <div className="w-16 h-16 bg-medical-50 dark:bg-medical-900/20 text-medical-600 rounded-[1.5rem] flex items-center justify-center mb-8 group-hover:scale-110 transition-transform">{icon}</div>
       <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">{title}</h3>
-      <p className="text-sm text-slate-500 dark:text-slate-400 mt-2 font-medium leading-relaxed">{description}</p>
+      <p className="text-sm text-slate-500 dark:text-slate-400 mt-3 font-medium leading-relaxed">{description}</p>
     </div>
-    <div className="mt-8 flex items-center text-xs font-black text-medical-600 uppercase tracking-widest">
-       Begin Session <ChevronRight size={16} className="ml-1" />
-    </div>
+    <div className="mt-10 flex items-center text-xs font-black text-medical-600 uppercase tracking-widest">Begin Session <ChevronRight size={16} className="ml-1" /></div>
   </button>
 );
 

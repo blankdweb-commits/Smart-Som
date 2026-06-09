@@ -19,10 +19,13 @@ const FeeDashboardWidget = () => {
         </div>
         <div>
           <h3 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight uppercase">School Fees: Coming Soon</h3>
-          <p className="text-slate-500 dark:text-slate-400 font-medium text-lg mt-4 max-w-md mx-auto">
+          <p className="text-slate-500 dark:text-slate-400 font-medium text-lg mt-4 max-w-md mx-auto leading-relaxed">
             Institutional payment plans are currently under maintenance. Please check back later.
           </p>
         </div>
+        <button disabled className="px-10 py-5 bg-slate-100 dark:bg-slate-700 text-slate-400 dark:text-slate-500 rounded-2xl font-black uppercase tracking-widest text-xs cursor-not-allowed">
+           COMING SOON
+        </button>
       </div>
     </motion.div>
   );

@@ -1,6 +1,6 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
-import { CreditCard, Clock } from './Icons';
+import { Clock } from './Icons';
 import { motion } from 'framer-motion';
 
 const FeeBanner = () => {
@@ -28,6 +28,9 @@ const FeeBanner = () => {
               Institutional payment plans are currently under maintenance.
             </p>
           </div>
+        </div>
+        <div className="px-4 py-1.5 bg-white/10 border border-white/20 rounded-full text-[9px] font-black uppercase tracking-widest whitespace-nowrap">
+           COMING SOON
         </div>
       </div>
     </motion.div>

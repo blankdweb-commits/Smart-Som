@@ -11,7 +11,7 @@ export function AppProvider({ children }) {
   const [loadingAuth, setLoadingAuth] = useState(false);
 
   const [flashcards, setFlashcards] = useState(() => {
-    return Array.isArray(initialFlashcards) && Array.isArray(allBuiltInFlashcards)
+    return (Array.isArray(initialFlashcards) && Array.isArray(allBuiltInFlashcards))
       ? [...initialFlashcards, ...allBuiltInFlashcards]
       : [];
   });
@@ -21,7 +21,7 @@ export function AppProvider({ children }) {
       const saved = localStorage.getItem('apex_richards_questions');
       return saved ? JSON.parse(saved) : [];
     } catch (e) {
-      console.error("Failed to parse Richards questions from localStorage", e);
+      console.warn("localStorage hydration failed", e);
       return [];
     }
   });
@@ -37,61 +37,47 @@ export function AppProvider({ children }) {
     const combined = [...(Array.isArray(flashcards) ? flashcards : []), ...mappedRichards];
     const seen = new Set();
     return combined.filter(c => {
-      if (!c || !c.id) return false;
+      if (!c || !c.id || !c.question) return false;
       if (seen.has(c.id)) return false;
       seen.add(c.id);
       return true;
     });
   }, [flashcards, richardsQuestions]);
 
+  // Data Integrity Report
+  useEffect(() => {
+    const subjects = {};
+    allFlashcards.forEach(q => {
+      const s = q.subject || 'Unknown';
+      subjects[s] = (subjects[s] || 0) + 1;
+    });
+    console.log("--- APEX DATA INTEGRITY REPORT ---");
+    console.log("Total Valid Questions:", allFlashcards.length);
+    console.log("Questions By Subject:", subjects);
+    console.log("----------------------------------");
+  }, [allFlashcards]);
+
   const [exams, setExams] = useState([]);
   const [darkMode, setDarkMode] = useState(() => {
     try {
       const saved = localStorage.getItem('darkMode');
       return saved ? JSON.parse(saved) : false;
-    } catch (e) {
-      return false;
-    }
+    } catch (e) { return false; }
   });
 
   const [studyStats, setStudyStats] = useState({
-    streak: 0,
-    lastStudyDate: null,
-    cardsStudied: 0,
-    quizStreak: 0,
-    maxQuizStreak: 0,
-    milestone: 'Clinical Beginner',
-    xp: 0,
-    xpHistory: {}
+    streak: 0, lastStudyDate: null, cardsStudied: 0, quizStreak: 0, maxQuizStreak: 0, milestone: 'Clinical Beginner', xp: 0, xpHistory: {}
   });
 
   const [userProfile, setUserProfile] = useState({
-    fullName: 'Development User',
-    email: 'dev@apexscholars.com',
-    phone: '0800-DEV-MODE',
-    department: 'Nursing Science',
-    level: 'Year 3',
-    isActivated: true,
-    isAdmin: true,
-    role: 'super_admin',
-    subscriptionStatus: 'active',
-    subscriptionExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+    fullName: 'Development User', email: 'dev@apexscholars.com', phone: '0800-DEV-MODE', department: 'Nursing Science', level: 'Year 3', isActivated: true, isAdmin: true, role: 'super_admin', subscriptionStatus: 'active', subscriptionExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
   });
 
   const [learningAnalytics, setLearningAnalytics] = useState({
-    weakTopics: [],
-    recommendedRevision: [],
-    dailyChallenge: { id: null, question: '', answer: '', completed: false, lastDate: null }
+    weakTopics: [], recommendedRevision: [], dailyChallenge: { id: null, question: '', answer: '', completed: false, lastDate: null }
   });
 
-  const [paymentPurposes, setPaymentPurposes] = useState([]);
-  const [subscriptionPlans, setSubscriptionPlans] = useState([]);
-  const [transactions, setTransactions] = useState([]);
-  const [auditLogs, setAuditLogs] = useState([]);
-  const [feeDetails, setFeeDetails] = useState({
-    totalFee: 150000, amountPaid: 0, currency: 'NGN', status: 'Unpaid'
-  });
-
+  const [feeDetails, setFeeDetails] = useState({ totalFee: 150000, amountPaid: 0, currency: 'NGN', status: 'Unpaid' });
   const [isOnline, setIsOnline] = useState(navigator.onLine);
 
   useEffect(() => {
@@ -117,55 +103,43 @@ export function AppProvider({ children }) {
     return Array.from(subjects).sort();
   }, []);
 
-  const updateQuizStats = useCallback((data) => {
-    setStudyStats(prev => {
-      const now = Date.now();
-      let xpToAdd = 0;
-      const newXpHistory = { ...(prev.xpHistory || {}) };
-
-      if (data && data.correctQuestionId) {
-        const lastEarned = newXpHistory[data.correctQuestionId] || 0;
-        if (now - lastEarned > 10 * 60 * 1000) {
-          xpToAdd = 10;
-          newXpHistory[data.correctQuestionId] = now;
-        }
-      }
-
-      return {
-        ...prev,
-        ...data,
-        xp: (prev.xp || 0) + xpToAdd,
-        xpHistory: newXpHistory,
-        quizStreak: data.quizStreak !== undefined ? data.quizStreak : prev.quizStreak,
-        maxQuizStreak: (data.quizStreak > (prev.maxQuizStreak || 0)) ? data.quizStreak : prev.maxQuizStreak
-      };
-    });
-  }, []);
-
-  const addRichardsQuestions = useCallback((qs) => {
-    if (!Array.isArray(qs)) return;
-    setRichardsQuestions(prev => {
-      const updated = [...(Array.isArray(prev) ? prev : []), ...qs];
-      localStorage.setItem('apex_richards_questions', JSON.stringify(updated));
-      return updated;
-    });
-  }, []);
-
-  const updateCardProgress = useCallback((id, quality) => {
-     setFlashcards(prev => (Array.isArray(prev) ? prev : []).map(c => c.id === id ? { ...c, srs: { ...(c.srs || {}), reps: ((c.srs?.reps || 0) + 1) } } : c));
-  }, []);
-
-  const incrementCardsStudied = useCallback(() => {
-    setStudyStats(prev => ({ ...prev, cardsStudied: (prev.cardsStudied || 0) + 1 }));
-  }, []);
-
   const value = useMemo(() => ({
-    session, loadingAuth, allFlashcards, exams, studyStats, userProfile, darkMode,
-    transactions, auditLogs, feeDetails, subscriptionPlans, paymentPurposes,
-    learningAnalytics, isOnline, updateQuizStats, addRichardsQuestions, curriculumSubjects,
-    updateCardProgress, incrementCardsStudied,
+    session, loadingAuth,
+    allFlashcards, flashcards: allFlashcards, // Exporting both for compatibility
+    exams: exams || [],
+    studyStats: studyStats || {},
+    userProfile: userProfile || {},
+    darkMode,
+    feeDetails: feeDetails || {},
+    learningAnalytics: learningAnalytics || {},
+    isOnline,
+    curriculumSubjects: curriculumSubjects || [],
+    updateQuizStats: (data) => {
+      if (!data) return;
+      setStudyStats(prev => ({
+        ...prev,
+        xp: (prev.xp || 0) + (data.correctQuestionId ? 10 : 0),
+        quizStreak: data.quizStreak !== undefined ? data.quizStreak : prev.quizStreak,
+        maxQuizStreak: Math.max(prev.maxQuizStreak || 0, data.quizStreak || 0)
+      }));
+    },
+    addRichardsQuestions: (qs) => {
+      if (!Array.isArray(qs)) return;
+      setRichardsQuestions(prev => {
+        const updated = [...prev, ...qs];
+        localStorage.setItem('apex_richards_questions', JSON.stringify(updated));
+        return updated;
+      });
+    },
+    updateCardProgress: (id) => {
+       if (!id) return;
+       setStudyStats(prev => ({ ...prev, cardsStudied: (prev.cardsStudied || 0) + 1 }));
+    },
+    incrementCardsStudied: () => {
+      setStudyStats(prev => ({ ...prev, cardsStudied: (prev.cardsStudied || 0) + 1 }));
+    },
     toggleDarkMode: () => setDarkMode(!darkMode)
-  }), [session, loadingAuth, allFlashcards, exams, studyStats, userProfile, darkMode, transactions, auditLogs, feeDetails, subscriptionPlans, paymentPurposes, learningAnalytics, isOnline, updateQuizStats, addRichardsQuestions, curriculumSubjects, updateCardProgress, incrementCardsStudied]);
+  }), [session, loadingAuth, allFlashcards, exams, studyStats, userProfile, darkMode, feeDetails, learningAnalytics, isOnline, curriculumSubjects]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }
