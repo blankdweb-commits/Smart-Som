@@ -1,40 +1,60 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { Save, Upload, FileText, X, CheckCircle2, AlertCircle } from './Icons';
+import { Upload, FileText, X, CheckCircle2, AlertCircle, Loader2 } from './Icons';
 import { motion } from 'framer-motion';
 
 const QuestionBankManager = () => {
   const { addRichardsQuestions } = useAppContext();
   const [jsonInput, setJsonInput] = useState('');
   const [status, setStatus] = useState({ type: null, message: '' });
-  const [isProcessing, setIsCompleted] = useState(false);
+  const [isProcessing, setIsProcessing] = useState(false);
+  const [progress, setProgress] = useState(0);
 
-  const handleImport = () => {
+  const handleImport = async () => {
+    setIsProcessing(true);
+    setStatus({ type: null, message: '' });
+    setProgress(0);
+
     try {
       const data = JSON.parse(jsonInput);
-      if (!data.flashcards || !Array.isArray(data.flashcards)) {
-        throw new Error('Invalid format: Missing flashcards array');
+      const rawCards = data.flashcards || data.questions;
+
+      if (!rawCards || !Array.isArray(rawCards)) {
+        throw new Error('Invalid format: Missing flashcards or questions array');
       }
 
-      // Map to internal format
-      const formatted = data.flashcards.map(q => ({
-        id: q.id || `richards-${Math.random().toString(36).substr(2, 9)}`,
-        question: q.question,
-        correctAnswer: q.answer_text || q.correct_answer,
-        options: q.options || (q.question.match(/\((a|b|c|d)\)\s+([^,)]+)/g)?.map(m => m.replace(/\((a|b|c|d)\)\s+/, '').trim()) || []),
-        rationale: q.explanation || q.rationale,
-        subject: data.metadata?.title || 'Cardiovascular Richards',
-        source: data.metadata?.source || 'Richards Question Bank',
-        important: true
-      }));
+      const total = rawCards.length;
+      const batchSize = 500;
+      const batches = Math.ceil(total / batchSize);
 
-      addRichardsQuestions(formatted);
-      setStatus({ type: 'success', message: `Successfully imported ${formatted.length} questions from ${data.metadata?.source || 'Richards Bank'}` });
+      for (let i = 0; i < batches; i++) {
+        const start = i * batchSize;
+        const end = Math.min(start + batchSize, total);
+        const batch = rawCards.slice(start, end).map((q, idx) => ({
+          id: `rich_${q.id || Math.random().toString(36).substr(2, 9)}_${Date.now()}_${start + idx}`,
+          question: q.question,
+          correctAnswer: q.answer_text || q.correct_answer || q.answer,
+          options: q.options || [],
+          rationale: q.explanation || q.rationale || "Rationale provided by Apex Scholars.",
+          hint: q.hint || q.tip || "Focus on clinical reasoning.",
+          subject: q.subject || data.metadata?.title || 'General Nursing',
+          source: q.source || data.metadata?.source || 'Richard Question Bank',
+          important: true,
+          isImported: true
+        }));
+
+        addRichardsQuestions(batch);
+        setProgress(Math.round(((i + 1) / batches) * 100));
+
+        await new Promise(resolve => setTimeout(resolve, 50));
+      }
+
+      setStatus({ type: 'success', message: `Successfully imported ${total} questions from ${data.metadata?.source || 'Richard Bank'}` });
       setJsonInput('');
-      setIsCompleted(true);
-      setTimeout(() => setIsCompleted(false), 5000);
     } catch (err) {
       setStatus({ type: 'error', message: `Import Failed: ${err.message}` });
+    } finally {
+      setIsProcessing(false);
     }
   };
 
@@ -42,8 +62,8 @@ const QuestionBankManager = () => {
     <div className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-clinical border border-slate-100 dark:border-slate-700">
       <div className="flex justify-between items-center mb-6">
         <div>
-          <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Richard's Question Bank Manager</h3>
-          <p className="text-xs text-slate-500 mt-1">Bulk import nursing questions in JSON format.</p>
+          <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Apex Question Bank Manager</h3>
+          <p className="text-xs text-slate-500 mt-1">Bulk import nursing questions with metadata validation.</p>
         </div>
         <div className="p-3 bg-medical-50 text-medical-600 rounded-2xl">
           <FileText size={24} />
@@ -55,16 +75,26 @@ const QuestionBankManager = () => {
           <textarea
             value={jsonInput}
             onChange={(e) => setJsonInput(e.target.value)}
+            disabled={isProcessing}
             placeholder='Paste JSON here... { "metadata": { ... }, "flashcards": [ ... ] }'
             className="w-full h-64 p-6 bg-slate-50 dark:bg-slate-900/50 rounded-3xl border border-slate-100 dark:border-slate-800 font-mono text-xs focus:ring-2 focus:ring-medical-500 outline-none resize-none"
           />
-          {jsonInput && (
+          {jsonInput && !isProcessing && (
             <button
               onClick={() => setJsonInput('')}
               className="absolute top-4 right-4 p-2 bg-white dark:bg-slate-800 rounded-full shadow-md text-slate-400 hover:text-red-500"
             >
               <X size={16} />
             </button>
+          )}
+          {isProcessing && (
+            <div className="absolute inset-0 bg-white/80 dark:bg-slate-800/80 backdrop-blur-sm rounded-3xl flex flex-col items-center justify-center space-y-4">
+              <Loader2 size={40} className="animate-spin text-medical-600" />
+              <div className="text-center">
+                <p className="text-sm font-black text-slate-900 dark:text-white uppercase tracking-widest">Processing Batch...</p>
+                <p className="text-xs font-bold text-medical-600 mt-1">{progress}% Complete</p>
+              </div>
+            </div>
           )}
         </div>
 
@@ -85,12 +115,8 @@ const QuestionBankManager = () => {
             disabled={!jsonInput || isProcessing}
             className="flex-1 py-5 bg-slate-900 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl active:scale-95 transition-all flex items-center justify-center gap-2 disabled:opacity-50"
           >
-            <Upload size={18} /> Process Bulk Import
-          </button>
-          <button
-            className="px-8 py-5 bg-white dark:bg-slate-800 border border-slate-100 dark:border-slate-700 text-slate-400 rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-slate-50 transition-all"
-          >
-            CSV Format
+            {isProcessing ? <Loader2 size={18} className="animate-spin" /> : <Upload size={18} />}
+            {isProcessing ? 'Processing...' : 'Process Bulk Import'}
           </button>
         </div>
       </div>

@@ -10,22 +10,34 @@ export function AppProvider({ children }) {
   const [session, setSession] = useState({ user: { id: 'dev-user', email: 'dev@apexscholars.com' } });
   const [loadingAuth, setLoadingAuth] = useState(false);
 
-  const [flashcards, setFlashcards] = useState([...initialFlashcards, ...allBuiltInFlashcards]);
+  const [flashcards, setFlashcards] = useState(() => {
+    return Array.isArray(initialFlashcards) && Array.isArray(allBuiltInFlashcards)
+      ? [...initialFlashcards, ...allBuiltInFlashcards]
+      : [];
+  });
+
   const [richardsQuestions, setRichardsQuestions] = useState(() => {
-    const saved = localStorage.getItem('apex_richards_questions');
-    return saved ? JSON.parse(saved) : [];
+    try {
+      const saved = localStorage.getItem('apex_richards_questions');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) {
+      console.error("Failed to parse Richards questions from localStorage", e);
+      return [];
+    }
   });
 
   const allFlashcards = useMemo(() => {
-    const mappedRichards = richardsQuestions.map(q => ({
+    const safeRichards = Array.isArray(richardsQuestions) ? richardsQuestions : [];
+    const mappedRichards = safeRichards.map(q => ({
       ...q,
-      answer: q.correctAnswer || q.answer,
+      answer: q.correctAnswer || q.answer || "No answer provided",
       type: 'imported'
     }));
-    const combined = [...flashcards, ...mappedRichards];
+
+    const combined = [...(Array.isArray(flashcards) ? flashcards : []), ...mappedRichards];
     const seen = new Set();
     return combined.filter(c => {
-      if (!c.id) return true;
+      if (!c || !c.id) return false;
       if (seen.has(c.id)) return false;
       seen.add(c.id);
       return true;
@@ -34,8 +46,12 @@ export function AppProvider({ children }) {
 
   const [exams, setExams] = useState([]);
   const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('darkMode');
-    return saved ? JSON.parse(saved) : false;
+    try {
+      const saved = localStorage.getItem('darkMode');
+      return saved ? JSON.parse(saved) : false;
+    } catch (e) {
+      return false;
+    }
   });
 
   const [studyStats, setStudyStats] = useState({
@@ -91,10 +107,10 @@ export function AppProvider({ children }) {
 
   const curriculumSubjects = useMemo(() => {
     const subjects = new Set();
-    Object.values(CURRICULUM_MASTER).forEach(year => {
-      Object.values(year).forEach(semester => {
-        semester.forEach(course => {
-          if (course.course) subjects.add(course.course);
+    Object.values(CURRICULUM_MASTER || {}).forEach(year => {
+      Object.values(year || {}).forEach(semester => {
+        (semester || []).forEach(course => {
+          if (course && course.course) subjects.add(course.course);
         });
       });
     });
@@ -105,10 +121,10 @@ export function AppProvider({ children }) {
     setStudyStats(prev => {
       const now = Date.now();
       let xpToAdd = 0;
-      const newXpHistory = { ...prev.xpHistory };
+      const newXpHistory = { ...(prev.xpHistory || {}) };
 
-      if (data.correctQuestionId) {
-        const lastEarned = prev.xpHistory[data.correctQuestionId] || 0;
+      if (data && data.correctQuestionId) {
+        const lastEarned = newXpHistory[data.correctQuestionId] || 0;
         if (now - lastEarned > 10 * 60 * 1000) {
           xpToAdd = 10;
           newXpHistory[data.correctQuestionId] = now;
@@ -127,15 +143,16 @@ export function AppProvider({ children }) {
   }, []);
 
   const addRichardsQuestions = useCallback((qs) => {
+    if (!Array.isArray(qs)) return;
     setRichardsQuestions(prev => {
-      const updated = [...prev, ...qs];
+      const updated = [...(Array.isArray(prev) ? prev : []), ...qs];
       localStorage.setItem('apex_richards_questions', JSON.stringify(updated));
       return updated;
     });
   }, []);
 
   const updateCardProgress = useCallback((id, quality) => {
-     setFlashcards(prev => prev.map(c => c.id === id ? { ...c, srs: { ...c.srs, reps: (c.srs?.reps || 0) + 1 } } : c));
+     setFlashcards(prev => (Array.isArray(prev) ? prev : []).map(c => c.id === id ? { ...c, srs: { ...(c.srs || {}), reps: ((c.srs?.reps || 0) + 1) } } : c));
   }, []);
 
   const incrementCardsStudied = useCallback(() => {

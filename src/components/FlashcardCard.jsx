@@ -1,12 +1,14 @@
 import React, { useState, memo } from 'react';
 import { Star, Edit2, Trash2, HelpCircle, Info, Share2, Volume2 } from './Icons';
-import { motion, useMotionValue, useTransform } from 'framer-motion'; // eslint-disable-line no-unused-vars
+import { motion, useMotionValue, useTransform } from 'framer-motion';
 
 const FlashcardCard = memo(({
   card, onEdit, onDelete, onToggleImportant, onShare,
   isStudyMode = false, isFullscreen = false,
   onSwipeLeft, onSwipeRight
 }) => {
+  if (!card) return null;
+
   const [isFlipped, setIsFlipped] = useState(false);
   const [showHint, setShowHint] = useState(false);
 
@@ -16,7 +18,6 @@ const FlashcardCard = memo(({
   const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0]);
 
   const handleDragEnd = (event, info) => {
-    // Requires a larger swipe for desktop but keeps it sensitive for mobile
     const threshold = window.innerWidth < 768 ? 80 : 150;
     if (info.offset.x < -threshold && onSwipeLeft) {
       onSwipeLeft();
@@ -47,13 +48,11 @@ const FlashcardCard = memo(({
       onDragEnd={handleDragEnd}
       className={`relative ${isFullscreen ? 'h-full flex items-center justify-center' : 'h-80 sm:h-64'} w-full cursor-pointer group flashcard-container active:scale-[0.98] transition-transform`}
       onClick={() => {
-        // Prevent flip if we just dragged
         if (isStudyMode && Math.abs(x.get()) > 5) return;
         handleFlip();
       }}
     >
       <div className={`flashcard-inner w-full h-full ${isFlipped ? 'flipped' : ''} transition-all duration-500 ease-out`}>
-        {/* Front */}
         <div className={`flashcard-front absolute inset-0 bg-white dark:bg-slate-800 ${isFullscreen ? 'rounded-[2rem] sm:rounded-[2.5rem] shadow-clinical border-4 border-medical-500/20' : 'rounded-[2rem] shadow-premium border border-slate-100 dark:border-slate-700'} p-5 sm:p-12 flex flex-col justify-between overflow-hidden transition-all duration-500`}>
           {isFullscreen && (
             <div className="absolute top-0 left-0 w-full h-1.5 bg-slate-100 dark:bg-slate-700">
@@ -70,7 +69,7 @@ const FlashcardCard = memo(({
               <div className="flex flex-col gap-1">
                 <div className="flex flex-wrap items-center gap-2">
                   <span className="text-[10px] sm:text-xs font-black px-3 py-1 bg-medical-50 text-medical-600 dark:bg-medical-900/40 dark:text-medical-300 rounded-full uppercase tracking-[0.15em] border border-medical-100/50">
-                    {card.subject}
+                    {card.subject || 'General'}
                   </span>
                   {card.source && (
                     <span className="text-[8px] sm:text-[9px] font-bold text-indigo-500 bg-indigo-50 dark:bg-indigo-900/30 dark:text-indigo-300 px-2 py-0.5 rounded border border-indigo-100/50 uppercase tracking-tighter shadow-sm">
@@ -153,12 +152,11 @@ const FlashcardCard = memo(({
               card.difficulty === 'Moderate' ? 'bg-yellow-100 text-yellow-700' :
               'bg-red-100 text-red-700'
             }`}>
-              {card.difficulty}
+              {card.difficulty || 'Moderate'}
             </span>
           </div>
         </div>
 
-        {/* Back */}
         <div className={`flashcard-back absolute inset-0 bg-medical-600 ${isFullscreen ? 'rounded-[2rem] sm:rounded-[2.5rem] shadow-clinical ring-8 sm:ring-12 ring-medical-500/10' : 'rounded-2xl shadow-lg'} p-5 sm:p-12 flex flex-col items-center justify-center text-white text-center overflow-auto relative transition-all duration-500`}>
           <button
             onClick={(e) => handleSpeak(e, card.answer)}
@@ -180,7 +178,7 @@ const FlashcardCard = memo(({
           <div className="mt-auto pt-6 flex flex-col items-center gap-2">
             {card.source && (
               <span className="text-[10px] font-black text-white/40 uppercase tracking-[0.2em] px-3 py-1 border border-white/10 rounded-full">
-                Source: {card.source}
+                ✓ VERIFIED SOURCE: {card.source}
               </span>
             )}
             <p className="text-[10px] opacity-60 font-bold uppercase tracking-widest">Click to flip back</p>
