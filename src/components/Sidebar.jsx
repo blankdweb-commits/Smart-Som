@@ -1,8 +1,12 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Award, Users, Search, Brain, FileUp } from './Icons';
+import { useAppContext } from '../context/AppContext';
 
 const Sidebar = () => {
+  const { isQuizActive } = useAppContext();
+
+  if (isQuizActive) return null;
 
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
@@ -17,7 +21,6 @@ const Sidebar = () => {
 
   return (
     <>
-      {/* Sidebar - hidden on mobile, visible on large screens */}
       <div className="hidden lg:block w-64 bg-white dark:bg-slate-800 border-r border-slate-100 dark:border-slate-800 transition-all duration-300">
         <div className="flex flex-col h-full sticky top-0">
           <div className="p-6">
@@ -30,12 +33,12 @@ const Sidebar = () => {
               <NavLink
                 key={item.name}
                 to={item.path}
-                className={({ isActive }) => `
-                  flex items-center px-4 py-3 rounded-xl transition-all duration-200
+                className={({ isActive }) =>
+                  `flex items-center px-4 py-3 rounded-xl transition-all duration-200
                   ${isActive
                     ? 'bg-medical-50 text-medical-700 dark:bg-medical-900/30 dark:text-medical-400 font-bold'
-                    : 'text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700/50'}
-                `}
+                    : 'text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700/50'}`
+                }
               >
                 {({ isActive }) => (
                   <>

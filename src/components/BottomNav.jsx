@@ -1,8 +1,13 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, BookOpen, Calendar, Award, Users, Volume2, Search, Brain, FileUp } from './Icons';
+import { useAppContext } from '../context/AppContext';
 
 const BottomNav = React.memo(() => {
+  const { isQuizActive } = useAppContext();
+
+  if (isQuizActive) return null;
+
   const navItems = [
     { name: 'Home', icon: LayoutDashboard, path: '/dashboard' },
     { name: 'Quiz', icon: Brain, path: '/quiz' },

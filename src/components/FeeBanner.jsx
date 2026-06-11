@@ -5,11 +5,12 @@ import { CreditCard, ArrowRight, AlertTriangle, CheckCircle2 } from './Icons';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const FeeBanner = () => {
-  const { feeDetails, userProfile } = useAppContext();
+  const { feeDetails, userProfile, isQuizActive } = useAppContext();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Don't show if already paid or on certain pages
+  if (isQuizActive) return null;
+
   const isDashboard = location.pathname === '/';
   const isSettings = location.pathname === '/settings';
   const isPayments = location.pathname === '/payments';
