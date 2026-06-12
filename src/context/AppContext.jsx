@@ -7,28 +7,32 @@ import { supabase } from '../utils/supabase';
 const AppContext = createContext();
 
 export function AppProvider({ children }) {
-  const [session, setSession] = useState({ user: { id: 'dev-user', email: 'dev@apexscholars.com' } });
-  const [loadingAuth, setLoadingAuth] = useState(false);
+  const [session, setSession] = useState(null);
+  const [userProfile, setUserProfile] = useState(null);
+  const [loadingAuth, setLoadingAuth] = useState(true);
+  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  const [darkMode, setDarkMode] = useState(() => {
+    try {
+      const saved = localStorage.getItem('darkMode');
+      return saved ? JSON.parse(saved) : false;
+    } catch (e) { return false; }
+  });
 
   // --- DATA HYDRATION UTILITIES ---
-  const safeGetItem = (key, fallback) => {
-    try {
-      const saved = localStorage.getItem(key);
-      return saved ? JSON.parse(saved) : fallback;
-    } catch (e) {
-      console.warn(`localStorage hydration failed for ${key}`, e);
-      return fallback;
-    }
-  };
-
   const [flashcards, setFlashcards] = useState(() => {
     return (Array.isArray(initialFlashcards) && Array.isArray(allBuiltInFlashcards))
       ? [...initialFlashcards, ...allBuiltInFlashcards]
       : [];
   });
 
-  const [richardsQuestions, setRichardsQuestions] = useState(() => safeGetItem('apex_richards_questions', []));
+  const [richardsQuestions, setRichardsQuestions] = useState(() => {
+    try {
+      const saved = localStorage.getItem('apex_richards_questions');
+      return saved ? JSON.parse(saved) : [];
+    } catch (e) { return []; }
+  });
 
+  // Combine and deduplicate flashcards
   const allFlashcards = useMemo(() => {
     const safeRichards = Array.isArray(richardsQuestions) ? richardsQuestions : [];
     const mappedRichards = safeRichards.map(q => ({
@@ -47,66 +51,80 @@ export function AppProvider({ children }) {
     });
   }, [flashcards, richardsQuestions]);
 
-  // Data Integrity Report
-  useEffect(() => {
-    const subjects = {};
-    allFlashcards.forEach(q => {
-      const s = q.subject || 'Unknown';
-      subjects[s] = (subjects[s] || 0) + 1;
-    });
-    console.log("--- APEX DATA INTEGRITY REPORT ---");
-    console.log("Total Valid Questions:", allFlashcards.length);
-    console.log("Questions By Subject:", subjects);
-    console.log("----------------------------------");
-  }, [allFlashcards]);
-
-  const [exams, setExams] = useState([]);
-  const [darkMode, setDarkMode] = useState(() => safeGetItem('darkMode', false));
-
-  const [studyStats, setStudyStats] = useState(() => safeGetItem('apex_study_stats', {
-    streak: 0, lastStudyDate: null, cardsStudied: 0, quizStreak: 0, maxQuizStreak: 0, milestone: 'Clinical Beginner', xp: 0, xpHistory: {}
-  }));
-
-  const [userProfile, setUserProfile] = useState({
-    fullName: 'Development User', email: 'dev@apexscholars.com', phone: '0800-DEV-MODE', department: 'Nursing Science', level: 'Year 3', isActivated: true, isAdmin: true, role: 'super_admin', subscriptionStatus: 'active', subscriptionExpiry: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString()
+  const [studyStats, setStudyStats] = useState(() => {
+    try {
+      const saved = localStorage.getItem('apex_study_stats');
+      return saved ? JSON.parse(saved) : {
+        streak: 0, lastStudyDate: null, cardsStudied: 0, quizStreak: 0, maxQuizStreak: 0, milestone: 'Clinical Beginner', xp: 0, xpHistory: {}
+      };
+    } catch (e) { return { streak: 0, xp: 0 }; }
   });
 
-  const [learningAnalytics, setLearningAnalytics] = useState(() => safeGetItem('apex_learning_analytics', {
-    weakTopics: [], recommendedRevision: [], dailyChallenge: { id: null, question: '', answer: '', completed: false, lastDate: null }
-  }));
+  // --- ROLE HELPERS ---
+  const rolePermissions = useMemo(() => {
+    const role = userProfile?.role || 'student';
+    return {
+      isStudent: true, // Everyone is a student basically
+      isAdministrator: ['administrator', 'super_admin'].includes(role),
+      isFinancialAdmin: ['financial_admin', 'super_admin'].includes(role),
+      isSuperAdmin: role === 'super_admin',
+      role
+    };
+  }, [userProfile]);
 
-  const [feeDetails, setFeeDetails] = useState({ totalFee: 150000, amountPaid: 0, currency: 'NGN', status: 'Unpaid' });
-  const [isOnline, setIsOnline] = useState(navigator.onLine);
+  // --- AUTH & PROFILE SYNC ---
+  useEffect(() => {
+    const initAuth = async () => {
+      if (!supabase) {
+        // Fallback for dev/missing keys
+        setUserProfile({
+          fullName: 'Development User',
+          email: 'dev@apexscholars.com',
+          role: 'super_admin',
+          isActivated: true,
+          subscriptionStatus: 'active'
+        });
+        setLoadingAuth(false);
+        return;
+      }
 
-  // --- QUIZ PERSISTENCE & GLOBAL STATE ---
-  const [isQuizActive, setIsQuizActive] = useState(false);
-  const [quizPreferences, setQuizPreferences] = useState(() => safeGetItem('apex_quiz_prefs', {
-    defaultCount: 10,
-    defaultTimer: 'OFF'
-  }));
+      const { data: { session } } = await supabase.auth.getSession();
+      setSession(session);
 
-  const [recoveredSession, setRecoveredSession] = useState(() => {
-    try {
-      const saved = localStorage.getItem('apex_quiz_session');
-      if (saved) {
-        const parsed = JSON.parse(saved);
-        const now = Date.now();
-        // 4 hour window
-        if (now - parsed.timestamp < 4 * 60 * 60 * 1000) {
-          return parsed.data;
+      if (session?.user) {
+        const { data: profile, error } = await supabase
+          .from('profiles')
+          .select('*')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile) {
+          setUserProfile(profile);
+          // Session protection check
+          const currentFingerprint = localStorage.getItem('apex_device_id') || 'unknown';
+          if (profile.device_fingerprint && profile.device_fingerprint !== currentFingerprint) {
+             console.warn("Session active on another device");
+             // Here we could trigger a logout or show a modal
+          }
         }
       }
-      return null;
-    } catch (e) { return null; }
-  });
+      setLoadingAuth(false);
+    };
 
+    initAuth();
+
+    const { data: { subscription } } = supabase?.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (!session) setUserProfile(null);
+    }) || { data: { subscription: null } };
+
+    return () => subscription?.unsubscribe();
+  }, []);
+
+  // --- PERSISTENCE ---
   useEffect(() => {
     localStorage.setItem('apex_study_stats', JSON.stringify(studyStats));
   }, [studyStats]);
-
-  useEffect(() => {
-    localStorage.setItem('apex_learning_analytics', JSON.stringify(learningAnalytics));
-  }, [learningAnalytics]);
 
   useEffect(() => {
     localStorage.setItem('darkMode', JSON.stringify(darkMode));
@@ -125,91 +143,18 @@ export function AppProvider({ children }) {
     };
   }, []);
 
-  const curriculumSubjects = useMemo(() => {
-    const subjects = new Set();
-    Object.values(CURRICULUM_MASTER || {}).forEach(year => {
-      Object.values(year || {}).forEach(semester => {
-        (semester || []).forEach(course => {
-          if (course && course.course) subjects.add(course.course);
-        });
-      });
-    });
-    return Array.from(subjects).sort();
-  }, []);
-
-  const saveQuizSession = useCallback((data) => {
-    if (data) {
-      localStorage.setItem('apex_quiz_session', JSON.stringify({
-        timestamp: Date.now(),
-        data
-      }));
-    } else {
-      localStorage.removeItem('apex_quiz_session');
-    }
-  }, []);
-
-  const clearRecoveredSession = useCallback(() => {
-    setRecoveredSession(null);
-    localStorage.removeItem('apex_quiz_session');
-  }, []);
-
-  const updateQuizPreferences = useCallback((prefs) => {
-    setQuizPreferences(prev => {
-      const updated = { ...prev, ...prefs };
-      localStorage.setItem('apex_quiz_prefs', JSON.stringify(updated));
-      return updated;
-    });
-  }, []);
-
   const value = useMemo(() => ({
-    session, loadingAuth,
+    session, userProfile, loadingAuth, ...rolePermissions,
     allFlashcards, flashcards: allFlashcards,
-    exams: exams || [],
-    studyStats: studyStats || {},
-    userProfile: userProfile || {},
-    darkMode,
-    feeDetails: feeDetails || {},
-    learningAnalytics: learningAnalytics || {},
+    studyStats, setStudyStats,
+    darkMode, toggleDarkMode: () => setDarkMode(!darkMode),
     isOnline,
-    curriculumSubjects: curriculumSubjects || [],
-    isQuizActive,
-    setIsQuizActive,
-    quizPreferences,
-    updateQuizPreferences,
-    recoveredSession,
-    saveQuizSession,
-    clearRecoveredSession,
-    updateQuizStats: (data) => {
-      if (!data) return;
-      setStudyStats(prev => {
-        const newStreak = data.quizStreak !== undefined ? data.quizStreak : prev.quizStreak;
-        const addedXp = data.xpAwarded || (data.correctQuestionId ? 10 : 0);
-        return {
-          ...prev,
-          xp: (prev.xp || 0) + addedXp,
-          quizStreak: newStreak,
-          maxQuizStreak: Math.max(prev.maxQuizStreak || 0, newStreak || 0),
-          milestone: data.milestone || prev.milestone
-        };
-      });
-    },
-    addRichardsQuestions: (qs) => {
-      if (!Array.isArray(qs)) return;
-      setRichardsQuestions(prev => {
-        const updated = [...prev, ...qs];
-        localStorage.setItem('apex_richards_questions', JSON.stringify(updated));
-        return updated;
-      });
-    },
-    updateCardProgress: (id) => {
-       if (!id) return;
-       setStudyStats(prev => ({ ...prev, cardsStudied: (prev.cardsStudied || 0) + 1 }));
-    },
-    incrementCardsStudied: () => {
-      setStudyStats(prev => ({ ...prev, cardsStudied: (prev.cardsStudied || 0) + 1 }));
-    },
-    toggleDarkMode: () => setDarkMode(!darkMode)
-  }), [session, loadingAuth, allFlashcards, exams, studyStats, userProfile, darkMode, feeDetails, learningAnalytics, isOnline, curriculumSubjects, isQuizActive, quizPreferences, recoveredSession, saveQuizSession, clearRecoveredSession, updateQuizPreferences]);
+    updateProfile: async (updates) => {
+       if (!supabase || !userProfile) return;
+       const { error } = await supabase.from('profiles').update(updates).eq('id', userProfile.id);
+       if (!error) setUserProfile(prev => ({ ...prev, ...updates }));
+    }
+  }), [session, userProfile, loadingAuth, rolePermissions, allFlashcards, studyStats, darkMode, isOnline]);
 
   return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
 }

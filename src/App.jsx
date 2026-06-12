@@ -1,20 +1,23 @@
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AppProvider } from './context/AppContext';
+import { AppProvider, useAppContext } from './context/AppContext';
 import Layout from './components/Layout';
 import ErrorBoundary from './components/ErrorBoundary';
 import { MotionConfig } from 'framer-motion';
 
-// Lazy load essential dashboard components
+// Lazy load components
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Flashcards = lazy(() => import('./pages/Flashcards'));
-const ExamTimetable = lazy(() => import('./pages/ExamTimetable'));
 const Quiz = lazy(() => import('./pages/Quiz'));
-const Papers = lazy(() => import('./pages/Papers'));
 const Payments = lazy(() => import('./pages/Payments'));
 const AdminFinance = lazy(() => import('./pages/AdminFinance'));
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard'));
 const Community = lazy(() => import('./pages/Community'));
 const Settings = lazy(() => import('./pages/Settings'));
+const Papers = lazy(() => import('./pages/Papers'));
+const ExamTimetable = lazy(() => import('./pages/ExamTimetable'));
+const Institution = lazy(() => import('./pages/Institution'));
+const Contribute = lazy(() => import('./pages/Contribute'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center h-screen bg-white dark:bg-slate-900">
@@ -22,35 +25,53 @@ const PageLoader = () => (
   </div>
 );
 
-// --- MAIN ROUTER ---
-// Bypassing all landing, auth, and activation gates for testing.
+// --- PROTECTED ROUTE HELPERS ---
+const ProtectedRoute = ({ children, permission }) => {
+  const { userProfile, loadingAuth, isAdministrator, isFinancialAdmin } = useAppContext();
 
-const AppRouter = () => (
-  <Suspense fallback={<PageLoader />}>
-    <Routes>
-      {/* Primary Experience Root */}
-      <Route element={<Layout />}>
-        <Route path="/" element={<Navigate to="/dashboard" replace />} />
-        <Route path="/dashboard" element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
-        <Route path="/flashcards" element={<ErrorBoundary><Flashcards /></ErrorBoundary>} />
-        <Route path="/quiz" element={<ErrorBoundary><Quiz /></ErrorBoundary>} />
-        <Route path="/exams" element={<ExamTimetable />} />
-        <Route path="/papers" element={<Papers />} />
-        <Route path="/community" element={<Community />} />
-        <Route path="/payments" element={<Payments />} />
-        <Route path="/settings" element={<Settings />} />
-        <Route path="/admin" element={<AdminFinance />} />
-        <Route path="/admin/finance" element={<AdminFinance />} />
-        <Route path="/admin/questions" element={<AdminFinance />} />
-        <Route path="/admin/analytics" element={<AdminFinance />} />
-        <Route path="/subject-mastery" element={<Quiz />} />
-      </Route>
+  if (loadingAuth) return <PageLoader />;
+  if (!userProfile) return <Navigate to="/dashboard" replace />;
 
-      {/* Fallback all unknown routes to dashboard */}
-      <Route path="*" element={<Navigate to="/dashboard" replace />} />
-    </Routes>
-  </Suspense>
-);
+  if (permission === 'admin' && !isAdministrator) return <Navigate to="/dashboard" replace />;
+  if (permission === 'finance' && !isFinancialAdmin) return <Navigate to="/dashboard" replace />;
+
+  return children;
+};
+
+const AppRouter = () => {
+  return (
+    <Suspense fallback={<PageLoader />}>
+      <Routes>
+        <Route element={<Layout />}>
+          <Route path="/" element={<Navigate to="/dashboard" replace />} />
+          <Route path="/dashboard" element={<ErrorBoundary><Dashboard /></ErrorBoundary>} />
+          <Route path="/contribute" element={<ErrorBoundary><Contribute /></ErrorBoundary>} />
+          <Route path="/flashcards" element={<ErrorBoundary><Flashcards /></ErrorBoundary>} />
+          <Route path="/quiz" element={<ErrorBoundary><Quiz /></ErrorBoundary>} />
+          <Route path="/exams" element={<ExamTimetable />} />
+          <Route path="/papers" element={<Papers />} />
+          <Route path="/community" element={<Community />} />
+          <Route path="/payments" element={<Payments />} />
+          <Route path="/settings" element={<Settings />} />
+          <Route path="/institution" element={<Institution />} />
+
+          {/* Admin Routes */}
+          <Route path="/admin" element={
+            <ProtectedRoute permission="admin">
+              <AdminDashboard />
+            </ProtectedRoute>
+          } />
+          <Route path="/admin/finance" element={
+            <ProtectedRoute permission="finance">
+              <AdminFinance />
+            </ProtectedRoute>
+          } />
+        </Route>
+        <Route path="*" element={<Navigate to="/dashboard" replace />} />
+      </Routes>
+    </Suspense>
+  );
+};
 
 function App() {
   return (
