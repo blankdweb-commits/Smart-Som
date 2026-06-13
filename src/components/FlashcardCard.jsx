@@ -102,7 +102,7 @@ const FlashcardCard = memo(({
           <div>
             <div className="flex justify-between items-start mb-6">
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] sm:text-xs font-black px-3 py-1 bg-medical-50 text-medical-600 dark:bg-medical-900/40 dark:text-medical-300 rounded-full uppercase tracking-[0.15em] border border-medical-100/50">
+                <span className="text-[10px] sm:text-xs font-black px-3 py-1 bg-medical-50 text-medical-600 shadow-[0_0_10px_rgba(16,185,129,0.2)] dark:bg-medical-900/40 dark:text-medical-300 rounded-full uppercase tracking-[0.15em] border border-medical-100/50">
                   {card.subject}
                 </span>
                 {isFullscreen && <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Exam Question Mode</span>}

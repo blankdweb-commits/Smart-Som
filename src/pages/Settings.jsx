@@ -12,13 +12,22 @@ import {
   Trash2,
   Info,
   CheckCircle2,
-  AlertCircle
+  AlertCircle,
+  Volume2,
+  VolumeX,
+  Sun,
+  Moon,
+  LayoutDashboard
 } from '../components/Icons';
 import { motion } from 'framer-motion';
 import Toast from '../components/Toast';
 
 const Settings = () => {
-  const { userProfile, updateProfile } = useAppContext();
+  const {
+    userProfile, updateProfile,
+    darkMode, toggleDarkMode,
+    soundEnabled, toggleSound
+  } = useAppContext();
   const navigate = useNavigate();
   const [toast, setToast] = useState(null);
 
@@ -35,11 +44,60 @@ const Settings = () => {
     <div className="space-y-8 pb-32 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <header>
         <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Settings</h1>
-        <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Manage your study portal configuration.</p>
+        <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Personalize your clinical training environment.</p>
       </header>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
+
+          {/* Preferences Section */}
+          <section className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-8 shadow-clinical border border-slate-100 dark:border-slate-700">
+            <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-8 flex items-center gap-3">
+              <LayoutDashboard className="text-medical-600" size={24} />
+              Preferences
+            </h2>
+
+            <div className="space-y-4">
+              {/* Theme Toggle */}
+              <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-4">
+                  <div className={`p-2 rounded-xl ${darkMode ? 'bg-amber-100 text-amber-600' : 'bg-medical-100 text-medical-600'}`}>
+                    {darkMode ? <Sun size={20} /> : <Moon size={20} />}
+                  </div>
+                  <div>
+                    <p className="font-black text-slate-900 dark:text-white text-sm">Theme</p>
+                    <p className="text-[10px] text-slate-500 font-medium">{darkMode ? 'Light mode available' : 'Dark mode available'}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={toggleDarkMode}
+                  className={`px-6 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${darkMode ? 'bg-white text-slate-900 shadow-sm' : 'bg-slate-900 text-white'}`}
+                >
+                  {darkMode ? 'Switch to Light' : 'Switch to Dark'}
+                </button>
+              </div>
+
+              {/* Sound Toggle */}
+              <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800">
+                <div className="flex items-center gap-4">
+                  <div className={`p-2 rounded-xl ${soundEnabled ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
+                    {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
+                  </div>
+                  <div>
+                    <p className="font-black text-slate-900 dark:text-white text-sm">Sound Effects</p>
+                    <p className="text-[10px] text-slate-500 font-medium">{soundEnabled ? 'Interactive audio active' : 'Audio muted'}</p>
+                  </div>
+                </div>
+                <button
+                  onClick={toggleSound}
+                  className={`px-6 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${soundEnabled ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-200 text-slate-500'}`}
+                >
+                  {soundEnabled ? 'Enabled' : 'Disabled'}
+                </button>
+              </div>
+            </div>
+          </section>
+
           {/* Admin Access Section */}
           {userProfile.isAdmin && (
             <motion.section
@@ -69,29 +127,6 @@ const Settings = () => {
               </div>
             </motion.section>
           )}
-
-          <section className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-8 shadow-clinical border border-slate-100 dark:border-slate-700">
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-8 flex items-center gap-2">
-              <Key className="text-medical-600" size={24} />
-              Application Status
-            </h2>
-            <div className="space-y-6">
-              <p className="text-slate-600 dark:text-slate-400 leading-relaxed font-medium">
-                Apex Scholars is configured for local data persistence. Your study progress and flashcards are stored securely in your browser.
-              </p>
-
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl flex items-center gap-3 border border-slate-100 dark:border-slate-800">
-                  <Save className="text-medical-600" size={20} />
-                  <span className="text-sm font-bold text-slate-700 dark:text-slate-300">Auto-save Enabled</span>
-                </div>
-                <div className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl flex items-center gap-3 border border-slate-100 dark:border-slate-800">
-                  <Lock className="text-emerald-500" size={20} />
-                  <span className="text-sm font-bold text-slate-700 dark:text-slate-300">End-to-End Secure</span>
-                </div>
-              </div>
-            </div>
-          </section>
 
           <section className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-8 shadow-clinical border border-slate-100 dark:border-slate-700">
             <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-8">System Tools</h2>
