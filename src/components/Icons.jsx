@@ -68,7 +68,9 @@ import {
   Zap,
   XCircle,
   Target,
-  Timer
+  Timer,
+  Bookmark,
+  VolumeX
 } from 'lucide-react';
 
 export {
@@ -142,5 +144,7 @@ export {
   Zap,
   XCircle,
   Target,
-  Timer
+  Timer,
+  Bookmark,
+  VolumeX
 };
