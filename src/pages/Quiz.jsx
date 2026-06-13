@@ -352,8 +352,8 @@ const Quiz = () => {
       <div className="px-4">
         <div className="flex justify-between items-end mb-2">
            <span className="text-xs font-black text-slate-400 dark:text-white/40 uppercase tracking-widest">Question {currentQuestionIndex + 1} of {quizQuestions.length}</span>
-           <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${isRichard ? 'bg-indigo-500 text-white border-indigo-400 shadow-[0_0_15px_rgba(99,102,241,0.4)] animate-pulse' : 'bg-medical-50 dark:bg-white/5 text-medical-600 dark:text-medical-400 border-medical-100 dark:border-white/5'}`}>
-             SOURCE: {currentQ.source || (isRichard ? "RICHARD'S BANK" : "Apex Scholars Core Bank")}
+           <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${isRichard ? 'bg-indigo-500 text-white border-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.6)] animate-pulse' : 'bg-medical-50 dark:bg-white/5 text-medical-600 dark:text-medical-400 border-medical-100 dark:border-white/5'}`}>
+             SOURCE: {currentQ.source || (isRichard ? "Verified Source: Richard's Bank" : "Apex Scholars Core Bank")}
            </span>
         </div>
         <div className="h-3 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden border border-slate-200 dark:border-white/5">

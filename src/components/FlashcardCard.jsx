@@ -64,7 +64,7 @@ const FlashcardCard = memo(({
             <div className="flex justify-between items-start mb-6">
               <div className="flex flex-col gap-1">
                 <span className="text-[10px] sm:text-xs font-black px-3 py-1 bg-medical-50 text-medical-600 shadow-[0_0_10px_rgba(16,185,129,0.2)] dark:bg-medical-900/40 dark:text-medical-300 rounded-full uppercase tracking-[0.15em] border border-medical-100/50">{card.subject}</span>
-                {isRichard && <span className="px-3 py-1 bg-indigo-500 text-white rounded-full text-[8px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(99,102,241,0.4)]">Richard's Bank</span>}
+                {isRichard && <span className="px-3 py-1 bg-indigo-500 text-white rounded-full text-[8px] font-black uppercase tracking-widest shadow-[0_0_15px_rgba(99,102,241,0.6)] animate-pulse">Verified Source: Richard's Bank</span>}
               </div>
               <div className="flex space-x-2">
                 {!isStudyMode && (
