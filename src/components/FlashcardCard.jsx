@@ -1,11 +1,32 @@
-import React, { useState, memo } from 'react';
-import { Star, Edit2, Trash2, HelpCircle, Info, Share2, Volume2, Bookmark, CheckCircle2, XCircle } from './Icons';
+import React, { useState } from 'react';
 import { motion, useMotionValue, useTransform } from 'framer-motion';
+import {
+  Star,
+  Edit2,
+  Share2,
+  Trash2,
+  Volume2,
+  HelpCircle,
+  Info,
+  CheckCircle2,
+  XCircle,
+  Bookmark,
+  Zap,
+  RefreshCw
+} from './Icons';
 
-const FlashcardCard = memo(({
-  card, onEdit, onDelete, onToggleImportant, onShare,
-  isStudyMode = false, isFullscreen = false,
-  onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown
+const FlashcardCard = React.memo(({
+  card,
+  onEdit,
+  onDelete,
+  onShare,
+  onToggleImportant,
+  isStudyMode = false,
+  isFullscreen = false,
+  onSwipeLeft,
+  onSwipeRight,
+  onSwipeUp,
+  onSwipeDown
 }) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [showHint, setShowHint] = useState(false);
@@ -27,22 +48,21 @@ const FlashcardCard = memo(({
     const { offset } = info;
 
     if (Math.abs(offset.x) > Math.abs(offset.y)) {
-      if (offset.x < -threshold && onSwipeLeft) {
-        onSwipeLeft();
-      } else if (offset.x > threshold && onSwipeRight) {
-        onSwipeRight();
+      if (offset.x < -threshold) {
+        if (onSwipeLeft) onSwipeLeft();
+      } else if (offset.x > threshold) {
+        if (onSwipeRight) onSwipeRight();
       }
     } else {
-      if (offset.y < -threshold && onSwipeUp) {
-        onSwipeUp();
-      } else if (offset.y > threshold && onSwipeDown) {
-        // Show rationale (flip) on swipe down
-        if (!isFlipped) {
-          setIsFlipped(true);
-        }
+      if (offset.y < -threshold) {
+        if (onSwipeUp) onSwipeUp();
+      } else if (offset.y > threshold) {
+        if (!isFlipped) setIsFlipped(true);
         if (onSwipeDown) onSwipeDown();
       }
     }
+    x.set(0);
+    y.set(0);
   };
 
   const handleFlip = () => {
@@ -71,17 +91,43 @@ const FlashcardCard = memo(({
         handleFlip();
       }}
     >
-      {/* Gesture Overlays */}
+      {/* Gesture Overlays & Indicators */}
       {isStudyMode && (
          <>
-            <motion.div style={{ opacity: useTransform(x, [0, 100], [0, 1]) }} className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center bg-emerald-500/10 rounded-[2rem]">
-               <CheckCircle2 size={100} className="text-emerald-500 opacity-50" />
+            {/* RIGHT -> MASTERED */}
+            <motion.div
+               style={{ opacity: useTransform(x, [0, 100], [0, 1]) }}
+               className="absolute inset-0 z-30 pointer-events-none flex flex-col items-center justify-center bg-emerald-500/20 rounded-[2rem] border-4 border-emerald-500/50"
+            >
+               <CheckCircle2 size={80} className="text-emerald-500 mb-2" />
+               <span className="text-xl font-black text-emerald-600 uppercase tracking-widest">Mastered</span>
             </motion.div>
-            <motion.div style={{ opacity: useTransform(x, [0, -100], [0, 1]) }} className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center bg-red-500/10 rounded-[2rem]">
-               <XCircle size={100} className="text-red-500 opacity-50" />
+
+            {/* LEFT -> REVIEW */}
+            <motion.div
+               style={{ opacity: useTransform(x, [0, -100], [0, 1]) }}
+               className="absolute inset-0 z-30 pointer-events-none flex flex-col items-center justify-center bg-red-500/20 rounded-[2rem] border-4 border-red-500/50"
+            >
+               <RefreshCw size={80} className="text-red-500 mb-2" />
+               <span className="text-xl font-black text-red-600 uppercase tracking-widest">Review Later</span>
             </motion.div>
-            <motion.div style={{ opacity: useTransform(y, [0, -100], [0, 1]) }} className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center bg-amber-500/10 rounded-[2rem]">
-               <Bookmark size={100} className="text-amber-500 opacity-50" />
+
+            {/* UP -> BOOKMARK */}
+            <motion.div
+               style={{ opacity: useTransform(y, [0, -100], [0, 1]) }}
+               className="absolute inset-0 z-30 pointer-events-none flex flex-col items-center justify-center bg-amber-500/20 rounded-[2rem] border-4 border-amber-500/50"
+            >
+               <Bookmark size={80} className="text-amber-500 mb-2" />
+               <span className="text-xl font-black text-amber-600 uppercase tracking-widest">Bookmarked</span>
+            </motion.div>
+
+            {/* DOWN -> RATIONALE */}
+            <motion.div
+               style={{ opacity: useTransform(y, [0, 100], [0, 1]) }}
+               className="absolute inset-0 z-30 pointer-events-none flex flex-col items-center justify-center bg-indigo-500/20 rounded-[2rem] border-4 border-indigo-500/50"
+            >
+               <Zap size={80} className="text-indigo-500 mb-2" />
+               <span className="text-xl font-black text-indigo-600 uppercase tracking-widest">Show Rationale</span>
             </motion.div>
          </>
       )}
@@ -105,7 +151,6 @@ const FlashcardCard = memo(({
                 <span className="text-[10px] sm:text-xs font-black px-3 py-1 bg-medical-50 text-medical-600 shadow-[0_0_10px_rgba(16,185,129,0.2)] dark:bg-medical-900/40 dark:text-medical-300 rounded-full uppercase tracking-[0.15em] border border-medical-100/50">
                   {card.subject}
                 </span>
-                {isFullscreen && <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Exam Question Mode</span>}
               </div>
               <div className="flex space-x-2">
                 {!isStudyMode && (
@@ -146,9 +191,13 @@ const FlashcardCard = memo(({
                 </button>
               </div>
             </div>
-            <p className="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 font-bold mb-1 uppercase">
-              {card.topic} • SOURCE: {card.source || "Apex Scholars Core Bank"}
-            </p>
+
+            <div className="flex justify-center mb-4">
+               <div className="px-4 py-1.5 bg-indigo-500/10 text-indigo-500 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] animate-pulse shadow-[0_0_10px_rgba(99,102,241,0.3)] border border-indigo-500/20">
+                  SOURCE: {card.source || "RICHARD’S BANK"}
+               </div>
+            </div>
+
             <h3 className={`${isFullscreen ? 'text-2xl sm:text-5xl' : 'text-lg sm:text-xl'} font-black text-slate-900 dark:text-white mt-4 sm:mt-8 leading-tight text-center tracking-tight drop-shadow-sm px-2`}>
               {card.question}
             </h3>
