@@ -27,7 +27,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { generateReceipt } from '../components/ReceiptSystem';
 
-const AdminFinance = () => {
+const AdminFinance =  () => {
   const {
     transactions,
     feeDetails,
@@ -907,4 +907,4 @@ const AdminStatCard = ({ title, value, icon, color }) => (
   </div>
 );
 
-export default AdminFinance;
+export default React.memo(AdminFinance);
