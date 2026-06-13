@@ -1,27 +1,47 @@
 import React, { useState, memo } from 'react';
-import { Star, Edit2, Trash2, HelpCircle, Info, Share2, Volume2 } from './Icons';
-import { motion, useMotionValue, useTransform } from 'framer-motion'; // eslint-disable-line no-unused-vars
+import { Star, Edit2, Trash2, HelpCircle, Info, Share2, Volume2, Bookmark, CheckCircle2, XCircle } from './Icons';
+import { motion, useMotionValue, useTransform } from 'framer-motion';
 
 const FlashcardCard = memo(({
   card, onEdit, onDelete, onToggleImportant, onShare,
   isStudyMode = false, isFullscreen = false,
-  onSwipeLeft, onSwipeRight
+  onSwipeLeft, onSwipeRight, onSwipeUp, onSwipeDown
 }) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [showHint, setShowHint] = useState(false);
 
   // Swipe logic
   const x = useMotionValue(0);
+  const y = useMotionValue(0);
   const rotate = useTransform(x, [-200, 200], [-25, 25]);
-  const opacity = useTransform(x, [-200, -150, 0, 150, 200], [0, 1, 1, 1, 0]);
+  const opacity = useTransform(
+    [x, y],
+    ([latestX, latestY]) => {
+      const distance = Math.sqrt(latestX * latestX + latestY * latestY);
+      return Math.max(1 - distance / 500, 0.5);
+    }
+  );
 
   const handleDragEnd = (event, info) => {
-    // Requires a larger swipe for desktop but keeps it sensitive for mobile
-    const threshold = window.innerWidth < 768 ? 80 : 150;
-    if (info.offset.x < -threshold && onSwipeLeft) {
-      onSwipeLeft();
-    } else if (info.offset.x > threshold && onSwipeRight) {
-      onSwipeRight();
+    const threshold = 100;
+    const { offset } = info;
+
+    if (Math.abs(offset.x) > Math.abs(offset.y)) {
+      if (offset.x < -threshold && onSwipeLeft) {
+        onSwipeLeft();
+      } else if (offset.x > threshold && onSwipeRight) {
+        onSwipeRight();
+      }
+    } else {
+      if (offset.y < -threshold && onSwipeUp) {
+        onSwipeUp();
+      } else if (offset.y > threshold && onSwipeDown) {
+        // Show rationale (flip) on swipe down
+        if (!isFlipped) {
+          setIsFlipped(true);
+        }
+        if (onSwipeDown) onSwipeDown();
+      }
     }
   };
 
@@ -41,17 +61,31 @@ const FlashcardCard = memo(({
 
   return (
     <motion.div
-      style={{ x, rotate, opacity, touchAction: 'none' }}
-      drag={isStudyMode ? "x" : false}
-      dragConstraints={{ left: 0, right: 0 }}
+      style={{ x, y, rotate, opacity, touchAction: 'none' }}
+      drag={isStudyMode}
+      dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
       onDragEnd={handleDragEnd}
       className={`relative ${isFullscreen ? 'h-full flex items-center justify-center' : 'h-80 sm:h-64'} w-full cursor-pointer group flashcard-container active:scale-[0.98] transition-transform`}
       onClick={() => {
-        // Prevent flip if we just dragged
-        if (isStudyMode && Math.abs(x.get()) > 5) return;
+        if (isStudyMode && (Math.abs(x.get()) > 5 || Math.abs(y.get()) > 5)) return;
         handleFlip();
       }}
     >
+      {/* Gesture Overlays */}
+      {isStudyMode && (
+         <>
+            <motion.div style={{ opacity: useTransform(x, [0, 100], [0, 1]) }} className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center bg-emerald-500/10 rounded-[2rem]">
+               <CheckCircle2 size={100} className="text-emerald-500 opacity-50" />
+            </motion.div>
+            <motion.div style={{ opacity: useTransform(x, [0, -100], [0, 1]) }} className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center bg-red-500/10 rounded-[2rem]">
+               <XCircle size={100} className="text-red-500 opacity-50" />
+            </motion.div>
+            <motion.div style={{ opacity: useTransform(y, [0, -100], [0, 1]) }} className="absolute inset-0 z-20 pointer-events-none flex items-center justify-center bg-amber-500/10 rounded-[2rem]">
+               <Bookmark size={100} className="text-amber-500 opacity-50" />
+            </motion.div>
+         </>
+      )}
+
       <div className={`flashcard-inner w-full h-full ${isFlipped ? 'flipped' : ''} transition-all duration-500 ease-out`}>
         {/* Front */}
         <div className={`flashcard-front absolute inset-0 bg-white dark:bg-slate-800 ${isFullscreen ? 'rounded-[2rem] sm:rounded-[2.5rem] shadow-clinical border-4 border-medical-500/20' : 'rounded-[2rem] shadow-premium border border-slate-100 dark:border-slate-700'} p-5 sm:p-12 flex flex-col justify-between overflow-hidden transition-all duration-500`}>
@@ -68,7 +102,7 @@ const FlashcardCard = memo(({
           <div>
             <div className="flex justify-between items-start mb-6">
               <div className="flex flex-col gap-1">
-                <span className="text-[10px] sm:text-xs font-black px-3 py-1 bg-medical-50 text-medical-600 dark:bg-medical-900/40 dark:text-medical-300 rounded-full uppercase tracking-[0.15em] border border-medical-100/50">
+                <span className="text-[10px] sm:text-xs font-black px-3 py-1 bg-medical-50 text-medical-600 shadow-[0_0_10px_rgba(16,185,129,0.2)] dark:bg-medical-900/40 dark:text-medical-300 rounded-full uppercase tracking-[0.15em] border border-medical-100/50">
                   {card.subject}
                 </span>
                 {isFullscreen && <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest ml-1">Exam Question Mode</span>}
@@ -112,7 +146,9 @@ const FlashcardCard = memo(({
                 </button>
               </div>
             </div>
-            <p className="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 font-bold mb-1 uppercase">{card.topic}</p>
+            <p className="text-[10px] sm:text-xs text-slate-400 dark:text-slate-500 font-bold mb-1 uppercase">
+              {card.topic} • SOURCE: {card.source || "Apex Scholars Core Bank"}
+            </p>
             <h3 className={`${isFullscreen ? 'text-2xl sm:text-5xl' : 'text-lg sm:text-xl'} font-black text-slate-900 dark:text-white mt-4 sm:mt-8 leading-tight text-center tracking-tight drop-shadow-sm px-2`}>
               {card.question}
             </h3>

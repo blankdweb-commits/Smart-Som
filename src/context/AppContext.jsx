@@ -12,6 +12,10 @@ export function AppProvider({ children }) {
 
   const [flashcards, setFlashcards] = useState([...initialFlashcards, ...allBuiltInFlashcards]);
   const [exams, setExams] = useState([]);
+  const [soundEnabled, setSoundEnabled] = useState(() => {
+    const saved = localStorage.getItem('soundEnabled');
+    return saved ? JSON.parse(saved) : true;
+  });
   const [darkMode, setDarkMode] = useState(() => {
     const saved = localStorage.getItem('darkMode');
     return saved ? JSON.parse(saved) : false;
@@ -230,6 +234,10 @@ export function AppProvider({ children }) {
     if (!error) setUserProfile(prev => ({ ...prev, ...data }));
   };
 
+  const toggleSound = () => {
+    setSoundEnabled(!soundEnabled);
+    localStorage.setItem('soundEnabled', JSON.stringify(!soundEnabled));
+  };
   const toggleDarkMode = () => {
     setDarkMode(!darkMode);
     localStorage.setItem('darkMode', JSON.stringify(!darkMode));
@@ -373,7 +381,7 @@ export function AppProvider({ children }) {
       exams,
       studyStats,
       userProfile, updateProfile,
-      darkMode, toggleDarkMode,
+      darkMode, toggleDarkMode, toggleSound, soundEnabled, setSoundEnabled,
       transactions, auditLogs, feeDetails,
       subscriptionPlans, paymentPurposes,
       learningAnalytics,
