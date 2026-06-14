@@ -35,24 +35,36 @@ const MILESTONES = [
   { q: 30, label: 'Clinical Legend', reward: 'Legendary Status' }
 ];
 
+const getSpeedTimerValue = (index) => {
+  if (index < 5) return 20;
+  if (index < 10) return 18;
+  return 15;
+};
+
 const Quiz = () => {
   const { flashcards, studyStats, updateQuizStats, darkMode } = useAppContext();
 
   const [quizMode, setQuizMode] = useState(null);
   const [quizStarted, setQuizStarted] = useState(false);
+  const [quizQuestions, setQuizQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [score, setScore] = useState(0);
   const [showResults, setShowResults] = useState(false);
+
   const [selectedOption, setSelectedOption] = useState(null);
   const [attempts, setAttempts] = useState(0);
   const [showHint, setShowHint] = useState(false);
   const [showRationale, setShowRationale] = useState(false);
   const [isCorrect, setIsCorrect] = useState(null);
+  const [showRationale, setShowRationale] = useState(false);
+  const [showHint, setShowHint] = useState(false);
+  const [timeLeft, setTimeLeft] = useState(30);
   const [eliminatedOptions, setEliminatedOptions] = useState([]);
   const [lifelinesUsed, setLifelinesUsed] = useState({ hint: false, fiftyFifty: false, askClass: false });
   const [classPoll, setClassPoll] = useState(null);
   const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
+  const [currentMilestone, setCurrentMilestone] = useState("Clinical Beginner");
 
   // Speed Challenge Specific
   const [timeLeft, setTimeLeft] = useState(20);
@@ -105,31 +117,26 @@ const Quiz = () => {
       interval = setInterval(() => {
         setTimeLeft(prev => prev - 1);
       }, 1000);
-    } else if (timeLeft === 0 && activeTimer && quizStarted && !showResults && !showRationale) {
-      handleTimeOut();
     }
 
     return () => clearInterval(interval);
   }, [timeLeft, quizStarted, showResults, showRationale, isFinalAnswer, quizMode, useTimer, handleTimeOut]);
 
-  const getSpeedTimerValue = (index) => {
-    if (index < 5) return 20;
-    if (index < 10) return 18;
-    return 15;
-  };
+  const updateQuizStats = useCallback((updates) => {
+    setStudyStats(prev => ({ ...prev, ...updates }));
+  }, [setStudyStats]);
 
   // Quiz Initialization
   const initQuiz = (mode, subject = null) => {
     if (!flashcards || flashcards.length === 0) return;
     let pool = [...flashcards];
-    if (subject) {
-      pool = pool.filter(c => c.subject === subject);
+    if (subjectFilter) {
+      pool = pool.filter(c => c.subject === subjectFilter);
     }
+    if (pool.length === 0) return;
 
-    if (pool.length < 4) {
-      alert("Not enough questions in this category.");
-      return;
-    }
+    const seen = new Set();
+    const uniquePool = pool.filter(c => seen.has(c.question) ? false : seen.add(c.question));
 
     let limit = mode === 'speed' ? 395 : (questionLimit || 10);
     const shuffled = pool.sort(() => 0.5 - Math.random());
@@ -137,18 +144,12 @@ const Quiz = () => {
 
     const questions = selected.map(card => {
       const distractors = flashcards
-        .filter(c => c.id !== card.id)
+        .filter(c => c.id !== card.id && c.answer !== card.answer)
         .sort(() => 0.5 - Math.random())
         .slice(0, 3)
         .map(c => c.answer);
-
       const options = [card.answer, ...distractors].sort(() => 0.5 - Math.random());
-
-      return {
-        ...card,
-        options,
-        correctAnswer: card.answer
-      };
+      return { ...card, options, correctAnswer: card.answer };
     });
 
     setQuizQuestions(questions);
@@ -158,14 +159,12 @@ const Quiz = () => {
     setScore(0);
     setShowResults(false);
     setSelectedOption(null);
-    setAttempts(0);
     setShowHint(false);
     setShowRationale(false);
     setIsCorrect(null);
     setEliminatedOptions([]);
     setLifelinesUsed({ hint: false, fiftyFifty: false, askClass: false });
     setClassPoll(null);
-    setConsecutiveCorrect(0);
     setIsFinalAnswer(false);
     setHighestMilestone("None");
     setSafetyNetScore(0);
@@ -183,12 +182,11 @@ const Quiz = () => {
   const handleOptionClick = (option) => {
     if (showRationale || showResults) return;
     if (eliminatedOptions.includes(option)) return;
-    setSelectedOption(option);
-
-    if (quizMode === 'speed' || quizMode === 'clinical') {
-      setIsFinalAnswer(true);
+    if (selectedOption === option) {
+       confirmAnswer(option);
     } else {
-      confirmAnswer(option);
+       setSelectedOption(option);
+       setIsFinalAnswer(true);
     }
   };
 
@@ -198,7 +196,6 @@ const Quiz = () => {
     const correct = opt === currentQ.correctAnswer;
     setIsCorrect(correct);
     setIsFinalAnswer(false);
-
     if (correct) {
       const newScore = score + 1;
       setScore(newScore);
@@ -207,32 +204,15 @@ const Quiz = () => {
       if (newScore === 10) setSafetyNetScore(10);
 
       const milestone = MILESTONES.find(m => m.q === newScore);
-      if (milestone) setHighestMilestone(milestone.label);
-
-      setConsecutiveCorrect(prev => {
-        const next = prev + 1;
-        if (next >= 5) {
-          restoreLifeline();
-          return 0;
-        }
-        return next;
-      });
-      setShowRationale(true);
+      if (milestone) setCurrentMilestone(milestone.label);
+      setConsecutiveCorrect(prev => prev + 1);
       updateQuizStats({ quizStreak: (studyStats.quizStreak || 0) + 1 });
     } else {
       setConsecutiveCorrect(0);
       setShowRationale(true);
       updateQuizStats({ quizStreak: 0 });
     }
-  };
-
-  const restoreLifeline = () => {
-    setLifelinesUsed(prev => {
-      if (prev.fiftyFifty) return { ...prev, fiftyFifty: false };
-      if (prev.hint) return { ...prev, hint: false };
-      if (prev.askClass) return { ...prev, askClass: false };
-      return prev;
-    });
+    setShowRationale(true);
   };
 
   const nextQuestion = () => {
@@ -240,12 +220,10 @@ const Quiz = () => {
        setShowResults(true);
        return;
     }
-
     if (currentQuestionIndex < quizQuestions.length - 1) {
       const nextIdx = currentQuestionIndex + 1;
       setCurrentQuestionIndex(nextIdx);
       setSelectedOption(null);
-      setAttempts(0);
       setShowHint(false);
       setShowRationale(false);
       setIsCorrect(null);
@@ -703,33 +681,17 @@ const Quiz = () => {
                       <p className="text-sm font-bold text-slate-700 dark:text-slate-300 leading-snug italic">"{currentQ?.hint || 'Focus on the physiological foundation and the primary action that ensures long-term stability.'}"</p>
                    </div>
                 </div>
-
-                <button onClick={nextQuestion} className="w-full py-6 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-[2rem] font-black uppercase tracking-[0.3em] text-xs shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-4 hover:gap-6">
-                   {currentQuestionIndex < quizQuestions.length - 1 ? 'Next Challenge' : 'Complete Quiz'}
-                   <ArrowRight size={20} />
-                </button>
+                <button onClick={nextQuestion} className="w-full py-6 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-[2rem] font-black uppercase tracking-[0.3em] text-xs shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-4 hover:gap-6">{currentQuestionIndex < quizQuestions.length - 1 ? 'Next Challenge' : 'Complete Quiz'} <ArrowRight size={20} /></button>
              </motion.div>
           </div>
         )}
       </AnimatePresence>
-
-      {/* Mentor Clue (Hint Modal) */}
       <AnimatePresence>
         {showHint && !showRationale && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-             <motion.div
-               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-               className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm"
-               onClick={() => setShowHint(false)}
-             />
-             <motion.div
-               initial={{ scale: 0.8, opacity: 0 }}
-               animate={{ scale: 1, opacity: 1 }}
-               className="relative w-full max-w-md bg-white dark:bg-slate-800 p-10 rounded-[3rem] shadow-2xl border border-slate-100 dark:border-slate-700 text-center"
-             >
-                <div className="w-20 h-20 bg-medical-50 text-medical-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner">
-                   <Target size={40} />
-                </div>
+             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={() => setShowHint(false)} />
+             <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative w-full max-w-md bg-white dark:bg-slate-800 p-10 rounded-[3rem] shadow-2xl border border-slate-100 dark:border-slate-700 text-center">
+                <div className="w-20 h-20 bg-medical-50 text-medical-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner"><Target size={40} /></div>
                 <h4 className="text-2xl font-black text-slate-900 dark:text-white mb-3">Mentor Strategy</h4>
                 <p className="text-slate-600 dark:text-slate-300 font-medium italic text-lg leading-relaxed mb-10">
                    "{currentQ?.hint || 'Prioritize patient safety and focus on the intervention that addresses the root cause of the clinical presentation.'}"
@@ -752,81 +714,40 @@ const ModeCard = ({ title, desc, icon, duration, timer, color, onClick }) => {
     indigo: 'hover:border-indigo-500 group-hover:text-indigo-500 bg-indigo-500/10 text-indigo-600',
     emerald: 'hover:border-emerald-500 group-hover:text-emerald-500 bg-emerald-500/10 text-emerald-600'
   };
-
   return (
-    <button
-      onClick={onClick}
-      className={`p-8 bg-white dark:bg-slate-800 rounded-[2.5rem] border-2 border-slate-100 dark:border-slate-700 transition-all text-left group active:scale-95 flex flex-col justify-between min-h-[260px] shadow-sm hover:shadow-xl ${colors[color].split(' ')[0]}`}
-    >
+    <button onClick={onClick} className={`p-8 bg-white dark:bg-slate-800 rounded-[2.5rem] border-2 border-slate-100 dark:border-slate-700 transition-all text-left group active:scale-95 flex flex-col justify-between min-h-[260px] shadow-sm hover:shadow-xl ${colors[color].split(' ')[0]}`}>
       <div>
-        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-8 transition-all group-hover:scale-110 shadow-inner ${colors[color].split(' ').pop()} ${colors[color].split(' ')[1]}`}>
-          {icon}
-        </div>
+        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-8 transition-all group-hover:scale-110 shadow-inner ${colors[color].split(' ').pop()} ${colors[color].split(' ')[1]}`}>{icon}</div>
         <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2 tracking-tight group-hover:translate-x-1 transition-transform">{title}</h3>
         <p className="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed">{desc}</p>
       </div>
       <div className="flex gap-4 mt-8">
-         <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-400 tracking-wider">
-            <Clock size={12} /> {duration}
-         </div>
-         <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-400 tracking-wider">
-            <Timer size={12} /> {timer}
-         </div>
+         <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-400 tracking-wider"><Clock size={12} /> {duration}</div>
+         <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-400 tracking-wider"><Timer size={12} /> {timer}</div>
       </div>
     </button>
   );
 };
 
 const LifelineButton = ({ icon, label, used, onClick, dark }) => (
-  <button
-    disabled={used}
-    onClick={onClick}
-    className={`flex flex-col items-center justify-center p-5 rounded-2xl border-2 transition-all active:scale-90 shadow-sm
-      ${used
-        ? (dark ? 'bg-white/5 border-white/5 text-white/10' : 'bg-slate-50 border-slate-100 text-slate-200')
-        : (dark ? 'bg-white/10 border-white/10 text-amber-500 hover:border-amber-400 hover:bg-white/20' : 'bg-white border-slate-100 text-medical-600 hover:border-medical-500 hover:bg-medical-50')
-      }`}
-  >
-    {React.cloneElement(icon, { size: 24 })}
-    <span className="text-[9px] font-black uppercase tracking-[0.2em] mt-3">{label}</span>
-  </button>
+  <button disabled={used} onClick={onClick} className={`flex flex-col items-center justify-center p-5 rounded-2xl border-2 transition-all active:scale-90 shadow-sm ${used ? (dark ? 'bg-white/5 border-white/5 text-white/10' : 'bg-slate-50 border-slate-100 text-slate-200') : (dark ? 'bg-white/10 border-white/10 text-amber-500 hover:border-amber-400 hover:bg-white/20' : 'bg-white border-slate-100 text-medical-600 hover:border-medical-500 hover:bg-medical-50')}`}>{React.cloneElement(icon, { size: 24 })}<span className="text-[9px] font-black uppercase tracking-[0.2em] mt-3">{label}</span></button>
 );
 
 const OptionButton = ({ label, index, state, pollValue, onClick, disabled, dark, isSpeed }) => {
   const letters = ['A', 'B', 'C', 'D'];
-
   let baseStyles = dark ? 'bg-white/5 border-white/10 text-white/80 hover:bg-white/10' : 'bg-white border-slate-100 text-slate-700 hover:border-medical-500 hover:shadow-md';
-
   if (state === 'selected') baseStyles = dark ? 'bg-amber-500/20 border-amber-500 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.3)]' : 'bg-medical-50 border-medical-500 text-medical-700 shadow-md';
   if (state === 'correct') baseStyles = 'bg-emerald-500/20 border-emerald-500 text-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]';
   if (state === 'wrong') baseStyles = 'bg-red-500/20 border-red-500 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.4)]';
   if (state === 'eliminated') baseStyles = 'opacity-10 grayscale pointer-events-none scale-95';
-
   return (
-    <button
-      disabled={disabled}
-      onClick={onClick}
-      className={`w-full relative flex items-center p-6 rounded-3xl border-2 transition-all duration-300 overflow-hidden ${baseStyles} active:scale-98 min-h-[80px]`}
-    >
+    <button disabled={disabled} onClick={onClick} className={`w-full relative flex items-center p-6 rounded-3xl border-2 transition-all duration-300 overflow-hidden ${baseStyles} active:scale-98 min-h-[80px]`}>
       <div className="flex items-center gap-5 w-full relative z-10">
-         <span className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm border-2 ${state === 'selected' ? 'bg-amber-500 border-amber-400 text-white' : (dark ? 'bg-white/10 border-white/20 text-white/40' : 'bg-slate-100 border-slate-200 text-slate-400')}`}>
-            {letters[index]}
-         </span>
+         <span className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm border-2 ${state === 'selected' ? 'bg-amber-500 border-amber-400 text-white' : (dark ? 'bg-white/10 border-white/20 text-white/40' : 'bg-slate-100 border-slate-200 text-slate-400')}`}>{letters[index]}</span>
          <span className={`flex-1 font-bold text-left leading-snug pr-2 ${isSpeed ? 'text-[11px] sm:text-base' : 'text-base'}`}>{label}</span>
-         {pollValue !== undefined && (
-            <div className="text-right shrink-0">
-               <p className="text-xl font-black tabular-nums">{pollValue}%</p>
-               <div className="w-14 h-1.5 bg-white/20 rounded-full overflow-hidden mt-1">
-                  <div className="h-full bg-medical-500" style={{ width: `${pollValue}%` }} />
-               </div>
-            </div>
-         )}
+         {pollValue !== undefined && <div className="text-right shrink-0"><p className="text-xl font-black tabular-nums">{pollValue}%</p><div className="w-14 h-1.5 bg-white/20 rounded-full overflow-hidden mt-1"><div className="h-full bg-medical-500" style={{ width: `${pollValue}%` }} /></div></div>}
       </div>
-      {state === 'correct' && (
-        <motion.div initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} className="absolute right-0 top-0 p-6 text-emerald-500/20">
-          <CheckCircle2 size={80} />
-        </motion.div>
-      )}
+      {state === 'correct' && <motion.div initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} className="absolute right-0 top-0 p-6 text-emerald-500/20"><CheckCircle2 size={80} /></motion.div>}
     </button>
   );
 };

@@ -21,17 +21,16 @@ const SRSButton = ({ label, sublabel, color, onClick }) => (
 );
 
 const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
-  const { flashcards, exams, userProfile, addFlashcard, updateFlashcard, deleteFlashcard, incrementCardsStudied, updateCardProgress, importFlashcards } = useAppContext();
+  const { flashcards, userProfile, addFlashcard, updateFlashcard, deleteFlashcard, updateCardProgress } = useAppContext();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
 
   const DEV_MODE =  (import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true');
   const isActivated = userProfile.isActivated || userProfile.subscriptionStatus === 'grace' || DEV_MODE;
 
-  // Navigation State
-  const [currentProgram, setCurrentProgram] = useState(null); // 'General Nursing' or 'Midwifery'
-  const [currentLevel, setCurrentLevel] = useState(null); // 'Year 1', etc.
-  const [currentSemester, setCurrentSemester] = useState(null); // 'Semester 1', etc.
+  const [currentProgram, setCurrentProgram] = useState(null);
+  const [currentLevel, setCurrentLevel] = useState(null);
+  const [currentSemester, setCurrentSemester] = useState(null);
   const [currentSubject, setCurrentSubject] = useState(null);
 
   const [expandedUnits, setExpandedUnits] = useState({});
@@ -59,9 +58,8 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   const [isShareModalOpen, setIsShareModalOpen] = useState(false);
   const [shareData, setShareData] = useState(null);
   const [editingCard, setEditingCard] = useState(null);
-  const [viewMode, setViewMode] = useState('list'); // 'list' or 'study'
+  const [viewMode, setViewMode] = useState('list');
   const [searchTerm, setSearchTerm] = useState('');
-  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [filterDifficulty, setFilterDifficulty] = useState('All');
 
   useEffect(() => {
@@ -76,9 +74,7 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   const [shuffledCards, setShuffledCards] = useState([]);
   const [toast, setToast] = useState(null);
   const [visibleCount, setVisibleCount] = useState(12);
-  const [isUploading, setIsUploading] = useState(false);
 
-  // Derive hierarchy options
   const categoryCards = useMemo(() => {
     if (initialCategory !== 'Academic') {
       return flashcards.filter(c => c.category === initialCategory);
@@ -92,10 +88,8 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
         return c.program === programSlug || (programSlug === 'general-nursing' && c.program === 'nd-nursing');
       }
       const subject = c.subject || '';
-      if (currentProgram === 'Midwifery') {
-        return subject.toLowerCase().includes('midwifery') || c.category === initialCategory;
-      }
-      return !subject.toLowerCase().includes('midwifery') || c.category === initialCategory;
+      if (currentProgram === 'Midwifery') return subject.toLowerCase().includes('midwifery');
+      return !subject.toLowerCase().includes('midwifery');
     });
   }, [flashcards, initialCategory, currentProgram]);
 
@@ -164,7 +158,6 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
     setShuffledCards(cardsToStudy);
     setStudyIndex(0);
     setViewMode('study');
-    incrementCardsStudied();
   };
 
   const handleNext = (quality = null) => {
@@ -353,6 +346,7 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
             {currentSemester && <><div className="w-1 h-1 rounded-full bg-slate-300 mx-1" /><span>{currentSemester}</span></>}
           </div>
         </div>
+      )}
 
         <div className="flex flex-wrap gap-2">
           {viewMode === 'list' ? (
@@ -364,8 +358,6 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
           ) : (
             <button onClick={() => setViewMode('list')} className="px-5 py-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-soft active:scale-95">Exit Study</button>
           )}
-        </div>
-      </div>
 
       {viewMode === 'list' ? (
         <>
@@ -433,7 +425,6 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
       )}
 
       <FlashcardForm isOpen={isFormOpen} onClose={() => { setIsFormOpen(false); setEditingCard(null); }} onSubmit={handleFormSubmit} initialData={editingCard} />
-      {isShareModalOpen && <ShareModal isOpen={isShareModalOpen} onClose={() => setIsShareModalOpen(false)} card={shareData} />}
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );

@@ -1,22 +1,19 @@
 import { test, expect } from '@playwright/test';
 
-test('landing page loads and shows key content', async ({ page }) => {
+test('dashboard loads as the primary entry point', async ({ page }) => {
   await page.goto('http://localhost:5173/');
-
-  // Check headline
-  await expect(page.locator('h1')).toContainText('Nursing Success');
-  await expect(page.locator('h1')).toContainText('Simplified.');
-
-  // Check CTA
-  await expect(page.getByRole('button', { name: /Start Weekly Access/i }).first()).toBeVisible();
-
-  // Check Pricing exists
-  const pricingElements = page.locator('text=₦1999.9');
-  const count = await pricingElements.count();
-  expect(count).toBeGreaterThan(0);
+  // Root should redirect to /dashboard
+  await expect(page).toHaveURL(/.*dashboard/);
+  // Header should contain "Apex Scholars"
+  await expect(page.locator('h2').first()).toContainText('Apex Scholars');
 });
 
-test('navigation to dashboard works', async ({ page }) => {
-  await page.goto('http://localhost:5173/dashboard');
-  await expect(page.locator('h2')).toContainText('Dashboard');
+test('quiz central is accessible', async ({ page }) => {
+  await page.goto('http://localhost:5173/quiz');
+  await expect(page.locator('h2').first()).toContainText('Quiz Central');
+});
+
+test('settings is accessible', async ({ page }) => {
+  await page.goto('http://localhost:5173/settings');
+  await expect(page.getByRole('heading', { name: 'Settings' })).toBeVisible();
 });
