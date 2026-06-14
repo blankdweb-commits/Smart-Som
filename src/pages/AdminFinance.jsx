@@ -27,7 +27,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
-const AdminFinance = () => {
+const AdminFinance =  () => {
   const {
     transactions,
     userProfile,
@@ -129,4 +129,4 @@ const AdminStatCard = ({ title, value, icon, color }) => (
   </div>
 );
 
-export default AdminFinance;
+export default React.memo(AdminFinance);
