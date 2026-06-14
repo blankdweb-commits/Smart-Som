@@ -70,8 +70,7 @@ import {
   Target,
   Timer,
   Bookmark,
-  VolumeX,
-  Database
+  VolumeX
 } from 'lucide-react';
 
 export {
@@ -147,6 +146,5 @@ export {
   Target,
   Timer,
   Bookmark,
-  VolumeX,
-  Database
+  VolumeX
 };

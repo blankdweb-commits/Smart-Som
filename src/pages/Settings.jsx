@@ -17,9 +17,7 @@ import {
   VolumeX,
   Sun,
   Moon,
-  LayoutDashboard,
-  Settings as SettingsIcon,
-  Database
+  LayoutDashboard
 } from '../components/Icons';
 import { motion } from 'framer-motion';
 import Toast from '../components/Toast';
@@ -43,9 +41,9 @@ const Settings = () => {
   };
 
   return (
-    <div className="space-y-8 pb-32 animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-6xl mx-auto px-4">
+    <div className="space-y-8 pb-32 animate-in fade-in slide-in-from-bottom-4 duration-700">
       <header>
-        <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight uppercase">Settings</h1>
+        <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Settings</h1>
         <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Personalize your clinical training environment.</p>
       </header>
 
@@ -110,37 +108,21 @@ const Settings = () => {
               <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight mb-6 flex items-center gap-2">
                 <Shield className="text-medical-600" /> Administrative Access
               </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-4">
                 <button
                   onClick={() => navigate('/admin/finance')}
-                  className="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-medical-200 dark:border-medical-900 flex items-center justify-between group hover:border-medical-500 transition-all shadow-sm"
+                  className="w-full p-6 bg-white dark:bg-slate-800 rounded-2xl border border-medical-200 dark:border-medical-900 flex items-center justify-between group hover:border-medical-500 transition-all shadow-sm"
                 >
                   <div className="flex items-center gap-4 text-left">
                     <div className="w-12 h-12 bg-medical-50 dark:bg-medical-900/30 text-medical-600 rounded-xl flex items-center justify-center">
                       <TrendingUp size={24} />
                     </div>
                     <div>
-                      <p className="font-black text-slate-900 dark:text-white text-sm">Finance</p>
-                      <p className="text-[10px] text-slate-500 font-medium">Monitor fees</p>
+                      <p className="font-black text-slate-900 dark:text-white">Finance Dashboard</p>
+                      <p className="text-xs text-slate-500 font-medium">Monitor all student fee transactions</p>
                     </div>
                   </div>
-                  <ChevronRight size={18} className="text-slate-300 group-hover:text-medical-600" />
-                </button>
-
-                <button
-                  onClick={() => navigate('/admin/questions')}
-                  className="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-medical-200 dark:border-medical-900 flex items-center justify-between group hover:border-medical-500 transition-all shadow-sm"
-                >
-                  <div className="flex items-center gap-4 text-left">
-                    <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 rounded-xl flex items-center justify-center">
-                      <Database size={24} />
-                    </div>
-                    <div>
-                      <p className="font-black text-slate-900 dark:text-white text-sm">Question Bank</p>
-                      <p className="text-[10px] text-slate-500 font-medium">Manage content</p>
-                    </div>
-                  </div>
-                  <ChevronRight size={18} className="text-slate-300 group-hover:text-medical-600" />
+                  <ChevronRight className="text-slate-300 group-hover:text-medical-600 transform group-hover:translate-x-1 transition-all" />
                 </button>
               </div>
             </motion.section>
