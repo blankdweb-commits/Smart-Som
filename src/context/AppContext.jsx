@@ -42,6 +42,13 @@ export function AppProvider({ children }) {
   const [subscriptionPlans, setSubscriptionPlans] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
+  const [feeDetails, setFeeDetails] = useState({
+    status: 'Paid',
+    totalFee: 150000,
+    amountPaid: 150000,
+    currency: '₦',
+    deadline: '2025-12-31'
+  });
 
   const [learningAnalytics, setLearningAnalytics] = useState({
     weakTopics: [],
@@ -175,7 +182,7 @@ export function AppProvider({ children }) {
       session, loadingAuth, flashcards, setFlashcards, exams, setExams,
       studyStats, setStudyStats, userProfile, updateProfile,
       darkMode, toggleDarkMode, toggleSound, soundEnabled, setSoundEnabled,
-      transactions, auditLogs, subscriptionPlans, paymentPurposes, learningAnalytics,
+      transactions, auditLogs, subscriptionPlans, paymentPurposes, learningAnalytics, feeDetails, setFeeDetails,
       updateSubscriptionPlan: () => {}, addSubscriptionPlan: () => {}, deleteSubscriptionPlan: () => {},
       updatePaymentPurpose: () => {}, addPaymentPurpose: () => {}, deletePaymentPurpose: () => {},
       addAuditLog: () => {}, updateCardProgress, incrementCardsStudied: () => {},

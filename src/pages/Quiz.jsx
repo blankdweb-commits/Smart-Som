@@ -67,8 +67,7 @@ const Quiz = () => {
   const [showHint, setShowHint] = useState(false);
 
   // Dynamic Timer Logic
-  const defaultTimerValue = quizMode === 'speed' ? 20 : 30;
-  const [timeLeft, setTimeLeft] = useState(defaultTimerValue);
+  const [timeLeft, setTimeLeft] = useState(30);
 
   // Specialized Tracking
   const [eliminatedOptions, setEliminatedOptions] = useState([]);
@@ -76,6 +75,7 @@ const Quiz = () => {
   const [classPoll, setClassPoll] = useState(null);
   const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
   const [currentMilestone, setCurrentMilestone] = useState("Clinical Beginner");
+  const [safetyNetReached, setSafetyNetReached] = useState("None");
 
   // Logic Helpers
   const updateQuizStats = useCallback((updates) => {
@@ -116,7 +116,6 @@ const Quiz = () => {
     }
     if (pool.length === 0) return;
 
-    // Deduplicate Questions
     const seen = new Set();
     const uniquePool = pool.filter(c => seen.has(c.question) ? false : seen.add(c.question));
 
@@ -150,8 +149,8 @@ const Quiz = () => {
     setIsFinalAnswer(false);
     setConsecutiveCorrect(0);
     setCurrentMilestone("Clinical Beginner");
+    setSafetyNetReached("None");
 
-    // Set initial timer based on mode
     setTimeLeft(mode === 'speed' ? getSpeedTimerValue(0) : 30);
   };
 
@@ -176,7 +175,10 @@ const Quiz = () => {
       const newScore = score + 1;
       setScore(newScore);
       const milestone = MILESTONES.find(m => m.q === newScore);
-      if (milestone) setCurrentMilestone(milestone.label);
+      if (milestone) {
+         setCurrentMilestone(milestone.label);
+         if (milestone.checkpoint) setSafetyNetReached(milestone.label);
+      }
       setConsecutiveCorrect(prev => prev + 1);
       updateQuizStats({ quizStreak: (studyStats.quizStreak || 0) + 1 });
     } else {
@@ -187,7 +189,6 @@ const Quiz = () => {
   };
 
   const nextQuestion = () => {
-    // Speed Challenge ends on first wrong answer
     if (!isCorrect && quizMode === 'speed') {
        setShowResults(true);
        return;
@@ -222,7 +223,6 @@ const Quiz = () => {
     }
   };
 
-  // Lifelines Logic
   const eliminateTwo = () => {
     if (lifelinesUsed.fiftyFifty || showRationale) return;
     const currentQ = quizQuestions[currentQuestionIndex];
@@ -268,7 +268,6 @@ const Quiz = () => {
     setLifelinesUsed(prev => ({ ...prev, hint: true }));
   };
 
-  // Selection Views
   if (quizMode === 'selection') {
     return (
       <div className="max-w-4xl mx-auto mt-8 px-4 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -329,7 +328,6 @@ const Quiz = () => {
     );
   }
 
-  // Result View
   if (showResults) {
     return (
       <div className="max-w-2xl mx-auto mt-12 text-center space-y-10 animate-in zoom-in duration-700 pb-32 px-4 text-slate-900 dark:text-white">
@@ -340,6 +338,7 @@ const Quiz = () => {
         <div className="space-y-2">
           <h2 className="text-4xl sm:text-5xl font-black tracking-tighter">Challenge Complete</h2>
           <p className="text-slate-500 dark:text-slate-400 text-xl font-medium uppercase tracking-tight">Milestone Earned: <span className="text-medical-600 dark:text-medical-400 font-black">{currentMilestone}</span></p>
+          {quizMode === 'speed' && safetyNetReached !== "None" && <p className="text-emerald-500 font-bold uppercase tracking-widest text-xs">Safety Net Secured: {safetyNetReached}</p>}
         </div>
         <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
           <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] border border-slate-100 dark:border-slate-700 shadow-clinical text-center"><p className="text-[10px] font-black uppercase text-slate-400 tracking-widest mb-1">Total Score</p><p className="text-3xl sm:text-4xl font-black">{score}</p></div>
@@ -353,7 +352,6 @@ const Quiz = () => {
     );
   }
 
-  // Active Quiz View
   const currentQ = quizQuestions[currentQuestionIndex];
   if (!currentQ) return null;
   const isSpeed = quizMode === 'speed';
