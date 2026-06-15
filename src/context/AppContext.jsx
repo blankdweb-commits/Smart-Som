@@ -8,6 +8,7 @@ const AppContext = createContext();
 export function AppProvider({ children }) {
   const [session, setSession] = useState(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
+  const [isQuizActive, setIsQuizActive] = useState(false);
 
   const [flashcards, setFlashcards] = useState([...initialFlashcards, ...allBuiltInFlashcards]);
   const [exams, setExams] = useState([]);
@@ -40,7 +41,6 @@ export function AppProvider({ children }) {
   });
   const [paymentPurposes, setPaymentPurposes] = useState([]);
   const [subscriptionPlans, setSubscriptionPlans] = useState([]);
-  const [isQuizActive, setIsQuizActive] = useState(false);
   const [transactions, setTransactions] = useState([]);
   const [auditLogs, setAuditLogs] = useState([]);
   const [feeDetails, setFeeDetails] = useState({
@@ -183,11 +183,11 @@ export function AppProvider({ children }) {
       session, loadingAuth, flashcards, setFlashcards, exams, setExams,
       studyStats, setStudyStats, userProfile, updateProfile,
       darkMode, toggleDarkMode, toggleSound, soundEnabled, setSoundEnabled,
-      isQuizActive, setIsQuizActive, transactions, auditLogs, subscriptionPlans, paymentPurposes, learningAnalytics,
+      transactions, auditLogs, subscriptionPlans, paymentPurposes, learningAnalytics, feeDetails, setFeeDetails,
       updateSubscriptionPlan: () => {}, addSubscriptionPlan: () => {}, deleteSubscriptionPlan: () => {},
       updatePaymentPurpose: () => {}, addPaymentPurpose: () => {}, deletePaymentPurpose: () => {},
       addAuditLog: () => {}, updateCardProgress, incrementCardsStudied: () => {},
-      updateQuizStats, fetchUserData, feeDetails, setFeeDetails
+      isQuizActive, setIsQuizActive, updateQuizStats, fetchUserData
     }}>
       {children}
     </AppContext.Provider>

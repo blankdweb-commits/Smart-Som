@@ -31,7 +31,7 @@ const EXIT_PROMPTS = [
 ];
 
 const MILESTONES = [
-  { q: 0, label: "Clinical Beginner" },
+  { q: 1, label: "Clinical Beginner" },
   { q: 5, label: "Future Staff Nurse", checkpoint: true },
   { q: 10, label: "Future Charge Nurse", checkpoint: true },
   { q: 15, label: "Future Matron", checkpoint: true }
@@ -44,7 +44,7 @@ const getSpeedTimerValue = (index) => {
 };
 
 const Quiz = () => {
-  const { flashcards, studyStats, setStudyStats, setIsQuizActive } = useAppContext();
+  const { flashcards, studyStats, setStudyStats } = useAppContext();
   const navigate = useNavigate();
 
   // Mode & Selection State
@@ -135,7 +135,7 @@ const Quiz = () => {
 
     setQuizQuestions(questions);
     setQuizMode(mode);
-    setQuizStarted(true); setIsQuizActive(true);
+    setQuizStarted(true);
     setCurrentQuestionIndex(0);
     setScore(0);
     setShowResults(false);
@@ -179,21 +179,7 @@ const Quiz = () => {
          setCurrentMilestone(milestone.label);
          if (milestone.checkpoint) setSafetyNetReached(milestone.label);
       }
-
-      const newConsecutive = consecutiveCorrect + 1;
-      setConsecutiveCorrect(newConsecutive);
-
-      if (newConsecutive >= 5) {
-        setLifelinesUsed(prev => {
-           if (prev.fiftyFifty) return { ...prev, fiftyFifty: false };
-           if (prev.hint) return { ...prev, hint: false };
-           if (prev.askClass) return { ...prev, askClass: false };
-           return prev;
-        });
-        // We reset it so they can earn another after 5 more
-        setConsecutiveCorrect(0);
-      }
-
+      setConsecutiveCorrect(prev => prev + 1);
       updateQuizStats({ quizStreak: (studyStats.quizStreak || 0) + 1 });
     } else {
       setConsecutiveCorrect(0);
@@ -204,7 +190,7 @@ const Quiz = () => {
 
   const nextQuestion = () => {
     if (!isCorrect && quizMode === 'speed') {
-       setShowResults(true); setIsQuizActive(false);
+       setShowResults(true);
        return;
     }
 
@@ -225,18 +211,15 @@ const Quiz = () => {
         setTimeLeft(30);
       }
     } else {
-      setShowResults(true); setIsQuizActive(false);
+      setShowResults(true);
     }
   };
 
   const walkAway = () => {
-    const prompt = "You’ve built momentum. Stopping now means losing the opportunity to strengthen the knowledge that could save a patient’s life. Are you sure you want to walk away?";
-    if (confirm(prompt)) {
-      if (quizStarted && !showResults) {
-         setShowResults(true);
-         setIsQuizActive(false);
-      }
-      else { setQuizMode('selection'); setIsQuizActive(false); }
+    const prompt = EXIT_PROMPTS[Math.floor(Math.random() * EXIT_PROMPTS.length)];
+    if (confirm(`${prompt}\n\nAre you sure you want to exit?`)) {
+      if (quizStarted && !showResults) setShowResults(true);
+      else setQuizMode('selection');
     }
   };
 
@@ -244,9 +227,8 @@ const Quiz = () => {
     if (lifelinesUsed.fiftyFifty || showRationale) return;
     const currentQ = quizQuestions[currentQuestionIndex];
     const incorrectOptions = currentQ.options.filter(opt => opt !== currentQ.correctAnswer);
-    // Ensure we don't eliminate options already eliminated or selected (though selected shouldn't happen here)
     const toEliminate = incorrectOptions.sort(() => 0.5 - Math.random()).slice(0, 2);
-    setEliminatedOptions(prev => [...new Set([...prev, ...toEliminate])]);
+    setEliminatedOptions(toEliminate);
     setLifelinesUsed(prev => ({ ...prev, fiftyFifty: true }));
   };
 
@@ -254,28 +236,27 @@ const Quiz = () => {
     if (lifelinesUsed.askClass || showRationale) return;
     const currentQ = quizQuestions[currentQuestionIndex];
     const results = {};
-    const options = currentQ.options.filter(opt => !eliminatedOptions.includes(opt));
     let remainingPercentage = 100;
-
-    // Correct answer always gets highest share in this simulation
-    const correctShare = Math.floor(Math.random() * 20 + 50); // 50-70%
-    results[currentQ.correctAnswer] = correctShare;
-    remainingPercentage -= correctShare;
-
-    const others = options.filter(o => o !== currentQ.correctAnswer);
-    others.forEach((opt, idx) => {
-      if (idx === others.length - 1) {
-        results[opt] = remainingPercentage;
-      } else {
-        const share = Math.floor(Math.random() * (remainingPercentage / (others.length - idx)));
+    const isAudienceCorrect = Math.random() < 0.75;
+    if (isAudienceCorrect) {
+      const share = Math.floor(Math.random() * 27 + 55);
+      results[currentQ.correctAnswer] = share;
+      remainingPercentage -= share;
+    } else {
+      const wrong = currentQ.options.filter(o => o !== currentQ.correctAnswer);
+      const deceptive = wrong[Math.floor(Math.random() * wrong.length)];
+      const share = Math.floor(Math.random() * 14 + 38);
+      results[deceptive] = share;
+      remainingPercentage -= share;
+    }
+    const remainingOptions = currentQ.options.filter(o => !results[o]);
+    remainingOptions.forEach((opt, idx) => {
+      if (idx === remainingOptions.length - 1) results[opt] = remainingPercentage;
+      else {
+        const share = Math.floor(Math.random() * (remainingPercentage / 1.5));
         results[opt] = share;
         remainingPercentage -= share;
       }
-    });
-
-    // Fill 0 for eliminated ones
-    currentQ.options.forEach(opt => {
-      if (!(opt in results)) results[opt] = 0;
     });
     setClassPoll(results);
     setLifelinesUsed(prev => ({ ...prev, askClass: true }));
@@ -356,12 +337,7 @@ const Quiz = () => {
         </div>
         <div className="space-y-2">
           <h2 className="text-4xl sm:text-5xl font-black tracking-tighter">Challenge Complete</h2>
-          <p className="text-slate-500 dark:text-slate-400 text-xl font-medium uppercase tracking-tight">
-            {quizMode === 'speed' && safetyNetReached !== "None" ?
-              `You secured the ${safetyNetReached} milestone.` :
-              `Milestone Earned: ${currentMilestone}`}
-          </p>
-          <p className="text-slate-400 dark:text-slate-500 font-medium">Keep building your clinical confidence.</p>
+          <p className="text-slate-500 dark:text-slate-400 text-xl font-medium uppercase tracking-tight">Milestone Earned: <span className="text-medical-600 dark:text-medical-400 font-black">{currentMilestone}</span></p>
           {quizMode === 'speed' && safetyNetReached !== "None" && <p className="text-emerald-500 font-bold uppercase tracking-widest text-xs">Safety Net Secured: {safetyNetReached}</p>}
         </div>
         <div className="grid grid-cols-2 gap-4 max-w-md mx-auto">
@@ -384,7 +360,7 @@ const Quiz = () => {
   return (
     <div className={`max-w-4xl mx-auto space-y-6 pb-32 relative ${isSpeed ? 'dark' : ''} text-slate-900 dark:text-white`}>
       <div className="flex justify-between items-center px-4">
-        <button onClick={walkAway} className="px-4 py-2 bg-slate-100 dark:bg-white/10 text-slate-500 dark:text-white/60 rounded-xl font-black uppercase tracking-widest text-[10px] border border-slate-200 dark:border-white/5 active:scale-95 transition-all">Walk Away</button>
+        <button onClick={walkAway} className="p-2 text-slate-400 hover:text-slate-600 transition-colors"><ChevronLeft size={28} /></button>
         <div className="flex items-center gap-3">
           <div className="px-5 py-2 bg-slate-100 dark:bg-white/10 rounded-2xl border border-slate-200 dark:border-white/5"><p className="text-[10px] font-black uppercase text-slate-400 dark:text-white/40 tracking-[0.2em]">Score</p><p className="text-sm font-black tabular-nums">{score}</p></div>
           {isSpeed && <div className="px-5 py-2 bg-amber-500 text-white rounded-2xl shadow-lg shadow-amber-500/20"><p className="text-[10px] font-black uppercase opacity-60 tracking-[0.1em]">Milestone</p><p className="text-[10px] font-black whitespace-nowrap">{currentMilestone}</p></div>}
@@ -393,7 +369,7 @@ const Quiz = () => {
       <div className="px-4">
         <div className="flex justify-between items-end mb-2">
            <span className="text-xs font-black text-slate-400 dark:text-white/40 uppercase tracking-widest">Question {currentQuestionIndex + 1} of {quizQuestions.length}</span>
-           <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border shadow-[0_0_15px_rgba(14,165,233,0.15)] ${isRichard ? 'bg-indigo-600 text-white border-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.4)] animate-pulse' : 'bg-medical-50 dark:bg-white/10 text-medical-600 dark:text-medical-400 border-medical-100 dark:border-white/10'}`}>
+           <span className={`px-3 py-1 rounded-lg text-[10px] font-black uppercase tracking-widest border ${isRichard ? 'bg-indigo-500 text-white border-indigo-400 shadow-[0_0_20px_rgba(99,102,241,0.6)] animate-pulse' : 'bg-medical-50 dark:bg-white/5 text-medical-600 dark:text-medical-400 border-medical-100 dark:border-white/5'}`}>
              SOURCE: {currentQ.source || (isRichard ? "Verified Source: Richard's Bank" : "Apex Scholars Core Bank")}
            </span>
         </div>
@@ -430,7 +406,7 @@ const Quiz = () => {
       </div>
       <AnimatePresence>
          {isFinalAnswer && !showRationale && (
-            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="sticky bottom-0 left-0 right-0 z-40 p-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] bg-slate-900/95 backdrop-blur-xl border-t border-white/10 mt-auto shadow-[0_-10px_30px_rgba(0,0,0,0.3)] flex flex-col items-center gap-4">
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-x-0 bottom-0 z-40 p-6 bg-slate-900/90 backdrop-blur-md border-t border-white/10 flex flex-col items-center gap-4">
                <p className="text-white font-black uppercase tracking-[0.3em] text-xs">Is that your final answer?</p>
                <div className="flex gap-4 w-full max-w-sm">
                   <button onClick={() => { setSelectedOption(null); setIsFinalAnswer(false); }} className="flex-1 py-4 bg-white/10 text-white rounded-2xl font-black uppercase tracking-widest text-[10px]">Change</button>
@@ -449,9 +425,6 @@ const Quiz = () => {
                    <div className="w-full">
                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">{isCorrect ? 'Logic Validated' : 'Conceptual Misalignment'}</p>
                       <h4 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-none">{isCorrect ? 'Mastery Confirmed' : 'Learning Opportunity'}</h4>
-                      <div className="mt-4 inline-flex px-3 py-1 bg-medical-50 dark:bg-white/10 text-medical-600 dark:text-medical-400 rounded-lg text-[10px] font-black uppercase tracking-widest border border-medical-100 dark:border-white/10 shadow-[0_0_15px_rgba(14,165,233,0.2)]">
-                        SOURCE: {currentQ.source || (currentQ.source?.toLowerCase().includes('richard') ? "Verified Source: Richard's Bank" : "Apex Scholars Core Bank")}
-                      </div>
                    </div>
                    {consecutiveCorrect >= 5 && isCorrect && (
                       <div className="px-4 py-2 bg-amber-100 text-amber-700 rounded-xl text-[10px] font-black uppercase tracking-widest animate-bounce flex items-center gap-2 border border-amber-200">
@@ -479,7 +452,7 @@ const Quiz = () => {
              <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative w-full max-w-md bg-white dark:bg-slate-800 p-10 rounded-[3rem] shadow-2xl border border-slate-100 dark:border-slate-700 text-center">
                 <div className="w-20 h-20 bg-medical-50 text-medical-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner"><Target size={40} /></div>
                 <h4 className="text-2xl font-black text-slate-900 dark:text-white mb-3">Mentor Strategy</h4>
-                <p className="text-slate-600 dark:text-slate-300 font-medium italic text-lg leading-relaxed mb-10 text-balance text-center">"{currentQ.hint || currentQ.mentorHint || currentQ.rationale || 'Prioritize patient safety and focus on the intervention that addresses the root cause of the clinical presentation.'}"</p>
+                <p className="text-slate-600 dark:text-slate-300 font-medium italic text-lg leading-relaxed mb-10 text-balance text-center">"{currentQ.hint || 'Prioritize patient safety and focus on the intervention that addresses the root cause of the clinical presentation.'}"</p>
                 <button onClick={() => setShowHint(false)} className="w-full py-5 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all">Return to Question</button>
              </motion.div>
           </div>
