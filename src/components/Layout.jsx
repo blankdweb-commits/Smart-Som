@@ -8,16 +8,16 @@ import { useAppContext } from '../context/AppContext';
 
 const Layout = ({ children }) => {
   const location = useLocation();
-  const { darkMode, toggleDarkMode } = useAppContext();
+  const { darkMode, toggleDarkMode, isQuizActive } = useAppContext();
   const DEV_MODE =  (import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true');
 
   return (
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-500 overflow-x-hidden">
-      <Sidebar />
+      {!isQuizActive && <Sidebar />}
 
-      <main className="flex-1 min-w-0 mb-20 lg:mb-0">
+      <main className={`flex-1 min-w-0 ${isQuizActive ? "" : "mb-20"} lg:mb-0`}>
         {/* Top Header - Visible on all screens */}
-        <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 px-4 py-3 flex justify-between items-center">
+        {!isQuizActive && <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 px-4 py-3 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 bg-apex-600 rounded-lg flex items-center justify-center text-white font-black text-lg shrink-0">A</div>
@@ -45,7 +45,7 @@ const Layout = ({ children }) => {
               {darkMode ? <Sun size={20} className="text-amber-500" /> : <Moon size={20} className="text-medical-600" />}
             </button>
           </div>
-        </header>
+        </header>}
 
         <FeeBanner />
 
@@ -53,7 +53,7 @@ const Layout = ({ children }) => {
           {children || <Outlet />}
         </div>
       </main>
-      <BottomNav />
+      {!isQuizActive && <BottomNav />}
     </div>
   );
 };

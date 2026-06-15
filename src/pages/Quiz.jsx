@@ -30,6 +30,15 @@ const EXIT_PROMPTS = [
   "Don't stop now. Mastery is just a few more steps away."
 ];
 
+const ACHIEVEMENTS = [
+  { q: 1, label: "Clinical Novice" },
+  { q: 10, label: "Ward Helper" },
+  { q: 20, label: "Senior Student" },
+  { q: 30, label: "Future Matron" },
+  { q: 40, label: "Clinical Leader" },
+  { q: 60, label: "Clinical Legend" }
+];
+
 const MILESTONES = [
   { q: 1, label: "Clinical Beginner" },
   { q: 5, label: "Future Staff Nurse", checkpoint: true },
@@ -44,7 +53,7 @@ const getSpeedTimerValue = (index) => {
 };
 
 const Quiz = () => {
-  const { flashcards, studyStats, setStudyStats } = useAppContext();
+  const { flashcards, studyStats, setStudyStats, setIsQuizActive } = useAppContext();
   const navigate = useNavigate();
 
   // Mode & Selection State
@@ -76,6 +85,13 @@ const Quiz = () => {
   const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
   const [currentMilestone, setCurrentMilestone] = useState("Clinical Beginner");
   const [safetyNetReached, setSafetyNetReached] = useState("None");
+  const [comboCount, setComboCombo] = useState(0);
+  const [sessionXP, setSessionXP] = useState(0);
+  const [showReview, setShowReview] = useState(false);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
+  const [exitPrompt, setExitPrompt] = useState("");
+  const [mentorAdvice, setMentorAdvice] = useState(null);
+  const [restoredThisTurn, setRestoredThisTurn] = useState(false);
 
   // Logic Helpers
   const updateQuizStats = useCallback((updates) => {
@@ -116,6 +132,15 @@ const Quiz = () => {
     }
     if (pool.length === 0) return;
 
+    // Prioritization for Speed Mode
+    if (mode === 'speed') {
+       const richard = pool.filter(c => c.source?.toLowerCase().includes('richard'));
+       const nmcn = pool.filter(c => c.source?.toLowerCase().includes('nmcn') || c.category === 'NMCN');
+       const nclex = pool.filter(c => c.source?.toLowerCase().includes('nclex') || c.category === 'NCLEX');
+       const core = pool.filter(c => !richard.includes(c) && !nmcn.includes(c) && !nclex.includes(c));
+       pool = [...richard.sort(() => 0.5 - Math.random()), ...nmcn.sort(() => 0.5 - Math.random()), ...nclex.sort(() => 0.5 - Math.random()), ...core.sort(() => 0.5 - Math.random())];
+    }
+
     const seen = new Set();
     const uniquePool = pool.filter(c => seen.has(c.question) ? false : seen.add(c.question));
 
@@ -135,7 +160,7 @@ const Quiz = () => {
 
     setQuizQuestions(questions);
     setQuizMode(mode);
-    setQuizStarted(true);
+    setQuizStarted(true); setIsQuizActive(true);
     setCurrentQuestionIndex(0);
     setScore(0);
     setShowResults(false);
@@ -166,34 +191,58 @@ const Quiz = () => {
     }
   };
 
-  const confirmAnswer = (opt = selectedOption) => {
+    const confirmAnswer = (opt = selectedOption) => {
     const currentQ = quizQuestions[currentQuestionIndex];
     const correct = opt === currentQ.correctAnswer;
     setIsCorrect(correct);
     setIsFinalAnswer(false);
+
     if (correct) {
       const newScore = score + 1;
       setScore(newScore);
+
+      // Achievements
+      const ach = ACHIEVEMENTS.find(a => a.q === newScore);
+      if (ach) setCurrentMilestone(ach.label);
+
       const milestone = MILESTONES.find(m => m.q === newScore);
-      if (milestone) {
-         setCurrentMilestone(milestone.label);
-         if (milestone.checkpoint) setSafetyNetReached(milestone.label);
+      if (milestone && milestone.checkpoint) setSafetyNetReached(milestone.label);
+
+      const newCombo = consecutiveCorrect + 1;
+      setConsecutiveCorrect(newCombo);
+
+      // XP Multipliers
+      let multiplier = 1;
+      if (newCombo >= 8) multiplier = 5;
+      else if (newCombo >= 5) multiplier = 3;
+      else if (newCombo >= 3) multiplier = 2;
+
+      setSessionXP(prev => prev + (10 * multiplier));
+
+      if (newCombo % 5 === 0) {
+        setLifelinesUsed(prev => {
+           let next = { ...prev };
+           if (prev.fiftyFifty) { next.fiftyFifty = false; setRestoredThisTurn(true); }
+           else if (prev.hint) { next.hint = false; setRestoredThisTurn(true); }
+           else if (prev.askClass) { next.askClass = false; setRestoredThisTurn(true); }
+           return next;
+        });
       }
-      setConsecutiveCorrect(prev => prev + 1);
       updateQuizStats({ quizStreak: (studyStats.quizStreak || 0) + 1 });
     } else {
       setConsecutiveCorrect(0);
       updateQuizStats({ quizStreak: 0 });
     }
-    setShowRationale(true);
+    setShowReview(true);
   };
 
-  const nextQuestion = () => {
+    const nextQuestion = () => {
+    setShowReview(false);
+    setRestoredThisTurn(false);
     if (!isCorrect && quizMode === 'speed') {
-       setShowResults(true);
+       setShowResults(true); setIsQuizActive(false);
        return;
     }
-
     if (currentQuestionIndex < quizQuestions.length - 1) {
       const nextIdx = currentQuestionIndex + 1;
       setCurrentQuestionIndex(nextIdx);
@@ -204,27 +253,33 @@ const Quiz = () => {
       setEliminatedOptions([]);
       setClassPoll(null);
       setIsFinalAnswer(false);
-
-      if (quizMode === 'speed') {
-        setTimeLeft(getSpeedTimerValue(nextIdx));
-      } else if (useTimer) {
-        setTimeLeft(30);
-      }
+      if (quizMode === 'speed') setTimeLeft(getSpeedTimerValue(nextIdx));
+      else if (useTimer) setTimeLeft(30);
     } else {
-      setShowResults(true);
+      setShowResults(true); setIsQuizActive(false);
     }
   };
 
   const walkAway = () => {
-    const prompt = EXIT_PROMPTS[Math.floor(Math.random() * EXIT_PROMPTS.length)];
-    if (confirm(`${prompt}\n\nAre you sure you want to exit?`)) {
-      if (quizStarted && !showResults) setShowResults(true);
-      else setQuizMode('selection');
-    }
+    const prompts = [
+      "Future patients are counting on your preparation.",
+      "One more question could strengthen the knowledge that saves a life.",
+      "Growth happens when you push beyond discomfort.",
+      "You have already come this far. Don’t stop now."
+    ];
+    setExitPrompt(prompts[Math.floor(Math.random() * prompts.length)]);
+    setShowExitConfirm(true);
   };
 
-  const eliminateTwo = () => {
-    if (lifelinesUsed.fiftyFifty || showRationale) return;
+  const confirmExit = () => {
+    setShowExitConfirm(false);
+    setIsQuizActive(false);
+    if (quizStarted && !showResults) setShowResults(true);
+    else setQuizMode('selection');
+  };
+
+    const eliminateTwo = () => {
+    if (lifelinesUsed.fiftyFifty || showReview || showRationale) return;
     const currentQ = quizQuestions[currentQuestionIndex];
     const incorrectOptions = currentQ.options.filter(opt => opt !== currentQ.correctAnswer);
     const toEliminate = incorrectOptions.sort(() => 0.5 - Math.random()).slice(0, 2);
@@ -232,38 +287,37 @@ const Quiz = () => {
     setLifelinesUsed(prev => ({ ...prev, fiftyFifty: true }));
   };
 
-  const askClass = () => {
-    if (lifelinesUsed.askClass || showRationale) return;
+    const askClass = () => {
+    if (lifelinesUsed.askClass || showReview || showRationale) return;
     const currentQ = quizQuestions[currentQuestionIndex];
     const results = {};
-    let remainingPercentage = 100;
-    const isAudienceCorrect = Math.random() < 0.75;
-    if (isAudienceCorrect) {
-      const share = Math.floor(Math.random() * 27 + 55);
-      results[currentQ.correctAnswer] = share;
-      remainingPercentage -= share;
-    } else {
-      const wrong = currentQ.options.filter(o => o !== currentQ.correctAnswer);
-      const deceptive = wrong[Math.floor(Math.random() * wrong.length)];
-      const share = Math.floor(Math.random() * 14 + 38);
-      results[deceptive] = share;
-      remainingPercentage -= share;
-    }
-    const remainingOptions = currentQ.options.filter(o => !results[o]);
-    remainingOptions.forEach((opt, idx) => {
-      if (idx === remainingOptions.length - 1) results[opt] = remainingPercentage;
+    const visibleOptions = currentQ.options.filter(o => !eliminatedOptions.includes(o));
+    let remaining = 100;
+    const correctShare = Math.floor(Math.random() * 30 + 60); // 60-90
+    results[currentQ.correctAnswer] = correctShare;
+    remaining -= correctShare;
+    const others = visibleOptions.filter(o => o !== currentQ.correctAnswer);
+    others.forEach((opt, i) => {
+      if (i === others.length - 1) results[opt] = remaining;
       else {
-        const share = Math.floor(Math.random() * (remainingPercentage / 1.5));
+        const share = Math.floor(Math.random() * (remaining / 1.5));
         results[opt] = share;
-        remainingPercentage -= share;
+        remaining -= share;
       }
     });
+    currentQ.options.forEach(o => { if (!(o in results)) results[o] = 0; });
     setClassPoll(results);
     setLifelinesUsed(prev => ({ ...prev, askClass: true }));
   };
 
-  const useMentor = () => {
-    if (lifelinesUsed.hint || showRationale) return;
+    const useMentor = () => {
+    if (lifelinesUsed.hint || showReview || showRationale) return;
+    const currentQ = quizQuestions[currentQuestionIndex];
+    const types = ['CLINICAL CLUE', 'EXAM STRATEGY', 'MEMORY TRICK'];
+    const fallbacks = ["Think about patient safety first.", "Recall the ABC priority framework.", "Consider what NMCN expects."];
+    const type = types[Math.floor(Math.random() * types.length)];
+    const text = currentQ.hint || currentQ.rationale || fallbacks[Math.floor(Math.random() * fallbacks.length)];
+    setMentorAdvice({ type, text });
     setShowHint(true);
     setLifelinesUsed(prev => ({ ...prev, hint: true }));
   };
@@ -489,20 +543,26 @@ const LifelineButton = ({ icon, label, used, onClick, dark }) => (
 );
 
 const OptionButton = ({ label, index, state, pollValue, onClick, disabled, dark, isSpeed }) => {
-  const letters = ['A', 'B', 'C', 'D'];
-  let baseStyles = dark ? 'bg-white/5 border-white/10 text-white/80 hover:bg-white/10' : 'bg-white border-slate-100 text-slate-700 hover:border-medical-500 hover:shadow-md';
-  if (state === 'selected') baseStyles = dark ? 'bg-amber-500/20 border-amber-500 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.3)]' : 'bg-medical-50 border-medical-500 text-medical-700 shadow-md';
-  if (state === 'correct') baseStyles = 'bg-emerald-500/20 border-emerald-500 text-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]';
-  if (state === 'wrong') baseStyles = 'bg-red-500/20 border-red-500 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.4)]';
-  if (state === 'eliminated') baseStyles = 'opacity-10 grayscale pointer-events-none scale-95';
+  const shapes = ['■', '●', '▲', '◆'];
+  const [isExpanded, setIsExpanded] = useState(false);
+  let baseStyles = dark ? 'bg-white/5 border-white/10 text-white/80' : 'bg-white border-slate-100 text-slate-700';
+  if (state === 'selected') baseStyles = dark ? 'bg-amber-500/20 border-amber-500 text-amber-500' : 'bg-medical-50 border-medical-500 text-medical-700';
+  if (state === 'correct') baseStyles = 'bg-emerald-500/20 border-emerald-500 text-emerald-500';
+  if (state === 'wrong') baseStyles = 'bg-red-500/20 border-red-500 text-red-500';
+  if (state === 'eliminated') baseStyles = 'opacity-10 grayscale pointer-events-none';
+
   return (
-    <button disabled={disabled} onClick={onClick} className={`w-full relative flex items-center p-6 rounded-3xl border-2 transition-all duration-300 overflow-hidden ${baseStyles} active:scale-98 min-h-[80px]`}>
-      <div className="flex items-center gap-5 w-full relative z-10">
-         <span className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm border-2 ${state === 'selected' ? 'bg-amber-500 border-amber-400 text-white' : (dark ? 'bg-white/10 border-white/20 text-white/40' : 'bg-slate-100 border-slate-200 text-slate-400')}`}>{letters[index]}</span>
-         <span className={`flex-1 font-bold text-left leading-snug pr-2 ${isSpeed ? 'text-[11px] sm:text-base' : 'text-base'}`}>{label}</span>
-         {pollValue !== undefined && <div className="text-right shrink-0"><p className="text-xl font-black tabular-nums">{pollValue}%</p><div className="w-14 h-1.5 bg-white/20 rounded-full overflow-hidden mt-1"><div className="h-full bg-medical-500" style={{ width: `${pollValue}%` }} /></div></div>}
+    <button
+      disabled={disabled}
+      onClick={() => { if (!isSpeed) onClick(); else setIsExpanded(!isExpanded); if (isSpeed && !isExpanded) onClick(); }}
+      className={`relative flex flex-col items-center justify-center p-4 rounded-[2rem] border-2 transition-all duration-300 ${baseStyles} ${isSpeed ? 'min-h-[120px]' : 'min-h-[80px]'} active:scale-95`}
+    >
+      <div className="flex flex-col items-center gap-2">
+         <span className="text-2xl font-black opacity-40">{shapes[index]}</span>
+         <p className={`font-bold text-center leading-tight ${isSpeed && !isExpanded ? 'line-clamp-2' : ''} text-sm sm:text-base`}>{label}</p>
       </div>
-      {state === 'correct' && <motion.div initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} className="absolute right-0 top-0 p-6 text-emerald-500/20"><CheckCircle2 size={80} /></motion.div>}
+      {pollValue !== undefined && <div className="absolute bottom-2 inset-x-4"><div className="h-1 bg-white/20 rounded-full overflow-hidden"><motion.div initial={{width:0}} animate={{width:`${pollValue}%`}} className="h-full bg-medical-500" /></div><p className="text-[8px] font-black mt-1">{pollValue}%</p></div>}
+      {state === 'correct' && <motion.div initial={{scale:0}} animate={{scale:1}} className="absolute right-2 top-2 text-emerald-500"><CheckCircle2 size={24} /></motion.div>}
     </button>
   );
 };
