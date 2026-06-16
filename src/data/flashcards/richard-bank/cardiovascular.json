@@ -1,0 +1,3179 @@
+[
+  {
+    "id": "richard-cv-1",
+    "subject": "Cardiovascular",
+    "question": "The pain of angina pectoris is produced primarily by....",
+    "options": [
+      "Vasoconstriction",
+      "Movement of thromboemboli",
+      "Myocardial ischemia",
+      "The presence of atheromas."
+    ],
+    "answer": "Myocardial ischemia",
+    "rationale": "Angina pain occurs because the heart muscle is not getting enough oxygen-rich blood.",
+    "hint": "Focus on the direct cause \u2013 oxygen imbalance.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-2",
+    "subject": "Cardiovascular",
+    "question": "The myocardium is composed of specialized cells known as",
+    "options": [
+      "Lymphocyte",
+      "Myocyte"
+    ],
+    "answer": "Myocyte",
+    "rationale": "The myocardium is made of specialized cardiac muscle cells called myocytes.",
+    "hint": "'Myo' means muscle.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-3",
+    "subject": "Cardiovascular",
+    "question": "The following are features of heart failure EXCEPT:",
+    "options": [
+      "Fast and labored breathing",
+      "Polyuria",
+      "Sense of confusion and acute anxiety",
+      "Cold, clammy and sweaty skin"
+    ],
+    "answer": "Polyuria",
+    "rationale": "Heart failure more commonly causes oliguria due to poor renal perfusion.",
+    "hint": "Polyuria is more typical of diabetes or diuretic use.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-4",
+    "subject": "Cardiovascular",
+    "question": "The right coronary artery is subdivided into.",
+    "options": [
+      "Marginal and ascending branch",
+      "Circumflex and descending branch",
+      "Marginal and descending branch",
+      "Circumflex and ascending branch"
+    ],
+    "answer": "Marginal and descending branch",
+    "rationale": "The right coronary artery commonly gives rise to marginal and posterior descending branches.",
+    "hint": "Right side supplies the inferior wall.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-5",
+    "subject": "Cardiovascular",
+    "question": "Exchange of gases and food nutrient take place in the",
+    "options": [
+      "Arteries",
+      "Veins",
+      "Arterioles",
+      "Capillaries"
+    ],
+    "answer": "Capillaries",
+    "rationale": "Exchange of gases and nutrients occurs across thin capillary walls.",
+    "hint": "Thin walls allow diffusion.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-6",
+    "subject": "Cardiovascular",
+    "question": "Which of the following has the thickest wall?",
+    "options": [
+      "Left atrium",
+      "Right ventricle",
+      "Left ventricle",
+      "Right atrium"
+    ],
+    "answer": "Left ventricle",
+    "rationale": "The left ventricle has the thickest wall because it pumps blood to the whole body.",
+    "hint": "Think about which chamber faces the most resistance.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-7",
+    "subject": "Cardiovascular",
+    "question": "All of the following are normally involved in the pathogenesis of heart failure EXCEPT:",
+    "options": [
+      "A cardiac lesion that impairs cardiac output",
+      "An increase in peripheral vascular resistance",
+      "A decrease in preload",
+      "An increase in sodium and water retention"
+    ],
+    "answer": "A decrease in preload",
+    "rationale": "Heart failure usually causes increased preload due to fluid retention.",
+    "hint": "Preload is end-diastolic volume; it rises in HF.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-8",
+    "subject": "Cardiovascular",
+    "question": "The fluid between the Parietal and visceral pericardial:",
+    "options": [
+      "Lubricates the heart as it beats",
+      "Nourishes the heart as it beats",
+      "Relaxes the heart as it beats",
+      "Contracts the heart as it beats"
+    ],
+    "answer": "Lubricates the heart as it beats",
+    "rationale": "Pericardial fluid reduces friction during heart movement.",
+    "hint": "Friction rub indicates inflammation.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-9",
+    "subject": "Cardiovascular",
+    "question": "A child with Tetralogy of Fallot is scheduled for a modified Blalock Taussig procedure. The nurse understands that the surgery will:",
+    "options": [
+      "Reverse the direction of the blood flow",
+      "Allow better blood supply to the lungs",
+      "Relieve pressure on the ventricles",
+      "Correct the septal defect"
+    ],
+    "answer": "Allow better blood supply to the lungs",
+    "rationale": "The modified Blalock-Taussig shunt increases pulmonary blood flow.",
+    "hint": "TOF has decreased pulmonary flow; shunt increases it.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-10",
+    "subject": "Cardiovascular",
+    "question": "In congenital cyanotic heart disease, cyanosis occurs when there is more than circulating deoxygenated hemoglobin:",
+    "options": [
+      "7g/dl",
+      "6g/dl",
+      "5g/dl",
+      "4g/dl"
+    ],
+    "answer": "5g/dl",
+    "rationale": "Cyanosis becomes visible when deoxygenated hemoglobin exceeds about 5 g/dl.",
+    "hint": "Cyanosis threshold is ~5 g/dL.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-11",
+    "subject": "Cardiovascular",
+    "question": "The two main factors for determining blood pressure are peripheral resistance and..",
+    "options": [
+      "Cardiac output",
+      "Age",
+      "Pulse pressure",
+      "Pulse deficit"
+    ],
+    "answer": "Cardiac output",
+    "rationale": "Blood pressure is determined by cardiac output and peripheral resistance.",
+    "hint": "Think of the equation: BP = CO x SVR.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-12",
+    "subject": "Cardiovascular",
+    "question": "A client is admitted with mitral valve disease and left ventricular dysfunction. What is the most reliable test to determine the cardiac status:",
+    "options": [
+      "Echocardiogram",
+      "Electrocardiogram",
+      "Stress test",
+      "Cardiac catheterization"
+    ],
+    "answer": "Echocardiogram",
+    "rationale": "Echocardiogram best evaluates valve disease and ventricular function.",
+    "hint": "Echo = structure and function.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-13",
+    "subject": "Cardiovascular",
+    "question": "All of the following are compensatory mechanisms that occur during the pathogenesis of congestive heart failure EXCEPT:",
+    "options": [
+      "An increase in ventricular end-diastolic volume",
+      "An increase in sympathetic nervous system activity",
+      "An increase in vagal tone",
+      "Activation of the renin-angiotensin-aldosterone system"
+    ],
+    "answer": "An increase in vagal tone",
+    "rationale": "Heart failure is associated with increased sympathetic activity, not vagal tone.",
+    "hint": "Vagal tone decreases in HF.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-14",
+    "subject": "Cardiovascular",
+    "question": "Which hereditary disease is most closely linked to aneurysm?",
+    "options": [
+      "Cystic fibrosis",
+      "Lupus erythematosus",
+      "Marfan's syndrome",
+      "Myocardial infarction"
+    ],
+    "answer": "Marfan's syndrome",
+    "rationale": "Marfan syndrome weakens connective tissue and predisposes to aneurysm.",
+    "hint": "Marfan = connective tissue disorder.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-15",
+    "subject": "Cardiovascular",
+    "question": "Which of the following is the most common symptom of myocardial infarction?",
+    "options": [
+      "Chest pain",
+      "Dyspnea",
+      "Edema",
+      "Palpitations"
+    ],
+    "answer": "Chest pain",
+    "rationale": "Severe crushing chest pain is the most common symptom of MI.",
+    "hint": "Classic symptom is substernal chest pressure.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-16",
+    "subject": "Cardiovascular",
+    "question": "Which of the following describes the degree of stretch of the cardiac muscles fibers at the end of diastole?",
+    "options": [
+      "Venous return",
+      "Afterload",
+      "Preload",
+      "Cardiac reserve"
+    ],
+    "answer": "Preload",
+    "rationale": "Preload refers to ventricular stretch at end-diastole.",
+    "hint": "Think of it as 'filling pressure'.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-17",
+    "subject": "Cardiovascular",
+    "question": "The nurse advises a patient that sublingual nitroglycerin should alleviate angina pain within:",
+    "options": [
+      "3 to 4 minutes",
+      "5 to 10 minutes",
+      "15 to 20 minutes",
+      "30 minutes"
+    ],
+    "answer": "3 to 4 minutes",
+    "rationale": "Sublingual nitroglycerin acts rapidly to relieve angina.",
+    "hint": "SL route provides quick absorption.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-18",
+    "subject": "Cardiovascular",
+    "question": "Which of the following conditions most commonly results in CAD?",
+    "options": [
+      "Atherosclerosis",
+      "Diabetes Mellitus",
+      "Myocardial infarction",
+      "Renal failure"
+    ],
+    "answer": "Atherosclerosis",
+    "rationale": "CAD most commonly results from atherosclerotic plaque buildup.",
+    "hint": "Atherosclerosis = hardening/thickening of arteries.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-19",
+    "subject": "Cardiovascular",
+    "question": "Which of the following is perculiar to myocardial infarction..",
+    "options": [
+      "Pain of unknown duration",
+      "Imbalance between the myocardial blood flow and the metabolic demand of the myocardium",
+      "Cannot be relieves by nitrate",
+      "Raises cardiac enzymes"
+    ],
+    "answer": "Raises cardiac enzymes",
+    "rationale": "Elevated cardiac enzymes (troponin, CK-MB) are characteristic of MI.",
+    "hint": "Troponin is the most specific marker.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-20",
+    "subject": "Cardiovascular",
+    "question": "Bundle of HIS is made up of",
+    "options": [
+      "Nervous tissue supplied to ventricles",
+      "Nervous tissue supplied to heart",
+      "Muscular tissue supplied to ventricles",
+      "Muscular tissue supplied to atria"
+    ],
+    "answer": "Muscular tissue supplied to ventricles",
+    "rationale": "Bundle of His is specialized cardiac muscle conducting impulses to ventricles.",
+    "hint": "It's part of the conduction system.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-21",
+    "subject": "Cardiovascular",
+    "question": "Angina pectoris is:",
+    "options": [
+      "Severe constricting chest pain, often radiating from the precordium to the left shoulder and down the arm, due to insufficient blood supply to the heart that is usually caused by coronary disease",
+      "An often fatal form of arrhythmia characterized by rapid, irregular fibrillar twitching of the ventricles of the heart instead of normal contractions, resulting in a loss of pulse",
+      "The cardiovascular condition in which the heart ability to pump blood weakens",
+      "All of these"
+    ],
+    "answer": "Severe constricting chest pain, often radiating from the precordium to the left shoulder and down the arm, due to insufficient blood supply to the heart that is usually caused by coronary disease",
+    "rationale": "This is the correct definition of angina pectoris.",
+    "hint": "Angina is reversible ischemia.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-22",
+    "subject": "Cardiovascular",
+    "question": "Exceeding which of the following serum cholesterol levels significantly increases the risk of coronary artery disease?",
+    "options": [
+      "100 mg/dl",
+      "150 mg/dl",
+      "175 mg/dl",
+      "200 mg/dl"
+    ],
+    "answer": "200 mg/dl",
+    "rationale": "Total cholesterol >200 mg/dL significantly increases CAD risk.",
+    "hint": "Desirable total cholesterol is <200.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-23",
+    "subject": "Cardiovascular",
+    "question": "Cardiomyopathy lead to",
+    "options": [
+      "Weakness of the wall of the heart",
+      "Arrhythmia",
+      "Heart pain",
+      "Stenosis of the heart"
+    ],
+    "answer": "Weakness of the wall of the heart",
+    "rationale": "Cardiomyopathy weakens heart muscle function.",
+    "hint": "Cardiomyopathy = disease of heart muscle.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-24",
+    "subject": "Cardiovascular",
+    "question": "The scientific rationale supporting the administration of beta- blockers is the drug's ability to:",
+    "options": [
+      "Block sympathetic impulses to the heart",
+      "Elevate blood pressure",
+      "Increase myocardial contractility",
+      "Induce bradycardia."
+    ],
+    "answer": "Block sympathetic impulses to the heart",
+    "rationale": "Beta-blockers reduce heart workload and oxygen demand by blocking sympathetic stimulation.",
+    "hint": "They decrease heart rate and contractility.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-25",
+    "subject": "Cardiovascular",
+    "question": "Muscle wasting is common in",
+    "options": [
+      "Cerebrovascular accident (CVA)",
+      "Poliomyelitis",
+      "Paraplegia",
+      "Elephantiasis"
+    ],
+    "answer": "Poliomyelitis",
+    "rationale": "Polio causes lower motor neuron damage leading to muscle wasting.",
+    "hint": "Polio affects motor neurons.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-26",
+    "subject": "Cardiovascular",
+    "question": "Which of the following actions is the first priority care for a client exhibiting signs and symptoms of coronary artery disease?",
+    "options": [
+      "Decrease anxiety",
+      "Enhance myocardial oxygenation",
+      "Administer sublingual nitroglycerin",
+      "Educate the client about his symptoms"
+    ],
+    "answer": "Enhance myocardial oxygenation",
+    "rationale": "Improving oxygen supply is the priority in CAD to prevent ischemia.",
+    "hint": "Oxygenation is always the priority.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-27",
+    "subject": "Cardiovascular",
+    "question": "Blood pressure can be mathematically expressed as the product of.",
+    "options": [
+      "Venous return and cardiac output",
+      "Cardiac output and peripheral vascular resistance",
+      "Heart rate and stroke volume",
+      "Pulse pressure and mean arterial pressure"
+    ],
+    "answer": "Cardiac output and peripheral vascular resistance",
+    "rationale": "BP = CO \u00d7 TPR.",
+    "hint": "Equation: BP = CO \u00d7 SVR.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-28",
+    "subject": "Cardiovascular",
+    "question": "A person suffering from mitral stenosis would have a defect of the.",
+    "options": [
+      "Ventricular valve",
+      "Tricupid valve",
+      "Bicuspid valve",
+      "Pulmonary valve"
+    ],
+    "answer": "Bicuspid valve",
+    "rationale": "Mitral valve is also called the bicuspid valve.",
+    "hint": "Bicuspid = two cusps.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-29",
+    "subject": "Cardiovascular",
+    "question": "Lidocaine is a medication frequently ordered for the client experiencing.",
+    "options": [
+      "Atrial tachycardia",
+      "Ventricular tachycardia",
+      "Heart block",
+      "Ventricular bradycardia"
+    ],
+    "answer": "Ventricular tachycardia",
+    "rationale": "Lidocaine is commonly used for ventricular arrhythmias.",
+    "hint": "Lidocaine is for ventricular, not atrial.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-30",
+    "subject": "Cardiovascular",
+    "question": "Arteriosclerosis is classified as.",
+    "options": [
+      "A traumatic disease",
+      "A neoplasm",
+      "A degenerative disease",
+      "An inflammatory disease"
+    ],
+    "answer": "A degenerative disease",
+    "rationale": "Arteriosclerosis involves degeneration and hardening of arteries.",
+    "hint": "Arteriosclerosis = hardening of arteries.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-31",
+    "subject": "Cardiovascular",
+    "question": "Calculate the cardiac output where the pulse rate is 74beats/ minutes and the stroke volume is 68mls:",
+    "options": [
+      "142ml/minutes",
+      "503ml/minutes",
+      "142ml/seconds",
+      "5032ml/minutes"
+    ],
+    "answer": "5032ml/minutes",
+    "rationale": "CO = HR \u00d7 SV = 74 \u00d7 68 = 5032 ml/min.",
+    "hint": "CO = HR \u00d7 SV.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-32",
+    "subject": "Cardiovascular",
+    "question": "The following are functions of sinuses EXCEPT:",
+    "options": [
+      "Lighten the skull",
+      "Assist in speech",
+      "production of mucus",
+      "Prevention of infection"
+    ],
+    "answer": "Prevention of infection",
+    "rationale": "Sinuses help lighten skull, speech resonance, and mucus production; prevention of infection is not a primary function.",
+    "hint": "Think of physical functions.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-33",
+    "subject": "Cardiovascular",
+    "question": "Cardiac tamponade is associated with the following:",
+    "options": [
+      "Distant heart sound",
+      "Bradycardia",
+      "Pulsus paradoxus",
+      "Distant heart sound"
+    ],
+    "answer": "Pulsus paradoxus",
+    "rationale": "Cardiac tamponade presents with pulsus paradoxus (drop in BP >10 mmHg during inspiration).",
+    "hint": "Pulsus paradoxus is a classic sign.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-34",
+    "subject": "Cardiovascular",
+    "question": "Blood enters into the heart because of muscles of.",
+    "options": [
+      "Atria relax",
+      "Ventricles contract",
+      "Ventricles relax",
+      "Atria contract"
+    ],
+    "answer": "Atria relax",
+    "rationale": "During atrial relaxation, blood flows from veins into the atria.",
+    "hint": "Relaxation creates negative pressure.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-35",
+    "subject": "Cardiovascular",
+    "question": "The major reason for performing coronary artery bypass surgery is",
+    "options": [
+      "To reduce overall contractility of the heart muscle",
+      "Increase oxygen supply to the heart muscle",
+      "Decrease oxygen overload to the cardiac muscle",
+      "Reduce plague formation in the carotid artery"
+    ],
+    "answer": "Increase oxygen supply to the heart muscle",
+    "rationale": "CABG restores blood flow to ischemic myocardium.",
+    "hint": "It bypasses blocked arteries.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-36",
+    "subject": "Cardiovascular",
+    "question": "Mitral valve is otherwise known as",
+    "options": [
+      "Tricuspid valve",
+      "Tricuspid valve",
+      "Bicuspid valve",
+      "Bicuspid valve"
+    ],
+    "answer": "Bicuspid valve",
+    "rationale": "Mitral valve = bicuspid valve.",
+    "hint": "Bicuspid = two leaflets.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-37",
+    "subject": "Cardiovascular",
+    "question": "A female client is diagnosed with Pericarditis. Which of the following assessment findings should the nurse EXPECT?",
+    "options": [
+      "Absent of chest pain",
+      "Pericardial friction",
+      "Peripheral Oedema",
+      "Wheezing breath sound"
+    ],
+    "answer": "Pericardial friction",
+    "rationale": "Pericarditis commonly presents with a friction rub.",
+    "hint": "Friction rub = pericarditis until proven otherwise.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-38",
+    "subject": "Cardiovascular",
+    "question": "SA node is located in",
+    "options": [
+      "Upper lateral wall of right atrium",
+      "Lower lateral wall of left atrium",
+      "Upper lateral wall of left atrium",
+      "Lower lateral wall of right atrium"
+    ],
+    "answer": "Upper lateral wall of right atrium",
+    "rationale": "The SA node is located near the opening of the superior vena cava.",
+    "hint": "Sinoatrial node = near SVC.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-39",
+    "subject": "Cardiovascular",
+    "question": "Which of the following blood tests is most indicative of cardiac damage?",
+    "options": [
+      "Lactate dehydrogenase",
+      "Complete blood count",
+      "Troponin I",
+      "Creatine kinase"
+    ],
+    "answer": "Troponin I",
+    "rationale": "Troponin is the most specific marker for cardiac injury.",
+    "hint": "Troponin is more specific than CK-MB.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-40",
+    "subject": "Cardiovascular",
+    "question": "The opening of right atrium into right ventricle is guarded by.",
+    "options": [
+      "Mitral valve",
+      "Tricuspid valve",
+      "Bicuspid valve",
+      "Aortic semilunar valve"
+    ],
+    "answer": "Tricuspid valve",
+    "rationale": "The tricuspid valve guards the right AV opening.",
+    "hint": "Tricuspid = 3 cusps, right side.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-41",
+    "subject": "Cardiovascular",
+    "question": "Calcium channel blockers act by:",
+    "options": [
+      "Decreasing SA node automaticity",
+      "Increasing AV node conduction",
+      "Increasing the heart rate",
+      "Creating a positive inotropic effect."
+    ],
+    "answer": "Decreasing SA node automaticity",
+    "rationale": "Calcium channel blockers slow conduction and heart rate.",
+    "hint": "CCBs decrease automaticity.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-42",
+    "subject": "Cardiovascular",
+    "question": "Which of the following conditions is not associated with sinus bradycardia?",
+    "options": [
+      "Hypothyroidism",
+      "Leptospirosis",
+      "Myocardial infarction",
+      "Liver disease"
+    ],
+    "answer": "Leptospirosis",
+    "rationale": "Hypothyroidism and liver disease can cause bradycardia; leptospirosis is less classically associated.",
+    "hint": "Think of conditions that affect metabolic rate.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-43",
+    "subject": "Cardiovascular",
+    "question": "What supplemental medication is most frequently ordered in conjunction with furosemide (Lasix)?",
+    "options": [
+      "Chloride",
+      "Digoxin",
+      "Potassium",
+      "Sodium"
+    ],
+    "answer": "Potassium",
+    "rationale": "Lasix can cause potassium loss leading to hypokalemia.",
+    "hint": "Loop diuretics waste potassium.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-44",
+    "subject": "Cardiovascular",
+    "question": "A client on nitroglycerine treatment complained of throbbing headache, the nurse should:",
+    "options": [
+      "Administer prescribed analgesic",
+      "Stop nitroglycerine treatment",
+      "Give nitroglycerine with few glasses of water",
+      "Position patient in supine position to alleviate the headache"
+    ],
+    "answer": "Administer prescribed analgesic",
+    "rationale": "Headache is a common side effect of nitroglycerin due to vasodilation.",
+    "hint": "Headache is expected; treat symptomatically.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-45",
+    "subject": "Cardiovascular",
+    "question": "Which of the following is not true for ventricular systole?",
+    "options": [
+      "The ventricles relax",
+      "The ventricles contract",
+      "The semi lunar valves close",
+      "The AV valves close"
+    ],
+    "answer": "The ventricles relax",
+    "rationale": "Ventricular systole means ventricular contraction, not relaxation.",
+    "hint": "Systole = contraction.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-46",
+    "subject": "Cardiovascular",
+    "question": "T- wave on an ECG represent.",
+    "options": [
+      "Depolarization of the ventricles",
+      "Repolarization of the ventricles",
+      "Depolarization of the atria",
+      "Repolarization of the atria"
+    ],
+    "answer": "Repolarization of the ventricles",
+    "rationale": "T-wave represents ventricular repolarization.",
+    "hint": "T = recovery.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-47",
+    "subject": "Cardiovascular",
+    "question": "The surgical procedure to close the patent ductus is performed through.",
+    "options": [
+      "Left thoracotomy",
+      "Invasive thoracotomy",
+      "Bilateral thoracotomy",
+      "Right thoracotomy"
+    ],
+    "answer": "Left thoracotomy",
+    "rationale": "PDA repair is usually approached through the left thorax.",
+    "hint": "PDA is located on the left side.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-48",
+    "subject": "Cardiovascular",
+    "question": "A hypertensive client on Frusemide, Atenolol and Ramipril developed a second degree heart block (Mobitz type 1). Which of the following actions should the nurse take?",
+    "options": [
+      "Prepare for cardioversion",
+      "Withhold the Atenolol",
+      "Set up for arterial line",
+      "Withhold Ramipril"
+    ],
+    "answer": "Withhold the Atenolol",
+    "rationale": "Beta-blockers can worsen heart block.",
+    "hint": "Beta-blockers affect AV conduction.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-49",
+    "subject": "Cardiovascular",
+    "question": "The first post operative care of a client with repair of aneurism is to assess...",
+    "options": [
+      "Alteration in renal perfusion",
+      "Alteration in cardiac output",
+      "Alteration in respiratory function",
+      "Alteration in neurological function"
+    ],
+    "answer": "Alteration in renal perfusion",
+    "rationale": "Renal perfusion assessment is a major priority after aneurysm repair due to risk of renal ischemia.",
+    "hint": "Aneurysm repair can compromise renal arteries.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-50",
+    "subject": "Cardiovascular",
+    "question": "Which is not true of cardiopulmonary resuscitation (CPR)?",
+    "options": [
+      "Closed chest massage is as effective as open chest massage",
+      "The success rate for out-of-hospital resuscitation may be as high as 30% to 60%",
+      "The most common cause of sudden death is ischemic heart disease",
+      "Standard chest massage generally provides less than 15% of normal coronary and cerebral blood flow."
+    ],
+    "answer": "Closed chest massage is as effective as open chest massage",
+    "rationale": "Open chest massage is generally more effective.",
+    "hint": "Closed chest is less effective than open.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-51",
+    "subject": "Cardiovascular",
+    "question": "All of the following are type of angina except for:",
+    "options": [
+      "Stable angina",
+      "Unstable angina",
+      "Refractory angina",
+      "Direct angina"
+    ],
+    "answer": "Direct angina",
+    "rationale": "Direct angina is not a recognized type.",
+    "hint": "Types: stable, unstable, variant.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-52",
+    "subject": "Cardiovascular",
+    "question": "The velocity of flow in blood vessels is determined by.",
+    "options": [
+      "Caliber of blood vessel",
+      "Viscosity of blood",
+      "Pressure difference between two ends of blood vessels",
+      "All of the above"
+    ],
+    "answer": "All of the above",
+    "rationale": "Velocity depends on vessel caliber, blood viscosity, and pressure gradient.",
+    "hint": "Everything matters.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-53",
+    "subject": "Cardiovascular",
+    "question": "The presence of interrelated disc in the cardiac muscle allows it to function as",
+    "options": [
+      "Syncytium",
+      "Sinctium",
+      "Synctinon",
+      "Sinctinon"
+    ],
+    "answer": "Syncytium",
+    "rationale": "Intercalated discs allow cardiac muscle to act as one unit (syncytium).",
+    "hint": "Syncytium = coordinated mass.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-54",
+    "subject": "Cardiovascular",
+    "question": "The atrial septal defect (ASD) most commonly associated with partial anomalous pulmonary venous return (PAPVR) is:",
+    "options": [
+      "Secundum defect",
+      "Sinus venosus defect",
+      "Ostium primum defect",
+      "Complete atrioventricular (AV) canal defect."
+    ],
+    "answer": "Sinus venosus defect",
+    "rationale": "Sinus venosus ASD is strongly associated with PAPVR.",
+    "hint": "Sinus venosus = high ASD with anomalous veins.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-55",
+    "subject": "Cardiovascular",
+    "question": "The bicuspid valve is located between the...",
+    "options": [
+      "Left and right atria",
+      "Right and left ventricles",
+      "Left atrium and left ventricle",
+      "Right and left ventricles"
+    ],
+    "answer": "Left atrium and left ventricle",
+    "rationale": "The bicuspid (mitral) valve separates the left atrium and left ventricle.",
+    "hint": "Left heart valves: bicuspid (mitral).",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-56",
+    "subject": "Cardiovascular",
+    "question": "Rheumatic fever occurs after which of the following infection:",
+    "options": [
+      "Group A Beta Hemolytic",
+      "Group A Alpha Haemolytic",
+      "Group B Hemolytic",
+      "Staphylococcus aureus"
+    ],
+    "answer": "Group A Beta Hemolytic",
+    "rationale": "Rheumatic fever follows Group A beta-hemolytic streptococcal infection.",
+    "hint": "GABHS = rheumatic fever.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-57",
+    "subject": "Cardiovascular",
+    "question": "The uterine artery is a branch of..",
+    "options": [
+      "Common iliac artery",
+      "External iliac artery",
+      "Internal iliac artery",
+      "Descending aorta"
+    ],
+    "answer": "Internal iliac artery",
+    "rationale": "The uterine artery branches from the internal iliac artery.",
+    "hint": "Internal iliac supplies pelvic organs.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-58",
+    "subject": "Cardiovascular",
+    "question": "In a normal heart, the blood in the chambers of the right side of the heart would be",
+    "options": [
+      "Higher in oxygen content than that in the left side",
+      "About equal in oxygen content with that of the left side",
+      "Equal in carbon dioxide content to that of the left side",
+      "Lower in oxygen content than that in the left side"
+    ],
+    "answer": "Lower in oxygen content than that in the left side",
+    "rationale": "The right heart carries deoxygenated blood.",
+    "hint": "Right = deoxygenated.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-59",
+    "subject": "Cardiovascular",
+    "question": "Stage 1 hypertension is defined as persistent blood pressure levels in which the systolic pressure is and the diastolic is",
+    "options": [
+      "120/80 mm Hg",
+      "130/80 mm Hg",
+      "140/90 mm Hg",
+      "150/90 mm Hg"
+    ],
+    "answer": "130/80 mm Hg",
+    "rationale": "Stage 1 HTN is BP \u2265130/80 mmHg.",
+    "hint": "Newer guidelines: 130/80.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-60",
+    "subject": "Cardiovascular",
+    "question": "All of the following are common consequences of congenital heart disease in the adult except",
+    "options": [
+      "Erythrocytosis",
+      "Stroke",
+      "Pulmonary hypertension",
+      "Infective endocarditis"
+    ],
+    "answer": "Erythrocytosis",
+    "rationale": "Stroke, pulmonary hypertension, and infective endocarditis are more common adult complications; erythrocytosis is a compensatory response to chronic hypoxia.",
+    "hint": "Erythrocytosis = increased red cells due to hypoxia.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-61",
+    "subject": "Cardiovascular",
+    "question": "Which among the thiazide or thiazide-like diuretics is the most preferred oral antihypertensive drug due to its prolonged half-life and proven trial reduction of cardiovascular disease (CVD)?",
+    "options": [
+      "Chlorthalidone",
+      "Hydrochlorothiazide (HCTZ)",
+      "Indapamide",
+      "Metolazone"
+    ],
+    "answer": "Chlorthalidone",
+    "rationale": "Chlorthalidone has a long half-life and strong evidence for reducing cardiovascular events.",
+    "hint": "Chlorthalidone has proven CV benefits.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-62",
+    "subject": "Cardiovascular",
+    "question": "The following are cyanotic congenital heart defect EXCEPT:",
+    "options": [
+      "Fallot Tetraology",
+      "Patent Ductus Arteriosus",
+      "Transportation of great vessels arteries",
+      "Total anomalous pulmonary venous drainage"
+    ],
+    "answer": "Patent Ductus Arteriosus",
+    "rationale": "PDA is usually an acyanotic congenital heart defect.",
+    "hint": "PDA is acyanotic unless severe.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-63",
+    "subject": "Cardiovascular",
+    "question": "Which of the following groups are at risk for vasospastic disorder (Raynaud's disease):",
+    "options": [
+      "Women between 10-15 years",
+      "Men between 16-40 years",
+      "Women between 16-40 years",
+      "Men between 10-15 years"
+    ],
+    "answer": "Women between 16-40 years",
+    "rationale": "Raynaud's disease commonly affects young women.",
+    "hint": "Peak age 20-40, female predominance.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-64",
+    "subject": "Cardiovascular",
+    "question": "Choose the correct pathway of the transmission of impulses in heart beat:",
+    "options": [
+      "AV node- SA node- Bundle of HIS- Purkinji fibres",
+      "SA node- AV node- Bundle of HIS- Purkinji fibres",
+      "SA node- Bundle of HIS- AV node- Purkinji fibres",
+      "AV node- Bundle of HIS- SA node- Purkinji fibres"
+    ],
+    "answer": "SA node- AV node- Bundle of HIS- Purkinji fibres",
+    "rationale": "This is the normal cardiac conduction pathway.",
+    "hint": "SA \u2192 AV \u2192 Bundle \u2192 Purkinje.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-65",
+    "subject": "Cardiovascular",
+    "question": "Which maneuver generally is not performed early before chest compression in basic life support outside the hospital?",
+    "options": [
+      "Call for help",
+      "Obtain airway",
+      "Electrical cardioversion",
+      "Ventilation"
+    ],
+    "answer": "Electrical cardioversion",
+    "rationale": "Cardioversion is not part of early basic life support outside hospital settings.",
+    "hint": "BLS = CPR + AED.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-66",
+    "subject": "Cardiovascular",
+    "question": "Which of the following statement is correct?",
+    "options": [
+      "130/90 mm Hg is considered high and require treatment",
+      "100/55 mm Hg is considered an ideal blood pressure",
+      "105/50 mm Hg makes one active",
+      "190/110 mm Hg may harm vital organs"
+    ],
+    "answer": "190/110 mm Hg may harm vital organs",
+    "rationale": "Severe hypertension can damage organs like the brain, kidneys, and heart.",
+    "hint": "Severe HTN = emergency.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-67",
+    "subject": "Cardiovascular",
+    "question": "During infancy which is the commonest cause of myocarditis?",
+    "options": [
+      "Haemophilus influenza",
+      "Streptococci",
+      "Coxsackie b infection",
+      "Pneumococci"
+    ],
+    "answer": "Coxsackie b infection",
+    "rationale": "Coxsackie B virus is a common cause of viral myocarditis in infants.",
+    "hint": "Coxsackie B = common viral cause.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-68",
+    "subject": "Cardiovascular",
+    "question": "Increase in venous return result into.....",
+    "options": [
+      "Increase stroke volume",
+      "Increased cardiac output and pulse rate",
+      "Decreased heart rate and stroke volume",
+      "Increased stroke volume and cardiac output"
+    ],
+    "answer": "Increased stroke volume and cardiac output",
+    "rationale": "More venous return increases preload, which increases stroke volume and cardiac output.",
+    "hint": "Starling's law.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-69",
+    "subject": "Cardiovascular",
+    "question": "The risk factor for the development of arteriosclerosis and peripheral vascular disease include",
+    "options": [
+      "Sedentary lifestyle",
+      "Uterine fibroid",
+      "Hereditary",
+      "Diabetes mellitus"
+    ],
+    "answer": "Diabetes mellitus",
+    "rationale": "Diabetes is a major risk factor for arteriosclerosis and PVD.",
+    "hint": "Diabetes = endothelial damage.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-70",
+    "subject": "Cardiovascular",
+    "question": "Blood pressure is measured in terms of",
+    "options": [
+      "mmHg",
+      "mm",
+      "cmHg",
+      "Hg"
+    ],
+    "answer": "mmHg",
+    "rationale": "Blood pressure is measured in millimeters of mercury.",
+    "hint": "Mercury manometer.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-71",
+    "subject": "Cardiovascular",
+    "question": "A characteristic symptom of damage to the vital organs as a result of hypertension is:",
+    "options": [
+      "Angina",
+      "Dyspnea",
+      "Epistaxis",
+      "All of the above."
+    ],
+    "answer": "All of the above.",
+    "rationale": "Hypertension can cause angina, dyspnea, and epistaxis.",
+    "hint": "HTN affects heart, brain, kidney, eyes.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-72",
+    "subject": "Cardiovascular",
+    "question": "Pharmacologic therapy for patients with uncomplicated hypertension would include the administration of:",
+    "options": [
+      "Angiotensin-converting enzyme inhibitor",
+      "Alpha blockers",
+      "Beta-blockers",
+      "Calcium antagonists."
+    ],
+    "answer": "Angiotensin-converting enzyme inhibitor",
+    "rationale": "ACE inhibitors are commonly first-line for uncomplicated hypertension.",
+    "hint": "ACE inhibitors are preferred.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-73",
+    "subject": "Cardiovascular",
+    "question": "Which of the following blood vessel layers may be damaged in a client with an aneurysm?",
+    "options": [
+      "Tunica intima",
+      "Tunica adventitia",
+      "Media",
+      "All of the above"
+    ],
+    "answer": "Media",
+    "rationale": "Aneurysms commonly involve weakening of the tunica media.",
+    "hint": "Media = middle layer.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-74",
+    "subject": "Cardiovascular",
+    "question": "The most common injury among elderly person is.",
+    "options": [
+      "Hip fracture",
+      "Arteriosclerotic changes in the blood vessel",
+      "Urinary tract infection",
+      "Increase incidence of gall bladder disease"
+    ],
+    "answer": "Hip fracture",
+    "rationale": "Hip fractures are very common in the elderly due to falls and osteoporosis.",
+    "hint": "Osteoporosis + falls.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-75",
+    "subject": "Cardiovascular",
+    "question": "When assessing a client for an abdominal aortic aneurysm, which area of the abdomen is most commonly palpated?",
+    "options": [
+      "Right upper quadrant",
+      "Directly over the umbilicus",
+      "Middle lower abdomen to the left of the midline",
+      "Midline lower abdomen to the right of the midline"
+    ],
+    "answer": "Middle lower abdomen to the left of the midline",
+    "rationale": "AAA is often palpable left of the midline.",
+    "hint": "AAA tends to be left-sided.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-76",
+    "subject": "Cardiovascular",
+    "question": "The walls of the arteries are.",
+    "options": [
+      "Very thin, allowing for expansion with each heartbeat",
+      "Thick, elastic walls which contract and expand",
+      "Composed of striated muscle tissue",
+      "Lined with a thick membrane which prevents their expansion"
+    ],
+    "answer": "Thick, elastic walls which contract and expand",
+    "rationale": "Arteries withstand high pressure.",
+    "hint": "Arteries have thick muscular walls.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-77",
+    "subject": "Cardiovascular",
+    "question": "Any mechanism that increases heart rate is said to have a positive effect:",
+    "options": [
+      "Cholinergic",
+      "Inotropic",
+      "Chronotrophic",
+      "Dromotropic"
+    ],
+    "answer": "Chronotrophic",
+    "rationale": "Positive chronotropic effects increase heart rate.",
+    "hint": "Chrono = time/rate.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-78",
+    "subject": "Cardiovascular",
+    "question": "The most prevalence types of cardiovascular disease in adult is.",
+    "options": [
+      "Coronary artery disease",
+      "Angina",
+      "Heart failure",
+      "Rheumatic heart disease"
+    ],
+    "answer": "Coronary artery disease",
+    "rationale": "CAD is the most prevalent cardiovascular disease in adults.",
+    "hint": "CAD is the most common.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-79",
+    "subject": "Cardiovascular",
+    "question": "Which treatment would be least effective for asystole?",
+    "options": [
+      "External pacemaker",
+      "Intravenous epinephrine, 10 ml of 1:10,000",
+      "Intravenous calcium gluconate, 10 ml of 10% solution",
+      "Intravenous atropine, 0.5 mg"
+    ],
+    "answer": "Intravenous calcium gluconate, 10 ml of 10% solution",
+    "rationale": "Calcium gluconate is least useful for asystole management.",
+    "hint": "Calcium is not a first-line ACLS drug.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-80",
+    "subject": "Cardiovascular",
+    "question": "Which is not true of cardiopulmonary resuscitation (CPR)?",
+    "options": [
+      "Closed chest massage is as effective as open chest massage",
+      "The success rate for out-of-hospital resuscitation may be as high as 30% to 60%",
+      "The most common cause of sudden death is ischemic heart disease",
+      "Standard chest massage generally provides less than 15% of normal coronary and cerebral blood flow."
+    ],
+    "answer": "Closed chest massage is as effective as open chest massage",
+    "rationale": "Open chest massage is more effective.",
+    "hint": "Closed chest is less effective.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-81",
+    "subject": "Cardiovascular",
+    "question": "The circumflex artery is a branch of...",
+    "options": [
+      "Anterior descending artery",
+      "Left coronary artery",
+      "Right coronary artery",
+      "Descending aorta"
+    ],
+    "answer": "Left coronary artery",
+    "rationale": "The circumflex artery branches from the left coronary artery.",
+    "hint": "Left coronary artery gives circumflex.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-82",
+    "subject": "Cardiovascular",
+    "question": "The nurse is caring for a client scheduled for repair of an abdominal aortic aneurysm. Which pre-op assessment is most important?",
+    "options": [
+      "Level of anxiety",
+      "Exercise tolerance",
+      "Quality of peripheral pulses",
+      "Bowel sounds"
+    ],
+    "answer": "Quality of peripheral pulses",
+    "rationale": "Peripheral circulation assessment is very important before aneurysm repair.",
+    "hint": "Peripheral pulses indicate distal perfusion.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-83",
+    "subject": "Cardiovascular",
+    "question": "Varicose vein is due to",
+    "options": [
+      "Constriction of the blood vessels.",
+      "Coagulation of blood in the blood vessels",
+      "Plague present in the blood vessel",
+      "Valvular incompetence"
+    ],
+    "answer": "Valvular incompetence",
+    "rationale": "Varicose veins occur due to failure of venous valves.",
+    "hint": "Valvular incompetence leads to pooling.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-84",
+    "subject": "Cardiovascular",
+    "question": "An expected nursing diagnosis for a patient with hypertension is:",
+    "options": [
+      "Heart failure",
+      "Knowledge deficit",
+      "Myocardial infarction",
+      "Renal insufficiency."
+    ],
+    "answer": "Knowledge deficit",
+    "rationale": "This is an expected nursing diagnosis in hypertensive patients.",
+    "hint": "Nursing diagnosis, not medical.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-85",
+    "subject": "Cardiovascular",
+    "question": "Which of the following heart muscle diseases is unrelated to other cardiovascular disease?",
+    "options": [
+      "Cardiomyopathy",
+      "Coronary artery disease",
+      "Myocardial infarction",
+      "Pericardial Effusion"
+    ],
+    "answer": "Cardiomyopathy",
+    "rationale": "Cardiomyopathy is a primary heart muscle disease.",
+    "hint": "Primary myocardial disease.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-86",
+    "subject": "Cardiovascular",
+    "question": "The sinoatrial node depolarizes more frequently under the influence of",
+    "options": [
+      "Acetylcholine",
+      "Norepinephrine",
+      "Atropine",
+      "Digitalis"
+    ],
+    "answer": "Norepinephrine",
+    "rationale": "Norepinephrine stimulates the SA node and increases firing rate.",
+    "hint": "Sympathetic = norepinephrine.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-87",
+    "subject": "Cardiovascular",
+    "question": "Which of the following types of cardiomyopathy can be associated with childbirth?",
+    "options": [
+      "Dilated",
+      "Hypertrophic",
+      "Myocarditis",
+      "Restrictive"
+    ],
+    "answer": "Dilated",
+    "rationale": "Peripartum cardiomyopathy is usually dilated cardiomyopathy.",
+    "hint": "Peripartum = dilated.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-88",
+    "subject": "Cardiovascular",
+    "question": "In ECG reading, QRS complex represents....",
+    "options": [
+      "Ventricular diastole",
+      "Atrial diastole",
+      "Atrial systole",
+      "Ventricular systole"
+    ],
+    "answer": "Ventricular systole",
+    "rationale": "QRS complex represents ventricular depolarization/contraction.",
+    "hint": "QRS = ventricular depolarization.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-89",
+    "subject": "Cardiovascular",
+    "question": "The responsibility of a nurse during cardiac catheterization includes:",
+    "options": [
+      "Locating the artery to be punctured",
+      "Assisting in positioning the patient",
+      "Inserting the catheter",
+      "Asking the patient to sign consent form"
+    ],
+    "answer": "Assisting in positioning the patient",
+    "rationale": "Nurses assist with patient preparation and monitoring.",
+    "hint": "Nursing role is supportive/monitoring.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-90",
+    "subject": "Cardiovascular",
+    "question": "All of the following medications have been shown to worsen heart failure in patients with left ventricular systolic dysfunction EXCEPT:",
+    "options": [
+      "Angiotensin receptor blockers",
+      "Beta-blockers",
+      "Calcium channel blockers",
+      "Thiazolidinediones"
+    ],
+    "answer": "Angiotensin receptor blockers",
+    "rationale": "ARBs help heart failure rather than worsen it.",
+    "hint": "ARBs are beneficial in HF.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-91",
+    "subject": "Cardiovascular",
+    "question": "The most frequent cause of hospitalization for people older than 75 years old is:",
+    "options": [
+      "Angina pectoris",
+      "Heart failure",
+      "Hypertension",
+      "Pulmonary edema"
+    ],
+    "answer": "Heart failure",
+    "rationale": "Heart failure is a common reason elderly patients are hospitalized.",
+    "hint": "Heart failure is common in elderly.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-92",
+    "subject": "Cardiovascular",
+    "question": "The pulse rate of a normal individual averages about:",
+    "options": [
+      "10 beats per minute",
+      "40 beats per minute",
+      "50 beats per minute",
+      "70 beats per minute"
+    ],
+    "answer": "70 beats per minute",
+    "rationale": "Normal resting pulse averages around 70 bpm.",
+    "hint": "Normal HR 60-100.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-93",
+    "subject": "Cardiovascular",
+    "question": "The primary cause of heart failure is:",
+    "options": [
+      "Arterial hypertension",
+      "Coronary atherosclerosis",
+      "Myocardial dysfunction",
+      "Valvular dysfunction"
+    ],
+    "answer": "Myocardial dysfunction",
+    "rationale": "Heart failure primarily results from impaired myocardial function.",
+    "hint": "Myocardial dysfunction = pump failure.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-94",
+    "subject": "Cardiovascular",
+    "question": "Which of the following factors have a significance effect on peripheral vascular resistance pressure?",
+    "options": [
+      "The number of capillaries",
+      "The position of the body",
+      "Age of the client",
+      "Viscosity of the blood"
+    ],
+    "answer": "Viscosity of the blood",
+    "rationale": "Blood viscosity significantly affects peripheral resistance.",
+    "hint": "Viscosity directly affects SVR.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-95",
+    "subject": "Cardiovascular",
+    "question": "The dominant function in cardiac failure is:",
+    "options": [
+      "Ascites",
+      "Hepatomegaly",
+      "Inadequate tissue perfusion",
+      "Nocturia"
+    ],
+    "answer": "Inadequate tissue perfusion",
+    "rationale": "This is the major problem in cardiac failure.",
+    "hint": "Perfusion is the key issue.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-96",
+    "subject": "Cardiovascular",
+    "question": "The facial vein has clinically important connections with",
+    "options": [
+      "The brachial plexus",
+      "The frontal sinus",
+      "Cavernous sinus and pterygoid venous plexus",
+      "Supratrochlear vein"
+    ],
+    "answer": "Cavernous sinus and pterygoid venous plexus",
+    "rationale": "These connections allow spread of facial infections.",
+    "hint": "Danger area of face.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-97",
+    "subject": "Cardiovascular",
+    "question": "All the following have the ability to regulate blood flow in the body EXCEPT:",
+    "options": [
+      "Antidiuretic hormone",
+      "Epinephrine and norepinephrine",
+      "Chemoreceptors",
+      "Enzymes from the salivary glands"
+    ],
+    "answer": "Enzymes from the salivary glands",
+    "rationale": "Salivary enzymes do not regulate blood flow.",
+    "hint": "They digest food, not control blood.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-98",
+    "subject": "Cardiovascular",
+    "question": "Which statement below accurately describes the role of the ductus arteriosus?",
+    "options": [
+      "The ductus arteriosus helps connect the umbilical artery to the inferior vena cava.",
+      "The ductus arteriosus is found between the right and left atrium.",
+      "In fetal circulation the pulmonary artery and aorta are connected via the ductus arteriosus.",
+      "The ductus arteriosus only carries oxygenated blood from the left side of the heart to the right side."
+    ],
+    "answer": "In fetal circulation the pulmonary artery and aorta are connected via the ductus arteriosus.",
+    "rationale": "This shunt bypasses fetal lungs.",
+    "hint": "Shunts blood away from lungs.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-99",
+    "subject": "Cardiovascular",
+    "question": "Bundle of His is a network of.",
+    "options": [
+      "Muscle fibres present only in the ventricle wall",
+      "Nerve fibres distributed in ventricles",
+      "Muscle fibres distributed throughout the heart walls",
+      "Nerve fibres found throughout the heart"
+    ],
+    "answer": "Muscle fibres present only in the ventricle wall",
+    "rationale": "Bundle of His is made of specialized cardiac muscle fibers in the ventricles.",
+    "hint": "Conducts to ventricles.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-100",
+    "subject": "Cardiovascular",
+    "question": "On assessment, the nurse knows that a patient who reports no symptoms of heart failure at rest but is symptomatic with increased physical activity would have a heart failure classification of:",
+    "options": [
+      "Stage I",
+      "Stage II",
+      "Stage III",
+      "Stage IV"
+    ],
+    "answer": "Stage II",
+    "rationale": "Symptoms with activity but not at rest indicate Class/Stage II heart failure.",
+    "hint": "NYHA Class II = ordinary activity causes symptoms.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-101",
+    "subject": "Cardiovascular",
+    "question": "The major cause of coronary artery disease is.",
+    "options": [
+      "Angina pectoris",
+      "Arteriosclerosis",
+      "Hypotension",
+      "Cerebrovascular accident"
+    ],
+    "answer": "Arteriosclerosis",
+    "rationale": "Coronary artery disease is mainly caused by atherosclerosis/arteriosclerosis.",
+    "hint": "Arteriosclerosis = plaque buildup.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-102",
+    "subject": "Cardiovascular",
+    "question": "Which of the following explains the influence of aging on the development of peripheral vascular disease?",
+    "options": [
+      "Increased viscosity of blood",
+      "Increased peripheral resistance",
+      "Decreased peripheral resistance",
+      "Decreased viscosity of blood"
+    ],
+    "answer": "Increased peripheral resistance",
+    "rationale": "Aging stiffens blood vessels and raises resistance.",
+    "hint": "Resistance increases with age.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-103",
+    "subject": "Cardiovascular",
+    "question": "The following are TRUE about coronary arteries EXCEPT:",
+    "options": [
+      "Right coronary artery supplies the left ventricle",
+      "Circumflex artery supplies the left atrium and lateral wall of the left ventricle",
+      "Left anterior descending arteries supplies the anterior wall of the left ventricle",
+      "Right coronary artery supplies the right side of the heart"
+    ],
+    "answer": "Right coronary artery supplies the left ventricle",
+    "rationale": "The left coronary artery mainly supplies the left ventricle.",
+    "hint": "Left ventricle gets blood from LAD and circumflex.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-104",
+    "subject": "Cardiovascular",
+    "question": "Which enzyme converts Angiotensinogen to Angiotensin I?",
+    "options": [
+      "Rennin",
+      "ACE",
+      "ANP",
+      "ADH"
+    ],
+    "answer": "Rennin",
+    "rationale": "Renin converts angiotensinogen to angiotensin I.",
+    "hint": "Renin \u2192 Ang I \u2192 ACE \u2192 Ang II.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-105",
+    "subject": "Cardiovascular",
+    "question": "The flow of blood through the veins is directed by.",
+    "options": [
+      "Rhythmic contractions of the vein walls",
+      "Gravity flow",
+      "The force of the heart's contractions",
+      "One way valves within the veins"
+    ],
+    "answer": "One way valves within the veins",
+    "rationale": "Venous valves prevent backflow.",
+    "hint": "Valves ensure forward flow.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-106",
+    "subject": "Cardiovascular",
+    "question": "The diagnosis of heart failure is usually confirmed by:",
+    "options": [
+      "Chest x-ray",
+      "Echocardiogram",
+      "Electrocardiogram",
+      "Ventriculogram"
+    ],
+    "answer": "Echocardiogram",
+    "rationale": "Echo is the key diagnostic tool for heart failure.",
+    "hint": "Echo shows pumping function.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-107",
+    "subject": "Cardiovascular",
+    "question": "Tetralogy of Fallot consists of all of the following features EXCEPT:",
+    "options": [
+      "Arterial Septal Defect",
+      "Pulmonary stenosis",
+      "Right ventricular hypertrophy",
+      "Overriding aorta"
+    ],
+    "answer": "Arterial Septal Defect",
+    "rationale": "Tetralogy of Fallot involves ventricular septal defect, not atrial.",
+    "hint": "TOF = VSD, PS, RVH, overriding aorta.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-108",
+    "subject": "Cardiovascular",
+    "question": "During the transmission of action potential through the conducting system of the heart a temporary delay occurs at the.",
+    "options": [
+      "AV node",
+      "Pacemaker",
+      "AV bundle",
+      "Purkinje fibres"
+    ],
+    "answer": "AV node",
+    "rationale": "The AV node delays conduction to allow ventricular filling.",
+    "hint": "AV node = physiological delay.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-109",
+    "subject": "Cardiovascular",
+    "question": "A client comes to the outpatient clinic and tells the nurse that he has had legs pains that begin when he walks but cease when he stops walking. Which of the following conditions would the nurse assess for?",
+    "options": [
+      "An acute obstruction in the vessels of the legs",
+      "Peripheral vascular problems in both legs",
+      "Diabetes",
+      "Calcium deficiency"
+    ],
+    "answer": "Peripheral vascular problems in both legs",
+    "rationale": "Intermittent claudication suggests peripheral arterial disease.",
+    "hint": "Intermittent claudication = PAD.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-110",
+    "subject": "Cardiovascular",
+    "question": "Which of the following arteries is most likely to be involved with serious atherosclerosis?",
+    "options": [
+      "The right coronary artery",
+      "The left coronary artery",
+      "The anterior descending coronary artery",
+      "The circumflex coronary artery."
+    ],
+    "answer": "The anterior descending coronary artery",
+    "rationale": "The LAD is most commonly affected by severe atherosclerosis.",
+    "hint": "LAD = widow maker.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-111",
+    "subject": "Cardiovascular",
+    "question": "The reason why the SA node (sino-atrial node) is the natural pacemaker is ....",
+    "options": [
+      "Generates an action potential which is more in size than other parts of the conducting system",
+      "Generates a greater number of action potentials",
+      "Is located in the right atrium",
+      "Has a faster intrinsic rate"
+    ],
+    "answer": "Has a faster intrinsic rate",
+    "rationale": "The SA node has the fastest intrinsic firing rate.",
+    "hint": "SA node = primary pacemaker due to highest rate.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-112",
+    "subject": "Cardiovascular",
+    "question": "The hepatic portal vein transports blood",
+    "options": [
+      "From the heart to the liver",
+      "From the liver to the spleen",
+      "From the gastrointestinal tract to the liver",
+      "from the liver to the gastrointestinal tract"
+    ],
+    "answer": "From the gastrointestinal tract to the liver",
+    "rationale": "The portal vein carries nutrient-rich blood to the liver.",
+    "hint": "Portal = gut \u2192 liver.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-113",
+    "subject": "Cardiovascular",
+    "question": "The lub dub sound of the heart beating is the sound of:",
+    "options": [
+      "The muscles of the heart contracting.",
+      "The heart valves opening and closing",
+      "The blood moving in and out of the heart",
+      "The blood moving in and out of the lungs."
+    ],
+    "answer": "The heart valves opening and closing",
+    "rationale": "Lub-dub sounds come from valve closure.",
+    "hint": "Lub = mitral/tricuspid closure.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-114",
+    "subject": "Cardiovascular",
+    "question": "Large ST segment on ECG indicates:",
+    "options": [
+      "Angina pectoris",
+      "Heart failure",
+      "Ventricular hypertrophy",
+      "Fibrillation"
+    ],
+    "answer": "Angina pectoris",
+    "rationale": "ST-segment changes are associated with myocardial ischemia/angina.",
+    "hint": "Ischemia affects ST segment.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-115",
+    "subject": "Cardiovascular",
+    "question": "Stroke volume is the:",
+    "options": [
+      "Difference between blood that the heart pushes at rest and contraction",
+      "Amount of blood pumped by the heart per minute",
+      "Difference between diastolic and systolic volume",
+      "Volume of blood in the ventricles at end-diastole"
+    ],
+    "answer": "Difference between diastolic and systolic volume",
+    "rationale": "Stroke volume = EDV - ESV.",
+    "hint": "SV = EDV - ESV.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-116",
+    "subject": "Cardiovascular",
+    "question": "Which of the following blood vessels possesses valves?",
+    "options": [
+      "Sub venules",
+      "Veins",
+      "Capillaries",
+      "Arteries"
+    ],
+    "answer": "Veins",
+    "rationale": "Veins contain valves to prevent backflow.",
+    "hint": "Valves are in veins.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-117",
+    "subject": "Cardiovascular",
+    "question": "A carotid precaution that follows radical neck dissection surgery include:",
+    "options": [
+      "Apply wet or dry dressing to the flap",
+      "Monitoring the flap using a doppler",
+      "Moving the client to an observation bed",
+      "Performing physical exercise"
+    ],
+    "answer": "Monitoring the flap using a doppler",
+    "rationale": "Monitoring blood flow is essential after neck dissection.",
+    "hint": "Flap monitoring = Doppler.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-118",
+    "subject": "Cardiovascular",
+    "question": "Pulmonary circulation is essentially the circulation of...",
+    "options": [
+      "Aortic blood",
+      "Mixed blood",
+      "Oxygenated blood",
+      "Deoxygenated blood"
+    ],
+    "answer": "Deoxygenated blood",
+    "rationale": "Pulmonary circulation carries deoxygenated blood to the lungs.",
+    "hint": "Right side pumps deoxygenated blood to lungs.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-119",
+    "subject": "Cardiovascular",
+    "question": "A patient with angina pectoris was instructed NOT to swallow glycery trinitrate tablet but place it under the tongue because:",
+    "options": [
+      "It is bitter and can cause vomiting",
+      "It cannot be absorbed by gastro intestinal mucosa",
+      "It has high metabolic effect",
+      "It can cause severe diarrhea"
+    ],
+    "answer": "It has high metabolic effect",
+    "rationale": "Nitroglycerin undergoes extensive first-pass metabolism, so it is given sublingually.",
+    "hint": "First-pass metabolism.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-120",
+    "subject": "Cardiovascular",
+    "question": "Blood flows from the heart through the aorta, and from there to.",
+    "options": [
+      "Arteries to capillaries to vein",
+      "Veins to capillaries to arteries",
+      "Capillaries to arteries to veins",
+      "Venules to capillaries to arteries"
+    ],
+    "answer": "Arteries to capillaries to vein",
+    "rationale": "Normal blood flow pathway: heart \u2192 arteries \u2192 capillaries \u2192 veins.",
+    "hint": "Flow: heart \u2192 arteries \u2192 capillaries \u2192 veins \u2192 heart.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-121",
+    "subject": "Cardiovascular",
+    "question": "Varicose veins can cause changes in what component of Virchow's triad?",
+    "options": [
+      "Blood coagulability",
+      "Vessel wall",
+      "Blood flow",
+      "Blood viscosity"
+    ],
+    "answer": "Blood flow",
+    "rationale": "Varicose veins cause venous stasis, altering normal blood flow.",
+    "hint": "Virchow's triad: stasis, hypercoagulability, vessel injury.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-122",
+    "subject": "Cardiovascular",
+    "question": "The term lymph refers to the fluid that is.",
+    "options": [
+      "Drained from the spaces around the cells of the body",
+      "Located within blood vessels",
+      "The liquid part of the blood",
+      "Obtained by removing fibrin from plasma"
+    ],
+    "answer": "Drained from the spaces around the cells of the body",
+    "rationale": "Lymph is interstitial fluid collected by lymphatic vessels.",
+    "hint": "Lymph = fluid in tissues.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-123",
+    "subject": "Cardiovascular",
+    "question": "The primary goal of peripheral vascular bypass surgery is to.....",
+    "options": [
+      "Relieve vascular pain",
+      "prevent blood infection",
+      "Reroute blood circulation",
+      "Substitute blood vessels"
+    ],
+    "answer": "Reroute blood circulation",
+    "rationale": "Peripheral bypass surgery restores blood flow around blocked vessels.",
+    "hint": "Bypass = detour for blood.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-124",
+    "subject": "Cardiovascular",
+    "question": "A significant cause of venous thrombosis is:",
+    "options": [
+      "Altered blood coagulation",
+      "Stasis of blood",
+      "Vessel wall injury",
+      "All of the above"
+    ],
+    "answer": "All of the above",
+    "rationale": "Virchow's triad includes stasis, vessel injury, and hypercoagulability.",
+    "hint": "Virchow's triad.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-125",
+    "subject": "Cardiovascular",
+    "question": "Which of the following conditions is most closely associated with weight gain, nausea, and a decrease in urine output?",
+    "options": [
+      "Angina pectoris",
+      "Cardiomyopathy",
+      "Left-sided heart failure",
+      "Right-sided heart failure"
+    ],
+    "answer": "Right-sided heart failure",
+    "rationale": "Fluid retention causes edema, weight gain, nausea, and reduced urine output.",
+    "hint": "Right-sided HF = systemic congestion.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-126",
+    "subject": "Cardiovascular",
+    "question": "The interventricular septum and the intra-atrial septum separate the:",
+    "options": [
+      "Chambers of the heart",
+      "Chambers of the lungs",
+      "Aorta and pulmonary artery",
+      "Bicuspid and tricuspid valves"
+    ],
+    "answer": "Chambers of the heart",
+    "rationale": "Septa divide the right and left chambers.",
+    "hint": "Septum = wall between chambers.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-127",
+    "subject": "Cardiovascular",
+    "question": "A patient is admitted with left sided congestive heart failure. In assessing the patient for oedema, the nurse should check the:",
+    "options": [
+      "Hands",
+      "Feet",
+      "Neck",
+      "Legs"
+    ],
+    "answer": "Legs",
+    "rationale": "Dependent edema commonly appears in the legs.",
+    "hint": "Dependent edema = gravity.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-128",
+    "subject": "Cardiovascular",
+    "question": "The lymph vessels are collections of lymphatic tissues that:",
+    "options": [
+      "Destroy bacteria",
+      "Manufacture erythrocyte",
+      "Help the body by localizing infection and filtering foreign cells from the body tissues",
+      "All of the above"
+    ],
+    "answer": "Help the body by localizing infection and filtering foreign cells from the body tissues",
+    "rationale": "Lymphatic tissue helps immune defense.",
+    "hint": "Lymph nodes filter.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-129",
+    "subject": "Cardiovascular",
+    "question": "Which technique is considered the gold standard for diagnosing DVT?",
+    "options": [
+      "Ultrasound imaging",
+      "Venography",
+      "MRI",
+      "Doppler flow study"
+    ],
+    "answer": "Venography",
+    "rationale": "Venography is the gold standard for DVT diagnosis.",
+    "hint": "Venography = X-ray with contrast.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-130",
+    "subject": "Cardiovascular",
+    "question": "Which of these events will not take place if the semilunar valves did not function?",
+    "options": [
+      "Ventricular contraction",
+      "Atrial contraction",
+      "Blood flow",
+      "Production of heart sound"
+    ],
+    "answer": "Production of heart sound",
+    "rationale": "Heart sounds can still occur even if semilunar valves malfunction.",
+    "hint": "S2 is semilunar valve closure.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-131",
+    "subject": "Cardiovascular",
+    "question": "One of the following is NOT an obstructive lesion of the heart:",
+    "options": [
+      "Pulmonary stenosis",
+      "Tetraology of fallot",
+      "Aortic stenosis",
+      "Coarctation of the aorta"
+    ],
+    "answer": "Tetraology of fallot",
+    "rationale": "TOF is a cyanotic defect, not purely obstructive.",
+    "hint": "TOF is a cyanotic heart disease.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-132",
+    "subject": "Cardiovascular",
+    "question": "The condition called arrhythmia is characterized by:",
+    "options": [
+      "Rapid heart contraction",
+      "Irregular heart rhythms",
+      "Mitral valve prolapse",
+      "Semilunar valve dysfunction"
+    ],
+    "answer": "Irregular heart rhythms",
+    "rationale": "Arrhythmia means abnormal rhythm of the heartbeat.",
+    "hint": "Arrhythmia = dysrhythmia.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-133",
+    "subject": "Cardiovascular",
+    "question": "A client is admitted with a venous stasis leg ulcer. A nurse assesses the ulcer, expecting to note",
+    "options": [
+      "Has brown pigmentation around it",
+      "Has little granulation tissue",
+      "Is deep, with even edges",
+      "Has a pale colored base"
+    ],
+    "answer": "Has brown pigmentation around it",
+    "rationale": "Venous ulcers are associated with hemosiderin staining.",
+    "hint": "Hemosiderin staining = venous stasis.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-134",
+    "subject": "Cardiovascular",
+    "question": "The normal heart sound on auscultation is described as Lub-dub which is also called:",
+    "options": [
+      "1st and 3d heart sounds",
+      "Korotkoff heart sounds",
+      "3rd and 4th heart sounds",
+      "1st and 2nd heart sounds"
+    ],
+    "answer": "1st and 2nd heart sounds",
+    "rationale": "Lub = S1, Dub = S2.",
+    "hint": "S1 = AV closure, S2 = semilunar closure.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-135",
+    "subject": "Cardiovascular",
+    "question": "The reason why tricuspid and bicuspid valves are closed is.",
+    "options": [
+      "Ventricular relaxation",
+      "Ventricular filling",
+      "Atrial systole",
+      "Prevent backflow of blood into the atria"
+    ],
+    "answer": "Prevent backflow of blood into the atria",
+    "rationale": "AV valves close during ventricular contraction.",
+    "hint": "Prevent regurgitation.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-136",
+    "subject": "Cardiovascular",
+    "question": "All the following apply to the heart EXCEPT:",
+    "options": [
+      "It is a cone-shaped organ",
+      "It weighs less than a pound",
+      "It is a hollow organ",
+      "It is roughly the size of the person's head"
+    ],
+    "answer": "It is roughly the size of the person's head",
+    "rationale": "The heart is about the size of a fist.",
+    "hint": "Heart = size of a fist.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-137",
+    "subject": "Cardiovascular",
+    "question": "Which of the following symptoms is most commonly associated with left-sided heart failure?",
+    "options": [
+      "Crackles",
+      "Arrhythmias",
+      "Hepatic engorgement",
+      "Hypotension"
+    ],
+    "answer": "Crackles",
+    "rationale": "Pulmonary congestion causes crackles in left-sided HF.",
+    "hint": "Left HF = pulmonary congestion.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-138",
+    "subject": "Cardiovascular",
+    "question": "Cardiac output is determined by.",
+    "options": [
+      "Heart rate",
+      "Stroke volume",
+      "Venous return",
+      "Heart rate and stroke volume"
+    ],
+    "answer": "Heart rate and stroke volume",
+    "rationale": "CO = HR \u00d7 SV.",
+    "hint": "Formula: CO = HR x SV.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-139",
+    "subject": "Cardiovascular",
+    "question": "In which of the following disorders would the nurse expect to assess sacral edema in bedridden client?",
+    "options": [
+      "Diabetes Mellitus",
+      "Pulmonary emboli",
+      "Renal failure",
+      "Right-sided heart failure"
+    ],
+    "answer": "Right-sided heart failure",
+    "rationale": "Bedridden patients often develop sacral edema.",
+    "hint": "Dependent edema in supine = sacral.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-140",
+    "subject": "Cardiovascular",
+    "question": "Other functions of lymphoid tissue include:",
+    "options": [
+      "Production of lymphocytes and antibodies",
+      "Manufacture of pathogens",
+      "Maintenance of normal balance of liquid and solid in the blood",
+      "All of the above"
+    ],
+    "answer": "Production of lymphocytes and antibodies",
+    "rationale": "That is a major lymphoid tissue function.",
+    "hint": "Lymphocytes and antibodies.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-141",
+    "subject": "Cardiovascular",
+    "question": "Buerger's disease is characterized by all of the following EXCEPT:",
+    "options": [
+      "Arterial thrombosis formation and occlusion",
+      "Lipid deposits in the arteries",
+      "Redness or cyanosis in the limb when it is dependent",
+      "Venous inflammation and occlusion"
+    ],
+    "answer": "Lipid deposits in the arteries",
+    "rationale": "Buerger's disease is inflammatory, not atherosclerotic.",
+    "hint": "Buerger's = thromboangiitis obliterans.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-142",
+    "subject": "Cardiovascular",
+    "question": "The spleen is located in the...",
+    "options": [
+      "Upper left quadrant of the abdomen",
+      "Posterior thoracic cavity",
+      "Lower middle section of the abdomen",
+      "Lower right quadrant"
+    ],
+    "answer": "Upper left quadrant of the abdomen",
+    "rationale": "The spleen lies beneath the left ribs.",
+    "hint": "Left hypochondriac region.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-143",
+    "subject": "Cardiovascular",
+    "question": "The volume of blood each ventricle pumps out during a cardiac cycle is about",
+    "options": [
+      "170 ml",
+      "70 ml",
+      "7 L",
+      "1200 ml"
+    ],
+    "answer": "70 ml",
+    "rationale": "Normal stroke volume is about 70 mL.",
+    "hint": "Normal SV ~70 ml.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-144",
+    "subject": "Cardiovascular",
+    "question": "Which symptoms is not commonly associated with left sided heart failure:",
+    "options": [
+      "Arrhythmias",
+      "Hepatic engorgement",
+      "Crackles",
+      "Hypotension"
+    ],
+    "answer": "Hepatic engorgement",
+    "rationale": "Hepatic congestion is more typical of right-sided HF.",
+    "hint": "Right HF = liver, legs; Left HF = lungs.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-145",
+    "subject": "Cardiovascular",
+    "question": "The terms systole and diastole refer to:",
+    "options": [
+      "Sounds from the heart",
+      "the major artery and vein from and to the heart",
+      "Heart contractions and relaxations",
+      "Rates of heart pulse"
+    ],
+    "answer": "Heart contractions and relaxations",
+    "rationale": "Systole = contraction; diastole = relaxation.",
+    "hint": "Systole = contraction.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-146",
+    "subject": "Cardiovascular",
+    "question": "Cancer can cause changes in what component of Virchow's triad?",
+    "options": [
+      "Blood coagulability",
+      "Vessel walls",
+      "Blood flow",
+      "Blood viscosity"
+    ],
+    "answer": "Blood coagulability",
+    "rationale": "Cancer increases hypercoagulability.",
+    "hint": "Trousseau syndrome.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-147",
+    "subject": "Cardiovascular",
+    "question": "Septal involvement occurs in which type of cardiomyopathy?",
+    "options": [
+      "Dilated",
+      "Hypertrophic",
+      "Restrictive",
+      "Arrhythmogenic"
+    ],
+    "answer": "Hypertrophic",
+    "rationale": "Septal hypertrophy is classic in hypertrophic cardiomyopathy.",
+    "hint": "Asymmetric septal hypertrophy.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-148",
+    "subject": "Cardiovascular",
+    "question": "The following are types of aneurysm EXCEPT:",
+    "options": [
+      "Dissecting aneurysm",
+      "Fusiform aneurysm",
+      "Transverse aneurysm",
+      "Saccular aneurysm"
+    ],
+    "answer": "Transverse aneurysm",
+    "rationale": "Transverse aneurysm is not a recognized type.",
+    "hint": "Aneurysm shapes: saccular, fusiform, dissecting.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-149",
+    "subject": "Cardiovascular",
+    "question": "Postoperative arm exercise facilitates the development of collateral circulation, which decrease lymphoedema. Collateral circulation is usually developed within.",
+    "options": [
+      "1 month",
+      "2 months",
+      "6 months",
+      "8-10 months"
+    ],
+    "answer": "2 months",
+    "rationale": "Collateral circulation typically develops within 2 months.",
+    "hint": "2 months.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-150",
+    "subject": "Cardiovascular",
+    "question": "The following are deep veins of the upper limb EXCEPT:",
+    "options": [
+      "Axillary vein",
+      "Brachial vein",
+      "Cephalic vein",
+      "Subclavian vein"
+    ],
+    "answer": "Cephalic vein",
+    "rationale": "Cephalic vein is superficial, not deep.",
+    "hint": "Deep veins: axillary, brachial, subclavian.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-151",
+    "subject": "Cardiovascular",
+    "question": "What is the definition of the cardiac cycle?",
+    "options": [
+      "The contraction of the atria",
+      "The contraction of the ventricles",
+      "The relaxation of the heart",
+      "It is a sequence of events that occurs during one complete heartbeat"
+    ],
+    "answer": "It is a sequence of events that occurs during one complete heartbeat",
+    "rationale": "That defines the cardiac cycle.",
+    "hint": "One heartbeat.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-152",
+    "subject": "Cardiovascular",
+    "question": "The wall of the arteries and arterioles consist of the following three layers of tissues EXCEPT:",
+    "options": [
+      "Tunica Adventitia",
+      "Tunica Media",
+      "Tunica verosa",
+      "Tunica intima"
+    ],
+    "answer": "Tunica verosa",
+    "rationale": "Blood vessels have intima, media, and adventitia.",
+    "hint": "Verosa is not a layer.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-153",
+    "subject": "Cardiovascular",
+    "question": "Which of the following represents the flow of blood from the heart to the body organs and back to the heart?",
+    "options": [
+      "Venules to capillaries to veins to arteries",
+      "Arteries to capillaries to veins",
+      "Capillaries to arterioles to arteries to veins",
+      "Veins to arteries to capillaries to arterioles"
+    ],
+    "answer": "Arteries to capillaries to veins",
+    "rationale": "This is normal systemic circulation.",
+    "hint": "Systemic flow.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-154",
+    "subject": "Cardiovascular",
+    "question": "Venous drainage from the heart is through the ...",
+    "options": [
+      "Coronary arteries",
+      "Coronary sinuses",
+      "Cardiac sinuses",
+      "Cardiac vein"
+    ],
+    "answer": "Coronary sinuses",
+    "rationale": "Most venous drainage empties into the coronary sinus.",
+    "hint": "Coronary sinus = main vein.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-155",
+    "subject": "Cardiovascular",
+    "question": "An elderly client refuses to take her daily medication for hypertension. Which action should the nurse take at this time?",
+    "options": [
+      "Administer the medication by injection",
+      "Obtain help administering the medication",
+      "Document the refusal and explore the reason",
+      "Tell the client it is for her own good"
+    ],
+    "answer": "Document the refusal and explore the reason",
+    "rationale": "Always assess why a patient refuses medication.",
+    "hint": "Explore reason for refusal.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-156",
+    "subject": "Cardiovascular",
+    "question": "What is the term used to describe an enlargement of the heart muscle?",
+    "options": [
+      "Cardiomegaly",
+      "Cardiomyopathy",
+      "Myocarditis",
+      "Pericarditis"
+    ],
+    "answer": "Cardiomegaly",
+    "rationale": "Cardiomegaly means enlarged heart.",
+    "hint": "Enlarged heart.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-157",
+    "subject": "Cardiovascular",
+    "question": "The differences between an artery and vein is that:",
+    "options": [
+      "An artery has 3 layers while a vain has 2",
+      "Blood flows through a vein at a low pressure",
+      "The walls of a vein is thinner than that of an artery",
+      "An artery has more elastic tissue and less smooth muscle"
+    ],
+    "answer": "The walls of a vein is thinner than that of an artery",
+    "rationale": "Veins have thinner, less muscular walls.",
+    "hint": "Arteries are thicker.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-158",
+    "subject": "Cardiovascular",
+    "question": "These are nerve ending situated in the carotid and aortic bodies and are primarily involved in control of respiration:",
+    "options": [
+      "Baroreceptor",
+      "Chemoreceptors",
+      "Atrioventricular node",
+      "Neuromuscular tissues"
+    ],
+    "answer": "Chemoreceptors",
+    "rationale": "These monitor oxygen and carbon dioxide levels.",
+    "hint": "Chemo = chemical.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-159",
+    "subject": "Cardiovascular",
+    "question": "The following are true about the coronary artery EXCEPT:",
+    "options": [
+      "The right coronary artery supplies the left ventricle",
+      "The right coronary artery supplies the right side of the heart",
+      "Circumflex artery supplies the left atrium and the lateral wall of the left ventricle",
+      "Left anterior descending artery supplies anterior wall"
+    ],
+    "answer": "The right coronary artery supplies the left ventricle",
+    "rationale": "This statement is incorrect.",
+    "hint": "Left ventricle gets LAD + circumflex.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-160",
+    "subject": "Cardiovascular",
+    "question": "Which of the following is not a function of the spleen:",
+    "options": [
+      "Destroys worn out red blood cells",
+      "Produces lymphocytes, monocytes and antibodies",
+      "Stores an emergency supply of blood",
+      "Manufactures red blood cells"
+    ],
+    "answer": "Manufactures red blood cells",
+    "rationale": "The spleen does not normally produce RBCs in adults.",
+    "hint": "Bone marrow makes RBCs.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-161",
+    "subject": "Cardiovascular",
+    "question": "The pericardium is the double sac membrane that:",
+    "options": [
+      "Encloses the heart",
+      "Line the aorta",
+      "Makes up the heart valves",
+      "Is found only in the capillaries"
+    ],
+    "answer": "Encloses the heart",
+    "rationale": "The pericardium surrounds and protects the heart.",
+    "hint": "Peri = around.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-162",
+    "subject": "Cardiovascular",
+    "question": "In focused cardiac physical assessment, a nurse observes the patients general evaluation of the following EXCEPT:",
+    "options": [
+      "Cyanosis",
+      "Cardiac output",
+      "Effectiveness of the heart pump",
+      "Filling volumes and pressure"
+    ],
+    "answer": "Filling volumes and pressure",
+    "rationale": "These require invasive or advanced assessment methods.",
+    "hint": "Not part of basic physical assessment.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-163",
+    "subject": "Cardiovascular",
+    "question": "Taking 74 cycles per minutes as an average cardiac cycle in adult, each cycle therefore last for about:",
+    "options": [
+      "0.8 minutes",
+      "1.8 seconds",
+      "0.8 seconds",
+      "1.8 minutes"
+    ],
+    "answer": "0.8 seconds",
+    "rationale": "At 74 bpm, each cardiac cycle lasts ~0.8 sec.",
+    "hint": "60 sec / 74 beats = 0.81 sec.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-164",
+    "subject": "Cardiovascular",
+    "question": "Which of the following characteristics is typical of the pain associated with DVT?",
+    "options": [
+      "Sudden onset",
+      "Dull ache",
+      "Tingling",
+      "No pain"
+    ],
+    "answer": "Dull ache",
+    "rationale": "DVT pain is often aching or cramping.",
+    "hint": "DVT = deep vein thrombosis, pain is aching.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-165",
+    "subject": "Cardiovascular",
+    "question": "Which of the following arteries primarily feeds the anterior wall of the heart?",
+    "options": [
+      "Circumflex artery",
+      "Internal mammary artery",
+      "Left anterior descending artery",
+      "Right coronary artery"
+    ],
+    "answer": "Left anterior descending artery",
+    "rationale": "The LAD supplies the anterior heart wall.",
+    "hint": "LAD = anterior wall.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-166",
+    "subject": "Cardiovascular",
+    "question": "The only vein in the body that transports oxygen-rich blood is the:",
+    "options": [
+      "Coronary vein",
+      "Hepatic portal vein",
+      "Pulmonary vein",
+      "Aortic vein"
+    ],
+    "answer": "Pulmonary vein",
+    "rationale": "Pulmonary veins carry oxygenated blood.",
+    "hint": "Only vein with oxygenated blood.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-167",
+    "subject": "Cardiovascular",
+    "question": "With peripheral arterial insufficiency, leg pain during rest can be reduced by:",
+    "options": [
+      "Elevating the limb above heart level",
+      "Lowering the limb so it is dependent",
+      "Massaging the limb after application of cold compresses",
+      "Placing the limb in a plane horizontal to the body"
+    ],
+    "answer": "Lowering the limb so it is dependent",
+    "rationale": "Dependency improves arterial blood flow.",
+    "hint": "Dependent position helps arterial flow.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-168",
+    "subject": "Cardiovascular",
+    "question": "Name the three phases of cardiac cycle in the order",
+    "options": [
+      "Early diastole, mid-to-late diastole, ventricular systole",
+      "Ventricular systole, early diastole, mid-to-late diastole",
+      "Mid-to-late diastole, ventricular systole, early diastole",
+      "Early diastole, ventricular systole, mid-to-late diastole"
+    ],
+    "answer": "Early diastole, mid-to-late diastole, ventricular systole",
+    "rationale": "These are the phases in sequence.",
+    "hint": "Diastole \u2192 systole.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-169",
+    "subject": "Cardiovascular",
+    "question": "Which of the following systems is the most likely origin of pain the client describes as knifelike chest pain that increases in intensity with inspiration?",
+    "options": [
+      "Cardiac",
+      "Gastrointestinal",
+      "Musculoskeletal",
+      "Pulmonary"
+    ],
+    "answer": "Pulmonary",
+    "rationale": "Pleuritic chest pain worsens with inspiration.",
+    "hint": "Pleuritic pain = pulmonary.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-170",
+    "subject": "Cardiovascular",
+    "question": "The systemic circuit of the cardiovascular system extends:",
+    "options": [
+      "From the heart to the lungs",
+      "From the gastrointestinal tract to the liver",
+      "From the heart to the body's organs and tissues",
+      "From heart to the coronary arteries"
+    ],
+    "answer": "From the heart to the body's organs and tissues",
+    "rationale": "This is systemic circulation.",
+    "hint": "Systemic = body.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-171",
+    "subject": "Cardiovascular",
+    "question": "The walls of the ventricles possess thick muscular projections, they are known as",
+    "options": [
+      "Conus arteriosus",
+      "Truncus arterosus",
+      "Chordae tendineae",
+      "Columnae carneae"
+    ],
+    "answer": "Columnae carneae",
+    "rationale": "These are muscular ridges in ventricular walls.",
+    "hint": "Ridges in ventricles.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-172",
+    "subject": "Cardiovascular",
+    "question": "Prolonged occlusion of the right coronary artery produces an infarction in which of the following areas of the heart?",
+    "options": [
+      "Anterior",
+      "Apical",
+      "Inferior",
+      "Lateral"
+    ],
+    "answer": "Inferior",
+    "rationale": "RCA occlusion commonly causes inferior MI.",
+    "hint": "RCA = inferior wall.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-173",
+    "subject": "Cardiovascular",
+    "question": "The term vasoconstriction refers to:",
+    "options": [
+      "Increasing the size of the lumen of the blood vessel",
+      "Decreasing the size of the lumen of the blood vessel",
+      "Delivering oxygen and nutrients to the body tissues",
+      "Delivering waste products to the kidney for excretion"
+    ],
+    "answer": "Decreasing the size of the lumen of the blood vessel",
+    "rationale": "That is vasoconstriction.",
+    "hint": "Constrict = narrow.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-174",
+    "subject": "Cardiovascular",
+    "question": "The hormonal regulation of cardiac output is...",
+    "options": [
+      "Mediated by the adrenal medulla",
+      "Mediated by the adrenal cortex",
+      "Mediated by thyroid",
+      "Mediated by pineal"
+    ],
+    "answer": "Mediated by the adrenal medulla",
+    "rationale": "Catecholamines influence cardiac output.",
+    "hint": "Adrenal medulla = epinephrine/norepinephrine.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-175",
+    "subject": "Cardiovascular",
+    "question": "Medical treatment of coronary artery disease includes which of the following procedures?",
+    "options": [
+      "Cardiac catheterization",
+      "Coronary artery bypass surgery",
+      "Oral medication administration",
+      "Percutaneous transluminal coronary angioplasty"
+    ],
+    "answer": "Oral medication administration",
+    "rationale": "Medical treatment refers to pharmacologic therapy.",
+    "hint": "Medical treatment = medications.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-176",
+    "subject": "Cardiovascular",
+    "question": "An electrocardiogram is a graphic illustration of....",
+    "options": [
+      "Cardiac conduction system",
+      "Cardiac cycle",
+      "Cardiac output",
+      "Systemic and pulmonary circuits"
+    ],
+    "answer": "Cardiac conduction system",
+    "rationale": "ECG graphically records cardiac electrical activity.",
+    "hint": "ECG = electrical activity.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-177",
+    "subject": "Cardiovascular",
+    "question": "Which of the following landmarks is the corect one for obtaining an apical pulse?",
+    "options": [
+      "Left intercostal space, midaxillary line",
+      "Left fifth intercostal space, midclavicular line",
+      "Left second intercostal space, midclavicular line",
+      "Left seventh intercostal space, midclavicular line"
+    ],
+    "answer": "Left fifth intercostal space, midclavicular line",
+    "rationale": "This is the apical pulse location.",
+    "hint": "5th intercostal, midclavicular.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-178",
+    "subject": "Cardiovascular",
+    "question": "In patients who present with a penetrating chest injury, injury to the heart is most likely when the following physical sign(s) is/are present:",
+    "options": [
+      "Hypotension",
+      "Distended neck veins",
+      "Decreased heart sound",
+      "All of the above."
+    ],
+    "answer": "All of the above.",
+    "rationale": "These are signs of cardiac tamponade from chest injury.",
+    "hint": "Beck's triad.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-179",
+    "subject": "Cardiovascular",
+    "question": "What is the most common complication of a myocardial infarction?",
+    "options": [
+      "Cardiogenic shock",
+      "Heart failure",
+      "Arrhythmias",
+      "Pericarditis"
+    ],
+    "answer": "Arrhythmias",
+    "rationale": "Dysrhythmias are the most common MI complication.",
+    "hint": "Ventricular arrhythmias are common.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-180",
+    "subject": "Cardiovascular",
+    "question": "The nurse is evaluating a client's progress, which of the following information will be indicative of cardiac compensatory mechanism:",
+    "options": [
+      "Ventricular dilation, hypertrophy and tachycardia",
+      "Hepatomegaly and splenomegaly",
+      "Bradycardia, Restless and hyperventilation",
+      "Headache, drowsiness and confusion"
+    ],
+    "answer": "Ventricular dilation, hypertrophy and tachycardia",
+    "rationale": "These are compensatory responses to decreased CO.",
+    "hint": "Compensatory mechanisms.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-181",
+    "subject": "Cardiovascular",
+    "question": "With which of the following disorders is jugular vein distention most prominent?",
+    "options": [
+      "Left-sided heart failure",
+      "Right-sided heart failure",
+      "Pulmonary edema",
+      "Hypertension"
+    ],
+    "answer": "Right-sided heart failure",
+    "rationale": "JVD is common in right-sided HF.",
+    "hint": "JVD = right heart failure.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-182",
+    "subject": "Cardiovascular",
+    "question": "Regulation of normal activities of the human heart takes place:",
+    "options": [
+      "By the autonomic nervous system",
+      "Intrinsically",
+      "By the diencephalon",
+      "By the brain stem"
+    ],
+    "answer": "Intrinsically",
+    "rationale": "The heart has automaticity independent of nerves.",
+    "hint": "Heart has intrinsic rhythm.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-183",
+    "subject": "Cardiovascular",
+    "question": "The best method for evaluating the amount of peripheral oedema is..",
+    "options": [
+      "Measuring the extremity",
+      "Measuring the intake and output",
+      "Checking for pitting",
+      "Weighing the client daily"
+    ],
+    "answer": "Measuring the extremity",
+    "rationale": "Measuring circumference quantifies edema.",
+    "hint": "Circumference measurement.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-184",
+    "subject": "Cardiovascular",
+    "question": "Which of the following can be termed persistent atrial fibrillation?",
+    "options": [
+      "Acute onset of atrial fibrillation with spontaneous termination 2 days later",
+      "Atrial fibrillation that has been continuously present for 4 years",
+      "Atrial fibrillation that is present for 10 days and required electrical cardioversion",
+      "Atrial fibrillation occurring an average of 5 times weekly eventually requiring antiarrhythmic drug therapy to maintain sinus rhythm"
+    ],
+    "answer": "Atrial fibrillation that is present for 10 days and required electrical cardioversion",
+    "rationale": "Persistent AF requires intervention to terminate.",
+    "hint": "Persistent AF = lasts >7 days.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-185",
+    "subject": "Cardiovascular",
+    "question": "Which of the following indicates that the heart is functioning effectively as a pump?",
+    "options": [
+      "Stroke volume",
+      "Pulse pressure",
+      "Abnormal heart sounds",
+      "Murmurs"
+    ],
+    "answer": "Stroke volume",
+    "rationale": "Stroke volume reflects pump effectiveness.",
+    "hint": "SV = amount pumped per beat.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-186",
+    "subject": "Cardiovascular",
+    "question": "Dyspnea, cough, expectoration, weakness, and edema are classic signs and symptoms of which of the following conditions?",
+    "options": [
+      "Pericarditis",
+      "Hypertension",
+      "Obliterative",
+      "Restrictive"
+    ],
+    "answer": "Restrictive",
+    "rationale": "These are signs of restrictive cardiomyopathy/heart failure.",
+    "hint": "Restrictive = stiff heart.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  },
+  {
+    "id": "richard-cv-187",
+    "subject": "Cardiovascular",
+    "question": "Cardiac arrest is a problem of the.",
+    "options": [
+      "Conducting system of the heart",
+      "Heart valve",
+      "Heart muscle",
+      "All of the above"
+    ],
+    "answer": "Conducting system of the heart",
+    "rationale": "Cardiac arrest is an abrupt loss of heart function, usually caused by an electrical disturbance (conducting system).",
+    "hint": "It's an electrical issue.",
+    "source": "Richard's Bank",
+    "difficulty": "Moderate",
+    "category": "Nursing"
+  }
+]

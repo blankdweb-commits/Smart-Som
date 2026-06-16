@@ -1,0 +1,12 @@
+Added Richard's Bank cardiovascular collection (187 questions) to src/data/flashcards/richard-bank/cardiovascular.json.
+Updated src/pages/Quiz.jsx to:
+1. Support pre-defined options from the question bank if available.
+2. Maintain backward compatibility for flashcards without pre-defined options by generating random distractors.
+3. Verified that the source "Richard's Bank" is correctly detected and displayed with the "Verified Source" badge.
+
+Data transformation included:
+- Mapping 'correct_answer_text' to 'answer' for flashcard system compatibility.
+- Including 'rationale', 'hint', and 'options' in the JSON.
+- Setting difficulty and category.
+
+Build passed successfully. Verified with Playwright that questions from the new bank are loaded and options are displayed correctly.

@@ -149,12 +149,17 @@ const Quiz = () => {
     const selected = shuffled.slice(0, Math.min(limit, uniquePool.length));
 
     const questions = selected.map(card => {
-      const distractors = flashcards
-        .filter(c => c.id !== card.id && c.answer !== card.answer)
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 3)
-        .map(c => c.answer);
-      const options = [card.answer, ...distractors].sort(() => 0.5 - Math.random());
+      let options;
+      if (card.options && card.options.length > 0) {
+        options = [...card.options].sort(() => 0.5 - Math.random());
+      } else {
+        const distractors = flashcards
+          .filter(c => c.id !== card.id && c.answer !== card.answer)
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 3)
+          .map(c => c.answer);
+        options = [card.answer, ...distractors].sort(() => 0.5 - Math.random());
+      }
       return { ...card, options, correctAnswer: card.answer };
     });
 
