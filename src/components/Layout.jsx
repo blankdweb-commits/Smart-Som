@@ -15,7 +15,7 @@ const Layout = ({ children }) => {
     <div className="flex min-h-screen bg-slate-50 dark:bg-slate-900 transition-colors duration-500 overflow-x-hidden">
       {!isQuizActive && <Sidebar />}
 
-      <main className={`flex-1 min-w-0 ${isQuizActive ? "" : "mb-20"} lg:mb-0`}>
+      <main className={`flex-1 min-w-0 ${isQuizActive ? "" : "pb-20"} lg:mb-0`}>
         {/* Top Header - Visible on all screens */}
         {!isQuizActive && <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 px-4 py-3 flex justify-between items-center">
           <div className="flex items-center gap-3">
