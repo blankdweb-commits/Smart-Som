@@ -1,41 +1,41 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
+import { useNavigate } from 'react-router-dom';
 import {
-  Save,
-  Key,
   User,
   Shield,
-  TrendingUp,
-  ChevronRight,
-  Lock,
-  Trash2,
-  Info,
-  CheckCircle2,
-  AlertCircle,
+  LayoutDashboard,
+  Moon,
+  Sun,
   Volume2,
   VolumeX,
-  Sun,
-  Moon,
-  LayoutDashboard
+  Trash2,
+  ChevronRight,
+  Info,
+  CheckCircle2,
+  TrendingUp
 } from '../components/Icons';
 import { motion } from 'framer-motion';
 import Toast from '../components/Toast';
 
 const Settings = () => {
   const {
-    userProfile, updateProfile,
-    darkMode, toggleDarkMode,
-    soundEnabled, toggleSound
+    userProfile,
+    updateProfile,
+    darkMode,
+    toggleDarkMode,
+    soundEnabled,
+    toggleSound
   } = useAppContext();
+
   const navigate = useNavigate();
   const [toast, setToast] = useState(null);
 
   const toggleAdminMode = () => {
-    const isAdmin = !userProfile.isAdmin;
-    updateProfile({ isAdmin });
+    const newAdminStatus = !userProfile.isAdmin;
+    updateProfile({ isAdmin: newAdminStatus });
     setToast({
-      message: isAdmin ? 'Admin mode enabled' : 'Admin mode disabled',
+      message: `Admin Mode ${newAdminStatus ? 'Enabled' : 'Disabled'}`,
       type: 'info'
     });
   };
@@ -50,7 +50,6 @@ const Settings = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
 
-          {/* Preferences Section */}
           <section className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-8 shadow-clinical border border-slate-100 dark:border-slate-700">
             <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-8 flex items-center gap-3">
               <LayoutDashboard className="text-medical-600" size={24} />
@@ -58,7 +57,6 @@ const Settings = () => {
             </h2>
 
             <div className="space-y-4">
-              {/* Theme Toggle */}
               <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-4">
                   <div className={`p-2 rounded-xl ${darkMode ? 'bg-amber-100 text-amber-600' : 'bg-medical-100 text-medical-600'}`}>
@@ -77,7 +75,6 @@ const Settings = () => {
                 </button>
               </div>
 
-              {/* Sound Toggle */}
               <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800">
                 <div className="flex items-center gap-4">
                   <div className={`p-2 rounded-xl ${soundEnabled ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
@@ -98,7 +95,6 @@ const Settings = () => {
             </div>
           </section>
 
-          {/* Admin Access Section */}
           {userProfile.isAdmin && (
             <motion.section
               initial={{ opacity: 0, y: 20 }}
@@ -109,6 +105,21 @@ const Settings = () => {
                 <Shield className="text-medical-600" /> Administrative Access
               </h3>
               <div className="space-y-4">
+                <button
+                  onClick={() => navigate('/admin')}
+                  className="w-full p-6 bg-white dark:bg-slate-800 rounded-2xl border border-medical-200 dark:border-medical-900 flex items-center justify-between group hover:border-medical-500 transition-all shadow-sm"
+                >
+                  <div className="flex items-center gap-4 text-left">
+                    <div className="w-12 h-12 bg-medical-50 dark:bg-medical-900/30 text-medical-600 rounded-xl flex items-center justify-center">
+                      <Shield size={24} />
+                    </div>
+                    <div>
+                      <p className="font-black text-slate-900 dark:text-white">Administrator Dashboard</p>
+                      <p className="text-xs text-slate-500 font-medium">Manage question banks, sources and moderation</p>
+                    </div>
+                  </div>
+                  <ChevronRight className="text-slate-300 group-hover:text-medical-600 transform group-hover:translate-x-1 transition-all" />
+                </button>
                 <button
                   onClick={() => navigate('/admin/finance')}
                   className="w-full p-6 bg-white dark:bg-slate-800 rounded-2xl border border-medical-200 dark:border-medical-900 flex items-center justify-between group hover:border-medical-500 transition-all shadow-sm"
