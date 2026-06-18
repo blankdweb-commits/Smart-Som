@@ -124,7 +124,7 @@ const Quiz = () => {
       }, 1000);
     }
     return () => clearInterval(timer);
-  }, [quizStarted, showResults, showRationale, quizMode, useTimer, currentQuestionIndex, isFinalAnswer]);
+  }, [quizStarted, showResults, showRationale, quizMode, useTimer, currentQuestionIndex]);
 
   const initQuiz = (mode, subjectFilter = null) => {
     let pool = [...flashcards];
@@ -214,11 +214,7 @@ const Quiz = () => {
       const milestone = MILESTONES.find(m => m.q === newScore);
       if (milestone && milestone.checkpoint) setSafetyNetReached(milestone.label);
 
-            const newCombo = consecutiveCorrect + 1;
-      if (newCombo % 5 === 0 && newCombo > 0) {
-        setLifelinesUsed({ hint: false, fiftyFifty: false, askClass: false });
-        setRestoredThisTurn(true);
-      }
+      const newCombo = consecutiveCorrect + 1;
       setConsecutiveCorrect(newCombo);
 
       // XP Multipliers
@@ -229,6 +225,15 @@ const Quiz = () => {
 
       setSessionXP(prev => prev + (10 * multiplier));
 
+      if (newCombo % 5 === 0) {
+        setLifelinesUsed(prev => {
+           let next = { ...prev };
+           if (prev.fiftyFifty) { next.fiftyFifty = false; setRestoredThisTurn(true); }
+           else if (prev.hint) { next.hint = false; setRestoredThisTurn(true); }
+           else if (prev.askClass) { next.askClass = false; setRestoredThisTurn(true); }
+           return next;
+        });
+      }
       updateQuizStats({ quizStreak: (studyStats.quizStreak || 0) + 1 });
     } else {
       setConsecutiveCorrect(0);
@@ -434,7 +439,7 @@ const Quiz = () => {
           <motion.div className="h-full bg-medical-500" initial={{ width: 0 }} animate={{ width: `${((currentQuestionIndex + 1) / quizQuestions.length) * 100}%` }} />
         </div>
       </div>
-      {(isSpeed || ((quizMode === 'subject' || quizMode === 'quick') && useTimer)) && !showRationale !showRationale &&!showRationale && !isFinalAnswer && (
+      {(isSpeed || ((quizMode === 'subject' || quizMode === 'quick' || quizMode === 'clinical') && useTimer)) && !showRationale && !isFinalAnswer && (
         <div className="px-4">
             <div className="h-1 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden">
                <motion.div className={`h-full ${timeLeft < 5 ? 'bg-red-500' : 'bg-amber-500'}`} initial={{ width: '100%' }} animate={{ width: `${(timeLeft / (quizMode === 'speed' ? getSpeedTimerValue(currentQuestionIndex) : 30)) * 100}%` }} transition={{ duration: 1, ease: 'linear' }} />
@@ -462,7 +467,7 @@ const Quiz = () => {
          <LifelineButton icon={<Info />} label="Mentor" used={lifelinesUsed.hint} onClick={useMentor} dark={isSpeed} />
       </div>
       <AnimatePresence>
-         {isFinalAnswer && !showRationale !showRationale &&!showRationale && !isFinalAnswer && (
+         {isFinalAnswer && !showRationale && (
             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-x-0 bottom-0 z-40 p-6 bg-slate-900/90 backdrop-blur-md border-t border-white/10 flex flex-col items-center gap-4">
                <p className="text-white font-black uppercase tracking-[0.3em] text-xs">Is that your final answer?</p>
                <div className="flex gap-4 w-full max-w-sm">
@@ -503,7 +508,7 @@ const Quiz = () => {
         )}
       </AnimatePresence>
       <AnimatePresence>
-        {showHint && !showRationale !showRationale &&!showRationale && !isFinalAnswer && (
+        {showHint && !showRationale && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={() => setShowHint(false)} />
              <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative w-full max-w-md bg-white dark:bg-slate-800 p-10 rounded-[3rem] shadow-2xl border border-slate-100 dark:border-slate-700 text-center">
