@@ -47,6 +47,46 @@ const MILESTONES = [
   { q: 15, label: "Future Matron", checkpoint: true }
 ];
 
+const normalizeQuestion = (q) => {
+  const normalized = {
+    id: q.id,
+    subject: q.subject || 'General Nursing',
+    source: q.source || 'Apex Scholars Core Bank',
+    question: q.question,
+    options: [],
+    correctAnswer: '',
+    rationale: q.rationale || q.explanation || "Nurses must apply critical thinking and clinical protocols to ensure patient safety and prioritize airway, breathing, and circulation.",
+    clinical_application: q.clinical_application || q.clinicalApplication || "Apply standard nursing precautions and prioritize interventions based on patient stability and acuity.",
+    simplification: q.simplification || "Focus on the most direct nursing action that addresses the physiological root cause of the presentation.",
+    hint: q.hint || (Array.isArray(q.hints) ? q.hints[0] : q.hints) || "Consider the primary physiological priority and the intervention that ensures long-term clinical stability."
+  };
+
+  if (q.options && Array.isArray(q.options) && q.options.length > 0) {
+    normalized.options = [...q.options];
+    normalized.correctAnswer = q.answer || q.correct_answer_text || q.correct_answer;
+  } else if (q.option_a) {
+    normalized.options = [q.option_a, q.option_b, q.option_c, q.option_d].filter(Boolean);
+    normalized.correctAnswer = q.answer || q.correct_answer_text;
+  } else {
+    const distractors = [
+      "Increase the frequency of vital sign monitoring",
+      "Document the clinical findings and notify the charge nurse",
+      "Review the patient's medical history for relevant comorbidities",
+      "Implement standard safety precautions and continue assessment"
+    ];
+    normalized.options = [q.answer, ...distractors.slice(0, 3)];
+    normalized.correctAnswer = q.answer;
+  }
+
+  if (!normalized.options.includes(normalized.correctAnswer)) {
+    normalized.options[0] = normalized.correctAnswer;
+  }
+
+  normalized.options = normalized.options.sort(() => Math.random() - 0.5);
+  return normalized;
+};
+
+
 const getSpeedTimerValue = (index) => {
   if (index < 5) return 20;
   if (index < 10) return 18;
@@ -133,19 +173,31 @@ const Quiz = () => {
     }
     if (pool.length === 0) return;
 
-        // Prioritization for Speed Mode (70% Richard's Bank)
+        // Prioritization for Speed Mode (70% Richard's Bank, 15% NMCN, 10% NCLEX, 5% Apex)
     if (mode === 'speed') {
        const richard = pool.filter(c => c.source?.toLowerCase().includes('richard'));
-       const others = pool.filter(c => !c.source?.toLowerCase().includes('richard'));
+       const nmcn = pool.filter(c => c.source?.toLowerCase().includes('nmcn') || c.category === 'NMCN');
+       const nclex = pool.filter(c => c.source?.toLowerCase().includes('nclex') || c.category === 'NCLEX');
+       const apex = pool.filter(c => !richard.includes(c) && !nmcn.includes(c) && !nclex.includes(c));
 
        richard.sort(() => 0.5 - Math.random());
-       others.sort(() => 0.5 - Math.random());
+       nmcn.sort(() => 0.5 - Math.random());
+       nclex.sort(() => 0.5 - Math.random());
+       apex.sort(() => 0.5 - Math.random());
 
        const limit = 15;
-       const richardCount = Math.min(Math.ceil(limit * 0.7), richard.length);
-       const othersCount = limit - richardCount;
+       const rCount = Math.min(11, richard.length);
+       const nmCount = Math.min(2, nmcn.length);
+       const ncCount = Math.min(1, nclex.length);
+       const aCount = limit - (rCount + nmCount + ncCount);
 
-       pool = [...richard.slice(0, richardCount), ...others.slice(0, othersCount)];
+       pool = [
+         ...richard.slice(0, rCount),
+         ...nmcn.slice(0, nmCount),
+         ...nclex.slice(0, ncCount),
+         ...apex.slice(0, Math.max(0, aCount))
+       ];
+       pool = pool.sort(() => 0.5 - Math.random());
     }
 
     const seen = new Set();
@@ -155,15 +207,7 @@ const Quiz = () => {
     const shuffled = uniquePool.sort(() => 0.5 - Math.random());
     const selected = shuffled.slice(0, Math.min(limit, uniquePool.length));
 
-    const questions = selected.map(card => {
-      let options;
-      if (card.options && card.options.length > 0) {
-        options = [...card.options].sort(() => 0.5 - Math.random());
-      } else {
-        options = [card.answer, 'Option B', 'Option C', 'Option D'].sort(() => 0.5 - Math.random());
-      }
-      return { ...card, options, correctAnswer: card.answer };
-    });
+    const questions = selected.map(q => normalizeQuestion(q));
     setQuizQuestions(questions);
     setQuizMode(mode);
     setQuizStarted(true); setIsQuizActive(true);
@@ -239,7 +283,7 @@ const Quiz = () => {
       setConsecutiveCorrect(0);
       updateQuizStats({ quizStreak: 0 });
     }
-    setShowReview(true);
+    setShowReview(true); setShowRationale(true);
   };
 
     const nextQuestion = () => {
@@ -487,6 +531,7 @@ const Quiz = () => {
                    <div className="w-full">
                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">{isCorrect ? 'Logic Validated' : 'Conceptual Misalignment'}</p>
                       <h4 className="text-2xl font-black text-slate-900 dark:text-white tracking-tight leading-none">{isCorrect ? 'Mastery Confirmed' : 'Learning Opportunity'}</h4>
+                      <div className="mt-4"><SourceBadge source={currentQ.source} /></div>
                    </div>
                    {consecutiveCorrect >= 5 && isCorrect && (
                       <div className="px-4 py-2 bg-amber-100 text-amber-700 rounded-xl text-[10px] font-black uppercase tracking-widest animate-bounce flex items-center gap-2 border border-amber-200">
@@ -494,7 +539,20 @@ const Quiz = () => {
                       </div>
                    )}
                 </div>
-                <div className="max-h-40 overflow-y-auto custom-scrollbar mb-8 text-slate-600 dark:text-slate-300"><p className="font-medium text-base leading-relaxed italic">{currentQ.rationale || "Nurses must apply critical thinking and clinical protocols to ensure patient safety and prioritize airway, breathing, and circulation."}</p></div>
+                                <div className="max-h-60 overflow-y-auto custom-scrollbar mb-8 space-y-6 text-left">
+                   <div>
+                      <p className="text-[10px] font-black uppercase text-slate-400 mb-1 tracking-widest">✔ Clinical Rationale</p>
+                      <p className="font-medium text-sm leading-relaxed italic text-slate-600 dark:text-slate-300">{currentQ.rationale}</p>
+                   </div>
+                   <div>
+                      <p className="text-[10px] font-black uppercase text-medical-600 mb-1 tracking-widest">🏥 Clinical Application</p>
+                      <p className="text-sm font-bold text-slate-700 dark:text-slate-200">{currentQ.clinical_application}</p>
+                   </div>
+                   <div className="p-4 bg-amber-50 dark:bg-amber-900/10 rounded-2xl border border-amber-100 dark:border-amber-900/20">
+                      <p className="text-[10px] font-black uppercase text-amber-600 mb-1 tracking-widest">💡 Simplification</p>
+                      <p className="text-sm font-medium text-amber-800 dark:text-amber-200">{currentQ.simplification}</p>
+                   </div>
+                </div>
                 <div className="p-6 bg-slate-50 dark:bg-white/5 rounded-2xl mb-10 border border-slate-100 dark:border-white/5 flex gap-4 items-start text-left text-slate-700 dark:text-slate-300">
                    <div className="p-2 bg-medical-100 text-medical-600 rounded-lg shrink-0"><Target size={16} /></div>
                    <div>
