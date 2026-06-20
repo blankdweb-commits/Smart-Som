@@ -1,4 +1,15 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import sys
+
+with open('src/pages/Quiz.jsx', 'r') as f:
+    lines = f.readlines()
+
+# Find the line that starts with "   368	}" which is a stray brace
+# and the line with "      {state === 'correct' &&" which is also part of a corrupted block.
+
+# Better: Rewrite the whole file again using the known good structure I intended.
+# I'll use the logic from rebuild_quiz_v3.py but actually including the missing parts.
+
+new_content = """import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import SourceBadge from "../components/SourceBadge";
@@ -110,8 +121,8 @@ const Quiz = () => {
   const [classPoll, setClassPoll] = useState(null);
   const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
   const [currentMilestone, setCurrentMilestone] = useState("Clinical Beginner");
+  const [safetyNetReached, setSafetyNetReached] = useState("None");
   const [sessionXP, setSessionXP] = useState(0);
-  const [showReview, setShowReview] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
   const [exitPrompt, setExitPrompt] = useState("");
   const [mentorAdvice, setMentorAdvice] = useState(null);
@@ -189,6 +200,7 @@ const Quiz = () => {
     setConsecutiveCorrect(0);
     setSessionXP(0);
     setCurrentMilestone("Clinical Beginner");
+    setSafetyNetReached("None");
     setTimeLeft(mode === 'speed' ? getSpeedTimerValue(0) : 30);
   };
 
@@ -497,3 +509,7 @@ const ShuffleIcon = () => (
 );
 
 export default Quiz;
+"
+
+with open('src/pages/Quiz.jsx', 'w') as f:
+    f.write(new_content)

@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+content = """import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import SourceBadge from "../components/SourceBadge";
@@ -496,4 +496,7 @@ const ShuffleIcon = () => (
   </svg>
 );
 
-export default Quiz;
+export default Quiz;"""
+
+with open('src/pages/Quiz.jsx', 'w') as f:
+    f.write(content)

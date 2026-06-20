@@ -1,4 +1,7 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import sys
+
+# Define all components and logic in a single script to ensure consistency
+content = """import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import SourceBadge from "../components/SourceBadge";
@@ -30,6 +33,7 @@ const EXIT_PROMPTS = [
   "Your future patients are counting on your knowledge.",
   "Clinical excellence is built one question at a time.",
   "Don't stop now—mastery is just a few challenges away.",
+  "Growth happens when you push beyond discomfort.",
   "Persistence is the hallmark of a great healthcare professional.",
   "Your clinical judgment is sharpening with every answer."
 ];
@@ -60,7 +64,7 @@ const normalizeQuestion = (q) => {
 
   if (options.length === 0) {
     const fallbackAns = q.answer || q.correct_answer_text || "Consult medical protocol";
-    options = [fallbackAns, "Increase monitoring of vital signs", "Document findings", "Perform head-to-toe assessment"];
+    options = [fallbackAns, "Increase monitoring", "Document findings", "Perform assessment"];
   }
 
   const correctText = q.answer || q.correct_answer_text || q.correct_answer || options[0];
@@ -71,12 +75,12 @@ const normalizeQuestion = (q) => {
     subject: q.subject || 'General Nursing',
     source: q.source || 'Apex Scholars Core Bank',
     question: q.question || "Question text unavailable.",
-    options: options,
+    options: options.sort(() => 0.5 - Math.random()),
     correctAnswer: correctText,
     correctAnswerText: correctText,
-    rationale: q.rationale || q.explanation || "Clinical judgment and patient safety protocols guide this nursing intervention.",
-    clinical_application: q.clinical_application || q.clinicalApplication || "Apply the ABC framework to prioritize patient care.",
-    simplification: q.simplification || "Focus on the intervention that addresses the most immediate threat to patient stability.",
+    rationale: q.rationale || q.explanation || "Nurses must apply critical thinking.",
+    clinical_application: q.clinical_application || q.clinicalApplication || "Apply the ABC framework.",
+    simplification: q.simplification || "Focus on the intervention that addresses the most immediate threat.",
     hints: q.hints || (q.hint ? [q.hint] : ["Think about priorities."])
   };
 };
@@ -106,10 +110,11 @@ const Quiz = () => {
   const [showHint, setShowHint] = useState(false);
   const [timeLeft, setTimeLeft] = useState(30);
   const [eliminatedOptions, setEliminatedOptions] = useState([]);
-  const [lifelinesUsed, setLifelinesUsed] = useState({ hint: false, mentor: false, fiftyFifty: false, askClass: false });
+  const [lifelinesUsed, setLifelinesUsed] = useState({ hint: false, fiftyFifty: false, askClass: false });
   const [classPoll, setClassPoll] = useState(null);
   const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
   const [currentMilestone, setCurrentMilestone] = useState("Clinical Beginner");
+  const [safetyNetReached, setSafetyNetReached] = useState("None");
   const [sessionXP, setSessionXP] = useState(0);
   const [showReview, setShowReview] = useState(false);
   const [showExitConfirm, setShowExitConfirm] = useState(false);
@@ -167,10 +172,7 @@ const Quiz = () => {
     const uniquePool = pool.filter((c, i, s) => s.findIndex(t => t.question === c.question) === i);
     const limit = mode === 'speed' ? 15 : questionLimit;
     const selected = uniquePool.sort(() => 0.5 - Math.random()).slice(0, limit);
-    const questions = selected.map(q => {
-       const n = normalizeQuestion(q);
-       return { ...n, options: [...n.options].sort(() => 0.5 - Math.random()) };
-    });
+    const questions = selected.map(q => normalizeQuestion(q));
 
     setQuizQuestions(questions);
     setQuizMode(mode);
@@ -183,12 +185,12 @@ const Quiz = () => {
     setShowRationale(false);
     setIsCorrect(null);
     setEliminatedOptions([]);
-    setLifelinesUsed({ hint: false, mentor: false, fiftyFifty: false, askClass: false });
+    setLifelinesUsed({ hint: false, fiftyFifty: false, askClass: false });
     setClassPoll(null);
     setIsFinalAnswer(false);
     setConsecutiveCorrect(0);
-    setSessionXP(0);
     setCurrentMilestone("Clinical Beginner");
+    setSafetyNetReached("None");
     setTimeLeft(mode === 'speed' ? getSpeedTimerValue(0) : 30);
   };
 
@@ -210,7 +212,7 @@ const Quiz = () => {
       if (ach) setCurrentMilestone(ach.label);
       const newCombo = consecutiveCorrect + 1;
       if (newCombo % 5 === 0) {
-        setLifelinesUsed({ hint: false, mentor: false, fiftyFifty: false, askClass: false });
+        setLifelinesUsed({ hint: false, fiftyFifty: false, askClass: false });
         setRestoredThisTurn(true);
       }
       setConsecutiveCorrect(newCombo);
@@ -264,30 +266,21 @@ const Quiz = () => {
     const others = visible.filter(o => o !== currentQ.correctAnswer);
     others.forEach((opt, i) => {
        if (i === others.length - 1) results[opt] = remaining;
-       else { const s = Math.floor(Math.random() * (remaining / 1.5)); results[opt] = s; remaining -= s; }
+       else { const s = Math.floor(Math.random() * remaining); results[opt] = s; remaining -= s; }
     });
     currentQ.options.forEach(o => { if(!(o in results)) results[o] = 0; });
     setClassPoll(results);
     setLifelinesUsed(prev => ({ ...prev, askClass: true }));
   };
 
-  const useHint = () => {
-    if (lifelinesUsed.hint || showRationale) return;
-    const currentQ = quizQuestions[currentQuestionIndex];
-    const h = (currentQ.hints && currentQ.hints.length > 0) ? currentQ.hints[0] : currentQ.simplification;
-    setMentorAdvice({ type: 'Quick Hint', text: h });
-    setShowHint(true);
-    setLifelinesUsed(prev => ({ ...prev, hint: true }));
-  };
-
   const useMentor = () => {
-    if (lifelinesUsed.mentor || showRationale) return;
+    if (lifelinesUsed.hint || showRationale) return;
     const currentQ = quizQuestions[currentQuestionIndex];
     const keyword = currentQ.question.toLowerCase().includes('priority') ? 'priority' : 'presentation';
     const text = `Nurse's insight: testing ${currentQ.subject.toLowerCase()}. Considering the ${keyword}, I recommend "${currentQ.correctAnswerText}" because ${currentQ.simplification.toLowerCase()}.`;
     setMentorAdvice({ type: 'Clinical Mentor', text, confidence: Math.floor(Math.random() * 10 + 85) });
     setShowHint(true);
-    setLifelinesUsed(prev => ({ ...prev, mentor: true }));
+    setLifelinesUsed(prev => ({ ...prev, hint: true }));
   };
 
   if (quizMode === 'selection') {
@@ -295,7 +288,7 @@ const Quiz = () => {
       <div className="max-w-4xl mx-auto mt-8 px-4 pb-20 animate-in fade-in slide-in-from-bottom-4 duration-700">
         <header className="text-center mb-12">
           <div className="w-20 h-20 bg-slate-900 rounded-[2rem] flex items-center justify-center text-medical-400 mx-auto mb-6 shadow-2xl border-2 border-medical-500/20"><Brain size={40} className="animate-pulse" /></div>
-          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight mb-2">Quiz Central</h2>
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">Quiz Central</h2>
           <p className="text-slate-500 font-medium">Choose your clinical training path</p>
         </header>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
@@ -356,8 +349,7 @@ const Quiz = () => {
            <div className="flex items-center gap-1">
               <button disabled={lifelinesUsed.fiftyFifty || showRationale} onClick={eliminateTwo} className={`p-2 rounded-lg transition-all ${lifelinesUsed.fiftyFifty ? 'opacity-20' : 'bg-white dark:bg-white/10 text-medical-600'}`}><ShuffleIcon size={14} /></button>
               <button disabled={lifelinesUsed.askClass || showRationale} onClick={askClass} className={`p-2 rounded-lg transition-all ${lifelinesUsed.askClass ? 'opacity-20' : 'bg-white dark:bg-white/10 text-medical-600'}`}><Users size={14} /></button>
-              <button disabled={lifelinesUsed.mentor || showRationale} onClick={useMentor} className={`p-2 rounded-lg transition-all ${lifelinesUsed.mentor ? 'opacity-20' : 'bg-white dark:bg-white/10 text-medical-600'}`}><Shield size={14} /></button>
-              <button disabled={lifelinesUsed.hint || showRationale} onClick={useHint} className={`p-2 rounded-lg transition-all ${lifelinesUsed.hint ? 'opacity-20' : 'bg-white dark:bg-white/10 text-medical-600'}`}><Zap size={14} /></button>
+              <button disabled={lifelinesUsed.hint || showRationale} onClick={useMentor} className={`p-2 rounded-lg transition-all ${lifelinesUsed.hint ? 'opacity-20' : 'bg-white dark:bg-white/10 text-medical-600'}`}><Info size={14} /></button>
            </div>
         </div>
       </div>
@@ -397,7 +389,7 @@ const Quiz = () => {
                       <h4 className="text-2xl font-black text-slate-900 dark:text-white leading-none">{isCorrect ? 'Mastery Confirmed' : 'Opportunity'}</h4>
                       <div className="mt-4"><SourceBadge source={currentQ.source} /></div>
                    </div>
-                   {restoredThisTurn && isCorrect && <div className="px-4 py-2 bg-amber-100 text-amber-700 rounded-xl text-[10px] font-black uppercase animate-bounce flex items-center gap-2 border border-amber-200 shrink-0"><Zap size={12} /> Lifeline Restored!</div>}
+                   {restoredThisTurn && isCorrect && <div className="px-4 py-2 bg-amber-100 text-amber-700 rounded-xl text-[10px] font-black uppercase animate-bounce flex items-center gap-2 border border-amber-200"><Zap size={12} /> Lifeline Restored!</div>}
                 </div>
                 <div className="max-h-60 overflow-y-auto custom-scrollbar mb-8 space-y-6 text-left">
                    <div><p className="text-[10px] font-black uppercase text-slate-400 mb-1">✔ Rationale</p><p className="font-medium text-sm italic text-slate-600 dark:text-slate-300">{currentQ.rationale}</p></div>
@@ -496,4 +488,8 @@ const ShuffleIcon = () => (
   </svg>
 );
 
-export default Quiz;
+export default Quiz;"""
+
+with open('src/pages/Quiz.jsx', 'w') as f:
+    f.write(content)
+"""
