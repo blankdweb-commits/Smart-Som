@@ -66,15 +66,13 @@ import {
   Volume2,
   X,
   Zap,
-  XCircle,
+  XCircle, Puzzle,
   Target,
   Timer,
   Bookmark,
   VolumeX,
   Database,
-  Eye,
-  Puzzle,
-  Rocket
+  Eye
 } from 'lucide-react';
 
 export {
@@ -146,13 +144,11 @@ export {
   Volume2,
   X,
   Zap,
-  XCircle,
+  XCircle, Puzzle,
   Target,
   Timer,
   Bookmark,
   VolumeX,
   Database,
-  Eye,
-  Puzzle,
-  Rocket
+  Eye
 };
