@@ -72,7 +72,9 @@ import {
   Bookmark,
   VolumeX,
   Database,
-  Eye
+  Eye,
+  Puzzle,
+  Rocket
 } from 'lucide-react';
 
 export {
@@ -150,5 +152,7 @@ export {
   Bookmark,
   VolumeX,
   Database,
-  Eye
+  Eye,
+  Puzzle,
+  Rocket
 };

@@ -171,7 +171,7 @@ const Dashboard = () => {
                       <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{topic.name}</p>
                       <p className="text-[10px] text-slate-400 uppercase font-black">{topic.subject}</p>
                     </div>
-                    <span className="text-xs font-black text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-lg">{topic.count} errors</span>
+                    <span className="text-xs font-black text-red-500 bg-red-100 dark:bg-red-900/40 px-3 py-1.5 rounded-xl border border-red-200 dark:border-red-800 shadow-sm">{topic.count} errors</span>
                   </div>
                 ))}
                 {learningAnalytics.weakTopics.length === 0 && !DEV_MODE && (
