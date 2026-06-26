@@ -1,4 +1,6 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import sys
+
+file_content = """import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import SourceBadge from "../components/SourceBadge";
@@ -134,7 +136,7 @@ const normalizeQuestion = (q) => {
 
 const Quiz = () => {
   const navigate = useNavigate();
-  const { flashcards, studyStats, updateQuizStats, setIsQuizActive } = useAppContext();
+  const { flashcards, updateQuizStats, setIsQuizActive } = useAppContext();
   const [toast, setToast] = useState(null);
 
   const [quizStatus, setQuizStatus] = useState(QUIZ_STATES.SELECTION);
@@ -576,3 +578,7 @@ const OptionButton = ({ label, index, state, pollValue, onClick, disabled, isLow
 };
 
 export default Quiz;
+"""
+
+with open('src/pages/Quiz.jsx', 'w') as f:
+    f.write(file_content)
