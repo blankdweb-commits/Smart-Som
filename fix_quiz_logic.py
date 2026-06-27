@@ -1,48 +1,71 @@
 import re
 
-with open('src/pages/Quiz.jsx', 'r') as f:
+file_path = 'src/pages/Quiz.jsx'
+with open(file_path, 'r') as f:
     content = f.read()
 
-# 1. 70% Richard's Bank weighting in Speed Challenge
-weighting_logic = """    // Prioritization for Speed Mode (70% Richard's Bank)
-    if (mode === 'speed') {
-       const richard = pool.filter(c => c.source?.toLowerCase().includes('richard'));
-       const others = pool.filter(c => !c.source?.toLowerCase().includes('richard'));
+# 1. Update normalizeQuestion to handle Format A, B, and C robustly
+normalize_logic = """const normalizeQuestion = (q) => {
+  if (!q) return null;
+  try {
+    let questionText = q.question || q.text || q.front || "Question unavailable";
+    let options = [];
+    let correctAnswerText = "";
 
-       richard.sort(() => 0.5 - Math.random());
-       others.sort(() => 0.5 - Math.random());
+    // Normalize Options (Formats A, B, C)
+    if (Array.isArray(q.options)) {
+      options = [...q.options];
+    } else if (q.options && typeof q.options === 'object') {
+      options = Object.values(q.options);
+    } else if (q.option_a || q.option_A) {
+      options = [
+        q.option_a || q.option_A,
+        q.option_b || q.option_B,
+        q.option_c || q.option_C,
+        q.option_d || q.option_D
+      ].filter(Boolean);
+    }
 
-       const limit = 15;
-       const richardCount = Math.min(Math.ceil(limit * 0.7), richard.length);
-       const othersCount = limit - richardCount;
+    if (options.length === 0) {
+      const fallbackAns = q.correct_answer || q.answer || q.correct_answer_text || q.back || "Consult protocol";
+      options = [fallbackAns, "Increase monitoring", "Document findings", "Perform assessment"];
+    }
 
-       pool = [...richard.slice(0, richardCount), ...others.slice(0, othersCount)];
-    }"""
+    // Normalize Correct Answer
+    const ca = q.correct_answer || q.correctAnswer || q.answer || q.back || "";
+    if (typeof ca === 'number' && ca >= 0 && ca < options.length) {
+      correctAnswerText = options[ca];
+    } else if (typeof ca === 'string' && ca.length === 1 && /^[A-D]$/i.test(ca)) {
+      const index = ca.toUpperCase().charCodeAt(0) - 65;
+      if (q.options && typeof q.options === 'object' && !Array.isArray(q.options)) {
+        correctAnswerText = q.options[ca.toUpperCase()] || q.options[ca.toLowerCase()] || options[index] || options[0];
+      } else {
+        correctAnswerText = options[index] || ca;
+      }
+    } else {
+      correctAnswerText = ca || options[0];
+    }
 
-content = re.sub(r"// Prioritization for Speed Mode.*?\}", weighting_logic, content, flags=re.DOTALL)
+    return {
+      id: q.id || Math.random().toString(36).substr(2, 9),
+      subject: q.subject || q.category || 'General Nursing',
+      source: q.source || 'Apex Scholars Bank',
+      question: questionText,
+      options: options.map(opt => String(opt).trim()),
+      correctAnswer: String(correctAnswerText).trim(),
+      correctAnswerText: String(correctAnswerText).trim(),
+      rationale: q.rationale || q.explanation || q.back || "Clinical judgment and patient safety protocols guide this nursing intervention.",
+      clinical_application: q.clinical_application || q.clinicalApplication || q.context || "Apply nursing priorities to ensure patient safety and stability.",
+      simplification: q.simplification || "Focus on the most immediate clinical priority.",
+      hints: Array.isArray(q.hints) ? q.hints : (q.hint ? [q.hint] : ["Think about the most immediate threat to the patient."])
+    };
+  } catch (error) {
+    console.error("Normalization Error:", error);
+    return null;
+  }
+};"""
 
-# 2. Lifeline Restoration (Every 5 correct answers)
-# Find consecutiveCorrect logic
-restoration_logic = """    if (newStreak % 5 === 0 && newStreak > 0) {
-      setLifelinesUsed({ hint: false, fiftyFifty: false, askClass: false });
-      setConsecutiveCorrect(newStreak);
-    }"""
+content = re.sub(r'const normalizeQuestion = \(q\) => \{.*?};', normalize_logic, content, flags=re.DOTALL)
 
-# Update confirmAnswer logic for lifeline restoration
-if "setConsecutiveCorrect(newStreak);" in content:
-    content = content.replace("setConsecutiveCorrect(newStreak);", restoration_logic)
-
-# 3. Walk Away motivational prompts
-prompts = """    const prompts = [
-      "Future patients are counting on your preparation.",
-      "One more question could strengthen the knowledge that saves a life.",
-      "Growth happens when you push beyond discomfort.",
-      "Persistence is the hallmark of a great healthcare professional.",
-      "Your clinical judgment is sharpening with every answer.",
-      "Don't stop now—mastery is just a few challenges away."
-    ];"""
-
-content = re.sub(r"const prompts = \[.*?\];", prompts, content, flags=re.DOTALL)
-
-with open('src/pages/Quiz.jsx', 'w') as f:
+with open(file_path, 'w') as f:
     f.write(content)

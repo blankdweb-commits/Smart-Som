@@ -134,7 +134,7 @@ const normalizeQuestion = (q) => {
 
 const Quiz = () => {
   const navigate = useNavigate();
-  const { flashcards, studyStats, updateQuizStats, setIsQuizActive } = useAppContext();
+  const { flashcards, updateQuizStats, setIsQuizActive } = useAppContext();
   const [toast, setToast] = useState(null);
 
   const [quizStatus, setQuizStatus] = useState(QUIZ_STATES.SELECTION);
