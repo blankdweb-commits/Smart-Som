@@ -8,13 +8,13 @@ const SourceBadge = ({ source }) => {
     if (s.includes('richard')) return {
       bg: 'bg-gradient-to-r from-amber-400 to-yellow-600',
       text: 'text-white',
-      glow: 'shadow-[0_0_15px_rgba(251,191,36,0.5)]',
+      glow: 'shadow-[0_0_10px_rgba(251,191,36,0.3)]',
       label: 'Verified Source: Richard\'s Bank'
     };
     if (s.includes('nmcn')) return {
       bg: 'bg-gradient-to-r from-blue-600 to-blue-800',
       text: 'text-white',
-      glow: 'shadow-[0_0_15px_rgba(37,99,235,0.4)]',
+      glow: 'shadow-[0_0_10px_rgba(37,99,235,0.2)]',
       label: 'Official NMCN Resource'
     };
     if (s.includes('nclex')) return {

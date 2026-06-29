@@ -1,141 +1,28 @@
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAppContext } from '../context/AppContext';
-import SourceBadge from "../components/SourceBadge";
-import {
-  Shield, Zap, Clock, Target, ChevronLeft, Timer, Brain, Trophy,
-  ArrowRight, CheckCircle2, XCircle, Puzzle, AlertCircle, HelpCircle,
-  RefreshCw, Users, Star, Info, Bookmark, X, History, Shuffle
-} from '../components/Icons';
-import { motion, AnimatePresence } from 'framer-motion';
-import Toast from '../components/Toast';
+import sys
 
-const MOTIVATIONAL_MESSAGES = [
-  "You’re only a few questions away from your next achievement.",
-  "Your clinical reasoning is improving. Keep going.",
-  "Future Registered Nurses don’t stop halfway.",
-  "You’re making excellent progress.",
-  "One more correct answer could restore a lifeline.",
-  "You’re almost at your next XP milestone."
-];
+with open('src/pages/Quiz.jsx', 'r') as f:
+    lines = f.readlines()
 
-const ACHIEVEMENTS = [
-  { q: 1, label: "Clinical Novice" },
-  { q: 10, label: "Ward Helper" },
-  { q: 20, label: "Senior Student" },
-  { q: 30, label: "Future Matron" },
-  { q: 50, label: "Clinical Leader" },
-  { q: 75, label: "Clinical Legend" }
-];
+start_idx = -1
+for i, line in enumerate(lines):
+    if 'const Quiz = () => {' in line:
+        start_idx = i
+        break
 
-const QUIZ_STATES = {
-  SELECTION: 'SELECTION',
-  LOADING: 'LOADING',
-  ANSWERING: 'ANSWERING',
-  CONFIRMING: 'CONFIRMING',
-  REVIEWING: 'REVIEWING',
-  RESULTS: 'RESULTS'
-};
+end_idx = -1
+for i, line in enumerate(lines):
+    if 'export default Quiz;' in line:
+        for j in range(i-1, 0, -1):
+            if lines[j].strip() == '};':
+                end_idx = j
+                break
+        break
 
-const getSpeedTimerValue = (index) => {
-  if (index < 5) return 30;
-  if (index < 10) return 20;
-  if (index < 20) return 15;
-  return 10;
-};
+if start_idx == -1 or end_idx == -1:
+    print(f"Error finding Quiz component: start={start_idx}, end={end_idx}")
+    sys.exit(1)
 
-const QuestionSkeleton = () => (
-  <div className="w-full max-w-3xl mx-auto space-y-6 animate-pulse p-4">
-    <div className="bg-[#1B2343] rounded-[2.5rem] p-10 h-64 relative overflow-hidden border border-white/5">
-      <div className="absolute inset-0 bg-gradient-to-r from-transparent via-white/5 to-transparent -translate-x-full animate-[shimmer_2s_infinite]"></div>
-      <div className="flex justify-between items-center mb-8">
-        <div className="w-32 h-4 bg-white/10 rounded-full"></div>
-        <div className="flex gap-2">
-            {[1,2,3,4].map(i => <div key={i} className="w-8 h-8 bg-white/5 rounded-lg"></div>)}
-        </div>
-      </div>
-      <div className="space-y-4">
-        <div className="w-full h-6 bg-white/10 rounded-lg"></div>
-        <div className="w-2/3 h-6 bg-white/10 rounded-lg"></div>
-      </div>
-      <div className="absolute bottom-8 left-10 right-10 flex justify-center">
-         <p className="text-[10px] font-black uppercase tracking-[0.2em] text-white/20">Loading verified clinical question...</p>
-      </div>
-    </div>
-    <div className="space-y-4">
-      {[1, 2, 3, 4].map(i => (
-        <div key={i} className="bg-[#1B2343] rounded-[2rem] h-20 border border-white/5 opacity-50"></div>
-      ))}
-    </div>
-  </div>
-);
-
-const normalizeQuestion = (q) => {
-  if (!q) return null;
-  try {
-    let questionText = q.question || q.text || q.front || q.title || q.prompt || "";
-    if (typeof q === 'string') questionText = q;
-    if (!questionText && q.data) questionText = q.data.question || q.data.text || q.data.title || "";
-
-    let options = [];
-    let correctAnswerText = "";
-
-    if (Array.isArray(q.options) && q.options.length > 0) {
-      options = [...q.options];
-    } else if (q.options && typeof q.options === 'object') {
-      options = Object.values(q.options);
-    } else if (q.option_a || q.option_A || q.option_1) {
-      options = [
-        q.option_a || q.option_A || q.option_1,
-        q.option_b || q.option_B || q.option_2,
-        q.option_c || q.option_C || q.option_3,
-        q.option_d || q.option_D || q.option_4
-      ].filter(Boolean);
-    }
-
-    const ca = q.correct_answer || q.correctAnswer || q.answer || q.back || q.correct || "";
-    if (options.length > 0) {
-        if (typeof ca === 'number' && ca >= 0 && ca < options.length) {
-          correctAnswerText = options[ca];
-        } else if (typeof ca === 'string' && ca.length === 1 && /^[A-D]$/i.test(ca)) {
-          const index = ca.toUpperCase().charCodeAt(0) - 65;
-          if (q.options && typeof q.options === 'object' && !Array.isArray(q.options)) {
-             correctAnswerText = q.options[ca.toUpperCase()] || q.options[ca.toLowerCase()] || options[index] || options[0];
-          } else {
-             correctAnswerText = options[index] || ca;
-          }
-        } else {
-          correctAnswerText = ca || options[0];
-        }
-    } else {
-        const fallbackAns = ca || q.correct_answer_text || "Consult protocol";
-        options = [fallbackAns, "Increase monitoring", "Document findings", "Perform assessment"];
-        correctAnswerText = fallbackAns;
-    }
-
-    if (!questionText || String(questionText).trim() === "") {
-        questionText = "Clinical Case Analysis: Please evaluate the options below and select the priority nursing action based on patient safety and NMCN protocols.";
-    }
-
-    return {
-      id: q.id || 'gen-' + Math.random().toString(36).substr(2, 9),
-      subject: q.subject || q.category || q.topic || "General Nursing",
-      source: q.source || (String(q.id).includes('richard') ? "Richard's Bank" : "NMCN Bank"),
-      question: String(questionText).trim(),
-      options: options.map(opt => String(opt).trim()),
-      correctAnswer: String(correctAnswerText).trim(),
-      correctAnswerText: String(correctAnswerText).trim(),
-      rationale: q.rationale || q.explanation || q.back || "Clinical judgment and patient safety protocols guide this nursing intervention.",
-      clinical_application: q.clinical_application || q.clinicalApplication || q.context || "Apply nursing priorities (ABC) to ensure patient stability.",
-      simplification: q.simplification || "Focus on the most immediate threat or priority.",
-      hints: Array.isArray(q.hints) ? q.hints : (q.hint ? [q.hint] : ["Think about the most immediate threat to the patient."])
-    };
-  } catch (error) {
-    return null;
-  }
-};
-
-const Quiz = () => {
+new_quiz_body = r"""const Quiz = () => {
   const navigate = useNavigate();
   const { flashcards, learningAnalytics, setIsQuizActive } = useAppContext();
   const [toast, setToast] = useState(null);
@@ -171,7 +58,6 @@ const Quiz = () => {
     if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) setIsLowPowerMode(true);
   }, []);
 
-  // Recovery Logic (Auto-restore)
   useEffect(() => {
     const saved = localStorage.getItem('APEX_QUIZ_SESSION');
     if (saved) {
@@ -203,7 +89,6 @@ const Quiz = () => {
     }
   }, [setIsQuizActive]);
 
-  // Persistent Save
   useEffect(() => {
     if (quizStatus !== QUIZ_STATES.SELECTION && quizStatus !== QUIZ_STATES.RESULTS) {
       const session = {
@@ -241,12 +126,9 @@ const Quiz = () => {
         setQuizStatus(QUIZ_STATES.SELECTION);
         return;
     }
-
     const richard = pool.filter(c => String(c.id).includes('richard') || (c.source && c.source.toLowerCase().includes('richard')));
-
     let combined = [];
     const limit = (mode === 'speed' || mode === 'quick' || mode === 'revision') ? 10 : (mode === 'subject' || mode === 'clinical' || mode === 'mock' ? Math.min(pool.length, questionLimit) : questionLimit);
-
     if (mode === 'speed') {
       const shuffledRichard = [...richard].sort(() => 0.5 - Math.random());
       const nmcnPool = pool.filter(c => !String(c.id).includes('richard') && !(c.source && c.source.toLowerCase().includes('richard')));
@@ -259,45 +141,23 @@ const Quiz = () => {
         const shuffledNmcn = [...nmcnPool].sort(() => 0.5 - Math.random());
         const half = Math.floor(limit / 2);
         combined = [...shuffledRichard.slice(0, half), ...shuffledNmcn.slice(0, limit - half)];
-    } else if (mode === 'revision') {
-        const highYield = pool.filter(c =>
-            String(c.id).includes('richard') ||
-            String(c.id).includes('nclex') ||
-            (c.source && (c.source.toLowerCase().includes('richard') || c.source.toLowerCase().includes('nclex')))
-        );
-        combined = [...highYield].sort(() => 0.5 - Math.random()).slice(0, limit);
-        if (combined.length < limit) {
-             const others = pool.filter(c => !highYield.includes(c)).sort(() => 0.5 - Math.random());
-             combined = [...combined, ...others].slice(0, limit);
-        }
     } else {
         combined = [...pool].sort(() => 0.5 - Math.random()).slice(0, limit);
     }
-
     const questions = combined.map(q => {
       const n = normalizeQuestion(q);
       if (!n) return null;
       return { ...n, options: [...n.options].sort(() => 0.5 - Math.random()) };
     }).filter(Boolean);
-
-    setQuizQuestions(questions);
-    setQuizMode(mode);
-    setCurrentQuestionIndex(0);
-    setScore(0);
-    setSessionXP(0);
-    setConsecutiveCorrect(0);
-    setLifelinesUsed({ hint: false, mentor: false, fiftyFifty: false, askClass: false });
-    setCurrentMilestone("Clinical Beginner");
-    setTimeLeft(mode === 'speed' ? getSpeedTimerValue(0) : 30);
-    setQuizStatus(QUIZ_STATES.ANSWERING);
-    setIsQuizActive(true);
-    setSessionHistory([]);
+    setQuizQuestions(questions); setQuizMode(mode); setCurrentQuestionIndex(0); setScore(0);
+    setSessionXP(0); setConsecutiveCorrect(0); setLifelinesUsed({ hint: false, mentor: false, fiftyFifty: false, askClass: false });
+    setCurrentMilestone("Clinical Beginner"); setTimeLeft(mode === 'speed' ? getSpeedTimerValue(0) : 30);
+    setQuizStatus(QUIZ_STATES.ANSWERING); setIsQuizActive(true); setSessionHistory([]);
   };
 
   const handleOptionSelect = (option) => {
     if (quizStatus !== QUIZ_STATES.ANSWERING || isLoadingQuestion) return;
-    setSelectedOption(option);
-    setQuizStatus(QUIZ_STATES.CONFIRMING);
+    setSelectedOption(option); setQuizStatus(QUIZ_STATES.CONFIRMING);
   };
 
   const handleConfirmAnswer = (opt = selectedOption) => {
@@ -306,17 +166,13 @@ const Quiz = () => {
     const correct = opt === currentQ.correctAnswer;
     setIsCorrect(correct);
     setSessionHistory(prev => [...prev, { qIdx: currentQuestionIndex, selected: opt, correct }]);
-
     if (correct) {
       setScore(s => s + 1);
       const ach = ACHIEVEMENTS.slice().reverse().find(a => (score + 1) >= a.q);
       if (ach) setCurrentMilestone(ach.label);
-      const newCombo = consecutiveCorrect + 1;
-      setConsecutiveCorrect(newCombo);
+      const newCombo = consecutiveCorrect + 1; setConsecutiveCorrect(newCombo);
       setSessionXP(p => p + (10 * (newCombo >= 5 ? 2 : 1)));
-    } else {
-        setConsecutiveCorrect(0);
-    }
+    } else { setConsecutiveCorrect(0); }
     setQuizStatus(QUIZ_STATES.REVIEWING);
   };
 
@@ -324,25 +180,13 @@ const Quiz = () => {
     setIsLoadingQuestion(true);
     setTimeout(() => {
         if (!isCorrect && quizMode === 'speed') {
-            setQuizStatus(QUIZ_STATES.RESULTS);
-            setIsQuizActive(false);
-            setIsLoadingQuestion(false);
-            return;
+            setQuizStatus(QUIZ_STATES.RESULTS); setIsQuizActive(false); setIsLoadingQuestion(false); return;
         }
         if (currentQuestionIndex < quizQuestions.length - 1) {
             const nextIdx = currentQuestionIndex + 1;
-            setCurrentQuestionIndex(nextIdx);
-            setSelectedOption(null);
-            setIsCorrect(null);
-            setEliminatedOptions([]);
-            setClassPoll(null);
-            setHintLevel(0);
-            setTimeLeft(quizMode === 'speed' ? getSpeedTimerValue(nextIdx) : 30);
-            setQuizStatus(QUIZ_STATES.ANSWERING);
-        } else {
-            setQuizStatus(QUIZ_STATES.RESULTS);
-            setIsQuizActive(false);
-        }
+            setCurrentQuestionIndex(nextIdx); setSelectedOption(null); setIsCorrect(null); setEliminatedOptions([]); setClassPoll(null); setHintLevel(0);
+            setTimeLeft(quizMode === 'speed' ? getSpeedTimerValue(nextIdx) : 30); setQuizStatus(QUIZ_STATES.ANSWERING);
+        } else { setQuizStatus(QUIZ_STATES.RESULTS); setIsQuizActive(false); }
         setIsLoadingQuestion(false);
     }, 400);
   };
@@ -352,54 +196,42 @@ const Quiz = () => {
     const currentQ = quizQuestions[currentQuestionIndex];
     const incorrect = currentQ.options.filter(opt => opt !== currentQ.correctAnswer);
     const toRemove = incorrect.sort(() => 0.5 - Math.random()).slice(0, 2);
-    setEliminatedOptions(toRemove);
-    setLifelinesUsed(prev => ({ ...prev, fiftyFifty: true }));
+    setEliminatedOptions(toRemove); setLifelinesUsed(prev => ({ ...prev, fiftyFifty: true }));
   };
 
   const handleAskClass = () => {
     if (lifelinesUsed.askClass || quizStatus !== QUIZ_STATES.ANSWERING) return;
     const currentQ = quizQuestions[currentQuestionIndex];
-    const results = {};
-    const visible = currentQ.options.filter(o => !eliminatedOptions.includes(o));
-    const correctShare = Math.floor(Math.random() * 30 + 60);
-    results[currentQ.correctAnswer] = correctShare;
-    let rem = 100 - correctShare;
-    const others = visible.filter(o => o !== currentQ.correctAnswer);
+    const results = {}; const visible = currentQ.options.filter(o => !eliminatedOptions.includes(o));
+    const correctShare = Math.floor(Math.random() * 30 + 60); results[currentQ.correctAnswer] = correctShare;
+    let rem = 100 - correctShare; const others = visible.filter(o => o !== currentQ.correctAnswer);
     others.forEach((opt, i) => {
         if (i === others.length - 1) results[opt] = rem;
         else { const s = Math.floor(Math.random() * (rem / 1.5)); results[opt] = s; rem -= s; }
     });
-    currentQ.options.forEach(o => { if(!(o in results)) results[o] = 0; });
-    setClassPoll(results);
-    setLifelinesUsed(prev => ({ ...prev, askClass: true }));
+    currentQ.options.forEach(o => { if(!(o in results)) results[o] = 0; }); setClassPoll(results); setLifelinesUsed(prev => ({ ...prev, askClass: true }));
   };
 
   const handleUseHint = () => {
     if (quizStatus !== QUIZ_STATES.ANSWERING) return;
     const currentQ = quizQuestions[currentQuestionIndex];
     const h = currentQ.hints[hintLevel] || currentQ.simplification;
-    setMentorAdvice({ type: 'Progressive Hint', text: h });
-    setShowHint(true);
-    const nextLevel = hintLevel + 1;
-    setHintLevel(nextLevel);
+    setMentorAdvice({ type: 'Progressive Hint', text: h }); setShowHint(true);
+    const nextLevel = hintLevel + 1; setHintLevel(nextLevel);
     if (nextLevel >= currentQ.hints.length) setLifelinesUsed(prev => ({ ...prev, hint: true }));
   };
 
   const handleUseMentor = () => {
     if (lifelinesUsed.mentor || quizStatus !== QUIZ_STATES.ANSWERING) return;
     const currentQ = quizQuestions[currentQuestionIndex];
-    const text = "Mentor Insight: " + (currentQ.simplification || "Priority ABC assessment recommended.") + ". Focus on patient stability.";
-    setMentorAdvice({ type: 'Clinical Mentor', text, confidence: 96 });
-    setShowHint(true);
-    setLifelinesUsed(prev => ({ ...prev, mentor: true }));
+    const text = `Mentor Insight: ${currentQ.simplification || "Priority ABC assessment recommended."}. Focus on patient stability.`;
+    setMentorAdvice({ type: 'Clinical Mentor', text, confidence: 96 }); setShowHint(true); setLifelinesUsed(prev => ({ ...prev, mentor: true }));
   };
 
   const handleWalkAway = () => {
     let nextIdx;
     do { nextIdx = Math.floor(Math.random() * MOTIVATIONAL_MESSAGES.length); } while (nextIdx === lastMotivationIndex);
-    setLastMotivationIndex(nextIdx);
-    setExitPrompt(MOTIVATIONAL_MESSAGES[nextIdx]);
-    setShowExitConfirm(true);
+    setLastMotivationIndex(nextIdx); setExitPrompt(MOTIVATIONAL_MESSAGES[nextIdx]); setShowExitConfirm(true);
   };
 
   const subjects = useMemo(() => {
@@ -464,8 +296,6 @@ const Quiz = () => {
   return (
     <div className={`fixed inset-0 z-[60] bg-[#0F172A] flex flex-col text-white overflow-hidden`}>
       <style>{` @keyframes shimmer { 100% { transform: translateX(100%); } } `}</style>
-
-      {/* Header Section */}
       <div className={`h-[12vh] sm:h-[15vh] bg-indigo-600 w-full relative transition-colors duration-500 shadow-xl`}>
          <div className="p-4 pt-6 flex items-center justify-between gap-3 max-w-2xl mx-auto">
             <div className="bg-black/60 backdrop-blur-md rounded-2xl px-4 py-2 flex items-center gap-2 border border-white/5 shadow-xl">
@@ -487,11 +317,7 @@ const Quiz = () => {
             {isSpeed && <span className="text-[10px] font-black uppercase tracking-widest text-white bg-white/10 px-3 py-1 rounded-full">{currentMilestone}</span>}
          </div>
       </div>
-
-      {/* Main Content */}
       <div className="flex-1 flex flex-col px-4 -mt-10 z-10 max-w-3xl mx-auto w-full overflow-y-auto no-scrollbar pb-32">
-
-         {/* Timer Section */}
          <div className="relative flex justify-center mb-6">
             <div className={`relative w-[88px] h-[88px] bg-[#1B2343] rounded-full flex items-center justify-center border-[6px] border-[#0F172A] ${isLowPowerMode ? "" : "shadow-xl"} z-20 overflow-hidden`}>
                <svg className="absolute inset-0 w-full h-full -rotate-90" viewBox="0 0 100 100">
@@ -500,10 +326,7 @@ const Quiz = () => {
                <span className={`text-2xl font-black tabular-nums ${timeLeft < 5 ? "text-red-500 animate-pulse" : "text-white"}`}>{timeLeft}</span>
             </div>
          </div>
-
-         {isLoadingQuestion || !currentQ ? (
-            <QuestionSkeleton />
-         ) : (
+         {isLoadingQuestion || !currentQ ? ( <QuestionSkeleton /> ) : (
             <>
                <motion.div key={currentQuestionIndex} initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className={`bg-[#1B2343] rounded-[2.5rem] p-8 sm:p-10 border border-white/10 ${isLowPowerMode ? "" : "shadow-2xl"} text-center mb-6 relative overflow-hidden`}>
                   <div className="absolute top-0 right-0 p-8 opacity-[0.03] pointer-events-none"><Brain size={160} /></div>
@@ -525,27 +348,18 @@ const Quiz = () => {
                      <h3 className="text-xl sm:text-2xl font-bold leading-tight text-white tracking-tight text-balance italic">"{currentQ.question}"</h3>
                   </div>
                </motion.div>
-
                <div className={`flex flex-col gap-4 ${eliminatedOptions.length > 0 ? "min-h-[300px]" : ""}`}>
                   {currentQ.options.map((option, idx) => {
-                     const isEliminated = eliminatedOptions.includes(option);
-                     const isSelected = selectedOption === option;
-                     const isReview = quizStatus === QUIZ_STATES.REVIEWING;
-                     let state = 'normal';
-                     if (isSelected) state = 'selected';
-                     if (isReview) {
-                        if (option === currentQ.correctAnswer) state = 'correct';
-                        else if (isSelected) state = 'wrong';
-                     }
+                     const isEliminated = eliminatedOptions.includes(option); const isSelected = selectedOption === option; const isReview = quizStatus === QUIZ_STATES.REVIEWING;
+                     let state = 'normal'; if (isSelected) state = 'selected'; if (isReview) { if (option === currentQ.correctAnswer) state = 'correct'; else if (isSelected) state = 'wrong'; }
                      if (isEliminated) return null;
                      return (
                         <motion.div key={idx} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} layout transition={{ duration: isLowPowerMode ? 0.1 : 0.3 }} className={eliminatedOptions.length > 0 ? "flex-1 min-h-[120px]" : ""}>
-                           <OptionButton label={option} index={idx} state={state} onClick={() => handleOptionSelect(option)} disabled={isReview || quizStatus === QUIZ_STATES.CONFIRMING || isLoadingQuestion} pollValue={classPoll ? classPoll[option] : undefined} isLowPowerMode={isLowPowerMode} />
+                           <OptionButton label={option} index={idx} state={state} onClick={() => handleOptionSelect(option)} disabled={isReview || quizStatus === QUIZ_STATES.CONFIRMING} pollValue={classPoll ? classPoll[option] : undefined} isLowPowerMode={isLowPowerMode} />
                         </motion.div>
                      );
                   })}
                </div>
-
                <AnimatePresence>
                   {quizStatus === QUIZ_STATES.REVIEWING && (
                      <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="mt-8 space-y-6 pb-20">
@@ -566,8 +380,6 @@ const Quiz = () => {
             </>
          )}
       </div>
-
-      {/* Overlays */}
       <AnimatePresence>
          {quizStatus === QUIZ_STATES.CONFIRMING && (
             <div className={`fixed inset-0 z-[100] flex items-center justify-center p-6 bg-slate-950/90 ${isLowPowerMode ? "" : "backdrop-blur-md"}`}>
@@ -583,7 +395,6 @@ const Quiz = () => {
             </div>
          )}
       </AnimatePresence>
-
       <AnimatePresence>
          {quizStatus === QUIZ_STATES.REVIEWING && (
             <motion.div initial={{ y: 100 }} animate={{ y: 0 }} exit={{ y: 100 }} className="fixed bottom-0 left-0 right-0 p-6 bg-[#0F172A]/80 backdrop-blur-md border-t border-white/5 z-[80]">
@@ -593,7 +404,6 @@ const Quiz = () => {
             </motion.div>
          )}
       </AnimatePresence>
-
       <AnimatePresence>
         {showHint && (
           <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-slate-950/80 backdrop-blur-sm">
@@ -607,7 +417,6 @@ const Quiz = () => {
           </div>
         )}
       </AnimatePresence>
-
       <AnimatePresence>
         {showExitConfirm && (
           <div className={`fixed inset-0 z-[120] flex items-center justify-center p-4 bg-slate-950/90 ${isLowPowerMode ? "" : "backdrop-blur-xl"}`}>
@@ -630,70 +439,21 @@ const Quiz = () => {
                   <button onClick={() => setShowExitConfirm(false)} className="w-full py-5 bg-indigo-600 text-white rounded-2xl font-black uppercase text-xs shadow-lg active:scale-95 transition-all">Continue Learning</button>
                   <button onClick={() => {
                       if (quizMode === 'speed') localStorage.removeItem('APEX_QUIZ_SESSION');
-                      setQuizStatus(QUIZ_STATES.SELECTION);
-                      setIsQuizActive(false);
-                      setShowExitConfirm(false);
+                      setQuizStatus(QUIZ_STATES.SELECTION); setIsQuizActive(false); setShowExitConfirm(false);
                     }} className="w-full py-4 bg-white/5 text-slate-500 rounded-2xl font-black uppercase text-[10px] hover:text-red-500 transition-colors">Leave Quiz</button>
                 </div>
              </motion.div>
           </div>
         )}
       </AnimatePresence>
-
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
-};
+};"""
 
-const ModeCard = ({ title, desc, icon, duration, timer, color, onClick }) => {
-  const colors = {
-    medical: 'hover:border-medical-500 bg-medical-500/10 text-medical-600',
-    amber: 'hover:border-amber-500 bg-amber-500/10 text-amber-600',
-    indigo: 'hover:border-indigo-500 bg-indigo-500/10 text-indigo-600',
-    emerald: 'hover:border-emerald-500 bg-emerald-500/10 text-emerald-600'
-  };
-  return (
-    <button onClick={onClick} className={`p-8 bg-white dark:bg-slate-800 rounded-[2.5rem] border-2 border-slate-100 dark:border-slate-700 transition-all text-left group active:scale-95 flex flex-col justify-between min-h-[260px] shadow-sm hover:shadow-xl ${colors[color].split(' ')[0]}`}>
-      <div>
-        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-8 transition-all group-hover:scale-110 shadow-inner ${colors[color].split(' ').pop()} ${colors[color].split(' ')[1]}`}>{icon}</div>
-        <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">{title}</h3>
-        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed tracking-tight">{desc}</p>
-      </div>
-      <div className="flex gap-4 mt-8">
-        <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-400 tracking-wider"><Clock size={12} /> {duration}</div>
-        <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-400 tracking-wider"><Timer size={12} /> {timer}</div>
-      </div>
-    </button>
-  );
-};
-
-const OptionButton = ({ label, index, state, pollValue, onClick, disabled, isLowPowerMode }) => {
-  const [isExpanded, setIsExpanded] = useState(false);
-  let baseStyles = 'bg-[#222831] border-white/5 text-white/70';
-  if (state === 'selected') baseStyles = 'bg-[#FF7A00]/10 border-[#FF7A00] text-white';
-  if (state === 'correct') baseStyles = 'bg-[#1a3a2a] border-emerald-500 text-emerald-500';
-  if (state === 'wrong') baseStyles = 'bg-[#1E1E1E] border-[#FF7A00] text-[#FF7A00]';
-  if (state === 'eliminated') baseStyles = 'opacity-0 pointer-events-none scale-95';
-
-  return (
-    <button disabled={disabled || state === 'eliminated'} onClick={() => { if(label.length > 80 && !isExpanded) setIsExpanded(true); else onClick(); }} className={`relative flex items-center justify-between w-full h-full p-6 rounded-[2rem] border-2 transition-all duration-300 ${baseStyles} active:scale-[0.98] ${isLowPowerMode ? "" : "shadow-lg"} mb-4`}>
-      <div className="flex flex-col items-start pr-8">
-        <p className={`font-bold text-left text-sm sm:text-base tracking-tight ${!isExpanded && label.length > 100 ? 'line-clamp-2' : ''}`}>{label}</p>
-        {pollValue !== undefined && (
-          <div className="mt-2 w-32">
-            <div className="h-1 bg-white/10 rounded-full overflow-hidden"><motion.div initial={{width:0}} animate={{width:`${pollValue}%`}} className="h-full bg-blue-500" /></div>
-            <p className="text-[10px] font-black mt-1 opacity-60 uppercase tracking-tighter">{pollValue}% choosing this</p>
-          </div>
-        )}
-      </div>
-      <div className={`w-10 h-10 rounded-full border-2 flex items-center justify-center shrink-0 ${state === 'correct' ? 'bg-emerald-500 border-emerald-500 text-white' : (state === 'wrong' ? 'bg-orange-600 border-orange-600 text-white' : 'border-white/10')}`}>
-        {state === 'correct' && <CheckCircle2 size={20} />}
-        {state === 'wrong' && <XCircle size={20} />}
-        {state === 'normal' && <div className="w-2 h-2 rounded-full bg-white/20" />}
-        {state === 'selected' && <div className="w-3 h-3 rounded-full bg-[#FF7A00]" />}
-      </div>
-    </button>
-  );
-};
-
-export default Quiz;
+final_lines = lines[:start_idx] + [new_quiz_body + '\n'] + lines[end_idx+1:]
+with open('src/pages/Quiz.jsx', 'w') as f:
+    f.writelines(final_lines)
+print('Successfully updated Quiz component logic via python script')
+"""
+python3 update_quiz.py
