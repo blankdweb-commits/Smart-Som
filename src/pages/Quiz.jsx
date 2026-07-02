@@ -73,9 +73,22 @@ const QuestionSkeleton = () => (
 const normalizeQuestion = (q) => {
   if (!q) return null;
   try {
-    let questionText = q.question || q.text || q.front || q.title || q.prompt || "";
-    if (typeof q === 'string') questionText = q;
-    if (!questionText && q.data) questionText = q.data.question || q.data.text || q.data.title || "";
+    // Definitive Extraction Chain
+    let questionText = q.question || q.text || q.front || q.title || q.prompt || q.q || q.item || "";
+
+    // Support nested data structures from bulk imports
+    if (!questionText && q.data) {
+        questionText = q.data.question || q.data.text || q.data.item || "";
+    }
+
+    // Force string and trim
+    questionText = String(questionText).trim();
+
+    // Critical Filter: Skip obvious placeholders in the database
+    if (questionText.toLowerCase().includes("sample question") || questionText === "") {
+        console.warn("Skipping placeholder or empty question:", q.id);
+        return null;
+    }
 
     let options = [];
     let correctAnswerText = "";
@@ -93,6 +106,12 @@ const normalizeQuestion = (q) => {
       ].filter(Boolean);
     }
 
+    // Filter out obvious placeholder options
+    if (options.some(opt => String(opt).toLowerCase() === "option a")) {
+        console.warn("Skipping question with placeholder options:", q.id);
+        return null;
+    }
+
     const ca = q.correct_answer || q.correctAnswer || q.answer || q.back || q.correct || "";
     if (options.length > 0) {
         if (typeof ca === 'number' && ca >= 0 && ca < options.length) {
@@ -108,20 +127,16 @@ const normalizeQuestion = (q) => {
           correctAnswerText = ca || options[0];
         }
     } else {
-        const fallbackAns = ca || q.correct_answer_text || "Consult protocol";
-        options = [fallbackAns, "Increase monitoring", "Document findings", "Perform assessment"];
-        correctAnswerText = fallbackAns;
-    }
-
-    if (!questionText || String(questionText).trim() === "") {
-        questionText = "Clinical Case Analysis: Please evaluate the options below and select the priority nursing action based on patient safety and NMCN protocols.";
+        // Questions without options are flashcards, not quiz items
+        console.warn("Skipping non-quiz item (no options):", q.id);
+        return null;
     }
 
     return {
       id: q.id || 'gen-' + Math.random().toString(36).substr(2, 9),
       subject: q.subject || q.category || q.topic || "General Nursing",
       source: q.source || (String(q.id).includes('richard') ? "Richard's Bank" : "NMCN Bank"),
-      question: String(questionText).trim(),
+      question: questionText,
       options: options.map(opt => String(opt).trim()),
       correctAnswer: String(correctAnswerText).trim(),
       correctAnswerText: String(correctAnswerText).trim(),
@@ -131,6 +146,7 @@ const normalizeQuestion = (q) => {
       hints: Array.isArray(q.hints) ? q.hints : (q.hint ? [q.hint] : ["Think about the most immediate threat to the patient."])
     };
   } catch (error) {
+    console.error("Normalization Error:", error);
     return null;
   }
 };
@@ -231,10 +247,15 @@ const Quiz = () => {
   }, [quizStatus, quizMode, useTimer, currentQuestionIndex]);
 
   const initQuiz = (mode, subjectFilter = null) => {
-    let pool = [...flashcards];
+    let pool = [...flashcards].filter(c => {
+        const n = normalizeQuestion(c);
+        return n !== null;
+    });
+
     if (mode === 'revision' && learningAnalytics?.recommendedRevision?.length > 0) {
-        pool = learningAnalytics.recommendedRevision;
+        pool = learningAnalytics.recommendedRevision.filter(c => normalizeQuestion(c) !== null);
     }
+
     if (subjectFilter) pool = pool.filter(c => c.subject === subjectFilter);
     if (pool.length === 0) {
         setToast({ message: "No verified clinical items found for this selection.", type: 'error' });
@@ -466,7 +487,7 @@ const Quiz = () => {
       <style>{` @keyframes shimmer { 100% { transform: translateX(100%); } } `}</style>
 
       {/* Header Section */}
-      <div className={`h-[12vh] sm:h-[15vh] bg-indigo-600 w-full relative transition-colors duration-500 shadow-xl`}>
+      <div className={`h-[12vh] sm:h-[15vh] bg-indigo-600 w-full relative z-30 transition-colors duration-500 shadow-xl`}>
          <div className="p-4 pt-6 flex items-center justify-between gap-3 max-w-2xl mx-auto">
             <div className="bg-black/60 backdrop-blur-md rounded-2xl px-4 py-2 flex items-center gap-2 border border-white/5 shadow-xl">
                <Users size={16} className="text-white opacity-80" />
@@ -522,7 +543,7 @@ const Quiz = () => {
                         <div className="w-1.5 h-1.5 rounded-full bg-indigo-500/40"></div>
                         <span className="text-[10px] font-black text-indigo-400/80 uppercase tracking-widest truncate max-w-[150px]">{currentQ.subject}</span>
                      </div>
-                     <h3 className="text-xl sm:text-2xl font-bold leading-tight text-white tracking-tight text-balance italic">"{currentQ.question}"</h3>
+                     <h2 className="text-xl sm:text-2xl font-bold leading-tight text-white tracking-tight italic" style={{ display: "block", visibility: "visible", opacity: 1 }}>{currentQ.question || "Clinical data synchronized. Please review the options below."}</h2>
                   </div>
                </motion.div>
 
