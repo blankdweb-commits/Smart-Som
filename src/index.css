@@ -22,6 +22,7 @@ body {
   place-content: center;
   min-width: 320px;
   min-height: 100vh;
+  min-height: 100dvh;
   min-height: -webkit-fill-available;
   overscroll-behavior-y: contain; /* Prevents pull-to-refresh on mobile */
 }
