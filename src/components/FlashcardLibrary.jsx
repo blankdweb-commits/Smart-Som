@@ -346,7 +346,6 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
             {currentSemester && <><div className="w-1 h-1 rounded-full bg-slate-300 mx-1" /><span>{currentSemester}</span></>}
           </div>
         </div>
-      )}
 
         <div className="flex flex-wrap gap-2">
           {viewMode === 'list' ? (
@@ -358,6 +357,8 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
           ) : (
             <button onClick={() => setViewMode('list')} className="px-5 py-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-soft active:scale-95">Exit Study</button>
           )}
+        </div>
+      </div>
 
       {viewMode === 'list' ? (
         <>
