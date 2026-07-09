@@ -131,6 +131,11 @@ const Quiz = () => {
 
     let limit = mode === 'speed' ? 395 : (questionLimit || 10);
     const shuffled = pool.sort(() => 0.5 - Math.random());
+    shuffled.sort((a, b) => {
+      const isAPrio = ((a.source || '').toLowerCase().includes('richard') || (a.category || '').toLowerCase() === 'nmcn') ? 1 : 0;
+      const isBPrio = ((b.source || '').toLowerCase().includes('richard') || (b.category || '').toLowerCase() === 'nmcn') ? 1 : 0;
+      return isBPrio - isAPrio;
+    });
     const selected = shuffled.slice(0, Math.min(limit, pool.length));
 
     const questions = selected.map(card => {
@@ -483,8 +488,35 @@ const Quiz = () => {
         </div>
       </div>
 
+      {/* Lifelines */}
+      <div className="max-w-4xl mx-auto px-6 mt-8 relative z-30">
+         <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-4 rounded-3xl shadow-sm border border-slate-100 dark:border-white/5 grid grid-cols-3 gap-4">
+            <LifelineButton
+               icon={<Target />} label="50/50"
+               used={lifelinesUsed.fiftyFifty}
+               onClick={useFiftyFifty}
+               dark={quizMode === 'speed'}
+            />
+            <LifelineButton
+               icon={<HelpCircle />} label="Hint"
+               used={lifelinesUsed.hint}
+               onClick={() => {
+                  setShowHint(true);
+                  setLifelinesUsed(prev => ({ ...prev, hint: true }));
+               }}
+               dark={quizMode === 'speed'}
+            />
+            <LifelineButton
+               icon={<Users />} label="Poll"
+               used={lifelinesUsed.askClass}
+               onClick={useAskClass}
+               dark={quizMode === 'speed'}
+            />
+         </div>
+      </div>
+
       {/* Main Question Area */}
-      <div className="max-w-4xl mx-auto mt-12 px-6 relative z-10">
+      <div className="max-w-4xl mx-auto mt-8 px-6 relative z-10">
          <motion.div
            key={currentQuestionIndex}
            initial={{ x: 20, opacity: 0 }}
@@ -498,12 +530,12 @@ const Quiz = () => {
                   </span>
                   <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-60">Question {currentQuestionIndex + 1}</p>
                </div>
-               <h2 className="text-2xl sm:text-4xl font-black text-slate-900 dark:text-white leading-tight tracking-tight px-4 drop-shadow-sm">
+               <h2 className={`text-2xl sm:text-4xl font-black leading-tight tracking-tight px-4 drop-shadow-sm ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
                   {currentQ?.question}
                </h2>
                <div className="flex justify-center">
-                  <div className="px-4 py-1.5 bg-indigo-500/10 text-indigo-500 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] animate-pulse shadow-[0_0_10px_rgba(99,102,241,0.3)] border border-indigo-500/20">
-                     SOURCE: {currentQ?.source || "RICHARD’S BANK"}
+                  <div className="px-4 py-1.5 bg-indigo-500/10 text-indigo-500 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] shadow-[0_0_10px_rgba(99,102,241,0.3)] border border-indigo-500/20">
+                     SOURCE: {currentQ?.source || "UNKNOWN SOURCE"}
                   </div>
                </div>
             </div>
@@ -550,32 +582,7 @@ const Quiz = () => {
         )}
       </AnimatePresence>
 
-      {/* Lifelines */}
-      <div className="fixed bottom-10 left-1/2 -translate-x-1/2 w-full max-w-md px-6 z-30">
-         <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-4 rounded-3xl shadow-2xl border border-slate-100 dark:border-white/5 grid grid-cols-3 gap-4">
-            <LifelineButton
-               icon={<Target />} label="50/50"
-               used={lifelinesUsed.fiftyFifty}
-               onClick={useFiftyFifty}
-               dark={quizMode === 'speed'}
-            />
-            <LifelineButton
-               icon={<HelpCircle />} label="Hint"
-               used={lifelinesUsed.hint}
-               onClick={() => {
-                  setShowHint(true);
-                  setLifelinesUsed(prev => ({ ...prev, hint: true }));
-               }}
-               dark={quizMode === 'speed'}
-            />
-            <LifelineButton
-               icon={<Users />} label="Poll"
-               used={lifelinesUsed.askClass}
-               onClick={useAskClass}
-               dark={quizMode === 'speed'}
-            />
-         </div>
-      </div>
+
 
       {/* Speed Challenge Achievement UI */}
       {quizMode === 'speed' && (
