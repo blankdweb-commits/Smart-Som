@@ -1,752 +1,436 @@
-import React, { useState, useEffect, useMemo, useCallback } from 'react';
+import React, { useState, useMemo, useEffect, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext';
-import {
-  Brain,
-  Timer,
-  Award,
-  Zap,
-  CheckCircle2,
-  XCircle,
-  ArrowRight,
-  Target,
-  Clock,
-  Trophy,
-  HelpCircle,
-  Shield,
-  Star,
-  RefreshCw,
-  LayoutDashboard,
-  ChevronRight,
-  TrendingUp,
-  Settings as SettingsIcon,
-  ChevronLeft,
-  Users,
-
-  AlertCircle
-} from '../components/Icons';
+import FlashcardCard from '../components/FlashcardCard';
+import FlashcardForm from '../components/FlashcardForm';
+import ShareModal from '../components/ShareModal';
+import Toast from '../components/Toast';
+import { Plus, Search, Filter, Play, Shuffle, List, ChevronLeft, ChevronRight, Award, Download, Upload, Share2, Folder, Book, ArrowLeft, AlertCircle, CheckCircle2, FileUp, Loader2, ChevronDown, ChevronUp, Lock } from './Icons';
+import { extractTextFromFile, parseQuestionsAndAnswers } from '../utils/fileParser';
+import { CURRICULUM_MASTER } from '../data/curriculumMaster';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { motion, AnimatePresence } from 'framer-motion';
 
-const MILESTONES = [
-  { q: 5, label: 'Clinical Novice', reward: 'Bronze Badge' },
-  { q: 10, label: 'Nurse Intern', reward: 'Silver Badge' },
-  { q: 15, label: 'Medical Scholar', reward: 'Gold Badge' },
-  { q: 20, label: 'Diagnostic Specialist', reward: 'Platinum Badge' },
-  { q: 25, label: 'Apex Practitioner', reward: 'Diamond Badge' },
-  { q: 30, label: 'Clinical Legend', reward: 'Legendary Status' }
-];
+const SRSButton = ({ label, sublabel, color, onClick }) => (
+  <button
+    onClick={(e) => { e.stopPropagation(); onClick(); }}
+    className={`${color} text-white p-4 rounded-2xl shadow-clinical hover:opacity-90 transition-all flex flex-col items-center justify-center min-h-[80px] active:scale-95`}
+  >
+    <span className="text-lg font-bold">{label}</span>
+    <span className="text-[11px] opacity-80 font-medium tracking-wide">{sublabel}</span>
+  </button>
+);
 
-const getSpeedTimerValue = (index) => {
-  if (index < 5) return 20;
-  if (index < 10) return 18;
-  return 15;
-};
+const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
+  const { flashcards, userProfile, exams, addFlashcard, updateFlashcard, deleteFlashcard, updateCardProgress, importFlashcards, incrementCardsStudied } = useAppContext();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
 
-const Quiz = () => {
-  const { flashcards, studyStats, updateQuizStats, darkMode } = useAppContext();
+  const DEV_MODE =  (import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true');
+  const isActivated = userProfile.isActivated || userProfile.subscriptionStatus === 'grace' || DEV_MODE;
 
-  const [quizMode, setQuizMode] = useState(null);
-  const [quizStarted, setQuizStarted] = useState(false);
-  const [quizQuestions, setQuizQuestions] = useState([]);
-  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [score, setScore] = useState(0);
-  const [showResults, setShowResults] = useState(false);
+  const [currentProgram, setCurrentProgram] = useState(null);
+  const [currentLevel, setCurrentLevel] = useState(null);
+  const [currentSemester, setCurrentSemester] = useState(null);
+  const [currentSubject, setCurrentSubject] = useState(null);
 
-  const [selectedOption, setSelectedOption] = useState(null);
-  const [attempts, setAttempts] = useState(0);
-  const [showHint, setShowHint] = useState(false);
-  const [showRationale, setShowRationale] = useState(false);
-  const [isCorrect, setIsCorrect] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(30);
-  const [eliminatedOptions, setEliminatedOptions] = useState([]);
-  const [lifelinesUsed, setLifelinesUsed] = useState({ hint: false, fiftyFifty: false, askClass: false });
-  const [classPoll, setClassPoll] = useState(null);
-  const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
+  const [expandedUnits, setExpandedUnits] = useState({});
+  const toggleUnit = (key) => {
+    setExpandedUnits(prev => ({ ...prev, [key]: !prev[key] }));
+  };
 
-  // Speed Challenge Specific
-  const [maxTime, setMaxTime] = useState(20);
-  const [isFinalAnswer, setIsFinalAnswer] = useState(false);
-  const [highestMilestone, setHighestMilestone] = useState("None");
-  const [safetyNetScore, setSafetyNetScore] = useState(0);
-
-  // Configuration Specific
-  const [selectedSubject, setSelectedSubject] = useState(null);
-  const [questionLimit, setQuestionLimit] = useState(10);
-  const [useTimer, setUseTimer] = useState(true);
-
-  // Early Quit Messaging
-  const [showQuitModal, setShowQuitModal] = useState(false);
-
-  // Derived Data
-  const subjects = useMemo(() => {
-    const s = new Map();
-    if (flashcards) {
-      flashcards.forEach(c => {
-        const name = c.subject || 'General';
-        s.set(name, (s.get(name) || 0) + 1);
-      });
-    }
-    return Array.from(s.entries()).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
-  }, [flashcards]);
-
-  const currentMilestone = useMemo(() => {
-    const milestone = [...MILESTONES].reverse().find(m => score >= m.q);
-    return milestone ? milestone.label : "Clinical Novice";
-  }, [score]);
-
-  const handleTimeOut = useCallback(() => {
-    if (showRationale || showResults) return;
-    setIsCorrect(false);
-    setShowRationale(true);
-    setIsFinalAnswer(false);
-    if (quizMode === 'speed') {
-      updateQuizStats({ quizStreak: 0 });
-    }
-  }, [quizMode, showRationale, showResults, updateQuizStats]);
-
-  // Timer Logic
+  // Deep Link Subject Support
   useEffect(() => {
-    let interval;
-    const activeTimer = (quizMode === 'speed') || (quizMode === 'subject' && useTimer) || (quizMode === 'quick' && useTimer) || (quizMode === 'clinical' && useTimer);
-
-    if (activeTimer && quizStarted && !showResults && !showRationale && !isFinalAnswer && timeLeft > 0) {
-      interval = setInterval(() => {
-        setTimeLeft(prev => prev - 1);
-      }, 1000);
-    }
-
-    return () => clearInterval(interval);
-  }, [timeLeft, quizStarted, showResults, showRationale, isFinalAnswer, quizMode, useTimer, handleTimeOut]);
-
-  // Quiz Initialization
-  const initQuiz = (mode, subject = null) => {
-    if (!flashcards || flashcards.length === 0) return;
-    let pool = [...flashcards];
-    if (subject) {
-      pool = pool.filter(c => c.subject === subject);
-    }
-    if (pool.length === 0) return;
-
-    const seen = new Set();
-    const uniquePool = pool.filter(c => seen.has(c.question) ? false : seen.add(c.question));
-
-    let limit = mode === 'speed' ? 395 : (questionLimit || 10);
-    const shuffled = pool.sort(() => 0.5 - Math.random());
-    shuffled.sort((a, b) => {
-      const isAPrio = ((a.source || '').toLowerCase().includes('richard') || (a.category || '').toLowerCase() === 'nmcn') ? 1 : 0;
-      const isBPrio = ((b.source || '').toLowerCase().includes('richard') || (b.category || '').toLowerCase() === 'nmcn') ? 1 : 0;
-      return isBPrio - isAPrio;
-    });
-    const selected = shuffled.slice(0, Math.min(limit, pool.length));
-
-    const questions = selected.map(card => {
-      const distractors = flashcards
-        .filter(c => c.id !== card.id && c.answer !== card.answer)
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 3)
-        .map(c => c.answer);
-      const options = [card.answer, ...distractors].sort(() => 0.5 - Math.random());
-      return { ...card, options, correctAnswer: card.answer };
-    });
-
-    setQuizQuestions(questions);
-    setQuizMode(mode);
-    setQuizStarted(true);
-    setCurrentQuestionIndex(0);
-    setScore(0);
-    setShowResults(false);
-    setSelectedOption(null);
-    setShowHint(false);
-    setShowRationale(false);
-    setIsCorrect(null);
-    setEliminatedOptions([]);
-    setLifelinesUsed({ hint: false, fiftyFifty: false, askClass: false });
-    setClassPoll(null);
-    setIsFinalAnswer(false);
-    setHighestMilestone("None");
-    setSafetyNetScore(0);
-    setShowQuitModal(false);
-
-    if (mode === 'speed') {
-      setTimeLeft(20);
-      setMaxTime(20);
-    } else if (useTimer) {
-      setTimeLeft(30);
-      setMaxTime(30);
-    }
-  };
-
-  const handleOptionClick = (option) => {
-    if (showRationale || showResults) return;
-    if (eliminatedOptions.includes(option)) return;
-    if (selectedOption === option) {
-       confirmAnswer(option);
-    } else {
-       setSelectedOption(option);
-       setIsFinalAnswer(true);
-    }
-  };
-
-  const confirmAnswer = (opt = selectedOption) => {
-    if (!opt) return;
-    const currentQ = quizQuestions[currentQuestionIndex];
-    const correct = opt === currentQ.correctAnswer;
-    setIsCorrect(correct);
-    setIsFinalAnswer(false);
-    if (correct) {
-      const newScore = score + 1;
-      setScore(newScore);
-
-      if (newScore === 5) setSafetyNetScore(5);
-      if (newScore === 10) setSafetyNetScore(10);
-
-      // Milestone is updated dynamically via useMemo
-      setConsecutiveCorrect(prev => prev + 1);
-      updateQuizStats({ quizStreak: (studyStats.quizStreak || 0) + 1 });
-    } else {
-      setConsecutiveCorrect(0);
-      setShowRationale(true);
-      updateQuizStats({ quizStreak: 0 });
-    }
-    setShowRationale(true);
-  };
-
-  const nextQuestion = () => {
-    if (!isCorrect && quizMode === 'speed') {
-       setShowResults(true);
-       return;
-    }
-    if (currentQuestionIndex < quizQuestions.length - 1) {
-      const nextIdx = currentQuestionIndex + 1;
-      setCurrentQuestionIndex(nextIdx);
-      setSelectedOption(null);
-      setShowHint(false);
-      setShowRationale(false);
-      setIsCorrect(null);
-      setEliminatedOptions([]);
-      setClassPoll(null);
-      setIsFinalAnswer(false);
-
-      if (quizMode === 'speed') {
-        const val = getSpeedTimerValue(nextIdx);
-        setTimeLeft(val);
-        setMaxTime(val);
-      } else if (useTimer) {
-        setTimeLeft(30);
-        setMaxTime(30);
+    const subjectParam = searchParams.get('subject');
+    if (subjectParam) {
+      const card = flashcards.find(c => c.subject === subjectParam);
+      if (card) {
+        setCurrentProgram(card.program === 'midwifery' ? 'Midwifery' : 'General Nursing');
+        setCurrentLevel(card.level);
+        setCurrentSemester(card.semester);
+        setCurrentSubject(subjectParam);
+      } else {
+         setCurrentSubject(subjectParam);
       }
-    } else {
-      setShowResults(true);
+    }
+  }, [searchParams, flashcards]);
+
+  const [isFormOpen, setIsFormOpen] = useState(false);
+  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
+  const [shareData, setShareData] = useState(null);
+  const [editingCard, setEditingCard] = useState(null);
+  const [viewMode, setViewMode] = useState('list');
+  const [searchTerm, setSearchTerm] = useState('');
+  const [filterDifficulty, setFilterDifficulty] = useState('All');
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [searchTerm]);
+
+  const [isExamPriority, setIsExamPriority] = useState(false);
+  const [studyIndex, setStudyIndex] = useState(0);
+  const [shuffledCards, setShuffledCards] = useState([]);
+  const [toast, setToast] = useState(null);
+  const [visibleCount, setVisibleCount] = useState(12);
+
+  const categoryCards = useMemo(() => {
+    if (initialCategory !== 'Academic') {
+      return flashcards.filter(c => c.category === initialCategory);
+    }
+    if (!currentProgram) return [];
+    const programSlug = currentProgram.toLowerCase().replace(/\s+/g, '-');
+    return flashcards.filter(c => {
+      if (programSlug === 'nclex') return c.category === 'NCLEX';
+      if (programSlug === 'nmcn') return c.category === 'NMCN';
+      if (c.program) {
+        return c.program === programSlug || (programSlug === 'general-nursing' && c.program === 'nd-nursing');
+      }
+      const subject = c.subject || '';
+      if (currentProgram === 'Midwifery') return subject.toLowerCase().includes('midwifery');
+      return !subject.toLowerCase().includes('midwifery');
+    });
+  }, [flashcards, initialCategory, currentProgram]);
+
+  const levels = useMemo(() => {
+    const defaultLevels = ['Year 1', 'Year 2', 'Year 3', 'Year 4'];
+    const dataLevels = [...new Set(categoryCards.map(c => c.level))];
+    return defaultLevels.filter(l => dataLevels.includes(l));
+  }, [categoryCards]);
+
+  const semesters = useMemo(() => {
+    if (!currentLevel) return [];
+    const defaultSemesters = ['Semester 1', 'Semester 2'];
+    const dataSemesters = [...new Set(categoryCards.filter(c => c.level === currentLevel).map(c => c.semester))];
+    return defaultSemesters.filter(s => dataSemesters.includes(s));
+  }, [categoryCards, currentLevel]);
+
+  const subjects = useMemo(() => {
+    if (!currentLevel || !currentSemester) return [];
+    if (currentProgram === 'General Nursing') {
+      const masterCourses = CURRICULUM_MASTER[currentLevel]?.[currentSemester] || [];
+      return masterCourses.map(c => c.course.replace(/\s+and\s+/gi, ' & ').trim());
+    }
+    const dataSubjects = [...new Set(categoryCards.filter(c => c.level === currentLevel && c.semester === currentSemester).map(c => c.subject))];
+    return dataSubjects.sort();
+  }, [categoryCards, currentLevel, currentSemester, currentProgram]);
+
+  const upcomingExamSubjects = useMemo(() => {
+    return exams
+      .filter(e => {
+        if (!e || !e.title) return false;
+        const diff = new Date(e.date).getTime() - new Date().getTime();
+        return diff > 0 && diff <= (7 * 24 * 3600 * 1000);
+      })
+      .map(e => (e.title || '').toLowerCase());
+  }, [exams]);
+
+  const filteredCards = useMemo(() => {
+    const term = debouncedSearchTerm.toLowerCase();
+    return categoryCards.filter(card => {
+      const question = card.question || '';
+      const topic = card.topic || '';
+      const matchesSearch = !term || question.toLowerCase().includes(term) || topic.toLowerCase().includes(term);
+      const matchesLevel = !currentLevel || card.level === currentLevel;
+      const matchesSemester = !currentSemester || card.semester === currentSemester;
+      const matchesSubject = !currentSubject || card.subject === currentSubject;
+      const matchesDifficulty = filterDifficulty === 'All' || card.difficulty === filterDifficulty;
+      const isPriority = !isExamPriority || upcomingExamSubjects.some(subj => (card.subject || '').toLowerCase().includes(subj));
+      return matchesSearch && matchesLevel && matchesSemester && matchesSubject && matchesDifficulty && isPriority;
+    });
+  }, [categoryCards, debouncedSearchTerm, currentLevel, currentSemester, currentSubject, filterDifficulty, isExamPriority, upcomingExamSubjects]);
+
+  useEffect(() => {
+    setVisibleCount(12);
+  }, [debouncedSearchTerm, currentLevel, currentSemester, currentSubject, filterDifficulty, isExamPriority]);
+
+  const startStudyMode = (shuffle = false, srsOnly = false) => {
+    let cardsToStudy = [...filteredCards];
+    if (srsOnly) {
+      cardsToStudy = cardsToStudy.filter(c => !c.srs?.nextReview || new Date(c.srs.nextReview) <= new Date());
+    }
+    if (shuffle) cardsToStudy.sort(() => Math.random() - 0.5);
+    if (cardsToStudy.length === 0) {
+      setToast({ message: "No cards due for review!", type: 'info' });
+      return;
+    }
+    setShuffledCards(cardsToStudy);
+    setStudyIndex(0);
+    setViewMode('study');
+  };
+
+  const handleNext = (quality = null) => {
+    if (quality !== null) setToast({ message: `Card Rated!`, type: 'success' });
+    if (studyIndex < shuffledCards.length - 1) {
+      setStudyIndex(studyIndex + 1);
+      incrementCardsStudied();
     }
   };
 
-  const useFiftyFifty = () => {
-    if (lifelinesUsed.fiftyFifty || showRationale || showResults) return;
-    const currentQ = quizQuestions[currentQuestionIndex];
-    const wrongs = currentQ.options.filter(o => o !== currentQ.correctAnswer);
-    const toEliminate = wrongs.sort(() => 0.5 - Math.random()).slice(0, 2);
-    setEliminatedOptions(toEliminate);
-    setLifelinesUsed(prev => ({ ...prev, fiftyFifty: true }));
+  const handlePrev = () => { if (studyIndex > 0) setStudyIndex(studyIndex - 1); };
+
+  const handleFileUpload = async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    setIsUploading(true);
+    try {
+      const text = await extractTextFromFile(file);
+      const parsedCards = parseQuestionsAndAnswers(text);
+      if (parsedCards.length > 0) {
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        const enhancedCards = parsedCards.map(card => ({
+          ...card,
+          category: 'User-Trained',
+          level: currentLevel || 'Year 1',
+          semester: currentSemester || 'Semester 1',
+          subject: currentSubject || 'AI Imported',
+          source: file.name
+        }));
+        const count = importFlashcards(enhancedCards);
+        setToast({ message: `AI Training Complete! Generated ${count} high-yield cards.`, type: 'success' });
+      } else {
+        setToast({ message: "Analysis failed: No clear Q&A patterns detected.", type: 'error' });
+      }
+    } catch (error) {
+      console.error(error);
+      setToast({ message: "AI Error: " + error.message, type: 'error' });
+    } finally {
+      setIsUploading(false);
+      e.target.value = null;
+    }
   };
 
-  const useAskClass = () => {
-    if (lifelinesUsed.askClass || showRationale || showResults) return;
-    const currentQ = quizQuestions[currentQuestionIndex];
-    const poll = currentQ.options.map(o => ({
-      option: o,
-      value: o === currentQ.correctAnswer ? Math.floor(Math.random() * 30) + 50 : Math.floor(Math.random() * 20)
-    }));
-    setClassPoll(poll);
-    setLifelinesUsed(prev => ({ ...prev, askClass: true }));
+  const handleToggleImportant = (id) => {
+    const card = flashcards.find(c => c.id === id);
+    if (card) updateFlashcard(id, { important: !card.important });
   };
 
-  if (!quizStarted) {
+  const handleEdit = (card) => { setEditingCard(card); setIsFormOpen(true); };
+  const handleShare = (card) => { setShareData(card); setIsShareModalOpen(true); };
+  const handleFormSubmit = (data) => {
+    if (editingCard) updateFlashcard(editingCard.id, data);
+    else addFlashcard({ ...data, category: initialCategory, level: currentLevel, semester: currentSemester, subject: currentSubject });
+    setIsFormOpen(false);
+    setEditingCard(null);
+  };
+
+  // Render Directory View (Hierarchy)
+  if (viewMode === 'list' && !currentSubject && initialCategory === 'Academic') {
     return (
-      <div className="space-y-8 animate-in fade-in duration-700 max-w-6xl mx-auto pb-20 px-4">
-        <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-          <div>
-            <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight uppercase">Quiz Modes</h1>
-            <p className="text-slate-500 dark:text-slate-400 font-medium mt-1 uppercase tracking-[0.2em] text-[10px]">Select your training intensity</p>
+      <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500 pb-20 px-4">
+        <header className="relative py-4">
+          <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 mb-6">
+            <div className="flex items-center gap-3">
+              {currentProgram && (
+                <button onClick={() => {
+                  if (currentSemester) setCurrentSemester(null);
+                  else if (currentLevel) setCurrentLevel(null);
+                  else setCurrentProgram(null);
+                }} className="p-2 bg-white dark:bg-slate-800 shadow-soft rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors">
+                  <ArrowLeft size={20} />
+                </button>
+              )}
+              <h2 className="text-3xl sm:text-4xl font-extrabold tracking-tight text-slate-900 dark:text-white uppercase">
+                {currentProgram ? `${currentProgram}` : 'Academic Vault'}
+              </h2>
+            </div>
+
+            <button
+              onClick={() => {
+                setCurrentProgram('General Nursing');
+                setCurrentLevel(null);
+                setCurrentSemester(null);
+                setCurrentSubject(null);
+                startStudyMode(true);
+              }}
+              className="px-6 py-3 bg-indigo-600 text-white rounded-2xl font-black uppercase tracking-[0.2em] text-[10px] shadow-lg shadow-indigo-500/20 active:scale-95 transition-all flex items-center gap-2"
+            >
+              <Zap size={14} /> Study All Cards
+            </button>
           </div>
-          <div className="flex items-center gap-4 bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-clinical border border-slate-100 dark:border-slate-700">
-             <div className="text-center px-4 border-r border-slate-100 dark:border-slate-700">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Global Rank</p>
-                <p className="text-xl font-black text-indigo-600">#42</p>
-             </div>
-             <div className="text-center px-4">
-                <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">XP Earned</p>
-                <p className="text-xl font-black text-emerald-500">1,240</p>
-             </div>
-          </div>
+          <p className="text-slate-500 dark:text-slate-400 font-medium text-lg max-w-2xl">
+            {currentSemester ? 'Select a course to begin your specialized training session.' :
+             currentLevel ? 'Choose a semester to narrow down your study focus.' :
+             currentProgram ? 'Select your current academic year.' :
+             'Master your curriculum with precision-targeted clinical flashcards.'}
+          </p>
         </header>
 
-        {/* Configuration Section */}
-        <section className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-clinical border border-slate-100 dark:border-slate-700">
-           <div className="flex items-center gap-3 mb-8">
-              <div className="p-2 bg-indigo-100 text-indigo-600 rounded-xl">
-                 <SettingsIcon size={20} />
+        {!currentProgram ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+            <button onClick={() => setCurrentProgram('General Nursing')} className="p-10 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-clinical hover:border-medical-500 border-2 border-transparent transition-all text-left group">
+              <div className="w-20 h-20 bg-medical-100 dark:bg-medical-900/30 rounded-3xl flex items-center justify-center text-medical-600 mb-8 group-hover:scale-110 transition-transform">
+                <Book size={40} />
               </div>
-              <h2 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Session Parameters</h2>
-           </div>
-
-           <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              <div className="space-y-3">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Question Limit</label>
-                 <div className="flex items-center gap-2">
-                    {[10, 20, 50, 100].map(val => (
-                       <button
-                         key={val}
-                         onClick={() => setQuestionLimit(val)}
-                         className={`flex-1 py-3 rounded-2xl font-black text-xs transition-all ${questionLimit === val ? 'bg-indigo-600 text-white shadow-lg' : 'bg-slate-50 dark:bg-slate-900 text-slate-400 hover:bg-slate-100'}`}
-                       >
-                          {val}
-                       </button>
-                    ))}
-                 </div>
-              </div>
-
-              <div className="space-y-3">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Session Timer</label>
-                 <div className="flex items-center gap-2">
-                    <button
-                      onClick={() => setUseTimer(true)}
-                      className={`flex-1 py-3 rounded-2xl font-black text-xs transition-all ${useTimer ? 'bg-emerald-500 text-white shadow-lg' : 'bg-slate-50 dark:bg-slate-900 text-slate-400 hover:bg-slate-100'}`}
-                    >
-                       TIMER ON
-                    </button>
-                    <button
-                      onClick={() => setUseTimer(false)}
-                      className={`flex-1 py-3 rounded-2xl font-black text-xs transition-all ${!useTimer ? 'bg-red-500 text-white shadow-lg' : 'bg-slate-50 dark:bg-slate-900 text-slate-400 hover:bg-slate-100'}`}
-                    >
-                       OFF
-                    </button>
-                 </div>
-              </div>
-
-              <div className="space-y-3">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Subject Filter</label>
-                 <select
-                   value={selectedSubject || ''}
-                   onChange={(e) => setSelectedSubject(e.target.value || null)}
-                   className="w-full py-3 px-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none text-slate-600 dark:text-slate-300 font-bold text-xs outline-none focus:ring-2 focus:ring-indigo-500"
-                 >
-                    <option value="">All Subjects</option>
-                    {subjects.map(s => (
-                       <option key={s.name} value={s.name}>{s.name} ({s.count})</option>
-                    ))}
-                 </select>
-              </div>
-           </div>
-        </section>
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-          <ModeCard
-            title="Clinical Challenge"
-            desc="Simulated exam environment with critical rationales."
-            icon={<Shield size={32} />}
-            duration="Variable"
-            timer={useTimer ? "30s/Q" : "Relaxed"}
-            color="medical"
-            onClick={() => initQuiz('clinical', selectedSubject)}
-          />
-          <ModeCard
-            title="Quick Quiz"
-            desc="5-10 rapid questions for instant knowledge verification."
-            icon={<Zap size={32} />}
-            duration="Fast"
-            timer="Instant"
-            color="amber"
-            onClick={() => {
-               setQuestionLimit(10);
-               initQuiz('quick', selectedSubject);
-            }}
-          />
-          <ModeCard
-            title="Subject Mastery"
-            desc="Target specific clinical subjects to eliminate weak spots."
-            icon={<Target size={32} />}
-            duration="Focused"
-            timer={useTimer ? "30s/Q" : "Adaptive"}
-            color="indigo"
-            onClick={() => initQuiz('subject', selectedSubject)}
-          />
-          <ModeCard
-            title="Speed Challenge"
-            desc="The ultimate test. 20 seconds per question. Don't stop."
-            icon={<Timer size={32} />}
-            duration="Infinite"
-            timer="Strict 20s"
-            color="emerald"
-            onClick={() => initQuiz('speed', selectedSubject)}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  const currentQ = quizQuestions[currentQuestionIndex];
-
-  if (showResults) {
-    const finalScore = quizMode === 'speed' ? Math.max(score, safetyNetScore) : score;
-    return (
-      <div className="flex items-center justify-center min-h-[70vh] p-4">
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className="bg-white dark:bg-slate-800 p-12 rounded-[3.5rem] shadow-clinical border border-slate-100 dark:border-slate-700 text-center max-w-2xl w-full"
-        >
-          <div className="w-24 h-24 bg-medical-50 text-medical-600 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-lg">
-            <Trophy size={48} />
-          </div>
-          <h2 className="text-4xl font-black text-slate-900 dark:text-white mb-2 tracking-tight uppercase">Session Complete</h2>
-          <p className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-10">Performance Analytics Generated</p>
-
-          <div className="grid grid-cols-2 gap-4 mb-10">
-            <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800">
-               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Final Score</p>
-               <p className="text-3xl font-black text-slate-900 dark:text-white">{finalScore} <span className="text-sm text-slate-400">/ {quizQuestions.length}</span></p>
-            </div>
-            <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-3xl border border-slate-100 dark:border-slate-800">
-               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Rank Achieved</p>
-               <p className="text-xl font-black text-medical-600">{currentMilestone}</p>
-            </div>
-          </div>
-
-          {quizMode === 'speed' && score > safetyNetScore && (
-             <p className="text-xs text-red-500 font-black uppercase mb-8 tracking-widest animate-pulse">Failed at Q{score}. Safety net applied at Q{safetyNetScore}.</p>
-          )}
-
-          <div className="flex flex-col sm:flex-row gap-4">
-             <button onClick={() => setQuizStarted(false)} className="flex-1 py-5 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-[2rem] font-black uppercase tracking-widest text-xs hover:bg-slate-200 transition-all">
-                Mode Selection
-             </button>
-             <button onClick={() => initQuiz(quizMode, selectedSubject)} className="flex-1 py-5 bg-medical-600 text-white rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl shadow-medical-500/20 active:scale-95 transition-all">
-                Try Again
-             </button>
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
-
-  const timerColor = timeLeft <= 3 ? 'bg-red-500' : timeLeft <= 10 ? 'bg-amber-500' : 'bg-emerald-500';
-
-  return (
-    <div className={`min-h-screen flex flex-col ${quizMode === 'speed' ? 'bg-slate-950 text-white' : ''} transition-colors duration-500 pb-48 overflow-x-hidden relative`}>
-      {/* Speed Atmosphere Background Elements */}
-      {quizMode === 'speed' && (
-         <div className="absolute inset-0 pointer-events-none overflow-hidden">
-            <div className="absolute -top-24 -left-24 w-96 h-96 bg-medical-500/10 blur-[120px] rounded-full" />
-            <div className="absolute -bottom-24 -right-24 w-96 h-96 bg-amber-500/5 blur-[120px] rounded-full" />
-         </div>
-      )}
-
-      {/* Progress Header */}
-      <div className="max-w-4xl mx-auto pt-10 px-6 relative z-10">
-        <div className="flex justify-between items-center mb-6">
-          <button
-            onClick={() => setShowQuitModal(true)}
-            className="p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-2xl transition-all"
-          >
-            <XCircle size={24} className="text-slate-400" />
-          </button>
-          <div className="flex flex-col items-center">
-             <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">{quizMode} mode active</p>
-             <h3 className="text-lg font-black tracking-tighter uppercase">{currentMilestone}</h3>
-          </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md rounded-2xl border border-white/5">
-             <Zap className="text-amber-500" size={16} fill="currentColor" />
-             <span className="text-sm font-black tabular-nums">{score}</span>
-          </div>
-        </div>
-
-        {/* Timer Bar */}
-        <div className="w-full h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden mb-2">
-          <motion.div
-            initial={false}
-            animate={{ width: `${(timeLeft / maxTime) * 100}%`, backgroundColor: timeLeft <= 5 ? '#ef4444' : '#10b981' }}
-            className="h-full transition-colors duration-500"
-          />
-        </div>
-
-        <div className="w-full h-3 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden p-0.5 border border-slate-50 dark:border-white/5">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${((currentQuestionIndex + 1) / quizQuestions.length) * 100}%` }}
-            className="h-full bg-medical-500 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.5)]"
-          />
-        </div>
-
-        <div className="flex justify-between mt-4">
-           <div className="flex items-center gap-2">
-              <Star className="text-amber-500" size={16} fill="currentColor" />
-              <span className="text-xs font-black tabular-nums">{score * 10} XP</span>
-           </div>
-           <div className="flex items-center gap-2">
-              <Clock className={timeLeft <= 5 ? 'text-red-500 animate-pulse' : 'text-slate-400'} size={16} />
-              <span className="text-xs font-black tabular-nums">{timeLeft}s remaining</span>
-           </div>
-        </div>
-      </div>
-
-      {/* Lifelines */}
-      <div className="max-w-4xl mx-auto px-6 mt-8 relative z-30">
-         <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-4 rounded-3xl shadow-sm border border-slate-100 dark:border-white/5 grid grid-cols-3 gap-4">
-            <LifelineButton
-               icon={<Target />} label="50/50"
-               used={lifelinesUsed.fiftyFifty}
-               onClick={useFiftyFifty}
-               dark={quizMode === 'speed'}
-            />
-            <LifelineButton
-               icon={<HelpCircle />} label="Hint"
-               used={lifelinesUsed.hint}
-               onClick={() => {
-                  setShowHint(true);
-                  setLifelinesUsed(prev => ({ ...prev, hint: true }));
-               }}
-               dark={quizMode === 'speed'}
-            />
-            <LifelineButton
-               icon={<Users />} label="Poll"
-               used={lifelinesUsed.askClass}
-               onClick={useAskClass}
-               dark={quizMode === 'speed'}
-            />
-         </div>
-      </div>
-
-      {/* Main Question Area */}
-      <div className="max-w-4xl mx-auto mt-8 px-6 relative z-10">
-         <motion.div
-           key={currentQuestionIndex}
-           initial={{ x: 20, opacity: 0 }}
-           animate={{ x: 0, opacity: 1 }}
-           className="space-y-12"
-         >
-            <div className="text-center space-y-6">
-               <div className="flex flex-col items-center gap-2">
-                  <span className="px-4 py-1 bg-medical-500/10 text-medical-500 rounded-full text-[9px] font-black uppercase tracking-widest border border-medical-500/20">
-                    {currentQ?.subject}
-                  </span>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-60">Question {currentQuestionIndex + 1}</p>
-               </div>
-               <h2 className={`text-2xl sm:text-4xl font-black leading-tight tracking-tight px-4 drop-shadow-sm ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
-                  {currentQ?.question}
-               </h2>
-               <div className="flex justify-center">
-                  <div className="px-4 py-1.5 bg-indigo-500/10 text-indigo-500 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] shadow-[0_0_10px_rgba(99,102,241,0.3)] border border-indigo-500/20">
-                     SOURCE: {currentQ?.source || "UNKNOWN SOURCE"}
-                  </div>
-               </div>
-            </div>
-
-            {/* Options - Kahoot Style 2x2 for Speed, List for others */}
-            <div className={`grid ${quizMode === 'speed' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-4`}>
-               {currentQ?.options?.map((option, idx) => (
-                  <OptionButton
-                    key={idx}
-                    index={idx}
-                    label={option}
-                    isSpeed={quizMode === 'speed'}
-                    state={
-                      selectedOption === option
-                        ? (isCorrect === null ? 'selected' : (isCorrect ? 'correct' : 'wrong'))
-                        : (isCorrect !== null && option === currentQ.correctAnswer ? 'correct' : (eliminatedOptions.includes(option) ? 'eliminated' : 'default'))
-                    }
-                    pollValue={classPoll?.find(p => p.option === option)?.value}
-                    onClick={() => handleOptionClick(option)}
-                    disabled={showRationale || eliminatedOptions.includes(option)}
-                    dark={quizMode === 'speed'}
-                  />
-               ))}
-            </div>
-         </motion.div>
-      </div>
-
-      {/* Final Answer Confirmation */}
-      <AnimatePresence>
-        {isFinalAnswer && !showRationale && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-32 left-1/2 -translate-x-1/2 w-full max-w-md px-6 z-40"
-          >
-            <button
-              onClick={() => confirmAnswer()}
-              className="w-full py-6 bg-amber-500 text-white rounded-[2rem] font-black uppercase tracking-[0.3em] text-xs shadow-2xl shadow-amber-500/40 animate-bounce"
-            >
-              Is that your final answer?
+              <h3 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight">General Nursing</h3>
+              <p className="text-slate-500 dark:text-slate-400 mt-3 text-lg leading-relaxed font-medium">Foundation, Medical-Surgical, and Clinical Procedures.</p>
             </button>
-          </motion.div>
+            <button onClick={() => setCurrentProgram('Midwifery')} className="p-10 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-clinical hover:border-pink-500 border-2 border-transparent transition-all text-left group">
+              <div className="w-20 h-20 bg-pink-100 dark:bg-pink-900/30 rounded-3xl flex items-center justify-center text-pink-600 mb-8 group-hover:scale-110 transition-transform">
+                <Award size={40} />
+              </div>
+              <h3 className="text-3xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Midwifery</h3>
+              <p className="text-slate-500 dark:text-slate-400 mt-3 text-lg leading-relaxed font-medium">Obstetrics, Neonatal Care, and Reproductive Health.</p>
+            </button>
+          </div>
+        ) : !currentLevel ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6">
+            {levels.map(level => (
+              <button key={level} onClick={() => setCurrentLevel(level)} className="p-8 bg-white dark:bg-slate-800 rounded-3xl shadow-clinical hover:border-medical-500 border-2 border-transparent transition-all text-left group">
+                <Folder className="text-medical-600 mb-6 group-hover:translate-x-2 transition-transform" size={32} />
+                <h3 className="text-2xl font-black text-slate-900 dark:text-white">{level}</h3>
+              </button>
+            ))}
+          </div>
+        ) : !currentSemester ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            {semesters.map(sem => (
+              <button key={sem} onClick={() => setCurrentSemester(sem)} className="p-10 bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-clinical hover:border-medical-500 border-2 border-transparent transition-all text-left flex justify-between items-center group">
+                <h3 className="text-3xl font-black text-slate-900 dark:text-white uppercase">{sem}</h3>
+                <ChevronRight size={32} className="text-slate-300 group-hover:translate-x-2 transition-transform" />
+              </button>
+            ))}
+          </div>
+        ) : (
+          <div className="space-y-6">
+            {subjects.map(subject => {
+              const cardCount = categoryCards.filter(c => c.level === currentLevel && c.semester === currentSemester && c.subject === subject).length;
+              return (
+                <div key={subject} className="bg-white dark:bg-slate-800 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-700 overflow-hidden">
+                  <div className="p-6 flex flex-col sm:flex-row justify-between items-center gap-4">
+                    <div className="flex items-center gap-4">
+                      <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 rounded-2xl flex items-center justify-center"><Book size={24} /></div>
+                      <div>
+                        <h4 className="text-xl font-black text-slate-900 dark:text-white leading-tight">{subject}</h4>
+                        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">{cardCount} Specialized Cards</p>
+                      </div>
+                    </div>
+                    <button onClick={() => setCurrentSubject(subject)} className="w-full sm:w-auto px-8 py-3 bg-medical-600 hover:bg-medical-700 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg active:scale-95 transition-all">
+                       Enter Module
+                    </button>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         )}
-      </AnimatePresence>
+      </div>
+    );
+  }
 
-
-
-      {/* Speed Challenge Achievement UI */}
-      {quizMode === 'speed' && (
-         <div className="fixed left-6 top-1/2 -translate-y-1/2 hidden xl:block space-y-4">
-            <div className="bg-slate-900/50 backdrop-blur-md p-6 rounded-[2.5rem] border border-white/10 w-48 shadow-2xl">
-               <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-6">Mastery Ladder</h4>
-               <div className="space-y-4">
-                  {[...MILESTONES].reverse().map(m => (
-                     <div key={m.q} className={`flex items-center gap-3 ${score >= m.q ? 'text-medical-500' : 'text-slate-600 opacity-40'}`}>
-                        <div className={`w-2 h-2 rounded-full ${score >= m.q ? 'bg-medical-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-slate-800'}`} />
-                        <span className="text-[10px] font-black uppercase tracking-tighter">{m.label}</span>
-                        {score >= m.q && <CheckCircle2 size={10} />}
-                     </div>
-                  ))}
-               </div>
-            </div>
-         </div>
+  // Study/List View
+  return (
+    <div className={`space-y-6 ${viewMode === 'study' ? 'pb-0' : 'pb-20'} px-4`}>
+      {viewMode === 'study' && (
+        <div className="fixed top-0 left-0 right-0 z-[100] p-4 bg-white/90 dark:bg-slate-900/90 backdrop-blur-md flex items-center justify-between border-b border-slate-100 dark:border-slate-800 lg:static lg:bg-transparent lg:border-none lg:p-0">
+          <button onClick={() => setViewMode('list')} className="flex items-center text-medical-600 text-sm font-bold bg-white dark:bg-slate-800 px-4 py-2 rounded-xl shadow-sm border border-slate-100 dark:border-slate-700 active:scale-95 transition-transform">
+            <ArrowLeft size={16} className="mr-2" /> Exit
+          </button>
+          <div className="hidden sm:block lg:hidden text-[10px] font-black uppercase tracking-widest text-slate-400">Card {studyIndex + 1} of {shuffledCards.length}</div>
+        </div>
       )}
 
-      {/* Early Quit Modal */}
-      <AnimatePresence>
-        {showQuitModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" />
-             <motion.div
-               initial={{ scale: 0.9, opacity: 0 }}
-               animate={{ scale: 1, opacity: 1 }}
-               className="relative bg-white dark:bg-slate-800 p-10 rounded-[3rem] shadow-2xl border border-slate-100 dark:border-slate-700 text-center max-w-sm"
-             >
-                <div className="w-20 h-20 bg-amber-50 dark:bg-amber-900/30 text-amber-500 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner">
-                   <AlertCircle size={40} />
-                </div>
-                <h4 className="text-2xl font-black text-slate-900 dark:text-white mb-3">Abandon Challenge?</h4>
-                <p className="text-slate-600 dark:text-slate-400 font-medium italic text-lg leading-relaxed mb-10">
-                   "Every skipped challenge is a missed opportunity to strengthen your clinical judgment."
-                </p>
-                <div className="space-y-4">
-                   <button onClick={() => setShowQuitModal(false)} className="w-full py-5 bg-medical-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-medical-500/20 active:scale-95 transition-all">
-                      Stay and Master
-                   </button>
-                   <button onClick={() => setQuizStarted(false)} className="w-full py-4 text-slate-400 hover:text-red-500 font-black uppercase tracking-widest text-[9px] transition-colors">
-                      Quit for now
-                   </button>
-                </div>
-             </motion.div>
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <div>
+          <div className="flex items-center gap-3 mb-1">
+            {initialCategory === 'Academic' && currentSubject && (
+              <button onClick={() => setCurrentSubject(null)} className="p-2 bg-white dark:bg-slate-800 shadow-soft rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-all active:scale-90"><ArrowLeft size={20} /></button>
+            )}
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight uppercase">
+              {currentSubject || (initialCategory === 'NCLEX' ? 'NCLEX-RN Prep' : initialCategory === 'NMCN' ? 'NMCN Prep' : 'Vault')}
+            </h2>
           </div>
-        )}
-      </AnimatePresence>
+          <div className="flex items-center gap-2 text-slate-500 dark:text-slate-400 font-bold text-xs uppercase tracking-wider ml-1">
+            <span className="text-medical-600">{currentLevel}</span>
+            {currentSemester && <><div className="w-1 h-1 rounded-full bg-slate-300 mx-1" /><span>{currentSemester}</span></>}
+          </div>
+        </div>
 
-      {/* Rationale / Feedback Overlay */}
-      <AnimatePresence>
-        {showRationale && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-             <motion.div
-               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-               className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
-             />
-             <motion.div
-               initial={{ y: '100%' }}
-               animate={{ y: 0 }}
-               className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-t-[3rem] sm:rounded-[3rem] p-10 shadow-2xl border border-slate-100 dark:border-white/10"
-             >
-                <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center mb-8 mx-auto sm:mx-0 ${isCorrect ? 'bg-emerald-100 text-emerald-600 shadow-lg shadow-emerald-500/20' : 'bg-red-100 text-red-600 shadow-lg shadow-red-500/20'}`}>
-                   {isCorrect ? <CheckCircle2 size={40} /> : <XCircle size={40} />}
-                </div>
-                <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
-                   <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">
-                        {isCorrect ? 'Logic Validated' : 'Conceptual Misalignment'}
-                      </p>
-                      <h4 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
-                         {isCorrect ? 'Mastery Confirmed' : 'Learning Opportunity'}
-                      </h4>
-                   </div>
-                   {consecutiveCorrect >= 5 && isCorrect && (
-                      <div className="px-4 py-2 bg-amber-100 text-amber-700 rounded-xl text-[10px] font-black uppercase tracking-widest animate-bounce flex items-center gap-2 border border-amber-200">
-                         <Zap size={12} /> Lifeline Restored!
-                      </div>
-                   )}
-                </div>
-                <div className="max-h-40 overflow-y-auto custom-scrollbar mb-8">
-                   <p className="text-slate-600 dark:text-slate-300 font-medium text-lg leading-relaxed italic">
-                      {currentQ?.rationale || "Nurses must apply critical thinking and clinical protocols to ensure patient safety and prioritize airway, breathing, and circulation."}
-                   </p>
-                </div>
+        <div className="flex flex-wrap gap-2">
+          {viewMode === 'list' ? (
+            <>
+              <button onClick={() => startStudyMode(true, true)} className="px-4 py-2 bg-amber-500 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-amber-500/20 active:scale-95 transition-all">Smart Review</button>
+              <button onClick={() => startStudyMode(false)} className="px-4 py-2 bg-medical-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-medical-600/20 active:scale-95 transition-all">Study All</button>
+              <button onClick={() => setIsFormOpen(true)} className="px-4 py-2 bg-emerald-600 text-white rounded-xl font-black uppercase tracking-widest text-[10px] active:scale-95 transition-all">Add Card</button>
+            </>
+          ) : (
+            <button onClick={() => setViewMode('list')} className="px-5 py-2 bg-white dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-xl font-black uppercase tracking-widest text-[10px] shadow-soft active:scale-95">Exit Study</button>
+          )}
+        </div>
+      </div>
 
-                <div className="p-6 bg-slate-50 dark:bg-white/5 rounded-2xl mb-10 border border-slate-100 dark:border-white/5 flex gap-4 items-start">
-                   <div className="p-2 bg-medical-100 text-medical-600 rounded-lg shrink-0">
-                      <Target size={16} />
-                   </div>
-                   <div>
-                      <p className="text-[10px] font-black uppercase text-medical-600 mb-1 tracking-widest">Clinical Mentor Note</p>
-                      <p className="text-sm font-bold text-slate-700 dark:text-slate-300 leading-snug italic">"{currentQ?.hint || 'Focus on the physiological foundation and the primary action that ensures long-term stability.'}"</p>
-                   </div>
-                </div>
-                <button onClick={nextQuestion} className="w-full py-6 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-[2rem] font-black uppercase tracking-[0.3em] text-xs shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-4 hover:gap-6">{currentQuestionIndex < quizQuestions.length - 1 ? 'Next Challenge' : 'Complete Quiz'} <ArrowRight size={20} /></button>
-             </motion.div>
+      {viewMode === 'list' ? (
+        <>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 bg-white dark:bg-slate-800 p-4 rounded-3xl shadow-clinical border border-slate-100 dark:border-slate-700">
+            <div className="relative md:col-span-1">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+              <input type="text" placeholder="Search..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full pl-10 pr-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 outline-none font-bold text-xs" />
+            </div>
+            <div>
+              <select value={filterDifficulty} onChange={(e) => setFilterDifficulty(e.target.value)} className="w-full px-4 py-3 rounded-2xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-800 outline-none font-bold text-xs">
+                <option value="All">All Difficulties</option>
+                <option value="Easy">Easy</option>
+                <option value="Moderate">Moderate</option>
+                <option value="Hard">Hard</option>
+              </select>
+            </div>
+            <button onClick={() => setIsExamPriority(!isExamPriority)} className={`flex items-center justify-center gap-2 py-3 rounded-2xl border-2 transition-all font-black text-[10px] uppercase tracking-widest ${isExamPriority ? 'bg-red-50 border-red-500 text-red-600' : 'bg-slate-50 border-slate-200 text-slate-400'}`}>
+              <AlertCircle size={16} /> Exam Priority
+            </button>
           </div>
-        )}
-      </AnimatePresence>
-      <AnimatePresence>
-        {showHint && !showRationale && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={() => setShowHint(false)} />
-             <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative w-full max-w-md bg-white dark:bg-slate-800 p-10 rounded-[3rem] shadow-2xl border border-slate-100 dark:border-slate-700 text-center">
-                <div className="w-20 h-20 bg-medical-50 text-medical-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner"><Target size={40} /></div>
-                <h4 className="text-2xl font-black text-slate-900 dark:text-white mb-3">Mentor Strategy</h4>
-                <p className="text-slate-600 dark:text-slate-300 font-medium italic text-lg leading-relaxed mb-10">
-                   "{currentQ?.hint || 'Prioritize patient safety and focus on the intervention that addresses the root cause of the clinical presentation.'}"
-                </p>
-                <button onClick={() => setShowHint(false)} className="w-full py-5 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all">
-                   Return to Question
-                </button>
-             </motion.div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {filteredCards.slice(0, visibleCount).map(card => (
+              <FlashcardCard key={card.id} card={card} onEdit={handleEdit} onDelete={deleteFlashcard} onShare={handleShare} onToggleImportant={handleToggleImportant} />
+            ))}
           </div>
-        )}
-      </AnimatePresence>
+          {filteredCards.length > visibleCount && (
+            <div className="flex justify-center mt-8">
+              <button onClick={() => setVisibleCount(v => v + 12)} className="px-8 py-3 bg-white dark:bg-slate-800 border rounded-2xl font-black uppercase tracking-widest text-[10px]">Load More ({filteredCards.length - visibleCount})</button>
+            </div>
+          )}
+        </>
+      ) : (
+        <div className="fixed inset-0 z-50 bg-slate-50 dark:bg-slate-900 flex flex-col lg:relative lg:z-0 lg:bg-transparent lg:mt-10 lg:space-y-8 overflow-hidden">
+          <div className="flex w-full max-w-2xl mx-auto justify-between items-center px-4 mt-20 lg:mt-0">
+            <span className="text-xs font-bold text-slate-500 uppercase tracking-widest">Card {studyIndex + 1} / {shuffledCards.length}</span>
+            <div className="w-48 h-1.5 bg-slate-200 dark:bg-slate-700 rounded-full overflow-hidden">
+              <div className="h-full bg-medical-500 transition-all" style={{ width: `${((studyIndex + 1) / shuffledCards.length) * 100}%` }}></div>
+            </div>
+          </div>
+          <div className="flex-1 flex items-center justify-center p-4 lg:p-0">
+            <div className="w-full max-w-2xl h-[65vh] lg:h-80 relative">
+              {shuffledCards.length > 0 && (
+                <FlashcardCard
+                  key={shuffledCards[studyIndex].id}
+                  card={shuffledCards[studyIndex]}
+                  isStudyMode={true}
+                  isFullscreen={true}
+                  onSwipeLeft={() => { updateCardProgress(shuffledCards[studyIndex].id, 1); handleNext(1); }}
+                  onSwipeRight={() => { updateCardProgress(shuffledCards[studyIndex].id, 5); handleNext(5); }}
+                  onSwipeUp={() => handleToggleImportant(shuffledCards[studyIndex].id)}
+                />
+              )}
+            </div>
+          </div>
+          <div className="bg-white dark:bg-slate-800 p-6 border-t border-slate-100 dark:border-slate-800 lg:bg-transparent lg:border-none pb-24 lg:pb-0">
+            <div className="max-w-lg mx-auto grid grid-cols-4 gap-3">
+              <SRSButton label="Again" sublabel="<1m" color="bg-red-500" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 1); handleNext(1); }} />
+              <SRSButton label="Hard" sublabel="1d" color="bg-orange-500" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 3); handleNext(3); }} />
+              <SRSButton label="Good" sublabel="4d" color="bg-emerald-500" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 4); handleNext(4); }} />
+              <SRSButton label="Easy" sublabel="7d+" color="bg-blue-500" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 5); handleNext(5); }} />
+            </div>
+          </div>
+        </div>
+      )}
+
+      <FlashcardForm isOpen={isFormOpen} onClose={() => { setIsFormOpen(false); setEditingCard(null); }} onSubmit={handleFormSubmit} initialData={editingCard} />
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 };
 
-const ModeCard = ({ title, desc, icon, duration, timer, color, onClick }) => {
-  const colors = {
-    medical: 'hover:border-medical-500 group-hover:text-medical-500 bg-medical-500/10 text-medical-600',
-    amber: 'hover:border-amber-500 group-hover:text-amber-500 bg-amber-500/10 text-amber-600',
-    indigo: 'hover:border-indigo-500 group-hover:text-indigo-500 bg-indigo-500/10 text-indigo-600',
-    emerald: 'hover:border-emerald-500 group-hover:text-emerald-500 bg-emerald-500/10 text-emerald-600'
-  };
-  return (
-    <button onClick={onClick} className={`p-8 bg-white dark:bg-slate-800 rounded-[2.5rem] border-2 border-slate-100 dark:border-slate-700 transition-all text-left group active:scale-95 flex flex-col justify-between min-h-[260px] shadow-sm hover:shadow-xl ${colors[color].split(' ')[0]}`}>
-      <div>
-        <div className={`w-14 h-14 rounded-2xl flex items-center justify-center mb-8 transition-all group-hover:scale-110 shadow-inner ${colors[color].split(' ').pop()} ${colors[color].split(' ')[1]}`}>{icon}</div>
-        <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2 tracking-tight group-hover:translate-x-1 transition-transform">{title}</h3>
-        <p className="text-slate-500 dark:text-slate-400 text-sm font-medium leading-relaxed">{desc}</p>
-      </div>
-      <div className="flex gap-4 mt-8">
-         <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-400 tracking-wider"><Clock size={12} /> {duration}</div>
-         <div className="flex items-center gap-1.5 text-[10px] font-black uppercase text-slate-400 tracking-wider"><Timer size={12} /> {timer}</div>
-      </div>
-    </button>
-  );
-};
-
-const LifelineButton = ({ icon, label, used, onClick, dark }) => (
-  <button disabled={used} onClick={onClick} className={`flex flex-col items-center justify-center p-5 rounded-2xl border-2 transition-all active:scale-90 shadow-sm ${used ? (dark ? 'bg-white/5 border-white/5 text-white/10' : 'bg-slate-50 border-slate-100 text-slate-200') : (dark ? 'bg-white/10 border-white/10 text-amber-500 hover:border-amber-400 hover:bg-white/20' : 'bg-white border-slate-100 text-medical-600 hover:border-medical-500 hover:bg-medical-50')}`}>{React.cloneElement(icon, { size: 24 })}<span className="text-[9px] font-black uppercase tracking-[0.2em] mt-3">{label}</span></button>
-);
-
-const OptionButton = ({ label, index, state, pollValue, onClick, disabled, dark, isSpeed }) => {
-  const letters = ['A', 'B', 'C', 'D'];
-  let baseStyles = dark ? 'bg-white/5 border-white/10 text-white/80 hover:bg-white/10' : 'bg-white border-slate-100 text-slate-700 hover:border-medical-500 hover:shadow-md';
-  if (state === 'selected') baseStyles = dark ? 'bg-amber-500/20 border-amber-500 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.3)]' : 'bg-medical-50 border-medical-500 text-medical-700 shadow-md';
-  if (state === 'correct') baseStyles = 'bg-emerald-500/20 border-emerald-500 text-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]';
-  if (state === 'wrong') baseStyles = 'bg-red-500/20 border-red-500 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.4)]';
-  if (state === 'eliminated') baseStyles = 'opacity-10 grayscale pointer-events-none scale-95';
-  return (
-    <button disabled={disabled} onClick={onClick} className={`w-full relative flex items-center p-6 rounded-3xl border-2 transition-all duration-300 overflow-hidden ${baseStyles} active:scale-98 min-h-[80px]`}>
-      <div className="flex items-center gap-5 w-full relative z-10">
-         <span className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm border-2 ${state === 'selected' ? 'bg-amber-500 border-amber-400 text-white' : (dark ? 'bg-white/10 border-white/20 text-white/40' : 'bg-slate-100 border-slate-200 text-slate-400')}`}>{letters[index]}</span>
-         <span className={`flex-1 font-bold text-left leading-snug pr-2 ${isSpeed ? 'text-[11px] sm:text-base' : 'text-base'}`}>{label}</span>
-         {pollValue !== undefined && <div className="text-right shrink-0"><p className="text-xl font-black tabular-nums">{pollValue}%</p><div className="w-14 h-1.5 bg-white/20 rounded-full overflow-hidden mt-1"><div className="h-full bg-medical-500" style={{ width: `${pollValue}%` }} /></div></div>}
-      </div>
-      {state === 'correct' && <motion.div initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} className="absolute right-0 top-0 p-6 text-emerald-500/20"><CheckCircle2 size={80} /></motion.div>}
-    </button>
-  );
-};
-
-export default React.memo(Quiz);
+export default React.memo(FlashcardLibrary);
