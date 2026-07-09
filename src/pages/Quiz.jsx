@@ -48,7 +48,6 @@ const Quiz = () => {
   const [quizStarted, setQuizStarted] = useState(false);
   const [quizQuestions, setQuizQuestions] = useState([]);
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
-  const [quizQuestions, setQuizQuestions] = useState([]);
   const [score, setScore] = useState(0);
   const [showResults, setShowResults] = useState(false);
 
@@ -57,17 +56,13 @@ const Quiz = () => {
   const [showHint, setShowHint] = useState(false);
   const [showRationale, setShowRationale] = useState(false);
   const [isCorrect, setIsCorrect] = useState(null);
-  const [showRationale, setShowRationale] = useState(false);
-  const [showHint, setShowHint] = useState(false);
   const [timeLeft, setTimeLeft] = useState(30);
   const [eliminatedOptions, setEliminatedOptions] = useState([]);
   const [lifelinesUsed, setLifelinesUsed] = useState({ hint: false, fiftyFifty: false, askClass: false });
   const [classPoll, setClassPoll] = useState(null);
   const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
-  const [currentMilestone, setCurrentMilestone] = useState("Clinical Beginner");
 
   // Speed Challenge Specific
-  const [timeLeft, setTimeLeft] = useState(20);
   const [maxTime, setMaxTime] = useState(20);
   const [isFinalAnswer, setIsFinalAnswer] = useState(false);
   const [highestMilestone, setHighestMilestone] = useState("None");
@@ -122,16 +117,12 @@ const Quiz = () => {
     return () => clearInterval(interval);
   }, [timeLeft, quizStarted, showResults, showRationale, isFinalAnswer, quizMode, useTimer, handleTimeOut]);
 
-  const updateQuizStats = useCallback((updates) => {
-    setStudyStats(prev => ({ ...prev, ...updates }));
-  }, [setStudyStats]);
-
   // Quiz Initialization
   const initQuiz = (mode, subject = null) => {
     if (!flashcards || flashcards.length === 0) return;
     let pool = [...flashcards];
-    if (subjectFilter) {
-      pool = pool.filter(c => c.subject === subjectFilter);
+    if (subject) {
+      pool = pool.filter(c => c.subject === subject);
     }
     if (pool.length === 0) return;
 
@@ -203,8 +194,7 @@ const Quiz = () => {
       if (newScore === 5) setSafetyNetScore(5);
       if (newScore === 10) setSafetyNetScore(10);
 
-      const milestone = MILESTONES.find(m => m.q === newScore);
-      if (milestone) setCurrentMilestone(milestone.label);
+      // Milestone is updated dynamically via useMemo
       setConsecutiveCorrect(prev => prev + 1);
       updateQuizStats({ quizStreak: (studyStats.quizStreak || 0) + 1 });
     } else {
@@ -436,7 +426,7 @@ const Quiz = () => {
   const timerColor = timeLeft <= 3 ? 'bg-red-500' : timeLeft <= 10 ? 'bg-amber-500' : 'bg-emerald-500';
 
   return (
-    <div className={`min-h-screen ${quizMode === 'speed' ? 'bg-slate-950 text-white' : ''} transition-colors duration-500 pb-32 overflow-hidden relative`}>
+    <div className={`min-h-screen flex flex-col ${quizMode === 'speed' ? 'bg-slate-950 text-white' : ''} transition-colors duration-500 pb-48 overflow-x-hidden relative`}>
       {/* Speed Atmosphere Background Elements */}
       {quizMode === 'speed' && (
          <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -520,7 +510,7 @@ const Quiz = () => {
 
             {/* Options - Kahoot Style 2x2 for Speed, List for others */}
             <div className={`grid ${quizMode === 'speed' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-4`}>
-               {currentQ?.options.map((option, idx) => (
+               {currentQ?.options?.map((option, idx) => (
                   <OptionButton
                     key={idx}
                     index={idx}
