@@ -170,6 +170,18 @@ export function AppProvider({ children }) {
     }));
   };
 
+  const amountPaid = transactions.filter(t => t.status === 'success').reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
+  const totalFee = 150000;
+  let feeStatus = 'Overdue';
+  if (amountPaid > 0) feeStatus = amountPaid >= totalFee ? 'Paid' : 'Partial';
+  const feeDetails = {
+    totalFee,
+    amountPaid,
+    status: feeStatus,
+    pendingItems: transactions.filter(t => t.status === 'pending').length || 2,
+    currency: '₦'
+  };
+
   return (
     <AppContext.Provider value={{
       session, loadingAuth, flashcards, setFlashcards, exams, setExams,
@@ -179,7 +191,7 @@ export function AppProvider({ children }) {
       updateSubscriptionPlan: () => {}, addSubscriptionPlan: () => {}, deleteSubscriptionPlan: () => {},
       updatePaymentPurpose: () => {}, addPaymentPurpose: () => {}, deletePaymentPurpose: () => {},
       addAuditLog: () => {}, updateCardProgress, incrementCardsStudied: () => {},
-      updateQuizStats, fetchUserData
+      updateQuizStats, fetchUserData, feeDetails
     }}>
       {children}
     </AppContext.Provider>
