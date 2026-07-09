@@ -21,9 +21,11 @@ const SRSButton = ({ label, sublabel, color, onClick }) => (
 );
 
 const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
-  const { flashcards, userProfile, addFlashcard, updateFlashcard, deleteFlashcard, updateCardProgress } = useAppContext();
+  const { flashcards, userProfile, exams, addFlashcard, updateFlashcard, deleteFlashcard, updateCardProgress, importFlashcards, incrementCardsStudied } = useAppContext();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
+  const [isUploading, setIsUploading] = useState(false);
 
   const DEV_MODE =  (import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true');
   const isActivated = userProfile.isActivated || userProfile.subscriptionStatus === 'grace' || DEV_MODE;
