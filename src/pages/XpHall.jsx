@@ -2,13 +2,14 @@ import React, { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
 import { motion, AnimatePresence } from "framer-motion";
-import { Brain, Zap, Trophy, Star, ChevronLeft, ArrowRight, Users, AlertCircle } from "../components/Icons";
+import { Brain, Zap, Star, ChevronLeft, ArrowRight, Users, AlertCircle } from "../components/Icons";
 
 const DUEL_MODES = [
   { id: "duel", title: "1v1 Duel", subtitle: "Two scholars enter. One emerges richer.", players: 2, color: "from-indigo-600 to-purple-700", glow: "shadow-indigo-500/40", border: "border-indigo-500/30", icon: "⚔️" },
   { id: "triple", title: "Triple Threat", subtitle: "Three-way war. Winner takes all.", players: 3, color: "from-amber-500 to-orange-600", glow: "shadow-amber-500/40", border: "border-amber-500/30", icon: "🔱" },
 ];
 const XP_STAKES = [50, 100, 200, 500, 1000];
+const allNames = ["You", "Scholar Amaka", "Scholar Tunde"];
 
 const XpHall = () => {
   const navigate = useNavigate();
@@ -19,7 +20,6 @@ const XpHall = () => {
   const [countdown, setCountdown] = useState(3);
   const [result, setResult] = useState(null);
   const [playerXP, setPlayerXP] = useState((studyStats?.quizStreak || 0) * 10 + 240);
-  const allNames = ["You", "Scholar Amaka", "Scholar Tunde"];
 
   const startBattle = useCallback(() => { setPhase("countdown"); setCountdown(3); }, []);
 
