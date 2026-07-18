@@ -20,6 +20,7 @@ import {
 } from '../components/Icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import Toast from '../components/Toast';
+import FlashcardForm from '../components/FlashcardForm';
 
 const AdminQuestionManager = () => {
   const { flashcards, addFlashcard, updateFlashcard, deleteFlashcard, importFlashcards } = useAppContext();
@@ -28,6 +29,8 @@ const AdminQuestionManager = () => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterSource, setFilterSource] = useState('All');
   const [filterStatus, setFilterStatus] = useState('All');
+  const [editingCard, setEditingCard] = useState(null);
+  const [isFormOpen, setIsFormOpen] = useState(false);
 
   const sources = useMemo(() => ['All', ...new Set(flashcards.map(c => c.source || 'Apex Core'))], [flashcards]);
 
@@ -104,6 +107,23 @@ const AdminQuestionManager = () => {
     setToast({ message: "Question Approved", type: 'success' });
   };
 
+  const handleEdit = (card) => {
+    setEditingCard(card);
+    setIsFormOpen(true);
+  };
+
+  const handleFormSubmit = (data) => {
+    if (editingCard) {
+      updateFlashcard(editingCard.id, data);
+      setToast({ message: "Question Updated", type: 'success' });
+    } else {
+      addFlashcard(data);
+      setToast({ message: "Question Added", type: 'success' });
+    }
+    setIsFormOpen(false);
+    setEditingCard(null);
+  };
+
   return (
     <div className="space-y-8 pb-32 max-w-7xl mx-auto px-4">
       <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6">
@@ -112,6 +132,13 @@ const AdminQuestionManager = () => {
           <p className="text-slate-500 dark:text-slate-400 font-medium mt-1 uppercase tracking-widest text-[10px]">Content Governance & AI Training</p>
         </div>
         <div className="flex gap-3 w-full sm:w-auto">
+           <button
+             onClick={() => setIsFormOpen(true)}
+             className="flex-1 sm:flex-none cursor-pointer px-6 py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-emerald-500/20 transition-all flex items-center justify-center gap-2"
+           >
+              <Plus size={16} />
+              New Question
+           </button>
            <label className="flex-1 sm:flex-none cursor-pointer px-6 py-4 bg-indigo-600 hover:bg-indigo-700 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-indigo-500/20 transition-all flex items-center justify-center gap-2">
               {isImporting ? <Loader2 size={16} className="animate-spin" /> : <Database size={16} />}
               Import JSON Bank
@@ -191,7 +218,10 @@ const AdminQuestionManager = () => {
                                     <CheckCircle2 size={18} />
                                  </button>
                               )}
-                              <button className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all">
+                              <button
+                                 onClick={() => handleEdit(card)}
+                                 className="p-2 text-slate-400 hover:text-indigo-600 hover:bg-indigo-50 dark:hover:bg-indigo-900/20 rounded-lg transition-all"
+                              >
                                  <Edit2 size={18} />
                               </button>
                               <button
@@ -220,6 +250,7 @@ const AdminQuestionManager = () => {
          )}
       </div>
 
+      <FlashcardForm isOpen={isFormOpen} onClose={() => { setIsFormOpen(false); setEditingCard(null); }} onSubmit={handleFormSubmit} initialData={editingCard} />
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
