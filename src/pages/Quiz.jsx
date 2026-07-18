@@ -22,7 +22,8 @@ import {
   Settings as SettingsIcon,
   ChevronLeft,
   Users,
-  AlertCircle
+  AlertCircle,
+  Sparkles
 } from '../components/Icons';
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -563,12 +564,17 @@ const Quiz = () => {
 
             {/* Options - Kahoot Style 2x2 for Speed, List for others */}
             <div className={`grid ${quizMode === 'speed' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-4`}>
-               {currentQ?.options?.map((option, idx) => (
+               {currentQ?.options?.map((option, idx) => {
+                  const isTargetQuestion = currentQ?.source === "Richard's Bank" || currentQ?.category === "NCLEX";
+                  const isLearningHighlight = isTargetQuestion && option === currentQ?.correctAnswer;
+                  
+                  return (
                   <OptionButton
                     key={idx}
                     index={idx}
                     label={option}
                     isSpeed={quizMode === 'speed'}
+                    isLearningHighlight={isLearningHighlight}
                     state={
                       selectedOption === option
                         ? (isCorrect === null ? 'selected' : (isCorrect ? 'correct' : 'wrong'))
@@ -579,7 +585,7 @@ const Quiz = () => {
                     disabled={showRationale || eliminatedOptions.includes(option)}
                     dark={quizMode === 'speed'}
                   />
-               ))}
+               )})}
             </div>
          </motion.div>
       </div>
@@ -757,18 +763,33 @@ const LifelineButton = ({ icon, label, used, onClick, dark }) => (
   <button disabled={used} onClick={onClick} className={`flex flex-col items-center justify-center p-5 rounded-2xl border-2 transition-all active:scale-90 shadow-sm ${used ? (dark ? 'bg-white/5 border-white/5 text-white/10' : 'bg-slate-50 border-slate-100 text-slate-200') : (dark ? 'bg-white/10 border-white/10 text-amber-500 hover:border-amber-400 hover:bg-white/20' : 'bg-white border-slate-100 text-medical-600 hover:border-medical-500 hover:bg-medical-50')}`}>{React.cloneElement(icon, { size: 24 })}<span className="text-[9px] font-black uppercase tracking-[0.2em] mt-3">{label}</span></button>
 );
 
-const OptionButton = ({ label, index, state, pollValue, onClick, disabled, dark, isSpeed }) => {
+const OptionButton = ({ label, index, state, pollValue, onClick, disabled, dark, isSpeed, isLearningHighlight }) => {
   const letters = ['A', 'B', 'C', 'D'];
   let baseStyles = dark ? 'bg-white/5 border-white/10 text-white/80 hover:bg-white/10' : 'bg-white border-slate-100 text-slate-700 hover:border-medical-500 hover:shadow-md';
   if (state === 'selected') baseStyles = dark ? 'bg-amber-500/20 border-amber-500 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.3)]' : 'bg-medical-50 border-medical-500 text-medical-700 shadow-md';
   if (state === 'correct') baseStyles = 'bg-emerald-500/20 border-emerald-500 text-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]';
   if (state === 'wrong') baseStyles = 'bg-red-500/20 border-red-500 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.4)]';
   if (state === 'eliminated') baseStyles = 'opacity-10 grayscale pointer-events-none scale-95';
+
+  if (isLearningHighlight && state === 'default') {
+    baseStyles = dark ? 'bg-indigo-900/30 border-indigo-500/50 text-indigo-100 shadow-[0_0_15px_rgba(99,102,241,0.3)] hover:bg-indigo-900/50' : 'bg-indigo-50/50 border-indigo-300 text-indigo-900 shadow-[0_0_15px_rgba(99,102,241,0.3)] hover:bg-indigo-50 hover:border-indigo-400';
+  }
+
   return (
     <button disabled={disabled} onClick={onClick} className={`w-full relative flex items-center p-6 rounded-3xl border-2 transition-all duration-300 overflow-hidden ${baseStyles} active:scale-98 min-h-[80px]`}>
+      {isLearningHighlight && state === 'default' && (
+         <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 animate-pulse pointer-events-none" />
+      )}
       <div className="flex items-center gap-5 w-full relative z-10">
-         <span className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm border-2 ${state === 'selected' ? 'bg-amber-500 border-amber-400 text-white' : (dark ? 'bg-white/10 border-white/20 text-white/40' : 'bg-slate-100 border-slate-200 text-slate-400')}`}>{letters[index]}</span>
+         <span className={`w-10 h-10 rounded-xl flex items-center justify-center font-black text-sm border-2 ${state === 'selected' ? 'bg-amber-500 border-amber-400 text-white' : (isLearningHighlight && state === 'default' ? 'bg-indigo-500 border-indigo-400 text-white shadow-lg shadow-indigo-500/30' : (dark ? 'bg-white/10 border-white/20 text-white/40' : 'bg-slate-100 border-slate-200 text-slate-400'))}`}>{letters[index]}</span>
          <span className={`flex-1 font-bold text-left leading-snug pr-2 ${isSpeed ? 'text-[11px] sm:text-base' : 'text-base'}`}>{label}</span>
+         
+         {isLearningHighlight && state === 'default' && (
+            <div className="px-3 py-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-[10px] font-black uppercase tracking-[0.2em] shadow-lg flex items-center gap-1.5 transform hover:scale-105 transition-transform">
+               <Sparkles size={14} /> Answer
+            </div>
+         )}
+
          {pollValue !== undefined && <div className="text-right shrink-0"><p className="text-xl font-black tabular-nums">{pollValue}%</p><div className="w-14 h-1.5 bg-white/20 rounded-full overflow-hidden mt-1"><div className="h-full bg-medical-500" style={{ width: `${pollValue}%` }} /></div></div>}
       </div>
       {state === 'correct' && <motion.div initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} className="absolute right-0 top-0 p-6 text-emerald-500/20"><CheckCircle2 size={80} /></motion.div>}
