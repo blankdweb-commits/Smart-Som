@@ -684,6 +684,12 @@ const Quiz = () => {
                       </div>
                    )}
                 </div>
+                {!isCorrect && (
+                   <div className="mb-4">
+                      <p className="text-[10px] font-black uppercase text-medical-600 mb-1 tracking-widest">Correct Answer</p>
+                      <p className="text-sm font-bold text-slate-700 dark:text-slate-300 leading-snug">{currentQ?.correctAnswer}</p>
+                   </div>
+                )}
                 <div className="max-h-40 overflow-y-auto custom-scrollbar mb-8">
                    <p className="text-slate-600 dark:text-slate-300 font-medium text-lg leading-relaxed italic">
                       {currentQ?.rationale || "Nurses must apply critical thinking and clinical protocols to ensure patient safety and prioritize airway, breathing, and circulation."}
