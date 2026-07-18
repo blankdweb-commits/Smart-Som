@@ -63,19 +63,25 @@ const AdminQuestionManager = () => {
         else data = [data];
       }
 
-      const validated = data.map(item => ({
-        question: item.question || item.q || "Untitled Question",
-        answer: item.answer || item.a || "No answer provided.",
-        subject: item.subject || item.course || "General",
-        topic: item.topic || "Clinical practice",
-        source: item.source || "Imported Faculty Bank",
-        hint: item.hint || "Focus on clinical priority.",
-        rationale: item.rationale || "Rationale pending faculty review.",
-        difficulty: item.difficulty || "Moderate",
-        level: item.level || "Year 1",
-        semester: item.semester || "Semester 1",
-        isPending: true
-      }));
+      const validated = data.map(item => {
+        const answer = item.correctAnswer || item.answer || item.a || "No answer provided.";
+        return {
+          question: item.question || item.q || "Untitled Question",
+          answer: answer,
+          correctAnswer: answer,
+          options: Array.isArray(item.options) && item.options.length > 0 ? item.options : null,
+          subject: item.subject || item.course || "General",
+          topic: item.topic || "Clinical practice",
+          source: item.source || "Imported Faculty Bank",
+          category: item.category || "NCLEX",
+          hint: item.hint || "Focus on clinical priority.",
+          rationale: item.rationale || "Rationale pending faculty review.",
+          difficulty: item.difficulty || "Moderate",
+          level: item.level || "Year 1",
+          semester: item.semester || "Semester 1",
+          isPending: true
+        };
+      });
 
       const uniqueItems = validated.filter(newItem =>
         !flashcards.some(existing =>
