@@ -129,7 +129,11 @@ const Quiz = () => {
   // Quiz Initialization
   const initQuiz = (mode, subject = null) => {
     if (!flashcards || flashcards.length === 0) return;
-    let pool = [...flashcards];
+    // Only use questions from Richard's Bank or NMCN category
+    let pool = flashcards.filter(c =>
+      (c.source || '').toLowerCase().includes("richard") ||
+      (c.category || '').toLowerCase() === 'nmcn'
+    );
     if (subject) {
       pool = pool.filter(c => c.subject === subject);
     }
@@ -139,15 +143,18 @@ const Quiz = () => {
     const uniquePool = pool.filter(c => seen.has(c.question) ? false : seen.add(c.question));
 
     let limit = mode === 'speed' ? 395 : (questionLimit || 10);
-    const shuffled = pool.sort(() => 0.5 - Math.random());
-    shuffled.sort((a, b) => {
-      const isAPrio = ((a.source || '').toLowerCase().includes('richard') || (a.category || '').toLowerCase() === 'nmcn') ? 1 : 0;
-      const isBPrio = ((b.source || '').toLowerCase().includes('richard') || (b.category || '').toLowerCase() === 'nmcn') ? 1 : 0;
-      return isBPrio - isAPrio;
-    });
-    const selected = shuffled.slice(0, Math.min(limit, pool.length));
+    const shuffled = uniquePool.sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, Math.min(limit, uniquePool.length));
 
     const questions = selected.map(card => {
+      // If the card already has pre-built options (like fluid-electrolytes.json), use them directly
+      if (Array.isArray(card.options) && card.options.length >= 2 && card.correctAnswer) {
+        return {
+          ...card,
+          options: [...card.options].sort(() => 0.5 - Math.random()),
+        };
+      }
+      // Otherwise fall back to auto-generating options from other cards
       const distractors = flashcards
         .filter(c => c.id !== card.id && c.answer !== card.answer)
         .sort(() => 0.5 - Math.random())
