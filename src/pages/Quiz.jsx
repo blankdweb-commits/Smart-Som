@@ -710,112 +710,93 @@ const Quiz = () => {
          </div>
       )}
 
-      {/* Early Quit Modal */}
-      <AnimatePresence>
-        {showQuitModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" />
-             <motion.div
-               initial={{ scale: 0.9, opacity: 0 }}
-               animate={{ scale: 1, opacity: 1 }}
-               className={`relative p-10 rounded-[3rem] shadow-2xl border text-center max-w-sm ${quizMode === 'speed' ? 'bg-black border-slate-800' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}
-             >
-                <div className="w-20 h-20 bg-amber-50 dark:bg-amber-900/30 text-amber-500 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner">
-                   <AlertCircle size={40} />
-                </div>
-                <h4 className={`text-2xl font-black mb-3 ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>Abandon Challenge?</h4>
-                <p className="text-slate-600 dark:text-slate-400 font-medium italic text-lg leading-relaxed mb-10">
-                   "Every skipped challenge is a missed opportunity to strengthen your clinical judgment."
-                </p>
-                <div className="space-y-4">
-                   <button onClick={() => setShowQuitModal(false)} className="w-full py-5 bg-medical-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-medical-500/20 active:scale-95 transition-all">
-                      Stay and Master
-                   </button>
-                   <button onClick={() => { setQuizStarted(false); exitFullscreen(); }} className="w-full py-4 text-slate-400 hover:text-red-500 font-black uppercase tracking-widest text-[9px] transition-colors">
-                      Quit for now
-                   </button>
-                </div>
-             </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
 
-      {/* Rationale / Feedback Overlay */}
+
+      {/* ─── RATIONALE FEEDBACK OVERLAY ─── */}
       <AnimatePresence>
         {showRationale && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-             <motion.div
-               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-               className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
-             />
-             <motion.div
-               initial={{ y: '100%' }}
-               animate={{ y: 0 }}
-               className={`relative w-full max-w-2xl rounded-t-[3rem] sm:rounded-[3rem] p-10 shadow-2xl border ${quizMode === 'speed' ? 'bg-black border-white/5' : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-white/10'}`}
-             >
-                <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center mb-8 mx-auto sm:mx-0 ${isCorrect ? 'bg-emerald-100 text-emerald-600 shadow-lg shadow-emerald-500/20' : 'bg-red-100 text-red-600 shadow-lg shadow-red-500/20'}`}>
-                   {isCorrect ? <CheckCircle2 size={40} /> : <XCircle size={40} />}
+          <div className="fixed inset-0 z-50 flex items-end justify-center">
+            <motion.div
+              initial={{ opacity: 0 }} animate={{ opacity: 1 }}
+              className="absolute inset-0 bg-black/70 backdrop-blur-sm"
+            />
+            <motion.div
+              initial={{ y: '100%' }} animate={{ y: 0 }}
+              className="relative w-full max-w-lg bg-[#0f0f1a] rounded-t-[2rem] px-6 pt-8 pb-36 shadow-2xl border-t border-white/10"
+            >
+              {/* Result badge */}
+              <div className="flex items-center gap-4 mb-5">
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${isCorrect ? 'bg-emerald-500/20 text-emerald-400' : 'bg-red-500/20 text-red-400'}`}>
+                  {isCorrect ? <CheckCircle2 size={30} /> : <XCircle size={30} />}
                 </div>
-                <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
-                   <div>
-                      <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">
-                        {isCorrect ? 'Logic Validated' : 'Conceptual Misalignment'}
-                      </p>
-                      <h4 className={`text-3xl font-black tracking-tight leading-none ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
-                         {isCorrect ? 'Mastery Confirmed' : 'Learning Opportunity'}
-                      </h4>
-                   </div>
-                   {consecutiveCorrect >= 5 && isCorrect && (
-                      <div className="px-4 py-2 bg-amber-100 text-amber-700 rounded-xl text-[10px] font-black uppercase tracking-widest animate-bounce flex items-center gap-2 border border-amber-200">
-                         <Zap size={12} /> Lifeline Restored!
-                      </div>
-                   )}
+                <div>
+                  <p className="text-white/40 text-[10px] uppercase tracking-widest font-bold mb-0.5">
+                    {isCorrect ? 'Correct!' : 'Not quite'}
+                  </p>
+                  <h4 className="text-white text-xl font-black leading-tight">
+                    {isCorrect ? 'Mastery Confirmed' : 'Learning Opportunity'}
+                  </h4>
                 </div>
-                {!isCorrect && (
-                   <div className="mb-4">
-                      <p className="text-[10px] font-black uppercase text-medical-600 mb-1 tracking-widest">Correct Answer</p>
-                      <p className="text-sm font-bold text-slate-700 dark:text-slate-300 leading-snug">{currentQ?.correctAnswer}</p>
-                   </div>
+                {consecutiveCorrect >= 5 && isCorrect && (
+                  <div className="ml-auto px-3 py-1.5 bg-amber-500/20 text-amber-400 rounded-xl text-[9px] font-black uppercase tracking-widest animate-bounce flex items-center gap-1.5 border border-amber-400/20">
+                    <Zap size={10} /> Streak!
+                  </div>
                 )}
-                <div className="max-h-40 overflow-y-auto custom-scrollbar mb-8">
-                   <p className="text-slate-600 dark:text-slate-300 font-medium text-lg leading-relaxed italic">
-                      {currentQ?.rationale || "Nurses must apply critical thinking and clinical protocols to ensure patient safety and prioritize airway, breathing, and circulation."}
-                   </p>
-                </div>
+              </div>
 
-                <div className="p-6 bg-slate-50 dark:bg-white/5 rounded-2xl mb-10 border border-slate-100 dark:border-white/5 flex gap-4 items-start">
-                   <div className="p-2 bg-medical-100 text-medical-600 rounded-lg shrink-0">
-                      <Target size={16} />
-                   </div>
-                   <div>
-                      <p className="text-[10px] font-black uppercase text-medical-600 mb-1 tracking-widest">Clinical Mentor Note</p>
-                      <p className="text-sm font-bold text-slate-700 dark:text-slate-300 leading-snug italic">"{currentQ?.hint || 'Focus on the physiological foundation and the primary action that ensures long-term stability.'}"</p>
-                   </div>
+              {/* Correct answer (if wrong) */}
+              {!isCorrect && (
+                <div className="mb-4 p-4 bg-white/5 rounded-xl border border-white/10">
+                  <p className="text-orange-400 text-[10px] font-black uppercase tracking-widest mb-1">Correct Answer</p>
+                  <p className="text-white font-bold text-sm leading-snug">{currentQ?.correctAnswer}</p>
                 </div>
-                <button onClick={nextQuestion} className="w-full py-6 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-[2rem] font-black uppercase tracking-[0.3em] text-xs shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-4 hover:gap-6">{currentQuestionIndex < quizQuestions.length - 1 ? 'Next Challenge' : 'Complete Quiz'} <ArrowRight size={20} /></button>
-             </motion.div>
+              )}
+
+              {/* Rationale */}
+              <div className="max-h-32 overflow-y-auto mb-4">
+                <p className="text-white/60 text-sm leading-relaxed italic">
+                  {currentQ?.rationale || 'Nurses must apply critical thinking and clinical protocols to ensure patient safety.'}
+                </p>
+              </div>
+
+              {/* Mentor note */}
+              <div className="p-4 bg-purple-500/10 rounded-xl border border-purple-500/20 flex gap-3 items-start">
+                <div className="p-1.5 bg-purple-500/20 text-purple-400 rounded-lg shrink-0">
+                  <Target size={14} />
+                </div>
+                <div>
+                  <p className="text-purple-400 text-[9px] font-black uppercase tracking-widest mb-1">Clinical Mentor Note</p>
+                  <p className="text-white/70 text-xs font-medium leading-snug italic">"{currentQ?.hint || 'Focus on the physiological foundation and the primary action that ensures long-term stability.'}"</p>
+                </div>
+              </div>
+            </motion.div>
           </div>
         )}
       </AnimatePresence>
+
+      {/* ─── HINT OVERLAY ─── */}
       <AnimatePresence>
         {showHint && !showRationale && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={() => setShowHint(false)} />
-             <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={`relative w-full max-w-md p-10 rounded-[3rem] shadow-2xl border text-center ${quizMode === 'speed' ? 'bg-black border-slate-800' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}>
-                <div className="w-20 h-20 bg-medical-50 text-medical-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner"><Target size={40} /></div>
-                <h4 className={`text-2xl font-black mb-3 ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>Mentor Strategy</h4>
-                <p className="text-slate-600 dark:text-slate-300 font-medium italic text-lg leading-relaxed mb-10">
-                   "{currentQ?.hint || 'Prioritize patient safety and focus on the intervention that addresses the root cause of the clinical presentation.'}"
-                </p>
-                <button onClick={() => setShowHint(false)} className="w-full py-5 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all">
-                   Return to Question
-                </button>
-             </motion.div>
+            <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => setShowHint(false)} />
+            <motion.div initial={{ scale: 0.85, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative w-full max-w-md bg-[#1a1638] p-8 rounded-3xl shadow-2xl border border-white/10 text-center">
+              <div className="w-16 h-16 bg-purple-500/20 text-purple-400 rounded-2xl flex items-center justify-center mx-auto mb-5">
+                <HelpCircle size={32} />
+              </div>
+              <h4 className="text-white text-xl font-black mb-3">Mentor Strategy</h4>
+              <p className="text-white/60 font-medium text-sm leading-relaxed mb-8 italic">
+                "{currentQ?.hint || 'Prioritize patient safety and focus on the intervention that addresses the root cause of the clinical presentation.'}"
+              </p>
+              <button onClick={() => setShowHint(false)} className="w-full py-4 bg-white/10 text-white rounded-2xl font-black uppercase tracking-widest text-xs hover:bg-white/20 transition-all active:scale-95">
+                Return to Question
+              </button>
+            </motion.div>
           </div>
         )}
       </AnimatePresence>
     </div>
   );
+
 };
 
 const ModeCard = ({ title, desc, icon, duration, timer, color, onClick }) => {
