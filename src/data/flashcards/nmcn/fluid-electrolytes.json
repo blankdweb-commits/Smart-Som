@@ -1,0 +1,3147 @@
+[
+  {
+    "id": "fluid-elec-1",
+    "question": "The most abundant extra cellular cation is",
+    "correctAnswer": "Sodium",
+    "rationale": "Sodium is the primary cation in extracellular fluid (ECF), crucial for maintaining osmotic pressure and nerve/muscle function.",
+    "hint": "Think about the major electrolyte OUTSIDE the cell.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Sodium",
+      "Potassium",
+      "Calcium",
+      "Phosphorus"
+    ]
+  },
+  {
+    "id": "fluid-elec-2",
+    "question": "Which of the following two organs function as the most important physiological buffer systems?",
+    "correctAnswer": "The lungs and the kidneys",
+    "rationale": "The lungs control CO2 (acid) excretion rapidly, while the kidneys manage bicarbonate and hydrogen ion excretion over hours to days. They are the primary physiological buffers.",
+    "hint": "Which two organs work quickly and slowly to balance pH?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "The lungs and the kidneys",
+      "The adrenal glands and the testes",
+      "The thyroid gland and the heart",
+      "The stomach and the liver"
+    ]
+  },
+  {
+    "id": "fluid-elec-3",
+    "question": "Substances that break up or dissociate into electrically charged components when they dissolve in water are called.",
+    "correctAnswer": "Electrolyte",
+    "rationale": "Electrolytes dissociate into ions (cations and anions) in solution, enabling electrical activity in nerves and muscles.",
+    "hint": "What conducts electricity in the body?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Hormones",
+      "Electrolyte",
+      "Compound",
+      "Molecule"
+    ]
+  },
+  {
+    "id": "fluid-elec-4",
+    "question": "A client has had diarrhea for the past three days. Which acid/base imbalance would the nurse expect the client to have?",
+    "correctAnswer": "Metabolic acidosis",
+    "rationale": "Diarrhea causes a loss of bicarbonate-rich intestinal fluid, leading to a decrease in plasma bicarbonate and a state of metabolic acidosis.",
+    "hint": "What is the main buffer lost from the GI tract in diarrhea?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Respiratory alkalosis",
+      "Metabolic acidosis",
+      "Metabolic alkalosis",
+      "Respiratory acidosis"
+    ]
+  },
+  {
+    "id": "fluid-elec-5",
+    "question": "The type of dehydration in which water and dissolved electrolytes are lost in equal proportions is refer to",
+    "correctAnswer": "Isotonic dehydration",
+    "rationale": "Isotonic dehydration implies a proportional loss of water and electrolytes, resulting in a normal serum osmolality.",
+    "hint": "The term means 'same concentration' as normal body fluids.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Hypertonic dehydration",
+      "Hypotonic dehydration",
+      "Isotonic dehydration",
+      "Hyperosmolar dehydration"
+    ]
+  },
+  {
+    "id": "fluid-elec-6",
+    "question": "A falling blood pH and a rising partial pressure of carbon dioxide due to pneumonia or emphysema indicates:",
+    "correctAnswer": "Respiratory acidosis",
+    "rationale": "Pneumonia/emphysema impair gas exchange, leading to CO2 retention, which combines with water to form carbonic acid, lowering blood pH.",
+    "hint": "CO2 is an acid. If the lungs can't blow it off, what happens to pH?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Respiratory acidosis",
+      "Respiratory alkalosis",
+      "Metabolic acidosis",
+      "Metabolic alkalosis"
+    ]
+  },
+  {
+    "id": "fluid-elec-7",
+    "question": "Body water loss from the skin and the lungs is known as..",
+    "correctAnswer": "Insensible water loss",
+    "rationale": "Insensible water loss refers to the continuous, unnoticeable loss of water through evaporation from the skin and during respiration.",
+    "hint": "You are unaware of this type of water loss.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Obligatory water loss",
+      "Insensible water loss",
+      "Partial water loss",
+      "Essential water loss"
+    ]
+  },
+  {
+    "id": "fluid-elec-8",
+    "question": "A base is a chemical compound that takes up hydrogen ions from a solution and leaves the solution with an excess of..",
+    "correctAnswer": "Hydroxyl ions",
+    "rationale": "By removing H+ ions, bases increase the concentration of hydroxide (OH-) ions in a solution.",
+    "hint": "A base increases the number of what negative ion?",
+    "subject": "Chemistry",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Hydroxyl ions",
+      "Carboxyl ion",
+      "Bicarbonate",
+      "All of these"
+    ]
+  },
+  {
+    "id": "fluid-elec-9",
+    "question": "Which among the following is an example of isotonic intravenous solution:",
+    "correctAnswer": "Ringer's Lactate",
+    "rationale": "Ringer's Lactate is a balanced crystalloid solution whose osmolality is close to that of plasma. It is isotonic.",
+    "hint": "Isotonic solutions have a similar concentration to blood. Which one is a standard resuscitation fluid?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Dextrose normal saline",
+      "10% Dextrose",
+      "0.45% NaCl",
+      "Ringer's Lactate"
+    ]
+  },
+  {
+    "id": "fluid-elec-10",
+    "question": "Miss Ogunlaja morning lab results have just come in. Her serum potassium level is currently 5.4 mEq/L. You recognize this as..",
+    "correctAnswer": "Hyperkalemia",
+    "rationale": "A serum potassium level above the normal range (3.5-5.0 mEq/L) is hyperkalemia.",
+    "hint": "High potassium is Hyperkalemia.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Hypokalemia",
+      "Hyperkalemia",
+      "Hypocalcemia",
+      "Hypercalcemia"
+    ]
+  },
+  {
+    "id": "fluid-elec-11",
+    "question": "Lactate ringers' solution is contraindicated in",
+    "correctAnswer": "Lactic acidosis",
+    "rationale": "Lactated Ringer's contains lactate, which is metabolized to bicarbonate. In a patient with lactic acidosis, this can worsen the condition.",
+    "hint": "The fluid contains lactate. What happens to a patient who can't process lactate?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Fluid loss",
+      "Lactic acidosis",
+      "Burn",
+      "None of these"
+    ]
+  },
+  {
+    "id": "fluid-elec-12",
+    "question": "All the following are important electrolytes in the body EXCEPT:",
+    "correctAnswer": "Carbon ions",
+    "rationale": "Carbon is not a freely circulating ion. It forms stable molecules like CO2 or organic compounds.",
+    "hint": "Carbon is not a free ion in the blood.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Potassium ions",
+      "Carbon ions",
+      "Chloride ions",
+      "Sodium ions"
+    ]
+  },
+  {
+    "id": "fluid-elec-13",
+    "question": "A common base in the body is.....",
+    "correctAnswer": "Bicarbonate",
+    "rationale": "Bicarbonate (HCO3-) is the principal buffer base in the body, neutralizing acids.",
+    "hint": "What does the kidney reclaim to buffer acids?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Ammonia",
+      "Bicarbonate",
+      "Chloride",
+      "None of these"
+    ]
+  },
+  {
+    "id": "fluid-elec-14",
+    "question": "The mineral salt associated with muscle contraction, transmission of impulses and maintenance of electrolytes balance in the body are:",
+    "correctAnswer": "Sodium and Potassium",
+    "rationale": "Sodium (Na+) and Potassium (K+) are crucial for generating action potentials in nerves and muscles, regulating contraction and impulse transmission.",
+    "hint": "Which two ions are responsible for the action potential?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Sodium and Phosphate",
+      "Sodium and Iron",
+      "Sodium and Calcium",
+      "Sodium and Potassium"
+    ]
+  },
+  {
+    "id": "fluid-elec-15",
+    "question": "Tiwatoyin is suffering from fluid volume deficit (FVD), which of the following symptoms would the nurse expect to assess in the patient?",
+    "correctAnswer": "Tachycardia",
+    "rationale": "Tachycardia is a compensatory mechanism to maintain cardiac output in response to decreased intravascular volume.",
+    "hint": "What does the body do to compensate for low blood volume?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Rales",
+      "Bounding pulse",
+      "Tachycardia",
+      "Bulging neck veins"
+    ]
+  },
+  {
+    "id": "fluid-elec-16",
+    "question": "Major electrolyte disturbances can be the following:",
+    "correctAnswer": "Hyponatremia, Hypokalemia, Hypernatremia, Hyperkalemia",
+    "rationale": "All listed conditions are common and serious imbalances of sodium and potassium.",
+    "hint": "This is an all-of-the-above scenario.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Hyponatremia",
+      "Hypokalemia",
+      "Hypernatremia",
+      "Hyperkalemia"
+    ]
+  },
+  {
+    "id": "fluid-elec-17",
+    "question": "The intracellular fluid compartment refers to all the water found in:",
+    "correctAnswer": "All cells of the body",
+    "rationale": "Intracellular fluid (ICF) is the fluid contained within the cell membranes, representing about 2/3 of the body's total water.",
+    "hint": "Intra means 'inside'.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "The bones of the body",
+      "Areas outside the body cells",
+      "Areas within the gastrointestinal tract",
+      "All cells of the body"
+    ]
+  },
+  {
+    "id": "fluid-elec-18",
+    "question": "Mr. Kazzy is admitted in the hospital and is currently receiving hypertonic fluids. Nursing management for the client includes monitoring for all of the following potential complications EXCEPT:",
+    "correctAnswer": "Water intoxication",
+    "rationale": "Hypertonic fluids cause water to shift out of cells, leading to cellular dehydration and shrinkage, and can cause fluid volume excess. Water intoxication is a complication of hypotonic fluids.",
+    "hint": "Hypertonic fluids pull water out of cells. Water intoxication is caused by the opposite.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Water intoxication",
+      "Fluid volume excess (FVE)",
+      "Cellular dehydration",
+      "Cell shrinkage"
+    ]
+  },
+  {
+    "id": "fluid-elec-19",
+    "question": "The common causes of hypotonic dehydration are the following EXCEPT:",
+    "correctAnswer": "Hemorrhage",
+    "rationale": "Hemorrhage involves the loss of whole blood, which is an isotonic fluid loss, not hypotonic.",
+    "hint": "Hemorrhage is losing blood, which is isotonic.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Chronic illness",
+      "Hemorrhage",
+      "Excessive fluid replacement",
+      "Chronic or severe malnutrition"
+    ]
+  },
+  {
+    "id": "fluid-elec-20",
+    "question": "Calculate the pH of a 0.50 M solution of NaNO2:",
+    "correctAnswer": "8.52",
+    "rationale": "As a salt of a weak acid (HNO2) and strong base (NaOH), NaNO2 will produce a basic solution with a pH > 7.",
+    "hint": "NaNO2 is a salt of a strong base and a weak acid.",
+    "subject": "Chemistry",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "12.18",
+      "5.48",
+      "1.82",
+      "8.52"
+    ]
+  },
+  {
+    "id": "fluid-elec-21",
+    "question": "The nurse administers serum albumin to a client to assist in?",
+    "correctAnswer": "Development of osmotic pressure",
+    "rationale": "Albumin is the main plasma protein responsible for creating colloid osmotic (oncotic) pressure, which retains water in the intravascular space.",
+    "hint": "What is the main protein that keeps water in the blood vessels?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Development of osmotic pressure",
+      "Formation of red blood cells",
+      "Clotting of blood",
+      "Activation of white blood cells"
+    ]
+  },
+  {
+    "id": "fluid-elec-22",
+    "question": "Edema may result from",
+    "correctAnswer": "Lymphatic blockage",
+    "rationale": "Lymphatic blockage prevents the return of interstitial fluid to the circulation, leading to its accumulation and edema.",
+    "hint": "What happens when the 'drainage' system of tissues is blocked?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Hyperproteinemia",
+      "Hindering the flow of water out of the capillaries",
+      "Decreased blood hydrostatic pressure",
+      "Lymphatic blockage"
+    ]
+  },
+  {
+    "id": "fluid-elec-23",
+    "question": "The major reason older adults should monitor their intake of fluids is that:",
+    "correctAnswer": "Total body water decreases with age, and restoration of homeostasis is slower",
+    "rationale": "Total body water decreases with age, and thirst perception and renal concentrating ability decline, making it harder for them to maintain fluid balance.",
+    "hint": "The aged have less total body water and can't compensate as well.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Older people suffer decreased levels of antidiuretic hormone",
+      "Older people do not exercise so fluids do not move from compartment to compartment easily",
+      "Total body water decreases with age, and restoration of homeostasis is slower",
+      "Most older people do not eat proper foods"
+    ]
+  },
+  {
+    "id": "fluid-elec-24",
+    "question": "Mr. Adams is scheduled to receive an isotonic solution; which one of the following is an example of such solution?",
+    "correctAnswer": "0.9% Saline",
+    "rationale": "0.9% normal saline has an osmolality of approximately 308 mOsm/L, similar to plasma.",
+    "hint": "Normal saline is the standard isotonic crystalloid.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "D10% W",
+      "0.45% Saline",
+      "0.9% Saline",
+      "3% Normal saline"
+    ]
+  },
+  {
+    "id": "fluid-elec-25",
+    "question": "Which of the following is a strong electrolyte?",
+    "correctAnswer": "KF",
+    "rationale": "KF (potassium fluoride) is an ionic compound that dissociates completely into K+ and F- ions in water, making it a strong electrolyte.",
+    "hint": "Strong electrolytes dissociate completely.",
+    "subject": "Chemistry",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "H₂O",
+      "KF",
+      "HF",
+      "HNO2"
+    ]
+  },
+  {
+    "id": "fluid-elec-26",
+    "question": "Hyponatremia is defined as a serum sodium less than..",
+    "correctAnswer": "135 mmol/L",
+    "rationale": "Hyponatremia is defined as a serum sodium level below 135 mEq/L or mmol/L.",
+    "hint": "Low sodium = hyponatremia.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "135 mmol/L",
+      "145 mmol/L",
+      "155 mmol/L",
+      "165 mmol/L"
+    ]
+  },
+  {
+    "id": "fluid-elec-27",
+    "question": "About 75% of the extracellular fluid of the body exists in interstitial fluid and.",
+    "correctAnswer": "Lymph",
+    "rationale": "Extracellular fluid is divided into interstitial fluid (between cells), plasma, and lymph.",
+    "hint": "Which fluid is a key component of the immune system and is part of the ECF?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Renal",
+      "Lymph",
+      "Muscles",
+      "Brain"
+    ]
+  },
+  {
+    "id": "fluid-elec-28",
+    "question": "Approximately one-third of the body water exists in the:",
+    "correctAnswer": "Extracellular fluid compartment",
+    "rationale": "Approximately one-third of total body water is in the extracellular fluid (ECF) compartment.",
+    "hint": "ECF is about 1/3 of total body water.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Kidneys and urinary bladder",
+      "Blood",
+      "Extracellular fluid compartment",
+      "Transcellular fluid compartment"
+    ]
+  },
+  {
+    "id": "fluid-elec-29",
+    "question": "Which of the following arterial blood gas (ABG) values indicates uncompensated metabolic alkalosis?",
+    "correctAnswer": "pH 7.48, PaCO2 42, HCO3 30",
+    "rationale": "Uncompensated metabolic alkalosis is characterized by an elevated pH, elevated HCO3-, and a normal PaCO2, as the lungs have not yet compensated.",
+    "hint": "Look for a high pH and high HCO3 with a normal PaCO2.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "pH 7.48, PaCO2 42, HCO3 30",
+      "pH 7.48, PaCO2 46, HCO3 30",
+      "pH 7.48, PaCO2 34, HCO3 20",
+      "pH 7.48, PaCO2 34, HCO3 26"
+    ]
+  },
+  {
+    "id": "fluid-elec-30",
+    "question": "In the process of osmosis:",
+    "correctAnswer": "Water moves from a region of low solute concentration to a region of high solute concentration",
+    "rationale": "Osmosis is the movement of water across a semipermeable membrane from an area of low solute concentration (high water concentration) to high solute concentration (low water concentration).",
+    "hint": "Water follows its own concentration gradient.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Water moves from a region of high solute concentration to a region of low solute concentration",
+      "Water moves from a region of low solute concentration to a region of high solute concentration",
+      "Sodium ions move through a semipermeable membrane",
+      "Chloride ions follow the movement of sodium ions to a region of low concentration"
+    ]
+  },
+  {
+    "id": "fluid-elec-31",
+    "question": "The nurse prepares for the possibility of magnesium sulfate toxicity by having at the bedside:",
+    "correctAnswer": "Calcium gluconate",
+    "rationale": "Calcium gluconate is the antidote for magnesium sulfate toxicity. It reverses the central nervous system and cardiac depression caused by excess magnesium.",
+    "hint": "Calcium is the physiological antagonist to magnesium.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Suction equipment",
+      "Oxygen",
+      "Saline",
+      "Calcium gluconate"
+    ]
+  },
+  {
+    "id": "fluid-elec-32",
+    "question": "The interstitial fluid is generally poor while the plasma is generally rich in:",
+    "correctAnswer": "Protein",
+    "rationale": "Plasma proteins are large and remain in the intravascular space, creating a colloid osmotic pressure.",
+    "hint": "The plasma has large proteins that can't cross the capillary membrane.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Hydrogen ions",
+      "Sodium and chloride ions",
+      "Protein",
+      "Carbohydrates"
+    ]
+  },
+  {
+    "id": "fluid-elec-33",
+    "question": "The body's compensation of metabolic alkalosis involves:",
+    "correctAnswer": "Decreasing the respiratory rate",
+    "rationale": "In metabolic alkalosis, the lungs compensate by hypoventilating (decreasing respiratory rate) to retain CO2 and increase the acidity of the blood.",
+    "hint": "To compensate, the body wants to retain CO2 (an acid).",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Increasing the respiratory rate",
+      "Decreasing the respiratory rate",
+      "Increasing urine output",
+      "Decreasing urine output"
+    ]
+  },
+  {
+    "id": "fluid-elec-34",
+    "question": "A base may be defined as a chemical compound that:",
+    "correctAnswer": "Removes hydrogen ions from a solution",
+    "rationale": "A base is a substance that can accept or remove hydrogen ions (protons) from a solution.",
+    "hint": "Bases are H+ acceptors.",
+    "subject": "Chemistry",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Removes hydrogen ions from a solution",
+      "Adds sodium chloride to a solution",
+      "Adds hydrogen ions to a solution",
+      "Eliminates sodium ions from a solution"
+    ]
+  },
+  {
+    "id": "fluid-elec-35",
+    "question": "For every 100-mg/dL increase in glucose, the serum sodium falls by",
+    "correctAnswer": "1.6 meq/lit",
+    "rationale": "High glucose acts as an osmotic agent, pulling water from cells into the extracellular space, which dilutes serum sodium. The standard correction is a decrease of 1.6 mEq/L per 100 mg/dL increase in glucose.",
+    "hint": "Hyperglycemia causes a dilutional hyponatremia.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "0.6 meq/lit",
+      "1.6 meq/lit",
+      "2.6 meq/lit",
+      "3.6 meq/lit"
+    ]
+  },
+  {
+    "id": "fluid-elec-36",
+    "question": "Which of the following blood products should be infused rapidly?",
+    "correctAnswer": "Platelets",
+    "rationale": "Platelets have a short shelf life and are at risk of bacterial contamination, so they should be infused as rapidly as the patient can tolerate.",
+    "hint": "Platelets are fragile and must be given quickly.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Packed red blood cells (PRBC)",
+      "Fresh frozen plasma (FFP)",
+      "Platelets",
+      "Dextran"
+    ]
+  },
+  {
+    "id": "fluid-elec-37",
+    "question": "When the concentration of solutes is the same on both inside and outside cells, then:",
+    "correctAnswer": "The osmotic pressure is zero",
+    "rationale": "If the solute concentration is equal on both sides (isotonic), there is no net movement of water, and the osmotic pressure gradient is zero.",
+    "hint": "What is the net force when two solutions are equal?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Water leaves the cells",
+      "Water rushes into the cells",
+      "Water flows out of the cells into the transcellular environment",
+      "The osmotic pressure is zero"
+    ]
+  },
+  {
+    "id": "fluid-elec-38",
+    "question": "Titilayomi is receiving a blood transfusion. When monitoring the patient, the nurse would analyze an elevated body temperature as indicating:",
+    "correctAnswer": "A possible transfusion reaction",
+    "rationale": "A fever during a transfusion is a key sign of a febrile non-hemolytic transfusion reaction, or potentially a hemolytic reaction, requiring immediate action.",
+    "hint": "Fever during a blood transfusion is a red flag.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "A normal physiologic process",
+      "Evidence of sepsis",
+      "A possible transfusion reaction",
+      "An expected response to the transfusion"
+    ]
+  },
+  {
+    "id": "fluid-elec-39",
+    "question": "Water leaves the body by all the following mechanisms EXCEPT:",
+    "correctAnswer": "Through metabolic reactions taking place in the cells",
+    "rationale": "Metabolic reactions in the cells are a source of water production (metabolic water), not an excretory pathway.",
+    "hint": "Metabolism actually creates water.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Through air expired from the lungs",
+      "Through metabolic reactions taking place in the cells",
+      "Through sweat given off at the skin",
+      "From feces eliminated from the intestine"
+    ]
+  },
+  {
+    "id": "fluid-elec-40",
+    "question": "A client is admitted with kidney disease. Which type of intravenous fluid is likely to be ordered for this client?",
+    "correctAnswer": "Colloid",
+    "rationale": "Kidney disease patients often have low serum albumin and may benefit from colloids (like albumin) to increase oncotic pressure and manage fluid shifts.",
+    "hint": "Patients with low protein may need help to pull fluid into vessels.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Hypertonic",
+      "Isotonic",
+      "Colloid",
+      "Hypotonic"
+    ]
+  },
+  {
+    "id": "fluid-elec-41",
+    "question": "Acidosis can be reversed by the use of...",
+    "correctAnswer": "Sodium bicarbonate",
+    "rationale": "Sodium bicarbonate (NaHCO3) is a base that directly neutralizes excess acid in the blood.",
+    "hint": "Which base is the body's main buffer?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Calcium chloride",
+      "Atropine",
+      "Sodium bicarbonate",
+      "Sodium chloride"
+    ]
+  },
+  {
+    "id": "fluid-elec-42",
+    "question": "Synovial fluid, sweat, and cerebrospinal fluid are different types of..",
+    "correctAnswer": "Transcellular fluids",
+    "rationale": "Transcellular fluids are a small subset of extracellular fluid that is separated by epithelial cells and is not interstitial or intravascular. Examples include CSF, synovial fluid, and sweat.",
+    "hint": "These are fluids in specific compartments, not the general ECF.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Transcellular fluids",
+      "Intracellular fluid",
+      "Extracellular fluid",
+      "Fluid compartment"
+    ]
+  },
+  {
+    "id": "fluid-elec-43",
+    "question": "A client develops volume overload from an IV that has infused too rapidly. What assessments would the nurse expect to find?",
+    "correctAnswer": "Auscultation of an S3 heart sound",
+    "rationale": "An S3 heart sound (ventricular gallop) is a common sign of early heart failure and volume overload, indicating fluid backing up into the ventricles.",
+    "hint": "Volume overload means the heart is working too hard.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Flattened neck veins",
+      "Auscultation of an S3 heart sound",
+      "Thready pulse",
+      "Hypoventilation"
+    ]
+  },
+  {
+    "id": "fluid-elec-44",
+    "question": "The fluid link between the external and internal environment is",
+    "correctAnswer": "Plasma",
+    "rationale": "Plasma is the fluid component of blood, which connects the external environment (by transporting ingested nutrients and oxygen) to the internal environment (cells and tissues).",
+    "hint": "Which fluid carries nutrients and wastes throughout the body?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Plasma",
+      "Intracellular fluid",
+      "Interstitial fluid",
+      "Cerebrospinal fluid"
+    ]
+  },
+  {
+    "id": "fluid-elec-45",
+    "question": "The process of endocrine regulation of electrolytes involves:",
+    "correctAnswer": "Sodium reabsorption and potassium excretion",
+    "rationale": "Aldosterone acts on the kidney to promote the reabsorption of sodium ions and the excretion of potassium ions.",
+    "hint": "Which hormone causes the body to hold onto sodium and pee out potassium?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Sodium reabsorption and chloride excretion",
+      "Chloride reabsorption and sodium excretion",
+      "Potassium reabsorption and sodium excretion",
+      "Sodium reabsorption and potassium excretion"
+    ]
+  },
+  {
+    "id": "fluid-elec-46",
+    "question": "The chief anion in the intracellular fluid (ICF) is:",
+    "correctAnswer": "Phosphorus",
+    "rationale": "Phosphorus, in the form of phosphate (HPO4^2-), is the major anion inside the cell.",
+    "hint": "Think about the negative ions inside the cell.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Phosphorus",
+      "Potassium",
+      "Sodium",
+      "Chloride"
+    ]
+  },
+  {
+    "id": "fluid-elec-47",
+    "question": "The movement of fluids between cellular compartments:",
+    "correctAnswer": "Is regulated by osmotic and hydrostatic forces",
+    "rationale": "The movement of fluids between compartments is primarily governed by hydrostatic pressure (pushing fluid out) and osmotic/oncotic pressure (pulling fluid in).",
+    "hint": "What two opposing pressures drive fluid movement?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Requires active transport",
+      "Is regulated by osmotic and hydrostatic forces",
+      "Requires ATP for the transport to take place",
+      "Involves filtration"
+    ]
+  },
+  {
+    "id": "fluid-elec-48",
+    "question": "Hypervolumic hyponatremia is seen in the following disorders EXCEPT.",
+    "correctAnswer": "Hypoaldosteronism",
+    "rationale": "Hypoaldosteronism leads to sodium loss and dehydration (hypovolemia). CHF, cirrhosis, and nephrotic syndrome cause fluid retention (hypervolemia).",
+    "hint": "What is the state of a patient with low aldosterone?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Congestive heart failure",
+      "Hepatic cirrhosis",
+      "Hypoaldosteronism",
+      "Nephrotic syndrome"
+    ]
+  },
+  {
+    "id": "fluid-elec-49",
+    "question": "Daniel, who is a marathon runner, is at high risk for fluid volume deficit. Which one of the following is a related factor?",
+    "correctAnswer": "Increased breathing and perspiration",
+    "rationale": "Long-distance running leads to significant fluid loss through increased sweating and deeper, more rapid breathing.",
+    "hint": "Marathon runners lose water through what two major pathways?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Decreased diuresis",
+      "Disease-related process",
+      "Decreased breathing and perspiration",
+      "Increased breathing and perspiration"
+    ]
+  },
+  {
+    "id": "fluid-elec-50",
+    "question": "Osmoreceptors detect a decreased blood volume and increased blood concentration of salt and stimulate:",
+    "correctAnswer": "Thirst",
+    "rationale": "Osmoreceptors in the hypothalamus detect an increase in plasma osmolality (from dehydration), which triggers the sensation of thirst.",
+    "hint": "What is the conscious signal for more water?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Increased kidney activity",
+      "Increased salivary secretions",
+      "Thirst",
+      "Increased secretion of progesterone"
+    ]
+  },
+  {
+    "id": "fluid-elec-51",
+    "question": "The major cation in the ICF is:",
+    "correctAnswer": "Potassium",
+    "rationale": "Potassium (K+) is the predominant intracellular cation.",
+    "hint": "Remember, potassium is inside.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Potassium",
+      "Sodium",
+      "Phosphorus",
+      "Magnesium"
+    ]
+  },
+  {
+    "id": "fluid-elec-52",
+    "question": "Disease of which of the following structures is most likely to affect electrolyte reabsorption?",
+    "correctAnswer": "Renal tubules",
+    "rationale": "The renal tubules (proximal convoluted tubule, loop of Henle, distal convoluted tubule) are responsible for the reabsorption and secretion of electrolytes.",
+    "hint": "Where are electrolytes reabsorbed back into the blood?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Glomerulus",
+      "Renal tubules",
+      "Bladder",
+      "Renal pelvis"
+    ]
+  },
+  {
+    "id": "fluid-elec-53",
+    "question": "The concentration of protein in the interstitial fluid is usually low, but the concentration of protein is high in the..",
+    "correctAnswer": "Plasma",
+    "rationale": "Plasma has a high concentration of protein, particularly albumin, which is too large to cross the capillary wall easily.",
+    "hint": "Which fluid has large molecules that can't leave the blood vessels?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Plasma",
+      "Blood",
+      "Fluid",
+      "All of these"
+    ]
+  },
+  {
+    "id": "fluid-elec-54",
+    "question": "Ninety percent of the cations in the extracellular fluids consist of:",
+    "correctAnswer": "Sodium ions",
+    "rationale": "Sodium (Na+) is the primary and most abundant cation in the extracellular fluid, comprising about 90% of its cation content.",
+    "hint": "Sodium is the dominant extracellular cation.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Hydroxyl ions",
+      "Calcium ions",
+      "Sodium ions",
+      "Bicarbonate ions"
+    ]
+  },
+  {
+    "id": "fluid-elec-55",
+    "question": "Electrolyte balance:",
+    "correctAnswer": "Maybe disturbed due to higher loss of electrolytes on hot days",
+    "rationale": "Sweating causes the loss of both water and electrolytes (mainly sodium and chloride), which can disrupt electrolyte balance if not replenished.",
+    "hint": "What happens when you sweat a lot?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Refers to the phosphate balance in the body",
+      "Maybe disturbed due to higher loss of electrolytes on hot days",
+      "Is usually difficult to maintain",
+      "Can be disrupted because water is not free to move between cells and capillaries"
+    ]
+  },
+  {
+    "id": "fluid-elec-56",
+    "question": "Newborn infants have a relatively higher content in their ECF than do adults:",
+    "correctAnswer": "Sodium",
+    "rationale": "Newborns have a relatively larger proportion of their body water in the ECF, which is rich in sodium.",
+    "hint": "Newborns have a larger extracellular fluid volume, so what's higher?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Iron",
+      "Sodium",
+      "Magnesium",
+      "Bicarbonate"
+    ]
+  },
+  {
+    "id": "fluid-elec-57",
+    "question": "Syndrome of inappropriate antidiuretic hormone secretion has the following type of hyponatremia:",
+    "correctAnswer": "Euvolemic",
+    "rationale": "SIADH results in water retention and dilutional hyponatremia without significant edema; the patient is euvolemic (normal fluid volume).",
+    "hint": "SIADH causes water retention, but the total body sodium is normal.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Euvolemic",
+      "Hypovolemic",
+      "Hypervolemic",
+      "None of the above"
+    ]
+  },
+  {
+    "id": "fluid-elec-58",
+    "question": "Extracellular fluid in the human body is composed of all the following EXCEPT:",
+    "correctAnswer": "Glucose",
+    "rationale": "Glucose is a solute dissolved in the fluid; it is not a fluid compartment itself.",
+    "hint": "Glucose is a molecule, not a fluid compartment.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Lymph and interstitial fluid",
+      "Blood plasma",
+      "Cerebrospinal fluid",
+      "Glucose"
+    ]
+  },
+  {
+    "id": "fluid-elec-59",
+    "question": "A patient with which of the following disorders is at high risk for developing hyperphosphatemia?",
+    "correctAnswer": "Hypocalcemia",
+    "rationale": "Calcium and phosphate levels are inversely related. When calcium is low, parathyroid hormone is increased, which can lead to higher phosphate levels.",
+    "hint": "Calcium and phosphate have an inverse relationship.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Hyperkalemia",
+      "Hyponatremia",
+      "Hypocalcemia",
+      "Hyperglycemia"
+    ]
+  },
+  {
+    "id": "fluid-elec-60",
+    "question": "Water leaves the body by means of activities occurring in the lungs, skin, intestines, and.",
+    "correctAnswer": "Kidney",
+    "rationale": "The kidneys are the primary organs for water excretion via urine formation.",
+    "hint": "Which organ produces urine?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Brain",
+      "Kidney",
+      "Heart",
+      "Muscle"
+    ]
+  },
+  {
+    "id": "fluid-elec-61",
+    "question": "The hormones aldosterone and ADH both have an important function in:",
+    "correctAnswer": "Fluid balance in the body",
+    "rationale": "Aldosterone regulates sodium and water reabsorption, while ADH (antidiuretic hormone) regulates water reabsorption; both are crucial for fluid balance.",
+    "hint": "ADH and aldosterone affect water and sodium.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Fluid balance in the body",
+      "The regulation of acid concentration in the body",
+      "Stimulation of a conscious desire for water",
+      "The activity of buffer systems"
+    ]
+  },
+  {
+    "id": "fluid-elec-62",
+    "question": "The receptors for the regulation of body water through detection of osmotic pressure are located in the?",
+    "correctAnswer": "Hypothalamus",
+    "rationale": "Osmoreceptors, which detect changes in osmotic pressure of body fluids, are located in the hypothalamus.",
+    "hint": "Where is the brain's 'thirst center'?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Blood",
+      "Neurohypophysis",
+      "Hypothalamus",
+      "Kidney tubules"
+    ]
+  },
+  {
+    "id": "fluid-elec-63",
+    "question": "Chemical buffering systems of the body may include.",
+    "correctAnswer": "Phosphate",
+    "rationale": "The phosphate buffer system is an important chemical buffer in the body, especially in the intracellular fluid and renal tubules.",
+    "hint": "Which one is a known buffer system?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Phosphate",
+      "Ammonia",
+      "Hydrochloric acid",
+      "Sodium hydroxide"
+    ]
+  },
+  {
+    "id": "fluid-elec-64",
+    "question": "Which out of the following conditions will NOT cause respiratory alkalosis?",
+    "correctAnswer": "Laryngeal obstruction",
+    "rationale": "Laryngeal obstruction prevents the exhalation of CO2, causing it to build up and lead to respiratory acidosis, not alkalosis.",
+    "hint": "Obstruction prevents exhalation of CO2.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Fever",
+      "Anxiety",
+      "Laryngeal obstruction",
+      "Salicylate toxicity"
+    ]
+  },
+  {
+    "id": "fluid-elec-65",
+    "question": "The total body water is divided into intracellular and extracellular fluid. Plasma is considered:",
+    "correctAnswer": "Extracellular",
+    "rationale": "Plasma is the fluid component of blood and is located in the intravascular space, which is part of the extracellular fluid compartment.",
+    "hint": "Plasma is found in the blood vessels, which are outside the cells.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Extracellular",
+      "Intracellular",
+      "Interstitial",
+      "Lymph"
+    ]
+  },
+  {
+    "id": "fluid-elec-66",
+    "question": "The release of aldosterone from the adrenal cortex is related to the presence of:",
+    "correctAnswer": "Angiotensin II produced in the lung",
+    "rationale": "Angiotensin II, produced by the lungs, is the primary stimulant for aldosterone secretion from the adrenal cortex.",
+    "hint": "What is the main stimulator of aldosterone?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Angiotensin II produced in the lung",
+      "Renin produced in the bone marrow",
+      "Parathyroid hormone produced in the parathyroid gland",
+      "Estrogen and progesterone, the sex hormones"
+    ]
+  },
+  {
+    "id": "fluid-elec-67",
+    "question": "The principal mechanism by which water moves into and out of cells is..",
+    "correctAnswer": "Osmosis",
+    "rationale": "Water crosses cell membranes primarily by osmosis, moving from an area of low solute concentration to high solute concentration.",
+    "hint": "Water moves to balance solute concentration.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Osmosis",
+      "Diffusion",
+      "Active diffusion",
+      "None of these"
+    ]
+  },
+  {
+    "id": "fluid-elec-68",
+    "question": "Hypophosphatemia may result from which of the following diseases?",
+    "correctAnswer": "Alcoholism",
+    "rationale": "Chronic alcoholism often leads to malnutrition, vitamin D deficiency, and malabsorption, which can cause hypophosphatemia.",
+    "hint": "Alcoholism is associated with malnutrition.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Liver cirrhosis",
+      "Renal failure",
+      "Paget's disease",
+      "Alcoholism"
+    ]
+  },
+  {
+    "id": "fluid-elec-69",
+    "question": "The following are the primary systems that regulate acid-base homeostasis. Which of the following is the first acting regulatory mechanism?",
+    "correctAnswer": "Chemical buffer system",
+    "rationale": "Chemical buffers in the blood act within seconds to bind or release hydrogen ions, providing the immediate line of defense.",
+    "hint": "What acts immediately to prevent a pH change?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Chemical buffer system",
+      "Protein buffer system",
+      "Respiratory mechanism",
+      "Renal mechanism"
+    ]
+  },
+  {
+    "id": "fluid-elec-70",
+    "question": "A low concentration of sodium in the blood stimulates the production of:",
+    "correctAnswer": "Renin from the nephron of the kidney",
+    "rationale": "Low sodium concentration decreases blood volume and pressure, which stimulates the kidney to release renin, starting the renin-angiotensin-aldosterone system.",
+    "hint": "Low sodium = low blood volume. What does the kidney release?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Potassium ions from potassium hydroxide",
+      "Hydrogen ions from strong acids",
+      "Renin from the nephron of the kidney",
+      "Lymph from the lymphatic channels"
+    ]
+  },
+  {
+    "id": "fluid-elec-71",
+    "question": "What is the site of reclamation of bicarbonate?",
+    "correctAnswer": "Proximal Tubules",
+    "rationale": "The proximal convoluted tubule is responsible for reabsorbing the majority (about 85-90%) of filtered bicarbonate.",
+    "hint": "Where is most of the bicarbonate reabsorbed?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Glomerulus",
+      "Proximal Tubules",
+      "Loop of Henle",
+      "Distal Tubules"
+    ]
+  },
+  {
+    "id": "fluid-elec-72",
+    "question": "Excessive amount of potassium in the body may lead to:",
+    "correctAnswer": "Fibrillations of the heart",
+    "rationale": "Hyperkalemia can cause cardiac arrhythmias and potentially ventricular fibrillation.",
+    "hint": "Hyperkalemia affects the heart.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Arrhythmia of the heart",
+      "Poor muscle contraction",
+      "Accumulation of acid in the body",
+      "Fibrillations of the heart"
+    ]
+  },
+  {
+    "id": "fluid-elec-73",
+    "question": "Causes of metabolic alkalosis include all the following EXCEPT:",
+    "correctAnswer": "Mineralocorticoid deficiency",
+    "rationale": "Mineralocorticoid deficiency (like Addison's disease) causes metabolic acidosis due to loss of sodium and impaired hydrogen ion secretion. The others all cause alkalosis.",
+    "hint": "Mineralocorticoid deficiency leads to acidosis, not alkalosis.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Mineralocorticoid deficiency",
+      "Hypokalemia",
+      "Thiazide diuretic therapy",
+      "Recurrent vomiting"
+    ]
+  },
+  {
+    "id": "fluid-elec-74",
+    "question": "Which of the following may be a possible cause of edema in the tissues?",
+    "correctAnswer": "Decreased level of proteins in the plasma",
+    "rationale": "Low plasma protein (hypoproteinemia) reduces colloid osmotic pressure, allowing fluid to leak from the capillaries into the interstitial space.",
+    "hint": "Low protein means less water is held in the blood vessels.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Decreased blood pressure",
+      "Decreased level of proteins in the plasma",
+      "The ingestion of a large amount of carbohydrates in the diet",
+      "Reduced temperature at the skin surface"
+    ]
+  },
+  {
+    "id": "fluid-elec-75",
+    "question": "Starling's law of the capillaries indicates:",
+    "correctAnswer": "The directions fluid flows between interstitial fluid and capillary",
+    "rationale": "Starling's Law describes the balance between hydrostatic and oncotic pressures that determine the filtration and reabsorption of fluid across capillary membranes.",
+    "hint": "It's about the balance of forces moving fluid across capillary walls.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "The directions fluid flows between interstitial fluid and capillary",
+      "How much protein will be found in the plasma of the blood",
+      "The effectiveness of the substance rennin",
+      "The flow of sodium and chloride ions through the capillary walls"
+    ]
+  },
+  {
+    "id": "fluid-elec-76",
+    "question": "Gastric juice contains:",
+    "correctAnswer": "Chloride ions",
+    "rationale": "Gastric juice contains hydrochloric acid (HCl), which is composed of hydrogen and chloride ions.",
+    "hint": "What acid is in the stomach?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Calcium",
+      "Albumin proteins",
+      "Angiotensin",
+      "Chloride ions"
+    ]
+  },
+  {
+    "id": "fluid-elec-77",
+    "question": "The normal range of plasma osmolality is ..........",
+    "correctAnswer": "280-295 mosm/kg",
+    "rationale": "Normal plasma osmolality is tightly regulated between 275 and 295 mOsm/kg.",
+    "hint": "What is the normal concentration of blood?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "265-280 mosm/kg",
+      "280-295 mosm/kg",
+      "295-310 mosm/kg",
+      "310-325 mosm/kg"
+    ]
+  },
+  {
+    "id": "fluid-elec-78",
+    "question": "Much of the water movement between the plasma and interstitial fluid is due to the presence of …",
+    "correctAnswer": "Protein",
+    "rationale": "Plasma proteins, especially albumin, create the colloid osmotic pressure that draws water back into the capillaries from the interstitial space.",
+    "hint": "Which molecule creates the 'pull' to keep water in the blood?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Protein",
+      "Oxygen",
+      "Carbondioxide",
+      "Digestion"
+    ]
+  },
+  {
+    "id": "fluid-elec-79",
+    "question": "A client with SIADH is admitted with severe hyponatremia. Which type of intravenous solution would the nurse expect to be ordered?",
+    "correctAnswer": "Hypertonic (3% sodium chloride)",
+    "rationale": "Severe hyponatremia with symptoms is treated with a small volume of hypertonic saline (3% NaCl) to slowly raise the serum sodium.",
+    "hint": "Severe hyponatremia requires a concentrated salt solution.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Isotonic (0.9% normal saline)",
+      "Hypotonic (5% dextrose in water)",
+      "Colloid (Dextran)",
+      "Hypertonic (3% sodium chloride)"
+    ]
+  },
+  {
+    "id": "fluid-elec-80",
+    "question": "The pOH of a solution of NaOH is 11.30. What is the [H] for this solution?",
+    "correctAnswer": "5.0 × 10^-12",
+    "rationale": "Using the relationship pH = 14 - pOH, then [H+] = 10^-pH.",
+    "hint": "pOH + pH = 14, then H+ = 10^-pH.",
+    "subject": "Chemistry",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "2.0 x 10^-3",
+      "2.5 x 10^-3",
+      "5.0 x 10^-12",
+      "4.0 x 10^-12"
+    ]
+  },
+  {
+    "id": "fluid-elec-81",
+    "question": "The concentration of potassium in the blood is regulated by:",
+    "correctAnswer": "The hormone aldosterone",
+    "rationale": "Aldosterone promotes the excretion of potassium ions in the kidneys.",
+    "hint": "Which hormone influences potassium excretion?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "The enzyme potassium",
+      "The hormone aldosterone",
+      "The level of plasma proteins",
+      "The acidic content of the blood"
+    ]
+  },
+  {
+    "id": "fluid-elec-82",
+    "question": "An example of a strong acid found in the body is:",
+    "correctAnswer": "Hydrochloric acid",
+    "rationale": "Hydrochloric acid (HCl) is a strong acid, dissociating completely in water, and is found in the stomach.",
+    "hint": "What acid is in the stomach?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Carbonic acid",
+      "Propionic acid",
+      "Acetic acid",
+      "Hydrochloric acid"
+    ]
+  },
+  {
+    "id": "fluid-elec-83",
+    "question": "Respiratory acidosis can occur when",
+    "correctAnswer": "A person's breathing is shallow due to obstruction",
+    "rationale": "Respiratory acidosis is caused by hypoventilation, which leads to CO2 retention. An obstruction causing shallow breathing will do this.",
+    "hint": "Shallow breathing means less CO2 removed.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "A person consumes excessive amounts of antacids",
+      "A person's breathing is shallow due to obstruction",
+      "A runner has completed a very long marathon",
+      "The kidneys secrete hydrogen ions"
+    ]
+  },
+  {
+    "id": "fluid-elec-84",
+    "question": "Normal calcium levels must be analyzed in relation to:",
+    "correctAnswer": "Protein",
+    "rationale": "About 40-50% of serum calcium is bound to plasma proteins (albumin). A low albumin level can cause a falsely low total calcium.",
+    "hint": "Calcium binds to a certain molecule in the blood.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Sodium",
+      "Glucose",
+      "Protein",
+      "Fats"
+    ]
+  },
+  {
+    "id": "fluid-elec-85",
+    "question": "What is not a cause of hypercalcemia?",
+    "correctAnswer": "Post prandial measurement",
+    "rationale": "Postprandial (after a meal) measurements can be affected by food but are not an underlying disease cause of chronic hypercalcemia.",
+    "hint": "A single measurement after a meal is not a clinical cause.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Post prandial measurement",
+      "Tuberculosis",
+      "Lung Cancer",
+      "Hypomagnesemia"
+    ]
+  },
+  {
+    "id": "fluid-elec-86",
+    "question": "At the venule end of the capillary, water enters the capillary:",
+    "correctAnswer": "Because the colloid osmotic pressure exceeds the hydrostatic pressure",
+    "rationale": "At the venule end, the hydrostatic pressure has dropped, and the colloid osmotic (oncotic) pressure is now higher, pulling water into the capillary.",
+    "hint": "What force pulls water into the capillary at the venule end?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Because the hydrostatic pressure exceeds the colloid osmotic pressure",
+      "Because potassium ions are located within the capillary",
+      "Because the higher acid concentration is found in the interstitial fluid",
+      "Because the colloid osmotic pressure exceeds the hydrostatic pressure"
+    ]
+  },
+  {
+    "id": "fluid-elec-87",
+    "question": "A client is in a state of uncompensated acidosis. The nurse would expect the arterial blood pH to be approximately?",
+    "correctAnswer": "7.2",
+    "rationale": "A pH of 7.2 is below the normal range (7.35-7.45), indicating acidosis.",
+    "hint": "Acidosis is below 7.35.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "7.48",
+      "7.2",
+      "6.9",
+      "7.45"
+    ]
+  },
+  {
+    "id": "fluid-elec-88",
+    "question": "A buffer system generally contains:",
+    "correctAnswer": "A weak acid and a salt of that acid",
+    "rationale": "A buffer system is composed of a weak acid and a salt of its conjugate base. This allows it to resist pH changes by binding or releasing H+.",
+    "hint": "A buffer is a weak acid and its conjugate base.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "A strong acid and its accompanying base",
+      "A strong acid and its accompanying salt",
+      "A weak acid and a strong base",
+      "A weak acid and a salt of that acid"
+    ]
+  },
+  {
+    "id": "fluid-elec-89",
+    "question": "The body's thirst mechanism is controlled by a nerve center in the..",
+    "correctAnswer": "Hypothalamus",
+    "rationale": "The thirst center is located in the hypothalamus, which receives signals from osmoreceptors and baroreceptors.",
+    "hint": "The thirst center is part of the brain that regulates homeostasis.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Medulla",
+      "Hypothalamus",
+      "Pons",
+      "Cerebellum"
+    ]
+  },
+  {
+    "id": "fluid-elec-90",
+    "question": "Calcium is absorbed in the GI tract under the influence of:",
+    "correctAnswer": "Vitamin D",
+    "rationale": "Calcium absorption in the gastrointestinal tract is dependent on the presence of active Vitamin D.",
+    "hint": "Which vitamin is needed for calcium absorption?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Vitamin D",
+      "Glucose",
+      "HCL",
+      "Vitamin C"
+    ]
+  },
+  {
+    "id": "fluid-elec-91",
+    "question": "The Kidney contributes to acid-base balance by:",
+    "correctAnswer": "Reclamation of bicarbonate",
+    "rationale": "The kidneys regulate acid-base balance primarily by reabsorbing bicarbonate from the filtrate back into the blood.",
+    "hint": "The kidney's main job in acid-base balance is to save a base.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Secretion of ammonia",
+      "Reclamation of bicarbonate",
+      "Increased ketogenesis",
+      "Decreased CO2 uptake"
+    ]
+  },
+  {
+    "id": "fluid-elec-92",
+    "question": "The carboxyl groups of amino acids in proteins:",
+    "correctAnswer": "Increase the acidity of the surrounding environments",
+    "rationale": "Carboxyl groups (-COOH) can release hydrogen ions (H+), making the environment more acidic.",
+    "hint": "Carboxyl groups are acidic.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Function as bases",
+      "Take up hydrogen ions from the surrounding environment",
+      "Increase the acidity of the surrounding environments",
+      "React with amino acids in the protein"
+    ]
+  },
+  {
+    "id": "fluid-elec-93",
+    "question": "Which is not a potential complication of a massive blood transfusion?",
+    "correctAnswer": "Hypercalcemia",
+    "rationale": "Massive transfusion can cause hypocalcemia (due to citrate binding calcium), hyperkalemia (from cell lysis), and hypothermia. Hypercalcemia is not a typical complication.",
+    "hint": "Citrate in stored blood binds calcium.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Hyperkalemia",
+      "Hypercalcemia",
+      "Hypothermia",
+      "Hypernatremia"
+    ]
+  },
+  {
+    "id": "fluid-elec-94",
+    "question": "Weight loss, orthostatic hypotension, poor skin turgor, sunken eyes, oliguria and tachycardia are manifestations of..",
+    "correctAnswer": "Extra cellular fluid volume depletion",
+    "rationale": "These are classic clinical signs of extracellular fluid volume depletion (hypovolemia/dehydration).",
+    "hint": "These are all classic signs of dehydration.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Extra cellular fluid volume depletion",
+      "Extra cellular fluid volume excess",
+      "Intracellular fluid volume excess",
+      "All of the above"
+    ]
+  },
+  {
+    "id": "fluid-elec-95",
+    "question": "The regulation of sodium:",
+    "correctAnswer": "Is linked to blood pressure",
+    "rationale": "Sodium regulation is intimately linked to blood pressure control via its effects on blood volume. Aldosterone increases sodium reabsorption, not excretion.",
+    "hint": "Sodium is the main determinant of blood volume and pressure.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Is due to specific sodium receptors in the hypothalamus",
+      "Is linked to blood pressure",
+      "Involves aldosterone a hormone that increases sodium excretion in the kidneys",
+      "Involves hypothalamic osmoreceptor detection of ion concentration"
+    ]
+  },
+  {
+    "id": "fluid-elec-96",
+    "question": "The hormone aldosterone regulates water reabsorption in the kidneys through its activity on the reabsorption of ......",
+    "correctAnswer": "Sodium ion",
+    "rationale": "Aldosterone promotes the reabsorption of sodium in the kidney, and water follows sodium by osmosis.",
+    "hint": "Water follows the reabsorption of this ion.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Potassium ion",
+      "Chloride ion",
+      "Sodium ion",
+      "Hydrogen ion"
+    ]
+  },
+  {
+    "id": "fluid-elec-97",
+    "question": "All are true for renal handling of acids in metabolic acidosis EXCEPT:",
+    "correctAnswer": "Bicarbonate reabsorption is decreased",
+    "rationale": "In metabolic acidosis, the kidneys work to increase bicarbonate reabsorption and generate new bicarbonate. Bicarbonate reabsorption is increased, not decreased.",
+    "hint": "In acidosis, the body saves bicarbonate.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Hydrogen ion secretion is increased",
+      "Bicarbonate reabsorption is decreased",
+      "Urinary acidity is increased",
+      "Urinary ammonia is increased"
+    ]
+  },
+  {
+    "id": "fluid-elec-98",
+    "question": "Which of the following conditions causes metabolic alkalosis?",
+    "correctAnswer": "Excess Aldosterone",
+    "rationale": "Excess aldosterone (hyperaldosteronism) causes increased sodium reabsorption and potassium/hydrogen ion excretion, leading to metabolic alkalosis.",
+    "hint": "High aldosterone leads to loss of acid.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Uncontrolled diabetes mellitus",
+      "Starvation",
+      "Excess alcohol",
+      "Excess Aldosterone"
+    ]
+  },
+  {
+    "id": "fluid-elec-99",
+    "question": "The term hypotonic hydration refers to ........",
+    "correctAnswer": "A condition that may result from renal insufficiency or drinking extraordinary amounts of water",
+    "rationale": "Hypotonic hydration (water intoxication) occurs when too much water is ingested or retained, causing a drop in serum sodium. Kidney failure is a risk.",
+    "hint": "It is another term for water intoxication.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "The feeling one might have after a long swim",
+      "The unpleasant feeling people have after drinking too much liquor",
+      "A condition that may result from renal insufficiency or drinking extraordinary amounts of water",
+      "A condition that is caused by high levels of sodium in the extracellular fluid compartment"
+    ]
+  },
+  {
+    "id": "fluid-elec-100",
+    "question": "The pressure of water in the blood is referred to as the.",
+    "correctAnswer": "Hydrostatic",
+    "rationale": "Hydrostatic pressure is the force exerted by a fluid against the walls of its container, such as blood pressure in a vessel.",
+    "hint": "This is the 'push' of fluid against the vessel wall.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Hydrostatic",
+      "Oncotic",
+      "Osmotic",
+      "Pressure"
+    ]
+  },
+  {
+    "id": "fluid-elec-101",
+    "question": "A client had a total thyroidectomy yesterday. The client is complaining of tingling around the mouth and in the fingers and toes. What do the client's symptoms indicate?",
+    "correctAnswer": "Hypocalcemia",
+    "rationale": "The parathyroid glands are often damaged during thyroid surgery, leading to hypocalcemia. Tingling (paresthesia) is a key symptom.",
+    "hint": "What gland is often damaged or removed during thyroid surgery?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Hypernatremia",
+      "Hypocalcemia",
+      "Hypermagnesemia",
+      "Hypokalemia"
+    ]
+  },
+  {
+    "id": "fluid-elec-102",
+    "question": "The rate and depth of breathing has a regulatory influence on the:",
+    "correctAnswer": "Acid/base balance of the body",
+    "rationale": "Breathing regulates the level of CO2 (a volatile acid) in the blood, directly influencing acid-base balance.",
+    "hint": "Breathing controls the level of an acid in the blood.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Acid/base balance of the body",
+      "Protein metabolism of the body",
+      "Amount of water taken into the body",
+      "Rate at which fats are broken down in the body"
+    ]
+  },
+  {
+    "id": "fluid-elec-103",
+    "question": "The following are symptoms of severe hypernatremia EXCEPT:",
+    "correctAnswer": "Thirst",
+    "rationale": "Thirst is an early symptom of hypernatremia. Severe hypernatremia causes neurological symptoms like disorientation, irritability, and hallucinations.",
+    "hint": "Thirst is an early symptom, not a severe neurological one.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Disorientation",
+      "Irritability",
+      "Hallucination",
+      "Thirst"
+    ]
+  },
+  {
+    "id": "fluid-elec-104",
+    "question": "Which of the drugs below are not associated with hypokalemia?",
+    "correctAnswer": "Amiloride",
+    "rationale": "Amiloride is a potassium-sparing diuretic, which can cause hyperkalemia, not hypokalemia.",
+    "hint": "Amiloride is a potassium-sparing diuretic.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Loop diuretics",
+      "Corticosteroids",
+      "Gentamicin",
+      "Amiloride"
+    ]
+  },
+  {
+    "id": "fluid-elec-105",
+    "question": "The loss of bicarbonate ions from the body through urine excretion:",
+    "correctAnswer": "Relieves the alkaline condition of the blood",
+    "rationale": "Excreting bicarbonate (a base) in the urine removes a base from the blood, thus relieving an alkaline condition (alkalosis).",
+    "hint": "What happens to the blood when a base is removed?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Relieves the alkaline condition of the blood",
+      "Increases the excretion of protein from the blood",
+      "Has an effect on the nerve conduction system",
+      "Changes the temperature at the body surface"
+    ]
+  },
+  {
+    "id": "fluid-elec-106",
+    "question": "The [ H_{3} O^ + ] in a 0.050 M solution of Ba (OH) 2 is:",
+    "correctAnswer": "1 * 10 ^ - 13 * M",
+    "rationale": "Ba(OH)2 gives 2 OH- per formula unit. [OH-] = 2 x 0.05 = 0.1 M. pOH = 1, so pH = 13. [H+] = 10^-13 M.",
+    "hint": "Ba(OH)2 is a strong base, producing 2 OH- ions.",
+    "subject": "Chemistry",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "1 * 10 ^ - 5 * M",
+      "5 * 10 ^ - 2 * M",
+      "1 * 10 ^ - 13 * M",
+      "5 * 10 ^ - 10 * M"
+    ]
+  },
+  {
+    "id": "fluid-elec-107",
+    "question": "The normal pH of the venous blood and interstitial fluid is slightly:",
+    "correctAnswer": "More acidic than arterial blood",
+    "rationale": "Venous blood and interstitial fluid have a higher concentration of CO2 (carbonic acid) than arterial blood, making them slightly more acidic.",
+    "hint": "Venous blood has more CO2.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "More basic than arterial blood",
+      "Neutral as compared to arterial blood",
+      "More acidic than arterial blood",
+      "The same as arterial blood"
+    ]
+  },
+  {
+    "id": "fluid-elec-108",
+    "question": "Body fluids perform which of the following functions?",
+    "correctAnswer": "Transport nutrients",
+    "rationale": "Body fluids transport nutrients, gases, hormones, and waste products throughout the body.",
+    "hint": "What is the main job of blood and other fluids?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Transport electrical charges",
+      "Transport nutrients",
+      "Cushion the organs",
+      "Facilitate fat metabolism"
+    ]
+  },
+  {
+    "id": "fluid-elec-109",
+    "question": "Which of the following diagnoses is most appropriate for a patient with hypo calcemia?",
+    "correctAnswer": "High risk for injury: confusion",
+    "rationale": "Hypocalcemia affects neuromuscular and central nervous system function, leading to confusion, seizures, and risk of injury.",
+    "hint": "Low calcium affects the brain and nerves.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Constipation, bowel",
+      "High risk for injury: bleeding",
+      "Airway clearance, ineffective",
+      "High risk for injury: confusion"
+    ]
+  },
+  {
+    "id": "fluid-elec-110",
+    "question": "In the kidneys, the alkaline condition of the blood can be regulated by the excretion of.",
+    "correctAnswer": "Bicarbonate ions",
+    "rationale": "To counteract alkalosis, the kidneys excrete bicarbonate ions (HCO3-), removing a base from the blood.",
+    "hint": "To lower alkalinity, you must remove a base.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Ammonion ion",
+      "Hydroxyl ion",
+      "Bicarbonate ions",
+      "Chloride ion"
+    ]
+  },
+  {
+    "id": "fluid-elec-111",
+    "question": "During periods of intense physical exercise, the cells increase carbon dioxide production, which leads to an increase of the blood content of …",
+    "correctAnswer": "Carbonic acid",
+    "rationale": "CO2 produced by cells combines with water (H2O) to form carbonic acid (H2CO3), increasing acid in the blood.",
+    "hint": "CO2 combines with water to form what?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Carbonic acid",
+      "Hydrogen acid",
+      "Hydroxyl ion",
+      "Chloride ion"
+    ]
+  },
+  {
+    "id": "fluid-elec-112",
+    "question": "Managing a sodium level of 120 in a client with diabetic ketoacidosis is correctly accomplished with .....",
+    "correctAnswer": "Insulin and 0.9% sodium chloride",
+    "rationale": "In DKA, hyponatremia is often dilutional. Correcting the underlying hyperglycemia with insulin and providing isotonic fluids will fix the sodium as the glucose normalizes.",
+    "hint": "The sodium is low due to high glucose.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Intravenous 3% sodium chloride solution",
+      "Fluid restriction",
+      "Insulin and 0.9% sodium chloride",
+      "Oral salt tablets"
+    ]
+  },
+  {
+    "id": "fluid-elec-113",
+    "question": "Which is not a cause of hypokalemia?",
+    "correctAnswer": "Digoxin OD",
+    "rationale": "Digoxin overdose can cause hyperkalemia by inhibiting the sodium-potassium pump. The others are causes of hypokalemia.",
+    "hint": "Digitalis toxicity is more often associated with hyperkalemia.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Insulin administration",
+      "Adrenaline infusion",
+      "Toluene toxicity",
+      "Digoxin OD"
+    ]
+  },
+  {
+    "id": "fluid-elec-114",
+    "question": "When serum calcium levels rise, which of the following hormones is secreted?",
+    "correctAnswer": "Calcitonin",
+    "rationale": "Calcitonin is released by the thyroid gland in response to high serum calcium levels and acts to lower them.",
+    "hint": "What hormone is released to lower calcium?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Aldosterone",
+      "Renin",
+      "Parathyroid hormone",
+      "Calcitonin"
+    ]
+  },
+  {
+    "id": "fluid-elec-115",
+    "question": "The greatest buffering capacity at physiological pH would be provided by a protein rich in which of the following amino acids?",
+    "correctAnswer": "Histidine",
+    "rationale": "Histidine has a side chain pKa near 6.0, making it an effective buffer at physiological pH (~7.4).",
+    "hint": "Which amino acid has a pKa close to physiological pH?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Lysine",
+      "Histidine",
+      "Aspartic acid",
+      "Leucine"
+    ]
+  },
+  {
+    "id": "fluid-elec-116",
+    "question": "A solution in which [H^ + ]= 10 ^ - 8 has a pH of. and is",
+    "correctAnswer": "8, basic",
+    "rationale": "A pH of 8 is above 7, so the solution is basic.",
+    "hint": "pH = -log[H+].",
+    "subject": "Chemistry",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "8, acidic",
+      "6, basic",
+      "-6, basic",
+      "8, basic"
+    ]
+  },
+  {
+    "id": "fluid-elec-117",
+    "question": "Problems with fluid, electrolytes and acid-base balance are particularly common in infants because of their.",
+    "correctAnswer": "Inefficient kidneys",
+    "rationale": "Infants have immature kidneys that cannot concentrate urine as effectively as adults, making them prone to fluid and electrolyte imbalances.",
+    "hint": "Infant kidneys are not fully mature.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Inefficient kidneys",
+      "Comparatively low metabolic rates",
+      "Low rate of insensible water loss",
+      "Low daily rate of fluid exchange"
+    ]
+  },
+  {
+    "id": "fluid-elec-118",
+    "question": "The colloid osmotic pressure present in the capillaries depends upon the presence of plasma:",
+    "correctAnswer": "Protein",
+    "rationale": "Colloid osmotic (oncotic) pressure is generated by plasma proteins, primarily albumin.",
+    "hint": "Colloid osmotic pressure is created by large molecules.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Protein",
+      "Hydrostatic pressure",
+      "Renin",
+      "Blood"
+    ]
+  },
+  {
+    "id": "fluid-elec-119",
+    "question": "The normal range of potassium is...",
+    "correctAnswer": "3.5-5.5 meq/L",
+    "rationale": "The normal serum potassium range is 3.5 to 5.0 or 5.5 mEq/L.",
+    "hint": "Normal K+ is between 3.5 and 5.0-5.5.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "1.5-3.5 meq/L",
+      "3.5-5.5 meq/L",
+      "5.5-7.5 meq/L",
+      "7.5-9.5 meq/L"
+    ]
+  },
+  {
+    "id": "fluid-elec-120",
+    "question": "Hydrogen ions can be removed by a reaction between hydrogen and ammonia molecules to produce",
+    "correctAnswer": "Ammonion ion",
+    "rationale": "In the kidneys, ammonia (NH3) combines with a hydrogen ion (H+) to form ammonium ion (NH4+), which is excreted, removing acid from the body.",
+    "hint": "Ammonia acts as a base to trap H+.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Ammonion ion",
+      "Hydroxyl ion",
+      "Bicarbonate ions",
+      "Chloride ion"
+    ]
+  },
+  {
+    "id": "fluid-elec-121",
+    "question": "The presence of which of the following electrolytes contributes to acidosis?",
+    "correctAnswer": "Hydrogen",
+    "rationale": "An excess of hydrogen ions (H+) in the blood is the defining characteristic of acidosis.",
+    "hint": "An acid is a source of hydrogen ions.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Sodium",
+      "Potassium",
+      "Hydrogen",
+      "Chloride"
+    ]
+  },
+  {
+    "id": "fluid-elec-122",
+    "question": "The most important consequence of hypokalemia is..",
+    "correctAnswer": "Cardiac arrest",
+    "rationale": "Severe hypokalemia can cause fatal cardiac arrhythmias, including cardiac arrest.",
+    "hint": "Low potassium can cause a fatal heart rhythm.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Bradycardia",
+      "Cardiac arrest",
+      "Hypotension",
+      "Tachycardia"
+    ]
+  },
+  {
+    "id": "fluid-elec-123",
+    "question": "Which of the following best describes the condition ketoacidosis?",
+    "correctAnswer": "Metabolic acidosis with a high anion gap",
+    "rationale": "Ketoacidosis is a form of metabolic acidosis with an elevated anion gap due to the accumulation of unmeasured anions (ketone bodies).",
+    "hint": "Ketoacidosis produces unmeasured anions (ketones).",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Metabolic acidosis with a high anion gap",
+      "Metabolic acidosis with a normal anion gap",
+      "Respiratory acidosis with a high anion gap",
+      "Respiratory acidosis with a normal anion gap"
+    ]
+  },
+  {
+    "id": "fluid-elec-124",
+    "question": "The lungs participate in acid-base balance by:",
+    "correctAnswer": "Using CO2 to regulate hydrogen ions",
+    "rationale": "The lungs control the level of CO2, and thus carbonic acid, in the blood by altering the rate and depth of breathing.",
+    "hint": "The lungs blow off CO2, which is an acid.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Reabsorbing bicarbonate",
+      "Splitting carbonic acid in two",
+      "Using CO2 to regulate hydrogen ions",
+      "Sending hydrogen ions to the renal tubules"
+    ]
+  },
+  {
+    "id": "fluid-elec-125",
+    "question": "The healthcare provider prescribes 15 mg/kg of Streptomycin for an infant weighing 4 pounds. The drug is diluted in 25 ml of D5W to run over 8 hours. How much Streptomycin will the infant receive?",
+    "correctAnswer": "27 mg",
+    "rationale": "4 pounds ÷ 2.2 = 1.8 kg. 1.8 kg × 15 mg/kg = 27 mg.",
+    "hint": "First convert pounds to kilograms.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "27 mg",
+      "9 mg",
+      "24 mg",
+      "36 mg"
+    ]
+  },
+  {
+    "id": "fluid-elec-126",
+    "question": "One of the most important plasma proteins that provides a protein buffer system is.",
+    "correctAnswer": "Albumin",
+    "rationale": "Albumin is the most abundant plasma protein and is a key component of the body's protein buffer system.",
+    "hint": "Which protein is most abundant in plasma?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Thrombin",
+      "Fibrin",
+      "Albumin",
+      "All of these"
+    ]
+  },
+  {
+    "id": "fluid-elec-127",
+    "question": "The respiratory system regulates acid-base balance by:",
+    "correctAnswer": "Changing the rate and depth of respirations",
+    "rationale": "The respiratory system regulates pH by adjusting the rate and depth of respirations, which changes the amount of CO2 exhaled.",
+    "hint": "The lungs change ventilation to alter CO2.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Increasing mucus production",
+      "Changing the rate and depth of respirations",
+      "Forming bicarbonate",
+      "Reabsorbing bicarbonate"
+    ]
+  },
+  {
+    "id": "fluid-elec-128",
+    "question": "Blood analysis indicates a low pH, and the patient is breathing rapidly. Given your knowledge of acid-base balance, which of the following is most likely?",
+    "correctAnswer": "Metabolic acidosis",
+    "rationale": "Rapid breathing (Kussmaul respirations) is the body's compensatory response to metabolic acidosis, blowing off CO2 to try and raise the pH.",
+    "hint": "Rapid breathing is a compensation for metabolic acidosis.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Respiratory acidosis",
+      "Metabolic acidosis",
+      "Metabolic alkalosis",
+      "Respiratory alkalosis"
+    ]
+  },
+  {
+    "id": "fluid-elec-129",
+    "question": "Which patient is at more risk for an electrolyte imbalance?",
+    "correctAnswer": "An 8 month old with a fever of 102.3 'F and diarrhea",
+    "rationale": "Infants are at high risk for dehydration and electrolyte imbalance due to their high surface area to volume ratio and immature kidneys. Fever and diarrhea exacerbate this.",
+    "hint": "Infants are at high risk, especially with fever and diarrhea.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "An 8 month old with a fever of 102.3 'F and diarrhea",
+      "A 55 year old diabetic with nausea and vomiting",
+      "A 5 year old with RSV",
+      "A healthy 87 year old with intermittent episodes of gout"
+    ]
+  },
+  {
+    "id": "fluid-elec-130",
+    "question": "Hypokalaemia is a serum potassium level below...",
+    "correctAnswer": "3.5 mmol/L",
+    "rationale": "Hypokalemia is defined as a serum potassium level below 3.5 mmol/L.",
+    "hint": "Normal potassium is 3.5-5.0.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "2.55 mmol/L",
+      "2.75 mmol/L",
+      "3.0 mmol/L",
+      "3.5 mmol/L"
+    ]
+  },
+  {
+    "id": "fluid-elec-131",
+    "question": "Sodium levels are affected by the secretion of which of the following hormones",
+    "correctAnswer": "ADH and ACTH",
+    "rationale": "ADH (antidiuretic hormone) affects water retention, which dilutes sodium, and ACTH (adrenocorticotropic hormone) stimulates aldosterone release, affecting sodium reabsorption.",
+    "hint": "Which hormones directly affect sodium and water?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Progesterone and aldosterone",
+      "ADH and ACTH",
+      "Antidiuretic hormone and FSH",
+      "ECF and aldosterone"
+    ]
+  },
+  {
+    "id": "fluid-elec-132",
+    "question": "What is the pH of 500 mL of solution containing 0.0124 grams of Ca(OH)2?",
+    "correctAnswer": "10.83",
+    "rationale": "0.0124g / 74.1g/mol = 1.67e-4 mol Ca(OH)2. [OH-] = 2 * 1.67e-4 / 0.5L = 6.7e-4 M. pOH = 3.17, pH = 10.83.",
+    "hint": "Calculate molarity, then pOH, then pH.",
+    "subject": "Chemistry",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "11.04",
+      "9.68",
+      "2.96",
+      "10.83"
+    ]
+  },
+  {
+    "id": "fluid-elec-133",
+    "question": "Atrial natriuretic peptide is a hormone that is made in the atria of the heart. The influence of this hormone is",
+    "correctAnswer": "To reduce blood pressure and blood volume by inhibiting sodium and water retention",
+    "rationale": "ANP is released in response to atrial stretching from high blood volume. It promotes sodium and water excretion, reducing blood volume and pressure.",
+    "hint": "ANP is released when the heart is stretched.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "To enhance atrial contractions",
+      "To activate the renin-angiotensin mechanism",
+      "To prevent pH changes caused by organic acid",
+      "To reduce blood pressure and blood volume by inhibiting sodium and water retention"
+    ]
+  },
+  {
+    "id": "fluid-elec-134",
+    "question": "Bicarbonate is lost during which of the following clinical conditions?",
+    "correctAnswer": "Diarrhea",
+    "rationale": "Intestinal and pancreatic secretions are rich in bicarbonate. Significant diarrhea can cause a loss of this base, leading to metabolic acidosis.",
+    "hint": "GI fluids contain a lot of bicarbonate.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Diarrhea",
+      "Diuresis",
+      "Diaphoresis",
+      "Vomiting"
+    ]
+  },
+  {
+    "id": "fluid-elec-135",
+    "question": "Which of the following hormones is important in the regulation of sodium ion concentrations in the extracellular fluid?",
+    "correctAnswer": "Aldosterone",
+    "rationale": "Aldosterone promotes the reabsorption of sodium in the kidneys, directly regulating sodium ion concentration in the ECF.",
+    "hint": "Which hormone causes the body to hold onto sodium?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Antidiuretic hormone",
+      "Erythropoietin",
+      "Aldosterone",
+      "Rennin"
+    ]
+  },
+  {
+    "id": "fluid-elec-136",
+    "question": "A student is nervous for a big exam and is breathing rapidly, what do you expect out of the followings:",
+    "correctAnswer": "Respiratory Alkalosis",
+    "rationale": "Rapid breathing (hyperventilation) causes excessive loss of CO2, which decreases carbonic acid and leads to respiratory alkalosis.",
+    "hint": "Rapid breathing blows off CO2.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Metabolic Acidosis",
+      "Metabolic Alkalosis",
+      "Respiratory Acidosis",
+      "Respiratory Alkalosis"
+    ]
+  },
+  {
+    "id": "fluid-elec-137",
+    "question": "Magnesium reabsorption is controlled by:",
+    "correctAnswer": "Parathyroid hormone",
+    "rationale": "Parathyroid hormone (PTH) is a key regulator of magnesium reabsorption in the kidneys.",
+    "hint": "Which hormone is involved in magnesium regulation?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Loop of Henle",
+      "Glomerulus",
+      "Pituitary",
+      "Parathyroid hormone"
+    ]
+  },
+  {
+    "id": "fluid-elec-138",
+    "question": "Hypokaelamia can occur as a result of",
+    "correctAnswer": "Excessive potassium loss, Inadequate potassium intake, Movement of potassium from extracellular fluid to intracellular fluid",
+    "rationale": "Hypokalemia can result from excessive loss, inadequate intake, or a shift of K+ from the ECF into the ICF.",
+    "hint": "Hypokalemia = too little K+ in the blood.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Excessive potassium loss",
+      "Inadequate potassium intake",
+      "Movement of potassium from extracellular fluid to intracellular fluid",
+      "Movement of potassium from intracellular fluid to extracellular fluid"
+    ]
+  },
+  {
+    "id": "fluid-elec-139",
+    "question": "Chloride helps maintain acid-base balance by performing which of the following roles?",
+    "correctAnswer": "Participating in the chloride shift",
+    "rationale": "The chloride shift (also known as the Hamburger effect) involves the exchange of chloride and bicarbonate across red blood cell membranes, which is essential for CO2 transport and acid-base balance.",
+    "hint": "The chloride shift is a key process in CO2 transport.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Participating in the chloride shift",
+      "Following sodium to maintain serum osmolarity",
+      "Maintaining the balance of cations in the ICF and ECF",
+      "Separating carbonic acid"
+    ]
+  },
+  {
+    "id": "fluid-elec-140",
+    "question": "The nurse is caring for a client on digitalis. For which electrolyte abnormality should the nurse assess to minimize the risk of digitalis toxicity?",
+    "correctAnswer": "Potassium 3.0 mEq/L",
+    "rationale": "Hypokalemia (potassium < 3.5 mEq/L) increases the risk of digitalis toxicity. This is a classic drug-nutrient interaction.",
+    "hint": "What electrolyte, when low, increases digitalis toxicity?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Potassium 3.0 mEq/L",
+      "Calcium 9.2 mEq/L",
+      "Sodium 132 mEq/L",
+      "Magnesium 1.0 mEq/L"
+    ]
+  },
+  {
+    "id": "fluid-elec-141",
+    "question": "Which of the following hormones helps regulate chloride reabsorption?",
+    "correctAnswer": "Aldosterone",
+    "rationale": "Chloride reabsorption is passively linked to sodium reabsorption, which is regulated by aldosterone.",
+    "hint": "Chloride follows sodium.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Antidiuretic hormone",
+      "Renin",
+      "Estrogen",
+      "Aldosterone"
+    ]
+  },
+  {
+    "id": "fluid-elec-142",
+    "question": "The nurse is assessing an adult female client for hypovolemia. Which laboratory result would help the nurse in confirming a volume deficit?",
+    "correctAnswer": "Hematocrit 55%",
+    "rationale": "In hypovolemia, plasma volume decreases, leading to a relative increase in the concentration of cellular components, raising the hematocrit.",
+    "hint": "In dehydration, the blood becomes concentrated.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Hematocrit 55%",
+      "Potassium 5.0 mEq/L",
+      "Urine specific gravity 1.016",
+      "BUN 18 mg/dL"
+    ]
+  },
+  {
+    "id": "fluid-elec-143",
+    "question": "The infusion that has a slightly higher degree of osmolarity than blood is..",
+    "correctAnswer": "Dextrose saline",
+    "rationale": "Dextrose saline (typically 5% dextrose in 0.9% saline) is slightly hypertonic relative to plasma.",
+    "hint": "Dextrose saline is a hypertonic solution.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Sodium chloride solution",
+      "Dextrose saline",
+      "Mannitol",
+      "Darrows solution"
+    ]
+  },
+  {
+    "id": "fluid-elec-144",
+    "question": "Severe hyponatremia can be treated with small- volume infusion of.",
+    "correctAnswer": "Hypertonic IV infusion of 2% to 3% saline",
+    "rationale": "Severe, symptomatic hyponatremia is treated carefully with a small-volume infusion of hypertonic (3%) saline.",
+    "hint": "Severe hyponatremia requires a concentrated salt solution.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Hypotonic IV infusion usually 0.225% NaCl",
+      "Isotonic IV infusion of NaCl solution",
+      "Hypertonic IV infusion of 2% to 3% saline",
+      "None of the above"
+    ]
+  },
+  {
+    "id": "fluid-elec-145",
+    "question": "After obtaining an EKG on a patient you notice that ST depression is present along with an inverted T wave and prominent U wave. What lab value would be the cause of this finding?",
+    "correctAnswer": "Potassium level of 2.2",
+    "rationale": "These ECG changes are characteristic of hypokalemia.",
+    "hint": "ST depression, inverted T, and U wave are classic for low potassium.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Magnesium level of 2.2",
+      "Potassium level of 5.6",
+      "Potassium level of 2.2",
+      "Phosphorus level of 2.0"
+    ]
+  },
+  {
+    "id": "fluid-elec-146",
+    "question": "Chloride is absorbed in the:",
+    "correctAnswer": "Bowel",
+    "rationale": "Chloride from HCl in gastric juice is primarily absorbed in the small intestine (bowel).",
+    "hint": "Where is chloride from HCl absorbed?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Stomach",
+      "Bowel",
+      "Liver",
+      "Kidney"
+    ]
+  },
+  {
+    "id": "fluid-elec-147",
+    "question": "Which patient is at most risk for hypomagnesemia?",
+    "correctAnswer": "A 55 year old chronic alcoholic",
+    "rationale": "Alcoholism is a common cause of hypomagnesemia due to poor dietary intake, GI losses, and increased renal excretion.",
+    "hint": "Alcoholism is a major cause of magnesium deficiency.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "A 55 year old chronic alcoholic",
+      "A 57 year old with hyperthyroidism",
+      "A patient reporting overuse of antacids and laxatives",
+      "A 25 year old suffering from hypoglycemia"
+    ]
+  },
+  {
+    "id": "fluid-elec-148",
+    "question": "The type of fluid used to manipulate fluid shifts among compartments states is:",
+    "correctAnswer": "Albumin",
+    "rationale": "Albumin is a colloid; its presence increases oncotic pressure, which can be used to draw fluid from the interstitial space into the intravascular space.",
+    "hint": "Albumin creates an osmotic pull to move fluids.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Whole blood",
+      "TPN",
+      "Albumin",
+      "Ensure"
+    ]
+  },
+  {
+    "id": "fluid-elec-149",
+    "question": "Which of the following does not depend on the presence of electrolytes:",
+    "correctAnswer": "Amount of body fat",
+    "rationale": "Body fat is a storage form of energy and has no direct dependence on electrolyte presence.",
+    "hint": "Body fat is a mass, not a function.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Membrane polarity",
+      "Neuromuscular excitability",
+      "Maintenance of osmotic relations between cells and ECF",
+      "Amount of body fat"
+    ]
+  },
+  {
+    "id": "fluid-elec-150",
+    "question": "A patient is breathing slowly and blood pH analysis indicates an abnormally high value. What is the likely diagnosis?",
+    "correctAnswer": "Metabolic alkalosis",
+    "rationale": "Slow breathing (hypoventilation) leads to CO2 retention and respiratory acidosis. A high pH with slow breathing indicates metabolic alkalosis with respiratory compensation.",
+    "hint": "Slow breathing = hypoventilation, which retains CO2.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Respiratory acidosis",
+      "Metabolic acidosis",
+      "Metabolic alkalosis",
+      "Respiratory alkalosis"
+    ]
+  },
+  {
+    "id": "fluid-elec-151",
+    "question": "What is the concentration of ammonium chloride in a solution if its pH is 4.80?",
+    "correctAnswer": "0.30 M",
+    "rationale": "Using the Henderson-Hasselbalch equation for an acidic salt solution yields a concentration of approximately 0.30 M.",
+    "hint": "NH4Cl is a salt of a weak base and strong acid.",
+    "subject": "Chemistry",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "0.25 M",
+      "0.30 M",
+      "0.60 M",
+      "0.45 M"
+    ]
+  },
+  {
+    "id": "fluid-elec-152",
+    "question": "The net diffusion of water from one solution of water from one solution through a semi permeable membrane to another solution containing a lower concentration of water is termed:",
+    "correctAnswer": "Osmosis",
+    "rationale": "This description is the textbook definition of osmosis.",
+    "hint": "This is the definition of osmosis.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Filtration",
+      "Diffusion",
+      "Osmosis",
+      "Brownian motion"
+    ]
+  },
+  {
+    "id": "fluid-elec-153",
+    "question": "One of the major physiological factors that triggers thirst is",
+    "correctAnswer": "A rise in plasma osmolality",
+    "rationale": "An increase in plasma osmolality is the primary physiological stimulus for thirst.",
+    "hint": "The main trigger for thirst is the concentration of the blood.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "A dry mouth from high temperatures",
+      "Becoming overly agitated",
+      "Drinking caffeinated beverages",
+      "A rise in plasma osmolality"
+    ]
+  },
+  {
+    "id": "fluid-elec-154",
+    "question": "The term alkaline reserve is used to describe the. buffer system:",
+    "correctAnswer": "Bicarbonate",
+    "rationale": "The 'alkaline reserve' refers to the amount of bicarbonate (HCO3-) available in the blood to buffer acids.",
+    "hint": "The body's main buffer reserve is bicarbonate.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Phosphate",
+      "Hemoglobin",
+      "Bicarbonate",
+      "Protein"
+    ]
+  },
+  {
+    "id": "fluid-elec-155",
+    "question": "Mrs. Jones who is diagnosed of bipolar disorder has been drinking copious amounts of water and voiding frequently. The patient is experiencing muscle cramps, twitching, and is reporting dizziness, the nurse checks lab work for:",
+    "correctAnswer": "Electrolytes, particularly the serum sodium",
+    "rationale": "Excessive water intake can cause water intoxication and dilutional hyponatremia. Muscle cramps, twitching, and dizziness are symptoms of hyponatremia.",
+    "hint": "Drinking too much water can cause a problem with what?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Complete blood count results, particularly the platelets",
+      "Electrolytes, particularly the serum sodium",
+      "Urine analysis, particularly for the presence of white blood cells",
+      "EEG results"
+    ]
+  },
+  {
+    "id": "fluid-elec-156",
+    "question": "Which of the following fluid is a colloid volume expander:",
+    "correctAnswer": "Blood",
+    "rationale": "Blood contains plasma proteins, which makes it a colloid, and it acts as a volume expander.",
+    "hint": "Whole blood is a colloid.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Normal saline",
+      "Mannitol",
+      "Blood",
+      "Ringer lactate"
+    ]
+  },
+  {
+    "id": "fluid-elec-157",
+    "question": "The balance of anions and cations as it occurs across cell membranes is known as:",
+    "correctAnswer": "Electrical neutrality",
+    "rationale": "The balance between positive and negative charges across a cell membrane is known as electrical neutrality.",
+    "hint": "The body maintains a balance of charges.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Osmotic activity",
+      "Electrical neutrality",
+      "Electrical stability",
+      "Sodium-potassium pump"
+    ]
+  },
+  {
+    "id": "fluid-elec-158",
+    "question": "A buffer system is used to prevent substantial changes in a solution's:",
+    "correctAnswer": "pH",
+    "rationale": "A buffer's primary function is to maintain a stable pH by resisting changes in hydrogen ion concentration.",
+    "hint": "Buffers resist changes in pH.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Acid",
+      "pH",
+      "Base",
+      "Alkaline"
+    ]
+  },
+  {
+    "id": "fluid-elec-159",
+    "question": "The intracellular compartment holds water and:",
+    "correctAnswer": "Proteins",
+    "rationale": "The intracellular fluid is rich in proteins and potassium.",
+    "hint": "What is the main solute inside the cell?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Proteins",
+      "Glucose",
+      "Sodium",
+      "Uric acid"
+    ]
+  },
+  {
+    "id": "fluid-elec-160",
+    "question": "Which ECG finding is most likely to be present in the client with potassium of 6.0 mEq/L?",
+    "correctAnswer": "Peaked T waves",
+    "rationale": "Peaked (tall, tented) T waves are the classic early ECG sign of hyperkalemia.",
+    "hint": "High potassium causes what characteristic ECG change?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Depressed S-T segments",
+      "Presence of U wave",
+      "Peaked T waves",
+      "Fusion of the T and U waves"
+    ]
+  },
+  {
+    "id": "fluid-elec-161",
+    "question": "The majority gastrointestinal reabsorption of water occurs in:",
+    "correctAnswer": "Small intestines",
+    "rationale": "The small intestine is the primary site of water absorption in the gastrointestinal tract.",
+    "hint": "Where does most of the water from digestion get absorbed?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Small intestines",
+      "The esophagus",
+      "The colon",
+      "The stomach"
+    ]
+  },
+  {
+    "id": "fluid-elec-162",
+    "question": "The nurse is assessing a client with symptoms of hyperphosphatemia. Which of the following is most likely related to the client's symptoms?",
+    "correctAnswer": "Radiation to the neck",
+    "rationale": "Radiation to the neck can damage the parathyroid glands, affecting calcium and phosphate regulation.",
+    "hint": "This can affect the parathyroid glands.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Radiation to the neck",
+      "Recent orthopedic surgery",
+      "Minimal physical activity",
+      "Adherence to a vegan diet"
+    ]
+  },
+  {
+    "id": "fluid-elec-163",
+    "question": "Isotonic FVD can result from:",
+    "correctAnswer": "GI fluid loss through diarrhea",
+    "rationale": "GI fluid loss from diarrhea involves a proportional loss of water and electrolytes, making it isotonic.",
+    "hint": "Diarrhea causes loss of salt and water together.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "GI fluid loss through diarrhea",
+      "Insensible water loss during prolonged fever",
+      "Inadequate ingestion of fluids and electrolytes",
+      "Impaired thirst regulation"
+    ]
+  },
+  {
+    "id": "fluid-elec-164",
+    "question": "The major electrolyte in the extracellular fluid is.",
+    "correctAnswer": "Sodium",
+    "rationale": "Sodium is the major extracellular cation.",
+    "hint": "Sodium is the dominant cation outside the cell.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Potassium",
+      "Calcium",
+      "Chloride",
+      "Sodium"
+    ]
+  },
+  {
+    "id": "fluid-elec-165",
+    "question": "The majority of the body's water is contained in which of the following fluid compartments?",
+    "correctAnswer": "Intracellular",
+    "rationale": "Approximately two-thirds of total body water is in the intracellular fluid compartment.",
+    "hint": "Most of the body's water is inside cells.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Intracellular",
+      "Interstitial",
+      "Intravascular",
+      "Extracellular"
+    ]
+  },
+  {
+    "id": "fluid-elec-166",
+    "question": "Etiologies associated with hypomagnesemia include:",
+    "correctAnswer": "Malabsorption syndrome",
+    "rationale": "Malabsorption syndromes prevent the absorption of dietary magnesium, leading to hypomagnesemia.",
+    "hint": "What condition prevents the body from absorbing nutrients?",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Decreased vitamin D intake",
+      "Constipation",
+      "Malabsorption syndrome",
+      "Renal failure"
+    ]
+  },
+  {
+    "id": "fluid-elec-167",
+    "question": "Which of the following electrolyte imbalances is likely to result in a shortened QT interval?",
+    "correctAnswer": "Hypercalcemia",
+    "rationale": "Hypercalcemia shortens the QT interval on the ECG.",
+    "hint": "High calcium speeds up ventricular repolarization.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Hypercalcemia",
+      "Hyponatremia",
+      "Hypomagnesemia",
+      "Hyperphosphatemia"
+    ]
+  },
+  {
+    "id": "fluid-elec-168",
+    "question": "Electrolytes are obtained for the body from drinking water, metabolic reaction. and",
+    "correctAnswer": "Food",
+    "rationale": "Food is the primary source of electrolytes for the body.",
+    "hint": "The main source of electrolytes is the diet.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Blood",
+      "Food",
+      "Perspiration",
+      "Elimination"
+    ]
+  },
+  {
+    "id": "fluid-elec-169",
+    "question": "Acidosis denotes:",
+    "correctAnswer": "H* increase",
+    "rationale": "Acidosis is a condition characterized by an increase in hydrogen ion (H+) concentration in the body fluids, leading to a lower pH.",
+    "hint": "Acidosis means the blood is too acidic.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "pH increase",
+      "Both H and pH increase",
+      "H* increase",
+      "Increase hydrochloric Acid (Hcl)"
+    ]
+  },
+  {
+    "id": "fluid-elec-170",
+    "question": "The danger of fluid sequestered in the third space is that the fluid:",
+    "correctAnswer": "Is not available for circulation",
+    "rationale": "Fluid in the 'third space' (e.g., ascites, pleural effusion) is trapped and unavailable for normal circulation, leading to hypovolemia.",
+    "hint": "Third-spaced fluid is trapped and not part of the functional ECF.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Is hypertonic and can cause hypervolemia",
+      "Is hypotonic and can cause water intoxication",
+      "Is not available for circulation",
+      "Contains large amounts of acids"
+    ]
+  },
+  {
+    "id": "fluid-elec-171",
+    "question": "The presence of abnormally large amounts of water in the interstitial tissue causes the condition called:",
+    "correctAnswer": "Edema",
+    "rationale": "Edema is defined as an abnormal accumulation of fluid in the interstitial tissue spaces.",
+    "hint": "This is the medical term for swelling.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Edema",
+      "Ascites",
+      "Hypertension",
+      "Renal failure"
+    ]
+  },
+  {
+    "id": "fluid-elec-172",
+    "question": "The following are the classification of intravenous solutions used for fluid replacement EXCEPT:",
+    "correctAnswer": "Electrolytes",
+    "rationale": "Electrolytes are solutes, not a general classification of IV fluids for replacement.",
+    "hint": "Electrolytes are components, not a solution type.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Crystalloids",
+      "Blood and blood products",
+      "Electrolytes",
+      "Colloids"
+    ]
+  },
+  {
+    "id": "fluid-elec-173",
+    "question": "The extracellular fluid space holds water, electrolytes, proteins and",
+    "correctAnswer": "Red blood cells",
+    "rationale": "The extracellular fluid includes blood plasma, which contains red blood cells.",
+    "hint": "The ECF includes the plasma in blood vessels.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Red blood cells",
+      "Potassium",
+      "Lipids",
+      "Nucleic acids"
+    ]
+  },
+  {
+    "id": "fluid-elec-174",
+    "question": "At the venule end of the capillary, water leaves the interstitial space and enters the capillary because the colloid osmotic pressure exceeds the..",
+    "correctAnswer": "Hydrostatic pressure",
+    "rationale": "At the venous end, colloid osmotic (oncotic) pressure, which pulls water into the capillary, is greater than the hydrostatic pressure, which pushes water out.",
+    "hint": "The 'pull' is greater than the 'push'.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Oncotic pressure",
+      "Plasma pressure",
+      "Hydrostatic pressure",
+      "Colloid oncotic pressure"
+    ]
+  },
+  {
+    "id": "fluid-elec-175",
+    "question": "Which of the following clinical conditions exacerbates electrolyte excretion?",
+    "correctAnswer": "Use of surgical drains",
+    "rationale": "Surgical drains remove fluid from the body, which will contain electrolytes, thus exacerbating their loss.",
+    "hint": "Drains actively remove fluids.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Nasogastric feedings",
+      "Use of surgical drains",
+      "Immobility from fractures",
+      "Chronic water drinking"
+    ]
+  },
+  {
+    "id": "fluid-elec-176",
+    "question": "The nurse is caring for an older client hospitalized with dehydration. Which site should be used to check for skin turgor?",
+    "correctAnswer": "Abdomen",
+    "rationale": "Skin turgor assessment in older adults is more accurate on the abdomen or sternum, as skin on the hands and arms loses elasticity.",
+    "hint": "Skin turgor in older adults is best assessed in a central location.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Hand",
+      "Arm",
+      "Abdomen",
+      "Forehead"
+    ]
+  },
+  {
+    "id": "fluid-elec-177",
+    "question": "The loss of water at the arteriole end of the capillary is similar to that taking place in the glomerulus of the kidney, and the process is called:",
+    "correctAnswer": "Filtration",
+    "rationale": "Filtration is the process by which hydrostatic pressure pushes water and small solutes out of the capillary, similar to what happens in the glomerulus.",
+    "hint": "This process is driven by hydrostatic pressure.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Filtration",
+      "Elimination",
+      "Reabsorption",
+      "Selective reabsorption"
+    ]
+  },
+  {
+    "id": "fluid-elec-178",
+    "question": "A child is hospitalized because of persistent vomiting. The nurse monitors the child closely for",
+    "correctAnswer": "Metabolic alkalosis",
+    "rationale": "Persistent vomiting leads to the loss of hydrochloric acid (HCl) from the stomach, which causes metabolic alkalosis.",
+    "hint": "Vomiting removes stomach acid.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Metabolic alkalosis",
+      "Metabolic acidosis",
+      "Diarrhea",
+      "Hyperactive bowel sound"
+    ]
+  },
+  {
+    "id": "fluid-elec-179",
+    "question": "According to Starling's law, at the arteriole end of the capillary water leaves the capillary and enters the interstitial fluid because the hydrostatic pressure exceeds the......",
+    "correctAnswer": "Colloid osmotic pressure",
+    "rationale": "At the arterial end of the capillary, the hydrostatic pressure is high and exceeds the colloid osmotic (oncotic) pressure, forcing fluid out.",
+    "hint": "The 'push' is stronger than the 'pull' at the arteriole end.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Colloid osmotic pressure",
+      "Colloid Hydrostatic pressure",
+      "Colloid Oncotic pressure",
+      "None of these"
+    ]
+  },
+  {
+    "id": "fluid-elec-180",
+    "question": "Negatively charged ions are known as....",
+    "correctAnswer": "Anions",
+    "rationale": "Anions are ions that carry a negative charge.",
+    "hint": "Anions are negative.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Easy",
+    "source": "Richard's Bank",
+    "options": [
+      "Cations",
+      "Anions",
+      "Ion",
+      "All of these"
+    ]
+  },
+  {
+    "id": "fluid-elec-181",
+    "question": "Proteins act as powerful buffers in the body because they contain carboxyl groups and.",
+    "correctAnswer": "Amino group",
+    "rationale": "Proteins buffer because they contain both acidic (carboxyl) and basic (amino) groups, allowing them to both donate and accept H+ ions.",
+    "hint": "Proteins can act as both acids and bases.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Amino group",
+      "Carboxyl group",
+      "Hydroxyl group",
+      "All of these"
+    ]
+  },
+  {
+    "id": "fluid-elec-182",
+    "question": "Which does not cause metabolic alkalosis?",
+    "correctAnswer": "Diarrhoea",
+    "rationale": "Diarrhea causes metabolic acidosis due to the loss of bicarbonate. The others are causes of metabolic alkalosis.",
+    "hint": "Diarrhea causes acidosis, not alkalosis.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Vomiting",
+      "Diarrhoea",
+      "Loop diuretics",
+      "Thiazide diuretics"
+    ]
+  },
+  {
+    "id": "fluid-elec-183",
+    "question": "Hypoproteinemia is a condition of unusually low levels of plasma proteins. This problem is often characterized by",
+    "correctAnswer": "Tissue edema",
+    "rationale": "Hypoproteinemia decreases plasma colloid osmotic pressure, causing fluid to shift into the interstitial space, leading to edema.",
+    "hint": "Low protein means less pull to keep water in the blood.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Moderate",
+    "source": "Richard's Bank",
+    "options": [
+      "Tissue edema",
+      "Extreme weight loss",
+      "Extreme weight gain",
+      "Nerve damage"
+    ]
+  },
+  {
+    "id": "fluid-elec-184",
+    "question": "The single most important factor influencing potassium ion secretion is",
+    "correctAnswer": "Potassium ion concentration in blood plasma",
+    "rationale": "The concentration of potassium in the blood plasma is the primary factor influencing its rate of secretion by the kidneys.",
+    "hint": "The blood concentration is the main driver.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "The potassium ion content in the renal tubule cells",
+      "pH of the ICF",
+      "Intracellular sodium levels",
+      "Potassium ion concentration in blood plasma"
+    ]
+  },
+  {
+    "id": "fluid-elec-185",
+    "question": "Excessive citrate in transfused blood can cause which of the following abnormalities?",
+    "correctAnswer": "Metabolic alkalosis",
+    "rationale": "Citrate is metabolized by the liver to bicarbonate, which can lead to metabolic alkalosis, especially in patients with liver failure.",
+    "hint": "Citrate is metabolized to bicarbonate.",
+    "subject": "Medical Surgical",
+    "category": "NCLEX",
+    "difficulty": "Hard",
+    "source": "Richard's Bank",
+    "options": [
+      "Metabolic alkalosis",
+      "Metabolic acidosis",
+      "Respiratory alkalosis",
+      "Respiratory acidosis"
+    ]
+  }
+]
