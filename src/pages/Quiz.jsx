@@ -25,6 +25,8 @@ import {
   AlertCircle,
   Sparkles
 } from '../components/Icons';
+import ModeCard from '../components/ModeCard';
+import useluData from '../data/flashcards/nmcn/uselu-posting-tests.json';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const MILESTONES = [
@@ -155,14 +157,22 @@ const Quiz = () => {
 
   // Quiz Initialization
   const initQuiz = (mode, subject = null) => {
-    if (!flashcards || flashcards.length === 0) return;
-    // Only use questions from Richard's Bank or NMCN category
-    let pool = flashcards.filter(c =>
-      (c.source || '').toLowerCase().includes("richard") ||
-      (c.category || '').toLowerCase() === 'nmcn'
-    );
-    if (subject) {
-      pool = pool.filter(c => c.subject === subject);
+    let pool = [];
+    if (mode === 'uselu') {
+      pool = useluData;
+      if (subject) {
+        pool = pool.filter(c => c.subject === subject);
+      }
+    } else {
+      if (!flashcards || flashcards.length === 0) return;
+      // Only use questions from Richard's Bank or NMCN category
+      pool = flashcards.filter(c =>
+        (c.source || '').toLowerCase().includes("richard") ||
+        (c.category || '').toLowerCase() === 'nmcn'
+      );
+      if (subject) {
+        pool = pool.filter(c => c.subject === subject);
+      }
     }
     if (pool.length === 0) return;
 
@@ -421,13 +431,13 @@ const Quiz = () => {
             }}
           />
           <ModeCard
-            title="Subject Mastery"
-            desc="Target specific clinical subjects to eliminate weak spots."
+            title="Uselu Test Questions"
+            desc="Focused practice with the Uselu Posting test question bank."
             icon={<Target size={32} />}
             duration="Focused"
             timer={useTimer ? "30s/Q" : "Adaptive"}
             color="indigo"
-            onClick={() => initQuiz('subject', selectedSubject)}
+            onClick={() => initQuiz('uselu', selectedSubject)}
           />
           <ModeCard
             title="Speed Challenge"
