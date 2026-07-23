@@ -20,29 +20,82 @@ const XpHall = () => {
   const [countdown, setCountdown] = useState(3);
   const [result, setResult] = useState(null);
   const [playerXP, setPlayerXP] = useState((studyStats?.quizStreak || 0) * 10 + 240);
+  
+  // Question State
+  const { flashcards } = useAppContext();
+  const [currentQuestion, setCurrentQuestion] = useState(null);
+  const [questionTimeLeft, setQuestionTimeLeft] = useState(20);
+  const [userAnswerState, setUserAnswerState] = useState(null); // 'correct' or 'wrong'
 
   const startBattle = useCallback(() => { setPhase("countdown"); setCountdown(3); }, []);
 
+  // Pre-game Countdown
   useEffect(() => {
     if (phase !== "countdown") return;
     if (countdown <= 0) {
-      const num = mode.players;
-      const winnerIdx = Math.floor(Math.random() * num);
-      const names = allNames.slice(0, num);
-      const breakdown = names.map((name, i) => ({
-        name, wager: stake, result: i === winnerIdx ? "won" : "lost",
-        delta: i === winnerIdx ? stake * (num - 1) : -stake,
-        score: Math.floor(Math.random() * 10) + 1,
-      }));
-      setResult({ winner: names[winnerIdx], breakdown });
-      if (winnerIdx === 0) setPlayerXP(prev => prev + stake * (num - 1));
-      else setPlayerXP(prev => prev - stake);
-      setPhase("result");
+      // Transition to question phase instead of random result
+      let hardCards = flashcards?.filter(c => c.difficulty?.toLowerCase() === 'hard' || c.difficulty?.toLowerCase() === 'difficult') || [];
+      if (hardCards.length === 0) hardCards = flashcards || []; // Fallback to all
+      
+      const randomCard = hardCards[Math.floor(Math.random() * hardCards.length)];
+      if (randomCard) {
+         let options = [];
+         if (Array.isArray(randomCard.options) && randomCard.options.length >= 2) {
+             options = [...randomCard.options].sort(() => 0.5 - Math.random());
+         } else {
+             const distractors = flashcards
+                .filter(c => c.id !== randomCard.id && c.answer !== randomCard.answer)
+                .sort(() => 0.5 - Math.random())
+                .slice(0, 3)
+                .map(c => c.answer);
+             options = [randomCard.correctAnswer || randomCard.answer, ...distractors].sort(() => 0.5 - Math.random());
+         }
+         setCurrentQuestion({ ...randomCard, generatedOptions: options });
+      }
+      
+      setPhase("question");
+      setQuestionTimeLeft(20);
+      setUserAnswerState(null);
       return;
     }
     const t = setTimeout(() => setCountdown(c => c - 1), 1000);
     return () => clearTimeout(t);
-  }, [phase, countdown, mode, stake]);
+  }, [phase, countdown, flashcards]);
+
+  // Question Timer
+  useEffect(() => {
+     if (phase !== "question" || userAnswerState !== null) return;
+     if (questionTimeLeft <= 0) {
+        handleAnswer(null); // Time out = wrong
+        return;
+     }
+     const t = setTimeout(() => setQuestionTimeLeft(c => c - 1), 1000);
+     return () => clearTimeout(t);
+  }, [phase, questionTimeLeft, userAnswerState]);
+
+  const handleAnswer = (option) => {
+     if (userAnswerState !== null) return;
+     const correct = option === (currentQuestion?.correctAnswer || currentQuestion?.answer);
+     setUserAnswerState(correct ? 'correct' : 'wrong');
+     
+     // Evaluate results after a short delay
+     setTimeout(() => {
+        const num = mode.players;
+        const winnerIdx = correct ? 0 : Math.floor(Math.random() * (num - 1)) + 1; // If wrong, random opponent wins
+        const names = allNames.slice(0, num);
+        
+        const breakdown = names.map((name, i) => ({
+          name, wager: stake, result: i === winnerIdx ? "won" : "lost",
+          delta: i === winnerIdx ? stake * (num - 1) : -stake,
+          score: i === 0 ? (correct ? 10 : Math.floor(Math.random() * 4)) : (i === winnerIdx ? 9 : Math.floor(Math.random() * 6)),
+        }));
+        
+        setResult({ winner: names[winnerIdx], breakdown });
+        if (winnerIdx === 0) setPlayerXP(prev => prev + stake * (num - 1));
+        else setPlayerXP(prev => prev - stake);
+        setPhase("result");
+     }, 1500);
+  };
 
   return (
     <div className="min-h-screen bg-slate-950 text-white relative overflow-hidden">
@@ -147,6 +200,41 @@ const XpHall = () => {
               >{countdown}</motion.div>
               <p className="text-slate-500 text-sm font-medium">Opponents are joining the arena…</p>
             </motion.div>
+          )}
+
+          {phase === "question" && currentQuestion && (
+             <motion.div key="question" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} exit={{ opacity: 0 }} className="space-y-6">
+                <div className="flex justify-between items-center bg-white/5 border border-white/10 p-4 rounded-2xl">
+                   <div className="flex items-center gap-2">
+                      <Zap className="text-amber-500 animate-pulse" size={18} fill="currentColor" />
+                      <span className="text-xs font-black uppercase tracking-widest text-amber-500">SUDDEN DEATH</span>
+                   </div>
+                   <div className="font-black tabular-nums text-xl text-white">{questionTimeLeft}s</div>
+                </div>
+                <div className="text-center p-6 bg-gradient-to-br from-slate-900 to-slate-950 rounded-[2rem] border border-white/10 shadow-2xl">
+                   <h2 className="text-2xl font-black leading-snug">{currentQuestion.question}</h2>
+                </div>
+                <div className="grid grid-cols-1 gap-3">
+                   {currentQuestion.generatedOptions.map((opt, idx) => {
+                      let btnState = 'bg-white/5 border-white/10 hover:bg-white/10';
+                      if (userAnswerState) {
+                         const isCorrectOpt = opt === (currentQuestion.correctAnswer || currentQuestion.answer);
+                         if (isCorrectOpt) btnState = 'bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)]';
+                         else btnState = 'bg-white/5 border-white/5 text-white/30 opacity-50';
+                      }
+                      return (
+                         <button
+                            key={idx}
+                            disabled={userAnswerState !== null}
+                            onClick={() => handleAnswer(opt)}
+                            className={`w-full p-5 rounded-2xl border transition-all text-left font-bold ${btnState}`}
+                         >
+                            {opt}
+                         </button>
+                      );
+                   })}
+                </div>
+             </motion.div>
           )}
 
           {phase === "result" && result && (
