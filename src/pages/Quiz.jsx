@@ -42,6 +42,26 @@ const getSpeedTimerValue = (index) => {
   return 15;
 };
 
+const enterFullscreen = async () => {
+  try {
+    if (!document.fullscreenElement) {
+      await document.documentElement.requestFullscreen();
+    }
+  } catch (err) {
+    console.warn("Fullscreen request failed", err);
+  }
+};
+
+const exitFullscreen = async () => {
+  try {
+    if (document.fullscreenElement) {
+      await document.exitFullscreen();
+    }
+  } catch (err) {
+    console.warn("Exit fullscreen failed", err);
+  }
+};
+
 const Quiz = () => {
   const { flashcards, studyStats, updateQuizStats, darkMode } = useAppContext();
   const navigate = useNavigate();
@@ -77,6 +97,13 @@ const Quiz = () => {
 
   // Early Quit Messaging
   const [showQuitModal, setShowQuitModal] = useState(false);
+
+  // Exit fullscreen on unmount
+  useEffect(() => {
+    return () => {
+      exitFullscreen();
+    };
+  }, []);
 
   // Derived Data
   const subjects = useMemo(() => {
@@ -185,9 +212,13 @@ const Quiz = () => {
     if (mode === 'speed') {
       setTimeLeft(20);
       setMaxTime(20);
-    } else if (useTimer) {
-      setTimeLeft(30);
-      setMaxTime(30);
+      enterFullscreen();
+    } else {
+      if (useTimer) {
+        setTimeLeft(30);
+        setMaxTime(30);
+      }
+      exitFullscreen();
     }
   };
 
@@ -445,7 +476,7 @@ const Quiz = () => {
           )}
 
           <div className="flex flex-col sm:flex-row gap-4">
-             <button onClick={() => setQuizStarted(false)} className="flex-1 py-5 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-[2rem] font-black uppercase tracking-widest text-xs hover:bg-slate-200 transition-all">
+             <button onClick={() => { setQuizStarted(false); exitFullscreen(); }} className="flex-1 py-5 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-[2rem] font-black uppercase tracking-widest text-xs hover:bg-slate-200 transition-all">
                 Mode Selection
              </button>
              <button onClick={() => initQuiz(quizMode, selectedSubject)} className="flex-1 py-5 bg-medical-600 text-white rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl shadow-medical-500/20 active:scale-95 transition-all">
@@ -572,8 +603,7 @@ const Quiz = () => {
             {/* Options - Kahoot Style 2x2 for Speed, List for others */}
             <div className={`grid ${quizMode === 'speed' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-4`}>
                {currentQ?.options?.map((option, idx) => {
-                  const isTargetQuestion = currentQ?.source === "Richard's Bank" || currentQ?.category === "NCLEX";
-                  const isLearningHighlight = isTargetQuestion && option === currentQ?.correctAnswer;
+                  const isLearningHighlight = false; // Disabled premature answer highlighting
                   
                   return (
                   <OptionButton
@@ -657,7 +687,7 @@ const Quiz = () => {
                    <button onClick={() => setShowQuitModal(false)} className="w-full py-5 bg-medical-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-medical-500/20 active:scale-95 transition-all">
                       Stay and Master
                    </button>
-                   <button onClick={() => setQuizStarted(false)} className="w-full py-4 text-slate-400 hover:text-red-500 font-black uppercase tracking-widest text-[9px] transition-colors">
+                   <button onClick={() => { setQuizStarted(false); exitFullscreen(); }} className="w-full py-4 text-slate-400 hover:text-red-500 font-black uppercase tracking-widest text-[9px] transition-colors">
                       Quit for now
                    </button>
                 </div>
