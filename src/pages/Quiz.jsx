@@ -291,6 +291,7 @@ const Quiz = () => {
       if (newScore === 5) setSafetyNetScore(5);
       if (newScore === 10) setSafetyNetScore(10);
 
+      // Milestone is updated dynamically via useMemo
       setConsecutiveCorrect(prev => prev + 1);
       updateQuizStats({ quizStreak: (studyStats.quizStreak || 0) + 1 });
     } else {
@@ -559,7 +560,6 @@ const Quiz = () => {
              <h3 className="text-lg font-black tracking-tighter uppercase">{currentMilestone}</h3>
           </div>
           <div className="flex items-center gap-2">
-            {/* Review button to toggle question popup */}
             <button
               onClick={() => setShowQuestionPopup(!showQuestionPopup)}
               className="p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-2xl transition-all"
@@ -658,7 +658,7 @@ const Quiz = () => {
             {/* Options - Kahoot Style 2x2 for Speed, List for others */}
             <div className={`grid ${quizMode === 'speed' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-4`}>
                {currentQ?.options?.map((option, idx) => {
-                  const isLearningHighlight = false;
+                  const isLearningHighlight = false; // Disabled premature answer highlighting
                   
                   return (
                   <OptionButton
@@ -902,8 +902,8 @@ const Quiz = () => {
         )}
       </AnimatePresence>
 
-      {/* Floating arrow-up button - appears ONLY after an option is selected, disappears on next question */}
-      {!showQuestionPopup && quizStarted && !showResults && !showRationale && selectedOption !== null && (
+      {/* Floating arrow-up button - only appears when rationale is shown */}
+      {!showQuestionPopup && quizStarted && !showResults && showRationale && (
         <motion.button
           initial={{ scale: 0, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
