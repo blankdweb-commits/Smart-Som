@@ -37,6 +37,36 @@ const MILESTONES = [
   { q: 30, label: 'Clinical Legend', reward: 'Legendary Status' }
 ];
 
+const playRickAndMortySound = (type) => {
+  try {
+    let url;
+    if (type === 'start') url = 'https://www.myinstants.com/media/sounds/show-me-what-you-got.mp3';
+    else if (type === 'correct') url = 'https://www.myinstants.com/media/sounds/wubba-lubba-dub-dub.mp3';
+    
+    if (url) {
+      const audio = new Audio(url);
+      audio.volume = 0.7;
+      audio.play().catch(e => console.log('Audio play failed', e));
+    } else {
+      const utterance = new SpeechSynthesisUtterance();
+      if (type === 'wrong') {
+        const phrases = ["Wrong! What a failure.", "Oh geez, that's incorrect.", "You're a piece of garbage and I can prove it mathematically.", "Ooh wee, that's not right!"];
+        utterance.text = phrases[Math.floor(Math.random() * phrases.length)];
+        utterance.rate = 1.1;
+      } else if (type === 'timeout') {
+        utterance.text = "Time's up! Too slow, Morty!";
+        utterance.pitch = 1.5;
+        utterance.rate = 1.2;
+      }
+      if (utterance.text && window.speechSynthesis) {
+        window.speechSynthesis.speak(utterance);
+      }
+    }
+  } catch(e) {
+    console.log(e);
+  }
+};
+
 const getSpeedTimerValue = (index) => {
   if (index < 5) return 20;
   if (index < 10) return 18;
@@ -128,6 +158,7 @@ const Quiz = () => {
     if (quizMode === 'speed') {
       // Speed mode: time out = immediate quiz over
       updateQuizStats({ quizStreak: 0 });
+      playRickAndMortySound('timeout');
       setShowResults(true);
     } else {
       // Other modes: time out = mark wrong and show rationale
@@ -222,6 +253,7 @@ const Quiz = () => {
     if (mode === 'speed') {
       setTimeLeft(20);
       setMaxTime(20);
+      playRickAndMortySound('start');
       enterFullscreen();
     } else {
       if (useTimer) {
@@ -250,6 +282,7 @@ const Quiz = () => {
     setIsCorrect(correct);
     setIsFinalAnswer(false);
     if (correct) {
+      playRickAndMortySound('correct');
       const newScore = score + 1;
       setScore(newScore);
 
@@ -260,6 +293,7 @@ const Quiz = () => {
       setConsecutiveCorrect(prev => prev + 1);
       updateQuizStats({ quizStreak: (studyStats.quizStreak || 0) + 1 });
     } else {
+      playRickAndMortySound('wrong');
       setConsecutiveCorrect(0);
       setShowRationale(true);
       updateQuizStats({ quizStreak: 0 });
@@ -501,7 +535,7 @@ const Quiz = () => {
   const timerColor = timeLeft <= 3 ? 'bg-red-500' : timeLeft <= 10 ? 'bg-amber-500' : 'bg-emerald-500';
 
   return (
-    <div className={`min-h-screen flex flex-col ${quizMode === 'speed' ? 'bg-slate-950 text-white fixed inset-0 z-[100] overflow-y-auto' : ''} transition-colors duration-500 pb-48 overflow-x-hidden relative`}>
+    <div className={`min-h-screen flex flex-col ${quizMode === 'speed' ? 'bg-slate-950 text-white !fixed !inset-0 !z-[9999] !h-[100dvh] !w-[100vw] !overflow-y-auto !m-0 !p-0 overscroll-none' : ''} transition-colors duration-500 pb-48 overflow-x-hidden relative`}>
       {/* Speed Atmosphere Background Elements */}
       {quizMode === 'speed' && (
          <div className="absolute inset-0 pointer-events-none overflow-hidden">
