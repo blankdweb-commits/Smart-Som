@@ -2549,4 +2549,2555 @@
       "Administer sedatives"
     ]
   }
+  
+  {
+    "id": "mh-151",
+    "question": "A patient with schizophrenia is prescribed aripiprazole. The nurse understands that this medication's UNIQUE mechanism of action includes:",
+    "correctAnswer": "Partial dopamine D2 receptor agonism",
+    "rationale": "Aripiprazole is a partial agonist at dopamine D2 receptors, which stabilizes dopamine activity. This differs from typical antipsychotics that are antagonists.",
+    "hint": "What makes aripiprazole's mechanism unique?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Selective serotonin reuptake inhibition",
+      "Partial dopamine D2 receptor agonism",
+      "Full dopamine receptor blockade",
+      "GABA receptor modulation"
+    ]
+  },
+  {
+    "id": "mh-152",
+    "question": "A patient with bipolar depression is prescribed lurasidone. The nurse should monitor for which metabolic side effect?",
+    "correctAnswer": "Weight gain and increased glucose levels",
+    "rationale": "Lurasidone, like other atypical antipsychotics, can cause metabolic syndrome including weight gain, hyperglycemia, and dyslipidemia.",
+    "hint": "What metabolic changes are associated with lurasidone?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Weight loss",
+      "Weight gain and increased glucose levels",
+      "Hypoglycemia",
+      "Decreased appetite"
+    ]
+  },
+  {
+    "id": "mh-153",
+    "question": "A patient with treatment-resistant schizophrenia is started on clozapine. The nurse knows that the PRIMARY reason for regular blood monitoring is:",
+    "correctAnswer": "Risk of agranulocytosis",
+    "rationale": "Clozapine carries a black box warning for agranulocytosis, which can be fatal. Regular WBC monitoring is mandatory.",
+    "hint": "What life-threatening hematological side effect does clozapine have?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Risk of agranulocytosis",
+      "Risk of seizures",
+      "Risk of hepatotoxicity",
+      "Risk of nephrotoxicity"
+    ]
+  },
+  {
+    "id": "mh-154",
+    "question": "A patient with anxiety disorder is prescribed pregabalin. The nurse understands this medication is indicated for:",
+    "correctAnswer": "Generalized anxiety disorder as an alternative to benzodiazepines",
+    "rationale": "Pregabalin has GABA-mimetic properties and is FDA-approved for GAD, offering an alternative with less dependence potential than benzodiazepines.",
+    "hint": "What anxiety disorder is pregabalin used for?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Acute panic attacks",
+      "Generalized anxiety disorder as an alternative to benzodiazepines",
+      "Social anxiety disorder",
+      "Obsessive-compulsive disorder"
+    ]
+  },
+  {
+    "id": "mh-155",
+    "question": "A patient with schizophrenia experiencing catatonic excitement is at greatest risk for:",
+    "correctAnswer": "Self-harm or exhaustion",
+    "rationale": "Catatonic excitement involves severe agitation, which can lead to exhaustion, dehydration, or self-harm. Safety is the priority.",
+    "hint": "What is the primary risk in catatonic excitement?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Self-harm or exhaustion",
+      "Sleep disturbance",
+      "Weight gain",
+      "Social isolation"
+    ]
+  },
+  {
+    "id": "mh-156",
+    "question": "A patient with Alzheimer's disease is prescribed galantamine. The nurse should monitor for which side effect related to its mechanism?",
+    "correctAnswer": "Cholinergic effects like bradycardia and syncope",
+    "rationale": "Galantamine is a cholinesterase inhibitor and can cause vagotonic effects, including bradycardia and syncope due to increased acetylcholine.",
+    "hint": "What cholinergic side effect can occur with galantamine?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Cholinergic effects like bradycardia and syncope",
+      "Weight gain",
+      "Insomnia",
+      "Hypertension"
+    ]
+  },
+  {
+    "id": "mh-157",
+    "question": "A patient with bipolar disorder on carbamazepine is also prescribed oral contraceptives. The nurse should:",
+    "correctAnswer": "Inform the patient that carbamazepine can reduce contraceptive effectiveness",
+    "rationale": "Carbamazepine induces hepatic enzymes, reducing the effectiveness of oral contraceptives.",
+    "hint": "What drug interaction is important with carbamazepine and contraceptives?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Inform the patient that carbamazepine can reduce contraceptive effectiveness",
+      "Advise the patient to increase the contraceptive dose",
+      "Discontinue the contraceptive",
+      "Administer carbamazepine at a lower dose"
+    ]
+  },
+  {
+    "id": "mh-158",
+    "question": "A patient with schizophrenia is experiencing severe dystonia. The nurse should prepare to administer:",
+    "correctAnswer": "Anticholinergics such as benztropine or diphenhydramine",
+    "rationale": "Acute dystonic reactions are treated with anticholinergic agents, which help relieve the muscle spasms.",
+    "hint": "What medication treats acute dystonia?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Anticholinergics such as benztropine or diphenhydramine",
+      "Dopamine agonists",
+      "Benzodiazepines",
+      "Antipsychotics"
+    ]
+  },
+  {
+    "id": "mh-159",
+    "question": "A patient with major depressive disorder who is taking fluoxetine develops agitation, confusion, and muscle rigidity. The nurse suspects:",
+    "correctAnswer": "Serotonin syndrome",
+    "rationale": "These symptoms are classic for serotonin syndrome, a potentially fatal condition caused by excessive serotonin activity.",
+    "hint": "What syndrome includes confusion, agitation, and muscle rigidity?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Serotonin syndrome",
+      "Neuroleptic malignant syndrome",
+      "Tardive dyskinesia",
+      "Extrapyramidal symptoms"
+    ]
+  },
+  {
+    "id": "mh-160",
+    "question": "The nurse is educating a patient with dementia and their family about the disease progression. Which statement BEST describes the typical course of Alzheimer's disease?",
+    "correctAnswer": "It is a progressive neurodegenerative disorder with gradual decline in cognitive and functional abilities over 8-12 years",
+    "rationale": "Alzheimer's disease is a progressive disorder that typically follows a slow, steady decline over many years.",
+    "hint": "What is the typical progression of Alzheimer's?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "It is a progressive neurodegenerative disorder with gradual decline in cognitive and functional abilities over 8-12 years",
+      "It is a sudden onset condition",
+      "It is curable with medication",
+      "It only affects memory"
+    ]
+  },
+  {
+    "id": "mh-161",
+    "question": "A patient with generalized anxiety disorder is experiencing rebound anxiety after discontinuing a benzodiazepine. This is MOST likely due to:",
+    "correctAnswer": "Abrupt withdrawal leading to GABA receptor downregulation",
+    "rationale": "Benzodiazepines enhance GABA. With abrupt withdrawal, the downregulated receptors lead to rebound anxiety.",
+    "hint": "Why does rebound anxiety occur after stopping benzodiazepines?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Abrupt withdrawal leading to GABA receptor downregulation",
+      "Insufficient medication dose",
+      "Allergic reaction",
+      "Drug interaction"
+    ]
+  },
+  {
+    "id": "mh-162",
+    "question": "A patient with schizophrenia is experiencing affective flattening. The nurse should understand this symptom as:",
+    "correctAnswer": "A reduction in the range and intensity of emotional expression",
+    "rationale": "Affective flattening is characterized by a decrease in the outward expression of emotion, including facial expressions and gestures.",
+    "hint": "What is affective flattening?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "A reduction in the range and intensity of emotional expression",
+      "An increase in emotional expression",
+      "Inappropriate emotional responses",
+      "Rapid mood swings"
+    ]
+  },
+  {
+    "id": "mh-163",
+    "question": "A patient with bipolar disorder is prescribed lamotrigine. The nurse should educate the patient about the ",
+    "correctAnswer": "Risk of rash and to notify the provider if any rash develops",
+    "rationale": "Lamotrigine can cause Stevens-Johnson syndrome, a life-threatening rash. Patients must be instructed to report any rash immediately.",
+    "hint": "What serious side effect requires immediate notification?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Risk of rash and to notify the provider if any rash develops",
+      "Risk of weight gain",
+      "Risk of insomnia",
+      "Risk of hypertension"
+    ]
+  },
+  {
+    "id": "mh-164",
+    "question": "A patient with Alzheimer's disease is in the moderate stage. The nurse should expect the patient to exhibit:",
+    "correctAnswer": "Difficulty with instrumental activities of daily living, such as managing finances and cooking",
+    "rationale": "In moderate dementia, IADLs become increasingly difficult. These are more complex tasks requiring higher-level cognitive function.",
+    "hint": "What type of activities are affected in moderate dementia?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Difficulty with instrumental activities of daily living, such as managing finances and cooking",
+      "Loss of ability to speak",
+      "Complete dependence on others",
+      "Difficulty swallowing"
+    ]
+  },
+  {
+    "id": "mh-165",
+    "question": "A patient with panic disorder is started on an SSRI. The nurse should warn the patient that during the first few days of treatment:",
+    "correctAnswer": "Anxiety may temporarily worsen before it improves",
+    "rationale": "SSRIs can cause initial activation, leading to increased anxiety and restlessness before therapeutic effects occur.",
+    "hint": "What is a common initial effect of SSRIs?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Anxiety may temporarily worsen before it improves",
+      "Immediate relief from anxiety",
+      "No side effects",
+      "Complete elimination of panic attacks"
+    ]
+  },
+  {
+    "id": "mh-166",
+    "question": "A patient with schizophrenia is experiencing auditory hallucinations. The nurse should assess for:",
+    "correctAnswer": "Command hallucinations and whether the patient feels compelled to obey",
+    "rationale": "Command hallucinations are particularly dangerous. Assessing for this specific type is critical for safety.",
+    "hint": "What specific type of hallucination is most dangerous?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Command hallucinations and whether the patient feels compelled to obey",
+      "The loudness of the voices",
+      "The number of voices",
+      "The age of the voices"
+    ]
+  },
+  {
+    "id": "mh-167",
+    "question": "A patient with major depressive disorder is prescribed venlafaxine. The nurse should monitor for which side effect at high doses?",
+    "correctAnswer": "Hypertension",
+    "rationale": "Venlafaxine, an SNRI, can cause dose-dependent increases in blood pressure.",
+    "hint": "What cardiovascular side effect occurs with high-dose venlafaxine?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Hypertension",
+      "Hypotension",
+      "Bradycardia",
+      "Arrhythmias"
+    ]
+  },
+  {
+    "id": "mh-168",
+    "question": "The nurse is caring for a patient with dementia who is experiencing a 'catastrophic reaction.' The nurse should FIRST:",
+    "correctAnswer": "Remove the patient from the stressful situation and remain calm",
+    "rationale": "A catastrophic reaction is an overreaction to a perceived threat or demand. Removing the patient from the stressor and remaining calm is key.",
+    "hint": "What is the immediate approach for a catastrophic reaction?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Remove the patient from the stressful situation and remain calm",
+      "Administer a PRN sedative",
+      "Confront the patient",
+      "Restrain the patient"
+    ]
+  },
+  {
+    "id": "mh-169",
+    "question": "A patient with schizophrenia is experiencing anosognosia. The nurse should recognize this as:",
+    "correctAnswer": "A lack of awareness of the illness and its symptoms",
+    "rationale": "Anosognosia is a common symptom of schizophrenia, where the patient denies or lacks insight into their illness.",
+    "hint": "What is anosognosia?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "A lack of awareness of the illness and its symptoms",
+      "A lack of interest in activities",
+      "A lack of motivation",
+      "A lack of speech"
+    ]
+  },
+  {
+    "id": "mh-170",
+    "question": "A patient with bipolar disorder in a manic episode is started on olanzapine. The nurse should monitor for which side effect?",
+    "correctAnswer": "Sedation and weight gain",
+    "rationale": "Olanzapine is highly sedating and is associated with significant weight gain and metabolic changes.",
+    "hint": "What are common side effects of olanzapine?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Sedation and weight gain",
+      "Insomnia and weight loss",
+      "Agitation and restlessness",
+      "Hypertension and tachycardia"
+    ]
+  },
+  {
+    "id": "mh-171",
+    "question": "A patient with anxiety disorder is experiencing derealization. The nurse understands this as:",
+    "correctAnswer": "A feeling that the external world is unreal or distant",
+    "rationale": "Derealization is a dissociative symptom where the external environment feels unreal, dreamlike, or distant.",
+    "hint": "What is derealization?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "A feeling that the external world is unreal or distant",
+      "A feeling of detachment from oneself",
+      "A feeling of being controlled",
+      "A feeling of being watched"
+    ]
+  },
+  {
+    "id": "mh-172",
+    "question": "A patient with depression is experiencing cognitive deficits such as poor concentration. The nurse should:",
+    "correctAnswer": "Provide a quiet environment and break tasks into smaller segments",
+    "rationale": "Minimizing distractions and providing structure helps patients with cognitive impairments.",
+    "hint": "How can the nurse help with concentration difficulties?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a quiet environment and break tasks into smaller segments",
+      "Encourage multitasking",
+      "Provide a stimulating environment",
+      "Administer a stimulant"
+    ]
+  },
+  {
+    "id": "mh-173",
+    "question": "A patient with dementia is in the end stage. Which of the following nursing interventions is MOST appropriate?",
+    "correctAnswer": "Provide palliative care focusing on comfort and dignity",
+    "rationale": "In end-stage dementia, the focus shifts to comfort, symptom management, and maintaining dignity.",
+    "hint": "What is the focus of care in end-stage dementia?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide palliative care focusing on comfort and dignity",
+      "Aggressive cognitive therapies",
+      "Administer cognitive-enhancing medications",
+      "Encourage independence in all tasks"
+    ]
+  },
+  {
+    "id": "mh-174",
+    "question": "A patient with generalized anxiety disorder is started on an SSRI. The nurse should educate the patient that the medication will likely take how long to work?",
+    "correctAnswer": "4-8 weeks for full therapeutic effect",
+    "rationale": "SSRIs have a delayed onset of action, often 4-8 weeks.",
+    "hint": "What is the typical onset of action for SSRIs?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "4-8 weeks for full therapeutic effect",
+      "24 hours for full effect",
+      "2 weeks for full effect",
+      "Immediate effect"
+    ]
+  },
+  {
+    "id": "mh-175",
+    "question": "A patient with schizophrenia is experiencing avolition. The nurse should:",
+    "correctAnswer": "Break tasks into small steps and provide encouragement",
+    "rationale": "Avolition is a negative symptom requiring support and structure.",
+    "hint": "What approach is helpful for avolition?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Break tasks into small steps and provide encouragement",
+      "Leave the patient alone to rest",
+      "Administer a sedative",
+      "Discourage all activities"
+    ]
+  },
+  {
+    "id": "mh-176",
+    "question": "A patient with bipolar disorder is experiencing a mixed episode. The nurse should monitor for:",
+    "correctAnswer": "Concurrent symptoms of mania and depression, increasing suicide risk",
+    "rationale": "Mixed episodes involve symptoms of both mania and depression, which significantly increases the risk of suicide.",
+    "hint": "What is the risk in a mixed episode?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Concurrent symptoms of mania and depression, increasing suicide risk",
+      "Only depressive symptoms",
+      "Only manic symptoms",
+      "Psychotic symptoms"
+    ]
+  },
+  {
+    "id": "mh-177",
+    "question": "A patient with dementia is experiencing a urinary tract infection. The nurse should expect:",
+    "correctAnswer": "A sudden worsening of confusion and agitation",
+    "rationale": "Infections in dementia patients can cause a rapid decline in cognition and behavior.",
+    "hint": "What symptom change may indicate an infection in a dementia patient?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "A sudden worsening of confusion and agitation",
+      "Improvement in memory",
+      "Increased appetite",
+      "Decreased urinary frequency"
+    ]
+  },
+  {
+    "id": "mh-178",
+    "question": "A patient with schizophrenia is experiencing illusions. The nurse should understand this as:",
+    "correctAnswer": "A misinterpretation of a real sensory stimulus",
+    "rationale": "Illusions are different from hallucinations. They are misperceptions of real stimuli.",
+    "hint": "What is an illusion?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "A misinterpretation of a real sensory stimulus",
+      "A false sensory perception without a stimulus",
+      "A false belief",
+      "A sensory deficit"
+    ]
+  },
+  {
+    "id": "mh-179",
+    "question": "A patient with mania is exhibiting grandiosity. Which statement by the patient indicates this symptom?",
+    "correctAnswer": "I am the CEO of a major corporation and can solve world hunger.",
+    "rationale": "Grandiosity involves an exaggerated sense of self-importance or power.",
+    "hint": "Which statement demonstrates grandiosity?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "I am the CEO of a major corporation and can solve world hunger.",
+      "I feel tired and worthless.",
+      "I have no energy to do anything.",
+      "I can't get out of bed."
+    ]
+  },
+  {
+    "id": "mh-180",
+    "question": "A patient with depression is experiencing psychomotor agitation. The nurse should:",
+    "correctAnswer": "Provide a safe environment and monitor for exhaustion",
+    "rationale": "Agitation increases risk of injury and exhaustion.",
+    "hint": "What are the risks of psychomotor agitation?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a safe environment and monitor for exhaustion",
+      "Encourage more activity",
+      "Administer a stimulant",
+      "Restrict the patient's movements"
+    ]
+  },
+  {
+    "id": "mh-181",
+    "question": "A patient with generalized anxiety disorder is prescribed hydroxyzine. The nurse should monitor for:",
+    "correctAnswer": "Sedation and anticholinergic effects",
+    "rationale": "Hydroxyzine is an antihistamine with sedative and anticholinergic properties.",
+    "hint": "What side effects are common with hydroxyzine?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Sedation and anticholinergic effects",
+      "Weight gain and hypertension",
+      "Insomnia and restlessness",
+      "Cardiac arrhythmias"
+    ]
+  },
+  {
+    "id": "mh-182",
+    "question": "A patient with schizophrenia is experiencing neologisms. The nurse should:",
+    "correctAnswer": "Ask the patient to clarify the meaning of the new words",
+    "rationale": "Neologisms are made-up words. Asking for clarification shows respect and attempts to understand.",
+    "hint": "How should the nurse respond to neologisms?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Ask the patient to clarify the meaning of the new words",
+      "Correct the patient's speech",
+      "Ignore the patient",
+      "Administer a sedative"
+    ]
+  },
+  {
+    "id": "mh-183",
+    "question": "A patient with bipolar disorder is on lithium. The nurse should assess for signs of toxicity, including:",
+    "correctAnswer": "Nausea, vomiting, and coarse tremor",
+    "rationale": "These are early signs of lithium toxicity.",
+    "hint": "What are early signs of lithium toxicity?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Nausea, vomiting, and coarse tremor",
+      "Fine tremor and polyuria",
+      "Weight gain and sedation",
+      "Hypotension and bradycardia"
+    ]
+  },
+  {
+    "id": "mh-184",
+    "question": "A patient with dementia is in the mild stage. Which intervention is MOST appropriate to support memory?",
+    "correctAnswer": "Use memory aids like calendars, lists, and labeled items",
+    "rationale": "Memory aids help compensate for early memory loss.",
+    "hint": "What helps memory in mild dementia?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Use memory aids like calendars, lists, and labeled items",
+      "Rely on the patient's memory",
+      "Administer sedatives",
+      "Avoid using aids"
+    ]
+  },
+  {
+    "id": "mh-185",
+    "question": "A patient with schizophrenia is experiencing avolition. Which nursing intervention is MOST appropriate?",
+    "correctAnswer": "Break tasks into small, achievable steps and offer praise",
+    "rationale": "Avolition is a lack of motivation. Small steps and praise help build success.",
+    "hint": "What is effective for avolition?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Break tasks into small, achievable steps and offer praise",
+      "Leave the patient alone until they feel motivated",
+      "Encourage the patient to do everything at once",
+      "Administer a sedative"
+    ]
+  },
+  {
+    "id": "mh-186",
+    "question": "A patient with mania is experiencing decreased need for sleep. The nurse should:",
+    "correctAnswer": "Monitor for signs of exhaustion and provide a quiet environment",
+    "rationale": "Lack of sleep can lead to exhaustion and worsen symptoms.",
+    "hint": "What should the nurse monitor?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Monitor for signs of exhaustion and provide a quiet environment",
+      "Encourage physical activity to tire the patient",
+      "Administer a sedative",
+      "Allow the patient to stay awake"
+    ]
+  },
+  {
+    "id": "mh-187",
+    "question": "A patient with depression is experiencing anergia. The nurse should:",
+    "correctAnswer": "Encourage the patient to participate in small, manageable activities",
+    "rationale": "Anergia is a lack of energy. Small successes can build momentum.",
+    "hint": "What should the nurse encourage?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Encourage the patient to participate in small, manageable activities",
+      "Encourage long periods of rest",
+      "Administer a stimulant",
+      "Discourage any activity"
+    ]
+  },
+  {
+    "id": "mh-188",
+    "question": "A patient with generalized anxiety disorder is having difficulty with concentration. The nurse should:",
+    "correctAnswer": "Provide a quiet, low-stimulation environment",
+    "rationale": "A quiet environment minimizes distractions and helps concentration.",
+    "hint": "What environment helps with concentration?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a quiet, low-stimulation environment",
+      "Provide a stimulating environment",
+      "Encourage multitasking",
+      "Administer a sedative"
+    ]
+  },
+  {
+    "id": "mh-189",
+    "question": "A patient with schizophrenia is experiencing blunted affect. The nurse should:",
+    "correctAnswer": "Understand this is a symptom and not a sign of disinterest",
+    "rationale": "Blunted affect is a negative symptom and not intentional.",
+    "hint": "What is blunted affect?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Understand this is a symptom and not a sign of disinterest",
+      "Confront the patient",
+      "Encourage more emotional expression",
+      "Ignore the patient"
+    ]
+  },
+  {
+    "id": "mh-190",
+    "question": "A patient with bipolar disorder is experiencing a depressive episode. The nurse should:",
+    "correctAnswer": "Monitor for suicidal ideation and maintain a safe environment",
+    "rationale": "Suicide risk is a priority in bipolar depression.",
+    "hint": "What is the priority in bipolar depression?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Monitor for suicidal ideation and maintain a safe environment",
+      "Encourage the patient to be more active",
+      "Administer a sedative",
+      "Encourage isolation"
+    ]
+  },
+  {
+    "id": "mh-191",
+    "question": "A patient with dementia is experiencing hallucinations. The nurse should:",
+    "correctAnswer": "Acknowledge the patient's feelings and provide reassurance",
+    "rationale": "Acknowledging feelings is supportive.",
+    "hint": "How should the nurse respond to hallucinations?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Acknowledge the patient's feelings and provide reassurance",
+      "Tell the patient it is not real",
+      "Ignore the hallucinations",
+      "Administer a sedative"
+    ]
+  },
+  {
+    "id": "mh-192",
+    "question": "A patient with schizophrenia is experiencing thought insertion. The nurse should:",
+    "correctAnswer": "Understand that this is a fixed belief and not attempt to challenge it directly",
+    "rationale": "Challenging delusions directly can damage trust.",
+    "hint": "How should the nurse respond to thought insertion?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Understand that this is a fixed belief and not attempt to challenge it directly",
+      "Confront the patient",
+      "Agree with the patient",
+      "Ignore the patient"
+    ]
+  },
+  {
+    "id": "mh-193",
+    "question": "A patient with mania is experiencing impulsivity. The nurse should:",
+    "correctAnswer": "Set limits and provide a safe environment",
+    "rationale": "Limits protect the patient from impulsive behaviors.",
+    "hint": "How should the nurse manage impulsivity?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Set limits and provide a safe environment",
+      "Allow unlimited freedom",
+      "Encourage impulsive behavior",
+      "Ignore the patient"
+    ]
+  },
+  {
+    "id": "mh-194",
+    "question": "A patient with anxiety disorder is experiencing a panic attack. The nurse should FIRST:",
+    "correctAnswer": "Stay with the patient and provide reassurance",
+    "rationale": "Presence and reassurance help reduce anxiety.",
+    "hint": "What is the first action during a panic attack?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Stay with the patient and provide reassurance",
+      "Leave the patient alone",
+      "Administer a sedative",
+      "Encourage deep breathing"
+    ]
+  },
+  {
+    "id": "mh-195",
+    "question": "A patient with depression is experiencing social withdrawal. The nurse should:",
+    "correctAnswer": "Encourage participation in group activities",
+    "rationale": "Group activities reduce isolation.",
+    "hint": "What should the nurse encourage?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Encourage participation in group activities",
+      "Encourage isolation",
+      "Administer sedatives",
+      "Discourage social activities"
+    ]
+  },
+  {
+    "id": "mh-196",
+    "question": "A patient with schizophrenia is experiencing disorganized behavior. The nurse should:",
+    "correctAnswer": "Provide a structured environment",
+    "rationale": "Structure helps organize behavior.",
+    "hint": "What environment is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a structured environment",
+      "Provide an unstructured environment",
+      "Ignore the behavior",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-197",
+    "question": "A patient with bipolar disorder is experiencing a manic episode. The nurse should:",
+    "correctAnswer": "Provide a quiet, low-stimulation environment",
+    "rationale": "Low stimulation helps reduce agitation.",
+    "hint": "What environment is appropriate for a manic patient?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a quiet, low-stimulation environment",
+      "Provide a stimulating environment",
+      "Encourage competitive activities",
+      "Allow unlimited freedom"
+    ]
+  },
+  {
+    "id": "mh-198",
+    "question": "A patient with dementia is experiencing confusion. The nurse should:",
+    "correctAnswer": "Provide a consistent routine",
+    "rationale": "Routine reduces confusion.",
+    "hint": "What helps confusion?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a consistent routine",
+      "Change the routine frequently",
+      "Ignore the confusion",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-199",
+    "question": "A patient with anxiety disorder is experiencing social anxiety. The nurse should:",
+    "correctAnswer": "Encourage the patient to attend group therapy",
+    "rationale": "Group therapy helps social anxiety.",
+    "hint": "What therapy is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Encourage the patient to attend group therapy",
+      "Encourage social isolation",
+      "Administer sedatives",
+      "Discourage social activities"
+    ]
+  },
+  {
+    "id": "mh-200",
+    "question": "A patient with schizophrenia is experiencing auditory hallucinations. The nurse should:",
+    "correctAnswer": "Acknowledge the patient's feelings",
+    "rationale": "Acknowledging feelings builds trust.",
+    "hint": "How should the nurse respond?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Acknowledge the patient's feelings",
+      "Tell the patient to stop hearing voices",
+      "Ignore the patient",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-201",
+    "question": "A patient with depression is experiencing anhedonia. The nurse should:",
+    "correctAnswer": "Encourage participation in activities",
+    "rationale": "Activity helps with anhedonia.",
+    "hint": "What should be encouraged?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Encourage participation in activities",
+      "Discourage activities",
+      "Administer sedatives",
+      "Encourage isolation"
+    ]
+  },
+  {
+    "id": "mh-202",
+    "question": "A patient with mania is experiencing grandiosity. The nurse should:",
+    "correctAnswer": "Set realistic limits",
+    "rationale": "Limits help manage grandiosity.",
+    "hint": "What approach is needed?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Set realistic limits",
+      "Encourage grandiosity",
+      "Agree with the patient",
+      "Ignore the patient"
+    ]
+  },
+  {
+    "id": "mh-203",
+    "question": "A patient with dementia is experiencing agitation. The nurse should:",
+    "correctAnswer": "Assess for pain or unmet needs",
+    "rationale": "Agitation may be due to pain.",
+    "hint": "What should be assessed?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Assess for pain or unmet needs",
+      "Restrain the patient",
+      "Administer sedatives",
+      "Redirect the patient"
+    ]
+  },
+  {
+    "id": "mh-204",
+    "question": "A patient with anxiety disorder is experiencing obsessive thoughts. The nurse should:",
+    "correctAnswer": "Help the patient identify triggers",
+    "rationale": "Identifying triggers helps manage thoughts.",
+    "hint": "What should be identified?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Help the patient identify triggers",
+      "Encourage obsessive thoughts",
+      "Ignore the thoughts",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-205",
+    "question": "A patient with schizophrenia is experiencing delusions. The nurse should:",
+    "correctAnswer": "Use reality orientation",
+    "rationale": "Reality orientation is helpful.",
+    "hint": "How should the nurse respond?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Use reality orientation",
+      "Confront the delusion",
+      "Agree with the delusion",
+      "Ignore the delusion"
+    ]
+  },
+  {
+    "id": "mh-206",
+    "question": "A patient with depression is experiencing fatigue. The nurse should:",
+    "correctAnswer": "Encourage small, frequent activities",
+    "rationale": "Small activities help manage fatigue.",
+    "hint": "What should be encouraged?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Encourage small, frequent activities",
+      "Encourage long periods of rest",
+      "Administer sedatives",
+      "Discourage physical activity"
+    ]
+  },
+  {
+    "id": "mh-207",
+    "question": "A patient with bipolar disorder is experiencing a depressive episode. The nurse should:",
+    "correctAnswer": "Monitor for suicidal ideation",
+    "rationale": "Suicide risk is high.",
+    "hint": "What should be monitored?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Monitor for suicidal ideation",
+      "Encourage hyperactivity",
+      "Discourage social interaction",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-208",
+    "question": "A patient with dementia is experiencing sundowning. The nurse should:",
+    "correctAnswer": "Maintain a calm evening routine",
+    "rationale": "A calm routine helps reduce sundowning.",
+    "hint": "What routine is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Maintain a calm evening routine",
+      "Keep the patient busy in the evening",
+      "Administer sedatives",
+      "Dim the lights"
+    ]
+  },
+  {
+    "id": "mh-209",
+    "question": "A patient with schizophrenia is experiencing disorganized speech. The nurse should:",
+    "correctAnswer": "Focus on concrete themes",
+    "rationale": "Concrete themes help communication.",
+    "hint": "How should the nurse focus?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Focus on concrete themes",
+      "Encourage abstract thinking",
+      "Ignore the patient",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-210",
+    "question": "A patient with anxiety disorder is experiencing panic attacks. The nurse should:",
+    "correctAnswer": "Teach relaxation techniques",
+    "rationale": "Relaxation helps reduce panic.",
+    "hint": "What skills are helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Teach relaxation techniques",
+      "Administer sedatives",
+      "Encourage avoidance",
+      "Discourage social activities"
+    ]
+  },
+  {
+    "id": "mh-211",
+    "question": "A patient with depression is experiencing low self-esteem. The nurse should:",
+    "correctAnswer": "Provide positive feedback for achievements",
+    "rationale": "Positive reinforcement builds self-esteem.",
+    "hint": "What helps self-esteem?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide positive feedback for achievements",
+      "Criticize the patient",
+      "Ignore the patient",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-212",
+    "question": "A patient with mania is experiencing rapid speech. The nurse should:",
+    "correctAnswer": "Provide a quiet environment",
+    "rationale": "Quiet reduces stimulation.",
+    "hint": "What environment is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a quiet environment",
+      "Provide a stimulating environment",
+      "Encourage competition",
+      "Ignore the patient"
+    ]
+  },
+  {
+    "id": "mh-213",
+    "question": "A patient with dementia is experiencing incontinence. The nurse should:",
+    "correctAnswer": "Provide a regular toileting schedule",
+    "rationale": "Regular toileting helps.",
+    "hint": "What helps incontinence?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a regular toileting schedule",
+      "Use diapers only",
+      "Restrict fluids",
+      "Ignore the problem"
+    ]
+  },
+  {
+    "id": "mh-214",
+    "question": "A patient with schizophrenia is experiencing delusions of persecution. The nurse should:",
+    "correctAnswer": "Provide reality orientation",
+    "rationale": "Reality orientation is helpful.",
+    "hint": "How should the nurse respond?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide reality orientation",
+      "Confront the delusion",
+      "Agree with the delusion",
+      "Ignore the delusion"
+    ]
+  },
+  {
+    "id": "mh-215",
+    "question": "A patient with bipolar disorder is experiencing a manic episode. The nurse should:",
+    "correctAnswer": "Provide a structured environment",
+    "rationale": "Structure helps manage mania.",
+    "hint": "What environment is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a structured environment",
+      "Provide an unstructured environment",
+      "Encourage competitive activities",
+      "Allow unlimited freedom"
+    ]
+  },
+  {
+    "id": "mh-216",
+    "question": "A patient with dementia is experiencing confusion. The nurse should:",
+    "correctAnswer": "Provide a consistent routine",
+    "rationale": "Routine reduces confusion.",
+    "hint": "What helps confusion?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a consistent routine",
+      "Change the routine frequently",
+      "Ignore the confusion",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-217",
+    "question": "A patient with anxiety disorder is experiencing social anxiety. The nurse should:",
+    "correctAnswer": "Encourage the patient to attend group therapy",
+    "rationale": "Group therapy helps social anxiety.",
+    "hint": "What therapy is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Encourage the patient to attend group therapy",
+      "Encourage social isolation",
+      "Administer sedatives",
+      "Discourage social activities"
+    ]
+  },
+  {
+    "id": "mh-218",
+    "question": "A patient with schizophrenia is experiencing auditory hallucinations. The nurse should:",
+    "correctAnswer": "Acknowledge the patient's feelings",
+    "rationale": "Acknowledging feelings builds trust.",
+    "hint": "How should the nurse respond?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Acknowledge the patient's feelings",
+      "Tell the patient to stop hearing voices",
+      "Ignore the patient",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-219",
+    "question": "A patient with depression is experiencing anhedonia. The nurse should:",
+    "correctAnswer": "Encourage participation in activities",
+    "rationale": "Activity helps with anhedonia.",
+    "hint": "What should be encouraged?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Encourage participation in activities",
+      "Discourage activities",
+      "Administer sedatives",
+      "Encourage isolation"
+    ]
+  },
+  {
+    "id": "mh-220",
+    "question": "A patient with mania is experiencing grandiosity. The nurse should:",
+    "correctAnswer": "Set realistic limits",
+    "rationale": "Limits help manage grandiosity.",
+    "hint": "What approach is needed?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Set realistic limits",
+      "Encourage grandiosity",
+      "Agree with the patient",
+      "Ignore the patient"
+    ]
+  },
+  {
+    "id": "mh-221",
+    "question": "A patient with dementia is experiencing agitation. The nurse should:",
+    "correctAnswer": "Assess for pain or unmet needs",
+    "rationale": "Agitation may be due to pain.",
+    "hint": "What should be assessed?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Assess for pain or unmet needs",
+      "Restrain the patient",
+      "Administer sedatives",
+      "Redirect the patient"
+    ]
+  },
+  {
+    "id": "mh-222",
+    "question": "A patient with anxiety disorder is experiencing obsessive thoughts. The nurse should:",
+    "correctAnswer": "Help the patient identify triggers",
+    "rationale": "Identifying triggers helps manage thoughts.",
+    "hint": "What should be identified?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Help the patient identify triggers",
+      "Encourage obsessive thoughts",
+      "Ignore the thoughts",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-223",
+    "question": "A patient with schizophrenia is experiencing delusions. The nurse should:",
+    "correctAnswer": "Use reality orientation",
+    "rationale": "Reality orientation is helpful.",
+    "hint": "How should the nurse respond?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Use reality orientation",
+      "Confront the delusion",
+      "Agree with the delusion",
+      "Ignore the delusion"
+    ]
+  },
+  {
+    "id": "mh-224",
+    "question": "A patient with depression is experiencing fatigue. The nurse should:",
+    "correctAnswer": "Encourage small, frequent activities",
+    "rationale": "Small activities help manage fatigue.",
+    "hint": "What should be encouraged?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Encourage small, frequent activities",
+      "Encourage long periods of rest",
+      "Administer sedatives",
+      "Discourage physical activity"
+    ]
+  },
+  {
+    "id": "mh-225",
+    "question": "A patient with bipolar disorder is experiencing a depressive episode. The nurse should:",
+    "correctAnswer": "Monitor for suicidal ideation",
+    "rationale": "Suicide risk is high.",
+    "hint": "What should be monitored?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Monitor for suicidal ideation",
+      "Encourage hyperactivity",
+      "Discourage social interaction",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-226",
+    "question": "A patient with dementia is experiencing sundowning. The nurse should:",
+    "correctAnswer": "Maintain a calm evening routine",
+    "rationale": "A calm routine helps reduce sundowning.",
+    "hint": "What routine is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Maintain a calm evening routine",
+      "Keep the patient busy in the evening",
+      "Administer sedatives",
+      "Dim the lights"
+    ]
+  },
+  {
+    "id": "mh-227",
+    "question": "A patient with schizophrenia is experiencing disorganized speech. The nurse should:",
+    "correctAnswer": "Focus on concrete themes",
+    "rationale": "Concrete themes help communication.",
+    "hint": "How should the nurse focus?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Focus on concrete themes",
+      "Encourage abstract thinking",
+      "Ignore the patient",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-228",
+    "question": "A patient with anxiety disorder is experiencing panic attacks. The nurse should:",
+    "correctAnswer": "Teach relaxation techniques",
+    "rationale": "Relaxation helps reduce panic.",
+    "hint": "What skills are helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Teach relaxation techniques",
+      "Administer sedatives",
+      "Encourage avoidance",
+      "Discourage social activities"
+    ]
+  },
+  {
+    "id": "mh-229",
+    "question": "A patient with depression is experiencing low self-esteem. The nurse should:",
+    "correctAnswer": "Provide positive feedback for achievements",
+    "rationale": "Positive reinforcement builds self-esteem.",
+    "hint": "What helps self-esteem?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide positive feedback for achievements",
+      "Criticize the patient",
+      "Ignore the patient",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-230",
+    "question": "A patient with mania is experiencing rapid speech. The nurse should:",
+    "correctAnswer": "Provide a quiet environment",
+    "rationale": "Quiet reduces stimulation.",
+    "hint": "What environment is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a quiet environment",
+      "Provide a stimulating environment",
+      "Encourage competition",
+      "Ignore the patient"
+    ]
+  },
+  {
+    "id": "mh-231",
+    "question": "A patient with dementia is experiencing incontinence. The nurse should:",
+    "correctAnswer": "Provide a regular toileting schedule",
+    "rationale": "Regular toileting helps.",
+    "hint": "What helps incontinence?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a regular toileting schedule",
+      "Use diapers only",
+      "Restrict fluids",
+      "Ignore the problem"
+    ]
+  },
+  {
+    "id": "mh-232",
+    "question": "A patient with schizophrenia is experiencing delusions of persecution. The nurse should:",
+    "correctAnswer": "Provide reality orientation",
+    "rationale": "Reality orientation is helpful.",
+    "hint": "How should the nurse respond?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide reality orientation",
+      "Confront the delusion",
+      "Agree with the delusion",
+      "Ignore the delusion"
+    ]
+  },
+  {
+    "id": "mh-233",
+    "question": "A patient with bipolar disorder is experiencing a manic episode. The nurse should:",
+    "correctAnswer": "Provide a structured environment",
+    "rationale": "Structure helps manage mania.",
+    "hint": "What environment is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a structured environment",
+      "Provide an unstructured environment",
+      "Encourage competitive activities",
+      "Allow unlimited freedom"
+    ]
+  },
+  {
+    "id": "mh-234",
+    "question": "A patient with dementia is experiencing confusion. The nurse should:",
+    "correctAnswer": "Provide a consistent routine",
+    "rationale": "Routine reduces confusion.",
+    "hint": "What helps confusion?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a consistent routine",
+      "Change the routine frequently",
+      "Ignore the confusion",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-235",
+    "question": "A patient with anxiety disorder is experiencing social anxiety. The nurse should:",
+    "correctAnswer": "Encourage the patient to attend group therapy",
+    "rationale": "Group therapy helps social anxiety.",
+    "hint": "What therapy is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Encourage the patient to attend group therapy",
+      "Encourage social isolation",
+      "Administer sedatives",
+      "Discourage social activities"
+    ]
+  },
+  {
+    "id": "mh-236",
+    "question": "A patient with schizophrenia is experiencing auditory hallucinations. The nurse should:",
+    "correctAnswer": "Acknowledge the patient's feelings",
+    "rationale": "Acknowledging feelings builds trust.",
+    "hint": "How should the nurse respond?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Acknowledge the patient's feelings",
+      "Tell the patient to stop hearing voices",
+      "Ignore the patient",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-237",
+    "question": "A patient with depression is experiencing anhedonia. The nurse should:",
+    "correctAnswer": "Encourage participation in activities",
+    "rationale": "Activity helps with anhedonia.",
+    "hint": "What should be encouraged?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Encourage participation in activities",
+      "Discourage activities",
+      "Administer sedatives",
+      "Encourage isolation"
+    ]
+  },
+  {
+    "id": "mh-238",
+    "question": "A patient with mania is experiencing grandiosity. The nurse should:",
+    "correctAnswer": "Set realistic limits",
+    "rationale": "Limits help manage grandiosity.",
+    "hint": "What approach is needed?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Set realistic limits",
+      "Encourage grandiosity",
+      "Agree with the patient",
+      "Ignore the patient"
+    ]
+  },
+  {
+    "id": "mh-239",
+    "question": "A patient with dementia is experiencing agitation. The nurse should:",
+    "correctAnswer": "Assess for pain or unmet needs",
+    "rationale": "Agitation may be due to pain.",
+    "hint": "What should be assessed?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Assess for pain or unmet needs",
+      "Restrain the patient",
+      "Administer sedatives",
+      "Redirect the patient"
+    ]
+  },
+  {
+    "id": "mh-240",
+    "question": "A patient with anxiety disorder is experiencing obsessive thoughts. The nurse should:",
+    "correctAnswer": "Help the patient identify triggers",
+    "rationale": "Identifying triggers helps manage thoughts.",
+    "hint": "What should be identified?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Help the patient identify triggers",
+      "Encourage obsessive thoughts",
+      "Ignore the thoughts",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-241",
+    "question": "A patient with schizophrenia is experiencing delusions. The nurse should:",
+    "correctAnswer": "Use reality orientation",
+    "rationale": "Reality orientation is helpful.",
+    "hint": "How should the nurse respond?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Use reality orientation",
+      "Confront the delusion",
+      "Agree with the delusion",
+      "Ignore the delusion"
+    ]
+  },
+  {
+    "id": "mh-242",
+    "question": "A patient with depression is experiencing fatigue. The nurse should:",
+    "correctAnswer": "Encourage small, frequent activities",
+    "rationale": "Small activities help manage fatigue.",
+    "hint": "What should be encouraged?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Encourage small, frequent activities",
+      "Encourage long periods of rest",
+      "Administer sedatives",
+      "Discourage physical activity"
+    ]
+  },
+  {
+    "id": "mh-243",
+    "question": "A patient with bipolar disorder is experiencing a depressive episode. The nurse should:",
+    "correctAnswer": "Monitor for suicidal ideation",
+    "rationale": "Suicide risk is high.",
+    "hint": "What should be monitored?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Monitor for suicidal ideation",
+      "Encourage hyperactivity",
+      "Discourage social interaction",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-244",
+    "question": "A patient with dementia is experiencing sundowning. The nurse should:",
+    "correctAnswer": "Maintain a calm evening routine",
+    "rationale": "A calm routine helps reduce sundowning.",
+    "hint": "What routine is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Maintain a calm evening routine",
+      "Keep the patient busy in the evening",
+      "Administer sedatives",
+      "Dim the lights"
+    ]
+  },
+  {
+    "id": "mh-245",
+    "question": "A patient with schizophrenia is experiencing disorganized speech. The nurse should:",
+    "correctAnswer": "Focus on concrete themes",
+    "rationale": "Concrete themes help communication.",
+    "hint": "How should the nurse focus?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Focus on concrete themes",
+      "Encourage abstract thinking",
+      "Ignore the patient",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-246",
+    "question": "A patient with anxiety disorder is experiencing panic attacks. The nurse should:",
+    "correctAnswer": "Teach relaxation techniques",
+    "rationale": "Relaxation helps reduce panic.",
+    "hint": "What skills are helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Teach relaxation techniques",
+      "Administer sedatives",
+      "Encourage avoidance",
+      "Discourage social activities"
+    ]
+  },
+  {
+    "id": "mh-247",
+    "question": "A patient with depression is experiencing low self-esteem. The nurse should:",
+    "correctAnswer": "Provide positive feedback for achievements",
+    "rationale": "Positive reinforcement builds self-esteem.",
+    "hint": "What helps self-esteem?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide positive feedback for achievements",
+      "Criticize the patient",
+      "Ignore the patient",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-248",
+    "question": "A patient with mania is experiencing rapid speech. The nurse should:",
+    "correctAnswer": "Provide a quiet environment",
+    "rationale": "Quiet reduces stimulation.",
+    "hint": "What environment is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a quiet environment",
+      "Provide a stimulating environment",
+      "Encourage competition",
+      "Ignore the patient"
+    ]
+  },
+  {
+    "id": "mh-249",
+    "question": "A patient with dementia is experiencing incontinence. The nurse should:",
+    "correctAnswer": "Provide a regular toileting schedule",
+    "rationale": "Regular toileting helps.",
+    "hint": "What helps incontinence?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a regular toileting schedule",
+      "Use diapers only",
+      "Restrict fluids",
+      "Ignore the problem"
+    ]
+  },
+  {
+    "id": "mh-250",
+    "question": "A patient with schizophrenia is experiencing delusions of persecution. The nurse should:",
+    "correctAnswer": "Provide reality orientation",
+    "rationale": "Reality orientation is helpful.",
+    "hint": "How should the nurse respond?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide reality orientation",
+      "Confront the delusion",
+      "Agree with the delusion",
+      "Ignore the delusion"
+    ]
+  },
+  {
+    "id": "mh-251",
+    "question": "A patient with bipolar disorder is experiencing a manic episode. The nurse should:",
+    "correctAnswer": "Provide a structured environment",
+    "rationale": "Structure helps manage mania.",
+    "hint": "What environment is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a structured environment",
+      "Provide an unstructured environment",
+      "Encourage competitive activities",
+      "Allow unlimited freedom"
+    ]
+  },
+  {
+    "id": "mh-252",
+    "question": "A patient with dementia is experiencing confusion. The nurse should:",
+    "correctAnswer": "Provide a consistent routine",
+    "rationale": "Routine reduces confusion.",
+    "hint": "What helps confusion?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a consistent routine",
+      "Change the routine frequently",
+      "Ignore the confusion",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-253",
+    "question": "A patient with anxiety disorder is experiencing social anxiety. The nurse should:",
+    "correctAnswer": "Encourage the patient to attend group therapy",
+    "rationale": "Group therapy helps social anxiety.",
+    "hint": "What therapy is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Encourage the patient to attend group therapy",
+      "Encourage social isolation",
+      "Administer sedatives",
+      "Discourage social activities"
+    ]
+  },
+  {
+    "id": "mh-254",
+    "question": "A patient with schizophrenia is experiencing auditory hallucinations. The nurse should:",
+    "correctAnswer": "Acknowledge the patient's feelings",
+    "rationale": "Acknowledging feelings builds trust.",
+    "hint": "How should the nurse respond?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Acknowledge the patient's feelings",
+      "Tell the patient to stop hearing voices",
+      "Ignore the patient",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-255",
+    "question": "A patient with depression is experiencing anhedonia. The nurse should:",
+    "correctAnswer": "Encourage participation in activities",
+    "rationale": "Activity helps with anhedonia.",
+    "hint": "What should be encouraged?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Encourage participation in activities",
+      "Discourage activities",
+      "Administer sedatives",
+      "Encourage isolation"
+    ]
+  },
+  {
+    "id": "mh-256",
+    "question": "A patient with mania is experiencing grandiosity. The nurse should:",
+    "correctAnswer": "Set realistic limits",
+    "rationale": "Limits help manage grandiosity.",
+    "hint": "What approach is needed?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Set realistic limits",
+      "Encourage grandiosity",
+      "Agree with the patient",
+      "Ignore the patient"
+    ]
+  },
+  {
+    "id": "mh-257",
+    "question": "A patient with dementia is experiencing agitation. The nurse should:",
+    "correctAnswer": "Assess for pain or unmet needs",
+    "rationale": "Agitation may be due to pain.",
+    "hint": "What should be assessed?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Assess for pain or unmet needs",
+      "Restrain the patient",
+      "Administer sedatives",
+      "Redirect the patient"
+    ]
+  },
+  {
+    "id": "mh-258",
+    "question": "A patient with anxiety disorder is experiencing obsessive thoughts. The nurse should:",
+    "correctAnswer": "Help the patient identify triggers",
+    "rationale": "Identifying triggers helps manage thoughts.",
+    "hint": "What should be identified?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Help the patient identify triggers",
+      "Encourage obsessive thoughts",
+      "Ignore the thoughts",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-259",
+    "question": "A patient with schizophrenia is experiencing delusions. The nurse should:",
+    "correctAnswer": "Use reality orientation",
+    "rationale": "Reality orientation is helpful.",
+    "hint": "How should the nurse respond?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Use reality orientation",
+      "Confront the delusion",
+      "Agree with the delusion",
+      "Ignore the delusion"
+    ]
+  },
+  {
+    "id": "mh-260",
+    "question": "A patient with depression is experiencing fatigue. The nurse should:",
+    "correctAnswer": "Encourage small, frequent activities",
+    "rationale": "Small activities help manage fatigue.",
+    "hint": "What should be encouraged?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Encourage small, frequent activities",
+      "Encourage long periods of rest",
+      "Administer sedatives",
+      "Discourage physical activity"
+    ]
+  },
+  {
+    "id": "mh-261",
+    "question": "A patient with bipolar disorder is experiencing a depressive episode. The nurse should:",
+    "correctAnswer": "Monitor for suicidal ideation",
+    "rationale": "Suicide risk is high.",
+    "hint": "What should be monitored?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Monitor for suicidal ideation",
+      "Encourage hyperactivity",
+      "Discourage social interaction",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-262",
+    "question": "A patient with dementia is experiencing sundowning. The nurse should:",
+    "correctAnswer": "Maintain a calm evening routine",
+    "rationale": "A calm routine helps reduce sundowning.",
+    "hint": "What routine is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Maintain a calm evening routine",
+      "Keep the patient busy in the evening",
+      "Administer sedatives",
+      "Dim the lights"
+    ]
+  },
+  {
+    "id": "mh-263",
+    "question": "A patient with schizophrenia is experiencing disorganized speech. The nurse should:",
+    "correctAnswer": "Focus on concrete themes",
+    "rationale": "Concrete themes help communication.",
+    "hint": "How should the nurse focus?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Focus on concrete themes",
+      "Encourage abstract thinking",
+      "Ignore the patient",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-264",
+    "question": "A patient with anxiety disorder is experiencing panic attacks. The nurse should:",
+    "correctAnswer": "Teach relaxation techniques",
+    "rationale": "Relaxation helps reduce panic.",
+    "hint": "What skills are helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Teach relaxation techniques",
+      "Administer sedatives",
+      "Encourage avoidance",
+      "Discourage social activities"
+    ]
+  },
+  {
+    "id": "mh-265",
+    "question": "A patient with depression is experiencing low self-esteem. The nurse should:",
+    "correctAnswer": "Provide positive feedback for achievements",
+    "rationale": "Positive reinforcement builds self-esteem.",
+    "hint": "What helps self-esteem?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide positive feedback for achievements",
+      "Criticize the patient",
+      "Ignore the patient",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-266",
+    "question": "A patient with mania is experiencing rapid speech. The nurse should:",
+    "correctAnswer": "Provide a quiet environment",
+    "rationale": "Quiet reduces stimulation.",
+    "hint": "What environment is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a quiet environment",
+      "Provide a stimulating environment",
+      "Encourage competition",
+      "Ignore the patient"
+    ]
+  },
+  {
+    "id": "mh-267",
+    "question": "A patient with dementia is experiencing incontinence. The nurse should:",
+    "correctAnswer": "Provide a regular toileting schedule",
+    "rationale": "Regular toileting helps.",
+    "hint": "What helps incontinence?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a regular toileting schedule",
+      "Use diapers only",
+      "Restrict fluids",
+      "Ignore the problem"
+    ]
+  },
+  {
+    "id": "mh-268",
+    "question": "A patient with schizophrenia is experiencing delusions of persecution. The nurse should:",
+    "correctAnswer": "Provide reality orientation",
+    "rationale": "Reality orientation is helpful.",
+    "hint": "How should the nurse respond?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide reality orientation",
+      "Confront the delusion",
+      "Agree with the delusion",
+      "Ignore the delusion"
+    ]
+  },
+  {
+    "id": "mh-269",
+    "question": "A patient with bipolar disorder is experiencing a manic episode. The nurse should:",
+    "correctAnswer": "Provide a structured environment",
+    "rationale": "Structure helps manage mania.",
+    "hint": "What environment is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a structured environment",
+      "Provide an unstructured environment",
+      "Encourage competitive activities",
+      "Allow unlimited freedom"
+    ]
+  },
+  {
+    "id": "mh-270",
+    "question": "A patient with dementia is experiencing confusion. The nurse should:",
+    "correctAnswer": "Provide a consistent routine",
+    "rationale": "Routine reduces confusion.",
+    "hint": "What helps confusion?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a consistent routine",
+      "Change the routine frequently",
+      "Ignore the confusion",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-271",
+    "question": "A patient with anxiety disorder is experiencing social anxiety. The nurse should:",
+    "correctAnswer": "Encourage the patient to attend group therapy",
+    "rationale": "Group therapy helps social anxiety.",
+    "hint": "What therapy is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Encourage the patient to attend group therapy",
+      "Encourage social isolation",
+      "Administer sedatives",
+      "Discourage social activities"
+    ]
+  },
+  {
+    "id": "mh-272",
+    "question": "A patient with schizophrenia is experiencing auditory hallucinations. The nurse should:",
+    "correctAnswer": "Acknowledge the patient's feelings",
+    "rationale": "Acknowledging feelings builds trust.",
+    "hint": "How should the nurse respond?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Acknowledge the patient's feelings",
+      "Tell the patient to stop hearing voices",
+      "Ignore the patient",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-273",
+    "question": "A patient with depression is experiencing anhedonia. The nurse should:",
+    "correctAnswer": "Encourage participation in activities",
+    "rationale": "Activity helps with anhedonia.",
+    "hint": "What should be encouraged?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Encourage participation in activities",
+      "Discourage activities",
+      "Administer sedatives",
+      "Encourage isolation"
+    ]
+  },
+  {
+    "id": "mh-274",
+    "question": "A patient with mania is experiencing grandiosity. The nurse should:",
+    "correctAnswer": "Set realistic limits",
+    "rationale": "Limits help manage grandiosity.",
+    "hint": "What approach is needed?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Set realistic limits",
+      "Encourage grandiosity",
+      "Agree with the patient",
+      "Ignore the patient"
+    ]
+  },
+  {
+    "id": "mh-275",
+    "question": "A patient with dementia is experiencing agitation. The nurse should:",
+    "correctAnswer": "Assess for pain or unmet needs",
+    "rationale": "Agitation may be due to pain.",
+    "hint": "What should be assessed?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Assess for pain or unmet needs",
+      "Restrain the patient",
+      "Administer sedatives",
+      "Redirect the patient"
+    ]
+  },
+  {
+    "id": "mh-276",
+    "question": "A patient with anxiety disorder is experiencing obsessive thoughts. The nurse should:",
+    "correctAnswer": "Help the patient identify triggers",
+    "rationale": "Identifying triggers helps manage thoughts.",
+    "hint": "What should be identified?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Help the patient identify triggers",
+      "Encourage obsessive thoughts",
+      "Ignore the thoughts",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-277",
+    "question": "A patient with schizophrenia is experiencing delusions. The nurse should:",
+    "correctAnswer": "Use reality orientation",
+    "rationale": "Reality orientation is helpful.",
+    "hint": "How should the nurse respond?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Use reality orientation",
+      "Confront the delusion",
+      "Agree with the delusion",
+      "Ignore the delusion"
+    ]
+  },
+  {
+    "id": "mh-278",
+    "question": "A patient with depression is experiencing fatigue. The nurse should:",
+    "correctAnswer": "Encourage small, frequent activities",
+    "rationale": "Small activities help manage fatigue.",
+    "hint": "What should be encouraged?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Encourage small, frequent activities",
+      "Encourage long periods of rest",
+      "Administer sedatives",
+      "Discourage physical activity"
+    ]
+  },
+  {
+    "id": "mh-279",
+    "question": "A patient with bipolar disorder is experiencing a depressive episode. The nurse should:",
+    "correctAnswer": "Monitor for suicidal ideation",
+    "rationale": "Suicide risk is high.",
+    "hint": "What should be monitored?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Monitor for suicidal ideation",
+      "Encourage hyperactivity",
+      "Discourage social interaction",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-280",
+    "question": "A patient with dementia is experiencing sundowning. The nurse should:",
+    "correctAnswer": "Maintain a calm evening routine",
+    "rationale": "A calm routine helps reduce sundowning.",
+    "hint": "What routine is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Maintain a calm evening routine",
+      "Keep the patient busy in the evening",
+      "Administer sedatives",
+      "Dim the lights"
+    ]
+  },
+  {
+    "id": "mh-281",
+    "question": "A patient with schizophrenia is experiencing disorganized speech. The nurse should:",
+    "correctAnswer": "Focus on concrete themes",
+    "rationale": "Concrete themes help communication.",
+    "hint": "How should the nurse focus?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Focus on concrete themes",
+      "Encourage abstract thinking",
+      "Ignore the patient",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-282",
+    "question": "A patient with anxiety disorder is experiencing panic attacks. The nurse should:",
+    "correctAnswer": "Teach relaxation techniques",
+    "rationale": "Relaxation helps reduce panic.",
+    "hint": "What skills are helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Teach relaxation techniques",
+      "Administer sedatives",
+      "Encourage avoidance",
+      "Discourage social activities"
+    ]
+  },
+  {
+    "id": "mh-283",
+    "question": "A patient with depression is experiencing low self-esteem. The nurse should:",
+    "correctAnswer": "Provide positive feedback for achievements",
+    "rationale": "Positive reinforcement builds self-esteem.",
+    "hint": "What helps self-esteem?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide positive feedback for achievements",
+      "Criticize the patient",
+      "Ignore the patient",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-284",
+    "question": "A patient with mania is experiencing rapid speech. The nurse should:",
+    "correctAnswer": "Provide a quiet environment",
+    "rationale": "Quiet reduces stimulation.",
+    "hint": "What environment is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a quiet environment",
+      "Provide a stimulating environment",
+      "Encourage competition",
+      "Ignore the patient"
+    ]
+  },
+  {
+    "id": "mh-285",
+    "question": "A patient with dementia is experiencing incontinence. The nurse should:",
+    "correctAnswer": "Provide a regular toileting schedule",
+    "rationale": "Regular toileting helps.",
+    "hint": "What helps incontinence?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a regular toileting schedule",
+      "Use diapers only",
+      "Restrict fluids",
+      "Ignore the problem"
+    ]
+  },
+  {
+    "id": "mh-286",
+    "question": "A patient with schizophrenia is experiencing delusions of persecution. The nurse should:",
+    "correctAnswer": "Provide reality orientation",
+    "rationale": "Reality orientation is helpful.",
+    "hint": "How should the nurse respond?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide reality orientation",
+      "Confront the delusion",
+      "Agree with the delusion",
+      "Ignore the delusion"
+    ]
+  },
+  {
+    "id": "mh-287",
+    "question": "A patient with bipolar disorder is experiencing a manic episode. The nurse should:",
+    "correctAnswer": "Provide a structured environment",
+    "rationale": "Structure helps manage mania.",
+    "hint": "What environment is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a structured environment",
+      "Provide an unstructured environment",
+      "Encourage competitive activities",
+      "Allow unlimited freedom"
+    ]
+  },
+  {
+    "id": "mh-288",
+    "question": "A patient with dementia is experiencing confusion. The nurse should:",
+    "correctAnswer": "Provide a consistent routine",
+    "rationale": "Routine reduces confusion.",
+    "hint": "What helps confusion?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Provide a consistent routine",
+      "Change the routine frequently",
+      "Ignore the confusion",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-289",
+    "question": "A patient with anxiety disorder is experiencing social anxiety. The nurse should:",
+    "correctAnswer": "Encourage the patient to attend group therapy",
+    "rationale": "Group therapy helps social anxiety.",
+    "hint": "What therapy is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Encourage the patient to attend group therapy",
+      "Encourage social isolation",
+      "Administer sedatives",
+      "Discourage social activities"
+    ]
+  },
+  {
+    "id": "mh-290",
+    "question": "A patient with schizophrenia is experiencing auditory hallucinations. The nurse should:",
+    "correctAnswer": "Acknowledge the patient's feelings",
+    "rationale": "Acknowledging feelings builds trust.",
+    "hint": "How should the nurse respond?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Acknowledge the patient's feelings",
+      "Tell the patient to stop hearing voices",
+      "Ignore the patient",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-291",
+    "question": "A patient with depression is experiencing anhedonia. The nurse should:",
+    "correctAnswer": "Encourage participation in activities",
+    "rationale": "Activity helps with anhedonia.",
+    "hint": "What should be encouraged?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Encourage participation in activities",
+      "Discourage activities",
+      "Administer sedatives",
+      "Encourage isolation"
+    ]
+  },
+  {
+    "id": "mh-292",
+    "question": "A patient with mania is experiencing grandiosity. The nurse should:",
+    "correctAnswer": "Set realistic limits",
+    "rationale": "Limits help manage grandiosity.",
+    "hint": "What approach is needed?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Set realistic limits",
+      "Encourage grandiosity",
+      "Agree with the patient",
+      "Ignore the patient"
+    ]
+  },
+  {
+    "id": "mh-293",
+    "question": "A patient with dementia is experiencing agitation. The nurse should:",
+    "correctAnswer": "Assess for pain or unmet needs",
+    "rationale": "Agitation may be due to pain.",
+    "hint": "What should be assessed?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Assess for pain or unmet needs",
+      "Restrain the patient",
+      "Administer sedatives",
+      "Redirect the patient"
+    ]
+  },
+  {
+    "id": "mh-294",
+    "question": "A patient with anxiety disorder is experiencing obsessive thoughts. The nurse should:",
+    "correctAnswer": "Help the patient identify triggers",
+    "rationale": "Identifying triggers helps manage thoughts.",
+    "hint": "What should be identified?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Help the patient identify triggers",
+      "Encourage obsessive thoughts",
+      "Ignore the thoughts",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-295",
+    "question": "A patient with schizophrenia is experiencing delusions. The nurse should:",
+    "correctAnswer": "Use reality orientation",
+    "rationale": "Reality orientation is helpful.",
+    "hint": "How should the nurse respond?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Use reality orientation",
+      "Confront the delusion",
+      "Agree with the delusion",
+      "Ignore the delusion"
+    ]
+  },
+  {
+    "id": "mh-296",
+    "question": "A patient with depression is experiencing fatigue. The nurse should:",
+    "correctAnswer": "Encourage small, frequent activities",
+    "rationale": "Small activities help manage fatigue.",
+    "hint": "What should be encouraged?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Encourage small, frequent activities",
+      "Encourage long periods of rest",
+      "Administer sedatives",
+      "Discourage physical activity"
+    ]
+  },
+  {
+    "id": "mh-297",
+    "question": "A patient with bipolar disorder is experiencing a depressive episode. The nurse should:",
+    "correctAnswer": "Monitor for suicidal ideation",
+    "rationale": "Suicide risk is high.",
+    "hint": "What should be monitored?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Monitor for suicidal ideation",
+      "Encourage hyperactivity",
+      "Discourage social interaction",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-298",
+    "question": "A patient with dementia is experiencing sundowning. The nurse should:",
+    "correctAnswer": "Maintain a calm evening routine",
+    "rationale": "A calm routine helps reduce sundowning.",
+    "hint": "What routine is helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Maintain a calm evening routine",
+      "Keep the patient busy in the evening",
+      "Administer sedatives",
+      "Dim the lights"
+    ]
+  },
+  {
+    "id": "mh-299",
+    "question": "A patient with schizophrenia is experiencing disorganized speech. The nurse should:",
+    "correctAnswer": "Focus on concrete themes",
+    "rationale": "Concrete themes help communication.",
+    "hint": "How should the nurse focus?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Focus on concrete themes",
+      "Encourage abstract thinking",
+      "Ignore the patient",
+      "Administer sedatives"
+    ]
+  },
+  {
+    "id": "mh-300",
+    "question": "A patient with anxiety disorder is experiencing panic attacks. The nurse should:",
+    "correctAnswer": "Teach relaxation techniques",
+    "rationale": "Relaxation helps reduce panic.",
+    "hint": "What skills are helpful?",
+    "subject": "Mental Health",
+    "category": "NMCN",
+    "difficulty": "Hard",
+    "source": "Psychiatric Nursing",
+    "options": [
+      "Teach relaxation techniques",
+      "Administer sedatives",
+      "Encourage avoidance",
+      "Discourage social activities"
+    ]
+  }
 ]
