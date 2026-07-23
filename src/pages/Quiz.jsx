@@ -140,7 +140,7 @@ const Quiz = () => {
   // Timer Logic
   useEffect(() => {
     let interval;
-    const activeTimer = (quizMode === 'speed') || (quizMode === 'subject' && useTimer) || (quizMode === 'quick' && useTimer) || (quizMode === 'clinical' && useTimer);
+    const activeTimer = (quizMode === 'speed') || (quizMode === 'subject' && useTimer) || (quizMode === 'quick' && useTimer) || (quizMode === 'clinical' && useTimer) || (quizMode === 'uselu' && useTimer);
 
     if (activeTimer && quizStarted && !showResults && !showRationale && !isFinalAnswer && timeLeft > 0) {
       interval = setInterval(() => {
@@ -191,13 +191,14 @@ const Quiz = () => {
         };
       }
       // Otherwise fall back to auto-generating options from other cards
+      const targetAnswer = card.answer || card.correctAnswer;
       const distractors = flashcards
-        .filter(c => c.id !== card.id && c.answer !== card.answer)
+        .filter(c => c.id !== card.id && (c.answer || c.correctAnswer) !== targetAnswer)
         .sort(() => 0.5 - Math.random())
         .slice(0, 3)
-        .map(c => c.answer);
-      const options = [card.answer, ...distractors].sort(() => 0.5 - Math.random());
-      return { ...card, options, correctAnswer: card.answer };
+        .map(c => c.answer || c.correctAnswer);
+      const options = [targetAnswer, ...distractors].sort(() => 0.5 - Math.random());
+      return { ...card, options, correctAnswer: targetAnswer };
     });
 
     setQuizQuestions(questions);
@@ -500,7 +501,7 @@ const Quiz = () => {
   const timerColor = timeLeft <= 3 ? 'bg-red-500' : timeLeft <= 10 ? 'bg-amber-500' : 'bg-emerald-500';
 
   return (
-    <div className={`min-h-screen flex flex-col ${quizMode === 'speed' ? 'bg-slate-950 text-white' : ''} transition-colors duration-500 pb-48 overflow-x-hidden relative`}>
+    <div className={`min-h-screen flex flex-col ${quizMode === 'speed' ? 'bg-slate-950 text-white fixed inset-0 z-[100] overflow-y-auto' : ''} transition-colors duration-500 pb-48 overflow-x-hidden relative`}>
       {/* Speed Atmosphere Background Elements */}
       {quizMode === 'speed' && (
          <div className="absolute inset-0 pointer-events-none overflow-hidden">
