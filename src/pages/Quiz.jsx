@@ -496,12 +496,12 @@ const Quiz = () => {
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className="bg-white dark:bg-slate-800 p-12 rounded-[3.5rem] shadow-clinical border border-slate-100 dark:border-slate-700 text-center max-w-2xl w-full"
+          className={`p-12 rounded-[3.5rem] shadow-clinical border text-center max-w-2xl w-full ${quizMode === 'speed' ? 'bg-black border-slate-800' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}
         >
           <div className="w-24 h-24 bg-medical-50 text-medical-600 rounded-[2.5rem] flex items-center justify-center mx-auto mb-8 shadow-lg">
             <Trophy size={48} />
           </div>
-          <h2 className="text-4xl font-black text-slate-900 dark:text-white mb-2 tracking-tight uppercase">Session Complete</h2>
+          <h2 className={`text-4xl font-black mb-2 tracking-tight uppercase ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>Session Complete</h2>
           <p className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-[10px] mb-10">Performance Analytics Generated</p>
 
           <div className="grid grid-cols-2 gap-4 mb-10">
@@ -535,7 +535,7 @@ const Quiz = () => {
   const timerColor = timeLeft <= 3 ? 'bg-red-500' : timeLeft <= 10 ? 'bg-amber-500' : 'bg-emerald-500';
 
   return (
-    <div className={`min-h-screen flex flex-col ${quizMode === 'speed' ? 'bg-slate-950 text-white !fixed !inset-0 !z-[9999] !h-[100dvh] !w-[100vw] !overflow-y-auto !m-0 !p-0 overscroll-none' : ''} transition-colors duration-500 pb-48 overflow-x-hidden relative`}>
+    <div className={`min-h-screen flex flex-col ${quizMode === 'speed' ? 'bg-black text-white !fixed !inset-0 !z-[9999] !h-[100dvh] !w-[100vw] !overflow-y-auto !m-0 !p-0 overscroll-none' : ''} transition-colors duration-500 pb-48 overflow-x-hidden relative`}>
       {/* Speed Atmosphere Background Elements */}
       {quizMode === 'speed' && (
          <div className="absolute inset-0 pointer-events-none overflow-hidden">
@@ -594,7 +594,7 @@ const Quiz = () => {
 
       {/* Lifelines */}
       <div className="max-w-4xl mx-auto px-6 mt-8 relative z-30">
-         <div className="bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl p-4 rounded-3xl shadow-sm border border-slate-100 dark:border-white/5 grid grid-cols-3 gap-4">
+         <div className={`backdrop-blur-xl p-4 rounded-3xl shadow-sm border grid grid-cols-3 gap-4 ${quizMode === 'speed' ? 'bg-black/60 border-white/10' : 'bg-white/80 dark:bg-slate-900/80 border-slate-100 dark:border-white/5'}`}>
             <LifelineButton
                icon={<Target />} label="50/50"
                used={lifelinesUsed.fiftyFifty}
@@ -695,7 +695,7 @@ const Quiz = () => {
       {/* Speed Challenge Achievement UI */}
       {quizMode === 'speed' && (
          <div className="fixed left-6 top-1/2 -translate-y-1/2 hidden xl:block space-y-4">
-            <div className="bg-slate-900/50 backdrop-blur-md p-6 rounded-[2.5rem] border border-white/10 w-48 shadow-2xl">
+            <div className="bg-black/60 backdrop-blur-md p-6 rounded-[2.5rem] border border-white/5 w-48 shadow-2xl">
                <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-6">Mastery Ladder</h4>
                <div className="space-y-4">
                   {[...MILESTONES].reverse().map(m => (
@@ -718,12 +718,12 @@ const Quiz = () => {
              <motion.div
                initial={{ scale: 0.9, opacity: 0 }}
                animate={{ scale: 1, opacity: 1 }}
-               className="relative bg-white dark:bg-slate-800 p-10 rounded-[3rem] shadow-2xl border border-slate-100 dark:border-slate-700 text-center max-w-sm"
+               className={`relative p-10 rounded-[3rem] shadow-2xl border text-center max-w-sm ${quizMode === 'speed' ? 'bg-black border-slate-800' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}
              >
                 <div className="w-20 h-20 bg-amber-50 dark:bg-amber-900/30 text-amber-500 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner">
                    <AlertCircle size={40} />
                 </div>
-                <h4 className="text-2xl font-black text-slate-900 dark:text-white mb-3">Abandon Challenge?</h4>
+                <h4 className={`text-2xl font-black mb-3 ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>Abandon Challenge?</h4>
                 <p className="text-slate-600 dark:text-slate-400 font-medium italic text-lg leading-relaxed mb-10">
                    "Every skipped challenge is a missed opportunity to strengthen your clinical judgment."
                 </p>
@@ -751,7 +751,7 @@ const Quiz = () => {
              <motion.div
                initial={{ y: '100%' }}
                animate={{ y: 0 }}
-               className="relative w-full max-w-2xl bg-white dark:bg-slate-900 rounded-t-[3rem] sm:rounded-[3rem] p-10 shadow-2xl border border-slate-100 dark:border-white/10"
+               className={`relative w-full max-w-2xl rounded-t-[3rem] sm:rounded-[3rem] p-10 shadow-2xl border ${quizMode === 'speed' ? 'bg-black border-white/5' : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-white/10'}`}
              >
                 <div className={`w-20 h-20 rounded-[2rem] flex items-center justify-center mb-8 mx-auto sm:mx-0 ${isCorrect ? 'bg-emerald-100 text-emerald-600 shadow-lg shadow-emerald-500/20' : 'bg-red-100 text-red-600 shadow-lg shadow-red-500/20'}`}>
                    {isCorrect ? <CheckCircle2 size={40} /> : <XCircle size={40} />}
@@ -761,7 +761,7 @@ const Quiz = () => {
                       <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">
                         {isCorrect ? 'Logic Validated' : 'Conceptual Misalignment'}
                       </p>
-                      <h4 className="text-3xl font-black text-slate-900 dark:text-white tracking-tight leading-none">
+                      <h4 className={`text-3xl font-black tracking-tight leading-none ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
                          {isCorrect ? 'Mastery Confirmed' : 'Learning Opportunity'}
                       </h4>
                    </div>
@@ -801,9 +801,9 @@ const Quiz = () => {
         {showHint && !showRationale && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
              <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={() => setShowHint(false)} />
-             <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="relative w-full max-w-md bg-white dark:bg-slate-800 p-10 rounded-[3rem] shadow-2xl border border-slate-100 dark:border-slate-700 text-center">
+             <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={`relative w-full max-w-md p-10 rounded-[3rem] shadow-2xl border text-center ${quizMode === 'speed' ? 'bg-black border-slate-800' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}>
                 <div className="w-20 h-20 bg-medical-50 text-medical-600 rounded-[2rem] flex items-center justify-center mx-auto mb-8 shadow-inner"><Target size={40} /></div>
-                <h4 className="text-2xl font-black text-slate-900 dark:text-white mb-3">Mentor Strategy</h4>
+                <h4 className={`text-2xl font-black mb-3 ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>Mentor Strategy</h4>
                 <p className="text-slate-600 dark:text-slate-300 font-medium italic text-lg leading-relaxed mb-10">
                    "{currentQ?.hint || 'Prioritize patient safety and focus on the intervention that addresses the root cause of the clinical presentation.'}"
                 </p>
