@@ -47,6 +47,14 @@ const AdminQuestionManager = () => {
   const handleJsonImport = async (e) => {
     const file = e.target.files[0];
     if (!file) return;
+    
+    const customSection = window.prompt("Enter a section name for these questions (leave blank to use defaults from the file):", file.name.replace(".json", ""));
+    if (customSection === null) {
+      // User cancelled the prompt
+      e.target.value = null;
+      return;
+    }
+    
     setIsUploading(true);
     try {
       const text = await file.text();
@@ -70,7 +78,7 @@ const AdminQuestionManager = () => {
           answer: answer,
           correctAnswer: answer,
           options: Array.isArray(item.options) && item.options.length > 0 ? item.options : null,
-          subject: item.subject || item.course || "General",
+          subject: customSection.trim() !== '' ? customSection.trim() : (item.subject || item.course || "General"),
           topic: item.topic || "Clinical practice",
           source: item.source || "Imported Faculty Bank",
           category: item.category || "NCLEX",
