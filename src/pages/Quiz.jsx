@@ -37,33 +37,41 @@ const MILESTONES = [
   { q: 30, label: 'Clinical Legend', reward: 'Legendary Status' }
 ];
 
-// ----- Combined Sound System (Rick & Morty + Family Guy) -----
+// ----- Combined Sound System (Family Guy + SpongeBob) -----
 const SOUND_POOL = {
   start: [
-    'https://www.myinstants.com/media/sounds/show-me-what-you-got.mp3' // Rick & Morty
+    'https://www.myinstants.com/media/sounds/show-me-what-you-got.mp3', // Rick & Morty
+    'https://www.myinstants.com/media/sounds/are-you-ready-kids.mp3'    // SpongeBob
   ],
   correct: [
-    'https://www.myinstants.com/media/sounds/wubba-lubba-dub-dub.mp3', // Rick & Morty
-    'https://www.myinstants.com/media/sounds/giggity.mp3',             // Family Guy - Giggity
-    'https://www.myinstants.com/media/sounds/freaking-sweet.mp3',      // Family Guy - Freakin' Sweet
-    'https://www.myinstants.com/media/sounds/family-guy-hehehehe.mp3', // Family Guy laugh
-    'https://www.myinstants.com/media/sounds/oh-my-god.mp3',           // Family Guy - Oh my god
-    'https://www.myinstants.com/media/sounds/awesome.mp3',             // Family Guy - Awesome (or generic)
-    'https://www.myinstants.com/media/sounds/family-guy-lois-laugh.mp3', // Family Guy - Lois laugh (placeholder)
-    'https://www.myinstants.com/media/sounds/family-guy-peter-whoa.mp3'  // Family Guy - Peter "Whoa!"
+    // SpongeBob
+    'https://www.myinstants.com/media/sounds/im-ready.mp3',
+    'https://www.myinstants.com/media/sounds/f-is-for-friends.mp3',
+    'https://www.myinstants.com/media/sounds/krusty-krab-pizza.mp3',
+    'https://www.myinstants.com/media/sounds/is-mayonnaise-an-instrument.mp3',
+    'https://www.myinstants.com/media/sounds/its-a-giraffe.mp3',
+    // Family Guy
+    'https://www.myinstants.com/media/sounds/giggity.mp3',
+    'https://www.myinstants.com/media/sounds/freaking-sweet.mp3',
+    'https://www.myinstants.com/media/sounds/oh-my-god.mp3',
+    'https://www.myinstants.com/media/sounds/awesome.mp3'
   ],
   wrong: [
-    'https://www.myinstants.com/media/sounds/family-guy-thats-not-a-joke.mp3', // Family Guy - That's not a joke
-    'https://www.myinstants.com/media/sounds/wheres-my-money.mp3',            // Family Guy - Where's my money?
-    'https://www.myinstants.com/media/sounds/family-guy-youre-a-moron.mp3',   // Family Guy - You're a moron
-    'https://www.myinstants.com/media/sounds/peter-laugh.mp3',                // Family Guy - Peter laugh
-    'https://www.myinstants.com/media/sounds/lois.mp3',                       // Family Guy - Lois!
-    'https://www.myinstants.com/media/sounds/brian-fart.mp3',                 // Family Guy - Brian fart (silly)
-    'https://www.myinstants.com/media/sounds/family-guy-what-the-deuce.mp3', // Family Guy - What the deuce?
-    'https://www.myinstants.com/media/sounds/family-guy-bird-is-the-word.mp3' // Family Guy - Bird is the word (short)
+    // SpongeBob
+    'https://www.myinstants.com/media/sounds/im-ugly-and-im-proud.mp3',
+    'https://www.myinstants.com/media/sounds/ravioli-ravioli-give-me-the-formuoli.mp3',
+    'https://www.myinstants.com/media/sounds/squidward.mp3',
+    'https://www.myinstants.com/media/sounds/patrick.mp3',
+    // Family Guy
+    'https://www.myinstants.com/media/sounds/family-guy-thats-not-a-joke.mp3',
+    'https://www.myinstants.com/media/sounds/wheres-my-money.mp3',
+    'https://www.myinstants.com/media/sounds/family-guy-youre-a-moron.mp3',
+    'https://www.myinstants.com/media/sounds/family-guy-what-the-deuce.mp3',
+    'https://www.myinstants.com/media/sounds/family-guy-bird-is-the-word.mp3'
   ],
   timeout: [
-    'https://www.myinstants.com/media/sounds/family-guy-time-out.mp3' // Family Guy - Time out!
+    'https://www.myinstants.com/media/sounds/family-guy-time-out.mp3',
+    'https://www.myinstants.com/media/sounds/the-krusty-krab-is-closed.mp3' // SpongeBob
   ]
 };
 
@@ -78,7 +86,7 @@ const playQuizSound = (type) => {
       audio.volume = 0.7;
       audio.play().catch(e => console.log('Audio play failed', e));
     } else {
-      // Fallback to speech synthesis
+      // Fallback to speech synthesis with themed phrases
       const utterance = new SpeechSynthesisUtterance();
       if (type === 'wrong') {
         const phrases = [
@@ -88,19 +96,39 @@ const playQuizSound = (type) => {
           "Ooh wee, that's not right!",
           "That's not a joke, that's just sad.",
           "You're a moron.",
-          "Where's my money? Oh wait, you lost it."
+          "Where's my money? Oh wait, you lost it.",
+          "I'm ugly and I'm proud.",
+          "Ravioli, ravioli, give me the formuoli."
         ];
         utterance.text = phrases[Math.floor(Math.random() * phrases.length)];
         utterance.rate = 1.1;
       } else if (type === 'timeout') {
-        utterance.text = "Time's up! Too slow, Morty!";
+        const phrases = [
+          "Time's up! Too slow, Morty!",
+          "The Krusty Krab is closed!"
+        ];
+        utterance.text = phrases[Math.floor(Math.random() * phrases.length)];
         utterance.pitch = 1.5;
         utterance.rate = 1.2;
       } else if (type === 'correct') {
-        utterance.text = "Wubba lubba dub dub!";
+        const phrases = [
+          "Wubba lubba dub dub!",
+          "Giggity!",
+          "Freakin' sweet!",
+          "Oh my god!",
+          "Awesome!",
+          "I'm ready!",
+          "F is for friends.",
+          "Krusty Krab pizza!"
+        ];
+        utterance.text = phrases[Math.floor(Math.random() * phrases.length)];
         utterance.rate = 0.9;
       } else if (type === 'start') {
-        utterance.text = "Show me what you got!";
+        const phrases = [
+          "Show me what you got!",
+          "Are you ready, kids?"
+        ];
+        utterance.text = phrases[Math.floor(Math.random() * phrases.length)];
         utterance.rate = 1.0;
       }
       if (utterance.text && window.speechSynthesis) {
@@ -139,7 +167,7 @@ const exitFullscreen = async () => {
   }
 };
 
-// ----- Main Quiz Component -----
+// ----- Main Quiz Component (unchanged except sound calls) -----
 const Quiz = () => {
   const { flashcards, studyStats, updateQuizStats, darkMode } = useAppContext();
   const navigate = useNavigate();
