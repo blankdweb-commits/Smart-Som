@@ -37,26 +37,71 @@ const MILESTONES = [
   { q: 30, label: 'Clinical Legend', reward: 'Legendary Status' }
 ];
 
-const playRickAndMortySound = (type) => {
+// ----- Combined Sound System (Rick & Morty + Family Guy) -----
+const SOUND_POOL = {
+  start: [
+    'https://www.myinstants.com/media/sounds/show-me-what-you-got.mp3' // Rick & Morty
+  ],
+  correct: [
+    'https://www.myinstants.com/media/sounds/wubba-lubba-dub-dub.mp3', // Rick & Morty
+    'https://www.myinstants.com/media/sounds/giggity.mp3',             // Family Guy - Giggity
+    'https://www.myinstants.com/media/sounds/freaking-sweet.mp3',      // Family Guy - Freakin' Sweet
+    'https://www.myinstants.com/media/sounds/family-guy-hehehehe.mp3', // Family Guy laugh
+    'https://www.myinstants.com/media/sounds/oh-my-god.mp3',           // Family Guy - Oh my god
+    'https://www.myinstants.com/media/sounds/awesome.mp3',             // Family Guy - Awesome (or generic)
+    'https://www.myinstants.com/media/sounds/family-guy-lois-laugh.mp3', // Family Guy - Lois laugh (placeholder)
+    'https://www.myinstants.com/media/sounds/family-guy-peter-whoa.mp3'  // Family Guy - Peter "Whoa!"
+  ],
+  wrong: [
+    'https://www.myinstants.com/media/sounds/family-guy-thats-not-a-joke.mp3', // Family Guy - That's not a joke
+    'https://www.myinstants.com/media/sounds/wheres-my-money.mp3',            // Family Guy - Where's my money?
+    'https://www.myinstants.com/media/sounds/family-guy-youre-a-moron.mp3',   // Family Guy - You're a moron
+    'https://www.myinstants.com/media/sounds/peter-laugh.mp3',                // Family Guy - Peter laugh
+    'https://www.myinstants.com/media/sounds/lois.mp3',                       // Family Guy - Lois!
+    'https://www.myinstants.com/media/sounds/brian-fart.mp3',                 // Family Guy - Brian fart (silly)
+    'https://www.myinstants.com/media/sounds/family-guy-what-the-deuce.mp3', // Family Guy - What the deuce?
+    'https://www.myinstants.com/media/sounds/family-guy-bird-is-the-word.mp3' // Family Guy - Bird is the word (short)
+  ],
+  timeout: [
+    'https://www.myinstants.com/media/sounds/family-guy-time-out.mp3' // Family Guy - Time out!
+  ]
+};
+
+const playQuizSound = (type) => {
   try {
-    let url;
-    if (type === 'start') url = 'https://www.myinstants.com/media/sounds/show-me-what-you-got.mp3';
-    else if (type === 'correct') url = 'https://www.myinstants.com/media/sounds/wubba-lubba-dub-dub.mp3';
-    
+    const pool = SOUND_POOL[type] || [];
+    if (pool.length === 0) return;
+
+    const url = pool[Math.floor(Math.random() * pool.length)];
     if (url) {
       const audio = new Audio(url);
       audio.volume = 0.7;
       audio.play().catch(e => console.log('Audio play failed', e));
     } else {
+      // Fallback to speech synthesis
       const utterance = new SpeechSynthesisUtterance();
       if (type === 'wrong') {
-        const phrases = ["Wrong! What a failure.", "Oh geez, that's incorrect.", "You're a piece of garbage and I can prove it mathematically.", "Ooh wee, that's not right!"];
+        const phrases = [
+          "Wrong! What a failure.",
+          "Oh geez, that's incorrect.",
+          "You're a piece of garbage and I can prove it mathematically.",
+          "Ooh wee, that's not right!",
+          "That's not a joke, that's just sad.",
+          "You're a moron.",
+          "Where's my money? Oh wait, you lost it."
+        ];
         utterance.text = phrases[Math.floor(Math.random() * phrases.length)];
         utterance.rate = 1.1;
       } else if (type === 'timeout') {
         utterance.text = "Time's up! Too slow, Morty!";
         utterance.pitch = 1.5;
         utterance.rate = 1.2;
+      } else if (type === 'correct') {
+        utterance.text = "Wubba lubba dub dub!";
+        utterance.rate = 0.9;
+      } else if (type === 'start') {
+        utterance.text = "Show me what you got!";
+        utterance.rate = 1.0;
       }
       if (utterance.text && window.speechSynthesis) {
         window.speechSynthesis.speak(utterance);
@@ -67,6 +112,7 @@ const playRickAndMortySound = (type) => {
   }
 };
 
+// ----- Original helpers (unchanged) -----
 const getSpeedTimerValue = (index) => {
   if (index < 5) return 20;
   if (index < 10) return 18;
@@ -93,6 +139,7 @@ const exitFullscreen = async () => {
   }
 };
 
+// ----- Main Quiz Component -----
 const Quiz = () => {
   const { flashcards, studyStats, updateQuizStats, darkMode } = useAppContext();
   const navigate = useNavigate();
@@ -157,12 +204,10 @@ const Quiz = () => {
   const handleTimeOut = useCallback(() => {
     if (showRationale || showResults) return;
     if (quizMode === 'speed') {
-      // Speed mode: time out = immediate quiz over
       updateQuizStats({ quizStreak: 0 });
-      playRickAndMortySound('timeout');
+      playQuizSound('timeout');
       setShowResults(true);
     } else {
-      // Other modes: time out = mark wrong and show rationale
       setIsCorrect(false);
       setShowRationale(true);
       setIsFinalAnswer(false);
@@ -215,14 +260,12 @@ const Quiz = () => {
     const selected = shuffled.slice(0, Math.min(limit, uniquePool.length));
 
     const questions = selected.map(card => {
-      // If the card already has pre-built options (like fluid-electrolytes.json), use them directly
       if (Array.isArray(card.options) && card.options.length >= 2 && card.correctAnswer) {
         return {
           ...card,
           options: [...card.options].sort(() => 0.5 - Math.random()),
         };
       }
-      // Otherwise fall back to auto-generating options from other cards
       const targetAnswer = card.answer || card.correctAnswer;
       const distractors = flashcards
         .filter(c => c.id !== card.id && (c.answer || c.correctAnswer) !== targetAnswer)
@@ -255,7 +298,7 @@ const Quiz = () => {
     if (mode === 'speed') {
       setTimeLeft(20);
       setMaxTime(20);
-      playRickAndMortySound('start');
+      playQuizSound('start');
       enterFullscreen();
     } else {
       if (useTimer) {
@@ -284,18 +327,17 @@ const Quiz = () => {
     setIsCorrect(correct);
     setIsFinalAnswer(false);
     if (correct) {
-      playRickAndMortySound('correct');
+      playQuizSound('correct');
       const newScore = score + 1;
       setScore(newScore);
 
       if (newScore === 5) setSafetyNetScore(5);
       if (newScore === 10) setSafetyNetScore(10);
 
-      // Milestone is updated dynamically via useMemo
       setConsecutiveCorrect(prev => prev + 1);
       updateQuizStats({ quizStreak: (studyStats.quizStreak || 0) + 1 });
     } else {
-      playRickAndMortySound('wrong');
+      playQuizSound('wrong');
       setConsecutiveCorrect(0);
       setShowRationale(true);
       updateQuizStats({ quizStreak: 0 });
@@ -385,7 +427,6 @@ const Quiz = () => {
           </div>
         </header>
 
-        {/* Configuration Section */}
         <section className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-clinical border border-slate-100 dark:border-slate-700">
            <div className="flex items-center gap-3 mb-8">
               <div className="p-2 bg-indigo-100 text-indigo-600 rounded-xl">
@@ -538,7 +579,6 @@ const Quiz = () => {
 
   return (
     <div className={`min-h-screen flex flex-col ${quizMode === 'speed' ? 'bg-black text-white !fixed !inset-0 !z-[9999] !h-[100dvh] !w-[100vw] !overflow-y-auto !m-0 !p-0 overscroll-none' : ''} transition-colors duration-500 pb-48 overflow-x-hidden relative`}>
-      {/* Speed Atmosphere Background Elements */}
       {quizMode === 'speed' && (
          <div className="absolute inset-0 pointer-events-none overflow-hidden">
             <div className="absolute -top-24 -left-24 w-96 h-96 bg-medical-500/10 blur-[120px] rounded-full" />
@@ -546,7 +586,6 @@ const Quiz = () => {
          </div>
       )}
 
-      {/* Progress Header */}
       <div className="max-w-4xl mx-auto pt-10 px-6 relative z-10">
         <div className="flex justify-between items-center mb-6">
           <button
@@ -574,7 +613,6 @@ const Quiz = () => {
           </div>
         </div>
 
-        {/* Timer Bar */}
         <div className="w-full h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden mb-2">
           <motion.div
             initial={false}
@@ -603,7 +641,6 @@ const Quiz = () => {
         </div>
       </div>
 
-      {/* Lifelines */}
       <div className="max-w-4xl mx-auto px-6 mt-8 relative z-30">
          <div className={`backdrop-blur-xl p-4 rounded-3xl shadow-sm border grid grid-cols-3 gap-4 ${quizMode === 'speed' ? 'bg-black/60 border-white/10' : 'bg-white/80 dark:bg-slate-900/80 border-slate-100 dark:border-white/5'}`}>
             <LifelineButton
@@ -630,7 +667,6 @@ const Quiz = () => {
          </div>
       </div>
 
-      {/* Main Question Area */}
       <div className="max-w-4xl mx-auto mt-8 px-6 relative z-10">
          <motion.div
            key={currentQuestionIndex}
@@ -655,11 +691,9 @@ const Quiz = () => {
                </div>
             </div>
 
-            {/* Options - Kahoot Style 2x2 for Speed, List for others */}
             <div className={`grid ${quizMode === 'speed' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-4`}>
                {currentQ?.options?.map((option, idx) => {
-                  const isLearningHighlight = false; // Disabled premature answer highlighting
-                  
+                  const isLearningHighlight = false;
                   return (
                   <OptionButton
                     key={idx}
@@ -682,7 +716,6 @@ const Quiz = () => {
          </motion.div>
       </div>
 
-      {/* Final Answer Confirmation */}
       <AnimatePresence>
         {isFinalAnswer && !showRationale && (
           <motion.div
@@ -701,7 +734,6 @@ const Quiz = () => {
         )}
       </AnimatePresence>
 
-      {/* Speed Challenge Achievement UI */}
       {quizMode === 'speed' && (
          <div className="fixed left-6 top-1/2 -translate-y-1/2 hidden xl:block space-y-4">
             <div className="bg-black/60 backdrop-blur-md p-6 rounded-[2.5rem] border border-white/5 w-48 shadow-2xl">
@@ -719,7 +751,6 @@ const Quiz = () => {
          </div>
       )}
 
-      {/* Early Quit Modal */}
       <AnimatePresence>
         {showQuitModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -749,7 +780,6 @@ const Quiz = () => {
         )}
       </AnimatePresence>
 
-      {/* Rationale / Feedback Overlay */}
       <AnimatePresence>
         {showRationale && (
           <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -807,7 +837,7 @@ const Quiz = () => {
         )}
       </AnimatePresence>
 
-      {/* NEW: Question Review Popup (bottom sheet) */}
+      {/* Question Review Popup */}
       <AnimatePresence>
         {showQuestionPopup && (
           <>
@@ -902,7 +932,7 @@ const Quiz = () => {
         )}
       </AnimatePresence>
 
-      {/* Floating arrow-up button - only appears when rationale is shown */}
+      {/* Floating arrow-up - only when rationale shown */}
       {!showQuestionPopup && quizStarted && !showResults && showRationale && (
         <motion.button
           initial={{ scale: 0, opacity: 0 }}
