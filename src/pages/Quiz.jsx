@@ -25,7 +25,6 @@ import {
   AlertCircle,
   Sparkles
 } from '../components/Icons';
-import ModeCard from '../components/ModeCard';
 import useluData from '../data/flashcards/nmcn/uselu-posting-tests.json';
 import { motion, AnimatePresence } from 'framer-motion';
 
