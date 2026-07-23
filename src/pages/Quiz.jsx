@@ -114,6 +114,7 @@ const Quiz = () => {
   const [lifelinesUsed, setLifelinesUsed] = useState({ hint: false, fiftyFifty: false, askClass: false });
   const [classPoll, setClassPoll] = useState(null);
   const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
+  const [showQuestionPopup, setShowQuestionPopup] = useState(false); // NEW: toggle for question review popup
 
   // Speed Challenge Specific
   const [maxTime, setMaxTime] = useState(20);
@@ -249,6 +250,7 @@ const Quiz = () => {
     setHighestMilestone("None");
     setSafetyNetScore(0);
     setShowQuitModal(false);
+    setShowQuestionPopup(false); // close popup on new quiz
 
     if (mode === 'speed') {
       setTimeLeft(20);
@@ -557,9 +559,19 @@ const Quiz = () => {
              <p className="text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">{quizMode} mode active</p>
              <h3 className="text-lg font-black tracking-tighter uppercase">{currentMilestone}</h3>
           </div>
-          <div className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md rounded-2xl border border-white/5">
-             <Zap className="text-amber-500" size={16} fill="currentColor" />
-             <span className="text-sm font-black tabular-nums">{score}</span>
+          <div className="flex items-center gap-2">
+            {/* NEW: Review button to toggle question popup */}
+            <button
+              onClick={() => setShowQuestionPopup(!showQuestionPopup)}
+              className="p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-2xl transition-all"
+              aria-label="Review question"
+            >
+              <HelpCircle size={24} className="text-slate-400" />
+            </button>
+            <div className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md rounded-2xl border border-white/5">
+               <Zap className="text-amber-500" size={16} fill="currentColor" />
+               <span className="text-sm font-black tabular-nums">{score}</span>
+            </div>
           </div>
         </div>
 
@@ -690,8 +702,6 @@ const Quiz = () => {
         )}
       </AnimatePresence>
 
-
-
       {/* Speed Challenge Achievement UI */}
       {quizMode === 'speed' && (
          <div className="fixed left-6 top-1/2 -translate-y-1/2 hidden xl:block space-y-4">
@@ -797,6 +807,130 @@ const Quiz = () => {
           </div>
         )}
       </AnimatePresence>
+
+      {/* NEW: Question Review Popup (bottom sheet) */}
+      <AnimatePresence>
+        {showQuestionPopup && (
+          <>
+            <motion.div
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="fixed inset-0 z-[60] bg-slate-950/70 backdrop-blur-sm"
+              onClick={() => setShowQuestionPopup(false)}
+            />
+            <motion.div
+              initial={{ y: '100%' }}
+              animate={{ y: 0 }}
+              exit={{ y: '100%' }}
+              transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+              className={`fixed bottom-0 left-0 right-0 z-[70] max-h-[80vh] overflow-y-auto rounded-t-[3rem] p-6 shadow-2xl border ${quizMode === 'speed' ? 'bg-black border-white/10' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10'}`}
+            >
+              <div className="flex justify-between items-center mb-6">
+                <h3 className={`text-xl font-black ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
+                  Question Review
+                </h3>
+                <button
+                  onClick={() => setShowQuestionPopup(false)}
+                  className="p-2 hover:bg-slate-100 dark:hover:bg-white/10 rounded-full transition-colors"
+                >
+                  <XCircle size={24} className="text-slate-400" />
+                </button>
+              </div>
+
+              {currentQ && (
+                <div className="space-y-6">
+                  <div>
+                    <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Question {currentQuestionIndex + 1}</p>
+                    <p className={`text-base font-semibold mt-1 ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
+                      {currentQ.question}
+                    </p>
+                    <p className="text-xs text-slate-400 mt-1">Source: {currentQ.source || 'Unknown'}</p>
+                  </div>
+
+                  <div className="space-y-2">
+                    {currentQ.options.map((opt, idx) => {
+                      const isCorrectOpt = opt === currentQ.correctAnswer;
+                      const isSelected = opt === selectedOption;
+                      let bgColor = 'bg-transparent';
+                      let borderColor = 'border-slate-200 dark:border-slate-700';
+                      let textColor = quizMode === 'speed' ? 'text-white' : 'text-slate-700 dark:text-slate-300';
+                      if (isCorrectOpt) {
+                        bgColor = 'bg-emerald-500/20';
+                        borderColor = 'border-emerald-500';
+                        textColor = 'text-emerald-600 dark:text-emerald-400';
+                      } else if (isSelected && !isCorrectOpt) {
+                        bgColor = 'bg-red-500/20';
+                        borderColor = 'border-red-500';
+                        textColor = 'text-red-600 dark:text-red-400';
+                      }
+                      return (
+                        <div
+                          key={idx}
+                          className={`flex items-center gap-3 p-4 rounded-2xl border-2 ${bgColor} ${borderColor} ${textColor} transition-colors`}
+                        >
+                          <span className="font-mono text-sm font-bold w-6">{String.fromCharCode(65 + idx)}.</span>
+                          <span className="flex-1">{opt}</span>
+                          {isCorrectOpt && <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />}
+                          {isSelected && !isCorrectOpt && <XCircle size={18} className="text-red-500 shrink-0" />}
+                        </div>
+                      );
+                    })}
+                  </div>
+
+                  {selectedOption && (
+                    <div className="mt-4 p-4 bg-slate-50 dark:bg-white/5 rounded-2xl border border-slate-200 dark:border-white/10">
+                      <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Your Answer</p>
+                      <p className={`font-semibold ${selectedOption === currentQ.correctAnswer ? 'text-emerald-600' : 'text-red-500'}`}>
+                        {selectedOption} {selectedOption === currentQ.correctAnswer ? '✅ Correct' : '❌ Incorrect'}
+                      </p>
+                      {selectedOption !== currentQ.correctAnswer && (
+                        <p className="text-xs text-slate-400 mt-1">Correct: {currentQ.correctAnswer}</p>
+                      )}
+                    </div>
+                  )}
+
+                  <button
+                    onClick={() => setShowQuestionPopup(false)}
+                    className="w-full py-4 bg-medical-600 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all"
+                  >
+                    Back to Quiz
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </>
+        )}
+      </AnimatePresence>
+
+      {/* Floating arrow-up button to reopen the popup when hidden */}
+      {!showQuestionPopup && quizStarted && !showResults && (
+        <motion.button
+          initial={{ scale: 0, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          exit={{ scale: 0, opacity: 0 }}
+          onClick={() => setShowQuestionPopup(true)}
+          className="fixed bottom-6 right-6 z-50 p-4 bg-medical-600 text-white rounded-full shadow-2xl shadow-medical-500/30 hover:scale-110 active:scale-95 transition-all border border-white/20"
+          aria-label="Open question review"
+        >
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="24"
+            height="24"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2.5"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            className="rotate-180"
+          >
+            <polyline points="18 15 12 9 6 15" />
+          </svg>
+        </motion.button>
+      )}
+
+      {/* Hint Overlay */}
       <AnimatePresence>
         {showHint && !showRationale && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
