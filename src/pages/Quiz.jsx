@@ -37,11 +37,11 @@ const MILESTONES = [
   { q: 30, label: 'Clinical Legend', reward: 'Legendary Status' }
 ];
 
-// ----- Combined Sound System (Family Guy + SpongeBob + The Boys + Invincible) -----
+// ----- Sound System with Preloading and CORS handling -----
 const SOUND_POOL = {
   start: [
-    'https://www.myinstants.com/media/sounds/show-me-what-you-got.mp3', // Rick & Morty
-    'https://www.myinstants.com/media/sounds/are-you-ready-kids.mp3'    // SpongeBob
+    'https://www.myinstants.com/media/sounds/show-me-what-you-got.mp3',
+    'https://www.myinstants.com/media/sounds/are-you-ready-kids.mp3'
   ],
   correct: [
     // SpongeBob
@@ -56,10 +56,10 @@ const SOUND_POOL = {
     'https://www.myinstants.com/media/sounds/oh-my-god.mp3',
     'https://www.myinstants.com/media/sounds/awesome.mp3',
     // The Boys / Invincible
-    'https://www.myinstants.com/media/sounds/think-mark.mp3',          // Omni‑Man
-    'https://www.myinstants.com/media/sounds/i-can-do-whatever-i-want.mp3', // Omni‑Man
-    'https://www.myinstants.com/media/sounds/you-dont-seem-to-understand.mp3', // Omni‑Man
-    'https://www.myinstants.com/media/sounds/i-am-the-strongest.mp3'    // Thragg
+    'https://www.myinstants.com/media/sounds/think-mark.mp3',
+    'https://www.myinstants.com/media/sounds/i-can-do-whatever-i-want.mp3',
+    'https://www.myinstants.com/media/sounds/you-dont-seem-to-understand.mp3',
+    'https://www.myinstants.com/media/sounds/i-am-the-strongest.mp3'
   ],
   wrong: [
     // SpongeBob
@@ -74,86 +74,130 @@ const SOUND_POOL = {
     'https://www.myinstants.com/media/sounds/family-guy-what-the-deuce.mp3',
     'https://www.myinstants.com/media/sounds/family-guy-bird-is-the-word.mp3',
     // The Boys / Invincible
-    'https://www.myinstants.com/media/sounds/im-so-sorry-mark.mp3',    // Omni‑Man
-    'https://www.myinstants.com/media/sounds/you-pathetic-excuse.mp3', // Conquest
-    'https://www.myinstants.com/media/sounds/why-did-you-make-me-do-this.mp3' // Omni‑Man
+    'https://www.myinstants.com/media/sounds/im-so-sorry-mark.mp3',
+    'https://www.myinstants.com/media/sounds/you-pathetic-excuse.mp3',
+    'https://www.myinstants.com/media/sounds/why-did-you-make-me-do-this.mp3'
   ],
   timeout: [
     'https://www.myinstants.com/media/sounds/family-guy-time-out.mp3',
-    'https://www.myinstants.com/media/sounds/the-krusty-krab-is-closed.mp3' // SpongeBob
+    'https://www.myinstants.com/media/sounds/the-krusty-krab-is-closed.mp3'
   ]
 };
+
+// Preload and cache audio elements
+const audioCache = {};
+
+function preloadSounds() {
+  Object.keys(SOUND_POOL).forEach(type => {
+    const urls = SOUND_POOL[type];
+    urls.forEach(url => {
+      if (!audioCache[url]) {
+        const audio = new Audio();
+        audio.crossOrigin = 'anonymous';
+        audio.src = url;
+        audio.preload = 'auto';
+        audioCache[url] = audio;
+      }
+    });
+  });
+}
+
+// Call preload once at module load
+preloadSounds();
 
 const playQuizSound = (type) => {
   try {
     const pool = SOUND_POOL[type] || [];
     if (pool.length === 0) return;
 
+    // Get a random URL from the pool
     const url = pool[Math.floor(Math.random() * pool.length)];
-    if (url) {
-      const audio = new Audio(url);
-      audio.volume = 0.7;
-      audio.play().catch(e => console.log('Audio play failed', e));
-    } else {
-      // Fallback to speech synthesis with themed phrases
-      const utterance = new SpeechSynthesisUtterance();
-      if (type === 'wrong') {
-        const phrases = [
-          "Wrong! What a failure.",
-          "Oh geez, that's incorrect.",
-          "You're a piece of garbage and I can prove it mathematically.",
-          "Ooh wee, that's not right!",
-          "That's not a joke, that's just sad.",
-          "You're a moron.",
-          "Where's my money? Oh wait, you lost it.",
-          "I'm ugly and I'm proud.",
-          "Ravioli, ravioli, give me the formuoli.",
-          "I'm so sorry, Mark.",
-          "You pathetic excuse."
-        ];
-        utterance.text = phrases[Math.floor(Math.random() * phrases.length)];
-        utterance.rate = 1.1;
-      } else if (type === 'timeout') {
-        const phrases = [
-          "Time's up! Too slow, Morty!",
-          "The Krusty Krab is closed!"
-        ];
-        utterance.text = phrases[Math.floor(Math.random() * phrases.length)];
-        utterance.pitch = 1.5;
-        utterance.rate = 1.2;
-      } else if (type === 'correct') {
-        const phrases = [
-          "Wubba lubba dub dub!",
-          "Giggity!",
-          "Freakin' sweet!",
-          "Oh my god!",
-          "Awesome!",
-          "I'm ready!",
-          "F is for friends.",
-          "Krusty Krab pizza!",
-          "Think, Mark!",
-          "I can do whatever I want.",
-          "You don't seem to understand.",
-          "I am the strongest."
-        ];
-        utterance.text = phrases[Math.floor(Math.random() * phrases.length)];
-        utterance.rate = 0.9;
-      } else if (type === 'start') {
-        const phrases = [
-          "Show me what you got!",
-          "Are you ready, kids?"
-        ];
-        utterance.text = phrases[Math.floor(Math.random() * phrases.length)];
-        utterance.rate = 1.0;
-      }
-      if (utterance.text && window.speechSynthesis) {
-        window.speechSynthesis.speak(utterance);
-      }
+    let audio = audioCache[url];
+
+    // If not cached, create a new one (shouldn't happen if preload worked)
+    if (!audio) {
+      audio = new Audio();
+      audio.crossOrigin = 'anonymous';
+      audio.src = url;
+      audio.preload = 'auto';
+      audioCache[url] = audio;
     }
-  } catch(e) {
-    console.log(e);
+
+    // Reset and play
+    audio.currentTime = 0;
+    audio.volume = 0.7;
+    const playPromise = audio.play();
+    if (playPromise !== undefined) {
+      playPromise.catch(err => {
+        console.warn('Audio play failed:', err);
+        // Fallback to speech synthesis
+        fallbackSpeech(type);
+      });
+    }
+  } catch (e) {
+    console.warn('Sound system error:', e);
+    fallbackSpeech(type);
   }
 };
+
+// Fallback speech synthesis
+function fallbackSpeech(type) {
+  try {
+    const utterance = new SpeechSynthesisUtterance();
+    if (type === 'wrong') {
+      const phrases = [
+        "Wrong! What a failure.",
+        "Oh geez, that's incorrect.",
+        "You're a piece of garbage and I can prove it mathematically.",
+        "Ooh wee, that's not right!",
+        "That's not a joke, that's just sad.",
+        "You're a moron.",
+        "Where's my money? Oh wait, you lost it.",
+        "I'm ugly and I'm proud.",
+        "Ravioli, ravioli, give me the formuoli.",
+        "I'm so sorry, Mark.",
+        "You pathetic excuse."
+      ];
+      utterance.text = phrases[Math.floor(Math.random() * phrases.length)];
+      utterance.rate = 1.1;
+    } else if (type === 'timeout') {
+      const phrases = [
+        "Time's up! Too slow, Morty!",
+        "The Krusty Krab is closed!"
+      ];
+      utterance.text = phrases[Math.floor(Math.random() * phrases.length)];
+      utterance.pitch = 1.5;
+      utterance.rate = 1.2;
+    } else if (type === 'correct') {
+      const phrases = [
+        "Wubba lubba dub dub!",
+        "Giggity!",
+        "Freakin' sweet!",
+        "Oh my god!",
+        "Awesome!",
+        "I'm ready!",
+        "F is for friends.",
+        "Krusty Krab pizza!",
+        "Think, Mark!",
+        "I can do whatever I want.",
+        "You don't seem to understand.",
+        "I am the strongest."
+      ];
+      utterance.text = phrases[Math.floor(Math.random() * phrases.length)];
+      utterance.rate = 0.9;
+    } else if (type === 'start') {
+      const phrases = [
+        "Show me what you got!",
+        "Are you ready, kids?"
+      ];
+      utterance.text = phrases[Math.floor(Math.random() * phrases.length)];
+      utterance.rate = 1.0;
+    }
+    if (utterance.text && window.speechSynthesis) {
+      window.speechSynthesis.speak(utterance);
+    }
+  } catch(e) { /* ignore */ }
+}
 
 // ----- Original helpers (unchanged) -----
 const getSpeedTimerValue = (index) => {
