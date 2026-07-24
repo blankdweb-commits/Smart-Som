@@ -37,7 +37,7 @@ const MILESTONES = [
   { q: 30, label: 'Clinical Legend', reward: 'Legendary Status' }
 ];
 
-// ----- Combined Sound System (Family Guy + SpongeBob) -----
+// ----- Combined Sound System (Family Guy + SpongeBob + The Boys + Invincible) -----
 const SOUND_POOL = {
   start: [
     'https://www.myinstants.com/media/sounds/show-me-what-you-got.mp3', // Rick & Morty
@@ -54,7 +54,12 @@ const SOUND_POOL = {
     'https://www.myinstants.com/media/sounds/giggity.mp3',
     'https://www.myinstants.com/media/sounds/freaking-sweet.mp3',
     'https://www.myinstants.com/media/sounds/oh-my-god.mp3',
-    'https://www.myinstants.com/media/sounds/awesome.mp3'
+    'https://www.myinstants.com/media/sounds/awesome.mp3',
+    // The Boys / Invincible
+    'https://www.myinstants.com/media/sounds/think-mark.mp3',          // Omni‑Man
+    'https://www.myinstants.com/media/sounds/i-can-do-whatever-i-want.mp3', // Omni‑Man
+    'https://www.myinstants.com/media/sounds/you-dont-seem-to-understand.mp3', // Omni‑Man
+    'https://www.myinstants.com/media/sounds/i-am-the-strongest.mp3'    // Thragg
   ],
   wrong: [
     // SpongeBob
@@ -67,7 +72,11 @@ const SOUND_POOL = {
     'https://www.myinstants.com/media/sounds/wheres-my-money.mp3',
     'https://www.myinstants.com/media/sounds/family-guy-youre-a-moron.mp3',
     'https://www.myinstants.com/media/sounds/family-guy-what-the-deuce.mp3',
-    'https://www.myinstants.com/media/sounds/family-guy-bird-is-the-word.mp3'
+    'https://www.myinstants.com/media/sounds/family-guy-bird-is-the-word.mp3',
+    // The Boys / Invincible
+    'https://www.myinstants.com/media/sounds/im-so-sorry-mark.mp3',    // Omni‑Man
+    'https://www.myinstants.com/media/sounds/you-pathetic-excuse.mp3', // Conquest
+    'https://www.myinstants.com/media/sounds/why-did-you-make-me-do-this.mp3' // Omni‑Man
   ],
   timeout: [
     'https://www.myinstants.com/media/sounds/family-guy-time-out.mp3',
@@ -98,7 +107,9 @@ const playQuizSound = (type) => {
           "You're a moron.",
           "Where's my money? Oh wait, you lost it.",
           "I'm ugly and I'm proud.",
-          "Ravioli, ravioli, give me the formuoli."
+          "Ravioli, ravioli, give me the formuoli.",
+          "I'm so sorry, Mark.",
+          "You pathetic excuse."
         ];
         utterance.text = phrases[Math.floor(Math.random() * phrases.length)];
         utterance.rate = 1.1;
@@ -119,7 +130,11 @@ const playQuizSound = (type) => {
           "Awesome!",
           "I'm ready!",
           "F is for friends.",
-          "Krusty Krab pizza!"
+          "Krusty Krab pizza!",
+          "Think, Mark!",
+          "I can do whatever I want.",
+          "You don't seem to understand.",
+          "I am the strongest."
         ];
         utterance.text = phrases[Math.floor(Math.random() * phrases.length)];
         utterance.rate = 0.9;
@@ -167,7 +182,7 @@ const exitFullscreen = async () => {
   }
 };
 
-// ----- Main Quiz Component (unchanged except sound calls) -----
+// ----- Main Quiz Component (unchanged except sound calls and removal of HelpCircle button) -----
 const Quiz = () => {
   const { flashcards, studyStats, updateQuizStats, darkMode } = useAppContext();
   const navigate = useNavigate();
@@ -627,13 +642,7 @@ const Quiz = () => {
              <h3 className="text-lg font-black tracking-tighter uppercase">{currentMilestone}</h3>
           </div>
           <div className="flex items-center gap-2">
-            <button
-              onClick={() => setShowQuestionPopup(!showQuestionPopup)}
-              className="p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-2xl transition-all"
-              aria-label="Review question"
-            >
-              <HelpCircle size={24} className="text-slate-400" />
-            </button>
+            {/* Removed the HelpCircle (?) button */}
             <div className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md rounded-2xl border border-white/5">
                <Zap className="text-amber-500" size={16} fill="currentColor" />
                <span className="text-sm font-black tabular-nums">{score}</span>
