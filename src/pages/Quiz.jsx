@@ -110,11 +110,9 @@ const playQuizSound = (type) => {
     const pool = SOUND_POOL[type] || [];
     if (pool.length === 0) return;
 
-    // Get a random URL from the pool
     const url = pool[Math.floor(Math.random() * pool.length)];
     let audio = audioCache[url];
 
-    // If not cached, create a new one (shouldn't happen if preload worked)
     if (!audio) {
       audio = new Audio();
       audio.crossOrigin = 'anonymous';
@@ -123,14 +121,12 @@ const playQuizSound = (type) => {
       audioCache[url] = audio;
     }
 
-    // Reset and play
     audio.currentTime = 0;
     audio.volume = 0.7;
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise.catch(err => {
         console.warn('Audio play failed:', err);
-        // Fallback to speech synthesis
         fallbackSpeech(type);
       });
     }
@@ -140,7 +136,6 @@ const playQuizSound = (type) => {
   }
 };
 
-// Fallback speech synthesis
 function fallbackSpeech(type) {
   try {
     const utterance = new SpeechSynthesisUtterance();
@@ -226,7 +221,7 @@ const exitFullscreen = async () => {
   }
 };
 
-// ----- Main Quiz Component (unchanged except sound calls and removal of HelpCircle button) -----
+// ----- Main Quiz Component -----
 const Quiz = () => {
   const { flashcards, studyStats, updateQuizStats, darkMode } = useAppContext();
   const navigate = useNavigate();
@@ -257,9 +252,9 @@ const Quiz = () => {
   const [safetyNetScore, setSafetyNetScore] = useState(0);
 
   // Configuration Specific
-  const [selectedSubject, setSelectedSubject] = useState(null);
   const [questionLimit, setQuestionLimit] = useState(10);
   const [useTimer, setUseTimer] = useState(true);
+  const [questionTime, setQuestionTime] = useState(30); // NEW: seconds per question
 
   // Early Quit Messaging
   const [showQuitModal, setShowQuitModal] = useState(false);
@@ -270,18 +265,6 @@ const Quiz = () => {
       exitFullscreen();
     };
   }, []);
-
-  // Derived Data
-  const subjects = useMemo(() => {
-    const s = new Map();
-    if (flashcards) {
-      flashcards.forEach(c => {
-        const name = c.subject || 'General';
-        s.set(name, (s.get(name) || 0) + 1);
-      });
-    }
-    return Array.from(s.entries()).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
-  }, [flashcards]);
 
   const currentMilestone = useMemo(() => {
     const milestone = [...MILESTONES].reverse().find(m => score >= m.q);
@@ -389,8 +372,13 @@ const Quiz = () => {
       enterFullscreen();
     } else {
       if (useTimer) {
-        setTimeLeft(30);
-        setMaxTime(30);
+        const time = Math.min(Math.max(questionTime, 1), 80); // clamp
+        setTimeLeft(time);
+        setMaxTime(time);
+      } else {
+        // if timer off, we don't care about time
+        setTimeLeft(999);
+        setMaxTime(999);
       }
       exitFullscreen();
     }
@@ -453,8 +441,9 @@ const Quiz = () => {
         setTimeLeft(val);
         setMaxTime(val);
       } else if (useTimer) {
-        setTimeLeft(30);
-        setMaxTime(30);
+        const time = Math.min(Math.max(questionTime, 1), 80);
+        setTimeLeft(time);
+        setMaxTime(time);
       }
     } else {
       setShowResults(true);
@@ -523,29 +512,33 @@ const Quiz = () => {
            </div>
 
            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+              {/* Question Limit - replaced buttons with input */}
               <div className="space-y-3">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Question Limit</label>
-                 <div className="flex items-center gap-2">
-                    {[10, 20, 50, 100].map(val => (
-                       <button
-                         key={val}
-                         onClick={() => setQuestionLimit(val)}
-                         className={`flex-1 py-3 rounded-2xl font-black text-xs transition-all ${questionLimit === val ? 'bg-indigo-600 text-white shadow-lg' : 'bg-slate-50 dark:bg-slate-900 text-slate-400 hover:bg-slate-100'}`}
-                       >
-                          {val}
-                       </button>
-                    ))}
-                 </div>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Question Limit (1–300)</label>
+                 <input
+                   type="number"
+                   min="1"
+                   max="300"
+                   value={questionLimit}
+                   onChange={(e) => {
+                     const val = parseInt(e.target.value, 10);
+                     if (!isNaN(val) && val >= 1 && val <= 300) {
+                       setQuestionLimit(val);
+                     }
+                   }}
+                   className="w-full py-3 px-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none text-slate-900 dark:text-white font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                 />
               </div>
 
+              {/* Timer Toggle - keep as is */}
               <div className="space-y-3">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Session Timer</label>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Timer</label>
                  <div className="flex items-center gap-2">
                     <button
                       onClick={() => setUseTimer(true)}
                       className={`flex-1 py-3 rounded-2xl font-black text-xs transition-all ${useTimer ? 'bg-emerald-500 text-white shadow-lg' : 'bg-slate-50 dark:bg-slate-900 text-slate-400 hover:bg-slate-100'}`}
                     >
-                       TIMER ON
+                       ON
                     </button>
                     <button
                       onClick={() => setUseTimer(false)}
@@ -556,18 +549,23 @@ const Quiz = () => {
                  </div>
               </div>
 
+              {/* NEW: Time per question input (1–80) */}
               <div className="space-y-3">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Subject Filter</label>
-                 <select
-                   value={selectedSubject || ''}
-                   onChange={(e) => setSelectedSubject(e.target.value || null)}
-                   className="w-full py-3 px-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none text-slate-600 dark:text-slate-300 font-bold text-xs outline-none focus:ring-2 focus:ring-indigo-500"
-                 >
-                    <option value="">All Subjects</option>
-                    {subjects.map(s => (
-                       <option key={s.name} value={s.name}>{s.name} ({s.count})</option>
-                    ))}
-                 </select>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Time per Question (sec)</label>
+                 <input
+                   type="number"
+                   min="1"
+                   max="80"
+                   value={questionTime}
+                   onChange={(e) => {
+                     const val = parseInt(e.target.value, 10);
+                     if (!isNaN(val) && val >= 1 && val <= 80) {
+                       setQuestionTime(val);
+                     }
+                   }}
+                   disabled={!useTimer}
+                   className={`w-full py-3 px-4 rounded-2xl border-none text-slate-900 dark:text-white font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${!useTimer ? 'opacity-50 bg-slate-200 dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-900'}`}
+                 />
               </div>
            </div>
         </section>
@@ -578,9 +576,9 @@ const Quiz = () => {
             desc="Simulated exam environment with critical rationales."
             icon={<Shield size={32} />}
             duration="Variable"
-            timer={useTimer ? "30s/Q" : "Relaxed"}
+            timer={useTimer ? `${questionTime}s/Q` : "Relaxed"}
             color="medical"
-            onClick={() => initQuiz('clinical', selectedSubject)}
+            onClick={() => initQuiz('clinical', null)}
           />
           <ModeCard
             title="Quick Quiz"
@@ -591,7 +589,7 @@ const Quiz = () => {
             color="amber"
             onClick={() => {
                setQuestionLimit(10);
-               initQuiz('quick', selectedSubject);
+               initQuiz('quick', null);
             }}
           />
           <ModeCard
@@ -599,9 +597,9 @@ const Quiz = () => {
             desc="Focused practice with the Uselu Posting test question bank."
             icon={<Target size={32} />}
             duration="Focused"
-            timer={useTimer ? "30s/Q" : "Adaptive"}
+            timer={useTimer ? `${questionTime}s/Q` : "Adaptive"}
             color="indigo"
-            onClick={() => initQuiz('uselu', selectedSubject)}
+            onClick={() => initQuiz('uselu', null)}
           />
           <ModeCard
             title="Speed Challenge"
@@ -610,7 +608,7 @@ const Quiz = () => {
             duration="Infinite"
             timer="Strict 20s"
             color="emerald"
-            onClick={() => initQuiz('speed', selectedSubject)}
+            onClick={() => initQuiz('speed', null)}
           />
         </div>
       </div>
@@ -653,7 +651,7 @@ const Quiz = () => {
              <button onClick={() => { setQuizStarted(false); exitFullscreen(); }} className="flex-1 py-5 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-[2rem] font-black uppercase tracking-widest text-xs hover:bg-slate-200 transition-all">
                 Mode Selection
              </button>
-             <button onClick={() => initQuiz(quizMode, selectedSubject)} className="flex-1 py-5 bg-medical-600 text-white rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl shadow-medical-500/20 active:scale-95 transition-all">
+             <button onClick={() => initQuiz(quizMode, null)} className="flex-1 py-5 bg-medical-600 text-white rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl shadow-medical-500/20 active:scale-95 transition-all">
                 Try Again
              </button>
           </div>
@@ -686,7 +684,6 @@ const Quiz = () => {
              <h3 className="text-lg font-black tracking-tighter uppercase">{currentMilestone}</h3>
           </div>
           <div className="flex items-center gap-2">
-            {/* Removed the HelpCircle (?) button */}
             <div className="flex items-center gap-2 px-4 py-2 bg-white/5 backdrop-blur-md rounded-2xl border border-white/5">
                <Zap className="text-amber-500" size={16} fill="currentColor" />
                <span className="text-sm font-black tabular-nums">{score}</span>
