@@ -37,7 +37,7 @@ const MILESTONES = [
   { q: 30, label: 'Clinical Legend', reward: 'Legendary Status' }
 ];
 
-// ----- Sound System with Preloading and CORS handling -----
+// ----- Sound System (Original Tracks Only, No AI Fallback) -----
 const SOUND_POOL = {
   start: [
     'https://www.myinstants.com/media/sounds/show-me-what-you-got.mp3',
@@ -86,7 +86,7 @@ function preloadSounds() {
     urls.forEach(url => {
       if (!audioCache[url]) {
         const audio = new Audio();
-        audio.crossOrigin = 'anonymous';
+        // Removed crossOrigin to prevent CORS blocking from third-party hosts
         audio.src = url;
         audio.preload = 'auto';
         audioCache[url] = audio;
@@ -107,7 +107,6 @@ const playQuizSound = (type) => {
 
     if (!audio) {
       audio = new Audio();
-      audio.crossOrigin = 'anonymous';
       audio.src = url;
       audio.preload = 'auto';
       audioCache[url] = audio;
@@ -115,58 +114,18 @@ const playQuizSound = (type) => {
 
     audio.currentTime = 0;
     audio.volume = 0.7;
+    
+    // Play audio. Catch promise to prevent console errors if browser delays interaction, 
+    // but intentionally NO AI fallback.
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise.catch(err => {
-        console.warn('Audio play failed:', err);
-        fallbackSpeech(type);
+        console.warn('Audio playback blocked or failed (ensure page interaction):', err);
       });
     }
   } catch (e) {
     console.warn('Sound system error:', e);
-    fallbackSpeech(type);
   }
-};
-
-function fallbackSpeech(type) {
-  try {
-    const utterance = new SpeechSynthesisUtterance();
-    if (type === 'wrong') {
-      const phrases = [
-        "Wrong! What a failure.", "Oh geez, that's incorrect.", "You're a piece of garbage and I can prove it mathematically.",
-        "Ooh wee, that's not right!", "That's not a joke, that's just sad.", "You're a moron.", "Where's my money? Oh wait, you lost it.",
-        "I'm ugly and I'm proud.", "Ravioli, ravioli, give me the formuoli.", "I'm so sorry, Mark.", "You pathetic excuse."
-      ];
-      utterance.text = phrases[Math.floor(Math.random() * phrases.length)];
-      utterance.rate = 1.1;
-    } else if (type === 'timeout') {
-      const phrases = ["Time's up! Too slow, Morty!", "The Krusty Krab is closed!"];
-      utterance.text = phrases[Math.floor(Math.random() * phrases.length)];
-      utterance.pitch = 1.5;
-      utterance.rate = 1.2;
-    } else if (type === 'correct') {
-      const phrases = [
-        "Wubba lubba dub dub!", "Giggity!", "Freakin' sweet!", "Oh my god!", "Awesome!", "I'm ready!",
-        "F is for friends.", "Krusty Krab pizza!", "Think, Mark!", "I can do whatever I want.",
-        "You don't seem to understand.", "I am the strongest."
-      ];
-      utterance.text = phrases[Math.floor(Math.random() * phrases.length)];
-      utterance.rate = 0.9;
-    } else if (type === 'start') {
-      const phrases = ["Show me what you got!", "Are you ready, kids?"];
-      utterance.text = phrases[Math.floor(Math.random() * phrases.length)];
-      utterance.rate = 1.0;
-    }
-    if (utterance.text && window.speechSynthesis) {
-      window.speechSynthesis.speak(utterance);
-    }
-  } catch(e) { /* ignore */ }
-}
-
-const getSpeedTimerValue = (index) => {
-  if (index < 5) return 20;
-  if (index < 10) return 18;
-  return 15;
 };
 
 const enterFullscreen = async () => {
@@ -265,9 +224,9 @@ const Quiz = () => {
 
   useEffect(() => {
     let interval;
-    const activeTimer = (quizMode === 'speed') || (quizMode === 'subject' && useTimer) || (quizMode === 'quick' && useTimer) || (quizMode === 'clinical' && useTimer) || (quizMode === 'uselu' && useTimer);
+    const activeTimer = useTimer && quizStarted && !showResults && !showRationale && !isFinalAnswer && timeLeft > 0;
 
-    if (activeTimer && quizStarted && !showResults && !showRationale && !isFinalAnswer && timeLeft > 0) {
+    if (activeTimer) {
       interval = setInterval(() => {
         setTimeLeft(prev => {
           if (prev <= 1) { handleTimeOut(); return 0; }
@@ -277,7 +236,7 @@ const Quiz = () => {
     }
 
     return () => clearInterval(interval);
-  }, [timeLeft, quizStarted, showResults, showRationale, isFinalAnswer, quizMode, useTimer, handleTimeOut]);
+  }, [timeLeft, quizStarted, showResults, showRationale, isFinalAnswer, useTimer, handleTimeOut]);
 
   const initQuiz = (mode, subject = null) => {
     let pool = [];
@@ -301,17 +260,13 @@ const Quiz = () => {
     const seen = new Set();
     const uniquePool = pool.filter(c => seen.has(c.question) ? false : seen.add(c.question));
 
+    // STRICTLY respect user input for question count (clamped 5 to 300)
     let limit = 10;
-    if (mode === 'speed') {
-      limit = 395;
+    const customVal = parseInt(customQuestionCount, 10);
+    if (!isNaN(customVal)) {
+      limit = Math.max(5, Math.min(300, customVal));
     } else {
-      const customVal = parseInt(customQuestionCount, 10);
-      if (!isNaN(customVal)) {
-        // Clamp between 5 and 300
-        limit = Math.max(5, Math.min(300, customVal));
-      } else {
-        limit = Math.max(5, Math.min(300, questionLimit || 10));
-      }
+      limit = Math.max(5, Math.min(300, questionLimit || 10));
     }
 
     const shuffled = uniquePool.sort(() => 0.5 - Math.random());
@@ -353,22 +308,21 @@ const Quiz = () => {
     setShowQuitModal(false);
     setShowQuestionPopup(false);
 
+    // STRICTLY respect user input for timer (clamped 10 to 60)
+    if (useTimer) {
+      const customTime = parseInt(customTimePerQuestion, 10);
+      const time = (!isNaN(customTime)) ? Math.max(10, Math.min(60, customTime)) : 30;
+      setTimeLeft(time);
+      setMaxTime(time);
+    } else {
+      setTimeLeft(999);
+      setMaxTime(999);
+    }
+
     if (mode === 'speed') {
-      setTimeLeft(20);
-      setMaxTime(20);
       playQuizSound('start');
       enterFullscreen();
     } else {
-      if (useTimer) {
-        const customTime = parseInt(customTimePerQuestion, 10);
-        // Clamp between 10 and 60 seconds (1 min)
-        const time = (!isNaN(customTime)) ? Math.max(10, Math.min(60, customTime)) : 30;
-        setTimeLeft(time);
-        setMaxTime(time);
-      } else {
-        setTimeLeft(999);
-        setMaxTime(999);
-      }
       exitFullscreen();
     }
   };
@@ -425,11 +379,8 @@ const Quiz = () => {
       setClassPoll(null);
       setIsFinalAnswer(false);
 
-      if (quizMode === 'speed') {
-        const val = getSpeedTimerValue(nextIdx);
-        setTimeLeft(val);
-        setMaxTime(val);
-      } else if (useTimer) {
+      // Reset timer based on user's custom input
+      if (useTimer) {
         const customTime = parseInt(customTimePerQuestion, 10);
         const time = (!isNaN(customTime)) ? Math.max(10, Math.min(60, customTime)) : 30;
         setTimeLeft(time);
@@ -494,7 +445,7 @@ const Quiz = () => {
           </div>
         </header>
 
-        {/* Configuration Section - Fixed Typing & Clamping */}
+        {/* Configuration Section */}
         <section className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-clinical border border-slate-100 dark:border-slate-700">
            <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl">
@@ -531,7 +482,6 @@ const Quiz = () => {
                    max="300"
                    value={customQuestionCount}
                    onChange={(e) => {
-                     // Allow free typing, clamp happens in initQuiz
                      setCustomQuestionCount(e.target.value);
                      const num = parseInt(e.target.value, 10);
                      if (!isNaN(num)) {
@@ -585,7 +535,6 @@ const Quiz = () => {
                       max="60"
                       value={customTimePerQuestion}
                       onChange={(e) => {
-                        // Allow free typing, clamp happens in initQuiz
                         setCustomTimePerQuestion(e.target.value);
                       }}
                       placeholder="Custom secs (10-60)"
@@ -631,10 +580,10 @@ const Quiz = () => {
           />
           <ModeCard
             title="Speed Challenge"
-            desc="The ultimate test. 20 seconds per question. Don't stop."
+            desc="The ultimate test. Custom limits applied."
             icon={<Timer size={28} className="sm:w-8 sm:h-8" />}
             duration="Infinite"
-            timer="Strict 20s"
+            timer={useTimer ? `${customTimePerQuestion || 30}s/Q` : "Relaxed"}
             color="emerald"
             onClick={() => initQuiz('speed', null)}
           />
