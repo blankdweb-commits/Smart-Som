@@ -37,7 +37,7 @@ const MILESTONES = [
   { q: 30, label: 'Clinical Legend', reward: 'Legendary Status' }
 ];
 
-// ----- Sound System (Original Tracks Only, No AI Fallback) -----
+// ----- Sound System (Robust Playback for Rapid Sounds) -----
 const SOUND_POOL = {
   start: [
     'https://www.myinstants.com/media/sounds/show-me-what-you-got.mp3',
@@ -78,49 +78,24 @@ const SOUND_POOL = {
   ]
 };
 
-const audioCache = {};
-
-function preloadSounds() {
-  Object.keys(SOUND_POOL).forEach(type => {
-    const urls = SOUND_POOL[type];
-    urls.forEach(url => {
-      if (!audioCache[url]) {
-        const audio = new Audio();
-        // Removed crossOrigin to prevent CORS blocking from third-party hosts
-        audio.src = url;
-        audio.preload = 'auto';
-        audioCache[url] = audio;
-      }
-    });
-  });
-}
-
-preloadSounds();
-
+// Create a fresh audio element for each play to prevent reuse bugs in rapid succession
 const playQuizSound = (type) => {
   try {
     const pool = SOUND_POOL[type] || [];
     if (pool.length === 0) return;
 
     const url = pool[Math.floor(Math.random() * pool.length)];
-    let audio = audioCache[url];
-
-    if (!audio) {
-      audio = new Audio();
-      audio.src = url;
-      audio.preload = 'auto';
-      audioCache[url] = audio;
-    }
-
-    audio.currentTime = 0;
-    audio.volume = 0.7;
     
-    // Play audio. Catch promise to prevent console errors if browser delays interaction, 
-    // but intentionally NO AI fallback.
+    // Fresh audio element ensures no state conflicts during rapid Speed Challenge sounds
+    const audio = new Audio();
+    audio.src = url;
+    audio.volume = 0.7;
+    audio.preload = 'auto';
+    
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise.catch(err => {
-        console.warn('Audio playback blocked or failed (ensure page interaction):', err);
+        console.warn('Audio playback blocked or failed:', url, err);
       });
     }
   } catch (e) {
@@ -171,6 +146,7 @@ const Quiz = () => {
   const [classPoll, setClassPoll] = useState(null);
   const [consecutiveCorrect, setConsecutiveCorrect] = useState(0);
   const [showQuestionPopup, setShowQuestionPopup] = useState(false);
+  const [showLifelineRestore, setShowLifelineRestore] = useState(false); // Track lifeline restore message
 
   // Speed Challenge Specific
   const [maxTime, setMaxTime] = useState(20);
@@ -260,7 +236,6 @@ const Quiz = () => {
     const seen = new Set();
     const uniquePool = pool.filter(c => seen.has(c.question) ? false : seen.add(c.question));
 
-    // STRICTLY respect user input for question count (clamped 5 to 300)
     let limit = 10;
     const customVal = parseInt(customQuestionCount, 10);
     if (!isNaN(customVal)) {
@@ -307,8 +282,8 @@ const Quiz = () => {
     setSafetyNetScore(0);
     setShowQuitModal(false);
     setShowQuestionPopup(false);
+    setShowLifelineRestore(false);
 
-    // STRICTLY respect user input for timer (clamped 10 to 60)
     if (useTimer) {
       const customTime = parseInt(customTimePerQuestion, 10);
       const time = (!isNaN(customTime)) ? Math.max(10, Math.min(60, customTime)) : 30;
@@ -349,10 +324,17 @@ const Quiz = () => {
       const newScore = score + 1;
       setScore(newScore);
 
-      if (newScore === 5) setSafetyNetScore(5);
-      if (newScore === 10) setSafetyNetScore(10);
+      const newConsecutive = consecutiveCorrect + 1;
+      
+      // Restore lifelines after 7 correct answers in a row
+      if (newConsecutive === 7) {
+        setLifelinesUsed({ hint: false, fiftyFifty: false, askClass: false });
+        setConsecutiveCorrect(0);
+        setShowLifelineRestore(true);
+      } else {
+        setConsecutiveCorrect(newConsecutive);
+      }
 
-      setConsecutiveCorrect(prev => prev + 1);
       updateQuizStats({ quizStreak: (studyStats.quizStreak || 0) + 1 });
     } else {
       playQuizSound('wrong');
@@ -378,8 +360,8 @@ const Quiz = () => {
       setEliminatedOptions([]);
       setClassPoll(null);
       setIsFinalAnswer(false);
+      setShowLifelineRestore(false); // Reset restore message for next question
 
-      // Reset timer based on user's custom input
       if (useTimer) {
         const customTime = parseInt(customTimePerQuestion, 10);
         const time = (!isNaN(customTime)) ? Math.max(10, Math.min(60, customTime)) : 30;
@@ -445,7 +427,6 @@ const Quiz = () => {
           </div>
         </header>
 
-        {/* Configuration Section */}
         <section className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-clinical border border-slate-100 dark:border-slate-700">
            <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl">
@@ -455,7 +436,6 @@ const Quiz = () => {
            </div>
 
            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              {/* Question Limit Column */}
               <div className="space-y-2">
                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Questions (5 to 300)</label>
                  <div className="grid grid-cols-3 gap-2">
@@ -466,60 +446,13 @@ const Quiz = () => {
                            setQuestionLimit(val);
                            setCustomQuestionCount('');
                          }}
-                         className={`py-2 rounded-xl font-black text-xs transition-all ${
-                           questionLimit === val && customQuestionCount === ''
-                             ? 'bg-indigo-600 text-white shadow-md'
-                             : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                         }`}
-                       >
-                          {val}
-                       </button>
-                    ))}
-                 </div>
-                 <input
-                   type="number"
-                   min="5"
-                   max="300"
-                   value={customQuestionCount}
-                   onChange={(e) => {
-                     setCustomQuestionCount(e.target.value);
-                     const num = parseInt(e.target.value, 10);
-                     if (!isNaN(num)) {
-                       setQuestionLimit(num);
-                     }
-                   }}
-                   placeholder="Custom amount"
-                   className="w-full py-2.5 px-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-                 />
-              </div>
-
-              {/* Timer Column */}
-              <div className="space-y-2">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Timer (10s to 60s)</label>
-                 <div className="grid grid-cols-2 gap-2 mb-2">
-                    <button
-                      onClick={() => setUseTimer(true)}
-                      className={`py-2 rounded-xl font-black text-xs transition-all ${useTimer ? 'bg-emerald-500 text-white shadow-md' : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
+                         className={`py-2 rounded-xl font-black text-xs transition-all <LaTex>id_1</LaTex>{useTimer ? 'bg-emerald-500 text-white shadow-md' : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
                     >
                        ON
                     </button>
                     <button
                       onClick={() => setUseTimer(false)}
-                      className={`py-2 rounded-xl font-black text-xs transition-all ${!useTimer ? 'bg-red-500 text-white shadow-md' : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
-                    >
-                       OFF
-                    </button>
-                 </div>
-                 {useTimer && (
-                   <>
-                    <div className="grid grid-cols-4 gap-2 mb-2">
-                      {[10, 20, 30, 60].map(val => (
-                        <button
-                          key={val}
-                          onClick={() => {
-                            setCustomTimePerQuestion(val.toString());
-                          }}
-                          className={`py-2 rounded-xl font-black text-xs transition-all ${
+                      className={`py-2 rounded-xl font-black text-xs transition-all <LaTex>id_2</LaTex>{
                             customTimePerQuestion === val.toString()
                               ? 'bg-emerald-500 text-white shadow-md'
                               : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
@@ -546,35 +479,13 @@ const Quiz = () => {
            </div>
         </section>
 
-        {/* Mode Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <ModeCard
             title="Clinical Challenge"
             desc="Simulated exam environment with critical rationales."
             icon={<Shield size={28} className="sm:w-8 sm:h-8" />}
             duration="Variable"
-            timer={useTimer ? `${customTimePerQuestion || 30}s/Q` : "Relaxed"}
-            color="medical"
-            onClick={() => initQuiz('clinical', null)}
-          />
-          <ModeCard
-            title="Quick Quiz"
-            desc="Rapid questions for instant knowledge verification."
-            icon={<Zap size={28} className="sm:w-8 sm:h-8" />}
-            duration="Fast"
-            timer="Instant"
-            color="amber"
-            onClick={() => {
-               setQuestionLimit(10);
-               initQuiz('quick', null);
-            }}
-          />
-          <ModeCard
-            title="Uselu Test Questions"
-            desc="Focused practice with the Uselu Posting test question bank."
-            icon={<Target size={28} className="sm:w-8 sm:h-8" />}
-            duration="Focused"
-            timer={useTimer ? `${customTimePerQuestion || 30}s/Q` : "Adaptive"}
+            timer={useTimer ? `<LaTex>id_3</LaTex>{customTimePerQuestion || 30}s/Q` : "Adaptive"}
             color="indigo"
             onClick={() => initQuiz('uselu', null)}
           />
@@ -583,62 +494,12 @@ const Quiz = () => {
             desc="The ultimate test. Custom limits applied."
             icon={<Timer size={28} className="sm:w-8 sm:h-8" />}
             duration="Infinite"
-            timer={useTimer ? `${customTimePerQuestion || 30}s/Q` : "Relaxed"}
-            color="emerald"
-            onClick={() => initQuiz('speed', null)}
-          />
-        </div>
-      </div>
-    );
-  }
-
-  const currentQ = quizQuestions[currentQuestionIndex];
-
-  if (showResults) {
-    const finalScore = quizMode === 'speed' ? Math.max(score, safetyNetScore) : score;
-    return (
-      <div className="flex items-center justify-center min-h-[70vh] p-4">
-        <motion.div
-          initial={{ scale: 0.9, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          className={`p-6 sm:p-10 rounded-3xl sm:rounded-[3.5rem] shadow-clinical border text-center max-w-2xl w-full ${quizMode === 'speed' ? 'bg-black border-slate-800' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}
+            timer={useTimer ? `<LaTex>id_4</LaTex>{quizMode === 'speed' ? 'bg-black border-slate-800' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}
         >
           <div className="w-16 h-16 sm:w-24 sm:h-24 bg-medical-50 text-medical-600 rounded-2xl sm:rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 sm:mb-8 shadow-lg">
             <Trophy size={32} className="sm:w-12 sm:h-12" />
           </div>
-          <h2 className={`text-2xl sm:text-4xl font-black mb-2 tracking-tight uppercase ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>Session Complete</h2>
-          <p className="text-slate-500 dark:text-slate-400 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] mb-6 sm:mb-10">Performance Analytics Generated</p>
-
-          <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-8 sm:mb-10">
-            <div className="p-4 sm:p-6 bg-slate-50 dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-100 dark:border-slate-800">
-               <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Final Score</p>
-               <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">{finalScore} <span className="text-xs sm:text-sm text-slate-400">/ {quizQuestions.length}</span></p>
-            </div>
-            <div className="p-4 sm:p-6 bg-slate-50 dark:bg-slate-900 rounded-2xl sm:rounded-3xl border border-slate-100 dark:border-slate-800">
-               <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Rank Achieved</p>
-               <p className="text-base sm:text-xl font-black text-medical-600">{currentMilestone}</p>
-            </div>
-          </div>
-
-          {quizMode === 'speed' && score > safetyNetScore && (
-             <p className="text-xs text-red-500 font-black uppercase mb-8 tracking-widest animate-pulse">Failed at Q{score}. Safety net applied at Q{safetyNetScore}.</p>
-          )}
-
-          <div className="flex flex-col sm:flex-row gap-4">
-             <button onClick={() => { setQuizStarted(false); exitFullscreen(); }} className="flex-1 py-4 sm:py-5 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-2xl sm:rounded-[2rem] font-black uppercase tracking-widest text-xs hover:bg-slate-200 transition-all">
-                Mode Selection
-             </button>
-             <button onClick={() => initQuiz(quizMode, null)} className="flex-1 py-4 sm:py-5 bg-medical-600 text-white rounded-2xl sm:rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl shadow-medical-500/20 active:scale-95 transition-all">
-                Try Again
-             </button>
-          </div>
-        </motion.div>
-      </div>
-    );
-  }
-
-  return (
-    <div className={`min-h-screen flex flex-col ${quizMode === 'speed' ? 'bg-black text-white !fixed !inset-0 !z-[9999] !h-[100dvh] !w-[100vw] !overflow-y-auto !m-0 !p-0 overscroll-none' : ''} transition-colors duration-500 pb-48 overflow-x-hidden relative`}>
+          <h2 className={`text-2xl sm:text-4xl font-black mb-2 tracking-tight uppercase <LaTex>id_5</LaTex>{quizMode === 'speed' ? 'bg-black text-white !fixed !inset-0 !z-[9999] !h-[100dvh] !w-[100vw] !overflow-y-auto !m-0 !p-0 overscroll-none' : ''} transition-colors duration-500 pb-48 overflow-x-hidden relative`}>
       {quizMode === 'speed' && (
          <div className="absolute inset-0 pointer-events-none overflow-hidden">
             <div className="absolute -top-24 -left-24 w-96 h-96 bg-medical-500/10 blur-[120px] rounded-full" />
@@ -669,15 +530,7 @@ const Quiz = () => {
         <div className="w-full h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden mb-2">
           <motion.div
             initial={false}
-            animate={{ width: `${(timeLeft / maxTime) * 100}%`, backgroundColor: timeLeft <= 5 ? '#ef4444' : '#10b981' }}
-            className="h-full transition-colors duration-500"
-          />
-        </div>
-
-        <div className="w-full h-3 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden p-0.5 border border-slate-50 dark:border-white/5">
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${((currentQuestionIndex + 1) / quizQuestions.length) * 100}%` }}
+            animate={{ width: `<LaTex>id_6</LaTex>{((currentQuestionIndex + 1) / quizQuestions.length) * 100}%` }}
             className="h-full bg-medical-500 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.5)]"
           />
         </div>
@@ -695,46 +548,7 @@ const Quiz = () => {
       </div>
 
       <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-6 sm:mt-8 relative z-30">
-         <div className={`backdrop-blur-xl p-3 sm:p-4 rounded-2xl sm:rounded-3xl shadow-sm border grid grid-cols-3 gap-3 sm:gap-4 ${quizMode === 'speed' ? 'bg-black/60 border-white/10' : 'bg-white/80 dark:bg-slate-900/80 border-slate-100 dark:border-white/5'}`}>
-            <LifelineButton
-               icon={<Target size={20} className="sm:w-6 sm:h-6" />} label="50/50"
-               used={lifelinesUsed.fiftyFifty}
-               onClick={useFiftyFifty}
-               dark={quizMode === 'speed'}
-            />
-            <LifelineButton
-               icon={<HelpCircle size={20} className="sm:w-6 sm:h-6" />} label="Hint"
-               used={lifelinesUsed.hint}
-               onClick={() => {
-                  setShowHint(true);
-                  setLifelinesUsed(prev => ({ ...prev, hint: true }));
-               }}
-               dark={quizMode === 'speed'}
-            />
-            <LifelineButton
-               icon={<Users size={20} className="sm:w-6 sm:h-6" />} label="Poll"
-               used={lifelinesUsed.askClass}
-               onClick={useAskClass}
-               dark={quizMode === 'speed'}
-            />
-         </div>
-      </div>
-
-      <div className="max-w-4xl mx-auto mt-6 sm:mt-8 px-4 sm:px-6 relative z-10">
-         <motion.div
-           key={currentQuestionIndex}
-           initial={{ x: 20, opacity: 0 }}
-           animate={{ x: 0, opacity: 1 }}
-           className="space-y-8 sm:space-y-12"
-         >
-            <div className="text-center space-y-4 sm:space-y-6">
-               <div className="flex flex-col items-center gap-2">
-                  <span className="px-3 sm:px-4 py-1 bg-medical-500/10 text-medical-500 rounded-full text-[9px] font-black uppercase tracking-widest border border-medical-500/20">
-                    {currentQ?.subject}
-                  </span>
-                  <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-60">Question {currentQuestionIndex + 1}</p>
-               </div>
-               <h2 className={`text-xl sm:text-3xl md:text-4xl font-black leading-tight tracking-tight px-2 sm:px-4 drop-shadow-sm ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
+         <div className={`backdrop-blur-xl p-3 sm:p-4 rounded-2xl sm:rounded-3xl shadow-sm border grid grid-cols-3 gap-3 sm:gap-4 <LaTex>id_7</LaTex>{quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
                   {currentQ?.question}
                </h2>
                <div className="flex justify-center">
@@ -744,120 +558,19 @@ const Quiz = () => {
                </div>
             </div>
 
-            <div className={`grid ${quizMode === 'speed' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-3 sm:gap-4`}>
-               {currentQ?.options?.map((option, idx) => {
-                  const isLearningHighlight = false;
-                  return (
-                  <OptionButton
-                    key={idx}
-                    index={idx}
-                    label={option}
-                    isSpeed={quizMode === 'speed'}
-                    isLearningHighlight={isLearningHighlight}
-                    state={
-                      selectedOption === option
-                        ? (isCorrect === null ? 'selected' : (isCorrect ? 'correct' : 'wrong'))
-                        : (isCorrect !== null && option === currentQ.correctAnswer ? 'correct' : (eliminatedOptions.includes(option) ? 'eliminated' : 'default'))
-                    }
-                    pollValue={classPoll?.find(p => p.option === option)?.value}
-                    onClick={() => handleOptionClick(option)}
-                    disabled={showRationale || eliminatedOptions.includes(option)}
-                    dark={quizMode === 'speed'}
-                  />
-               )})}
-            </div>
-         </motion.div>
-      </div>
-
-      <AnimatePresence>
-        {isFinalAnswer && !showRationale && (
-          <motion.div
-            initial={{ y: 100, opacity: 0 }}
-            animate={{ y: 0, opacity: 1 }}
-            exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-24 sm:bottom-32 left-1/2 -translate-x-1/2 w-full max-w-md px-6 z-40"
-          >
-            <button
-              onClick={() => confirmAnswer()}
-              className="w-full py-4 sm:py-6 bg-amber-500 text-white rounded-2xl sm:rounded-[2rem] font-black uppercase tracking-[0.3em] text-xs shadow-2xl shadow-amber-500/40 animate-bounce"
-            >
-              Is that your final answer?
-            </button>
-          </motion.div>
-        )}
-      </AnimatePresence>
-
-      {quizMode === 'speed' && (
-         <div className="fixed left-6 top-1/2 -translate-y-1/2 hidden xl:block space-y-4">
-            <div className="bg-black/60 backdrop-blur-md p-6 rounded-[2.5rem] border border-white/5 w-48 shadow-2xl">
-               <h4 className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-6">Mastery Ladder</h4>
-               <div className="space-y-4">
-                  {[...MILESTONES].reverse().map(m => (
-                     <div key={m.q} className={`flex items-center gap-3 ${score >= m.q ? 'text-medical-500' : 'text-slate-600 opacity-40'}`}>
-                        <div className={`w-2 h-2 rounded-full ${score >= m.q ? 'bg-medical-500 shadow-[0_0_8px_rgba(16,185,129,0.8)]' : 'bg-slate-800'}`} />
-                        <span className="text-[10px] font-black uppercase tracking-tighter">{m.label}</span>
-                        {score >= m.q && <CheckCircle2 size={10} />}
-                     </div>
-                  ))}
-               </div>
-            </div>
-         </div>
-      )}
-
-      <AnimatePresence>
-        {showQuitModal && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-slate-950/80 backdrop-blur-sm" />
-             <motion.div
-               initial={{ scale: 0.9, opacity: 0 }}
-               animate={{ scale: 1, opacity: 1 }}
-               className={`relative p-6 sm:p-10 rounded-3xl sm:rounded-[3rem] shadow-2xl border text-center max-w-sm ${quizMode === 'speed' ? 'bg-black border-slate-800' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}
+            <div className={`grid <LaTex>id_8</LaTex>{score >= m.q ? 'text-medical-500' : 'text-slate-600 opacity-40'}`}>
+                        <div className={`w-2 h-2 rounded-full <LaTex>id_9</LaTex>{quizMode === 'speed' ? 'bg-black border-slate-800' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}
              >
                 <div className="w-16 h-16 sm:w-20 sm:h-20 bg-amber-50 dark:bg-amber-900/30 text-amber-500 rounded-2xl sm:rounded-[2rem] flex items-center justify-center mx-auto mb-6 sm:mb-8 shadow-inner">
                    <AlertCircle size={32} className="sm:w-10 sm:h-10" />
                 </div>
-                <h4 className={`text-xl sm:text-2xl font-black mb-3 ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>Abandon Challenge?</h4>
-                <p className="text-slate-600 dark:text-slate-400 font-medium italic text-base sm:text-lg leading-relaxed mb-8 sm:mb-10">
-                   "Every skipped challenge is a missed opportunity to strengthen your clinical judgment."
-                </p>
-                <div className="space-y-3 sm:space-y-4">
-                   <button onClick={() => setShowQuitModal(false)} className="w-full py-4 sm:py-5 bg-medical-600 text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-medical-500/20 active:scale-95 transition-all">
-                      Stay and Master
-                   </button>
-                   <button onClick={() => { setQuizStarted(false); exitFullscreen(); }} className="w-full py-3 sm:py-4 text-slate-400 hover:text-red-500 font-black uppercase tracking-widest text-[9px] transition-colors">
-                      Quit for now
-                   </button>
-                </div>
-             </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-
-      <AnimatePresence>
-        {showRationale && (
-          <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
-             <motion.div
-               initial={{ opacity: 0 }} animate={{ opacity: 1 }}
-               className="absolute inset-0 bg-slate-950/80 backdrop-blur-md"
-             />
-             <motion.div
-               initial={{ y: '100%' }}
-               animate={{ y: 0 }}
-               className={`relative w-full max-w-2xl rounded-t-3xl sm:rounded-[3rem] p-6 sm:p-10 shadow-2xl border ${quizMode === 'speed' ? 'bg-black border-white/5' : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-white/10'}`}
+                <h4 className={`text-xl sm:text-2xl font-black mb-3 <LaTex>id_10</LaTex>{quizMode === 'speed' ? 'bg-black border-white/5' : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-white/10'}`}
              >
-                <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-[2rem] flex items-center justify-center mb-6 sm:mb-8 mx-auto sm:mx-0 ${isCorrect ? 'bg-emerald-100 text-emerald-600 shadow-lg shadow-emerald-500/20' : 'bg-red-100 text-red-600 shadow-lg shadow-red-500/20'}`}>
-                   {isCorrect ? <CheckCircle2 size={32} className="sm:w-10 sm:h-10" /> : <XCircle size={32} className="sm:w-10 sm:h-10" />}
-                </div>
-                <div className="flex flex-col sm:flex-row justify-between items-start gap-4 mb-4">
-                   <div>
-                      <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] text-slate-400 mb-1">
-                        {isCorrect ? 'Logic Validated' : 'Conceptual Misalignment'}
-                      </p>
-                      <h4 className={`text-2xl sm:text-3xl font-black tracking-tight leading-none ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
+                <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-[2rem] flex items-center justify-center mb-6 sm:mb-8 mx-auto sm:mx-0 <LaTex>id_11</LaTex>{quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
                          {isCorrect ? 'Mastery Confirmed' : 'Learning Opportunity'}
                       </h4>
                    </div>
-                   {consecutiveCorrect >= 5 && isCorrect && (
+                   {showLifelineRestore && isCorrect && (
                       <div className="px-3 sm:px-4 py-2 bg-amber-100 text-amber-700 rounded-xl text-[9px] sm:text-[10px] font-black uppercase tracking-widest animate-bounce flex items-center gap-2 border border-amber-200">
                          <Zap size={12} /> Lifeline Restored!
                       </div>
@@ -890,7 +603,6 @@ const Quiz = () => {
         )}
       </AnimatePresence>
 
-      {/* Question Review Popup */}
       <AnimatePresence>
         {showQuestionPopup && (
           <>
@@ -906,10 +618,7 @@ const Quiz = () => {
               animate={{ y: 0 }}
               exit={{ y: '100%' }}
               transition={{ type: 'spring', damping: 30, stiffness: 300 }}
-              className={`fixed bottom-0 left-0 right-0 z-[70] max-h-[80vh] overflow-y-auto rounded-t-3xl sm:rounded-t-[3rem] p-4 sm:p-6 shadow-2xl border ${quizMode === 'speed' ? 'bg-black border-white/10' : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-white/10'}`}
-            >
-              <div className="flex justify-between items-center mb-4 sm:mb-6">
-                <h3 className={`text-lg sm:text-xl font-black ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
+              className={`fixed bottom-0 left-0 right-0 z-[70] max-h-[80vh] overflow-y-auto rounded-t-3xl sm:rounded-t-[3rem] p-4 sm:p-6 shadow-2xl border <LaTex>id_12</LaTex>{quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
                   Question Review
                 </h3>
                 <button
@@ -924,32 +633,7 @@ const Quiz = () => {
                 <div className="space-y-4 sm:space-y-6">
                   <div>
                     <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Question {currentQuestionIndex + 1}</p>
-                    <p className={`text-sm sm:text-base font-semibold mt-1 ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
-                      {currentQ.question}
-                    </p>
-                    <p className="text-xs text-slate-400 mt-1">Source: {currentQ.source || 'Unknown'}</p>
-                  </div>
-
-                  <div className="space-y-2">
-                    {currentQ.options.map((opt, idx) => {
-                      const isCorrectOpt = opt === currentQ.correctAnswer;
-                      const isSelected = opt === selectedOption;
-                      let bgColor = 'bg-transparent';
-                      let borderColor = 'border-slate-200 dark:border-slate-700';
-                      let textColor = quizMode === 'speed' ? 'text-white' : 'text-slate-700 dark:text-slate-300';
-                      if (isCorrectOpt) {
-                        bgColor = 'bg-emerald-500/20';
-                        borderColor = 'border-emerald-500';
-                        textColor = 'text-emerald-600 dark:text-emerald-400';
-                      } else if (isSelected && !isCorrectOpt) {
-                        bgColor = 'bg-red-500/20';
-                        borderColor = 'border-red-500';
-                        textColor = 'text-red-600 dark:text-red-400';
-                      }
-                      return (
-                        <div
-                          key={idx}
-                          className={`flex items-center gap-3 p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 ${bgColor} ${borderColor} ${textColor} transition-colors`}
+                    <p className={`text-sm sm:text-base font-semibold mt-1 <LaTex>id_13</LaTex>{bgColor} <LaTex>id_14</LaTex>{textColor} transition-colors`}
                         >
                           <span className="font-mono text-sm font-bold w-6">{String.fromCharCode(65 + idx)}.</span>
                           <span className="flex-1 text-sm">{opt}</span>
@@ -963,139 +647,12 @@ const Quiz = () => {
                   {selectedOption && (
                     <div className="mt-4 p-4 bg-slate-50 dark:bg-white/5 rounded-xl sm:rounded-2xl border border-slate-200 dark:border-white/10">
                       <p className="text-xs font-bold text-slate-500 uppercase tracking-wider">Your Answer</p>
-                      <p className={`font-semibold text-sm ${selectedOption === currentQ.correctAnswer ? 'text-emerald-600' : 'text-red-500'}`}>
-                        {selectedOption} {selectedOption === currentQ.correctAnswer ? '✅ Correct' : '❌ Incorrect'}
-                      </p>
-                      {selectedOption !== currentQ.correctAnswer && (
-                        <p className="text-xs text-slate-400 mt-1">Correct: {currentQ.correctAnswer}</p>
-                      )}
-                    </div>
-                  )}
-
-                  <button
-                    onClick={() => setShowQuestionPopup(false)}
-                    className="w-full py-4 bg-medical-600 text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-xs shadow-lg active:scale-95 transition-all"
-                  >
-                    Back to Quiz
-                  </button>
-                </div>
-              )}
-            </motion.div>
-          </>
-        )}
-      </AnimatePresence>
-
-      {/* Floating arrow-up - only when rationale shown */}
-      {!showQuestionPopup && quizStarted && !showResults && showRationale && (
-        <motion.button
-          initial={{ scale: 0, opacity: 0 }}
-          animate={{ scale: 1, opacity: 1 }}
-          exit={{ scale: 0, opacity: 0 }}
-          onClick={() => setShowQuestionPopup(true)}
-          className="fixed bottom-4 sm:bottom-6 right-4 sm:right-6 z-50 p-3 sm:p-4 bg-medical-600 text-white rounded-full shadow-2xl shadow-medical-500/30 hover:scale-110 active:scale-95 transition-all border border-white/20"
-          aria-label="Open question review"
-        >
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="20"
-            height="20"
-            className="sm:w-6 sm:h-6"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2.5"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-            className="rotate-180"
-          >
-            <polyline points="18 15 12 9 6 15" />
-          </svg>
-        </motion.button>
-      )}
-
-      {/* Hint Overlay */}
-      <AnimatePresence>
-        {showHint && !showRationale && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-             <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="absolute inset-0 bg-slate-950/70 backdrop-blur-sm" onClick={() => setShowHint(false)} />
-             <motion.div initial={{ scale: 0.8, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className={`relative w-full max-w-md p-6 sm:p-10 rounded-3xl sm:rounded-[3rem] shadow-2xl border text-center ${quizMode === 'speed' ? 'bg-black border-slate-800' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}>
+                      <p className={`font-semibold text-sm <LaTex>id_15</LaTex>{quizMode === 'speed' ? 'bg-black border-slate-800' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}>
                 <div className="w-16 h-16 sm:w-20 sm:h-20 bg-medical-50 text-medical-600 rounded-2xl sm:rounded-[2rem] flex items-center justify-center mx-auto mb-6 sm:mb-8 shadow-inner"><Target size={32} className="sm:w-10 sm:h-10" /></div>
-                <h4 className={`text-xl sm:text-2xl font-black mb-3 ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>Mentor Strategy</h4>
-                <p className="text-slate-600 dark:text-slate-300 font-medium italic text-base sm:text-lg leading-relaxed mb-8 sm:mb-10">
-                   "{currentQ?.hint || 'Prioritize patient safety and focus on the intervention that addresses the root cause of the clinical presentation.'}"
-                </p>
-                <button onClick={() => setShowHint(false)} className="w-full py-4 sm:py-5 bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white rounded-xl sm:rounded-2xl font-black uppercase tracking-widest text-[10px] hover:bg-slate-200 transition-all">
-                   Return to Question
-                </button>
-             </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
-    </div>
-  );
-};
-
-const ModeCard = ({ title, desc, icon, duration, timer, color, onClick }) => {
-  const colors = {
-    medical: 'hover:border-medical-500 group-hover:text-medical-500 bg-medical-500/10 text-medical-600',
-    amber: 'hover:border-amber-500 group-hover:text-amber-500 bg-amber-500/10 text-amber-600',
-    indigo: 'hover:border-indigo-500 group-hover:text-indigo-500 bg-indigo-500/10 text-indigo-600',
-    emerald: 'hover:border-emerald-500 group-hover:text-emerald-500 bg-emerald-500/10 text-emerald-600'
-  };
-  return (
-    <button onClick={onClick} className={`p-4 sm:p-6 bg-white dark:bg-slate-800 rounded-2xl sm:rounded-3xl border-2 border-slate-100 dark:border-slate-700 transition-all text-left group active:scale-95 flex flex-col justify-between min-h-[160px] sm:min-h-[200px] shadow-sm hover:shadow-xl ${colors[color].split(' ')[0]}`}>
+                <h4 className={`text-xl sm:text-2xl font-black mb-3 <LaTex>id_16</LaTex>{colors[color].split(' ')[0]}`}>
       <div>
-        <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center mb-3 sm:mb-6 transition-all group-hover:scale-110 shadow-inner ${colors[color].split(' ').pop()} ${colors[color].split(' ')[1]}`}>{icon}</div>
+        <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center mb-3 sm:mb-6 transition-all group-hover:scale-110 shadow-inner <LaTex>id_17</LaTex>{colors[color].split(' ')[1]}`}>{icon}</div>
         <h3 className="text-base sm:text-xl font-black text-slate-900 dark:text-white mb-1 sm:mb-2 tracking-tight group-hover:translate-x-1 transition-transform">{title}</h3>
         <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-medium leading-relaxed line-clamp-2">{desc}</p>
       </div>
-      <div className="flex gap-3 sm:gap-4 mt-3 sm:mt-6">
-         <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-black uppercase text-slate-400 tracking-wider"><Clock size={12} /> {duration}</div>
-         <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-black uppercase text-slate-400 tracking-wider"><Timer size={12} /> {timer}</div>
-      </div>
-    </button>
-  );
-};
-
-const LifelineButton = ({ icon, label, used, onClick, dark }) => (
-  <button disabled={used} onClick={onClick} className={`flex flex-col items-center justify-center p-3 sm:p-5 rounded-xl sm:rounded-2xl border-2 transition-all active:scale-90 shadow-sm ${used ? (dark ? 'bg-white/5 border-white/5 text-white/10' : 'bg-slate-50 border-slate-100 text-slate-200') : (dark ? 'bg-white/10 border-white/10 text-amber-500 hover:border-amber-400 hover:bg-white/20' : 'bg-white border-slate-100 text-medical-600 hover:border-medical-500 hover:bg-medical-50')}`}>
-    {React.cloneElement(icon, { size: 20, className: 'sm:w-6 sm:h-6' })}
-    <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] mt-2 sm:mt-3">{label}</span>
-  </button>
-);
-
-const OptionButton = ({ label, index, state, pollValue, onClick, disabled, dark, isSpeed, isLearningHighlight }) => {
-  const letters = ['A', 'B', 'C', 'D'];
-  let baseStyles = dark ? 'bg-white/5 border-white/10 text-white/80 hover:bg-white/10' : 'bg-white border-slate-100 text-slate-700 hover:border-medical-500 hover:shadow-md';
-  if (state === 'selected') baseStyles = dark ? 'bg-amber-500/20 border-amber-500 text-amber-500 shadow-[0_0_20px_rgba(245,158,11,0.3)]' : 'bg-medical-50 border-medical-500 text-medical-700 shadow-md';
-  if (state === 'correct') baseStyles = 'bg-emerald-500/20 border-emerald-500 text-emerald-500 shadow-[0_0_20px_rgba(16,185,129,0.4)]';
-  if (state === 'wrong') baseStyles = 'bg-red-500/20 border-red-500 text-red-500 shadow-[0_0_20px_rgba(239,68,68,0.4)]';
-  if (state === 'eliminated') baseStyles = 'opacity-10 grayscale pointer-events-none scale-95';
-
-  if (isLearningHighlight && state === 'default') {
-    baseStyles = dark ? 'bg-indigo-900/30 border-indigo-500/50 text-indigo-100 shadow-[0_0_15px_rgba(99,102,241,0.3)] hover:bg-indigo-900/50' : 'bg-indigo-50/50 border-indigo-300 text-indigo-900 shadow-[0_0_15px_rgba(99,102,241,0.3)] hover:bg-indigo-50 hover:border-indigo-400';
-  }
-
-  return (
-    <button disabled={disabled} onClick={onClick} className={`w-full relative flex items-center p-3 sm:p-5 rounded-2xl sm:rounded-3xl border-2 transition-all duration-300 overflow-hidden ${baseStyles} active:scale-98 min-h-[60px] sm:min-h-[80px]`}>
-      {isLearningHighlight && state === 'default' && (
-         <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 animate-pulse pointer-events-none" />
-      )}
-      <div className="flex items-center gap-3 sm:gap-5 w-full relative z-10">
-         <span className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center font-black text-xs sm:text-sm border-2 ${state === 'selected' ? 'bg-amber-500 border-amber-400 text-white' : (isLearningHighlight && state === 'default' ? 'bg-indigo-500 border-indigo-400 text-white shadow-lg shadow-indigo-500/30' : (dark ? 'bg-white/10 border-white/20 text-white/40' : 'bg-slate-100 border-slate-200 text-slate-400'))}`}>{letters[index]}</span>
-         <span className={`flex-1 font-bold text-left leading-snug pr-2 ${isSpeed ? 'text-sm sm:text-base' : 'text-sm sm:text-base'}`}>{label}</span>
-         
-         {isLearningHighlight && state === 'default' && (
-            <div className="px-2 py-1 sm:px-3 sm:py-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] shadow-lg flex items-center gap-1 sm:gap-1.5 transform hover:scale-105 transition-transform">
-               <Sparkles size={12} className="sm:w-3.5 sm:h-3.5" /> Answer
-            </div>
-         )}
-
-         {pollValue !== undefined && <div className="text-right shrink-0"><p className="text-base sm:text-xl font-black tabular-nums">{pollValue}%</p><div className="w-10 sm:w-14 h-1 sm:h-1.5 bg-white/20 rounded-full overflow-hidden mt-1"><div className="h-full bg-medical-500" style={{ width: `${pollValue}%` }} /></div></div>}
-      </div>
-      {state === 'correct' && <motion.div initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} className="absolute right-0 top-0 p-4 sm:p-6 text-emerald-500/20"><CheckCircle2 size={60} className="sm:w-20 sm:h-20" /></motion.div>}
-    </button>
-  );
-};
-
-export default React.memo(Quiz);
+      <div className="flex gap-3 sm:gap-4 mt-
