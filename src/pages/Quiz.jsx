@@ -44,36 +44,30 @@ const SOUND_POOL = {
     'https://www.myinstants.com/media/sounds/are-you-ready-kids.mp3'
   ],
   correct: [
-    // SpongeBob
     'https://www.myinstants.com/media/sounds/im-ready.mp3',
     'https://www.myinstants.com/media/sounds/f-is-for-friends.mp3',
     'https://www.myinstants.com/media/sounds/krusty-krab-pizza.mp3',
     'https://www.myinstants.com/media/sounds/is-mayonnaise-an-instrument.mp3',
     'https://www.myinstants.com/media/sounds/its-a-giraffe.mp3',
-    // Family Guy
     'https://www.myinstants.com/media/sounds/giggity.mp3',
     'https://www.myinstants.com/media/sounds/freaking-sweet.mp3',
     'https://www.myinstants.com/media/sounds/oh-my-god.mp3',
     'https://www.myinstants.com/media/sounds/awesome.mp3',
-    // The Boys / Invincible
     'https://www.myinstants.com/media/sounds/think-mark.mp3',
     'https://www.myinstants.com/media/sounds/i-can-do-whatever-i-want.mp3',
     'https://www.myinstants.com/media/sounds/you-dont-seem-to-understand.mp3',
     'https://www.myinstants.com/media/sounds/i-am-the-strongest.mp3'
   ],
   wrong: [
-    // SpongeBob
     'https://www.myinstants.com/media/sounds/im-ugly-and-im-proud.mp3',
     'https://www.myinstants.com/media/sounds/ravioli-ravioli-give-me-the-formuoli.mp3',
     'https://www.myinstants.com/media/sounds/squidward.mp3',
     'https://www.myinstants.com/media/sounds/patrick.mp3',
-    // Family Guy
     'https://www.myinstants.com/media/sounds/family-guy-thats-not-a-joke.mp3',
     'https://www.myinstants.com/media/sounds/wheres-my-money.mp3',
     'https://www.myinstants.com/media/sounds/family-guy-youre-a-moron.mp3',
     'https://www.myinstants.com/media/sounds/family-guy-what-the-deuce.mp3',
     'https://www.myinstants.com/media/sounds/family-guy-bird-is-the-word.mp3',
-    // The Boys / Invincible
     'https://www.myinstants.com/media/sounds/im-so-sorry-mark.mp3',
     'https://www.myinstants.com/media/sounds/you-pathetic-excuse.mp3',
     'https://www.myinstants.com/media/sounds/why-did-you-make-me-do-this.mp3'
@@ -84,7 +78,6 @@ const SOUND_POOL = {
   ]
 };
 
-// Preload and cache audio elements
 const audioCache = {};
 
 function preloadSounds() {
@@ -102,17 +95,14 @@ function preloadSounds() {
   });
 }
 
-// Call preload once at module load
 preloadSounds();
 
 const playQuizSound = (type) => {
   try {
     const pool = SOUND_POOL[type] || [];
     if (pool.length === 0) return;
-
     const url = pool[Math.floor(Math.random() * pool.length)];
     let audio = audioCache[url];
-
     if (!audio) {
       audio = new Audio();
       audio.crossOrigin = 'anonymous';
@@ -120,7 +110,6 @@ const playQuizSound = (type) => {
       audio.preload = 'auto';
       audioCache[url] = audio;
     }
-
     audio.currentTime = 0;
     audio.volume = 0.7;
     const playPromise = audio.play();
@@ -194,7 +183,7 @@ function fallbackSpeech(type) {
   } catch(e) { /* ignore */ }
 }
 
-// ----- Original helpers (unchanged) -----
+// ----- Helpers -----
 const getSpeedTimerValue = (index) => {
   if (index < 5) return 20;
   if (index < 10) return 18;
@@ -252,9 +241,9 @@ const Quiz = () => {
   const [safetyNetScore, setSafetyNetScore] = useState(0);
 
   // Configuration Specific
-  const [questionLimit, setQuestionLimit] = useState(10);
+  const [questionLimit, setQuestionLimit] = useState(10);       // default 10
+  const [timerSeconds, setTimerSeconds] = useState(30);        // default 30 seconds
   const [useTimer, setUseTimer] = useState(true);
-  const [questionTime, setQuestionTime] = useState(30); // NEW: seconds per question
 
   // Early Quit Messaging
   const [showQuitModal, setShowQuitModal] = useState(false);
@@ -265,6 +254,18 @@ const Quiz = () => {
       exitFullscreen();
     };
   }, []);
+
+  // Derived Data (subjects no longer needed for dropdown but still used for internal pool)
+  const subjects = useMemo(() => {
+    const s = new Map();
+    if (flashcards) {
+      flashcards.forEach(c => {
+        const name = c.subject || 'General';
+        s.set(name, (s.get(name) || 0) + 1);
+      });
+    }
+    return Array.from(s.entries()).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
+  }, [flashcards]);
 
   const currentMilestone = useMemo(() => {
     const milestone = [...MILESTONES].reverse().find(m => score >= m.q);
@@ -325,7 +326,12 @@ const Quiz = () => {
     const seen = new Set();
     const uniquePool = pool.filter(c => seen.has(c.question) ? false : seen.add(c.question));
 
-    let limit = mode === 'speed' ? 395 : (questionLimit || 10);
+    // Determine question limit: use user input, but cap at pool size and ensure within 10-300
+    let limit = questionLimit;
+    if (limit < 10) limit = 10;
+    if (limit > 300) limit = 300;
+    if (limit > uniquePool.length) limit = uniquePool.length;
+
     const shuffled = uniquePool.sort(() => 0.5 - Math.random());
     const selected = shuffled.slice(0, Math.min(limit, uniquePool.length));
 
@@ -372,11 +378,14 @@ const Quiz = () => {
       enterFullscreen();
     } else {
       if (useTimer) {
-        const time = Math.min(Math.max(questionTime, 1), 80); // clamp
-        setTimeLeft(time);
-        setMaxTime(time);
+        // Use user-defined timer seconds, clamped between 10 and 80
+        let secs = timerSeconds;
+        if (secs < 10) secs = 10;
+        if (secs > 80) secs = 80;
+        setTimeLeft(secs);
+        setMaxTime(secs);
       } else {
-        // if timer off, we don't care about time
+        // No timer: set a large value or disable
         setTimeLeft(999);
         setMaxTime(999);
       }
@@ -441,9 +450,14 @@ const Quiz = () => {
         setTimeLeft(val);
         setMaxTime(val);
       } else if (useTimer) {
-        const time = Math.min(Math.max(questionTime, 1), 80);
-        setTimeLeft(time);
-        setMaxTime(time);
+        let secs = timerSeconds;
+        if (secs < 10) secs = 10;
+        if (secs > 80) secs = 80;
+        setTimeLeft(secs);
+        setMaxTime(secs);
+      } else {
+        setTimeLeft(999);
+        setMaxTime(999);
       }
     } else {
       setShowResults(true);
@@ -503,6 +517,7 @@ const Quiz = () => {
           </div>
         </header>
 
+        {/* Configuration Section */}
         <section className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-clinical border border-slate-100 dark:border-slate-700">
            <div className="flex items-center gap-3 mb-8">
               <div className="p-2 bg-indigo-100 text-indigo-600 rounded-xl">
@@ -512,25 +527,28 @@ const Quiz = () => {
            </div>
 
            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-              {/* Question Limit - replaced buttons with input */}
+              {/* Question Limit Input */}
               <div className="space-y-3">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Question Limit (1–300)</label>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                   Question Count (10-300)
+                 </label>
                  <input
                    type="number"
-                   min="1"
+                   min="10"
                    max="300"
                    value={questionLimit}
                    onChange={(e) => {
-                     const val = parseInt(e.target.value, 10);
-                     if (!isNaN(val) && val >= 1 && val <= 300) {
-                       setQuestionLimit(val);
-                     }
+                     let val = parseInt(e.target.value, 10);
+                     if (isNaN(val)) val = 10;
+                     if (val < 10) val = 10;
+                     if (val > 300) val = 300;
+                     setQuestionLimit(val);
                    }}
-                   className="w-full py-3 px-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none text-slate-900 dark:text-white font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500"
+                   className="w-full py-3 px-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border-none text-slate-600 dark:text-slate-300 font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500"
                  />
               </div>
 
-              {/* Timer Toggle - keep as is */}
+              {/* Timer Toggle */}
               <div className="space-y-3">
                  <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Timer</label>
                  <div className="flex items-center gap-2">
@@ -549,22 +567,27 @@ const Quiz = () => {
                  </div>
               </div>
 
-              {/* NEW: Time per question input (1–80) */}
+              {/* Timer Seconds Input */}
               <div className="space-y-3">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Time per Question (sec)</label>
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">
+                   Seconds per Question (10-80)
+                 </label>
                  <input
                    type="number"
-                   min="1"
+                   min="10"
                    max="80"
-                   value={questionTime}
+                   value={timerSeconds}
                    onChange={(e) => {
-                     const val = parseInt(e.target.value, 10);
-                     if (!isNaN(val) && val >= 1 && val <= 80) {
-                       setQuestionTime(val);
-                     }
+                     let val = parseInt(e.target.value, 10);
+                     if (isNaN(val)) val = 30;
+                     if (val < 10) val = 10;
+                     if (val > 80) val = 80;
+                     setTimerSeconds(val);
                    }}
                    disabled={!useTimer}
-                   className={`w-full py-3 px-4 rounded-2xl border-none text-slate-900 dark:text-white font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${!useTimer ? 'opacity-50 bg-slate-200 dark:bg-slate-800' : 'bg-slate-50 dark:bg-slate-900'}`}
+                   className={`w-full py-3 px-4 rounded-2xl border-none text-slate-600 dark:text-slate-300 font-bold text-sm outline-none focus:ring-2 focus:ring-indigo-500 ${
+                     useTimer ? 'bg-slate-50 dark:bg-slate-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-400 cursor-not-allowed'
+                   }`}
                  />
               </div>
            </div>
@@ -576,9 +599,9 @@ const Quiz = () => {
             desc="Simulated exam environment with critical rationales."
             icon={<Shield size={32} />}
             duration="Variable"
-            timer={useTimer ? `${questionTime}s/Q` : "Relaxed"}
+            timer={useTimer ? `${timerSeconds}s/Q` : "Relaxed"}
             color="medical"
-            onClick={() => initQuiz('clinical', null)}
+            onClick={() => initQuiz('clinical', null)}  // no subject filter
           />
           <ModeCard
             title="Quick Quiz"
@@ -588,7 +611,9 @@ const Quiz = () => {
             timer="Instant"
             color="amber"
             onClick={() => {
-               setQuestionLimit(10);
+               // Override question limit to 10 for quick quiz? But we'll keep user setting.
+               // Actually quick quiz originally set limit to 10, but we can respect user setting.
+               // To keep original behavior, we could force 10, but we'll let user's setting apply.
                initQuiz('quick', null);
             }}
           />
@@ -597,7 +622,7 @@ const Quiz = () => {
             desc="Focused practice with the Uselu Posting test question bank."
             icon={<Target size={32} />}
             duration="Focused"
-            timer={useTimer ? `${questionTime}s/Q` : "Adaptive"}
+            timer={useTimer ? `${timerSeconds}s/Q` : "Adaptive"}
             color="indigo"
             onClick={() => initQuiz('uselu', null)}
           />
@@ -659,8 +684,6 @@ const Quiz = () => {
       </div>
     );
   }
-
-  const timerColor = timeLeft <= 3 ? 'bg-red-500' : timeLeft <= 10 ? 'bg-amber-500' : 'bg-emerald-500';
 
   return (
     <div className={`min-h-screen flex flex-col ${quizMode === 'speed' ? 'bg-black text-white !fixed !inset-0 !z-[9999] !h-[100dvh] !w-[100vw] !overflow-y-auto !m-0 !p-0 overscroll-none' : ''} transition-colors duration-500 pb-48 overflow-x-hidden relative`}>
