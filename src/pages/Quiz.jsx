@@ -306,10 +306,11 @@ const Quiz = () => {
       limit = 395;
     } else {
       const customVal = parseInt(customQuestionCount, 10);
-      if (!isNaN(customVal) && customVal >= 10 && customVal <= 300) {
-        limit = customVal;
+      if (!isNaN(customVal)) {
+        // Clamp between 5 and 300
+        limit = Math.max(5, Math.min(300, customVal));
       } else {
-        limit = questionLimit || 10;
+        limit = Math.max(5, Math.min(300, questionLimit || 10));
       }
     }
 
@@ -360,7 +361,8 @@ const Quiz = () => {
     } else {
       if (useTimer) {
         const customTime = parseInt(customTimePerQuestion, 10);
-        const time = (!isNaN(customTime) && customTime >= 10 && customTime <= 80) ? customTime : 30;
+        // Clamp between 10 and 60 seconds (1 min)
+        const time = (!isNaN(customTime)) ? Math.max(10, Math.min(60, customTime)) : 30;
         setTimeLeft(time);
         setMaxTime(time);
       } else {
@@ -429,7 +431,7 @@ const Quiz = () => {
         setMaxTime(val);
       } else if (useTimer) {
         const customTime = parseInt(customTimePerQuestion, 10);
-        const time = (!isNaN(customTime) && customTime >= 10 && customTime <= 80) ? customTime : 30;
+        const time = (!isNaN(customTime)) ? Math.max(10, Math.min(60, customTime)) : 30;
         setTimeLeft(time);
         setMaxTime(time);
       }
@@ -492,7 +494,7 @@ const Quiz = () => {
           </div>
         </header>
 
-        {/* Configuration Section - Compact & Mobile Friendly */}
+        {/* Configuration Section - Fixed Typing & Clamping */}
         <section className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-clinical border border-slate-100 dark:border-slate-700">
            <div className="flex items-center gap-3 mb-4">
               <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl">
@@ -504,9 +506,9 @@ const Quiz = () => {
            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               {/* Question Limit Column */}
               <div className="space-y-2">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Questions</label>
-                 <div className="grid grid-cols-4 gap-2">
-                    {[10, 20, 50, 100].map(val => (
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Questions (5 to 300)</label>
+                 <div className="grid grid-cols-3 gap-2">
+                    {[5, 10, 20, 50, 100, 300].map(val => (
                        <button
                          key={val}
                          onClick={() => {
@@ -525,30 +527,26 @@ const Quiz = () => {
                  </div>
                  <input
                    type="number"
-                   min="10"
+                   min="5"
                    max="300"
                    value={customQuestionCount}
                    onChange={(e) => {
-                     const val = e.target.value;
-                     if (val === '') {
-                       setCustomQuestionCount('');
-                       return;
-                     }
-                     const num = parseInt(val, 10);
-                     if (!isNaN(num) && num >= 10 && num <= 300) {
-                       setCustomQuestionCount(val);
+                     // Allow free typing, clamp happens in initQuiz
+                     setCustomQuestionCount(e.target.value);
+                     const num = parseInt(e.target.value, 10);
+                     if (!isNaN(num)) {
                        setQuestionLimit(num);
                      }
                    }}
-                   placeholder="Custom (10-300)"
+                   placeholder="Custom amount"
                    className="w-full py-2.5 px-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
                  />
               </div>
 
               {/* Timer Column */}
               <div className="space-y-2">
-                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Timer</label>
-                 <div className="grid grid-cols-2 gap-2">
+                 <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Timer (10s to 60s)</label>
+                 <div className="grid grid-cols-2 gap-2 mb-2">
                     <button
                       onClick={() => setUseTimer(true)}
                       className={`py-2 rounded-xl font-black text-xs transition-all ${useTimer ? 'bg-emerald-500 text-white shadow-md' : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
@@ -563,25 +561,37 @@ const Quiz = () => {
                     </button>
                  </div>
                  {useTimer && (
-                   <input
-                     type="number"
-                     min="10"
-                     max="80"
-                     value={customTimePerQuestion}
-                     onChange={(e) => {
-                       const val = e.target.value;
-                       if (val === '') {
-                         setCustomTimePerQuestion('');
-                         return;
-                       }
-                       const num = parseInt(val, 10);
-                       if (!isNaN(num) && num >= 10 && num <= 80) {
-                         setCustomTimePerQuestion(val);
-                       }
-                     }}
-                     placeholder="Secs (10-80)"
-                     className="w-full py-2.5 px-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                   />
+                   <>
+                    <div className="grid grid-cols-4 gap-2 mb-2">
+                      {[10, 20, 30, 60].map(val => (
+                        <button
+                          key={val}
+                          onClick={() => {
+                            setCustomTimePerQuestion(val.toString());
+                          }}
+                          className={`py-2 rounded-xl font-black text-xs transition-all ${
+                            customTimePerQuestion === val.toString()
+                              ? 'bg-emerald-500 text-white shadow-md'
+                              : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                          }`}
+                        >
+                           {val}s
+                        </button>
+                      ))}
+                    </div>
+                    <input
+                      type="number"
+                      min="10"
+                      max="60"
+                      value={customTimePerQuestion}
+                      onChange={(e) => {
+                        // Allow free typing, clamp happens in initQuiz
+                        setCustomTimePerQuestion(e.target.value);
+                      }}
+                      placeholder="Custom secs (10-60)"
+                      className="w-full py-2.5 px-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
+                    />
+                   </>
                  )}
               </div>
            </div>
@@ -701,7 +711,7 @@ const Quiz = () => {
           </div>
           <div className="flex items-center gap-2">
             <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/5 backdrop-blur-md rounded-xl sm:rounded-2xl border border-white/5">
-               <Zap className="text-amber-500" size={14} className="sm:w-4 sm:h-4" fill="currentColor" />
+               <Zap className="text-amber-500" size={14} fill="currentColor" />
                <span className="text-sm font-black tabular-nums">{score}</span>
             </div>
           </div>
@@ -725,11 +735,11 @@ const Quiz = () => {
 
         <div className="flex justify-between mt-3 sm:mt-4">
            <div className="flex items-center gap-2">
-              <Star className="text-amber-500" size={14} className="sm:w-4 sm:h-4" fill="currentColor" />
+              <Star className="text-amber-500" size={14} fill="currentColor" />
               <span className="text-xs font-black tabular-nums">{score * 10} XP</span>
            </div>
            <div className="flex items-center gap-2">
-              <Clock className={timeLeft <= 5 ? 'text-red-500 animate-pulse' : 'text-slate-400'} size={14} className="sm:w-4 sm:h-4" />
+              <Clock className={timeLeft <= 5 ? 'text-red-500 animate-pulse' : 'text-slate-400'} size={14} />
               <span className="text-xs font-black tabular-nums">{timeLeft}s remaining</span>
            </div>
         </div>
