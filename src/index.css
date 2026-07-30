@@ -128,6 +128,13 @@ html {
   box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.3), 0 4px 6px -2px rgba(0, 0, 0, 0.2);
 }
 
+/* Hide bottom navbar when quiz is active */
+body.quiz-active nav,
+body.quiz-active .bottom-nav,
+body.quiz-active [role="navigation"] {
+  display: none !important;
+}
+
 /* Clinical Tidy scrollbars */
 ::-webkit-scrollbar {
   width: 6px;
