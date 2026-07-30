@@ -37,7 +37,7 @@ const MILESTONES = [
   { q: 30, label: 'Clinical Legend', reward: 'Legendary Status' }
 ];
 
-// ----- Sound System (Robust Playback for Rapid Sounds) -----
+// ----- Sound System (Optimized for Mobile Playback) -----
 const SOUND_POOL = {
   start: [
     'https://www.myinstants.com/media/sounds/show-me-what-you-got.mp3',
@@ -85,14 +85,16 @@ const playQuizSound = (type) => {
 
     const url = pool[Math.floor(Math.random() * pool.length)];
     const audio = new Audio();
+    
+    // Optimized for mobile: higher volume and explicit load
+    audio.volume = 1.0; 
     audio.src = url;
-    audio.volume = 0.7;
-    audio.preload = 'auto';
+    audio.load();
     
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise.catch(err => {
-        console.warn('Audio playback blocked or failed:', url, err);
+        console.warn('Audio playback blocked (Mobile browsers require direct interaction, or an ad-blocker is active):', err);
       });
     }
   } catch (e) {
@@ -289,8 +291,11 @@ const Quiz = () => {
     }
 
     if (mode === 'speed') {
+      // Play sound FIRST, then delay fullscreen slightly to prevent iOS Safari from canceling the audio promise
       playQuizSound('start');
-      enterFullscreen();
+      setTimeout(() => {
+        enterFullscreen();
+      }, 100);
     } else {
       exitFullscreen();
     }
@@ -609,7 +614,7 @@ const Quiz = () => {
   }
 
   return (
-    <div className={`min-h-screen flex flex-col ${quizMode === 'speed' ? 'bg-black text-white !fixed !inset-0 !z-[9999] !h-[100dvh] !w-[100vw] !overflow-y-auto !m-0 !p-0 overscroll-none' : ''} transition-colors duration-500 pb-48 overflow-x-hidden relative`}>
+    <div className={`min-h-screen flex flex-col ${quizMode === 'speed' ? 'bg-black text-white fixed inset-0 z-[9999] h-[100dvh] w-[100vw] overflow-y-auto m-0 p-0 overscroll-none' : ''} transition-colors duration-500 pb-32 sm:pb-48 overflow-x-hidden relative`}>
       {quizMode === 'speed' && (
          <div className="absolute inset-0 pointer-events-none overflow-hidden">
             <div className="absolute -top-24 -left-24 w-96 h-96 bg-medical-500/10 blur-[120px] rounded-full" />
@@ -617,8 +622,9 @@ const Quiz = () => {
          </div>
       )}
 
-      <div className="max-w-4xl mx-auto pt-6 sm:pt-10 px-4 sm:px-6 relative z-10">
-        <div className="flex justify-between items-center mb-4 sm:mb-6">
+      {/* Minimized Header for Mobile Speed Challenge */}
+      <div className={`max-w-4xl mx-auto ${quizMode === 'speed' ? 'pt-3 px-3 sm:pt-10 sm:px-6' : 'pt-6 sm:pt-10 px-4 sm:px-6'} relative z-10`}>
+        <div className="flex justify-between items-center mb-3 sm:mb-6">
           <button
             onClick={() => setShowQuitModal(true)}
             className="p-2 sm:p-3 hover:bg-slate-100 dark:hover:bg-white/5 rounded-xl sm:rounded-2xl transition-all"
@@ -626,18 +632,19 @@ const Quiz = () => {
             <XCircle size={20} className="sm:w-6 sm:h-6 text-slate-400" />
           </button>
           <div className="flex flex-col items-center">
-             <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">{quizMode} mode active</p>
-             <h3 className="text-base sm:text-lg font-black tracking-tighter uppercase">{currentMilestone}</h3>
+             <p className="text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] text-slate-400">{quizMode} MODE</p>
+             <h3 className="text-sm sm:text-lg font-black tracking-tighter uppercase">{currentMilestone}</h3>
           </div>
           <div className="flex items-center gap-2">
-            <div className="flex items-center gap-2 px-3 sm:px-4 py-2 bg-white/5 backdrop-blur-md rounded-xl sm:rounded-2xl border border-white/5">
+            <div className="flex items-center gap-2 px-2 sm:px-4 py-1.5 sm:py-2 bg-white/5 backdrop-blur-md rounded-xl sm:rounded-2xl border border-white/5">
                <Zap className="text-amber-500" size={14} fill="currentColor" />
                <span className="text-sm font-black tabular-nums">{score}</span>
             </div>
           </div>
         </div>
 
-        <div className="w-full h-1.5 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden mb-2">
+        {/* Thinner Bars for Mobile */}
+        <div className={`w-full h-1.5 sm:h-2 rounded-full overflow-hidden mb-2 ${quizMode === 'speed' ? 'bg-white/10' : 'bg-slate-100 dark:bg-white/5'}`}>
           <motion.div
             initial={false}
             animate={{ width: `${(timeLeft / maxTime) * 100}%`, backgroundColor: timeLeft <= 5 ? '#ef4444' : '#10b981' }}
@@ -645,7 +652,7 @@ const Quiz = () => {
           />
         </div>
 
-        <div className="w-full h-3 bg-slate-100 dark:bg-white/5 rounded-full overflow-hidden p-0.5 border border-slate-50 dark:border-white/5">
+        <div className={`w-full h-2 sm:h-3 rounded-full overflow-hidden p-0.5 border ${quizMode === 'speed' ? 'bg-white/10 border-white/10' : 'bg-slate-100 dark:bg-white/5 border-slate-50 dark:border-white/5'}`}>
           <motion.div
             initial={{ width: 0 }}
             animate={{ width: `${((currentQuestionIndex + 1) / quizQuestions.length) * 100}%` }}
@@ -653,28 +660,29 @@ const Quiz = () => {
           />
         </div>
 
-        <div className="flex justify-between mt-3 sm:mt-4">
+        <div className="flex justify-between mt-2 sm:mt-4">
            <div className="flex items-center gap-2">
               <Star className="text-amber-500" size={14} fill="currentColor" />
               <span className="text-xs font-black tabular-nums">{score * 10} XP</span>
            </div>
            <div className="flex items-center gap-2">
               <Clock className={timeLeft <= 5 ? 'text-red-500 animate-pulse' : 'text-slate-400'} size={14} />
-              <span className="text-xs font-black tabular-nums">{timeLeft}s remaining</span>
+              <span className="text-xs font-black tabular-nums">{timeLeft}s</span>
            </div>
         </div>
       </div>
 
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 mt-6 sm:mt-8 relative z-30">
-         <div className={`backdrop-blur-xl p-3 sm:p-4 rounded-2xl sm:rounded-3xl shadow-sm border grid grid-cols-3 gap-3 sm:gap-4 ${quizMode === 'speed' ? 'bg-black/60 border-white/10' : 'bg-white/80 dark:bg-slate-900/80 border-slate-100 dark:border-white/5'}`}>
+      {/* Compact Lifelines for Mobile */}
+      <div className="max-w-4xl mx-auto px-3 sm:px-6 mt-4 sm:mt-8 relative z-30">
+         <div className={`backdrop-blur-xl p-2 sm:p-4 rounded-2xl sm:rounded-3xl shadow-sm border grid grid-cols-3 gap-2 sm:gap-4 ${quizMode === 'speed' ? 'bg-black/60 border-white/10' : 'bg-white/80 dark:bg-slate-900/80 border-slate-100 dark:border-white/5'}`}>
             <LifelineButton
-               icon={<Target size={20} className="sm:w-6 sm:h-6" />} label="50/50"
+               icon={<Target size={18} className="sm:w-6 sm:h-6" />} label="50/50"
                used={lifelinesUsed.fiftyFifty}
                onClick={useFiftyFifty}
                dark={quizMode === 'speed'}
             />
             <LifelineButton
-               icon={<HelpCircle size={20} className="sm:w-6 sm:h-6" />} label="Hint"
+               icon={<HelpCircle size={18} className="sm:w-6 sm:h-6" />} label="Hint"
                used={lifelinesUsed.hint}
                onClick={() => {
                   setShowHint(true);
@@ -683,7 +691,7 @@ const Quiz = () => {
                dark={quizMode === 'speed'}
             />
             <LifelineButton
-               icon={<Users size={20} className="sm:w-6 sm:h-6" />} label="Poll"
+               icon={<Users size={18} className="sm:w-6 sm:h-6" />} label="Poll"
                used={lifelinesUsed.askClass}
                onClick={useAskClass}
                dark={quizMode === 'speed'}
@@ -691,21 +699,22 @@ const Quiz = () => {
          </div>
       </div>
 
-      <div className="max-w-4xl mx-auto mt-6 sm:mt-8 px-4 sm:px-6 relative z-10">
+      <div className="max-w-4xl mx-auto mt-4 sm:mt-8 px-3 sm:px-6 relative z-10">
          <motion.div
            key={currentQuestionIndex}
            initial={{ x: 20, opacity: 0 }}
            animate={{ x: 0, opacity: 1 }}
-           className="space-y-8 sm:space-y-12"
+           className="space-y-6 sm:space-y-12"
          >
-            <div className="text-center space-y-4 sm:space-y-6">
+            <div className="text-center space-y-3 sm:space-y-6">
                <div className="flex flex-col items-center gap-2">
                   <span className="px-3 sm:px-4 py-1 bg-medical-500/10 text-medical-500 rounded-full text-[9px] font-black uppercase tracking-widest border border-medical-500/20">
                     {currentQ?.subject}
                   </span>
                   <p className="text-[9px] sm:text-[10px] font-bold text-slate-400 uppercase tracking-widest opacity-60">Question {currentQuestionIndex + 1}</p>
                </div>
-               <h2 className={`text-xl sm:text-3xl md:text-4xl font-black leading-tight tracking-tight px-2 sm:px-4 drop-shadow-sm ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
+               {/* Smaller text on mobile, normal on desktop */}
+               <h2 className={`text-lg sm:text-3xl md:text-4xl font-black leading-tight tracking-tight px-2 sm:px-4 drop-shadow-sm ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
                   {currentQ?.question}
                </h2>
                <div className="flex justify-center">
@@ -746,13 +755,13 @@ const Quiz = () => {
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-24 sm:bottom-32 left-1/2 -translate-x-1/2 w-full max-w-md px-6 z-40"
+            className="fixed bottom-20 sm:bottom-32 left-1/2 -translate-x-1/2 w-[95%] sm:max-w-md px-4 sm:px-6 z-40"
           >
             <button
               onClick={() => confirmAnswer()}
-              className="w-full py-4 sm:py-6 bg-amber-500 text-white rounded-2xl sm:rounded-[2rem] font-black uppercase tracking-[0.3em] text-xs shadow-2xl shadow-amber-500/40 animate-bounce"
+              className="w-full py-3 sm:py-6 bg-amber-500 text-white rounded-xl sm:rounded-[2rem] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[10px] sm:text-xs shadow-2xl shadow-amber-500/40 animate-bounce"
             >
-              Is that your final answer?
+              FINAL ANSWER?
             </button>
           </motion.div>
         )}
@@ -814,7 +823,7 @@ const Quiz = () => {
              <motion.div
                initial={{ y: '100%' }}
                animate={{ y: 0 }}
-               className={`relative w-full max-w-2xl rounded-t-3xl sm:rounded-[3rem] p-6 sm:p-10 shadow-2xl border ${quizMode === 'speed' ? 'bg-black border-white/5' : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-white/10'}`}
+               className={`relative w-full max-w-2xl rounded-t-3xl sm:rounded-[3rem] p-4 sm:p-10 shadow-2xl border ${quizMode === 'speed' ? 'bg-black border-white/5' : 'bg-white dark:bg-slate-900 border-slate-100 dark:border-white/10'}`}
              >
                 <div className={`w-16 h-16 sm:w-20 sm:h-20 rounded-2xl sm:rounded-[2rem] flex items-center justify-center mb-6 sm:mb-8 mx-auto sm:mx-0 ${isCorrect ? 'bg-emerald-100 text-emerald-600 shadow-lg shadow-emerald-500/20' : 'bg-red-100 text-red-600 shadow-lg shadow-red-500/20'}`}>
                    {isCorrect ? <CheckCircle2 size={32} className="sm:w-10 sm:h-10" /> : <XCircle size={32} className="sm:w-10 sm:h-10" />}
