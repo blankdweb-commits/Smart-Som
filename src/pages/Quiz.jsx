@@ -37,6 +37,7 @@ const MILESTONES = [
   { q: 30, label: 'Clinical Legend', reward: 'Legendary Status' }
 ];
 
+// ----- Sound System (Optimized for Mobile Playback) -----
 const SOUND_POOL = {
   start: [
     'https://www.myinstants.com/media/sounds/show-me-what-you-got.mp3',
@@ -85,6 +86,7 @@ const playQuizSound = (type) => {
     const url = pool[Math.floor(Math.random() * pool.length)];
     const audio = new Audio();
     
+    // Optimized for mobile: max volume and explicit load
     audio.volume = 1.0; 
     audio.src = url;
     audio.load();
@@ -92,11 +94,12 @@ const playQuizSound = (type) => {
     const playPromise = audio.play();
     if (playPromise !== undefined) {
       playPromise.catch(err => {
-        console.warn('Audio playback blocked:', err);
+        console.warn('Audio playback blocked (Mobile browsers require direct interaction, or an ad-blocker is active):', err);
       });
     }
   } catch (e) {
     console.warn('Sound system error:', e);
+    // Intentionally no AI fallback, as requested
   }
 };
 
@@ -120,6 +123,7 @@ const exitFullscreen = async () => {
   }
 };
 
+// ----- Main Quiz Component -----
 const Quiz = () => {
   const { flashcards, studyStats, updateQuizStats, darkMode } = useAppContext();
   const navigate = useNavigate();
@@ -156,22 +160,11 @@ const Quiz = () => {
 
   const [showQuitModal, setShowQuitModal] = useState(false);
 
-  // Add/remove body class to hide navbar
   useEffect(() => {
-    if (quizStarted) {
-      document.body.classList.add('quiz-active');
-      document.body.style.overflow = 'hidden';
-    } else {
-      document.body.classList.remove('quiz-active');
-      document.body.style.overflow = '';
-    }
-
     return () => {
-      document.body.classList.remove('quiz-active');
-      document.body.style.overflow = '';
       exitFullscreen();
     };
-  }, [quizStarted]);
+  }, []);
 
   const subjects = useMemo(() => {
     const s = new Map();
@@ -299,6 +292,7 @@ const Quiz = () => {
     }
 
     if (mode === 'speed') {
+      // Play sound FIRST, then delay fullscreen slightly to prevent iOS Safari from canceling the audio promise
       playQuizSound('start');
       setTimeout(() => {
         enterFullscreen();
@@ -398,6 +392,7 @@ const Quiz = () => {
     setLifelinesUsed(prev => ({ ...prev, askClass: true }));
   };
 
+  // --- Render start ---
   if (!quizStarted) {
     return (
       <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-700 max-w-6xl mx-auto pb-20 px-4">
@@ -579,17 +574,17 @@ const Quiz = () => {
   if (showResults) {
     const finalScore = quizMode === 'speed' ? Math.max(score, safetyNetScore) : score;
     return (
-      <div className="flex items-center justify-center min-h-[100dvh] p-4 bg-slate-950">
+      <div className="flex items-center justify-center min-h-[70vh] p-4">
         <motion.div
           initial={{ scale: 0.9, opacity: 0 }}
           animate={{ scale: 1, opacity: 1 }}
-          className={`p-6 sm:p-10 rounded-3xl sm:rounded-[3.5rem] shadow-clinical border text-center max-w-2xl w-full ${quizMode === 'speed' ? 'bg-slate-900 border-white/20' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}
+          className={`p-6 sm:p-10 rounded-3xl sm:rounded-[3.5rem] shadow-clinical border text-center max-w-2xl w-full ${quizMode === 'speed' ? 'bg-slate-950 border-slate-800' : 'bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700'}`}
         >
-          <div className="w-16 h-16 sm:w-24 sm:h-24 bg-medical-500/20 text-medical-400 rounded-2xl sm:rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 sm:mb-8 shadow-lg">
+          <div className="w-16 h-16 sm:w-24 sm:h-24 bg-medical-50 text-medical-600 rounded-2xl sm:rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 sm:mb-8 shadow-lg">
             <Trophy size={32} className="sm:w-12 sm:h-12" />
           </div>
           <h2 className={`text-2xl sm:text-4xl font-black mb-2 tracking-tight uppercase ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>Session Complete</h2>
-          <p className="text-slate-400 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] mb-6 sm:mb-10">Performance Analytics Generated</p>
+          <p className="text-slate-400 dark:text-slate-400 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] mb-6 sm:mb-10">Performance Analytics Generated</p>
 
           <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-8 sm:mb-10">
             <div className={`p-4 sm:p-6 rounded-2xl sm:rounded-3xl border ${quizMode === 'speed' ? 'bg-white/5 border-white/10' : 'bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-800'}`}>
@@ -628,8 +623,8 @@ const Quiz = () => {
          </div>
       )}
 
-      {/* Full-width container for Speed mode, centered for others */}
-      <div className={`w-full ${quizMode === 'speed' ? 'px-3 sm:px-6 pt-3 sm:pt-10' : 'max-w-4xl mx-auto px-4 sm:px-6 pt-6 sm:pt-10'} relative z-10`}>
+      {/* Minimized Header for Mobile Speed Challenge */}
+      <div className={`max-w-4xl mx-auto ${quizMode === 'speed' ? 'pt-3 px-3 sm:pt-10 sm:px-6' : 'pt-6 sm:pt-10 px-4 sm:px-6'} relative z-10`}>
         <div className="flex justify-between items-center mb-3 sm:mb-6">
           <button
             onClick={() => setShowQuitModal(true)}
@@ -649,6 +644,7 @@ const Quiz = () => {
           </div>
         </div>
 
+        {/* Thinner Bars for Mobile, High Contrast for Speed */}
         <div className={`w-full h-1.5 sm:h-2 rounded-full overflow-hidden mb-2 ${quizMode === 'speed' ? 'bg-white/20' : 'bg-slate-100 dark:bg-white/5'}`}>
           <motion.div
             initial={false}
@@ -677,9 +673,9 @@ const Quiz = () => {
         </div>
       </div>
 
-      {/* Lifelines - full width for speed, centered for others */}
-      <div className={`w-full ${quizMode === 'speed' ? 'px-3 sm:px-6' : 'max-w-4xl mx-auto px-4 sm:px-6'} mt-4 sm:mt-8 relative z-30`}>
-         <div className={`${quizMode === 'speed' ? '' : 'max-w-4xl mx-auto'} backdrop-blur-xl p-2 sm:p-4 rounded-2xl sm:rounded-3xl shadow-sm border grid grid-cols-3 gap-2 sm:gap-4 ${quizMode === 'speed' ? 'bg-slate-900/80 border-white/20' : 'bg-white/80 dark:bg-slate-900/80 border-slate-100 dark:border-white/5'}`}>
+      {/* Compact Lifelines for Mobile, High Contrast */}
+      <div className="max-w-4xl mx-auto px-3 sm:px-6 mt-4 sm:mt-8 relative z-30">
+         <div className={`backdrop-blur-xl p-2 sm:p-4 rounded-2xl sm:rounded-3xl shadow-sm border grid grid-cols-3 gap-2 sm:gap-4 ${quizMode === 'speed' ? 'bg-slate-900/80 border-white/20' : 'bg-white/80 dark:bg-slate-900/80 border-slate-100 dark:border-white/5'}`}>
             <LifelineButton
                icon={<Target size={18} className="sm:w-6 sm:h-6" />} label="50/50"
                used={lifelinesUsed.fiftyFifty}
@@ -704,8 +700,7 @@ const Quiz = () => {
          </div>
       </div>
 
-      {/* Question Section - Properly Centered */}
-      <div className={`w-full ${quizMode === 'speed' ? 'px-3 sm:px-6' : 'max-w-4xl mx-auto px-4 sm:px-6'} mt-4 sm:mt-8 relative z-10`}>
+      <div className="max-w-4xl mx-auto mt-4 sm:mt-8 px-3 sm:px-6 relative z-10">
          <motion.div
            key={currentQuestionIndex}
            initial={{ x: 20, opacity: 0 }}
@@ -719,8 +714,8 @@ const Quiz = () => {
                   </span>
                   <p className="text-[9px] sm:text-[10px] font-bold text-slate-300 uppercase tracking-widest">Question {currentQuestionIndex + 1}</p>
                </div>
-               {/* Centered question text */}
-               <h2 className={`text-xl sm:text-3xl md:text-4xl font-black leading-tight tracking-tight px-2 sm:px-4 drop-shadow-sm text-center mx-auto ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
+               {/* High contrast question text */}
+               <h2 className={`text-lg sm:text-3xl md:text-4xl font-black leading-tight tracking-tight px-2 sm:px-4 drop-shadow-sm ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
                   {currentQ?.question}
                </h2>
                <div className="flex justify-center">
@@ -1054,6 +1049,7 @@ const LifelineButton = ({ icon, label, used, onClick, dark }) => (
 const OptionButton = ({ label, index, state, pollValue, onClick, disabled, dark, isSpeed, isLearningHighlight }) => {
   const letters = ['A', 'B', 'C', 'D'];
   
+  // High contrast defaults for dark/speed mode
   let baseStyles = dark 
     ? 'bg-white/10 border-white/30 text-white hover:bg-white/20' 
     : 'bg-white border-slate-100 text-slate-700 hover:border-medical-500 hover:shadow-md';
@@ -1064,6 +1060,8 @@ const OptionButton = ({ label, index, state, pollValue, onClick, disabled, dark,
     
   if (state === 'correct') baseStyles = 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.4)]';
   if (state === 'wrong') baseStyles = 'bg-red-500/20 border-red-400 text-red-300 shadow-[0_0_20px_rgba(239,68,68,0.4)]';
+  
+  // Increased opacity from 10 to 30 so eliminated options are still readable but clearly disabled
   if (state === 'eliminated') baseStyles = 'opacity-30 grayscale pointer-events-none scale-95';
 
   if (isLearningHighlight && state === 'default') {
