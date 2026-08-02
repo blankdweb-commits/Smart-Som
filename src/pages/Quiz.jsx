@@ -86,7 +86,6 @@ const playQuizSound = (type) => {
     const url = pool[Math.floor(Math.random() * pool.length)];
     const audio = new Audio();
     
-    // Optimized for mobile: max volume and explicit load
     audio.volume = 1.0; 
     audio.src = url;
     audio.load();
@@ -99,7 +98,6 @@ const playQuizSound = (type) => {
     }
   } catch (e) {
     console.warn('Sound system error:', e);
-    // Intentionally no AI fallback, as requested
   }
 };
 
@@ -292,7 +290,6 @@ const Quiz = () => {
     }
 
     if (mode === 'speed') {
-      // Play sound FIRST, then delay fullscreen slightly to prevent iOS Safari from canceling the audio promise
       playQuizSound('start');
       setTimeout(() => {
         enterFullscreen();
@@ -714,7 +711,6 @@ const Quiz = () => {
                   </span>
                   <p className="text-[9px] sm:text-[10px] font-bold text-slate-300 uppercase tracking-widest">Question {currentQuestionIndex + 1}</p>
                </div>
-               {/* High contrast question text */}
                <h2 className={`text-lg sm:text-3xl md:text-4xl font-black leading-tight tracking-tight px-2 sm:px-4 drop-shadow-sm ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
                   {currentQ?.question}
                </h2>
@@ -1049,7 +1045,6 @@ const LifelineButton = ({ icon, label, used, onClick, dark }) => (
 const OptionButton = ({ label, index, state, pollValue, onClick, disabled, dark, isSpeed, isLearningHighlight }) => {
   const letters = ['A', 'B', 'C', 'D'];
   
-  // High contrast defaults for dark/speed mode
   let baseStyles = dark 
     ? 'bg-white/10 border-white/30 text-white hover:bg-white/20' 
     : 'bg-white border-slate-100 text-slate-700 hover:border-medical-500 hover:shadow-md';
@@ -1060,8 +1055,6 @@ const OptionButton = ({ label, index, state, pollValue, onClick, disabled, dark,
     
   if (state === 'correct') baseStyles = 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.4)]';
   if (state === 'wrong') baseStyles = 'bg-red-500/20 border-red-400 text-red-300 shadow-[0_0_20px_rgba(239,68,68,0.4)]';
-  
-  // Increased opacity from 10 to 30 so eliminated options are still readable but clearly disabled
   if (state === 'eliminated') baseStyles = 'opacity-30 grayscale pointer-events-none scale-95';
 
   if (isLearningHighlight && state === 'default') {
