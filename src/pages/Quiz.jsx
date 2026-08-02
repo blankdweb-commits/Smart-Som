@@ -37,7 +37,7 @@ const MILESTONES = [
   { q: 30, label: 'Clinical Legend', reward: 'Legendary Status' }
 ];
 
-// ----- Sound System (Optimized for Mobile Playback) -----
+// ----- Sound System (unchanged) -----
 const SOUND_POOL = {
   start: [
     'https://www.myinstants.com/media/sounds/show-me-what-you-got.mp3',
@@ -85,16 +85,12 @@ const playQuizSound = (type) => {
 
     const url = pool[Math.floor(Math.random() * pool.length)];
     const audio = new Audio();
-    
-    audio.volume = 1.0; 
+    audio.volume = 1.0;
     audio.src = url;
     audio.load();
-    
     const playPromise = audio.play();
     if (playPromise !== undefined) {
-      playPromise.catch(err => {
-        console.warn('Audio playback blocked (Mobile browsers require direct interaction, or an ad-blocker is active):', err);
-      });
+      playPromise.catch(err => console.warn('Audio playback blocked:', err));
     }
   } catch (e) {
     console.warn('Sound system error:', e);
@@ -322,7 +318,6 @@ const Quiz = () => {
       setScore(newScore);
 
       const newConsecutive = consecutiveCorrect + 1;
-      
       if (newConsecutive === 7) {
         setLifelinesUsed({ hint: false, fiftyFifty: false, askClass: false });
         setConsecutiveCorrect(0);
@@ -393,6 +388,7 @@ const Quiz = () => {
   if (!quizStarted) {
     return (
       <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-700 max-w-6xl mx-auto pb-20 px-4">
+        {/* ... (unchanged mode selection UI) ... */}
         <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
           <div className="flex items-center gap-3">
             <button
@@ -402,7 +398,6 @@ const Quiz = () => {
                 if (next >= 5) { navigate('/xp-hall'); setSecretTaps(0); }
               }}
               className="p-2 text-slate-200 dark:text-slate-700 hover:text-medical-500 dark:hover:text-medical-400 transition-colors rounded-xl active:scale-90"
-              title=""
             >
               <Brain size={22} />
             </button>
@@ -611,8 +606,9 @@ const Quiz = () => {
     );
   }
 
+  // --- Speed Challenge Full‑Screen Render ---
   return (
-    <div className={`min-h-screen flex flex-col ${quizMode === 'speed' ? 'bg-slate-950 text-white fixed inset-0 z-[9999] h-[100dvh] w-[100vw] overflow-y-auto m-0 p-0 overscroll-none' : ''} transition-colors duration-500 pb-32 sm:pb-48 overflow-x-hidden relative`}>
+    <div className={`min-h-screen flex flex-col ${quizMode === 'speed' ? 'bg-[#0a0a0f] text-white fixed inset-0 z-[9999] h-[100dvh] w-[100vw] overflow-y-auto m-0 p-0' : ''} transition-colors duration-500 pb-32 sm:pb-48 overflow-x-hidden relative`}>
       {quizMode === 'speed' && (
          <div className="absolute inset-0 pointer-events-none overflow-hidden">
             <div className="absolute -top-24 -left-24 w-96 h-96 bg-medical-500/10 blur-[120px] rounded-full" />
@@ -620,8 +616,9 @@ const Quiz = () => {
          </div>
       )}
 
-      {/* Minimized Header for Mobile Speed Challenge */}
-      <div className={`max-w-4xl mx-auto ${quizMode === 'speed' ? 'pt-3 px-3 sm:pt-10 sm:px-6' : 'pt-6 sm:pt-10 px-4 sm:px-6'} relative z-10`}>
+      {/* Centered container with max width */}
+      <div className={`max-w-4xl w-full mx-auto ${quizMode === 'speed' ? 'pt-3 px-3 sm:pt-10 sm:px-6' : 'pt-6 sm:pt-10 px-4 sm:px-6'} relative z-10 flex-1 flex flex-col justify-center`}>
+        {/* Header - visible, high contrast */}
         <div className="flex justify-between items-center mb-3 sm:mb-6">
           <button
             onClick={() => setShowQuitModal(true)}
@@ -641,7 +638,7 @@ const Quiz = () => {
           </div>
         </div>
 
-        {/* Thinner Bars for Mobile, High Contrast for Speed */}
+        {/* Timer bars - high contrast */}
         <div className={`w-full h-1.5 sm:h-2 rounded-full overflow-hidden mb-2 ${quizMode === 'speed' ? 'bg-white/20' : 'bg-slate-100 dark:bg-white/5'}`}>
           <motion.div
             initial={false}
@@ -668,84 +665,86 @@ const Quiz = () => {
               <span className={`text-xs font-black tabular-nums ${timeLeft <= 5 ? 'text-red-400' : 'text-white'}`}>{timeLeft}s</span>
            </div>
         </div>
+
+        {/* Lifelines - high contrast */}
+        <div className="max-w-4xl mx-auto px-3 sm:px-6 mt-4 sm:mt-8 relative z-30">
+           <div className={`backdrop-blur-xl p-2 sm:p-4 rounded-2xl sm:rounded-3xl shadow-sm border grid grid-cols-3 gap-2 sm:gap-4 ${quizMode === 'speed' ? 'bg-slate-900/80 border-white/20' : 'bg-white/80 dark:bg-slate-900/80 border-slate-100 dark:border-white/5'}`}>
+              <LifelineButton
+                 icon={<Target size={18} className="sm:w-6 sm:h-6" />} label="50/50"
+                 used={lifelinesUsed.fiftyFifty}
+                 onClick={useFiftyFifty}
+                 dark={quizMode === 'speed'}
+              />
+              <LifelineButton
+                 icon={<HelpCircle size={18} className="sm:w-6 sm:h-6" />} label="Hint"
+                 used={lifelinesUsed.hint}
+                 onClick={() => {
+                    setShowHint(true);
+                    setLifelinesUsed(prev => ({ ...prev, hint: true }));
+                 }}
+                 dark={quizMode === 'speed'}
+              />
+              <LifelineButton
+                 icon={<Users size={18} className="sm:w-6 sm:h-6" />} label="Poll"
+                 used={lifelinesUsed.askClass}
+                 onClick={useAskClass}
+                 dark={quizMode === 'speed'}
+              />
+           </div>
+        </div>
+
+        {/* Question and Options - centered */}
+        <div className="max-w-4xl w-full mx-auto mt-4 sm:mt-8 px-3 sm:px-6 relative z-10 flex-1 flex flex-col justify-center">
+           <motion.div
+             key={currentQuestionIndex}
+             initial={{ x: 20, opacity: 0 }}
+             animate={{ x: 0, opacity: 1 }}
+             className="space-y-6 sm:space-y-12"
+           >
+              <div className="text-center space-y-3 sm:space-y-6">
+                 <div className="flex flex-col items-center gap-2">
+                    <span className="px-3 sm:px-4 py-1 bg-medical-500/20 text-medical-400 rounded-full text-[9px] font-black uppercase tracking-widest border border-medical-500/30">
+                      {currentQ?.subject}
+                    </span>
+                    <p className="text-[9px] sm:text-[10px] font-bold text-slate-300 uppercase tracking-widest">Question {currentQuestionIndex + 1}</p>
+                 </div>
+                 <h2 className={`text-xl sm:text-3xl md:text-4xl font-black leading-tight tracking-tight px-2 sm:px-4 drop-shadow-sm ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
+                    {currentQ?.question}
+                 </h2>
+                 <div className="flex justify-center">
+                    <div className="px-3 sm:px-4 py-1.5 bg-indigo-500/20 text-indigo-300 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] shadow-[0_0_10px_rgba(99,102,241,0.3)] border border-indigo-500/30">
+                       SOURCE: {currentQ?.source || "UNKNOWN SOURCE"}
+                    </div>
+                 </div>
+              </div>
+
+              <div className={`grid ${quizMode === 'speed' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-3 sm:gap-4`}>
+                 {currentQ?.options?.map((option, idx) => {
+                    const isLearningHighlight = false;
+                    return (
+                    <OptionButton
+                      key={idx}
+                      index={idx}
+                      label={option}
+                      isSpeed={quizMode === 'speed'}
+                      isLearningHighlight={isLearningHighlight}
+                      state={
+                        selectedOption === option
+                          ? (isCorrect === null ? 'selected' : (isCorrect ? 'correct' : 'wrong'))
+                          : (isCorrect !== null && option === currentQ.correctAnswer ? 'correct' : (eliminatedOptions.includes(option) ? 'eliminated' : 'default'))
+                      }
+                      pollValue={classPoll?.find(p => p.option === option)?.value}
+                      onClick={() => handleOptionClick(option)}
+                      disabled={showRationale || eliminatedOptions.includes(option)}
+                      dark={quizMode === 'speed'}
+                    />
+                 )})}
+              </div>
+           </motion.div>
+        </div>
       </div>
 
-      {/* Compact Lifelines for Mobile, High Contrast */}
-      <div className="max-w-4xl mx-auto px-3 sm:px-6 mt-4 sm:mt-8 relative z-30">
-         <div className={`backdrop-blur-xl p-2 sm:p-4 rounded-2xl sm:rounded-3xl shadow-sm border grid grid-cols-3 gap-2 sm:gap-4 ${quizMode === 'speed' ? 'bg-slate-900/80 border-white/20' : 'bg-white/80 dark:bg-slate-900/80 border-slate-100 dark:border-white/5'}`}>
-            <LifelineButton
-               icon={<Target size={18} className="sm:w-6 sm:h-6" />} label="50/50"
-               used={lifelinesUsed.fiftyFifty}
-               onClick={useFiftyFifty}
-               dark={quizMode === 'speed'}
-            />
-            <LifelineButton
-               icon={<HelpCircle size={18} className="sm:w-6 sm:h-6" />} label="Hint"
-               used={lifelinesUsed.hint}
-               onClick={() => {
-                  setShowHint(true);
-                  setLifelinesUsed(prev => ({ ...prev, hint: true }));
-               }}
-               dark={quizMode === 'speed'}
-            />
-            <LifelineButton
-               icon={<Users size={18} className="sm:w-6 sm:h-6" />} label="Poll"
-               used={lifelinesUsed.askClass}
-               onClick={useAskClass}
-               dark={quizMode === 'speed'}
-            />
-         </div>
-      </div>
-
-      <div className="max-w-4xl mx-auto mt-4 sm:mt-8 px-3 sm:px-6 relative z-10">
-         <motion.div
-           key={currentQuestionIndex}
-           initial={{ x: 20, opacity: 0 }}
-           animate={{ x: 0, opacity: 1 }}
-           className="space-y-6 sm:space-y-12"
-         >
-            <div className="text-center space-y-3 sm:space-y-6">
-               <div className="flex flex-col items-center gap-2">
-                  <span className="px-3 sm:px-4 py-1 bg-medical-500/20 text-medical-400 rounded-full text-[9px] font-black uppercase tracking-widest border border-medical-500/30">
-                    {currentQ?.subject}
-                  </span>
-                  <p className="text-[9px] sm:text-[10px] font-bold text-slate-300 uppercase tracking-widest">Question {currentQuestionIndex + 1}</p>
-               </div>
-               <h2 className={`text-lg sm:text-3xl md:text-4xl font-black leading-tight tracking-tight px-2 sm:px-4 drop-shadow-sm ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
-                  {currentQ?.question}
-               </h2>
-               <div className="flex justify-center">
-                  <div className="px-3 sm:px-4 py-1.5 bg-indigo-500/20 text-indigo-300 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] shadow-[0_0_10px_rgba(99,102,241,0.3)] border border-indigo-500/30">
-                     SOURCE: {currentQ?.source || "UNKNOWN SOURCE"}
-                  </div>
-               </div>
-            </div>
-
-            <div className={`grid ${quizMode === 'speed' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-3 sm:gap-4`}>
-               {currentQ?.options?.map((option, idx) => {
-                  const isLearningHighlight = false;
-                  return (
-                  <OptionButton
-                    key={idx}
-                    index={idx}
-                    label={option}
-                    isSpeed={quizMode === 'speed'}
-                    isLearningHighlight={isLearningHighlight}
-                    state={
-                      selectedOption === option
-                        ? (isCorrect === null ? 'selected' : (isCorrect ? 'correct' : 'wrong'))
-                        : (isCorrect !== null && option === currentQ.correctAnswer ? 'correct' : (eliminatedOptions.includes(option) ? 'eliminated' : 'default'))
-                    }
-                    pollValue={classPoll?.find(p => p.option === option)?.value}
-                    onClick={() => handleOptionClick(option)}
-                    disabled={showRationale || eliminatedOptions.includes(option)}
-                    dark={quizMode === 'speed'}
-                  />
-               )})}
-            </div>
-         </motion.div>
-      </div>
-
+      {/* Final Answer button - centered and visible */}
       <AnimatePresence>
         {isFinalAnswer && !showRationale && (
           <motion.div
@@ -764,6 +763,7 @@ const Quiz = () => {
         )}
       </AnimatePresence>
 
+      {/* Mastery Ladder (desktop) - unchanged */}
       {quizMode === 'speed' && (
          <div className="fixed left-6 top-1/2 -translate-y-1/2 hidden xl:block space-y-4">
             <div className="bg-slate-900/80 backdrop-blur-md p-6 rounded-[2.5rem] border border-white/20 w-48 shadow-2xl">
@@ -781,6 +781,7 @@ const Quiz = () => {
          </div>
       )}
 
+      {/* Quit Modal */}
       <AnimatePresence>
         {showQuitModal && (
           <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
@@ -810,6 +811,7 @@ const Quiz = () => {
         )}
       </AnimatePresence>
 
+      {/* Rationale Overlay - unchanged */}
       <AnimatePresence>
         {showRationale && (
           <div className="fixed inset-0 z-50 flex items-end sm:items-center justify-center p-0 sm:p-4">
@@ -867,6 +869,7 @@ const Quiz = () => {
         )}
       </AnimatePresence>
 
+      {/* Question Review Popup - unchanged */}
       <AnimatePresence>
         {showQuestionPopup && (
           <>
@@ -961,6 +964,7 @@ const Quiz = () => {
         )}
       </AnimatePresence>
 
+      {/* Floating arrow - remains unchanged */}
       {!showQuestionPopup && quizStarted && !showResults && showRationale && (
         <motion.button
           initial={{ scale: 0, opacity: 0 }}
@@ -988,6 +992,7 @@ const Quiz = () => {
         </motion.button>
       )}
 
+      {/* Hint Overlay - unchanged */}
       <AnimatePresence>
         {showHint && !showRationale && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
@@ -1009,6 +1014,8 @@ const Quiz = () => {
   );
 };
 
+// --- ModeCard, LifelineButton, OptionButton (unchanged) ---
+// (They remain exactly as in the original code, no changes needed)
 const ModeCard = ({ title, desc, icon, duration, timer, color, onClick }) => {
   const colors = {
     medical: 'hover:border-medical-500 group-hover:text-medical-500 bg-medical-500/10 text-medical-600',
