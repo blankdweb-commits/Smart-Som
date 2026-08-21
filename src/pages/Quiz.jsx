@@ -86,7 +86,7 @@ const playQuizSound = (type) => {
     if (pool.length === 0) return;
 
     const url = pool[Math.floor(Math.random() * pool.length)];
-    
+
     if (!audioCache[url]) {
       audioCache[url] = Array.from({ length: 3 }).map(() => {
         const audio = new Audio(url);
@@ -94,17 +94,17 @@ const playQuizSound = (type) => {
         return audio;
       });
     }
-    
+
     const audioPool = audioCache[url];
     let audioToPlay = audioPool.find(a => a.paused || a.ended);
     if (!audioToPlay) {
       audioToPlay = audioPool[0];
     }
-    
+
     audioToPlay.currentTime = 0;
     audioToPlay.volume = 1.0;
     const playPromise = audioToPlay.play();
-    
+
     if (playPromise !== undefined) {
       playPromise.catch(err => console.warn('Audio playback blocked:', err));
     }
@@ -457,8 +457,8 @@ const Quiz = () => {
                       setCustomQuestionCount('');
                     }}
                     className={`py-2 rounded-xl font-black text-xs transition-all ${questionLimit === val && customQuestionCount === ''
-                        ? 'bg-indigo-600 text-white shadow-md'
-                        : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                      ? 'bg-indigo-600 text-white shadow-md'
+                      : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                       }`}
                   >
                     {val}
@@ -508,8 +508,8 @@ const Quiz = () => {
                           setCustomTimePerQuestion(val.toString());
                         }}
                         className={`py-2 rounded-xl font-black text-xs transition-all ${customTimePerQuestion === val.toString()
-                            ? 'bg-emerald-500 text-white shadow-md'
-                            : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
+                          ? 'bg-emerald-500 text-white shadow-md'
+                          : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
                           }`}
                       >
                         {val}s
@@ -1057,8 +1057,8 @@ const ModeCard = ({ title, desc, icon, duration, timer, color, onClick }) => {
 
 const LifelineButton = ({ icon, label, used, onClick, dark }) => (
   <button disabled={used} onClick={onClick} className={`flex flex-col items-center justify-center p-3 sm:p-4 rounded-xl sm:rounded-2xl border-2 transition-all active:scale-90 shadow-sm ${used
-      ? (dark ? 'bg-white/5 border-white/10 text-white/30' : 'bg-slate-50 border-slate-100 text-slate-300')
-      : (dark ? 'bg-white/10 border-white/30 text-amber-400 hover:border-amber-400 hover:bg-white/20' : 'bg-white border-slate-100 text-medical-600 hover:border-medical-500 hover:bg-medical-50')
+    ? (dark ? 'bg-white/5 border-white/10 text-white/30' : 'bg-slate-50 border-slate-100 text-slate-300')
+    : (dark ? 'bg-white/10 border-white/30 text-amber-400 hover:border-amber-400 hover:bg-white/20' : 'bg-white border-slate-100 text-medical-600 hover:border-medical-500 hover:bg-medical-50')
     }`}>
     {React.cloneElement(icon, { size: 24, className: 'w-6 h-6 sm:w-8 sm:h-8' })}
     <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] mt-2 sm:mt-3">{label}</span>
@@ -1069,44 +1069,44 @@ const OptionButton = ({ label, index, state, pollValue, onClick, disabled, dark,
   const letters = ['A', 'B', 'C', 'D'];
 
   let baseStyles = dark
-    ? 'bg-white/10 border-white/30 text-white hover:bg-white/20'
+    ? 'bg-transparent border-white/10 text-slate-300 hover:bg-white/5 hover:border-white/20 hover:text-white'
     : 'bg-white border-slate-100 text-slate-700 hover:border-medical-500 hover:shadow-md';
 
   if (state === 'selected') baseStyles = dark
-    ? 'bg-amber-500/20 border-amber-400 text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.3)]'
+    ? 'bg-amber-500/10 border-amber-500/50 text-amber-400 shadow-[0_0_15px_rgba(245,158,11,0.2)]'
     : 'bg-medical-50 border-medical-500 text-medical-700 shadow-md';
 
-  if (state === 'correct') baseStyles = 'bg-emerald-500/20 border-emerald-400 text-emerald-300 shadow-[0_0_20px_rgba(16,185,129,0.4)]';
-  if (state === 'wrong') baseStyles = 'bg-red-500/20 border-red-400 text-red-300 shadow-[0_0_20px_rgba(239,68,68,0.4)]';
+  if (state === 'correct') baseStyles = 'bg-emerald-500/10 border-emerald-500/50 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.2)]';
+  if (state === 'wrong') baseStyles = 'bg-red-500/10 border-red-500/50 text-red-400 shadow-[0_0_15px_rgba(239,68,68,0.2)]';
   if (state === 'eliminated') baseStyles = 'opacity-30 grayscale pointer-events-none scale-95';
 
   if (isLearningHighlight && state === 'default') {
     baseStyles = dark
-      ? 'bg-indigo-900/30 border-indigo-500/50 text-indigo-100 shadow-[0_0_15px_rgba(99,102,241,0.3)] hover:bg-indigo-900/50'
+      ? 'bg-indigo-900/10 border-indigo-500/30 text-indigo-200 shadow-[0_0_15px_rgba(99,102,241,0.2)] hover:bg-indigo-900/30'
       : 'bg-indigo-50/50 border-indigo-300 text-indigo-900 shadow-[0_0_15px_rgba(99,102,241,0.3)] hover:bg-indigo-50 hover:border-indigo-400';
   }
 
   return (
     <button disabled={disabled} onClick={onClick} className={`w-full relative flex items-center p-4 sm:p-5 rounded-2xl sm:rounded-3xl border-2 transition-all duration-300 overflow-hidden ${baseStyles} active:scale-95 min-h-[70px] sm:min-h-[80px]`}>
       {isLearningHighlight && state === 'default' && (
-        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 animate-pulse pointer-events-none" />
+        <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-pink-500/5 animate-pulse pointer-events-none" />
       )}
-      <div className="flex items-center gap-4 sm:gap-5 w-full relative z-10">
-        <span className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center font-black text-sm sm:text-base border-2 ${state === 'selected' ? 'bg-amber-500 border-amber-400 text-black'
-            : (isLearningHighlight && state === 'default' ? 'bg-indigo-500 border-indigo-400 text-white shadow-lg shadow-indigo-500/30'
-              : (dark ? 'bg-white/20 border-white/40 text-white' : 'bg-slate-100 border-slate-200 text-slate-500'))
+      <div className={`flex items-center w-full relative z-10 ${isSpeed ? 'flex-col gap-3 justify-center text-center' : 'gap-4 sm:gap-5'}`}>
+        <span className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center font-black text-sm sm:text-base border-2 shrink-0 ${state === 'selected' ? 'bg-amber-500/20 border-amber-500/50 text-amber-400'
+            : (isLearningHighlight && state === 'default' ? 'bg-indigo-500/20 border-indigo-500/50 text-indigo-300'
+              : (dark ? 'bg-transparent border-white/10 text-slate-500' : 'bg-slate-100 border-slate-200 text-slate-500'))
           }`}>{letters[index]}</span>
-        <span className={`flex-1 font-bold text-left leading-snug pr-2 ${isSpeed ? 'text-base sm:text-lg' : 'text-base sm:text-lg'}`}>{label}</span>
+        <span className={`flex-1 font-bold leading-snug ${isSpeed ? 'text-center text-base sm:text-lg px-2' : 'text-left text-base sm:text-lg pr-2'}`}>{label}</span>
 
         {isLearningHighlight && state === 'default' && (
-          <div className="px-2 py-1 sm:px-3 sm:py-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] shadow-lg flex items-center gap-1 sm:gap-1.5 transform hover:scale-105 transition-transform">
+          <div className={`px-2 py-1 sm:px-3 sm:py-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] shadow-lg flex items-center gap-1 sm:gap-1.5 transform hover:scale-105 transition-transform ${isSpeed ? 'mt-2' : ''}`}>
             <Sparkles size={12} className="sm:w-3.5 sm:h-3.5" /> Answer
           </div>
         )}
 
-        {pollValue !== undefined && <div className="text-right shrink-0"><p className="text-base sm:text-xl font-black tabular-nums text-white">{pollValue}%</p><div className="w-10 sm:w-14 h-1 sm:h-1.5 bg-white/20 rounded-full overflow-hidden mt-1"><div className="h-full bg-medical-400" style={{ width: `${pollValue}%` }} /></div></div>}
+        {pollValue !== undefined && <div className={`shrink-0 ${isSpeed ? 'mt-2 flex flex-col items-center w-full max-w-[100px]' : 'text-right'}`}><p className={`text-base sm:text-xl font-black tabular-nums text-white ${isSpeed ? 'text-center' : ''}`}>{pollValue}%</p><div className={`w-10 sm:w-14 h-1 sm:h-1.5 bg-white/20 rounded-full overflow-hidden mt-1 ${isSpeed ? 'mx-auto' : ''}`}><div className="h-full bg-medical-400" style={{ width: `${pollValue}%` }} /></div></div>}
       </div>
-      {state === 'correct' && <motion.div initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} className="absolute right-0 top-0 p-4 sm:p-6 text-emerald-400/20"><CheckCircle2 size={60} className="sm:w-20 sm:h-20" /></motion.div>}
+      {state === 'correct' && <motion.div initial={{ scale: 0, rotate: -20 }} animate={{ scale: 1, rotate: 0 }} className={`absolute p-4 sm:p-6 text-emerald-400/20 pointer-events-none ${isSpeed ? 'inset-0 flex items-center justify-center opacity-50' : 'right-0 top-0'}`}><CheckCircle2 size={isSpeed ? 120 : 60} className={isSpeed ? "w-32 h-32" : "sm:w-20 sm:h-20"} /></motion.div>}
     </button>
   );
 };
