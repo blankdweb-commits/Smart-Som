@@ -1,24 +1,20 @@
-import React, { useState, useEffect } from 'react';
-import { Users, Heart, MessageCircle, Share2, MoreHorizontal, User, CheckCircle2 } from './Icons';
+import React, { useState, useEffect, useCallback } from 'react';
+import { Users, Heart, MessageCircle, Share2, MoreHorizontal, User, CheckCircle2, Loader2 } from './Icons';
 import { supabase } from '../utils/supabase';
 import { useAppContext } from '../context/AppContext';
 import { formatDistanceToNow } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 const CommunityHubWidget = () => {
   const { session } = useAppContext();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
 
-  useEffect(() => {
-    fetchPosts();
-  }, [session]);
+  const currentUserId = session?.user?.id;
 
-  const fetchPosts = async () => {
-    if (!supabase) {
-      setPosts([
-        { id: '1', content: "Just aced my clinicals in Med-Surg today! Keep grinding everyone!", likes: 12, created_at: new Date().toISOString(), profiles: { full_name: "Sarah Jenkins", level: "Year 4" } },
-        { id: '2', content: "Does anyone have a good mnemonic for the cranial nerves?", likes: 8, created_at: new Date(Date.now() - 3600000).toISOString(), profiles: { full_name: "Michael Chen", level: "Year 2" } },
-      ]);
+  const fetchPosts = useCallback(async () => {
+    if (!supabase || !currentUserId) {
       setLoading(false);
       return;
     }
@@ -26,14 +22,8 @@ const CommunityHubWidget = () => {
     try {
       setLoading(true);
       const { data, error } = await supabase
-        .from('community_posts')
-        .select(`
-          id,
-          content,
-          likes,
-          created_at,
-          profiles(full_name, level)
-        `)
+        .from('community_feed')
+        .select('*')
         .order('created_at', { ascending: false })
         .limit(3);
 
@@ -44,58 +34,91 @@ const CommunityHubWidget = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentUserId]);
 
-  const handleLike = async (postId) => {
-    if (!supabase) return;
+  useEffect(() => {
+    fetchPosts();
+  }, [fetchPosts]);
 
-    setPosts(posts.map(p => p.id === postId ? { ...p, likes: p.likes + 1 } : p));
+  const handleLike = async (postId, currentLikedStatus) => {
+    if (!supabase || !currentUserId) return;
+
+    const newLikedStatus = !currentLikedStatus;
+    
+    // Optimistic UI update
+    setPosts(posts.map(p => {
+      if (p.id === postId) {
+        return { 
+          ...p, 
+          liked_by_current_user: newLikedStatus, 
+          like_count: newLikedStatus ? Number(p.like_count) + 1 : Math.max(0, Number(p.like_count) - 1) 
+        };
+      }
+      return p;
+    }));
 
     try {
-      const post = posts.find(p => p.id === postId);
-      await supabase
-        .from('community_posts')
-        .update({ likes: post.likes + 1 })
-        .eq('id', postId);
-    } catch (error) {
-      console.error('Error liking post:', error);
-      setPosts(posts.map(p => p.id === postId ? { ...p, likes: p.likes - 1 } : p));
+      if (newLikedStatus) {
+        await supabase.from('community_post_likes').insert({ post_id: postId, user_id: currentUserId });
+      } else {
+        await supabase.from('community_post_likes').delete().match({ post_id: postId, user_id: currentUserId });
+      }
+    } catch (err) {
+      console.error('Error toggling like:', err);
+      // Revert optimistic update
+      setPosts(posts.map(p => {
+        if (p.id === postId) {
+          return { 
+            ...p, 
+            liked_by_current_user: currentLikedStatus, 
+            like_count: currentLikedStatus ? Number(p.like_count) + 1 : Math.max(0, Number(p.like_count) - 1) 
+          };
+        }
+        return p;
+      }));
     }
   };
 
   return (
-    <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-800 flex flex-col h-full">
+    <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-800 flex flex-col h-full transition-all">
       <div className="flex justify-between items-center mb-6">
         <div>
           <h3 className="text-lg font-black flex items-center gap-2 text-slate-900 dark:text-white uppercase tracking-tight">
-            <Users className="text-apex-600" size={20} /> Community Hub
+            <Users className="text-medical-600" size={20} /> Community Hub
           </h3>
           <p className="text-xs text-slate-500 mt-1">Connect with other nursing scholars.</p>
         </div>
-        <button className="text-[10px] font-black uppercase text-apex-600 hover:text-apex-700 bg-apex-50 px-3 py-1.5 rounded-lg transition-colors">
+        <button 
+          onClick={() => navigate('/community')}
+          className="text-[10px] font-black uppercase text-medical-600 hover:text-medical-700 bg-medical-50 dark:bg-medical-900/30 px-3 py-1.5 rounded-lg transition-colors"
+        >
           View All
         </button>
       </div>
 
       <div className="flex-1 space-y-4">
         {loading ? (
-          <div className="flex items-center justify-center h-full">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-apex-600"></div>
+          <div className="flex items-center justify-center h-full py-8">
+            <Loader2 className="animate-spin text-medical-600 w-8 h-8" />
           </div>
         ) : posts.length > 0 ? (
           posts.map((post) => (
-            <div key={post.id} className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 transition-all hover:shadow-md">
+            <div key={post.id} className="p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800 transition-all hover:shadow-md cursor-pointer" onClick={() => navigate('/community')}>
               <div className="flex items-start justify-between mb-2">
                 <div className="flex items-center gap-3">
-                  <div className="w-8 h-8 bg-apex-100 text-apex-600 rounded-full flex items-center justify-center font-black text-xs shrink-0">
-                    {post.profiles?.full_name ? post.profiles.full_name.charAt(0) : <User size={14} />}
+                  <div className="w-8 h-8 bg-medical-100 dark:bg-medical-900/30 text-medical-600 rounded-full flex items-center justify-center font-black text-xs shrink-0 overflow-hidden">
+                    {post.avatar_url ? (
+                        <img src={post.avatar_url} alt={post.display_name} className="w-full h-full object-cover" />
+                    ) : (
+                        post.display_name ? post.display_name.charAt(0).toUpperCase() : <User size={14} />
+                    )}
                   </div>
                   <div>
                     <div className="flex items-center gap-1.5">
-                      <p className="text-xs font-bold text-slate-900 dark:text-white">{post.profiles?.full_name || 'Anonymous Scholar'}</p>
-                      {post.profiles?.level && (
-                        <span className="px-1.5 py-0.5 bg-blue-100 text-blue-600 text-[8px] font-black uppercase rounded">
-                          {post.profiles.level}
+                      <p className="text-xs font-bold text-slate-900 dark:text-white">{post.display_name || 'Anonymous Scholar'}</p>
+                      {post.year && (
+                        <span className="px-1.5 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[8px] font-black uppercase rounded">
+                          YR {post.year}
                         </span>
                       )}
                     </div>
@@ -104,22 +127,25 @@ const CommunityHubWidget = () => {
                     </p>
                   </div>
                 </div>
-                <button className="text-slate-400 hover:text-slate-600">
+                <button className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" onClick={(e) => e.stopPropagation()}>
                   <MoreHorizontal size={14} />
                 </button>
               </div>
-              <p className="text-sm text-slate-700 dark:text-slate-300 font-medium leading-relaxed mb-3">
+              <p className="text-sm text-slate-700 dark:text-slate-300 font-medium leading-relaxed mb-3 line-clamp-2">
                 {post.content}
               </p>
-              <div className="flex items-center gap-4 text-slate-400">
+              <div className="flex items-center gap-4 text-slate-400" onClick={(e) => e.stopPropagation()}>
                 <button
-                  onClick={() => handleLike(post.id)}
-                  className="flex items-center gap-1.5 text-xs font-semibold hover:text-red-500 transition-colors group"
+                  onClick={(e) => { e.stopPropagation(); handleLike(post.id, post.liked_by_current_user); }}
+                  className={`flex items-center gap-1.5 text-xs font-semibold transition-colors group ${post.liked_by_current_user ? 'text-red-500' : 'hover:text-red-500'}`}
                 >
-                  <Heart size={14} className="group-hover:fill-red-500 group-hover:text-red-500 transition-colors" /> {post.likes || 0}
+                  <Heart size={14} className={`transition-colors ${post.liked_by_current_user ? 'fill-red-500 text-red-500' : 'group-hover:fill-red-500 group-hover:text-red-500'}`} /> {post.like_count || 0}
                 </button>
-                <button className="flex items-center gap-1.5 text-xs font-semibold hover:text-blue-500 transition-colors">
-                  <MessageCircle size={14} /> Reply
+                <button 
+                   onClick={() => navigate('/community')}
+                   className="flex items-center gap-1.5 text-xs font-semibold hover:text-blue-500 transition-colors"
+                >
+                  <MessageCircle size={14} /> {post.reply_count || 0} Reply
                 </button>
               </div>
             </div>
@@ -134,7 +160,10 @@ const CommunityHubWidget = () => {
       </div>
 
       <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-800">
-        <button className="w-full py-3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors flex items-center justify-center gap-2">
+        <button 
+           onClick={() => navigate('/community')}
+           className="w-full py-3 bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-200 rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-slate-200 dark:hover:bg-slate-600 transition-colors flex items-center justify-center gap-2"
+        >
           <Share2 size={14} /> New Post
         </button>
       </div>
