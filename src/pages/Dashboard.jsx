@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { BookOpen, Calendar, TrendingUp, Award, Zap, ArrowRight, Star, Clock, Lock, AlertCircle, Brain, Target } from '../components/Icons';
 import { differenceInDays } from 'date-fns';
-import CommunityHubWidget from '../components/CommunityHubWidget';
+
 import DailyChallengeWidget from '../components/DailyChallengeWidget';
 import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
@@ -149,7 +149,7 @@ const Dashboard = () => {
               </button>
             </motion.div>
           )}
-          <CommunityHubWidget />
+
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <DailyChallengeWidget />
