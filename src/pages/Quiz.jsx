@@ -226,17 +226,21 @@ const Quiz = () => {
 
   const initQuiz = (mode, subject = null) => {
     let pool = [];
+    if (!flashcards || flashcards.length === 0) return;
+    
     if (mode === 'uselu') {
-      pool = useluData;
+      // Mix Uselu tests with Richard's Bank questions for comprehensive practice
+      pool = flashcards.filter(c => 
+        (c.source || '').toLowerCase().includes("uselu") || 
+        (c.source || '').toLowerCase().includes("richard") ||
+        (c.category || '').toLowerCase() === 'nmcn'
+      );
       if (subject) {
         pool = pool.filter(c => c.subject === subject);
       }
     } else {
-      if (!flashcards || flashcards.length === 0) return;
-      pool = flashcards.filter(c =>
-        (c.source || '').toLowerCase().includes("richard") ||
-        (c.category || '').toLowerCase() === 'nmcn'
-      );
+      // For general modes, use the entire flashcard bank (including Richard's Bank and formal questions)
+      pool = flashcards;
       if (subject) {
         pool = pool.filter(c => c.subject === subject);
       }
@@ -722,9 +726,23 @@ const Quiz = () => {
           >
             <div className="text-center space-y-3 sm:space-y-6">
               <div className="flex flex-col items-center gap-2">
-                <span className="px-3 sm:px-4 py-1 bg-medical-500/20 text-medical-400 rounded-full text-[9px] font-black uppercase tracking-widest border border-medical-500/30">
-                  {currentQ?.subject}
-                </span>
+                <div className="flex flex-wrap justify-center gap-2">
+                  <span className="px-3 sm:px-4 py-1 bg-medical-500/20 text-medical-400 rounded-full text-[9px] font-black uppercase tracking-widest border border-medical-500/30">
+                    {currentQ?.subject || 'General'}
+                  </span>
+                  <span className="px-3 sm:px-4 py-1 bg-indigo-500/20 text-indigo-400 rounded-full text-[9px] font-black uppercase tracking-widest border border-indigo-500/30">
+                    {currentQ?.category || 'General'}
+                  </span>
+                  {currentQ?.difficulty && (
+                    <span className={`px-3 sm:px-4 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                      currentQ.difficulty.toLowerCase() === 'easy' ? 'bg-emerald-500/20 text-emerald-400 border-emerald-500/30' :
+                      currentQ.difficulty.toLowerCase() === 'moderate' ? 'bg-amber-500/20 text-amber-400 border-amber-500/30' :
+                      'bg-red-500/20 text-red-400 border-red-500/30'
+                    }`}>
+                      {currentQ.difficulty}
+                    </span>
+                  )}
+                </div>
                 <p className="text-[9px] sm:text-[10px] font-bold text-slate-300 uppercase tracking-widest">Question {currentQuestionIndex + 1}</p>
               </div>
               <h2 className={`text-xl sm:text-3xl md:text-4xl font-black leading-tight tracking-tight px-2 sm:px-4 drop-shadow-sm ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
