@@ -88,12 +88,20 @@ const playQuizSound = (type) => {
     const url = pool[Math.floor(Math.random() * pool.length)];
     
     if (!audioCache[url]) {
-      const audio = new Audio(url);
-      audio.preload = 'auto';
-      audioCache[url] = audio;
+      audioCache[url] = Array.from({ length: 3 }).map(() => {
+        const audio = new Audio(url);
+        audio.preload = 'auto';
+        return audio;
+      });
     }
     
-    const audioToPlay = audioCache[url].cloneNode();
+    const audioPool = audioCache[url];
+    let audioToPlay = audioPool.find(a => a.paused || a.ended);
+    if (!audioToPlay) {
+      audioToPlay = audioPool[0];
+    }
+    
+    audioToPlay.currentTime = 0;
     audioToPlay.volume = 1.0;
     const playPromise = audioToPlay.play();
     
@@ -107,8 +115,10 @@ const playQuizSound = (type) => {
 
 const enterFullscreen = async () => {
   try {
-    if (!document.fullscreenElement) {
-      await document.documentElement.requestFullscreen();
+    const docEl = document.documentElement;
+    const requestFs = docEl.requestFullscreen || docEl.webkitRequestFullscreen || docEl.mozRequestFullScreen || docEl.msRequestFullscreen;
+    if (requestFs && !document.fullscreenElement && !document.webkitFullscreenElement) {
+      await requestFs.call(docEl);
     }
   } catch (err) {
     console.warn("Fullscreen request failed", err);
@@ -117,8 +127,9 @@ const enterFullscreen = async () => {
 
 const exitFullscreen = async () => {
   try {
-    if (document.fullscreenElement) {
-      await document.exitFullscreen();
+    const exitFs = document.exitFullscreen || document.webkitExitFullscreen || document.mozCancelFullScreen || document.msExitFullscreen;
+    if (exitFs && (document.fullscreenElement || document.webkitFullscreenElement)) {
+      await exitFs.call(document);
     }
   } catch (err) {
     console.warn("Exit fullscreen failed", err);
@@ -630,16 +641,16 @@ const Quiz = () => {
             onClick={() => setShowQuitModal(true)}
             className={`p-2 sm:p-3 rounded-xl sm:rounded-2xl transition-all ${quizMode === 'speed' ? 'hover:bg-white/10' : 'hover:bg-slate-100 dark:hover:bg-white/5'}`}
           >
-            <XCircle size={20} className={`sm:w-6 sm:h-6 ${quizMode === 'speed' ? 'text-slate-300' : 'text-slate-400'}`} />
+            <XCircle size={24} className={`sm:w-8 sm:h-8 ${quizMode === 'speed' ? 'text-slate-300' : 'text-slate-400'}`} />
           </button>
           <div className="flex flex-col items-center">
-            <p className={`text-[9px] sm:text-[10px] font-black uppercase tracking-[0.3em] ${quizMode === 'speed' ? 'text-slate-300' : 'text-slate-400'}`}>{quizMode} MODE</p>
-            <h3 className="text-sm sm:text-lg font-black tracking-tighter uppercase">{currentMilestone}</h3>
+            <p className={`text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] ${quizMode === 'speed' ? 'text-slate-300' : 'text-slate-400'}`}>{quizMode} MODE</p>
+            <h3 className="text-base sm:text-xl font-black tracking-tighter uppercase">{currentMilestone}</h3>
           </div>
           <div className="flex items-center gap-2">
-            <div className={`flex items-center gap-2 px-2 sm:px-4 py-1.5 sm:py-2 backdrop-blur-md rounded-xl sm:rounded-2xl border ${quizMode === 'speed' ? 'bg-white/10 border-white/20' : 'bg-white/5 border-white/5'}`}>
-              <Zap className="text-amber-400" size={14} fill="currentColor" />
-              <span className="text-sm font-black tabular-nums text-white">{score}</span>
+            <div className={`flex items-center gap-2 px-3 sm:px-4 py-2 backdrop-blur-md rounded-xl sm:rounded-2xl border ${quizMode === 'speed' ? 'bg-white/10 border-white/20' : 'bg-white/5 border-white/5'}`}>
+              <Zap className="text-amber-400" size={16} fill="currentColor" />
+              <span className="text-base font-black tabular-nums text-white">{score}</span>
             </div>
           </div>
         </div>
@@ -762,7 +773,7 @@ const Quiz = () => {
           >
             <button
               onClick={() => confirmAnswer()}
-              className="w-full py-3 sm:py-6 bg-amber-500 text-black rounded-xl sm:rounded-[2rem] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-[10px] sm:text-xs shadow-2xl shadow-amber-500/40 animate-bounce"
+              className="w-full py-4 sm:py-6 bg-amber-500 text-black rounded-2xl sm:rounded-[2rem] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-xs sm:text-sm shadow-2xl shadow-amber-500/40 animate-bounce"
             >
               FINAL ANSWER?
             </button>
@@ -1049,8 +1060,8 @@ const LifelineButton = ({ icon, label, used, onClick, dark }) => (
       ? (dark ? 'bg-white/5 border-white/10 text-white/30' : 'bg-slate-50 border-slate-100 text-slate-300')
       : (dark ? 'bg-white/10 border-white/30 text-amber-400 hover:border-amber-400 hover:bg-white/20' : 'bg-white border-slate-100 text-medical-600 hover:border-medical-500 hover:bg-medical-50')
     }`}>
-    {React.cloneElement(icon, { size: 20, className: 'sm:w-6 sm:h-6' })}
-    <span className="text-[8px] sm:text-[9px] font-black uppercase tracking-[0.2em] mt-2 sm:mt-3">{label}</span>
+    {React.cloneElement(icon, { size: 24, className: 'w-6 h-6 sm:w-8 sm:h-8' })}
+    <span className="text-[10px] sm:text-xs font-black uppercase tracking-[0.2em] mt-2 sm:mt-3">{label}</span>
   </button>
 );
 
@@ -1076,16 +1087,16 @@ const OptionButton = ({ label, index, state, pollValue, onClick, disabled, dark,
   }
 
   return (
-    <button disabled={disabled} onClick={onClick} className={`w-full relative flex items-center p-3 sm:p-5 rounded-2xl sm:rounded-3xl border-2 transition-all duration-300 overflow-hidden ${baseStyles} active:scale-98 min-h-[60px] sm:min-h-[80px]`}>
+    <button disabled={disabled} onClick={onClick} className={`w-full relative flex items-center p-4 sm:p-5 rounded-2xl sm:rounded-3xl border-2 transition-all duration-300 overflow-hidden ${baseStyles} active:scale-95 min-h-[70px] sm:min-h-[80px]`}>
       {isLearningHighlight && state === 'default' && (
         <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/10 via-purple-500/10 to-pink-500/10 animate-pulse pointer-events-none" />
       )}
-      <div className="flex items-center gap-3 sm:gap-5 w-full relative z-10">
-        <span className={`w-8 h-8 sm:w-10 sm:h-10 rounded-lg sm:rounded-xl flex items-center justify-center font-black text-xs sm:text-sm border-2 ${state === 'selected' ? 'bg-amber-500 border-amber-400 text-black'
+      <div className="flex items-center gap-4 sm:gap-5 w-full relative z-10">
+        <span className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl flex items-center justify-center font-black text-sm sm:text-base border-2 ${state === 'selected' ? 'bg-amber-500 border-amber-400 text-black'
             : (isLearningHighlight && state === 'default' ? 'bg-indigo-500 border-indigo-400 text-white shadow-lg shadow-indigo-500/30'
               : (dark ? 'bg-white/20 border-white/40 text-white' : 'bg-slate-100 border-slate-200 text-slate-500'))
           }`}>{letters[index]}</span>
-        <span className={`flex-1 font-bold text-left leading-snug pr-2 ${isSpeed ? 'text-sm sm:text-base' : 'text-sm sm:text-base'}`}>{label}</span>
+        <span className={`flex-1 font-bold text-left leading-snug pr-2 ${isSpeed ? 'text-base sm:text-lg' : 'text-base sm:text-lg'}`}>{label}</span>
 
         {isLearningHighlight && state === 'default' && (
           <div className="px-2 py-1 sm:px-3 sm:py-1.5 bg-gradient-to-r from-indigo-500 to-purple-600 text-white rounded-lg text-[9px] sm:text-[10px] font-black uppercase tracking-[0.2em] shadow-lg flex items-center gap-1 sm:gap-1.5 transform hover:scale-105 transition-transform">
