@@ -78,6 +78,42 @@ export function AppProvider({ children }) {
           subscriptionExpiry: subscription?.expires_at || null,
           graceUntil: subscription?.grace_until || null
         });
+        
+        setStudyStats({
+          streak: profile.streak || 0,
+          cardsStudied: profile.cards_studied || 0,
+          quizStreak: profile.quiz_streak || 0,
+          maxQuizStreak: profile.max_quiz_streak || 0,
+          milestone: profile.milestone || 'Clinical Beginner',
+          lastStudyDate: null
+        });
+      }
+
+      // Fetch Learning Analytics
+      const { data: analytics } = await supabase.from('learning_analytics').select('*').eq('user_id', userId).maybeSingle();
+      if (analytics) {
+         setLearningAnalytics(prev => ({ ...prev, weakTopics: analytics.weak_topics || [] }));
+      }
+
+      // Fetch User Flashcard Progress
+      const { data: userCards } = await supabase.from('user_flashcards').select('*').eq('user_id', userId);
+      if (userCards && userCards.length > 0) {
+         setFlashcards(prev => {
+             const userCardMap = new Map(userCards.map(c => [c.flashcard_id, c]));
+             return prev.map(c => {
+                 if (userCardMap.has(c.id)) {
+                     const uc = userCardMap.get(c.id);
+                     return { ...c, srs: { reps: uc.reps, interval: uc.interval, efactor: uc.efactor, nextReview: uc.next_review }};
+                 }
+                 return c;
+             });
+         });
+      }
+
+      // Fetch Exams
+      const { data: userExams } = await supabase.from('exams').select('*').eq('user_id', userId);
+      if (userExams) {
+         setExams(userExams);
       }
     } catch (e) {
       console.error("Fetch data error:", e);
