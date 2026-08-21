@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import {
   Users,
   Info,
@@ -10,111 +10,391 @@ import {
   Share2,
   MoreHorizontal,
   User,
-  Send
+  Send,
+  Flag,
+  Trash2,
+  Edit2,
+  X,
+  Loader2,
+  CheckCircle2
 } from '../components/Icons';
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../utils/supabase';
 import { useAppContext } from '../context/AppContext';
 import { formatDistanceToNow } from 'date-fns';
 
+const POSTS_PER_PAGE = 15;
+
 const Community = () => {
   const { session } = useAppContext();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [page, setPage] = useState(0);
+
   const [newPostContent, setNewPostContent] = useState('');
   const [posting, setPosting] = useState(false);
+  const [error, setError] = useState('');
 
-  useEffect(() => {
-    fetchPosts();
-  }, [session]);
+  // Comment section states
+  const [activeCommentPostId, setActiveCommentPostId] = useState(null);
+  const [comments, setComments] = useState([]);
+  const [loadingComments, setLoadingComments] = useState(false);
+  const [newCommentContent, setNewCommentContent] = useState('');
+  const [postingComment, setPostingComment] = useState(false);
 
-  const fetchPosts = async () => {
-    if (!supabase) {
-      setPosts([
-        { id: '1', content: "Just aced my clinicals in Med-Surg today! Keep grinding everyone! 💪", likes: 12, created_at: new Date().toISOString(), profiles: { full_name: "Sarah Jenkins", level: "Year 4" } },
-        { id: '2', content: "Does anyone have a good mnemonic for the cranial nerves? I keep mixing up the sensory vs motor ones.", likes: 8, created_at: new Date(Date.now() - 3600000).toISOString(), profiles: { full_name: "Michael Chen", level: "Year 2" } },
-        { id: '3', content: "Pro tip: Use the ADPIE framework for every care plan question on the NMCN exam. Assessment → Diagnosis → Planning → Implementation → Evaluation. Works every time! 🎯", likes: 24, created_at: new Date(Date.now() - 7200000).toISOString(), profiles: { full_name: "Amara Okafor", level: "Year 3" } },
-        { id: '4', content: "Who else is preparing for the pharmacology midterm next week? Let's form a study group!", likes: 15, created_at: new Date(Date.now() - 14400000).toISOString(), profiles: { full_name: "David Eze", level: "Year 2" } },
-        { id: '5', content: "Remember: Maslow's Hierarchy is your best friend for prioritization questions. Physiological needs always come first! 📚", likes: 31, created_at: new Date(Date.now() - 28800000).toISOString(), profiles: { full_name: "Grace Adeyemi", level: "Year 4" } },
-      ]);
+  // Menu states
+  const [activeMenuPostId, setActiveMenuPostId] = useState(null);
+
+  // Edit state
+  const [editingPostId, setEditingPostId] = useState(null);
+  const [editContent, setEditContent] = useState('');
+
+  // Report State
+  const [reportPostId, setReportPostId] = useState(null);
+  const [reportReason, setReportReason] = useState('');
+  const [reporting, setReporting] = useState(false);
+
+  const currentUserId = session?.user?.id;
+
+  const fetchPosts = useCallback(async (pageIndex = 0, append = false) => {
+    if (!supabase || !currentUserId) {
       setLoading(false);
       return;
     }
 
     try {
-      setLoading(true);
-      const { data, error } = await supabase
-        .from('community_posts')
-        .select(`
-          id,
-          content,
-          likes,
-          created_at,
-          profiles(full_name, level)
-        `)
-        .order('created_at', { ascending: false })
-        .limit(20);
+      if (pageIndex === 0) setLoading(true);
+      else setLoadingMore(true);
 
-      if (error) throw error;
-      setPosts(data || []);
-    } catch (error) {
-      console.error('Error fetching community posts:', error);
+      const from = pageIndex * POSTS_PER_PAGE;
+      const to = from + POSTS_PER_PAGE - 1;
+
+      const { data, error: fetchError } = await supabase
+        .from('community_feed')
+        .select('*')
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (fetchError) throw fetchError;
+
+      if (data) {
+        if (append) {
+          setPosts(prev => [...prev, ...data]);
+        } else {
+          setPosts(data);
+        }
+        setHasMore(data.length === POSTS_PER_PAGE);
+      }
+    } catch (err) {
+      console.error('Error fetching community posts:', err);
     } finally {
       setLoading(false);
+      setLoadingMore(false);
+    }
+  }, [currentUserId]);
+
+  useEffect(() => {
+    fetchPosts(0, false);
+    setPage(0);
+  }, [fetchPosts]);
+
+  // Realtime Subscriptions
+  useEffect(() => {
+    if (!supabase || !currentUserId) return;
+
+    const channel = supabase.channel('community_updates')
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'community_posts' }, (payload) => {
+        if (payload.eventType === 'INSERT') {
+          // A new post was added, we probably want to fetch the new post from the view to get author details
+          fetchSinglePost(payload.new.id).then(newPost => {
+            if (newPost) {
+               setPosts(prev => {
+                 if (prev.some(p => p.id === newPost.id)) return prev;
+                 return [newPost, ...prev];
+               });
+            }
+          });
+        } else if (payload.eventType === 'UPDATE') {
+          if (payload.new.is_deleted || payload.new.is_hidden) {
+            setPosts(prev => prev.filter(p => p.id !== payload.new.id));
+          } else {
+            setPosts(prev => prev.map(p => p.id === payload.new.id ? { ...p, content: payload.new.content } : p));
+          }
+        }
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'community_post_likes' }, (payload) => {
+         // Optionally refresh specific post counts or just rely on local state to avoid jumpiness
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'community_comments' }, (payload) => {
+         if (payload.eventType === 'INSERT' && payload.new.post_id) {
+            setPosts(prev => prev.map(p => p.id === payload.new.post_id ? { ...p, reply_count: Number(p.reply_count) + 1 } : p));
+         } else if (payload.eventType === 'DELETE' && payload.old.post_id) {
+            setPosts(prev => prev.map(p => p.id === payload.old.post_id ? { ...p, reply_count: Math.max(0, Number(p.reply_count) - 1) } : p));
+         }
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [currentUserId]);
+
+  const fetchSinglePost = async (id) => {
+    const { data } = await supabase.from('community_feed').select('*').eq('id', id).single();
+    return data;
+  };
+
+  const handleLoadMore = () => {
+    if (!loadingMore && hasMore) {
+      const nextPage = page + 1;
+      setPage(nextPage);
+      fetchPosts(nextPage, true);
     }
   };
 
-  const handleLike = async (postId) => {
-    setPosts(posts.map(p => p.id === postId ? { ...p, likes: p.likes + 1 } : p));
+  const handleLike = async (postId, currentLikedStatus) => {
+    if (!supabase || !currentUserId) return;
 
-    if (!supabase) return;
+    const newLikedStatus = !currentLikedStatus;
+    
+    // Optimistic UI update
+    setPosts(posts.map(p => {
+      if (p.id === postId) {
+        return { 
+          ...p, 
+          liked_by_current_user: newLikedStatus, 
+          like_count: newLikedStatus ? Number(p.like_count) + 1 : Math.max(0, Number(p.like_count) - 1) 
+        };
+      }
+      return p;
+    }));
 
     try {
-      const post = posts.find(p => p.id === postId);
-      await supabase
-        .from('community_posts')
-        .update({ likes: post.likes + 1 })
-        .eq('id', postId);
-    } catch (error) {
-      console.error('Error liking post:', error);
-      setPosts(posts.map(p => p.id === postId ? { ...p, likes: p.likes - 1 } : p));
+      if (newLikedStatus) {
+        await supabase.from('community_post_likes').insert({ post_id: postId, user_id: currentUserId });
+      } else {
+        await supabase.from('community_post_likes').delete().match({ post_id: postId, user_id: currentUserId });
+      }
+    } catch (err) {
+      console.error('Error toggling like:', err);
+      // Revert optimistic update
+      setPosts(posts.map(p => {
+        if (p.id === postId) {
+          return { 
+            ...p, 
+            liked_by_current_user: currentLikedStatus, 
+            like_count: currentLikedStatus ? Number(p.like_count) + 1 : Math.max(0, Number(p.like_count) - 1) 
+          };
+        }
+        return p;
+      }));
     }
   };
 
   const handleNewPost = async () => {
-    if (!newPostContent.trim()) return;
-
-    if (!supabase || !session) {
-      // Offline / demo mode: add to local state
-      const newPost = {
-        id: `local_${Date.now()}`,
-        content: newPostContent.trim(),
-        likes: 0,
-        created_at: new Date().toISOString(),
-        profiles: { full_name: 'You', level: '' }
-      };
-      setPosts([newPost, ...posts]);
-      setNewPostContent('');
-      return;
-    }
+    if (!newPostContent.trim() || !supabase || !currentUserId) return;
 
     try {
       setPosting(true);
-      const { data, error } = await supabase
+      setError('');
+      
+      const { error: insertError } = await supabase
         .from('community_posts')
-        .insert({ user_id: session.user.id, content: newPostContent.trim() })
-        .select(`id, content, likes, created_at, profiles(full_name, level)`)
-        .single();
+        .insert({ 
+           author_id: currentUserId, 
+           content: newPostContent.trim() 
+        });
 
-      if (error) throw error;
-      setPosts([data, ...posts]);
+      if (insertError) throw insertError;
+      
       setNewPostContent('');
-    } catch (error) {
-      console.error('Error creating post:', error);
+    } catch (err) {
+      console.error('Error creating post:', err);
+      setError('Unable to publish your post. Please try again.');
     } finally {
       setPosting(false);
     }
   };
+
+  const handleDeletePost = async (postId) => {
+    if (!confirm('Are you sure you want to delete this post?')) return;
+    try {
+      const { error } = await supabase
+        .from('community_posts')
+        .update({ is_deleted: true })
+        .eq('id', postId)
+        .eq('author_id', currentUserId); // Extra safety
+      
+      if (error) throw error;
+      setPosts(posts.filter(p => p.id !== postId));
+      setActiveMenuPostId(null);
+    } catch (err) {
+      console.error('Error deleting post', err);
+      alert('Failed to delete post.');
+    }
+  };
+
+  const handleEditPost = async () => {
+    if (!editContent.trim()) return;
+    try {
+       const { error } = await supabase
+         .from('community_posts')
+         .update({ content: editContent.trim() })
+         .eq('id', editingPostId)
+         .eq('author_id', currentUserId);
+
+       if (error) throw error;
+       
+       setPosts(posts.map(p => p.id === editingPostId ? { ...p, content: editContent.trim() } : p));
+       setEditingPostId(null);
+       setEditContent('');
+       setActiveMenuPostId(null);
+    } catch (err) {
+       console.error('Error editing post', err);
+       alert('Failed to edit post.');
+    }
+  };
+
+  const startEdit = (post) => {
+    setEditingPostId(post.id);
+    setEditContent(post.content);
+    setActiveMenuPostId(null);
+  };
+
+  const submitReport = async () => {
+     if (!reportReason) return;
+     try {
+       setReporting(true);
+       const { error } = await supabase
+         .from('community_reports')
+         .insert({ reporter_id: currentUserId, post_id: reportPostId, reason: reportReason });
+       
+       if (error) throw error;
+       alert('Post reported successfully. Thank you.');
+       setReportPostId(null);
+       setReportReason('');
+     } catch (err) {
+       console.error('Error reporting', err);
+       alert('Failed to submit report.');
+     } finally {
+       setReporting(false);
+     }
+  };
+
+  const handleShare = async (post) => {
+    const url = `${window.location.origin}/community?post=${post.id}`;
+    
+    // Optimistically update share count locally
+    setPosts(posts.map(p => p.id === post.id ? { ...p, share_count: Number(p.share_count) + 1 } : p));
+
+    try {
+      // Record share in DB
+      if (currentUserId) {
+         await supabase.from('community_post_shares').insert({ post_id: post.id, user_id: currentUserId });
+      }
+
+      if (navigator.share) {
+        await navigator.share({
+          title: `Post by ${post.display_name}`,
+          text: post.content.substring(0, 50) + '...',
+          url: url,
+        });
+      } else {
+        await navigator.clipboard.writeText(url);
+        alert('Link copied to clipboard!');
+      }
+    } catch (err) {
+      if (err.name !== 'AbortError') {
+        console.error('Error sharing:', err);
+      }
+      // Actually we don't revert optimistic share count if they canceled nav.share, it's fine.
+    }
+  };
+
+  const fetchComments = async (postId) => {
+    setLoadingComments(true);
+    try {
+       const { data, error } = await supabase
+         .from('community_comments')
+         .select(`
+            id, content, created_at,
+            author:author_id(id),
+            profiles:community_profiles!author_id(display_name, avatar_url, year)
+         `)
+         .eq('post_id', postId)
+         .eq('is_deleted', false)
+         .order('created_at', { ascending: true });
+       
+       if (error) throw error;
+       
+       // Flatten profiles mapping
+       const formattedComments = (data || []).map(c => ({
+         ...c,
+         display_name: c.profiles?.display_name,
+         avatar_url: c.profiles?.avatar_url,
+         year: c.profiles?.year
+       }));
+
+       setComments(formattedComments);
+    } catch (err) {
+       console.error("Error fetching comments", err);
+    } finally {
+       setLoadingComments(false);
+    }
+  };
+
+  const toggleComments = (postId) => {
+     if (activeCommentPostId === postId) {
+        setActiveCommentPostId(null);
+        setComments([]);
+     } else {
+        setActiveCommentPostId(postId);
+        fetchComments(postId);
+     }
+  };
+
+  const handleNewComment = async (postId) => {
+     if (!newCommentContent.trim()) return;
+     try {
+       setPostingComment(true);
+       const { data, error } = await supabase
+         .from('community_comments')
+         .insert({
+           post_id: postId,
+           author_id: currentUserId,
+           content: newCommentContent.trim()
+         })
+         .select(`
+            id, content, created_at,
+            author:author_id(id),
+            profiles:community_profiles!author_id(display_name, avatar_url, year)
+         `)
+         .single();
+         
+       if (error) throw error;
+       
+       const newComment = {
+         ...data,
+         display_name: data.profiles?.display_name,
+         avatar_url: data.profiles?.avatar_url,
+         year: data.profiles?.year
+       };
+
+       setComments(prev => [...prev, newComment]);
+       setNewCommentContent('');
+       
+       // Optimistically update comment count
+       setPosts(posts.map(p => p.id === postId ? { ...p, reply_count: Number(p.reply_count) + 1 } : p));
+     } catch (err) {
+       console.error("Error posting comment", err);
+       alert("Failed to post reply.");
+     } finally {
+       setPostingComment(false);
+     }
+  };
+
 
   return (
     <div className="max-w-5xl mx-auto space-y-10 pb-32 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -124,7 +404,7 @@ const Community = () => {
            <span className="text-[10px] font-black uppercase tracking-[0.3em]">Student Network</span>
         </div>
         <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Community Hub</h1>
-        <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Connect with 10,000+ nursing students across Nigeria.</p>
+        <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Connect with nursing students across Nigeria.</p>
       </header>
 
       {/* New Post Composer */}
@@ -134,8 +414,12 @@ const Community = () => {
         className="bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-100 dark:border-slate-700 p-6 shadow-clinical"
       >
         <div className="flex items-start gap-4">
-          <div className="w-10 h-10 bg-medical-100 dark:bg-medical-900/30 text-medical-600 rounded-full flex items-center justify-center font-black text-sm shrink-0">
-            <User size={18} />
+          <div className="w-10 h-10 bg-medical-100 dark:bg-medical-900/30 text-medical-600 rounded-full flex items-center justify-center font-black text-sm shrink-0 overflow-hidden">
+             {session?.user?.user_metadata?.avatar_url ? (
+               <img src={session.user.user_metadata.avatar_url} alt="User avatar" className="w-full h-full object-cover" />
+             ) : (
+               <User size={18} />
+             )}
           </div>
           <div className="flex-1">
             <textarea
@@ -144,17 +428,20 @@ const Community = () => {
               placeholder="Share a study tip, ask a question, or encourage your peers..."
               className="w-full bg-transparent text-slate-900 dark:text-white placeholder-slate-400 resize-none outline-none text-sm font-medium leading-relaxed min-h-[60px]"
               rows={2}
+              maxLength={1000}
             />
+            {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
             <div className="flex justify-between items-center mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
               <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                {newPostContent.length > 0 ? `${newPostContent.length} characters` : 'What\'s on your mind?'}
+                {newPostContent.length > 0 ? `${newPostContent.length}/1000 chars` : 'What\'s on your mind?'}
               </p>
               <button
                 onClick={handleNewPost}
                 disabled={!newPostContent.trim() || posting}
                 className="px-5 py-2 bg-medical-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-medical-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2"
               >
-                <Send size={12} /> {posting ? 'Posting...' : 'Post'}
+                {posting ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} 
+                {posting ? 'Posting...' : 'Post'}
               </button>
             </div>
           </div>
@@ -164,69 +451,233 @@ const Community = () => {
       {/* Posts Feed */}
       <div className="space-y-5">
         {loading ? (
-          <div className="flex items-center justify-center py-20">
-            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-medical-600"></div>
+          <div className="flex flex-col items-center justify-center py-20 space-y-4">
+            <div className="animate-spin rounded-full h-10 w-10 border-b-2 border-medical-600 border-t-transparent"></div>
+            <p className="text-sm font-medium text-slate-500">Loading community feed...</p>
           </div>
         ) : posts.length > 0 ? (
-          <AnimatePresence>
-            {posts.map((post, idx) => (
-              <motion.div
-                key={post.id}
-                initial={{ y: 20, opacity: 0 }}
-                animate={{ y: 0, opacity: 1 }}
-                transition={{ delay: idx * 0.05 }}
-                className="bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-100 dark:border-slate-700 p-6 shadow-clinical hover:shadow-lg transition-shadow"
-              >
-                <div className="flex items-start justify-between mb-3">
-                  <div className="flex items-center gap-3">
-                    <div className="w-10 h-10 bg-medical-100 dark:bg-medical-900/30 text-medical-600 rounded-full flex items-center justify-center font-black text-sm shrink-0">
-                      {post.profiles?.full_name ? post.profiles.full_name.charAt(0) : <User size={16} />}
-                    </div>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <p className="text-sm font-bold text-slate-900 dark:text-white">{post.profiles?.full_name || 'Anonymous Scholar'}</p>
-                        {post.profiles?.level && (
-                          <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[8px] font-black uppercase rounded-md">
-                            {post.profiles.level}
-                          </span>
+          <>
+            <AnimatePresence>
+              {posts.map((post, idx) => (
+                <motion.div
+                  key={post.id}
+                  initial={{ y: 20, opacity: 0 }}
+                  animate={{ y: 0, opacity: 1 }}
+                  className="bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-100 dark:border-slate-700 p-6 shadow-clinical transition-shadow relative"
+                >
+                  <div className="flex items-start justify-between mb-3">
+                    <div className="flex items-center gap-3">
+                      <div className="w-10 h-10 bg-medical-100 dark:bg-medical-900/30 text-medical-600 rounded-full flex items-center justify-center font-black text-sm shrink-0 overflow-hidden cursor-pointer">
+                        {post.avatar_url ? (
+                           <img src={post.avatar_url} alt={post.display_name} className="w-full h-full object-cover" />
+                        ) : (
+                           post.display_name ? post.display_name.charAt(0).toUpperCase() : <User size={16} />
                         )}
                       </div>
-                      <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">
-                        {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
-                      </p>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <p className="text-sm font-bold text-slate-900 dark:text-white cursor-pointer hover:underline">{post.display_name || 'Anonymous Scholar'}</p>
+                          {post.year && (
+                            <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[8px] font-black uppercase rounded-md">
+                              YEAR {post.year}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">
+                          {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                        </p>
+                      </div>
+                    </div>
+                    
+                    {/* Three-Dot Menu */}
+                    <div className="relative">
+                      <button 
+                         onClick={() => setActiveMenuPostId(activeMenuPostId === post.id ? null : post.id)}
+                         className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors p-1 rounded-full hover:bg-slate-100 dark:hover:bg-slate-700"
+                         aria-label="More options"
+                      >
+                        <MoreHorizontal size={16} />
+                      </button>
+                      
+                      {activeMenuPostId === post.id && (
+                        <div className="absolute right-0 mt-1 w-48 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-100 dark:border-slate-700 overflow-hidden z-20">
+                          {post.author_id === currentUserId ? (
+                             <>
+                               <button 
+                                 onClick={() => startEdit(post)}
+                                 className="w-full text-left px-4 py-2 text-sm text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                               >
+                                 <Edit2 size={14} /> Edit post
+                               </button>
+                               <button 
+                                 onClick={() => handleDeletePost(post.id)}
+                                 className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+                               >
+                                 <Trash2 size={14} /> Delete post
+                               </button>
+                             </>
+                          ) : (
+                             <button 
+                               onClick={() => { setReportPostId(post.id); setActiveMenuPostId(null); }}
+                               className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+                             >
+                               <Flag size={14} /> Report post
+                             </button>
+                          )}
+                        </div>
+                      )}
                     </div>
                   </div>
-                  <button className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 transition-colors p-1">
-                    <MoreHorizontal size={16} />
-                  </button>
-                </div>
 
-                <p className="text-sm text-slate-700 dark:text-slate-300 font-medium leading-relaxed mb-4 pl-[52px]">
-                  {post.content}
-                </p>
+                  {editingPostId === post.id ? (
+                     <div className="pl-[52px] pr-2 mb-4">
+                        <textarea
+                          value={editContent}
+                          onChange={(e) => setEditContent(e.target.value)}
+                          className="w-full bg-slate-50 dark:bg-slate-900/50 text-slate-900 dark:text-white p-3 rounded-xl border border-slate-200 dark:border-slate-700 resize-none outline-none text-sm font-medium leading-relaxed"
+                          rows={3}
+                        />
+                        <div className="flex gap-2 mt-2 justify-end">
+                           <button 
+                             onClick={() => setEditingPostId(null)}
+                             className="px-3 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
+                           >
+                             Cancel
+                           </button>
+                           <button 
+                             onClick={handleEditPost}
+                             className="px-3 py-1.5 text-xs font-bold text-white bg-medical-600 hover:bg-medical-700 rounded-lg"
+                           >
+                             Save
+                           </button>
+                        </div>
+                     </div>
+                  ) : (
+                    <p className="text-sm text-slate-700 dark:text-slate-300 font-medium leading-relaxed mb-4 pl-[52px] pr-2 whitespace-pre-wrap">
+                      {post.content}
+                    </p>
+                  )}
 
-                <div className="flex items-center gap-5 text-slate-400 pl-[52px]">
-                  <button
-                    onClick={() => handleLike(post.id)}
-                    className="flex items-center gap-1.5 text-xs font-semibold hover:text-red-500 transition-colors group"
+                  <div className="flex items-center gap-5 text-slate-400 pl-[52px]">
+                    <button
+                      onClick={() => handleLike(post.id, post.liked_by_current_user)}
+                      className={`flex items-center gap-1.5 text-xs font-semibold transition-colors group ${post.liked_by_current_user ? 'text-red-500' : 'hover:text-red-500'}`}
+                      aria-label={post.liked_by_current_user ? "Unlike post" : "Like post"}
+                    >
+                      <Heart size={15} className={`transition-colors ${post.liked_by_current_user ? 'fill-red-500 text-red-500' : 'group-hover:fill-red-500 group-hover:text-red-500'}`} /> {post.like_count || 0}
+                    </button>
+                    <button 
+                       onClick={() => toggleComments(post.id)}
+                       className={`flex items-center gap-1.5 text-xs font-semibold hover:text-blue-500 transition-colors ${activeCommentPostId === post.id ? 'text-blue-500' : ''}`}
+                       aria-label="Reply to post"
+                    >
+                      <MessageCircle size={15} className={activeCommentPostId === post.id ? 'fill-blue-500/20' : ''} /> {post.reply_count || 0} Reply
+                    </button>
+                    <button 
+                       onClick={() => handleShare(post)}
+                       className="flex items-center gap-1.5 text-xs font-semibold hover:text-medical-500 transition-colors"
+                       aria-label="Share post"
+                    >
+                      <Share2 size={15} /> {post.share_count > 0 ? post.share_count : ''} Share
+                    </button>
+                  </div>
+
+                  {/* Comment Section (Inline Drawer) */}
+                  <AnimatePresence>
+                     {activeCommentPostId === post.id && (
+                        <motion.div 
+                           initial={{ height: 0, opacity: 0 }}
+                           animate={{ height: 'auto', opacity: 1 }}
+                           exit={{ height: 0, opacity: 0 }}
+                           className="overflow-hidden"
+                        >
+                           <div className="mt-4 pt-4 border-t border-slate-100 dark:border-slate-700 pl-[52px]">
+                              {loadingComments ? (
+                                 <div className="flex justify-center py-4">
+                                    <Loader2 size={20} className="animate-spin text-slate-400" />
+                                 </div>
+                              ) : (
+                                 <div className="space-y-4 mb-4">
+                                    {comments.length > 0 ? comments.map(comment => (
+                                       <div key={comment.id} className="flex gap-3">
+                                          <div className="w-8 h-8 bg-medical-50 dark:bg-slate-800 text-medical-600 rounded-full flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden">
+                                             {comment.avatar_url ? (
+                                                <img src={comment.avatar_url} alt={comment.display_name} className="w-full h-full object-cover" />
+                                             ) : (
+                                                comment.display_name ? comment.display_name.charAt(0).toUpperCase() : <User size={12} />
+                                             )}
+                                          </div>
+                                          <div className="flex-1 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-2xl rounded-tl-none">
+                                             <div className="flex items-center gap-2 mb-1">
+                                                <p className="text-xs font-bold text-slate-900 dark:text-white">{comment.display_name || 'Anonymous'}</p>
+                                                <p className="text-[9px] text-slate-400">{formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}</p>
+                                             </div>
+                                             <p className="text-sm text-slate-700 dark:text-slate-300 font-medium whitespace-pre-wrap">{comment.content}</p>
+                                          </div>
+                                       </div>
+                                    )) : (
+                                       <p className="text-xs text-slate-400 text-center py-2">No replies yet. Be the first!</p>
+                                    )}
+                                 </div>
+                              )}
+                              
+                              <div className="flex gap-3">
+                                 <div className="w-8 h-8 bg-medical-100 text-medical-600 rounded-full flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden">
+                                     {session?.user?.user_metadata?.avatar_url ? (
+                                       <img src={session.user.user_metadata.avatar_url} alt="User avatar" className="w-full h-full object-cover" />
+                                     ) : (
+                                       <User size={12} />
+                                     )}
+                                 </div>
+                                 <div className="flex-1 flex gap-2">
+                                    <input
+                                       type="text"
+                                       value={newCommentContent}
+                                       onChange={(e) => setNewCommentContent(e.target.value)}
+                                       placeholder="Write a reply..."
+                                       className="flex-1 bg-slate-100 dark:bg-slate-900 text-slate-900 dark:text-white text-sm px-4 py-2 rounded-full outline-none border border-transparent focus:border-medical-300 dark:focus:border-medical-700 transition-colors"
+                                       onKeyDown={(e) => {
+                                          if (e.key === 'Enter' && !e.shiftKey) {
+                                             e.preventDefault();
+                                             handleNewComment(post.id);
+                                          }
+                                       }}
+                                    />
+                                    <button
+                                       onClick={() => handleNewComment(post.id)}
+                                       disabled={!newCommentContent.trim() || postingComment}
+                                       className="w-9 h-9 flex items-center justify-center bg-medical-600 text-white rounded-full hover:bg-medical-700 disabled:opacity-50 shrink-0 transition-colors"
+                                    >
+                                       {postingComment ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
+                                    </button>
+                                 </div>
+                              </div>
+                           </div>
+                        </motion.div>
+                     )}
+                  </AnimatePresence>
+                </motion.div>
+              ))}
+            </AnimatePresence>
+            
+            {hasMore && (
+               <div className="flex justify-center pt-4">
+                  <button 
+                     onClick={handleLoadMore}
+                     disabled={loadingMore}
+                     className="px-6 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-xs font-bold uppercase tracking-widest rounded-xl hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors disabled:opacity-50 flex items-center gap-2"
                   >
-                    <Heart size={15} className="group-hover:fill-red-500 group-hover:text-red-500 transition-colors" /> {post.likes || 0}
+                     {loadingMore && <Loader2 size={14} className="animate-spin" />}
+                     {loadingMore ? 'Loading...' : 'Load More'}
                   </button>
-                  <button className="flex items-center gap-1.5 text-xs font-semibold hover:text-blue-500 transition-colors">
-                    <MessageCircle size={15} /> Reply
-                  </button>
-                  <button className="flex items-center gap-1.5 text-xs font-semibold hover:text-medical-500 transition-colors">
-                    <Share2 size={15} /> Share
-                  </button>
-                </div>
-              </motion.div>
-            ))}
-          </AnimatePresence>
+               </div>
+            )}
+          </>
         ) : (
-          <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+          <div className="flex flex-col items-center justify-center py-20 text-slate-400 bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-100 dark:border-slate-700 shadow-clinical">
             <MessageCircle size={48} className="mb-4 opacity-30" />
-            <p className="text-lg font-bold">No posts yet.</p>
-            <p className="text-sm">Be the first to share something with the community!</p>
+            <p className="text-lg font-bold text-slate-900 dark:text-white mb-2">No posts yet.</p>
+            <p className="text-sm font-medium text-center max-w-sm">Be the first to share a study tip, ask a question, or encourage your fellow nursing students.</p>
           </div>
         )}
       </div>
@@ -248,12 +699,68 @@ const Community = () => {
             <p className="text-slate-500 dark:text-slate-400 leading-relaxed font-medium">
               Every post will be reviewed by clinical mentors to ensure medical accuracy and adherence to NMCN professional standards.
             </p>
-            <div className="pt-6 border-t border-slate-100 dark:border-slate-700">
-               <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Moderation</span>
-               <p className="font-black text-medical-600 uppercase tracking-tighter">AI + Mentor Review Active</p>
+            <div className="pt-6 border-t border-slate-100 dark:border-slate-700 flex justify-between items-end">
+               <div>
+                  <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Moderation</span>
+                  <p className="font-black text-medical-600 uppercase tracking-tighter">AI + Mentor Review Active</p>
+               </div>
+               <CheckCircle2 size={24} className="text-medical-500" />
             </div>
          </div>
       </div>
+
+      {/* Report Modal */}
+      <AnimatePresence>
+         {reportPostId && (
+            <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/50 backdrop-blur-sm">
+               <motion.div 
+                  initial={{ scale: 0.95, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  exit={{ scale: 0.95, opacity: 0 }}
+                  className="bg-white dark:bg-slate-800 rounded-[2rem] p-6 max-w-sm w-full shadow-2xl"
+               >
+                  <div className="flex justify-between items-center mb-4">
+                     <h3 className="text-lg font-bold text-slate-900 dark:text-white">Report Post</h3>
+                     <button onClick={() => setReportPostId(null)} className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-200">
+                        <X size={20} />
+                     </button>
+                  </div>
+                  <div className="space-y-3 mb-6">
+                     {['Spam', 'Harassment', 'Inappropriate content', 'Misinformation', 'Other'].map(reason => (
+                        <label key={reason} className="flex items-center gap-3 cursor-pointer">
+                           <input 
+                              type="radio" 
+                              name="reportReason" 
+                              value={reason}
+                              checked={reportReason === reason}
+                              onChange={(e) => setReportReason(e.target.value)}
+                              className="w-4 h-4 text-medical-600 focus:ring-medical-500 border-slate-300"
+                           />
+                           <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{reason}</span>
+                        </label>
+                     ))}
+                  </div>
+                  <div className="flex gap-3">
+                     <button 
+                        onClick={() => setReportPostId(null)}
+                        className="flex-1 py-2.5 rounded-xl font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600 transition-colors"
+                     >
+                        Cancel
+                     </button>
+                     <button 
+                        onClick={submitReport}
+                        disabled={!reportReason || reporting}
+                        className="flex-1 py-2.5 rounded-xl font-bold text-sm bg-red-600 text-white hover:bg-red-700 disabled:opacity-50 transition-colors flex justify-center items-center gap-2"
+                     >
+                        {reporting ? <Loader2 size={16} className="animate-spin" /> : null}
+                        Submit Report
+                     </button>
+                  </div>
+               </motion.div>
+            </div>
+         )}
+      </AnimatePresence>
+
     </div>
   );
 };
