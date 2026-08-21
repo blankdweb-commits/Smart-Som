@@ -625,7 +625,7 @@ const Quiz = () => {
 
   // --- Speed Challenge Full‑Screen Render ---
   return (
-    <div className={`min-h-screen flex flex-col ${quizMode === 'speed' ? 'bg-slate-950 text-white fixed inset-0 z-[9999] h-[100dvh] w-[100vw] overflow-y-auto m-0 p-0' : ''} transition-colors duration-500 pb-32 sm:pb-48 overflow-x-hidden relative`}>
+    <div className={`min-h-screen w-full flex flex-col ${quizMode === 'speed' ? 'bg-slate-950 text-white fixed inset-0 z-[9999] h-[100dvh] w-[100vw] overflow-y-auto m-0 p-0 justify-center items-center' : ''} transition-colors duration-500 pb-32 sm:pb-48 overflow-x-hidden relative`}>
       {quizMode === 'speed' && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute -top-24 -left-24 w-96 h-96 bg-medical-500/10 blur-[120px] rounded-full" />
@@ -634,9 +634,9 @@ const Quiz = () => {
       )}
 
       {/* Centered container with max width */}
-      <div className={`max-w-4xl w-full mx-auto ${quizMode === 'speed' ? 'pt-3 px-3 sm:pt-10 sm:px-6' : 'pt-6 sm:pt-10 px-4 sm:px-6'} relative z-10 flex-1 flex flex-col`}>
+      <div className={`w-full mx-auto relative z-10 flex flex-col ${quizMode === 'speed' ? 'max-w-3xl px-4 sm:px-6 py-12 sm:py-16' : 'max-w-4xl flex-1 pt-6 sm:pt-10 px-4 sm:px-6'}`}>
         {/* Header - visible, high contrast */}
-        <div className="flex justify-between items-center mb-3 sm:mb-6">
+        <div className={`flex ${quizMode === 'speed' ? 'flex-col justify-center items-center gap-4 sm:flex-row sm:justify-between' : 'justify-between items-center'} mb-6 sm:mb-8`}>
           <button
             onClick={() => setShowQuitModal(true)}
             className={`p-2 sm:p-3 rounded-xl sm:rounded-2xl transition-all ${quizMode === 'speed' ? 'hover:bg-white/10' : 'hover:bg-slate-100 dark:hover:bg-white/5'}`}
@@ -656,35 +656,37 @@ const Quiz = () => {
         </div>
 
         {/* Timer bars - high contrast */}
-        <div className={`w-full h-1.5 sm:h-2 rounded-full overflow-hidden mb-2 ${quizMode === 'speed' ? 'bg-white/20' : 'bg-slate-100 dark:bg-white/5'}`}>
-          <motion.div
-            initial={false}
-            animate={{ width: `${(timeLeft / maxTime) * 100}%`, backgroundColor: timeLeft <= 5 ? '#ef4444' : '#10b981' }}
-            className="h-full transition-colors duration-500"
-          />
-        </div>
-
-        <div className={`w-full h-2 sm:h-3 rounded-full overflow-hidden p-0.5 border ${quizMode === 'speed' ? 'bg-white/20 border-white/30' : 'bg-slate-100 dark:bg-white/5 border-slate-50 dark:border-white/5'}`}>
-          <motion.div
-            initial={{ width: 0 }}
-            animate={{ width: `${((currentQuestionIndex + 1) / quizQuestions.length) * 100}%` }}
-            className="h-full bg-medical-500 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.5)]"
-          />
-        </div>
-
-        <div className="flex justify-between mt-2 sm:mt-4">
-          <div className="flex items-center gap-2">
-            <Star className="text-amber-400" size={14} fill="currentColor" />
-            <span className="text-xs font-black tabular-nums text-white">{score * 10} XP</span>
+        <div className={`w-full ${quizMode === 'speed' ? 'max-w-xl mx-auto mb-6' : 'mb-4'} space-y-2`}>
+          <div className={`w-full h-1.5 sm:h-2 rounded-full overflow-hidden ${quizMode === 'speed' ? 'bg-white/20' : 'bg-slate-100 dark:bg-white/5'}`}>
+            <motion.div
+              initial={false}
+              animate={{ width: `${(timeLeft / maxTime) * 100}%`, backgroundColor: timeLeft <= 5 ? '#ef4444' : '#10b981' }}
+              className="h-full transition-colors duration-500"
+            />
           </div>
-          <div className="flex items-center gap-2">
-            <Clock className={timeLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-slate-300'} size={14} />
-            <span className={`text-xs font-black tabular-nums ${timeLeft <= 5 ? 'text-red-400' : 'text-white'}`}>{timeLeft}s</span>
+
+          <div className={`w-full h-2 sm:h-3 rounded-full overflow-hidden p-0.5 border ${quizMode === 'speed' ? 'bg-white/20 border-white/30' : 'bg-slate-100 dark:bg-white/5 border-slate-50 dark:border-white/5'}`}>
+            <motion.div
+              initial={{ width: 0 }}
+              animate={{ width: `${((currentQuestionIndex + 1) / quizQuestions.length) * 100}%` }}
+              className="h-full bg-medical-500 rounded-full shadow-[0_0_15px_rgba(16,185,129,0.5)]"
+            />
+          </div>
+
+          <div className={`flex ${quizMode === 'speed' ? 'justify-between px-2' : 'justify-between'}`}>
+            <div className="flex items-center gap-2">
+              <Star className="text-amber-400" size={14} fill="currentColor" />
+              <span className="text-xs font-black tabular-nums text-white">{score * 10} XP</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <Clock className={timeLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-slate-300'} size={14} />
+              <span className={`text-xs font-black tabular-nums ${timeLeft <= 5 ? 'text-red-400' : 'text-white'}`}>{timeLeft}s</span>
+            </div>
           </div>
         </div>
 
         {/* Lifelines - high contrast */}
-        <div className="max-w-4xl mx-auto px-3 sm:px-6 mt-4 sm:mt-8 relative z-30">
+        <div className={`w-full ${quizMode === 'speed' ? 'max-w-md mx-auto mb-10' : 'px-3 sm:px-6 mt-4 sm:mt-8 relative z-30'}`}>
           <div className={`backdrop-blur-xl p-2 sm:p-4 rounded-2xl sm:rounded-3xl shadow-sm border grid grid-cols-3 gap-2 sm:gap-4 ${quizMode === 'speed' ? 'bg-slate-900/80 border-white/20' : 'bg-white/80 dark:bg-slate-900/80 border-slate-100 dark:border-white/5'}`}>
             <LifelineButton
               icon={<Target size={18} className="sm:w-6 sm:h-6" />} label="50/50"
@@ -711,7 +713,7 @@ const Quiz = () => {
         </div>
 
         {/* Question and Options - centered */}
-        <div className="max-w-4xl w-full mx-auto mt-4 sm:mt-8 px-3 sm:px-6 relative z-10 flex-1 flex flex-col justify-center">
+        <div className={`w-full relative z-10 flex-1 flex flex-col justify-center ${quizMode === 'speed' ? 'max-w-2xl mx-auto' : 'mt-4 sm:mt-8 px-3 sm:px-6'}`}>
           <motion.div
             key={currentQuestionIndex}
             initial={{ x: 20, opacity: 0 }}
