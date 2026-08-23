@@ -14,7 +14,7 @@ const CommunityHubWidget = () => {
   const currentUserId = session?.user?.id;
 
   const fetchPosts = useCallback(async () => {
-    if (!supabase || !currentUserId) {
+    if (!supabase) {
       setLoading(false);
       return;
     }
