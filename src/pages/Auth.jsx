@@ -5,19 +5,24 @@ import { motion } from 'framer-motion';
 import { Mail, Lock, User, Phone, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
 
 export default function Auth() {
-  const [isLogin, setIsLogin] = useState(true);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [successMsg, setSuccessMsg] = useState(null);
+  const [view, setView] = useState('signin'); // 'signin', 'signup', 'forgot'
   const navigate = useNavigate();
   const location = useLocation();
 
   const [formData, setFormData] = useState({
     email: '',
     password: '',
+    confirmPassword: '',
     fullName: '',
     phone: '',
+    nursingYear: '',
     role: 'student'
   });
+
+  const NURSING_YEARS = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'];
 
   const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
 
@@ -27,44 +32,67 @@ export default function Auth() {
       email: 'student@apexscholars.com',
       password: 'testing123'
     });
-    setIsLogin(true);
+    setView('signin');
   };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
+    setSuccessMsg(null);
 
     try {
       if (!supabase) {
-        // In Dashboard-first mode, we allow "bypass" even if Supabase is missing
         console.warn('Supabase not configured, bypassing to dashboard with mock data');
         navigate('/dashboard');
         return;
       }
 
-      if (isLogin) {
+      if (view === 'forgot') {
+        if (!formData.email) throw new Error('Please enter your email address');
+        const { error } = await supabase.auth.resetPasswordForEmail(
+          formData.email,
+          { redirectTo: `${window.location.origin}/login` }
+        );
+        if (error) throw error;
+        setSuccessMsg('Password reset link sent to your email.');
+        setLoading(false);
+        return;
+      }
+
+      if (view === 'signin') {
         const { error } = await supabase.auth.signInWithPassword({
           email: formData.email,
           password: formData.password,
         });
         if (error) throw error;
-      } else {
-        const { error } = await supabase.auth.signUp({
+        navigate(location.state?.from || '/');
+      } else if (view === 'signup') {
+        if (formData.password.length < 6) throw new Error('Password must be at least 6 characters');
+        if (formData.password !== formData.confirmPassword) throw new Error('Passwords do not match');
+
+        const { data, error } = await supabase.auth.signUp({
           email: formData.email,
           password: formData.password,
           options: {
             data: {
               full_name: formData.fullName,
               phone: formData.phone,
+              nursing_year: formData.nursingYear,
               role: formData.role
             }
           }
         });
         if (error) throw error;
-        alert('Verification email sent! Please check your inbox.');
+        
+        if (data?.session) {
+          navigate(location.state?.from || '/');
+        } else {
+          setSuccessMsg('Account created successfully! You can now sign in.');
+          setView('signin');
+          setFormData({ ...formData, password: '', confirmPassword: '' });
+        }
       }
-      navigate(location.state?.from || '/');
     } catch (err) {
       setError(err.message);
     } finally {
@@ -91,15 +119,21 @@ export default function Auth() {
               A
             </div>
             <h1 className="text-3xl font-bold text-white mb-2">
-              {isLogin ? 'Welcome Back' : 'Join Apex Scholars'}
+              {view === 'signin' ? 'Welcome Back' : view === 'signup' ? 'Join Apex Scholars' : 'Reset Password'}
             </h1>
             <p className="text-slate-400">
-              {isLogin ? 'Enter your credentials to continue' : 'Start your journey to excellence today'}
+              {view === 'signin' ? 'Enter your credentials to continue' : view === 'signup' ? 'Start your journey to excellence today' : 'We will send you a link to reset it'}
             </p>
           </div>
 
+          {successMsg && (
+            <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-sm flex items-center justify-center">
+              {successMsg}
+            </div>
+          )}
+
           <form onSubmit={handleSubmit} className="space-y-4">
-            {!isLogin && (
+            {view === 'signup' && (
               <>
                 <div className="relative">
                   <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
@@ -116,12 +150,23 @@ export default function Auth() {
                   <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
                   <input
                     type="tel"
-                    placeholder="Phone Number"
-                    required
+                    placeholder="Phone Number (optional)"
                     className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
                     value={formData.phone}
                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
                   />
+                </div>
+                <div className="relative">
+                  <select
+                    className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-medical-500 transition-colors appearance-none"
+                    value={formData.nursingYear}
+                    onChange={(e) => setFormData({...formData, nursingYear: e.target.value})}
+                  >
+                    <option value="" className="text-slate-500">Select Nursing Year (optional)</option>
+                    {NURSING_YEARS.map(yr => (
+                      <option key={yr} value={yr} className="text-slate-900">{yr}</option>
+                    ))}
+                  </select>
                 </div>
               </>
             )}
@@ -138,17 +183,33 @@ export default function Auth() {
               />
             </div>
 
-            <div className="relative">
-              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-              <input
-                type="password"
-                placeholder="Password"
-                required
-                className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
-                value={formData.password}
-                onChange={(e) => setFormData({...formData, password: e.target.value})}
-              />
-            </div>
+            {view !== 'forgot' && (
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  required
+                  className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
+                  value={formData.password}
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                />
+              </div>
+            )}
+
+            {view === 'signup' && (
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                <input
+                  type="password"
+                  placeholder="Confirm Password"
+                  required
+                  className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                />
+              </div>
+            )}
 
             {error && (
               <p className="text-red-400 text-sm bg-red-400/10 p-3 rounded-lg border border-red-400/20">
@@ -165,7 +226,7 @@ export default function Auth() {
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
-                  {isLogin ? 'Sign In' : 'Create Account'}
+                  {view === 'signin' ? 'Sign In' : view === 'signup' ? 'Create Account' : 'Send Reset Link'}
                   <ArrowRight className="w-5 h-5" />
                 </>
               )}
@@ -173,11 +234,24 @@ export default function Auth() {
           </form>
 
           <div className="mt-8 text-center space-y-4">
+            {view === 'signin' && (
+              <button
+                onClick={() => setView('forgot')}
+                className="block w-full text-slate-400 hover:text-white transition-colors text-sm mb-2"
+              >
+                Forgot your password?
+              </button>
+            )}
+
             <button
-              onClick={() => setIsLogin(!isLogin)}
-              className="block w-full text-slate-400 hover:text-white transition-colors text-sm"
+              onClick={() => {
+                setView(view === 'signin' ? 'signup' : 'signin');
+                setError(null);
+                setSuccessMsg(null);
+              }}
+              className="block w-full text-slate-400 hover:text-white transition-colors text-sm font-medium"
             >
-              {isLogin ? "Don't have an account? Sign Up" : "Already have an account? Sign In"}
+              {view === 'signin' ? "Don't have an account? Sign Up" : "Back to Sign In"}
             </button>
 
             {DEV_MODE && (
