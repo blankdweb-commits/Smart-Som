@@ -41,7 +41,11 @@ const CommunityHubWidget = () => {
   }, [fetchPosts]);
 
   const handleLike = async (postId, currentLikedStatus) => {
-    if (!supabase || !currentUserId) return;
+    if (!supabase) return;
+    if (!currentUserId || session?.user?.is_anonymous === true) {
+      navigate('/community');
+      return;
+    }
 
     const newLikedStatus = !currentLikedStatus;
     
