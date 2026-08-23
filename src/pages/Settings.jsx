@@ -1,219 +1,276 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { useAppContext } from '../context/AppContext';
-import {
-  Save,
-  Key,
-  User,
-  Shield,
-  TrendingUp,
-  ChevronRight,
-  Lock,
-  Trash2,
-  Info,
-  CheckCircle2,
-  AlertCircle,
-  Volume2,
-  VolumeX,
-  Sun,
-  Moon,
-  LayoutDashboard,
-  Settings as SettingsIcon,
-  Database
-} from '../components/Icons';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { supabase } from '../utils/supabase';
 import { motion } from 'framer-motion';
-import Toast from '../components/Toast';
+import { Mail, Lock, User, Phone, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
 
-const Settings = () => {
-  const {
-    userProfile, updateProfile,
-    darkMode, toggleDarkMode,
-    soundEnabled, toggleSound
-  } = useAppContext();
+export default function Auth() {
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState(null);
+  const [successMsg, setSuccessMsg] = useState(null);
+  const [view, setView] = useState('signin'); // 'signin', 'signup', 'forgot'
   const navigate = useNavigate();
-  const [toast, setToast] = useState(null);
+  const location = useLocation();
 
-  const toggleAdminMode = () => {
-    const isAdmin = !userProfile.isAdmin;
-    updateProfile({ isAdmin });
-    setToast({
-      message: isAdmin ? 'Admin mode enabled' : 'Admin mode disabled',
-      type: 'info'
+  const [formData, setFormData] = useState({
+    email: '',
+    password: '',
+    confirmPassword: '',
+    fullName: '',
+    phone: '',
+    nursingYear: '',
+    role: 'student'
+  });
+
+  const NURSING_YEARS = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'];
+
+  const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
+
+  const handleDevLogin = () => {
+    setFormData({
+      ...formData,
+      email: 'student@apexscholars.com',
+      password: 'testing123'
     });
+    setView('signin');
+  };
+
+  const handleSubmit = async (e) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    setSuccessMsg(null);
+
+    try {
+      if (!supabase) {
+        console.warn('Supabase not configured, bypassing to dashboard with mock data');
+        navigate('/dashboard');
+        return;
+      }
+
+      if (view === 'forgot') {
+        if (!formData.email) throw new Error('Please enter your email address');
+        const { error } = await supabase.auth.resetPasswordForEmail(
+          formData.email,
+          { redirectTo: `${window.location.origin}/login` }
+        );
+        if (error) throw error;
+        setSuccessMsg('Password reset link sent to your email.');
+        setLoading(false);
+        return;
+      }
+
+      if (view === 'signin') {
+        const { error } = await supabase.auth.signInWithPassword({
+          email: formData.email,
+          password: formData.password,
+        });
+        if (error) throw error;
+        navigate(location.state?.from || '/');
+      } else if (view === 'signup') {
+        if (formData.password.length < 6) throw new Error('Password must be at least 6 characters');
+        if (formData.password !== formData.confirmPassword) throw new Error('Passwords do not match');
+
+        const { data, error } = await supabase.auth.signUp({
+          email: formData.email,
+          password: formData.password,
+          options: {
+            data: {
+              full_name: formData.fullName,
+              phone: formData.phone,
+              nursing_year: formData.nursingYear,
+              role: formData.role
+            }
+          }
+        });
+        if (error) throw error;
+        
+        if (data?.session) {
+          navigate(location.state?.from || '/');
+        } else {
+          setSuccessMsg('Account created successfully! You can now sign in.');
+          setView('signin');
+          setFormData({ ...formData, password: '', confirmPassword: '' });
+        }
+      }
+    } catch (err) {
+      setError(err.message);
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
-    <div className="space-y-8 pb-32 animate-in fade-in slide-in-from-bottom-4 duration-700 max-w-6xl mx-auto px-4">
-      <header>
-        <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight uppercase">Settings</h1>
-        <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Personalize your clinical training environment.</p>
-      </header>
-
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        <div className="lg:col-span-2 space-y-8">
-
-          {/* Preferences Section */}
-          <section className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-8 shadow-clinical border border-slate-100 dark:border-slate-700">
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-8 flex items-center gap-3">
-              <LayoutDashboard className="text-medical-600" size={24} />
-              Preferences
-            </h2>
-
-            <div className="space-y-4">
-              {/* Theme Toggle */}
-              <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800">
-                <div className="flex items-center gap-4">
-                  <div className={`p-2 rounded-xl ${darkMode ? 'bg-amber-100 text-amber-600' : 'bg-medical-100 text-medical-600'}`}>
-                    {darkMode ? <Sun size={20} /> : <Moon size={20} />}
-                  </div>
-                  <div>
-                    <p className="font-black text-slate-900 dark:text-white text-sm">Theme</p>
-                    <p className="text-[10px] text-slate-500 font-medium">{darkMode ? 'Light mode available' : 'Dark mode available'}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={toggleDarkMode}
-                  className={`px-6 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${darkMode ? 'bg-white text-slate-900 shadow-sm' : 'bg-slate-900 text-white'}`}
-                >
-                  {darkMode ? 'Switch to Light' : 'Switch to Dark'}
-                </button>
-              </div>
-
-              {/* Sound Toggle */}
-              <div className="flex items-center justify-between p-4 bg-slate-50 dark:bg-slate-900/50 rounded-2xl border border-slate-100 dark:border-slate-800">
-                <div className="flex items-center gap-4">
-                  <div className={`p-2 rounded-xl ${soundEnabled ? 'bg-emerald-100 text-emerald-600' : 'bg-red-100 text-red-600'}`}>
-                    {soundEnabled ? <Volume2 size={20} /> : <VolumeX size={20} />}
-                  </div>
-                  <div>
-                    <p className="font-black text-slate-900 dark:text-white text-sm">Sound Effects</p>
-                    <p className="text-[10px] text-slate-500 font-medium">{soundEnabled ? 'Interactive audio active' : 'Audio muted'}</p>
-                  </div>
-                </div>
-                <button
-                  onClick={toggleSound}
-                  className={`px-6 py-2 rounded-xl font-black text-[10px] uppercase tracking-widest transition-all ${soundEnabled ? 'bg-emerald-500 text-white shadow-lg shadow-emerald-500/20' : 'bg-slate-200 text-slate-500'}`}
-                >
-                  {soundEnabled ? 'Enabled' : 'Disabled'}
-                </button>
-              </div>
-            </div>
-          </section>
-
-          {/* Admin Access Section */}
-          {userProfile.isAdmin && (
-            <motion.section
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              className="bg-medical-50 dark:bg-medical-900/20 rounded-[2.5rem] p-8 shadow-clinical border border-medical-100 dark:border-medical-800/50"
-            >
-              <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight mb-6 flex items-center gap-2">
-                <Shield className="text-medical-600" /> Administrative Access
-              </h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                <button
-                  onClick={() => navigate('/admin/finance')}
-                  className="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-medical-200 dark:border-medical-900 flex items-center justify-between group hover:border-medical-500 transition-all shadow-sm"
-                >
-                  <div className="flex items-center gap-4 text-left">
-                    <div className="w-12 h-12 bg-medical-50 dark:bg-medical-900/30 text-medical-600 rounded-xl flex items-center justify-center">
-                      <TrendingUp size={24} />
-                    </div>
-                    <div>
-                      <p className="font-black text-slate-900 dark:text-white text-sm">Finance</p>
-                      <p className="text-[10px] text-slate-500 font-medium">Monitor fees</p>
-                    </div>
-                  </div>
-                  <ChevronRight size={18} className="text-slate-300 group-hover:text-medical-600" />
-                </button>
-
-                <button
-                  onClick={() => navigate('/admin/questions')}
-                  className="p-6 bg-white dark:bg-slate-800 rounded-2xl border border-medical-200 dark:border-medical-900 flex items-center justify-between group hover:border-medical-500 transition-all shadow-sm"
-                >
-                  <div className="flex items-center gap-4 text-left">
-                    <div className="w-12 h-12 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 rounded-xl flex items-center justify-center">
-                      <Database size={24} />
-                    </div>
-                    <div>
-                      <p className="font-black text-slate-900 dark:text-white text-sm">Question Bank</p>
-                      <p className="text-[10px] text-slate-500 font-medium">Manage content</p>
-                    </div>
-                  </div>
-                  <ChevronRight size={18} className="text-slate-300 group-hover:text-medical-600" />
-                </button>
-              </div>
-            </motion.section>
-          )}
-
-          <section className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-8 shadow-clinical border border-slate-100 dark:border-slate-700">
-            <h2 className="text-2xl font-black text-slate-900 dark:text-white mb-8">System Tools</h2>
-            <div className="space-y-3">
-              <button
-                onClick={toggleAdminMode}
-                className="w-full flex items-center justify-between p-5 bg-slate-50 dark:bg-slate-900/50 rounded-2xl hover:bg-slate-100 dark:hover:bg-slate-700 transition-all group"
-              >
-                <div className="flex items-center gap-4">
-                  <div className={`p-2 rounded-lg ${userProfile.isAdmin ? 'bg-medical-100 text-medical-600' : 'bg-slate-200 text-slate-500'}`}>
-                    <Shield size={20} />
-                  </div>
-                  <span className="text-sm font-bold text-slate-700 dark:text-slate-300">
-                    {userProfile.isAdmin ? 'Disable Admin Mode' : 'Enable Admin Mode (Mock)'}
-                  </span>
-                </div>
-                <ChevronRight size={18} className="text-slate-300" />
-              </button>
-
-              <button
-                className="w-full flex items-center justify-between p-5 bg-slate-50 dark:bg-slate-900/50 rounded-2xl hover:bg-red-50 dark:hover:bg-red-900/10 transition-all group"
-                onClick={() => {
-                   if(window.confirm('This will wipe all local data. Continue?')) {
-                     localStorage.clear();
-                     window.location.reload();
-                   }
-                }}
-              >
-                <div className="flex items-center gap-4">
-                  <div className="p-2 bg-red-100 text-red-500 rounded-lg">
-                    <Trash2 size={20} />
-                  </div>
-                  <span className="text-sm font-bold text-red-500">Reset Local Data</span>
-                </div>
-              </button>
-            </div>
-          </section>
-        </div>
-
-        <div className="space-y-8">
-          <div className="bg-indigo-600 rounded-[2.5rem] p-8 text-white shadow-xl relative overflow-hidden group">
-            <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
-              <Info size={120} />
-            </div>
-            <h2 className="text-2xl font-black mb-4 relative z-10">About</h2>
-            <p className="text-indigo-100 leading-relaxed font-medium relative z-10">
-              Apex Scholars is a clinical learning suite designed for Nursing and Midwifery students, featuring integrated curriculum data and spaced repetition tools.
-            </p>
-            <div className="mt-8 pt-8 border-t border-white/20 relative z-10">
-              <p className="text-[10px] font-black uppercase tracking-widest opacity-60">Version</p>
-              <p className="text-sm font-bold">4.2.0 (Clinical Build)</p>
-            </div>
-          </div>
-
-          <div className="bg-white dark:bg-slate-800 rounded-[2.5rem] p-8 shadow-clinical border border-slate-100 dark:border-slate-700">
-             <div className="flex items-center gap-3 text-emerald-500 mb-4">
-                <CheckCircle2 size={24} />
-                <h4 className="font-black uppercase tracking-tight">System Healthy</h4>
-             </div>
-             <p className="text-xs text-slate-500 font-medium leading-relaxed">
-                All local modules are operational. Spaced repetition engine is active.
-             </p>
-          </div>
-        </div>
+    <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4 relative overflow-hidden">
+      {/* Background decoration */}
+      <div className="absolute top-0 left-0 w-full h-full">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-medical-500/10 rounded-full blur-[120px]"></div>
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px]"></div>
       </div>
 
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
+      <motion.div
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-md z-10"
+      >
+        <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+          <div className="text-center mb-8">
+            <div className="w-16 h-16 bg-gradient-to-tr from-medical-500 to-blue-600 rounded-2xl mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-medical-500/20">
+              A
+            </div>
+            <h1 className="text-3xl font-bold text-white mb-2">
+              {view === 'signin' ? 'Welcome Back' : view === 'signup' ? 'Join Apex Scholars' : 'Reset Password'}
+            </h1>
+            <p className="text-slate-400">
+              {view === 'signin' ? 'Enter your credentials to continue' : view === 'signup' ? 'Start your journey to excellence today' : 'We will send you a link to reset it'}
+            </p>
+          </div>
+
+          {successMsg && (
+            <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-sm flex items-center justify-center">
+              {successMsg}
+            </div>
+          )}
+
+          <form onSubmit={handleSubmit} className="space-y-4">
+            {view === 'signup' && (
+              <>
+                <div className="relative">
+                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                  <input
+                    type="text"
+                    placeholder="Full Name"
+                    required
+                    className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
+                    value={formData.fullName}
+                    onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                  />
+                </div>
+                <div className="relative">
+                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                  <input
+                    type="tel"
+                    placeholder="Phone Number (optional)"
+                    className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
+                    value={formData.phone}
+                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
+                  />
+                </div>
+                <div className="relative">
+                  <select
+                    className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-medical-500 transition-colors appearance-none"
+                    value={formData.nursingYear}
+                    onChange={(e) => setFormData({...formData, nursingYear: e.target.value})}
+                  >
+                    <option value="" className="text-slate-500">Select Nursing Year (optional)</option>
+                    {NURSING_YEARS.map(yr => (
+                      <option key={yr} value={yr} className="text-slate-900">{yr}</option>
+                    ))}
+                  </select>
+                </div>
+              </>
+            )}
+
+            <div className="relative">
+              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+              <input
+                type="email"
+                placeholder="Email Address"
+                required
+                className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
+                value={formData.email}
+                onChange={(e) => setFormData({...formData, email: e.target.value})}
+              />
+            </div>
+
+            {view !== 'forgot' && (
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                <input
+                  type="password"
+                  placeholder="Password"
+                  required
+                  className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
+                  value={formData.password}
+                  onChange={(e) => setFormData({...formData, password: e.target.value})}
+                />
+              </div>
+            )}
+
+            {view === 'signup' && (
+              <div className="relative">
+                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                <input
+                  type="password"
+                  placeholder="Confirm Password"
+                  required
+                  className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
+                  value={formData.confirmPassword}
+                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                />
+              </div>
+            )}
+
+            {error && (
+              <p className="text-red-400 text-sm bg-red-400/10 p-3 rounded-lg border border-red-400/20">
+                {error}
+              </p>
+            )}
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-gradient-to-r from-medical-600 to-blue-600 hover:from-medical-500 hover:to-blue-500 text-white font-semibold py-4 rounded-xl shadow-lg shadow-medical-500/25 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+            >
+              {loading ? (
+                <Loader2 className="w-5 h-5 animate-spin" />
+              ) : (
+                <>
+                  {view === 'signin' ? 'Sign In' : view === 'signup' ? 'Create Account' : 'Send Reset Link'}
+                  <ArrowRight className="w-5 h-5" />
+                </>
+              )}
+            </button>
+          </form>
+
+          <div className="mt-8 text-center space-y-4">
+            {view === 'signin' && (
+              <button
+                onClick={() => setView('forgot')}
+                className="block w-full text-slate-400 hover:text-white transition-colors text-sm mb-2"
+              >
+                Forgot your password?
+              </button>
+            )}
+
+            <button
+              onClick={() => {
+                setView(view === 'signin' ? 'signup' : 'signin');
+                setError(null);
+                setSuccessMsg(null);
+              }}
+              className="block w-full text-slate-400 hover:text-white transition-colors text-sm font-medium"
+            >
+              {view === 'signin' ? "Don't have an account? Sign Up" : "Back to Sign In"}
+            </button>
+
+            {DEV_MODE && (
+              <button
+                type="button"
+                onClick={handleDevLogin}
+                className="w-full py-3 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-amber-500/20 transition-all"
+              >
+                Fast Dev Login (Student)
+              </button>
+            )}
+          </div>
+
+          <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-center gap-2 text-slate-500 text-sm">
+            <ShieldCheck className="w-4 h-4" />
+            Secure Authentication via Supabase
+          </div>
+        </div>
+      </motion.div>
     </div>
   );
-};
-
-export default Settings;
+}
