@@ -77,7 +77,10 @@ import {
   Database,
   Flag,
   EyeOff,
-  Eye
+  Eye,
+  Mail,
+  Phone,
+  LogOut
 } from 'lucide-react';
 
 export {
@@ -160,5 +163,8 @@ export {
   Database,
   Flag,
   EyeOff,
-  Eye
+  Eye,
+  Mail,
+  Phone,
+  LogOut
 };
