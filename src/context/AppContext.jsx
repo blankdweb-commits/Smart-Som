@@ -157,6 +157,7 @@ export function AppProvider({ children }) {
       else if (event === 'SIGNED_OUT') {
         setSession(null);
         setupMockData();
+        setUserProfile({ isActivated: false, isAdmin: false });
       }
       setLoadingAuth(false);
     });
@@ -233,6 +234,15 @@ export function AppProvider({ children }) {
     return withIds.length;
   };
 
+  const signOut = async () => {
+    if (supabase) {
+      await supabase.auth.signOut();
+    }
+    setSession(null);
+    setupMockData();
+    setUserProfile({ isActivated: false, isAdmin: false });
+  };
+
   return (
     <AppContext.Provider value={{
       session, loadingAuth, flashcards, setFlashcards, exams, setExams,
@@ -243,7 +253,8 @@ export function AppProvider({ children }) {
       updatePaymentPurpose: () => {}, addPaymentPurpose: () => {}, deletePaymentPurpose: () => {},
       addAuditLog: () => {}, updateCardProgress, incrementCardsStudied: () => {},
       updateQuizStats, fetchUserData, feeDetails,
-      addFlashcard, updateFlashcard, deleteFlashcard, importFlashcards
+      addFlashcard, updateFlashcard, deleteFlashcard, importFlashcards,
+      signOut
     }}>
       {children}
     </AppContext.Provider>
