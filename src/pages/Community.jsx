@@ -22,11 +22,13 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../utils/supabase';
 import { useAppContext } from '../context/AppContext';
 import { formatDistanceToNow } from 'date-fns';
+import { useNavigate } from 'react-router-dom';
 
 const POSTS_PER_PAGE = 15;
 
 const Community = () => {
-  const { session } = useAppContext();
+  const { session, userProfile } = useAppContext();
+  const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -57,9 +59,19 @@ const Community = () => {
   const [reporting, setReporting] = useState(false);
 
   const currentUserId = session?.user?.id;
+  const isActiveUser = session && userProfile?.isActivated;
+  const [showAuthModal, setShowAuthModal] = useState(false);
+
+  const handleRestrictedClick = (e) => {
+    if (!isActiveUser) {
+      e.preventDefault();
+      e.stopPropagation();
+      setShowAuthModal(true);
+    }
+  };
 
   const fetchPosts = useCallback(async (pageIndex = 0, append = false) => {
-    if (!supabase || !currentUserId) {
+    if (!supabase) {
       setLoading(false);
       return;
     }
@@ -397,7 +409,8 @@ const Community = () => {
 
 
   return (
-    <div className="max-w-5xl mx-auto space-y-10 pb-32 animate-in fade-in slide-in-from-bottom-4 duration-700">
+    <>
+      <div className="max-w-5xl mx-auto space-y-10 pb-32 animate-in fade-in slide-in-from-bottom-4 duration-700" onClickCapture={!isActiveUser ? handleRestrictedClick : undefined}>
       <header>
         <div className="flex items-center gap-3 text-medical-600 mb-2">
            <Users size={32} />
@@ -761,7 +774,44 @@ const Community = () => {
          )}
       </AnimatePresence>
 
+      {/* Auth Restriction Modal */}
+      <AnimatePresence>
+        {showAuthModal && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-sm" onClick={() => setShowAuthModal(false)}>
+            <motion.div
+              initial={{ scale: 0.95, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }}
+              exit={{ scale: 0.95, opacity: 0 }}
+              onClick={(e) => e.stopPropagation()}
+              className="bg-white dark:bg-slate-800 rounded-[2rem] p-8 max-w-md w-full shadow-2xl text-center"
+            >
+              <div className="w-16 h-16 bg-medical-100 dark:bg-medical-900/30 text-medical-600 rounded-full flex items-center justify-center mx-auto mb-4">
+                <Users size={32} />
+              </div>
+              <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2">Join the Community</h3>
+              <p className="text-slate-500 dark:text-slate-400 font-medium mb-6">
+                You must have an active account to interact with the community. Sign up or sign in to share tips, ask questions, and connect with peers!
+              </p>
+              <div className="flex gap-3">
+                <button
+                  onClick={() => navigate('/login')}
+                  className="flex-1 py-3 rounded-xl font-bold text-sm bg-slate-100 text-slate-600 hover:bg-slate-200 dark:bg-slate-700 dark:text-slate-300 dark:hover:bg-slate-600 transition-colors"
+                >
+                  Sign In
+                </button>
+                <button
+                  onClick={() => navigate('/signup')}
+                  className="flex-1 py-3 rounded-xl font-bold text-sm bg-medical-600 text-white hover:bg-medical-700 transition-colors"
+                >
+                  Sign Up
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
+    </>
   );
 };
 
