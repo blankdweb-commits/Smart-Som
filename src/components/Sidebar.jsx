@@ -1,8 +1,10 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Award, Users, Search, Brain, FileUp } from './Icons';
+import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Award, Users, Search, Brain, FileUp, Shield } from './Icons';
+import { useAppContext } from '../context/AppContext';
 
 const Sidebar = () => {
+  const { userProfile } = useAppContext();
 
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
@@ -15,6 +17,13 @@ const Sidebar = () => {
     { name: 'Settings', icon: Settings, path: '/settings' },
   ];
 
+  // Admin surfaces are only linked for elevated roles; routes stay technically
+  // open by design (dashboard-first), but are not discoverable here.
+  const adminItems = userProfile.isAdmin ? [
+    { name: 'Finance Admin', icon: Shield, path: '/admin/finance' },
+    { name: 'Question Bank', icon: Search, path: '/admin/questions' },
+  ] : [];
+
   return (
     <>
       {/* Sidebar - hidden on mobile, visible on large screens */}
@@ -25,7 +34,7 @@ const Sidebar = () => {
             <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-black uppercase tracking-widest">Rise to Excellence</p>
           </div>
 
-          <nav className="flex-1 px-4 space-y-1 mt-4">
+          <nav className="flex-1 px-4 space-y-1 mt-4 overflow-y-auto">
             {navItems.map((item) => (
               <NavLink
                 key={item.name}
@@ -45,6 +54,33 @@ const Sidebar = () => {
                 )}
               </NavLink>
             ))}
+
+            {adminItems.length > 0 && (
+              <>
+                <div className="pt-4 pb-1 px-4">
+                  <p className="text-[9px] font-black text-slate-400 uppercase tracking-[0.2em] border-t border-slate-100 dark:border-slate-700 pt-3">Administration</p>
+                </div>
+                {adminItems.map((item) => (
+                  <NavLink
+                    key={item.name}
+                    to={item.path}
+                    className={({ isActive }) => `
+                      flex items-center px-4 py-3 rounded-xl transition-all duration-200
+                      ${isActive
+                        ? 'bg-indigo-50 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-400 font-bold'
+                        : 'text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700/50'}
+                    `}
+                  >
+                    {({ isActive }) => (
+                      <>
+                        <item.icon className={`mr-3 ${isActive ? 'text-indigo-600' : 'text-slate-400'}`} size={20} />
+                        <span>{item.name}</span>
+                      </>
+                    )}
+                  </NavLink>
+                ))}
+              </>
+            )}
           </nav>
         </div>
       </div>

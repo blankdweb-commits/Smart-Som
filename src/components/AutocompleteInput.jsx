@@ -9,7 +9,8 @@ const AutocompleteInput = ({
   placeholder = "Start typing...",
   label = "",
   icon = <Book size={18} />,
-  className = ""
+  className = "",
+  onEnter = null
 }) => {
   const [inputValue, setInputValue] = useState(value);
   const [filteredSuggestions, setFilteredSuggestions] = useState([]);
@@ -61,9 +62,14 @@ const AutocompleteInput = ({
     } else if (e.key === 'ArrowUp') {
       e.preventDefault();
       setActiveIndex(prev => (prev > 0 ? prev - 1 : prev));
-    } else if (e.key === 'Enter' && activeIndex >= 0) {
+    } else if (e.key === 'Enter') {
+      // Prevent implicit <form> submission from inside autocompletes.
       e.preventDefault();
-      handleSuggestionClick(filteredSuggestions[activeIndex]);
+      if (activeIndex >= 0 && filteredSuggestions[activeIndex]) {
+        handleSuggestionClick(filteredSuggestions[activeIndex]);
+      } else if (onEnter) {
+        onEnter(inputValue);
+      }
     } else if (e.key === 'Escape') {
       setShowSuggestions(false);
     }

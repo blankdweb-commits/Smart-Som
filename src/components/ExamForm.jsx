@@ -5,7 +5,7 @@ import { useAppContext } from '../context/AppContext';
 import AutocompleteInput from './AutocompleteInput';
 
 const ExamForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
-  const { curriculumSubjects, exams } = useAppContext();
+  const { curriculumSubjects, curriculumTopics, exams } = useAppContext();
   const [formData, setFormData] = useState({
     title: '',
     date: '',
@@ -21,6 +21,30 @@ const ExamForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
   });
 
   const [newTopic, setNewTopic] = useState('');
+
+  // Curriculum topic index for the selected course (loose match on title).
+  const matchedCourseKey = useMemo(() => {
+    if (!formData.title) return null;
+    const norm = (s) => String(s || '').replace(/\s+and\s+/gi, ' & ').replace(/\s+/g, ' ').trim().toLowerCase();
+    const target = norm(formData.title);
+    const keys = Object.keys(curriculumTopics || {});
+    return keys.find(k => norm(k) === target) || keys.find(k => norm(k).includes(target) || target.includes(norm(k))) || null;
+  }, [formData.title, curriculumTopics]);
+
+  const courseTopics = useMemo(() => {
+    const key = matchedCourseKey;
+    if (!key) return [];
+    const existing = new Set(formData.topics.map(t => t.name.toLowerCase()));
+    return (curriculumTopics[key] || []).filter(t => !existing.has(t.toLowerCase()));
+  }, [matchedCourseKey, curriculumTopics, formData.topics]);
+
+  const autoAddCurriculumTopics = () => {
+    if (courseTopics.length === 0) return;
+    setFormData(prev => ({
+      ...prev,
+      topics: [...prev.topics, ...courseTopics.map(t => ({ name: t, completed: false }))]
+    }));
+  };
 
   const recentSubjects = useMemo(() => {
     const subjects = new Set();
@@ -243,20 +267,39 @@ const ExamForm = ({ isOpen, onClose, onSubmit, initialData = null }) => {
               <CheckCircle2 size={14} /> Study Topics
             </h4>
             <div className="space-y-4">
-              <div className="flex gap-2">
-                <input
-                  type="text" value={newTopic} onChange={(e) => setNewTopic(e.target.value)}
-                  placeholder="Add a topic to study..."
-                  onKeyDown={(e) => e.key === 'Enter' && (e.preventDefault(), addTopic())}
-                  className="flex-1 px-6 py-4 rounded-2xl bg-slate-50 dark:bg-slate-900 border-2 border-transparent focus:border-emerald-500 outline-none transition-all font-bold dark:text-white"
-                />
+            {/* Smart topic input fed by the official curriculum index */}
+            {courseTopics.length > 0 && (
+              <div className="flex items-center justify-between gap-3 p-3 bg-emerald-50/60 dark:bg-emerald-900/10 rounded-xl border border-emerald-100 dark:border-emerald-900/30">
+                <p className="text-[9px] font-black text-emerald-700 dark:text-emerald-400 uppercase tracking-widest">
+                  {courseTopics.length} syllabus topics available for this course
+                </p>
                 <button
-                  type="button" onClick={addTopic}
-                  className="p-4 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 transition-all active:scale-95 shadow-lg shadow-emerald-600/20"
+                  type="button"
+                  onClick={autoAddCurriculumTopics}
+                  className="shrink-0 px-4 py-2 bg-emerald-600 text-white rounded-lg text-[9px] font-black uppercase tracking-widest hover:bg-emerald-700 active:scale-95 transition-all"
                 >
-                  <Plus size={24} />
+                  Auto-add all
                 </button>
               </div>
+            )}
+            <div className="flex gap-2">
+              <AutocompleteInput
+                value={newTopic}
+                onChange={(val) => setNewTopic(val)}
+                onEnter={(val) => {
+                  if (val && val.trim()) addTopic();
+                }}
+                suggestions={courseTopics}
+                placeholder="Add a topic to study..."
+                className="flex-1"
+              />
+              <button
+                type="button" onClick={addTopic}
+                className="p-4 bg-emerald-600 text-white rounded-2xl hover:bg-emerald-700 transition-all active:scale-95 shadow-lg shadow-emerald-600/20"
+              >
+                <Plus size={24} />
+              </button>
+            </div>
               <div className="flex flex-wrap gap-2">
                 {formData.topics.map((t, i) => (
                   <div key={i} className="flex items-center gap-2 pl-4 pr-2 py-2 bg-emerald-50 dark:bg-emerald-900/20 text-emerald-700 dark:text-emerald-400 rounded-xl border border-emerald-100 dark:border-emerald-900/30 font-bold text-xs">

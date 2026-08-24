@@ -1,276 +1,331 @@
 import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../utils/supabase';
-import { motion } from 'framer-motion';
-import { Mail, Lock, User, Phone, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
+import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
+import {
+  User,
+  Phone,
+  Mail,
+  Loader2,
+  ShieldCheck,
+  LogOut,
+  Save,
+  Lock,
+  GraduationCap,
+  Building2
+} from 'lucide-react';
+import { useAppContext } from '../context/AppContext';
+import Toast from '../components/Toast';
 
-export default function Auth() {
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(null);
-  const [successMsg, setSuccessMsg] = useState(null);
-  const [view, setView] = useState('signin'); // 'signin', 'signup', 'forgot'
+const NURSING_YEARS = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'];
+const DEPARTMENTS = [
+  'Nursing Science',
+  'Midwifery',
+  'Public Health Nursing',
+  'Mental Health Nursing',
+  'Perioperative Nursing'
+];
+
+export default function Settings() {
+  const { userProfile, updateProfile, session, signOut } = useAppContext();
   const navigate = useNavigate();
-  const location = useLocation();
 
-  const [formData, setFormData] = useState({
-    email: '',
-    password: '',
-    confirmPassword: '',
-    fullName: '',
-    phone: '',
-    nursingYear: '',
-    role: 'student'
+  const [profileForm, setProfileForm] = useState({
+    fullName: userProfile.fullName || '',
+    phone: userProfile.phone || '',
+    department: userProfile.department || '',
+    level: userProfile.level || ''
   });
+  const [savingProfile, setSavingProfile] = useState(false);
+  const [profileMsg, setProfileMsg] = useState(null);
 
-  const NURSING_YEARS = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'];
+  const [passwordForm, setPasswordForm] = useState({ next: '', confirm: '' });
+  const [savingPassword, setSavingPassword] = useState(false);
+  const [passwordError, setPasswordError] = useState(null);
 
-  const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
+  const [toast, setToast] = useState(null);
 
-  const handleDevLogin = () => {
-    setFormData({
-      ...formData,
-      email: 'student@apexscholars.com',
-      password: 'testing123'
-    });
-    setView('signin');
-  };
-
-  const handleSubmit = async (e) => {
+  const handleProfileSave = async (e) => {
     e.preventDefault();
-    setLoading(true);
-    setError(null);
-    setSuccessMsg(null);
-
+    if (!supabase || !session) {
+      setToast({ message: 'Sign in to save your profile.', type: 'error' });
+      return;
+    }
+    setSavingProfile(true);
+    setProfileMsg(null);
     try {
-      if (!supabase) {
-        console.warn('Supabase not configured, bypassing to dashboard with mock data');
-        navigate('/dashboard');
-        return;
-      }
-
-      if (view === 'forgot') {
-        if (!formData.email) throw new Error('Please enter your email address');
-        const { error } = await supabase.auth.resetPasswordForEmail(
-          formData.email,
-          { redirectTo: `${window.location.origin}/login` }
-        );
-        if (error) throw error;
-        setSuccessMsg('Password reset link sent to your email.');
-        setLoading(false);
-        return;
-      }
-
-      if (view === 'signin') {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        });
-        if (error) throw error;
-        navigate(location.state?.from || '/');
-      } else if (view === 'signup') {
-        if (formData.password.length < 6) throw new Error('Password must be at least 6 characters');
-        if (formData.password !== formData.confirmPassword) throw new Error('Passwords do not match');
-
-        const { data, error } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-          options: {
-            data: {
-              full_name: formData.fullName,
-              phone: formData.phone,
-              nursing_year: formData.nursingYear,
-              role: formData.role
-            }
-          }
-        });
-        if (error) throw error;
-        
-        if (data?.session) {
-          navigate(location.state?.from || '/');
-        } else {
-          setSuccessMsg('Account created successfully! You can now sign in.');
-          setView('signin');
-          setFormData({ ...formData, password: '', confirmPassword: '' });
-        }
-      }
+      const { error } = await supabase
+        .from('profiles')
+        .update({
+          full_name: profileForm.fullName.trim(),
+          phone: profileForm.phone.trim(),
+          department: profileForm.department,
+          level: profileForm.level
+        })
+        .eq('id', session.user.id);
+      if (error) throw error;
+      updateProfile(profileForm);
+      setProfileMsg('Profile updated.');
+      setToast({ message: 'Profile saved successfully!', type: 'success' });
     } catch (err) {
-      setError(err.message);
+      setProfileMsg(err.message);
+      setToast({ message: 'Failed to save profile.', type: 'error' });
     } finally {
-      setLoading(false);
+      setSavingProfile(false);
     }
   };
 
-  return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4 relative overflow-hidden">
-      {/* Background decoration */}
-      <div className="absolute top-0 left-0 w-full h-full">
-        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-medical-500/10 rounded-full blur-[120px]"></div>
-        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-blue-600/10 rounded-full blur-[120px]"></div>
-      </div>
+  const handlePasswordChange = async (e) => {
+    e.preventDefault();
+    setPasswordError(null);
+    if (!supabase) return;
+    if (passwordForm.next.length < 6) {
+      setPasswordError('Password must be at least 6 characters');
+      return;
+    }
+    if (passwordForm.next !== passwordForm.confirm) {
+      setPasswordError('Passwords do not match');
+      return;
+    }
+    setSavingPassword(true);
+    try {
+      const { error } = await supabase.auth.updateUser({ password: passwordForm.next });
+      if (error) throw error;
+      setPasswordForm({ next: '', confirm: '' });
+      setToast({ message: 'Password changed successfully!', type: 'success' });
+    } catch (err) {
+      setPasswordError(err.message);
+    } finally {
+      setSavingPassword(false);
+    }
+  };
 
+  const handleSignOut = async () => {
+    await signOut();
+    navigate('/dashboard');
+  };
+
+  const subLabel = {
+    active: 'Active',
+    grace: 'Grace Period',
+    expired: 'Expired',
+    none: 'No Subscription'
+  }[userProfile.subscriptionStatus] || '—';
+
+  const inputCls = "w-full bg-slate-50 dark:bg-slate-900/60 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-11 pr-4 text-slate-900 dark:text-white placeholder-slate-400 focus:outline-none focus:border-medical-500 transition-colors text-sm font-medium";
+
+  return (
+    <div className="max-w-3xl mx-auto space-y-8 pb-32 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <header>
+        <div className="flex items-center gap-3 text-medical-600 mb-2">
+           <ShieldCheck size={28} />
+           <span className="text-[10px] font-black uppercase tracking-[0.3em]">Account Center</span>
+        </div>
+        <h1 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Settings</h1>
+        <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Manage your profile, security, and subscription.</p>
+      </header>
+
+      {/* Account Overview */}
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-md z-10"
+        initial={{ y: 10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        className="bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-100 dark:border-slate-700 p-6 sm:p-8 shadow-clinical"
       >
-        <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
-          <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-tr from-medical-500 to-blue-600 rounded-2xl mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-medical-500/20">
-              A
+        <h2 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-5">Account</h2>
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+          <div className="flex items-center gap-4 min-w-0">
+            <div className="w-14 h-14 bg-gradient-to-tr from-medical-500 to-apex-600 rounded-2xl flex items-center justify-center text-white font-black text-xl shrink-0 shadow-lg shadow-medical-500/20">
+              {(userProfile.fullName || 'A').charAt(0).toUpperCase()}
             </div>
-            <h1 className="text-3xl font-bold text-white mb-2">
-              {view === 'signin' ? 'Welcome Back' : view === 'signup' ? 'Join Apex Scholars' : 'Reset Password'}
-            </h1>
-            <p className="text-slate-400">
-              {view === 'signin' ? 'Enter your credentials to continue' : view === 'signup' ? 'Start your journey to excellence today' : 'We will send you a link to reset it'}
-            </p>
+            <div className="min-w-0">
+              <p className="font-black text-slate-900 dark:text-white truncate">{userProfile.fullName || 'Anonymous Scholar'}</p>
+              <p className="text-xs font-bold text-slate-400 truncate">{session?.user?.email || userProfile.email || 'Not signed in'}</p>
+            </div>
+          </div>
+          <div className="flex flex-wrap gap-2 shrink-0">
+            <span className={`px-3 py-1.5 rounded-lg text-[9px] font-black uppercase tracking-widest ${
+              userProfile.isActivated
+                ? 'bg-emerald-100 dark:bg-emerald-900/30 text-emerald-700 dark:text-emerald-400'
+                : 'bg-slate-100 dark:bg-slate-700 text-slate-500'
+            }`}>
+              {userProfile.isActivated ? 'Activated' : 'Not Activated'}
+            </span>
+            <span className="px-3 py-1.5 bg-indigo-50 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-lg text-[9px] font-black uppercase tracking-widest">
+              {subLabel}
+            </span>
+            {userProfile.isAdmin && (
+              <span className="px-3 py-1.5 bg-amber-100 dark:bg-amber-900/30 text-amber-700 dark:text-amber-400 rounded-lg text-[9px] font-black uppercase tracking-widest">
+                {userProfile.role === 'super_admin' ? 'Super Admin' : 'Admin'}
+              </span>
+            )}
+          </div>
+        </div>
+
+        {!userProfile.isActivated && (
+          <button
+            onClick={() => navigate('/activate')}
+            className="mt-6 w-full py-3 bg-apex-600 hover:bg-apex-700 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-apex-600/20 transition-all active:scale-95"
+          >
+            Activate Full Access
+          </button>
+        )}
+      </motion.div>
+
+      {/* Profile Details */}
+      <motion.div
+        initial={{ y: 10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.05 }}
+        className="bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-100 dark:border-slate-700 p-6 sm:p-8 shadow-clinical"
+      >
+        <h2 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-6">Profile Details</h2>
+
+        <form onSubmit={handleProfileSave} className="space-y-4">
+          <div className="relative">
+            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Full Name"
+              className={inputCls}
+              value={profileForm.fullName}
+              onChange={(e) => setProfileForm({ ...profileForm, fullName: e.target.value })}
+            />
           </div>
 
-          {successMsg && (
-            <div className="mb-6 p-4 bg-emerald-500/10 border border-emerald-500/20 rounded-xl text-emerald-400 text-sm flex items-center justify-center">
-              {successMsg}
-            </div>
-          )}
+          <div className="relative">
+            <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="email"
+              disabled
+              placeholder="Email (managed at sign-up)"
+              className={`${inputCls} opacity-60 cursor-not-allowed`}
+              value={session?.user?.email || userProfile.email || ''}
+              readOnly
+            />
+          </div>
 
-          <form onSubmit={handleSubmit} className="space-y-4">
-            {view === 'signup' && (
-              <>
-                <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-                  <input
-                    type="text"
-                    placeholder="Full Name"
-                    required
-                    className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
-                    value={formData.fullName}
-                    onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-                  />
-                </div>
-                <div className="relative">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-                  <input
-                    type="tel"
-                    placeholder="Phone Number (optional)"
-                    className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  />
-                </div>
-                <div className="relative">
-                  <select
-                    className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-medical-500 transition-colors appearance-none"
-                    value={formData.nursingYear}
-                    onChange={(e) => setFormData({...formData, nursingYear: e.target.value})}
-                  >
-                    <option value="" className="text-slate-500">Select Nursing Year (optional)</option>
-                    {NURSING_YEARS.map(yr => (
-                      <option key={yr} value={yr} className="text-slate-900">{yr}</option>
-                    ))}
-                  </select>
-                </div>
-              </>
-            )}
+          <div className="relative">
+            <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="tel"
+              placeholder="Phone Number"
+              className={inputCls}
+              value={profileForm.phone}
+              onChange={(e) => setProfileForm({ ...profileForm, phone: e.target.value })}
+            />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="relative">
+              <Building2 className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <select
+                className={`${inputCls} appearance-none`}
+                value={profileForm.department}
+                onChange={(e) => setProfileForm({ ...profileForm, department: e.target.value })}
+              >
+                <option value="">Select Department</option>
+                {DEPARTMENTS.map(d => <option key={d} value={d}>{d}</option>)}
+              </select>
+            </div>
 
             <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+              <GraduationCap className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <select
+                className={`${inputCls} appearance-none`}
+                value={profileForm.level}
+                onChange={(e) => setProfileForm({ ...profileForm, level: e.target.value })}
+              >
+                <option value="">Select Level</option>
+                {NURSING_YEARS.map(y => <option key={y} value={y}>{y}</option>)}
+              </select>
+            </div>
+          </div>
+
+          {profileMsg && (
+            <p className={`text-xs font-bold ${profileMsg === 'Profile updated.' ? 'text-emerald-500' : 'text-red-500'}`}>{profileMsg}</p>
+          )}
+
+          <button
+            type="submit"
+            disabled={savingProfile}
+            className="w-full py-4 bg-medical-600 hover:bg-medical-700 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-medical-600/20 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+          >
+            {savingProfile ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+            {savingProfile ? 'Saving...' : 'Save Profile'}
+          </button>
+        </form>
+      </motion.div>
+
+      {/* Security */}
+      <motion.div
+        initial={{ y: 10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.1 }}
+        className="bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-100 dark:border-slate-700 p-6 sm:p-8 shadow-clinical"
+      >
+        <h2 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-6">Security</h2>
+
+        {!session ? (
+          <p className="text-sm text-slate-400 font-medium">Sign in to change your password.</p>
+        ) : (
+          <form onSubmit={handlePasswordChange} className="space-y-4">
+            <div className="relative">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
               <input
-                type="email"
-                placeholder="Email Address"
-                required
-                className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
+                type="password"
+                placeholder="New Password"
+                className={inputCls}
+                value={passwordForm.next}
+                onChange={(e) => setPasswordForm({ ...passwordForm, next: e.target.value })}
+              />
+            </div>
+            <div className="relative">
+              <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <input
+                type="password"
+                placeholder="Confirm New Password"
+                className={inputCls}
+                value={passwordForm.confirm}
+                onChange={(e) => setPasswordForm({ ...passwordForm, confirm: e.target.value })}
               />
             </div>
 
-            {view !== 'forgot' && (
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-                <input
-                  type="password"
-                  placeholder="Password"
-                  required
-                  className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
-                  value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
-                />
-              </div>
-            )}
-
-            {view === 'signup' && (
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-                <input
-                  type="password"
-                  placeholder="Confirm Password"
-                  required
-                  className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
-                  value={formData.confirmPassword}
-                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                />
-              </div>
-            )}
-
-            {error && (
-              <p className="text-red-400 text-sm bg-red-400/10 p-3 rounded-lg border border-red-400/20">
-                {error}
-              </p>
+            {passwordError && (
+              <p className="text-red-400 text-sm bg-red-400/10 p-3 rounded-lg border border-red-400/20">{passwordError}</p>
             )}
 
             <button
               type="submit"
-              disabled={loading}
-              className="w-full bg-gradient-to-r from-medical-600 to-blue-600 hover:from-medical-500 hover:to-blue-500 text-white font-semibold py-4 rounded-xl shadow-lg shadow-medical-500/25 flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
+              disabled={savingPassword}
+              className="w-full py-4 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-50"
             >
-              {loading ? (
-                <Loader2 className="w-5 h-5 animate-spin" />
-              ) : (
-                <>
-                  {view === 'signin' ? 'Sign In' : view === 'signup' ? 'Create Account' : 'Send Reset Link'}
-                  <ArrowRight className="w-5 h-5" />
-                </>
-              )}
+              {savingPassword ? <Loader2 size={16} className="animate-spin" /> : <Lock size={16} />}
+              {savingPassword ? 'Updating...' : 'Change Password'}
             </button>
           </form>
-
-          <div className="mt-8 text-center space-y-4">
-            {view === 'signin' && (
-              <button
-                onClick={() => setView('forgot')}
-                className="block w-full text-slate-400 hover:text-white transition-colors text-sm mb-2"
-              >
-                Forgot your password?
-              </button>
-            )}
-
-            <button
-              onClick={() => {
-                setView(view === 'signin' ? 'signup' : 'signin');
-                setError(null);
-                setSuccessMsg(null);
-              }}
-              className="block w-full text-slate-400 hover:text-white transition-colors text-sm font-medium"
-            >
-              {view === 'signin' ? "Don't have an account? Sign Up" : "Back to Sign In"}
-            </button>
-
-            {DEV_MODE && (
-              <button
-                type="button"
-                onClick={handleDevLogin}
-                className="w-full py-3 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-amber-500/20 transition-all"
-              >
-                Fast Dev Login (Student)
-              </button>
-            )}
-          </div>
-
-          <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-center gap-2 text-slate-500 text-sm">
-            <ShieldCheck className="w-4 h-4" />
-            Secure Authentication via Supabase
-          </div>
-        </div>
+        )}
       </motion.div>
+
+      {/* Session */}
+      {session && (
+        <motion.div
+          initial={{ y: 10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.15 }}
+          className="bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-100 dark:border-slate-700 p-6 sm:p-8 shadow-clinical"
+        >
+          <h2 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-5">Session</h2>
+          <button
+            onClick={handleSignOut}
+            className="w-full py-4 bg-red-50 dark:bg-red-900/20 hover:bg-red-100 dark:hover:bg-red-900/40 text-red-600 dark:text-red-400 border border-red-200 dark:border-red-800/50 rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95"
+          >
+            <LogOut size={16} />
+            Sign Out
+          </button>
+        </motion.div>
+      )}
+
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }

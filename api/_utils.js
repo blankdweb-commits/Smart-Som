@@ -1,8 +1,8 @@
 import { createClient } from '@supabase/supabase-js';
 
-// Initializing Supabase with Service Role Key for administrative tasks
+// Service-role client for administrative server-side tasks.
 export const getSupabaseAdmin = () => {
-  const url = process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.VITE_SUPABASE_URL;
+  const url = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !serviceKey) {
@@ -16,9 +16,21 @@ export const getSupabaseAdmin = () => {
   return createClient(url, serviceKey);
 };
 
-export const generateProductKey = () => {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  const gen = (len) => Array.from({ length: len }, () => chars.charAt(Math.floor(Math.random() * chars.length))).join('');
-  const year = new Date().getFullYear();
-  return `APEX-${gen(5)}-${gen(5)}-${year}`;
+// Resolve the authenticated user server-side from a Supabase access token.
+// Never trust user identifiers supplied in request bodies.
+export const getUserFromRequest = async (req) => {
+  const authHeader = req.headers.authorization || '';
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
+  if (!token) return null;
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return null;
+
+  try {
+    const { data, error } = await supabase.auth.getUser(token);
+    if (error || !data?.user) return null;
+    return data.user;
+  } catch {
+    return null;
+  }
 };

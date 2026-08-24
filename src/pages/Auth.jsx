@@ -1,16 +1,17 @@
 import React, { useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../utils/supabase';
-import { motion } from 'framer-motion';
+import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 import { Mail, Lock, User, Phone, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
 
 export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
-  const [view, setView] = useState('signin'); // 'signin', 'signup', 'forgot'
   const navigate = useNavigate();
   const location = useLocation();
+  // Route-aware initial view: /signup opens the registration form directly.
+  const [view, setView] = useState(location.pathname === '/signup' ? 'signup' : 'signin'); // 'signin', 'signup', 'forgot'
 
   const [formData, setFormData] = useState({
     email: '',

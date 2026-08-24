@@ -1,11 +1,10 @@
-import React, { useEffect, lazy, Suspense } from 'react';
+import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AppProvider, useAppContext } from './context/AppContext';
+import { AppProvider } from './context/AppContext';
 import Layout from './components/Layout';
 import { MotionConfig } from 'framer-motion';
 
 // Lazy load pages
-const Landing = lazy(() => import('./pages/Landing'));
 const Auth = lazy(() => import('./pages/Auth'));
 const Activate = lazy(() => import('./pages/Activate'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
@@ -27,28 +26,13 @@ const PageLoader = () => (
   </div>
 );
 
-const DASHBOARD_FIRST_MODE = true;
-
-const ProtectedRoute = ({ children, requireActivated = true }) => {
-  const { session, userProfile, loadingAuth } = useAppContext();
-  if (loadingAuth) return <PageLoader />;
-  if (!session && !DASHBOARD_FIRST_MODE) return <Navigate to="/login" replace />;
-  if (requireActivated && !userProfile.isActivated && !DASHBOARD_FIRST_MODE) {
-    return <Navigate to="/activate" replace />;
-  }
-  return children;
-};
-
 // --- MAIN ROUTER ---
-
+// Dashboard-first application. Routes are intentionally open;
+// admin surfaces are gated in-app by profile role (nav hidden for non-admins).
 const AppRouter = () => (
   <Suspense fallback={<PageLoader />}>
     <Routes>
       <Route path="/" element={<Navigate to="/dashboard" replace />} />
-      <Route path="/welcome" element={<Landing />} />
-      <Route path="/marketing" element={<Landing />} />
-      <Route path="/login" element={<Auth />} />
-      <Route path="/signup" element={<Auth />} />
 
       <Route element={<Layout />}>
         <Route path="/dashboard" element={<Dashboard />} />
@@ -65,6 +49,8 @@ const AppRouter = () => (
         <Route path="/admin/questions" element={<AdminQuestionManager />} />
       </Route>
 
+      <Route path="/login" element={<Auth />} />
+      <Route path="/signup" element={<Auth />} />
       <Route path="/xp-hall" element={<XpHall />} />
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

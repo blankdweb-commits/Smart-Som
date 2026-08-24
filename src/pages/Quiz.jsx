@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Brain,
   Timer,
@@ -23,7 +23,8 @@ import {
   ChevronLeft,
   Users,
   AlertCircle,
-  Sparkles
+  Sparkles,
+  Lock
 } from '../components/Icons';
 import useluData from '../data/flashcards/nmcn/uselu-posting-tests.json';
 import respirationData from '../data/flashcards/nmcn/Respiration-richard.json';
@@ -175,6 +176,54 @@ const Quiz = () => {
 
   const [showQuitModal, setShowQuitModal] = useState(false);
 
+  // ----- Difficulty progression -----
+  const { levelCompletions, recordQuizResult, recordWrongAnswers } = useAppContext();
+  const [selectedDifficulty, setSelectedDifficulty] = useState(null);
+  const [passInfo, setPassInfo] = useState(null); // { passed, pct }
+  const wrongAnswersRef = React.useRef([]);
+  const quizStartRef = React.useRef(null);
+  const resultRecordedRef = React.useRef(false);
+
+  const DIFFICULTY_TIERS = [
+    { id: 'Easy', dot: 'bg-emerald-500', ring: 'border-emerald-500/30', label: 'Build your foundation', passMark: 50, unlock: null },
+    { id: 'Medium', dot: 'bg-blue-500', ring: 'border-blue-500/30', label: 'Test your understanding', passMark: 60, unlock: null },
+    { id: 'Hard', dot: 'bg-orange-500', ring: 'border-orange-500/30', label: 'Challenge your clinical reasoning', passMark: 70, unlock: null },
+    { id: 'Expert', dot: 'bg-red-500', ring: 'border-red-500/30', label: 'Deeper clinical reasoning', passMark: 75, unlock: { from: 'Hard', count: 3 } },
+    { id: 'Master', dot: 'bg-purple-500', ring: 'border-purple-500/30', label: 'Advanced examination scenarios', passMark: 80, unlock: { from: 'Expert', count: 10 } },
+    { id: 'Extreme', dot: 'bg-slate-900 dark:bg-white', ring: 'border-slate-500/30', label: 'The hardest questions we have', passMark: 85, unlock: { from: 'Master', count: 14 } }
+  ];
+
+  // Deep-link support: /quiz?difficulty=Hard (e.g. from a completed flashcard session)
+  const [, setSearchParams] = useSearchParams();
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const d = params.get('difficulty');
+    if (d && DIFFICULTY_TIERS.some(t => t.id === d) && !selectedDifficulty) {
+      setSelectedDifficulty(d);
+      setSearchParams({}, { replace: true });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const isTierUnlocked = (tier) => {
+    if (!tier.unlock) return true;
+    return (levelCompletions?.[tier.unlock.from] || 0) >= tier.unlock.count;
+  };
+
+  const matchesTier = (cardDifficulty, tierId) => {
+    const d = String(cardDifficulty || '').toLowerCase();
+    switch (tierId) {
+      case 'Easy': return d === 'easy';
+      case 'Medium': return d === 'medium' || d === 'moderate';
+      case 'Hard': return d === 'hard';
+      // Authored Expert/Master/Extreme banks do not exist yet; these tiers draw
+      // from the Hard pool with stricter passing marks until curated content lands.
+      case 'Expert':
+      case 'Master':
+      case 'Extreme': return d === 'hard' || d === 'expert' || d === 'master' || d === 'extreme';
+      default: return true;
+    }
+  };
+
   useEffect(() => {
     return () => {
       exitFullscreen();
@@ -245,6 +294,20 @@ const Quiz = () => {
     const seen = new Set();
     const uniquePool = pool.filter(c => seen.has(c.question) ? false : seen.add(c.question));
 
+    // Difficulty progression: prefer cards matching the selected tier.
+    let tierPool = uniquePool;
+    if (selectedDifficulty) {
+      const tierMatches = uniquePool.filter(c => matchesTier(c.difficulty, selectedDifficulty));
+      if (tierMatches.length >= 5) {
+        tierPool = tierMatches;
+      } else {
+        // Top up from the whole bank filtered by tier across all flashcards
+        const globalTier = flashcards.filter(c => matchesTier(c.difficulty, selectedDifficulty));
+        tierPool = [...tierMatches, ...globalTier];
+      }
+    }
+    const activePool = tierPool.length > 0 ? tierPool : uniquePool;
+
     let limit = 10;
     const customVal = parseInt(customQuestionCount, 10);
     if (!isNaN(customVal)) {
@@ -253,8 +316,8 @@ const Quiz = () => {
       limit = Math.max(5, Math.min(300, questionLimit || 10));
     }
 
-    const shuffled = uniquePool.sort(() => 0.5 - Math.random());
-    const selected = shuffled.slice(0, Math.min(limit, uniquePool.length));
+    const shuffled = activePool.sort(() => 0.5 - Math.random());
+    const selected = shuffled.slice(0, Math.min(limit, activePool.length));
 
     const questions = selected.map(card => {
       if (Array.isArray(card.options) && card.options.length >= 2 && card.correctAnswer) {
@@ -292,6 +355,10 @@ const Quiz = () => {
     setShowQuitModal(false);
     setShowQuestionPopup(false);
     setShowLifelineRestore(false);
+    wrongAnswersRef.current = [];
+    setPassInfo(null);
+    resultRecordedRef.current = false;
+    quizStartRef.current = Date.now();
 
     if (useTimer) {
       const customTime = parseInt(customTimePerQuestion, 10);
@@ -350,6 +417,11 @@ const Quiz = () => {
       setConsecutiveCorrect(0);
       setShowRationale(true);
       updateQuizStats({ quizStreak: 0 });
+      wrongAnswersRef.current.push({
+        name: currentQ.topic || currentQ.subject || 'General',
+        subject: currentQ.subject || 'General',
+        question: currentQ.question
+      });
     }
     setShowRationale(true);
   };
@@ -402,6 +474,34 @@ const Quiz = () => {
     setLifelinesUsed(prev => ({ ...prev, askClass: true }));
   };
 
+  // Persist quiz outcome once per completed session.
+  React.useEffect(() => {
+    if (!showResults || resultRecordedRef.current || !quizStarted) return;
+    resultRecordedRef.current = true;
+    const total = quizQuestions.length;
+    const pct = total > 0 ? Math.round((score / total) * 100) : 0;
+    // eslint-disable-next-line react-hooks/purity
+    const durationSeconds = quizStartRef.current ? Math.round((Date.now() - quizStartRef.current) / 1000) : 0;
+
+    if (selectedDifficulty) {
+      recordQuizResult({
+        mode: quizMode,
+        difficulty: selectedDifficulty,
+        subject: 'Mixed Bank',
+        score,
+        total,
+        durationSeconds
+      }).then(passed => setPassInfo({ passed, pct }));
+    } else {
+      setPassInfo({ passed: null, pct });
+    }
+
+    if (wrongAnswersRef.current.length > 0) {
+      recordWrongAnswers(wrongAnswersRef.current);
+      updateQuizStats({}); // refresh milestone locally
+    }
+  }, [showResults]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // --- Render start ---
   if (!quizStarted) {
     return (
@@ -435,6 +535,60 @@ const Quiz = () => {
             </div>
           </div>
         </header>
+
+        {/* Choose Difficulty */}
+        <section className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-clinical border border-slate-100 dark:border-slate-700">
+          <div className="flex items-center gap-3 mb-4">
+            <div className="p-2 bg-medical-100 dark:bg-medical-900/30 text-medical-600 dark:text-medical-400 rounded-xl">
+              <Target size={18} />
+            </div>
+            <div>
+              <h2 className="text-base sm:text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Choose Difficulty</h2>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Pass a level to progress — completions unlock the next tier</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
+            {DIFFICULTY_TIERS.map(tier => {
+              const unlocked = isTierUnlocked(tier);
+              const done = levelCompletions?.[tier.id] || 0;
+              const active = selectedDifficulty === tier.id;
+              return (
+                <button
+                  key={tier.id}
+                  type="button"
+                  disabled={!unlocked}
+                  onClick={() => setSelectedDifficulty(active ? null : tier.id)}
+                  className={`flex items-center gap-3 p-3 sm:p-4 rounded-2xl border-2 text-left transition-all
+                    ${!unlocked ? 'opacity-60 cursor-not-allowed bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-800'
+                      : active ? `${tier.ring} bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg scale-[1.02]`
+                      : 'border-slate-100 dark:border-slate-800 hover:border-medical-400 bg-slate-50/50 dark:bg-slate-900/40'}`}
+                >
+                  <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${unlocked ? tier.dot : 'bg-slate-300 dark:bg-slate-600'}`} />
+                  <span className="flex-1 min-w-0">
+                    <span className={`block font-black text-sm tracking-tight ${active ? '' : 'text-slate-900 dark:text-white'}`}>
+                      {tier.id}
+                      {unlocked && done > 0 && (
+                        <span className="ml-2 text-[9px] font-black uppercase tracking-widest text-emerald-500">{done} completed</span>
+                      )}
+                    </span>
+                    <span className={`block text-[9px] font-bold uppercase tracking-widest truncate ${active ? 'text-white/60 dark:text-slate-900/60' : 'text-slate-400'}`}>
+                      {unlocked ? tier.label : `🔒 Complete ${tier.unlock.count} ${tier.unlock.from} levels to unlock`}
+                    </span>
+                  </span>
+                  {!unlocked && <Lock size={16} className="text-slate-400 shrink-0" />}
+                  {active && <CheckCircle2 size={16} className={active ? 'text-emerald-400 dark:text-emerald-600' : 'hidden'} />}
+                </button>
+              );
+            })}
+          </div>
+
+          {selectedDifficulty && (
+            <p className="mt-3 text-center text-[9px] font-black uppercase tracking-widest text-medical-600">
+              {selectedDifficulty} selected — pass mark {DIFFICULTY_TIERS.find(t => t.id === selectedDifficulty)?.passMark}% • pick a mode below to start
+            </p>
+          )}
+        </section>
 
         <section className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-clinical border border-slate-100 dark:border-slate-700">
           <div className="flex items-center gap-3 mb-4">
@@ -593,6 +747,16 @@ const Quiz = () => {
           </div>
           <h2 className={`text-2xl sm:text-4xl font-black mb-2 tracking-tight uppercase ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>Session Complete</h2>
           <p className="text-slate-400 dark:text-slate-400 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] mb-6 sm:mb-10">Performance Analytics Generated</p>
+
+          {passInfo && passInfo.passed !== null && selectedDifficulty && (
+            <div className={`mb-6 p-4 rounded-2xl border ${passInfo.passed
+              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-400'
+              : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
+              <p className="font-black uppercase tracking-widest text-xs">
+                {selectedDifficulty} Level {passInfo.passed ? '— Passed! Progress saved.' : `— Not passed (${passInfo.pct}%). Score ${DIFFICULTY_TIERS.find(t => t.id === selectedDifficulty)?.passMark}%+ to complete this level.`}
+              </p>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-8 sm:mb-10">
             <div className={`p-4 sm:p-6 rounded-2xl sm:rounded-3xl border ${quizMode === 'speed' ? 'bg-white/5 border-white/10' : 'bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-800'}`}>
@@ -1102,7 +1266,7 @@ const OptionButton = ({ label, index, state, pollValue, onClick, disabled, dark,
   }
 
   return (
-    <button disabled={disabled} onClick={onClick} className={`w-full relative flex items-center p-4 sm:p-5 rounded-2xl sm:rounded-3xl border-2 transition-all duration-300 overflow-hidden ${baseStyles} active:scale-95 min-h-[70px] sm:min-h-[80px]`}>
+    <button data-testid="quiz-option" disabled={disabled} onClick={onClick} className={`w-full relative flex items-center p-4 sm:p-5 rounded-2xl sm:rounded-3xl border-2 transition-all duration-300 overflow-hidden ${baseStyles} active:scale-95 min-h-[70px] sm:min-h-[80px]`}>
       {isLearningHighlight && state === 'default' && (
         <div className="absolute inset-0 bg-gradient-to-r from-indigo-500/5 via-purple-500/5 to-pink-500/5 animate-pulse pointer-events-none" />
       )}

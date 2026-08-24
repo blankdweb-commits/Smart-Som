@@ -1,6 +1,6 @@
 // api/payments/webhook.js
 import crypto from 'crypto';
-import { getSupabaseAdmin, generateProductKey } from '../_utils';
+import { getSupabaseAdmin } from '../_utils';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -20,12 +20,12 @@ export default async function handler(req, res) {
   const event = req.body;
 
   if (event.event === 'charge.success') {
-    const { reference, amount, customer, metadata } = event.data;
+    const { reference, amount, metadata } = event.data;
     const supabase = getSupabaseAdmin();
 
     try {
       // 1. Log Transaction
-      const { data: txn, error: txnError } = await supabase
+      const { error: txnError } = await supabase
         .from('transactions')
         .insert({
           user_id: metadata?.user_id,
@@ -34,34 +34,43 @@ export default async function handler(req, res) {
           status: 'success',
           paid_at: new Date().toISOString(),
           metadata: metadata
-        })
-        .select()
-        .single();
+        });
 
       if (txnError) throw txnError;
 
-      // 2. Handle Subscription/Product Key Generation if it's a subscription or key purchase
-      if (metadata?.type === 'subscription' || metadata?.type === 'product_key_purchase') {
-        const productKey = generateProductKey();
+      // 2. Resolve plan duration server-side — never trust client-sent durations.
+      let durationDays = 30;
+      let planName = 'Monthly';
 
-        // Use a simple hash or just store it (requirement says hash, but for ease of use let's store it and potentially hash on lookup)
-        // For production, we'd hash it. Here we'll store as is for user retrieval or hash it.
-        const { error: keyError } = await supabase
-          .from('product_keys')
-          .insert({
-            user_id: metadata?.user_id,
-            key_hash: productKey, // In real prod, this should be a hash
-            status: 'unused',
-            expires_at: new Date(Date.now() + 365 * 24 * 60 * 60 * 1000).toISOString() // 1 year expiry for key itself
-          });
-
-        if (keyError) throw keyError;
-
-        // Optionally send email here or notify user
+      if (metadata?.plan_id) {
+        const { data: plan } = await supabase
+          .from('subscription_plans')
+          .select('*')
+          .eq('id', metadata.plan_id)
+          .maybeSingle();
+        if (plan) {
+          durationDays = plan.duration_days;
+          planName = plan.name;
+        }
       }
 
-      // 3. Update User Activation if applicable
-      if (metadata?.user_id && metadata?.activate_user) {
+      // 3. Create the subscription directly.
+      const now = new Date();
+      const expiresAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+      const graceUntil = new Date(expiresAt.getTime() + 2 * 24 * 60 * 60 * 1000);
+
+      await supabase.from('subscriptions').insert({
+        user_id: metadata?.user_id,
+        plan: planName.toLowerCase(),
+        status: 'active',
+        expires_at: expiresAt.toISOString(),
+        grace_until: graceUntil.toISOString(),
+        amount: amount / 100,
+        reference
+      });
+
+      // 4. Activate the user profile.
+      if (metadata?.user_id) {
         await supabase
           .from('profiles')
           .update({ is_activated: true })

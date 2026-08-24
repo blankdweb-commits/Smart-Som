@@ -21,11 +21,58 @@ const SRSButton = ({ label, sublabel, color, onClick }) => (
 );
 
 const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
-  const { flashcards, userProfile, exams, addFlashcard, updateFlashcard, deleteFlashcard, updateCardProgress, importFlashcards, incrementCardsStudied } = useAppContext();
+  const { flashcards, userProfile, exams, addFlashcard, updateFlashcard, deleteFlashcard, updateCardProgress, importFlashcards, incrementCardsStudied, levelCompletions } = useAppContext();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+
+  // ----- Difficulty progression for flashcard sessions -----
+  const STUDY_TIERS = [
+    { id: 'Easy', dot: 'bg-emerald-500', label: 'Build your foundation', unlock: null },
+    { id: 'Medium', dot: 'bg-blue-500', label: 'Test your understanding', unlock: null },
+    { id: 'Hard', dot: 'bg-orange-500', label: 'Challenge your clinical reasoning', unlock: null },
+    { id: 'Expert', dot: 'bg-red-500', label: 'Deeper clinical reasoning', unlock: { from: 'Hard', count: 3 } },
+    { id: 'Master', dot: 'bg-purple-500', label: 'Advanced examination scenarios', unlock: { from: 'Expert', count: 10 } },
+    { id: 'Extreme', dot: 'bg-slate-900 dark:bg-white', label: 'The hardest questions we have', unlock: { from: 'Master', count: 14 } }
+  ];
+  const isTierUnlocked = (tier) => !tier.unlock || ((levelCompletions?.[tier.unlock.from] || 0) >= tier.unlock.count);
+  const cardMatchesTier = (card, tierId) => {
+    if (!tierId) return true;
+    const d = String(card.difficulty || '').toLowerCase();
+    switch (tierId) {
+      case 'Easy': return d === 'easy';
+      case 'Medium': return d === 'medium' || d === 'moderate';
+      case 'Hard': return d === 'hard';
+      case 'Expert':
+      case 'Master':
+      case 'Extreme': return d === 'hard' || d === 'expert' || d === 'master' || d === 'extreme';
+      default: return true;
+    }
+  };
+  const [studyDifficulty, setStudyDifficulty] = useState(null);
+  const [sessionStats, setSessionStats] = useState(null); // populated when a session completes
+
+  const startSessionTracking = () => setSessionStats({ viewed: 0, mastered: 0, needsReview: 0, accuracySum: 0, rated: 0, startedAt: Date.now(), done: false });
+
+  const rateCurrentCard = (quality) => {
+    setSessionStats(prev => {
+      if (!prev || prev.done) return prev;
+      const next = {
+        ...prev,
+        viewed: prev.viewed + 1,
+        mastered: prev.mastered + (quality >= 4 ? 1 : 0),
+        needsReview: prev.needsReview + (quality < 3 ? 1 : 0),
+        accuracySum: prev.accuracySum + (quality / 5) * 100,
+        rated: prev.rated + 1
+      };
+      // Completed the final card -> summarize
+      if (studyIndex >= shuffledCards.length - 1) {
+        return { ...next, done: true };
+      }
+      return next;
+    });
+  };
 
   const DEV_MODE =  (import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true');
   const isActivated = userProfile.isActivated || userProfile.subscriptionStatus === 'grace' || DEV_MODE;
@@ -138,10 +185,11 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
       const matchesSemester = !currentSemester || card.semester === currentSemester;
       const matchesSubject = !currentSubject || card.subject === currentSubject;
       const matchesDifficulty = filterDifficulty === 'All' || card.difficulty === filterDifficulty;
+      const matchesTier = cardMatchesTier(card, studyDifficulty);
       const isPriority = !isExamPriority || upcomingExamSubjects.some(subj => (card.subject || '').toLowerCase().includes(subj));
-      return matchesSearch && matchesLevel && matchesSemester && matchesSubject && matchesDifficulty && isPriority;
+      return matchesSearch && matchesLevel && matchesSemester && matchesSubject && matchesDifficulty && matchesTier && isPriority;
     });
-  }, [categoryCards, debouncedSearchTerm, currentLevel, currentSemester, currentSubject, filterDifficulty, isExamPriority, upcomingExamSubjects]);
+  }, [categoryCards, debouncedSearchTerm, currentLevel, currentSemester, currentSubject, filterDifficulty, studyDifficulty, isExamPriority, upcomingExamSubjects]);
 
   useEffect(() => {
     setVisibleCount(12);
@@ -160,10 +208,14 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
     setShuffledCards(cardsToStudy);
     setStudyIndex(0);
     setViewMode('study');
+    startSessionTracking();
   };
 
   const handleNext = (quality = null) => {
-    if (quality !== null) setToast({ message: `Card Rated!`, type: 'success' });
+    if (quality !== null) {
+      setToast({ message: `Card Rated!`, type: 'success' });
+      rateCurrentCard(quality);
+    }
     if (studyIndex < shuffledCards.length - 1) {
       setStudyIndex(studyIndex + 1);
       incrementCardsStudied();
@@ -382,6 +434,31 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
             </button>
           </div>
 
+          {/* Difficulty progression strip */}
+          <div className="flex flex-wrap gap-2">
+            {STUDY_TIERS.map(tier => {
+              const unlocked = isTierUnlocked(tier);
+              const active = studyDifficulty === tier.id;
+              const count = categoryCards.filter(c => cardMatchesTier(c, tier.id)).length;
+              return (
+                <button
+                  key={tier.id}
+                  onClick={() => setStudyDifficulty(active ? null : tier.id)}
+                  disabled={!unlocked}
+                  title={unlocked ? `${count} cards available` : `Complete ${tier.unlock.count} ${tier.unlock.from} quiz levels to unlock`}
+                  className={`flex items-center gap-1.5 px-3 py-2 rounded-xl text-[9px] font-black uppercase tracking-widest border-2 transition-all
+                    ${!unlocked ? 'opacity-50 cursor-not-allowed border-slate-100 dark:border-slate-800 text-slate-400'
+                      : active ? 'bg-slate-900 dark:bg-white dark:text-slate-900 text-white border-transparent shadow-md'
+                      : 'border-slate-100 dark:border-slate-700 text-slate-500 hover:border-medical-400'}`}
+                >
+                  {!unlocked ? <Lock size={11} /> : <span className={`w-2 h-2 rounded-full ${tier.dot}`} />}
+                  {tier.id}
+                  {unlocked && count > 0 && <span className="opacity-60">{count}</span>}
+                </button>
+              );
+            })}
+          </div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredCards.slice(0, visibleCount).map(card => (
               <FlashcardCard key={card.id} card={card} onEdit={handleEdit} onDelete={deleteFlashcard} onShare={handleShare} onToggleImportant={handleToggleImportant} />
@@ -424,6 +501,60 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
               <SRSButton label="Easy" sublabel="7d+" color="bg-blue-500" onClick={() => { updateCardProgress(shuffledCards[studyIndex].id, 5); handleNext(5); }} />
             </div>
           </div>
+
+          {/* Session complete summary */}
+          {sessionStats?.done && (
+            <div className="absolute inset-0 z-[60] bg-white/95 dark:bg-slate-900/95 backdrop-blur-md flex items-center justify-center p-6">
+              <motion.div
+                initial={{ scale: 0.9, opacity: 0 }}
+                animate={{ scale: 1, opacity: 1 }}
+                className="w-full max-w-sm bg-white dark:bg-slate-800 rounded-[2.5rem] shadow-clinical border border-slate-100 dark:border-slate-700 p-8 text-center space-y-5"
+              >
+                <div className="w-16 h-16 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 rounded-2xl flex items-center justify-center mx-auto">
+                  <CheckCircle2 size={32} />
+                </div>
+                <h3 className="text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Session Complete!</h3>
+                <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">
+                  {studyDifficulty ? `${studyDifficulty} tier` : 'Mixed practice'} • {shuffledCards.length} cards
+                </p>
+                <div className="grid grid-cols-2 gap-3 text-left">
+                  <div className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
+                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Cards Viewed</p>
+                    <p className="text-lg font-black text-slate-900 dark:text-white">{sessionStats.viewed}</p>
+                  </div>
+                  <div className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
+                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Mastered</p>
+                    <p className="text-lg font-black text-emerald-500">{sessionStats.mastered}</p>
+                  </div>
+                  <div className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
+                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Need Review</p>
+                    <p className="text-lg font-black text-red-500">{sessionStats.needsReview}</p>
+                  </div>
+                  <div className="p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
+                    <p className="text-[8px] font-black text-slate-400 uppercase tracking-widest">Accuracy</p>
+                    <p className="text-lg font-black text-medical-600">
+                      {sessionStats.rated > 0 ? Math.round(sessionStats.accuracySum / sessionStats.rated) : 0}%
+                    </p>
+                  </div>
+                </div>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                  Time: {Math.max(1, Math.round((Date.now() - sessionStats.startedAt) / 1000))}s
+                </p>
+                <button
+                  onClick={() => navigate(`/quiz${studyDifficulty ? `?difficulty=${studyDifficulty}` : ''}`)}
+                  className="w-full py-4 bg-medical-600 hover:bg-medical-700 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-medical-600/20 active:scale-95 transition-all"
+                >
+                  Continue to Quiz →
+                </button>
+                <button
+                  onClick={() => { setViewMode('list'); setSessionStats(null); }}
+                  className="w-full py-2 text-slate-400 hover:text-medical-600 font-bold text-xs transition-colors"
+                >
+                  Back to Library
+                </button>
+              </motion.div>
+            </div>
+          )}
         </div>
       )}
 

@@ -1,14 +1,19 @@
-import { createClient } from '@supabase/supabase-js';
-
-const supabase = createClient(
-  process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL,
-  process.env.SUPABASE_SERVICE_ROLE_KEY
-);
+// api/verify-payment.js
+import { getSupabaseAdmin, getUserFromRequest } from './_utils';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
-  const { reference, user_id } = req.body;
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+
+  // SECURITY: the user identity comes from their Supabase access token,
+  // never from the request body.
+  const user = await getUserFromRequest(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+
+  const { reference } = req.body;
+  if (!reference) return res.status(400).json({ error: 'Missing payment reference' });
 
   try {
     // 1. Verify with Paystack
@@ -24,13 +29,36 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Payment verification failed' });
     }
 
-    const email = result.data.customer.email;
-    const amount = result.data.amount / 100;
+    const paidAmount = result.data.amount / 100;
+    const planId = result.data.metadata?.plan_id;
 
-    // 2. Prevent duplicate processing
+    // 2. Resolve the plan SERVER-SIDE and validate the amount actually paid.
+    let durationDays = 30;
+    let planName = 'Monthly';
+    let expectedPrice = null;
+
+    if (planId) {
+      const { data: plan } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .eq('id', planId)
+        .maybeSingle();
+      if (plan) {
+        durationDays = plan.duration_days;
+        planName = plan.name;
+        expectedPrice = Number(plan.price);
+      }
+    }
+
+    if (expectedPrice !== null && Math.abs(paidAmount - expectedPrice) > 1) {
+      console.error(`Amount mismatch for ref ${reference}: paid ${paidAmount}, expected ${expectedPrice}`);
+      return res.status(400).json({ error: 'Payment amount does not match the selected plan' });
+    }
+
+    // 3. Prevent duplicate processing
     const { data: existingPayment } = await supabase
       .from('payments')
-      .select('*')
+      .select('id')
       .eq('reference', reference)
       .maybeSingle();
 
@@ -38,32 +66,38 @@ export default async function handler(req, res) {
       return res.status(200).json({ success: true, message: 'Already processed' });
     }
 
-    // 3. Record Payment
+    // 4. Record Payment
     await supabase.from('payments').insert({
-      user_id,
-      email,
-      amount,
+      user_id: user.id,
+      email: user.email,
+      amount: paidAmount,
       reference,
       status: 'success'
     });
 
-    // 4. Activate Subscription (30 days + 2-day grace)
+    // 5. Activate Subscription
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + 30 * 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
     const graceUntil = new Date(expiresAt.getTime() + 2 * 24 * 60 * 60 * 1000);
 
     await supabase.from('subscriptions').insert({
-      user_id,
+      user_id: user.id,
+      plan: planName.toLowerCase(),
       status: 'active',
       expires_at: expiresAt.toISOString(),
       grace_until: graceUntil.toISOString(),
-      amount
+      amount: paidAmount,
+      reference
     });
 
-    // 5. Update Profile Activation
-    await supabase.from('profiles').update({ is_activated: true }).eq('id', user_id);
+    // 6. Update Profile Activation
+    await supabase.from('profiles').update({ is_activated: true }).eq('id', user.id);
 
-    return res.status(200).json({ success: true });
+    return res.status(200).json({
+      success: true,
+      subscriptionStatus: 'active',
+      expires_at: expiresAt.toISOString()
+    });
 
   } catch (error) {
     console.error('Payment Verification Error:', error);
