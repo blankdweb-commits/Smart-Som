@@ -9,7 +9,6 @@ import {
   Target,
   Zap,
   Shield,
-  Timer,
   List,
   Lock,
   Sparkles
@@ -72,27 +71,6 @@ const QUIZ_CONFIGS = {
     allowExamMode: true,
     defaultOrder: 'randomized',
     bankNote: '61 questions available in this bank'
-  },
-  speed: {
-    title: 'Speed Challenge',
-    identity: 'The ultimate test. One wrong answer ends the run.',
-    icon: <Timer size={22} />,
-    accentText: 'text-emerald-400',
-    accentBg: 'bg-emerald-500/20 border-emerald-500/30',
-    questionCounts: [10, 20, 30, 50, 100],
-    timerOptions: [
-      { value: null, label: 'No Time Limit' },
-      { value: 10, label: '10s / Q' },
-      { value: 20, label: '20s / Q' },
-      { value: 30, label: '30s / Q' },
-      { value: 60, label: '60s / Q' }
-    ],
-    allowOrderChoice: false,
-    allowExamMode: false,
-    forcedOrder: 'randomized',
-    defaultAnswerMode: 'instant-feedback',
-    defaultOrder: 'randomized',
-    bankNote: null
   }
 };
 

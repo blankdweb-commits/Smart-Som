@@ -184,15 +184,14 @@ try {
     useluText.includes('61 questions') && !useluCounts.includes('100'),
     `counts: ${useluCounts.join(',')}`);
 
-  // ---------- 9. Speed Challenge routes through setup ----------
+  // ---------- 9. Speed Challenge removed from mode selection ----------
   await page.click('button:has-text("Back to Quiz Modes")').catch(() => {});
   await page.waitForTimeout(300);
-  await page.click('text=Speed Challenge');
-  await page.waitForTimeout(400);
-  const speedSetup = await page.isVisible('text=Speed Challenge') && await page.isVisible('text=Choose Difficulty');
-  const speedRandomLocked = await page.textContent('body');
-  log('Speed Challenge opens same setup flow', speedSetup,
-    speedRandomLocked.includes('always uses randomized order') ? 'order forced randomized' : '');
+  const bodyText = await page.textContent('body');
+  const speedGone = !bodyText.includes('Speed Challenge');
+  const threeModes = bodyText.includes('Clinical Challenge') && bodyText.includes('Quick Quiz') && bodyText.includes('Uselu Test Questions');
+  log('Speed Challenge removed; exactly 3 modes remain', speedGone && threeModes,
+    speedGone ? 'clinical/quick/uselu only' : 'Speed Challenge still visible');
 
 } catch (e) {
   console.log('FATAL:', e.message);

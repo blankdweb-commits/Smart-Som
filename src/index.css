@@ -72,6 +72,41 @@ html {
   transform: rotateY(180deg);
 }
 
+/* Swipeable flashcard study stack (@daformat/react-swipeable-cards) */
+.swipe-cards-root {
+  width: 100%;
+}
+
+.swipe-cards-root [data-swipeable-cards-cards] {
+  display: grid;
+  grid-template-columns: 1fr;
+  place-content: center;
+  position: relative;
+  touch-action: none;
+  z-index: 1;
+}
+
+.swipe-cards-root [data-swipeable-cards-card-wrapper] {
+  grid-area: 1 / 1;
+  align-self: center;
+  justify-self: center;
+  touch-action: none;
+  width: 100%;
+  height: 100%;
+  transform-origin: center bottom;
+  transition: scale 0.3s ease;
+  z-index: calc(var(--stack-length) - var(--stack-index0));
+}
+
+.swipe-cards-root [data-swipeable-cards-top-card="true"] {
+  pointer-events: auto;
+  cursor: grab;
+}
+
+.swipe-cards-root [data-swipeable-cards-top-card="true"]:active {
+  cursor: grabbing;
+}
+
 /* React Calendar Dark Mode Overrides */
 .dark .react-calendar {
   background: #1e293b;
