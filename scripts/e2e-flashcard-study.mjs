@@ -11,6 +11,19 @@ const log = (step, ok, detail = '') => {
 };
 
 const browser = await chromium.launch();
+
+// Click the top card and verify the flipped back face renders
+async function tapFlipRevealsAnswer(page) {
+  await page.locator('[data-swipeable-cards-top-card="true"] .flashcard-container')
+    .click({ force: true }).catch(() => {});
+  await page.waitForTimeout(800);
+  return page.evaluate(() => {
+    const inner = document.querySelector('.flashcard-inner.flipped');
+    if (!inner) return false;
+    const back = inner.querySelector('.flashcard-back');
+    return !!back && back.getBoundingClientRect().height > 0;
+  }).catch(() => false);
+}
 const ctx = await browser.newContext({ viewport: { width: 390, height: 844 } }); // mobile
 const page = await ctx.newPage();
 let pageErrors = 0;
@@ -71,19 +84,11 @@ try {
   const sessionUi = stackNodes >= 1 || /\d+\s*\/\s*\d+/.test(sessText);
   log('study session renders card stack', sessionUi, `stack nodes=${stackNodes}`);
 
-  // ---------- 5. Flip + SRS rating advances the stack ----------
-  await page.locator('.swipe-cards-root > div').first().click().catch(() => {});
-  await page.waitForTimeout(700);
-  const srsLabels = ['Good', 'Again', 'Easy'].map(l => page.locator(`button:has-text("${l}")`).first());
-  let rated = false;
-  for (const btn of srsLabels) {
-    if (await btn.count() > 0 && !(await btn.isDisabled().catch(() => true))) {
-      await btn.click({ timeout: 3000 }).catch(() => {});
-      rated = true;
-      break;
-    }
-  }
-  log('SRS rating button clickable', rated);
+  // ---------- 5. Tap top card flips it; SRS bar removed ----------
+  const flipOk = await tapFlipRevealsAnswer(page);
+  log('tap flips card and reveals answer', flipOk);
+  const srsGone = !(await page.textContent('body')).includes('<1m');
+  log('legacy SRS rating bar removed', srsGone);
 
   // ---------- 6. Exit (back arrow in session header) returns to library ----------
   const backArrow = page.locator('div.fixed button').first();

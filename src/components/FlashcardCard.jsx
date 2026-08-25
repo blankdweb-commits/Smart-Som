@@ -29,7 +29,7 @@ const FlashcardCard = ({
       onClick={(e) => { e.stopPropagation(); onFlip && onFlip(); }}
     >
       <div className={`flashcard-inner w-full h-full ${isFlipped ? 'flipped' : ''}`}>
-        <div className={`flashcard-front absolute inset-0 bg-white dark:bg-slate-800 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-700 p-6 sm:p-8 flex flex-col justify-between overflow-hidden`}>
+        <div className={`flashcard-front absolute inset-0 bg-white dark:bg-slate-800 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-700 p-5 sm:p-8 flex flex-col justify-between overflow-y-auto`}>
           <div>
             <div className="flex justify-between items-start mb-4">
               <span className="text-[10px] font-black px-3 py-1 bg-teal-50 text-teal-600 dark:bg-teal-900/40 dark:text-teal-300 rounded-full uppercase tracking-[0.15em] border border-teal-100/50">

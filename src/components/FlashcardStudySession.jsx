@@ -6,28 +6,6 @@ import { ArrowLeft, CheckCircle2 } from './Icons';
 
 const QUALITY = { again: 1, hard: 3, good: 4, easy: 5 };
 
-const SRSButton = ({ label, sublabel, color, onClick }) => (
-  <button
-    onClick={(e) => { e.stopPropagation(); onClick(); }}
-    className={`${color} text-white p-3 rounded-2xl shadow-clinical hover:opacity-90 transition-all flex flex-col items-center justify-center min-h-[64px] active:scale-95`}
-  >
-    <span className="text-base font-bold">{label}</span>
-    <span className="text-[10px] opacity-80 font-medium tracking-wide">{sublabel}</span>
-  </button>
-);
-
-const SessionControls = ({ onRate }) => {
-  const stack = SwipeableCards.useSwipeableCardsStack();
-  return (
-    <div className="grid grid-cols-4 gap-2 w-full max-w-md mx-auto">
-      <SRSButton label="Again" sublabel="<1m" color="bg-red-500" onClick={() => onRate(QUALITY.again)} />
-      <SRSButton label="Hard" sublabel="1d" color="bg-orange-500" onClick={() => onRate(QUALITY.hard)} />
-      <SRSButton label="Good" sublabel="4d" color="bg-emerald-500" onClick={() => onRate(QUALITY.good)} />
-      <SRSButton label="Easy" sublabel="7d+" color="bg-blue-500" onClick={() => onRate(QUALITY.easy)} />
-    </div>
-  );
-};
-
 const FlashcardStudySession = ({ cards, updateCardProgress, incrementCardsStudied, onComplete, onExit }) => {
   const total = cards.length;
   const [stats, setStats] = useState({ rated: 0, mastered: 0, needsReview: 0, accuracySum: 0 });
@@ -58,15 +36,6 @@ const FlashcardStudySession = ({ cards, updateCardProgress, incrementCardsStudie
     setFlippedId(null);
   };
 
-  const handleRate = (quality) => {
-    // Top card is derived from rated count; progress is persisted per card
-    const idx = Math.min(stats.rated, total - 1);
-    const card = cards[idx];
-    if (card && updateCardProgress) updateCardProgress(card.id, quality);
-    rateTopCard(quality);
-    setFlippedId(null);
-  };
-
   const done = stats.rated >= total;
 
   return (
@@ -93,7 +62,7 @@ const FlashcardStudySession = ({ cards, updateCardProgress, incrementCardsStudie
 
       {!done ? (
         <>
-          <div className="flex-1 flex items-center justify-center px-6 min-h-0 py-4">
+          <div className="flex-1 flex flex-col items-center justify-center px-4 min-h-0 py-3 w-full">
             <SwipeableCards.Root
               key={`session-${total}-${startedAt}`}
               className="swipe-cards-root"
@@ -102,12 +71,18 @@ const FlashcardStudySession = ({ cards, updateCardProgress, incrementCardsStudie
               onSwipe={handleSwipe}
               emptyView={<></>}
             >
-              <SwipeableCards.Cards visibleStackLength={3} style={{ aspectRatio: '3 / 4', width: 'min(100%, 22rem)' }}>
+              <SwipeableCards.Cards visibleStackLength={3} style={{ aspectRatio: '3 / 4', width: 'min(100%, 20rem)' }}>
                 {(stack) => stack.map(entry => {
                   const card = cards.find(c => String(c.id) === entry.id);
                   if (!card) return null;
                   return (
-                    <SwipeableCards.CardWrapper key={entry.id} card={entry}>
+                    <SwipeableCards.CardWrapper
+                      key={entry.id}
+                      card={entry}
+                      // Pointer capture by the swipe layer retargets clicks to
+                      // this wrapper, so the flip handler must live here.
+                      onClick={() => setFlippedId(flippedId === entry.id ? null : entry.id)}
+                    >
                       <FlashcardCard
                         card={card}
                         isFullscreen={true}
@@ -119,21 +94,19 @@ const FlashcardStudySession = ({ cards, updateCardProgress, incrementCardsStudie
                 })}
               </SwipeableCards.Cards>
 
-              {/* Swipe action buttons */}
-              <div className="mt-8 grid grid-cols-2 gap-3 w-full max-w-xs mx-auto">
-                <SwipeableCards.SwipeLeftButton className="p-4 rounded-2xl bg-red-500 text-white shadow-clinical hover:opacity-90 active:scale-95 transition-all min-h-[56px] font-black uppercase tracking-widest text-xs">
+              {/* Tap to flip hint + swipe action buttons */}
+              <p className="mt-4 text-[9px] font-black uppercase tracking-widest text-slate-400 text-center">
+                Tap card to reveal answer · Swipe left = review, right = mastered
+              </p>
+              <div className="mt-3 grid grid-cols-2 gap-3 w-full max-w-xs mx-auto pb-[env(safe-area-inset-bottom)]">
+                <SwipeableCards.SwipeLeftButton className="py-4 rounded-2xl bg-red-500 text-white shadow-clinical hover:opacity-90 active:scale-95 transition-all min-h-[56px] font-black uppercase tracking-widest text-xs">
                   Review Later
                 </SwipeableCards.SwipeLeftButton>
-                <SwipeableCards.SwipeRightButton className="p-4 rounded-2xl bg-emerald-500 text-white shadow-clinical hover:opacity-90 active:scale-95 transition-all min-h-[56px] font-black uppercase tracking-widest text-xs">
+                <SwipeableCards.SwipeRightButton className="py-4 rounded-2xl bg-emerald-500 text-white shadow-clinical hover:opacity-90 active:scale-95 transition-all min-h-[56px] font-black uppercase tracking-widest text-xs">
                   Mastered
                 </SwipeableCards.SwipeRightButton>
               </div>
             </SwipeableCards.Root>
-          </div>
-
-          {/* SRS rating bar */}
-          <div className="bg-white dark:bg-slate-800 p-4 border-t border-slate-100 dark:border-slate-700 pb-safe">
-            <SessionControls onRate={handleRate} />
           </div>
         </>
       ) : (

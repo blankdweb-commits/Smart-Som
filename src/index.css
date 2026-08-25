@@ -47,6 +47,11 @@ html {
 
 .flashcard-container {
   perspective: 1000px;
+  /* Intrinsic dimensions so absolute-positioned faces never collapse to
+     zero height inside grid/flex parents (e.g. swipeable-cards stack). */
+  aspect-ratio: 3 / 4;
+  max-height: 100%;
+  margin-inline: auto;
 }
 
 .flashcard-inner {
@@ -105,6 +110,16 @@ html {
 
 .swipe-cards-root [data-swipeable-cards-top-card="true"]:active {
   cursor: grabbing;
+}
+
+/* Small phones / landscape: shrink the card so hint + swipe buttons stay visible */
+@media (max-height: 720px) {
+  .swipe-cards-root [data-swipeable-cards-cards] {
+    width: min(78vw, 15rem);
+  }
+  .flashcard-container {
+    aspect-ratio: 4 / 5;
+  }
 }
 
 /* React Calendar Dark Mode Overrides */
