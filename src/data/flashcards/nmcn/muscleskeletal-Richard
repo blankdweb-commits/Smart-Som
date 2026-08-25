@@ -1,0 +1,2552 @@
+[
+  {
+    "id": 1,
+    "subject": "Musculoskeletal",
+    "question": "The first type of bone to form during fracture repair is",
+    "options": [
+      "Compact",
+      "Lamellar",
+      "Spongy bone",
+      "Dense"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Spongy bone",
+    "rationale": "Spongy (woven) bone forms first during fracture healing.",
+    "clinical_application": "Fracture healing progresses from woven bone to lamellar bone.",
+    "simplification": "Spongy bone is the first to form in healing.",
+    "hints": "Woven bone = initial repair."
+  },
+  {
+    "id": 2,
+    "subject": "Musculoskeletal",
+    "question": "Skeletal traction is applied to the right femur of a client injured in a fall. The primary purpose of the skeletal traction is to:",
+    "options": [
+      "Realign the tibia and fibula",
+      "Provide traction on the muscles",
+      "Provide traction on the ligaments",
+      "Realign femoral bone fragments"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Realign femoral bone fragments",
+    "rationale": "Skeletal traction maintains bone alignment.",
+    "clinical_application": "Used for femoral fractures to align fragments.",
+    "simplification": "Traction helps line up broken bone pieces.",
+    "hints": "Aligns bone fragments."
+  },
+  {
+    "id": 3,
+    "subject": "Musculoskeletal",
+    "question": "Composition of bone marrow is.",
+    "options": [
+      "Adipose tissue",
+      "Adipose, areolar tissue and blood",
+      "Adipose and areolar tissue",
+      "Adipose tissue and fibroblasts"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Adipose, areolar tissue and blood",
+    "rationale": "Bone marrow contains fat, connective tissue, and blood elements.",
+    "clinical_application": "Marrow produces blood cells and stores fat.",
+    "simplification": "Bone marrow = fat + connective tissue + blood.",
+    "hints": "Marrow has multiple components."
+  },
+  {
+    "id": 4,
+    "subject": "Musculoskeletal",
+    "question": "Which of the following disease is associated with ribs?",
+    "options": [
+      "Synovitis",
+      "Bursitis",
+      "Rickets",
+      "Osteomyelitis"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Rickets",
+    "rationale": "Rickets affects bone development including ribs.",
+    "clinical_application": "Rickets causes bone deformities like rachitic rosary.",
+    "simplification": "Rickets affects ribs and bones.",
+    "hints": "Rickets = bone softening."
+  },
+  {
+    "id": 5,
+    "subject": "Musculoskeletal",
+    "question": "The nurse knows that a 60-year-old female client's susceptibility to osteoporosis is most likely related to:",
+    "options": [
+      "Lack of exercise",
+      "Hormonal changes",
+      "Lack of calcium",
+      "Genetic predisposition"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Hormonal changes",
+    "rationale": "Postmenopausal estrogen loss increases osteoporosis risk.",
+    "clinical_application": "HRT may reduce risk in some women.",
+    "simplification": "Menopause hormone loss weakens bones.",
+    "hints": "Estrogen decline = osteoporosis risk."
+  },
+  {
+    "id": 6,
+    "subject": "Musculoskeletal",
+    "question": "Which of the following muscle originated from coracoid process of scapula:",
+    "options": [
+      "Brachialis",
+      "Triceps brachii",
+      "Coracobrachialis",
+      "Subscapularis"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Coracobrachialis",
+    "rationale": "It originates from the coracoid process.",
+    "clinical_application": "Flexes and adducts shoulder.",
+    "simplification": "Coracobrachialis starts at coracoid process.",
+    "hints": "Coracoid process origin."
+  },
+  {
+    "id": 7,
+    "subject": "Musculoskeletal",
+    "question": "Skeletal muscle bundles are held together by a common connective tissue layer known as......",
+    "options": [
+      "Fascia",
+      "Perimysium",
+      "Aponeurosis",
+      "Endomysium"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Fascia",
+    "rationale": "Fascia surrounds and binds muscle bundles together.",
+    "clinical_application": "Fascial layers separate muscle groups.",
+    "simplification": "Fascia wraps muscles.",
+    "hints": "Fascia = connective tissue envelope."
+  },
+  {
+    "id": 8,
+    "subject": "Musculoskeletal",
+    "question": "Exaggeration of normal forward curve of the lumbar spine is termed:",
+    "options": [
+      "Kyphosis",
+      "Scoliosis",
+      "Lombosis",
+      "Lordosis"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Lordosis",
+    "rationale": "Lordosis is exaggerated lumbar curvature.",
+    "clinical_application": "Common in pregnancy and obesity.",
+    "simplification": "Lordosis = swayback.",
+    "hints": "Lordosis = lumbar curve."
+  },
+  {
+    "id": 9,
+    "subject": "Musculoskeletal",
+    "question": "Which part of human skeleton forms the helmet for the protection of human brain?",
+    "options": [
+      "Temporal bone",
+      "Hyoid",
+      "Mandible",
+      "Cranium"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Cranium",
+    "rationale": "The cranium protects the brain.",
+    "clinical_application": "Cranial bones protect the brain from injury.",
+    "simplification": "Cranium = brain helmet.",
+    "hints": "Cranium protects brain."
+  },
+  {
+    "id": 10,
+    "subject": "Musculoskeletal",
+    "question": "The unit length of a muscle fibre is called:",
+    "options": [
+      "Cytomere",
+      "Myomere",
+      "Sarcomere",
+      "Histomere"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Sarcomere",
+    "rationale": "Sarcomere is the functional unit of muscle contraction.",
+    "clinical_application": "Muscle contraction occurs at sarcomere level.",
+    "simplification": "Sarcomere = muscle unit.",
+    "hints": "Sarcomere = contractile unit."
+  },
+  {
+    "id": 11,
+    "subject": "Musculoskeletal",
+    "question": "Nasal septum gets damaged. Its recovery requires cartilage known as.",
+    "options": [
+      "Elastic cartilage",
+      "Fibrous cartilage",
+      "Calcified cartilage",
+      "Hyaline cartilage"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Hyaline cartilage",
+    "rationale": "Nasal septum mainly contains hyaline cartilage.",
+    "clinical_application": "Hyaline cartilage is flexible and supportive.",
+    "simplification": "Nose septum = hyaline cartilage.",
+    "hints": "Hyaline = nose septum."
+  },
+  {
+    "id": 12,
+    "subject": "Musculoskeletal",
+    "question": "The major cause of sjogren's syndrome is",
+    "options": [
+      "Bacteria",
+      "Virus",
+      "Inflammation",
+      "Infection"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Inflammation",
+    "rationale": "Sjogren's syndrome is an autoimmune inflammatory disease.",
+    "clinical_application": "Affects salivary and lacrimal glands.",
+    "simplification": "Sjogren's = inflammation.",
+    "hints": "Autoimmune inflammation."
+  },
+  {
+    "id": 13,
+    "subject": "Musculoskeletal",
+    "question": "The levator ani muscle consists of how many muscles:",
+    "options": [
+      "2",
+      "3",
+      "4",
+      "5"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "3",
+    "rationale": "Levator ani consists of puborectalis, pubococcygeus, and iliococcygeus.",
+    "clinical_application": "Important for pelvic floor support.",
+    "simplification": "Levator ani = 3 muscles.",
+    "hints": "Three muscles."
+  },
+  {
+    "id": 14,
+    "subject": "Musculoskeletal",
+    "question": "Mammalian pinna is supported by",
+    "options": [
+      "Elastic cartilage",
+      "Hyaline cartilage",
+      "White fibrous connective tissue",
+      "Calcified cartilage"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Elastic cartilage",
+    "rationale": "The pinna contains elastic cartilage.",
+    "clinical_application": "Elastic cartilage maintains ear shape.",
+    "simplification": "Ear = elastic cartilage.",
+    "hints": "Elastic cartilage = ear."
+  },
+  {
+    "id": 15,
+    "subject": "Musculoskeletal",
+    "question": "During the first 24 hours after an above-the-knee amputation for vascular disease, nursing priority for stump care would be:",
+    "options": [
+      "Cleansing with soap and water",
+      "Initiating fitting for prosthesis",
+      "Inspecting for redness and pressure points",
+      "Elevating to reduce edema"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Elevating to reduce edema",
+    "rationale": "Immediate postop care focuses on edema control.",
+    "clinical_application": "Elevate stump to reduce swelling.",
+    "simplification": "Elevate stump to reduce swelling.",
+    "hints": "Edema control post-amputation."
+  },
+  {
+    "id": 16,
+    "subject": "Musculoskeletal",
+    "question": "Human Cranium has .... bones:",
+    "options": [
+      "12",
+      "7",
+      "8",
+      "9"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "8",
+    "rationale": "The cranium has 8 bones.",
+    "clinical_application": "Cranial bones protect the brain.",
+    "simplification": "8 cranial bones.",
+    "hints": "8 bones in cranium."
+  },
+  {
+    "id": 17,
+    "subject": "Musculoskeletal",
+    "question": "The deformity associated with wrist fracture is...",
+    "options": [
+      "Cones fracture",
+      "Avulsion",
+      "Contracture",
+      "Dinner fork"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Dinner fork",
+    "rationale": "Colles fracture produces a dinner fork deformity.",
+    "clinical_application": "Colles fracture = distal radius fracture.",
+    "simplification": "Dinner fork deformity = wrist fracture.",
+    "hints": "Colles fracture = dinner fork."
+  },
+  {
+    "id": 18,
+    "subject": "Musculoskeletal",
+    "question": "Lateral deviation of the spine is called:",
+    "options": [
+      "Scoliosis",
+      "Lordosis",
+      "Kyphosis",
+      "Amkylosis"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Scoliosis",
+    "rationale": "Scoliosis is lateral spinal curvature.",
+    "clinical_application": "Scoliosis screening in adolescents.",
+    "simplification": "Scoliosis = sideways spine curve.",
+    "hints": "Scoliosis = lateral deviation."
+  },
+  {
+    "id": 19,
+    "subject": "Musculoskeletal",
+    "question": "The basic unit of contraction is the.",
+    "options": [
+      "Myosin",
+      "Actin",
+      "Z-Lines",
+      "Sarcomeres"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Sarcomeres",
+    "rationale": "Sarcomeres are the contractile units.",
+    "clinical_application": "Muscle contraction occurs at sarcomere level.",
+    "simplification": "Sarcomeres = contraction units.",
+    "hints": "Sarcomeres contract."
+  },
+  {
+    "id": 20,
+    "subject": "Musculoskeletal",
+    "question": "In a compound fracture.",
+    "options": [
+      "The break occurs at an angle to the bone",
+      "The broken bone does not tear the skin",
+      "One fragment of broken bone is compressed into the other",
+      "Broken bone pierces the skin"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Broken bone pierces the skin",
+    "rationale": "That defines a compound/open fracture.",
+    "clinical_application": "Compound fractures have high infection risk.",
+    "simplification": "Compound = bone through skin.",
+    "hints": "Open fracture = skin broken."
+  },
+  {
+    "id": 21,
+    "subject": "Musculoskeletal",
+    "question": "Colle's fracture is associated with.",
+    "options": [
+      "Femur",
+      "Ulna",
+      "Radius",
+      "Humerus"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Radius",
+    "rationale": "Colles fracture involves the distal radius.",
+    "clinical_application": "Common in fall on outstretched hand.",
+    "simplification": "Colles = radius fracture.",
+    "hints": "Distal radius."
+  },
+  {
+    "id": 22,
+    "subject": "Musculoskeletal",
+    "question": "A complication of Buck's extension traction would be noted by a nurse if:",
+    "options": [
+      "The client's heel is resting on the bed",
+      "Toes of affected leg became dusky",
+      "The traction weights are free hanging",
+      "The client's leg is in neutral position"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Toes of affected leg became dusky",
+    "rationale": "Dusky toes suggest impaired circulation.",
+    "clinical_application": "Monitor neurovascular status in traction.",
+    "simplification": "Dusky toes = circulation problem.",
+    "hints": "Check circulation in cast/traction."
+  },
+  {
+    "id": 23,
+    "subject": "Musculoskeletal",
+    "question": "Haversian canals occur in.",
+    "options": [
+      "Humerus",
+      "Scapula",
+      "Pubis",
+      "Clavicle"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Humerus",
+    "rationale": "Haversian systems are prominent in long bones.",
+    "clinical_application": "Haversian canals contain blood vessels.",
+    "simplification": "Haversian canals = in long bones.",
+    "hints": "Long bones = Haversian systems."
+  },
+  {
+    "id": 24,
+    "subject": "Musculoskeletal",
+    "question": "The inner lining of the bone shaft is known as",
+    "options": [
+      "Peristeum",
+      "Endosteum",
+      "Pericardium",
+      "Endocardium"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Endosteum",
+    "rationale": "Endosteum lines the medullary cavity.",
+    "clinical_application": "Endosteum contains bone-forming cells.",
+    "simplification": "Endosteum = inner bone lining.",
+    "hints": "Endosteum = inside lining."
+  },
+  {
+    "id": 25,
+    "subject": "Musculoskeletal",
+    "question": "A cord or strap of dense tissue that connects a muscle to bone is called.",
+    "options": [
+      "Tendon",
+      "Ligament",
+      "Bursa",
+      "Arthritis"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Tendon",
+    "rationale": "Tendons connect muscle to bone.",
+    "clinical_application": "Tendon injuries are common.",
+    "simplification": "Tendon = muscle to bone.",
+    "hints": "Tendon connects muscle-bone."
+  },
+  {
+    "id": 26,
+    "subject": "Musculoskeletal",
+    "question": "When caring for client with above knee amputation, it is important for the nurse to encourage the client to spend more time in",
+    "options": [
+      "The prone position",
+      "The supine position",
+      "The left lateral position",
+      "The right lateral position"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "The prone position",
+    "rationale": "Prone positioning prevents hip flexion contractures.",
+    "clinical_application": "Prone position helps maintain extension.",
+    "simplification": "Lie on stomach to prevent hip bending.",
+    "hints": "Prone = prevents contractures."
+  },
+  {
+    "id": 27,
+    "subject": "Musculoskeletal",
+    "question": "Which of the following muscle helps to flexes and adducts shoulder:",
+    "options": [
+      "Brachialis",
+      "Triceps brachii",
+      "Coracobrachialis",
+      "Subscapularis"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Coracobrachialis",
+    "rationale": "It flexes and adducts the shoulder.",
+    "clinical_application": "Used in shoulder movement.",
+    "simplification": "Coracobrachialis flexes/adducts shoulder.",
+    "hints": "Flexes and adducts."
+  },
+  {
+    "id": 28,
+    "subject": "Musculoskeletal",
+    "question": "The total number of bones found in right upper limb is.",
+    "options": [
+      "25",
+      "26",
+      "30",
+      "60"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "30",
+    "rationale": "The upper limb contains 30 bones.",
+    "clinical_application": "Arm, forearm, hand bones.",
+    "simplification": "30 bones in upper limb.",
+    "hints": "30 bones."
+  },
+  {
+    "id": 29,
+    "subject": "Musculoskeletal",
+    "question": "The record of electrical activity of muscle is known as.",
+    "options": [
+      "Electro-Cardiogram (ECG)",
+      "Electro-Myogram (EMG)",
+      "Both A and B",
+      "Neither A nor B"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Electro-Myogram (EMG)",
+    "rationale": "EMG records muscle electrical activity.",
+    "clinical_application": "EMG helps diagnose neuromuscular disorders.",
+    "simplification": "EMG = muscle electrical test.",
+    "hints": "EMG = muscle."
+  },
+  {
+    "id": 30,
+    "subject": "Musculoskeletal",
+    "question": "A client is admitted following the repair of a fractured tibia with cast application. Which nursing assessment should be reported to the physician?",
+    "options": [
+      "Pain beneath the cast",
+      "Warm toes",
+      "Pedal pulses weak and rapid",
+      "Paresthesia of the toes"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Paresthesia of the toes",
+    "rationale": "Paresthesia may indicate neurovascular compromise.",
+    "clinical_application": "Report numbness/tingling immediately.",
+    "simplification": "Numbness = nerve issue.",
+    "hints": "Paresthesia = nerve compromise."
+  },
+  {
+    "id": 31,
+    "subject": "Musculoskeletal",
+    "question": "An acromian process is characteristically found in",
+    "options": [
+      "Pelvic girdle of mammals",
+      "Skull of frog",
+      "Pectoral girdle of mammals",
+      "Sperm of mammals"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Pectoral girdle of mammals",
+    "rationale": "The acromion is part of the scapula.",
+    "clinical_application": "Acromion is part of shoulder girdle.",
+    "simplification": "Acromion = shoulder girdle.",
+    "hints": "Pectoral girdle."
+  },
+  {
+    "id": 32,
+    "subject": "Musculoskeletal",
+    "question": "Osteogenesis imperfecta is a disorder of bone fragility chiefly caused by mutations in the COL1A1 and COL1A2 genes that encode type I procollagen:",
+    "options": [
+      "Osteogenesis",
+      "Acetogenesis",
+      "Fibrogenesis",
+      "Hadrogenesis"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Osteogenesis",
+    "rationale": "Osteogenesis imperfecta causes brittle bones.",
+    "clinical_application": "Fragile bones; treat fractures carefully.",
+    "simplification": "Osteogenesis imperfecta = brittle bones.",
+    "hints": "OI = brittle bone disease."
+  },
+  {
+    "id": 33,
+    "subject": "Musculoskeletal",
+    "question": "The synovial joints are also known as",
+    "options": [
+      "Megablast",
+      "Periosteum",
+      "Diarthrosis",
+      "Arthrosis"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Diarthrosis",
+    "rationale": "Synovial joints are freely movable joints.",
+    "clinical_application": "Diarthrosis = synovial joint.",
+    "simplification": "Diarthrosis = freely movable.",
+    "hints": "Diarthrosis = movable."
+  },
+  {
+    "id": 34,
+    "subject": "Musculoskeletal",
+    "question": "Which of the following muscle helps to extends forearm:",
+    "options": [
+      "Brachialis",
+      "Triceps brachii",
+      "Coracobrachialis",
+      "Subscapularis"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Triceps brachii",
+    "rationale": "Triceps extends the forearm.",
+    "clinical_application": "Triceps is an elbow extensor.",
+    "simplification": "Triceps = extends arm.",
+    "hints": "Triceps = extension."
+  },
+  {
+    "id": 35,
+    "subject": "Musculoskeletal",
+    "question": "Which age group has the greatest potential to demonstrate regression when they are sick?",
+    "options": [
+      "Infant",
+      "Toddler",
+      "Adolescent",
+      "Young Adult"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Toddler",
+    "rationale": "Toddlers commonly regress during illness.",
+    "clinical_application": "Expect regression in toddlers.",
+    "simplification": "Toddlers regress when sick.",
+    "hints": "Toddlers = regression."
+  },
+  {
+    "id": 36,
+    "subject": "Musculoskeletal",
+    "question": "The nurse is caring for a client with an above-the-knee amputation (AKA). To prevent hip flexion contractures, the nurse should:",
+    "options": [
+      "Place the client in a prone position 15-30 minutes twice a day",
+      "Keep the foot of the bed elevated on shock blocks",
+      "Place trochanter rolls on either side of the affected leg",
+      "Keep the client's leg elevated on two pillows."
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Place the client in a prone position 15-30 minutes twice a day",
+    "rationale": "This prevents flexion contractures.",
+    "clinical_application": "Prone position maintains hip extension.",
+    "simplification": "Lie on stomach to prevent hip contracture.",
+    "hints": "Prone = prevents flexion."
+  },
+  {
+    "id": 37,
+    "subject": "Musculoskeletal",
+    "question": "The study of joints is known as.",
+    "options": [
+      "Archaeology",
+      "Osteology",
+      "Syndesmology",
+      "Arthrology"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Arthrology",
+    "rationale": "Arthrology is the study of joints.",
+    "clinical_application": "Arthrology deals with joint anatomy.",
+    "simplification": "Arthrology = joint study.",
+    "hints": "Arthrology = joints."
+  },
+  {
+    "id": 38,
+    "subject": "Musculoskeletal",
+    "question": "A fracture can be both",
+    "options": [
+      "Open and closed",
+      "Open and transverse",
+      "Transverse and greenstick",
+      "Greenstick and comminuted"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Open and transverse",
+    "rationale": "A fracture can have both characteristics.",
+    "clinical_application": "Fractures described by multiple features.",
+    "simplification": "Fracture = open and transverse.",
+    "hints": "Fractures can be classified multiple ways."
+  },
+  {
+    "id": 39,
+    "subject": "Musculoskeletal",
+    "question": "What is the sole bone known as.",
+    "options": [
+      "Talus",
+      "Calcaneus",
+      "Navicular",
+      "Cuboid"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Talus",
+    "rationale": "The talus is the ankle bone.",
+    "clinical_application": "Talus articulates with tibia and fibula.",
+    "simplification": "Talus = ankle bone.",
+    "hints": "Talus = ankle."
+  },
+  {
+    "id": 40,
+    "subject": "Musculoskeletal",
+    "question": "What is the skeletal system?",
+    "options": [
+      "All the bones in the body",
+      "All the muscles and tendons",
+      "All the body's organs, both soft and hard tissue",
+      "All the bones in the body and the tissues that connect them"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "All the bones in the body and the tissues that connect them",
+    "rationale": "This defines the skeletal system.",
+    "clinical_application": "Skeletal system includes bones, cartilage, ligaments.",
+    "simplification": "Skeletal system = bones + connecting tissues.",
+    "hints": "Includes bones and connective tissues."
+  },
+  {
+    "id": 41,
+    "subject": "Musculoskeletal",
+    "question": "Thumb (great toe) of the foot is called..",
+    "options": [
+      "Pollex",
+      "Hallux",
+      "Index",
+      "Coracoid"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Hallux",
+    "rationale": "Hallux refers to the great toe.",
+    "clinical_application": "Hallux valgus = bunion.",
+    "simplification": "Hallux = big toe.",
+    "hints": "Hallux = big toe."
+  },
+  {
+    "id": 42,
+    "subject": "Musculoskeletal",
+    "question": "Which of the following is NOT anterior compartment muscle of the thigh:",
+    "options": [
+      "Sartorius",
+      "Quadriceps femoris",
+      "Vastus intermedius",
+      "Semitendinosus"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Semitendinosus",
+    "rationale": "Semitendinosus is in the posterior thigh compartment.",
+    "clinical_application": "Semitendinosus = hamstring.",
+    "simplification": "Semitendinosus = back of thigh.",
+    "hints": "Posterior = hamstrings."
+  },
+  {
+    "id": 43,
+    "subject": "Musculoskeletal",
+    "question": "The client is being evaluated for osteoporosis. Which diagnostic test is the most accurate when diagnosing osteoporosis?",
+    "options": [
+      "Serum bone Gla-protein test",
+      "Dual-energy x-ray absorptiometry (DEXA)",
+      "X-ray",
+      "CT scan"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Dual-energy x-ray absorptiometry (DEXA)",
+    "rationale": "DEXA is the gold standard for osteoporosis diagnosis.",
+    "clinical_application": "DEXA measures bone mineral density.",
+    "simplification": "DEXA = best for osteoporosis.",
+    "hints": "DEXA = bone density test."
+  },
+  {
+    "id": 44,
+    "subject": "Musculoskeletal",
+    "question": "Which cartilage is present at the joints of long bones?",
+    "options": [
+      "Calcified",
+      "Elastic",
+      "Hyaline",
+      "Fibrous"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Hyaline",
+    "rationale": "Articular cartilage is hyaline cartilage.",
+    "clinical_application": "Hyaline cartilage covers joint surfaces.",
+    "simplification": "Hyaline = joint cartilage.",
+    "hints": "Articular cartilage = hyaline."
+  },
+  {
+    "id": 45,
+    "subject": "Musculoskeletal",
+    "question": "What are dark bands that define the two ends of each sarcomeres called.",
+    "options": [
+      "Myosin",
+      "Actin",
+      "Z-Lines",
+      "Sarcomeres"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Z-Lines",
+    "rationale": "Z-lines define sarcomere boundaries.",
+    "clinical_application": "Z-lines anchor thin filaments.",
+    "simplification": "Z-lines = sarcomere ends.",
+    "hints": "Z-lines = boundaries."
+  },
+  {
+    "id": 46,
+    "subject": "Musculoskeletal",
+    "question": "The total number of bones in lower extremity is.",
+    "options": [
+      "62",
+      "63",
+      "61",
+      "60"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "60",
+    "rationale": "The lower limbs contain 60 bones.",
+    "clinical_application": "30 bones per leg.",
+    "simplification": "60 bones in lower limbs.",
+    "hints": "60 bones."
+  },
+  {
+    "id": 47,
+    "subject": "Musculoskeletal",
+    "question": "A patient is hospitalized for initiation of regional antibiotic perfusion for acute osteomyelitis of the right femur. Which intervention will be included in the plan of care?",
+    "options": [
+      "Frequent weight-bearing exercise",
+      "Immobilization of the right leg",
+      "Avoid administration of NSAIDs",
+      "Support right leg in a flexed position"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Immobilization of the right leg",
+    "rationale": "Rest supports healing in osteomyelitis.",
+    "clinical_application": "Immobilize infected limb.",
+    "simplification": "Rest leg to heal osteomyelitis.",
+    "hints": "Rest = healing."
+  },
+  {
+    "id": 48,
+    "subject": "Musculoskeletal",
+    "question": "Formation of new bone tissue is known as..",
+    "options": [
+      "Ossification",
+      "Hematopoiesis",
+      "Apoptosis",
+      "Calcification"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Ossification",
+    "rationale": "Bone formation is ossification.",
+    "clinical_application": "Ossification occurs in growth and healing.",
+    "simplification": "Ossification = bone making.",
+    "hints": "Ossification = bone formation."
+  },
+  {
+    "id": 49,
+    "subject": "Musculoskeletal",
+    "question": "How many bones does ankle has?",
+    "options": [
+      "8",
+      "9",
+      "6",
+      "7"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "7",
+    "rationale": "The ankle contains 7 tarsal bones.",
+    "clinical_application": "Tarsal bones: talus, calcaneus, navicular, etc.",
+    "simplification": "7 tarsal bones in ankle.",
+    "hints": "7 tarsals."
+  },
+  {
+    "id": 50,
+    "subject": "Musculoskeletal",
+    "question": "Which muscle is located in upper chest and is utilized for rotational, vertical, and lateral movements of arm:",
+    "options": [
+      "Triceps brachii",
+      "Biceps brachii",
+      "Pectoralis major",
+      "Trapezius"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Pectoralis major",
+    "rationale": "Pectoralis major moves the arm in several directions.",
+    "clinical_application": "Chest muscle for arm movement.",
+    "simplification": "Pectoralis = chest muscle.",
+    "hints": "Pectoralis major = chest."
+  },
+  {
+    "id": 51,
+    "subject": "Musculoskeletal",
+    "question": "How can a fractured diaphysis release fat globules into the bloodstream?",
+    "options": [
+      "The bone pierces fat stores in the skin",
+      "The yellow marrow in the diaphysis is exposed and damaged",
+      "The injury triggers the body to release fat from healthy bones",
+      "The red marrow in the fractured bone releases fat to heal the fracture."
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "The yellow marrow in the diaphysis is exposed and damaged",
+    "rationale": "Fat emboli originate from yellow marrow.",
+    "clinical_application": "Fat embolism syndrome can occur.",
+    "simplification": "Broken marrow releases fat.",
+    "hints": "Yellow marrow = fat source."
+  },
+  {
+    "id": 52,
+    "subject": "Musculoskeletal",
+    "question": "Osteocytes are simply osteoblasts trapped in the matrix that they secrete:",
+    "options": [
+      "Osteoclasts",
+      "Osteocytes",
+      "Osteoblasts",
+      "Chondrocytes"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Osteocytes",
+    "rationale": "Osteocytes are mature bone cells trapped in matrix.",
+    "clinical_application": "Osteocytes maintain bone tissue.",
+    "simplification": "Osteocytes = trapped bone cells.",
+    "hints": "Osteocytes = mature bone cells."
+  },
+  {
+    "id": 53,
+    "subject": "Musculoskeletal",
+    "question": "A client is being tapered off opioids and the nurse is watchful for signs of withdrawal. What is one of the first signs of withdrawal?",
+    "options": [
+      "Fever",
+      "Nausea",
+      "Diaphoresis",
+      "Abdominal cramps"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Diaphoresis",
+    "rationale": "Sweating is an early opioid withdrawal sign.",
+    "clinical_application": "Monitor for withdrawal symptoms.",
+    "simplification": "Sweating = early withdrawal sign.",
+    "hints": "Diaphoresis = early withdrawal."
+  },
+  {
+    "id": 54,
+    "subject": "Musculoskeletal",
+    "question": "Which type of joint lies at the shoulder joint and hip joint?",
+    "options": [
+      "Pivot joint",
+      "Angular joint",
+      "Ball and socket joint",
+      "Hinge joint"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Ball and socket joint",
+    "rationale": "Shoulder and hip are ball-and-socket joints.",
+    "clinical_application": "Allow multiaxial movement.",
+    "simplification": "Ball and socket = shoulder/hip.",
+    "hints": "Ball and socket = multiaxial."
+  },
+  {
+    "id": 55,
+    "subject": "Musculoskeletal",
+    "question": "In caring for clients with pain and discomfort, which task is most appropriate to delegate to the nursing assistant?",
+    "options": [
+      "Assist the client with preparation of a sitz bath",
+      "Monitor the client for signs of discomfort while ambulating",
+      "Coach the client to deep breathe during painful procedures",
+      "Evaluate relief after applying a cold application."
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Assist the client with preparation of a sitz bath",
+    "rationale": "This task can be delegated to nursing assistants.",
+    "clinical_application": "Delegation within scope of practice.",
+    "simplification": "Sitz bath = delegate to assistant.",
+    "hints": "Assistive tasks = delegate."
+  },
+  {
+    "id": 56,
+    "subject": "Musculoskeletal",
+    "question": "Which of the following pair is correctly matched?",
+    "options": [
+      "Cartilaginous joint-skull bones",
+      "Gliding joint-between zygapophyses of vertebrae",
+      "Synovial joint-skull bones",
+      "Fibrous joint-vertebral bodies"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Gliding joint-between zygapophyses of vertebrae",
+    "rationale": "This pairing is correct.",
+    "clinical_application": "Gliding joints allow sliding movement.",
+    "simplification": "Gliding = vertebrae joints.",
+    "hints": "Zygapophyses = gliding."
+  },
+  {
+    "id": 57,
+    "subject": "Musculoskeletal",
+    "question": "Which of this muscle is used for several movements, including tilting head back, raising shoulders, and moving shoulder blades together:",
+    "options": [
+      "Triceps brachii",
+      "Biceps brachii",
+      "Pectoralis major",
+      "Trapezius"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Trapezius",
+    "rationale": "Trapezius moves the shoulders and neck.",
+    "clinical_application": "Trapezius = neck and shoulder movement.",
+    "simplification": "Trapezius = shoulder/neck muscle.",
+    "hints": "Trapezius = multiple movements."
+  },
+  {
+    "id": 58,
+    "subject": "Musculoskeletal",
+    "question": "Deformity of .... bone resulting in Sprengel's shoulder?",
+    "options": [
+      "Scapula",
+      "Radius",
+      "Ulna",
+      "Tibia"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Scapula",
+    "rationale": "Sprengel shoulder involves elevated scapula.",
+    "clinical_application": "Congenital deformity of scapula.",
+    "simplification": "Sprengel = scapula deformity.",
+    "hints": "Scapula = Sprengel."
+  },
+  {
+    "id": 59,
+    "subject": "Musculoskeletal",
+    "question": "The nurse prepares a client for a bone scan. What priority assessment should the nurse perform for this client?",
+    "options": [
+      "Current vital signs",
+      "History of claustrophobia",
+      "Presence of intravenous (IV) access",
+      "Presence of metallic implants such as a pacemaker or aneurysm clips"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Presence of metallic implants such as a pacemaker or aneurysm clips",
+    "rationale": "Metal implants may interfere with the scan.",
+    "clinical_application": "Check for contraindications.",
+    "simplification": "No metal implants for bone scan.",
+    "hints": "Metal = contraindication."
+  },
+  {
+    "id": 60,
+    "subject": "Musculoskeletal",
+    "question": "Which of the following statement is incorrect?",
+    "options": [
+      "Bone is where most blood cells are made",
+      "Bone serves as a storehouse for various minerals",
+      "Bone is a dry and non-living supporting structure",
+      "Bone is a living tissue"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Bone is a dry and non-living supporting structure",
+    "rationale": "Bone is living tissue.",
+    "clinical_application": "Bone is dynamic and living.",
+    "simplification": "Bone is living, not dry.",
+    "hints": "Bone is living."
+  },
+  {
+    "id": 61,
+    "subject": "Musculoskeletal",
+    "question": "Which function of the skeletal system would be especially important if you were in a car accident?",
+    "options": [
+      "Storage of minerals",
+      "Protection of internal organs",
+      "Facilitation of movement",
+      "Fat storage"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Protection of internal organs",
+    "rationale": "The skeleton protects vital organs during trauma.",
+    "clinical_application": "Ribs protect heart/lungs, skull protects brain.",
+    "simplification": "Skeleton protects organs.",
+    "hints": "Protection = key in trauma."
+  },
+  {
+    "id": 62,
+    "subject": "Musculoskeletal",
+    "question": "Which of the following technique used in assessing crepitations in patient with Osteoarthritis of the knees:",
+    "options": [
+      "Inspection",
+      "Auscultation",
+      "Percussion",
+      "Palpation"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Palpation",
+    "rationale": "Crepitus is best assessed by palpation.",
+    "clinical_application": "Feel for grinding sensation.",
+    "simplification": "Palpate = feel for crepitus.",
+    "hints": "Palpation = feel."
+  },
+  {
+    "id": 63,
+    "subject": "Musculoskeletal",
+    "question": "The periosteum is the",
+    "options": [
+      "Outer covering of the bone",
+      "Outside layer of bone that contain nutrient",
+      "Inner covering of bone",
+      "Spongy materials that fills the bone cavity"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Outer covering of the bone",
+    "rationale": "Periosteum covers bone externally.",
+    "clinical_application": "Periosteum contains osteoblasts.",
+    "simplification": "Periosteum = outer bone layer.",
+    "hints": "Periosteum = outside covering."
+  },
+  {
+    "id": 64,
+    "subject": "Musculoskeletal",
+    "question": "The classic signs and symptoms of rheumatoid arthritis include which of the following?",
+    "options": [
+      "Pain on weight-bearing, rash and low-grade fever",
+      "Joint swelling, joint stiffness in the morning and bilateral joint movement",
+      "Crepitus, development of Heberden's nodes and anemia",
+      "Deformity and subcutaneous nodules"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Joint swelling, joint stiffness in the morning and bilateral joint movement",
+    "rationale": "These are classic RA signs.",
+    "clinical_application": "RA = symmetric joint involvement.",
+    "simplification": "RA = swelling, stiffness, bilateral.",
+    "hints": "RA = bilateral, morning stiffness."
+  },
+  {
+    "id": 65,
+    "subject": "Musculoskeletal",
+    "question": "The occupational health nurse is teaching a class on the risk of developing osteoarthritis, which of the following is a modifiable factor for developing osteoarthritis?",
+    "options": [
+      "Increasing age",
+      "Genetic susceptibility",
+      "Being overweight",
+      "Previous joint damage"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Being overweight",
+    "rationale": "Weight is a modifiable OA risk factor.",
+    "clinical_application": "Weight loss reduces OA risk.",
+    "simplification": "Weight = modifiable risk.",
+    "hints": "Overweight = changeable."
+  },
+  {
+    "id": 66,
+    "subject": "Musculoskeletal",
+    "question": "Hinge joint is present between",
+    "options": [
+      "Femur and ulna",
+      "Humerus and ulna",
+      "Femur and pectoral girdle",
+      "Femur and pelvic girdle"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Humerus and ulna",
+    "rationale": "This forms the elbow hinge joint.",
+    "clinical_application": "Hinge joint allows flexion/extension.",
+    "simplification": "Humerus-ulna = hinge joint.",
+    "hints": "Elbow = hinge."
+  },
+  {
+    "id": 67,
+    "subject": "Musculoskeletal",
+    "question": "A client has been hospitalized after an automobile accident. A full leg cast was applied in the emergency room. The MOST important reason for the nurse to elevate the casted leg is to ?",
+    "options": [
+      "Reduce the drying time",
+      "Promote the client's comfort",
+      "Decrease irritation to the skin",
+      "Improve venous return"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Improve venous return",
+    "rationale": "Elevation reduces swelling.",
+    "clinical_application": "Elevate to prevent edema.",
+    "simplification": "Elevation = improves circulation.",
+    "hints": "Elevate = reduce swelling."
+  },
+  {
+    "id": 68,
+    "subject": "Musculoskeletal",
+    "question": "The following are hyaline cartilage attached to each other by ligament EXCEPT:",
+    "options": [
+      "Thyroid cartilage",
+      "Cricoids cartilage",
+      "Arytenoid cartilage",
+      "Fibrocartilage"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Fibrocartilage",
+    "rationale": "Fibrocartilage is not hyaline cartilage.",
+    "clinical_application": "Fibrocartilage is in intervertebral discs.",
+    "simplification": "Fibrocartilage ≠ hyaline.",
+    "hints": "Fibrocartilage = different type."
+  },
+  {
+    "id": 69,
+    "subject": "Musculoskeletal",
+    "question": "A fracture that is slanted across the bone shaft is refer to as",
+    "options": [
+      "Transverse Fracture",
+      "Spiral Fracture",
+      "Oblique Fracture",
+      "Comminuted Fracture"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Oblique Fracture",
+    "rationale": "Oblique fractures run diagonally.",
+    "clinical_application": "Oblique = angled across bone.",
+    "simplification": "Oblique = slanted break.",
+    "hints": "Oblique = diagonal."
+  },
+  {
+    "id": 70,
+    "subject": "Musculoskeletal",
+    "question": "Which of the following nursing interventions is most appropriate for client with skeletal traction:",
+    "options": [
+      "Prone position",
+      "Intermittent weighing",
+      "Pin care",
+      "Prone position"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Pin care",
+    "rationale": "Pin site care is essential in skeletal traction.",
+    "clinical_application": "Prevent pin site infection.",
+    "simplification": "Pin care = prevent infection.",
+    "hints": "Pin care = priority."
+  },
+  {
+    "id": 71,
+    "subject": "Musculoskeletal",
+    "question": "Bone tissue can be described as....",
+    "options": [
+      "Dead calcified tissue",
+      "Cartilage",
+      "The skeletal system",
+      "Dense, hard connective tissue"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Dense, hard connective tissue",
+    "rationale": "Bone is specialized connective tissue.",
+    "clinical_application": "Bone is a type of connective tissue.",
+    "simplification": "Bone = hard connective tissue.",
+    "hints": "Bone = connective tissue."
+  },
+  {
+    "id": 72,
+    "subject": "Musculoskeletal",
+    "question": "The trigger to initiate the contractile process in skeletal muscle is.",
+    "options": [
+      "Calcium binding to tropomyosin",
+      "ATP binding to the myosin cross bridges",
+      "Calcium binding to troponin",
+      "Potassium binding to myosin"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Calcium binding to troponin",
+    "rationale": "Calcium binds to troponin to initiate contraction.",
+    "clinical_application": "Calcium is essential for muscle contraction.",
+    "simplification": "Calcium triggers contraction.",
+    "hints": "Calcium + troponin = contraction."
+  },
+  {
+    "id": 73,
+    "subject": "Musculoskeletal",
+    "question": "Because a client has bursitis, plans for nursing interventions should include?",
+    "options": [
+      "Aggressive antibiotic therapy",
+      "Range-of-motion activities",
+      "Rest",
+      "Heat application"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Rest",
+    "rationale": "Rest reduces bursitis inflammation.",
+    "clinical_application": "Rest the affected joint.",
+    "simplification": "Rest = bursitis treatment.",
+    "hints": "Rest = reduce inflammation."
+  },
+  {
+    "id": 74,
+    "subject": "Musculoskeletal",
+    "question": "Without red marrow, bones would not be able to....",
+    "options": [
+      "Store phosphate",
+      "Store calcium",
+      "Make blood cells",
+      "Move like levers"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Make blood cells",
+    "rationale": "Red marrow performs hematopoiesis.",
+    "clinical_application": "Red marrow produces RBC, WBC, platelets.",
+    "simplification": "Red marrow = blood cell maker.",
+    "hints": "Red marrow = blood production."
+  },
+  {
+    "id": 75,
+    "subject": "Musculoskeletal",
+    "question": "What is the difference between cartilage and bone?",
+    "options": [
+      "Bone is rubbery, and cartilage is firm",
+      "Cartilage is rubbery, and bone is firm",
+      "Bone is a more primitive tissue than cartilage",
+      "Bone is inside the body, and cartilage is outside."
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Cartilage is rubbery, and bone is firm",
+    "rationale": "This is the major difference.",
+    "clinical_application": "Cartilage is flexible; bone is rigid.",
+    "simplification": "Cartilage = rubbery, bone = firm.",
+    "hints": "Cartilage = flexible, bone = hard."
+  },
+  {
+    "id": 76,
+    "subject": "Musculoskeletal",
+    "question": "The hyoid bone is at what level?",
+    "options": [
+      "C2 vertebra",
+      "C3 vertebra",
+      "C4 vertebra",
+      "C5 vertebra"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "C3 vertebra",
+    "rationale": "The hyoid lies at C3 level.",
+    "clinical_application": "Hyoid bone supports tongue.",
+    "simplification": "Hyoid = C3 level.",
+    "hints": "Hyoid = C3."
+  },
+  {
+    "id": 77,
+    "subject": "Musculoskeletal",
+    "question": "Pathophysiologic changes seen with osteoarthritis include:",
+    "options": [
+      "Joint cartilage degeneration",
+      "The formation of bony spurs at the edges of the joint surfaces",
+      "Narrowing of the joint space",
+      "All of the above."
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "All of the above.",
+    "rationale": "All occur in osteoarthritis.",
+    "clinical_application": "OA = cartilage loss, bone spurs, joint narrowing.",
+    "simplification": "OA = all of these.",
+    "hints": "OA = multiple changes."
+  },
+  {
+    "id": 78,
+    "subject": "Musculoskeletal",
+    "question": "Abnormal lateral curvature of the spine is called",
+    "options": [
+      "Scoliosis",
+      "Lordosis",
+      "Kyphosis",
+      "Spondylosis"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Scoliosis",
+    "rationale": "Scoliosis is lateral spinal curvature.",
+    "clinical_application": "Scoliosis screening.",
+    "simplification": "Scoliosis = side curve.",
+    "hints": "Lateral = scoliosis."
+  },
+  {
+    "id": 79,
+    "subject": "Musculoskeletal",
+    "question": "What is the difference between compact bone and spongy bone?",
+    "options": [
+      "They have different bone marrow",
+      "They are made of different materials",
+      "They have different sizes of bone cells",
+      "They have a different arrangement of bone cells"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "They have a different arrangement of bone cells",
+    "rationale": "Compact and spongy bone differ structurally.",
+    "clinical_application": "Compact = dense; spongy = porous.",
+    "simplification": "Different cell arrangement.",
+    "hints": "Structure differs."
+  },
+  {
+    "id": 80,
+    "subject": "Musculoskeletal",
+    "question": "In caring for a young child with pain, which assessment tool is the most useful?",
+    "options": [
+      "Simple description pain intensity scale",
+      "0-10 numeric pain scale",
+      "Faces pain-rating scale",
+      "McGill-Melzack pain questionnaire"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Faces pain-rating scale",
+    "rationale": "Best for young children.",
+    "clinical_application": "Faces scale = child-friendly.",
+    "simplification": "Faces scale = for kids.",
+    "hints": "Faces = children."
+  },
+  {
+    "id": 81,
+    "subject": "Musculoskeletal",
+    "question": "In applying the principles of pain treatment, what is the first consideration?",
+    "options": [
+      "Treatment is based on client goals",
+      "A multidisciplinary approach is needed",
+      "The client must be believed about perceptions of own pain",
+      "Drug side effects must be prevented and managed."
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "The client must be believed about perceptions of own pain",
+    "rationale": "Pain is subjective.",
+    "clinical_application": "Believe patient's pain report.",
+    "simplification": "Believe patient's pain.",
+    "hints": "Pain = subjective."
+  },
+  {
+    "id": 82,
+    "subject": "Musculoskeletal",
+    "question": "The part of bone that manufactures red blood cells is called the....",
+    "options": [
+      "Red marrow",
+      "Yellow marrow",
+      "Periosteum",
+      "Endosteum"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Red marrow",
+    "rationale": "Red marrow produces blood cells.",
+    "clinical_application": "Hematopoiesis in red marrow.",
+    "simplification": "Red marrow = blood maker.",
+    "hints": "Red marrow = hematopoiesis."
+  },
+  {
+    "id": 83,
+    "subject": "Musculoskeletal",
+    "question": "Which muscle helps to open the jaw?",
+    "options": [
+      "Medial pterygoid",
+      "Lateral pterygoid",
+      "Masseter",
+      "Temporalis"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Lateral pterygoid",
+    "rationale": "Lateral pterygoid opens the jaw.",
+    "clinical_application": "Mastication muscles.",
+    "simplification": "Lateral pterygoid = opens jaw.",
+    "hints": "Lateral pterygoid = jaw opener."
+  },
+  {
+    "id": 84,
+    "subject": "Musculoskeletal",
+    "question": "The client is diagnosed with osteoarthritis. Which sign/symptom should the nurse expect the client to exhibit?",
+    "options": [
+      "Severe bone deformity",
+      "Waddling gait",
+      "Swan-neck fingers",
+      "Joint stiffness"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Joint stiffness",
+    "rationale": "Joint stiffness is common in osteoarthritis.",
+    "clinical_application": "OA = stiffness after rest.",
+    "simplification": "OA = stiff joints.",
+    "hints": "Stiffness = OA."
+  },
+  {
+    "id": 85,
+    "subject": "Musculoskeletal",
+    "question": "Yellow marrow has been identified as..",
+    "options": [
+      "An area of fat storage",
+      "A point of attachment for muscles",
+      "The hard portion of bone",
+      "The cause of kyphosis"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "An area of fat storage",
+    "rationale": "Yellow marrow stores fat.",
+    "clinical_application": "Yellow marrow = fat storage.",
+    "simplification": "Yellow marrow = fat.",
+    "hints": "Yellow = fat."
+  },
+  {
+    "id": 86,
+    "subject": "Musculoskeletal",
+    "question": "Which statement is true regarding balanced skeletal traction? Balanced skeletal traction:",
+    "options": [
+      "Uses a Steinman pin",
+      "Requires that both legs be secured",
+      "Utilizes Kirschner wires",
+      "Is applied to skin only"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Uses a Steinman pin",
+    "rationale": "Balanced skeletal traction uses pins/wires.",
+    "clinical_application": "Skeletal traction uses pins in bone.",
+    "simplification": "Skeletal traction = Steinman pin.",
+    "hints": "Steinman pin = skeletal traction."
+  },
+  {
+    "id": 87,
+    "subject": "Musculoskeletal",
+    "question": "The fractured bone is broken into many fragments (3 or more) is refer to as",
+    "options": [
+      "Open Fracture",
+      "Greenstick Fracture",
+      "Oblique Fracture",
+      "Comminuted Fracture"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Comminuted Fracture",
+    "rationale": "Comminuted fractures have many fragments.",
+    "clinical_application": "Comminuted = multiple pieces.",
+    "simplification": "Comminuted = many fragments.",
+    "hints": "Comminuted = many fragments."
+  },
+  {
+    "id": 88,
+    "subject": "Musculoskeletal",
+    "question": "What is the function of a tendon?",
+    "options": [
+      "To link bones to bones",
+      "To link muscles to bones",
+      "To link muscles to ligaments",
+      "To bind the cells in compact bone closer together"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "To link muscles to bones",
+    "rationale": "Tendons attach muscles to bones.",
+    "clinical_application": "Tendons enable movement.",
+    "simplification": "Tendon = muscle to bone.",
+    "hints": "Tendon = muscle-bone."
+  },
+  {
+    "id": 89,
+    "subject": "Musculoskeletal",
+    "question": "A client has bilateral knee pain from osteoarthritis. In addition to taking the prescribed NSAID, the nurse should instruct the client to.",
+    "options": [
+      "Start a regular exercise program",
+      "Rest the knees as much as possible to decrease inflammation",
+      "Keep legs elevated when sitting",
+      "Avoid foods high in citrus acid"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Start a regular exercise program",
+    "rationale": "Exercise improves OA symptoms.",
+    "clinical_application": "Exercise strengthens muscles around joint.",
+    "simplification": "Exercise helps OA.",
+    "hints": "Exercise = OA management."
+  },
+  {
+    "id": 90,
+    "subject": "Musculoskeletal",
+    "question": "Which of the following can be found in areas of movement?",
+    "options": [
+      "Hematopoiesis",
+      "Cartilage",
+      "Yellow marrow",
+      "Red marrow"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Cartilage",
+    "rationale": "Cartilage is found in movable joints.",
+    "clinical_application": "Cartilage reduces friction.",
+    "simplification": "Cartilage = joints.",
+    "hints": "Cartilage = movement."
+  },
+  {
+    "id": 91,
+    "subject": "Musculoskeletal",
+    "question": "Which statement by a patient, who just received a cast on the right arm for a fracture, requires you to notify the physician immediately?",
+    "options": [
+      "It is really itchy inside my cast!",
+      "My pain is so severe that it hurts to stretch or elevate my arm.",
+      "The cast feels tight.",
+      "My fingers are swollen."
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "My pain is so severe that it hurts to stretch or elevate my arm.",
+    "rationale": "Severe pain with stretching/elevation may indicate compartment syndrome.",
+    "clinical_application": "Compartment syndrome is an emergency.",
+    "simplification": "Severe pain = emergency.",
+    "hints": "Severe pain = compartment syndrome."
+  },
+  {
+    "id": 92,
+    "subject": "Musculoskeletal",
+    "question": "The movement of the joint away from the midline of the body is termed as...",
+    "options": [
+      "Adduction",
+      "Extension",
+      "Abduction",
+      "Flexion"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Abduction",
+    "rationale": "Abduction is movement away from midline.",
+    "clinical_application": "Abduction = away.",
+    "simplification": "Abduction = away from body.",
+    "hints": "Abduction = away."
+  },
+  {
+    "id": 93,
+    "subject": "Musculoskeletal",
+    "question": "The only movable bone of the skull is...",
+    "options": [
+      "Maxilla",
+      "Mandible",
+      "Temporal bone",
+      "Frontal bone"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Mandible",
+    "rationale": "The mandible is the movable skull bone.",
+    "clinical_application": "Mandible = jaw bone.",
+    "simplification": "Mandible = jaw.",
+    "hints": "Mandible = movable."
+  },
+  {
+    "id": 94,
+    "subject": "Musculoskeletal",
+    "question": "Which of these features will a client with osteoarthritis manifest in the early stage of disease?",
+    "options": [
+      "Swan Neck fingers",
+      "Severe bone deformity",
+      "Wadding gait",
+      "Joint stiffness"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Joint stiffness",
+    "rationale": "Early OA commonly causes stiffness.",
+    "clinical_application": "Stiffness after rest = OA.",
+    "simplification": "OA = early stiffness.",
+    "hints": "Stiffness = early OA."
+  },
+  {
+    "id": 95,
+    "subject": "Musculoskeletal",
+    "question": "The greatest risk to the client with a femoral fracture is...",
+    "options": [
+      "Neurogenic shock",
+      "Infection",
+      "Fat embolus",
+      "Hypovoleamia"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Fat embolus",
+    "rationale": "Femoral fractures commonly cause fat embolism.",
+    "clinical_application": "Fat embolism syndrome can be fatal.",
+    "simplification": "Fat embolus = big risk.",
+    "hints": "Femur fracture = fat embolus risk."
+  },
+  {
+    "id": 96,
+    "subject": "Musculoskeletal",
+    "question": "One of the following is not a function of the skeleton:",
+    "options": [
+      "Breathing",
+      "Hearing",
+      "Excretion",
+      "Blood formation"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Excretion",
+    "rationale": "Excretion is not a skeletal function.",
+    "clinical_application": "Skeleton: support, protection, movement, storage, hematopoiesis.",
+    "simplification": "Excretion not a bone function.",
+    "hints": "Excretion = not skeleton."
+  },
+  {
+    "id": 97,
+    "subject": "Musculoskeletal",
+    "question": "The term used to describe lateral angulation of the proximal phalanx on the metatarsal head of the great toe is known as",
+    "options": [
+      "Scoliosis",
+      "Hallux Valgus",
+      "Spondylosis",
+      "Crest syndrome"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Hallux Valgus",
+    "rationale": "Hallux Valgus = lateral deviation of the great toe.",
+    "clinical_application": "Hallux valgus = bunion.",
+    "simplification": "Hallux valgus = bunion.",
+    "hints": "Hallux valgus = big toe deviation."
+  },
+  {
+    "id": 98,
+    "subject": "Musculoskeletal",
+    "question": "Upon a client's admission for extracapsular fracture of the left femur, how should a nurse expect the extremity to appear?",
+    "options": [
+      "Internally rotated",
+      "Shorter than the other leg",
+      "To have footdrop",
+      "Blanched over the fracture site"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Shorter than the other leg",
+    "rationale": "Femur fractures often cause shortening and external rotation.",
+    "clinical_application": "Assess leg length and rotation.",
+    "simplification": "Fractured leg = shorter.",
+    "hints": "Femur fracture = shortened."
+  },
+  {
+    "id": 99,
+    "subject": "Musculoskeletal",
+    "question": "The total number of cervical, thoracic and lumbar vertebrae comes to .....",
+    "options": [
+      "24",
+      "33",
+      "37",
+      "27"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "24",
+    "rationale": "7 cervical + 12 thoracic + 5 lumbar = 24 movable vertebrae.",
+    "clinical_application": "Vertebral column anatomy.",
+    "simplification": "24 movable vertebrae.",
+    "hints": "7+12+5=24."
+  },
+  {
+    "id": 100,
+    "subject": "Musculoskeletal",
+    "question": "What is a late sign of compartment syndrome?",
+    "options": [
+      "Paralysis",
+      "Pain",
+      "Paresthesia",
+      "Pulselessness"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Pulselessness",
+    "rationale": "Pulselessness is a late sign.",
+    "clinical_application": "Late sign = irreversible damage.",
+    "simplification": "No pulse = late sign.",
+    "hints": "Pulselessness = late."
+  },
+  {
+    "id": 101,
+    "subject": "Musculoskeletal",
+    "question": "Muscle cells are also known as?",
+    "options": [
+      "Myofibrils",
+      "Filaments",
+      "Muscle Fibers",
+      "None of the above"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Muscle Fibers",
+    "rationale": "Muscle cells are commonly called muscle fibers.",
+    "clinical_application": "Muscle fibers are elongated cells.",
+    "simplification": "Muscle cells = fibers.",
+    "hints": "Muscle fibers = cells."
+  },
+  {
+    "id": 102,
+    "subject": "Musculoskeletal",
+    "question": "A client with osteoporosis asks the nurse why it is important to take vitamin D. Which response by the nurse is correct?",
+    "options": [
+      "Vitamin D minimizes the risk of kidney stones",
+      "Vitamin D reduces excretion of calcium in the kidneys",
+      "Vitamin D helps prevent constipation from increased calcium intake",
+      "Vitamin D improves the absorption of calcium"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Vitamin D improves the absorption of calcium",
+    "rationale": "Vitamin D helps the intestines absorb calcium.",
+    "clinical_application": "Vitamin D is essential for bone health.",
+    "simplification": "Vitamin D = calcium absorption.",
+    "hints": "Vitamin D = absorbs calcium."
+  },
+  {
+    "id": 103,
+    "subject": "Musculoskeletal",
+    "question": "The vertebral column consist .... moveable bones:",
+    "options": [
+      "10",
+      "15",
+      "24",
+      "31"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "24",
+    "rationale": "24 movable vertebrae.",
+    "clinical_application": "Cervical, thoracic, lumbar.",
+    "simplification": "24 movable.",
+    "hints": "24."
+  },
+  {
+    "id": 104,
+    "subject": "Musculoskeletal",
+    "question": "What are dark bands that define the two ends of each sarcomeres called....",
+    "options": [
+      "Z-Lines",
+      "Myosin",
+      "Sarcomeres",
+      "Actin"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Z-Lines",
+    "rationale": "Z-lines form sarcomere boundaries.",
+    "clinical_application": "Z-lines anchor thin filaments.",
+    "simplification": "Z-lines = boundaries.",
+    "hints": "Z-lines = ends."
+  },
+  {
+    "id": 105,
+    "subject": "Musculoskeletal",
+    "question": "When assessing the patient for range of joint movement, the patient is asked to move the arm away from the body. This evaluates movement of......",
+    "options": [
+      "Extension",
+      "Abduction",
+      "Flexion",
+      "Adduction"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Abduction",
+    "rationale": "Abduction means moving limb away from midline.",
+    "clinical_application": "Abduction = away.",
+    "simplification": "Arm away = abduction.",
+    "hints": "Away = abduction."
+  },
+  {
+    "id": 106,
+    "subject": "Musculoskeletal",
+    "question": "The muscle that control the movement of scapula when the shoulder joint is in use is...",
+    "options": [
+      "Trapezius",
+      "Sternocleidomastoid",
+      "Pterygoid",
+      "Teres major"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Trapezius",
+    "rationale": "Trapezius helps move and stabilize the scapula.",
+    "clinical_application": "Scapular movement.",
+    "simplification": "Trapezius = scapula movement.",
+    "hints": "Trapezius = shoulder movement."
+  },
+  {
+    "id": 107,
+    "subject": "Musculoskeletal",
+    "question": "The suture located between a parietal and temporal bone is called.",
+    "options": [
+      "Coronal",
+      "Sagittal",
+      "Lambdoid",
+      "Squamous"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Squamous",
+    "rationale": "The squamous suture lies between temporal and parietal bones.",
+    "clinical_application": "Squamous suture = temporal-parietal.",
+    "simplification": "Squamous suture.",
+    "hints": "Squamous = temporal-parietal."
+  },
+  {
+    "id": 108,
+    "subject": "Musculoskeletal",
+    "question": "Which is an intrinsic muscle of the tongue?",
+    "options": [
+      "Superior longitudinal muscle",
+      "Genioglossus muscle",
+      "Hyoglossus muscle",
+      "Styloglossus muscle"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Superior longitudinal muscle",
+    "rationale": "This is an intrinsic muscle of the tongue.",
+    "clinical_application": "Intrinsic muscles change tongue shape.",
+    "simplification": "Superior longitudinal = tongue muscle.",
+    "hints": "Intrinsic = within tongue."
+  },
+  {
+    "id": 109,
+    "subject": "Musculoskeletal",
+    "question": "Which of the following is a function of the axial skeleton?",
+    "options": [
+      "Allows for movement of the wrist and hand",
+      "Protects nerves and blood vessels at the elbow",
+      "Supports trunk of body",
+      "Allows for movements of the ankle and foot"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Supports trunk of body",
+    "rationale": "The axial skeleton supports the head, neck, and trunk.",
+    "clinical_application": "Axial = trunk support.",
+    "simplification": "Axial skeleton = trunk support.",
+    "hints": "Axial = trunk."
+  },
+  {
+    "id": 110,
+    "subject": "Musculoskeletal",
+    "question": "Which of the following bone is not paired?",
+    "options": [
+      "Vomer",
+      "Palatine",
+      "Maxilla",
+      "Nasal"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Vomer",
+    "rationale": "The vomer is a single unpaired facial bone.",
+    "clinical_application": "Vomer forms nasal septum.",
+    "simplification": "Vomer = unpaired.",
+    "hints": "Vomer = single."
+  },
+  {
+    "id": 111,
+    "subject": "Musculoskeletal",
+    "question": "Which of the following is not characteristic of the skeletal muscles?",
+    "options": [
+      "Controlled by the will",
+      "Compound of smooth muscle tissue",
+      "Striated",
+      "Voluntary"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Compound of smooth muscle tissue",
+    "rationale": "Skeletal muscle is striated voluntary muscle, not smooth.",
+    "clinical_application": "Skeletal muscle = striated, voluntary.",
+    "simplification": "Skeletal ≠ smooth muscle.",
+    "hints": "Skeletal = striated, voluntary."
+  },
+  {
+    "id": 112,
+    "subject": "Musculoskeletal",
+    "question": "At what age does osteoarthritis primarily begins?",
+    "options": [
+      "20 years old",
+      "30 years old",
+      "60 years old",
+      "40 years old"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "40 years old",
+    "rationale": "Osteoarthritis commonly begins in middle age.",
+    "clinical_application": "OA is more common with aging.",
+    "simplification": "OA starts around 40.",
+    "hints": "Middle age = 40."
+  },
+  {
+    "id": 113,
+    "subject": "Musculoskeletal",
+    "question": "The Functional Unit of contractile system in striated muscle is",
+    "options": [
+      "Sarcomere",
+      "Myofibril",
+      "Cross Bridges",
+      "Z Band"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Sarcomere",
+    "rationale": "Sarcomere is the functional unit.",
+    "clinical_application": "Sarcomere = contractile unit.",
+    "simplification": "Sarcomere = unit.",
+    "hints": "Sarcomere = functional."
+  },
+  {
+    "id": 114,
+    "subject": "Musculoskeletal",
+    "question": "Which client is at greater risk for respiratory depression while receiving opioids for analgesia?",
+    "options": [
+      "An elderly chronic pain client with a hip fracture",
+      "A client with a heroin addiction and back pain",
+      "A young female client with advanced multiple myeloma",
+      "A child with an arm fracture and cystic fibrosis"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "A child with an arm fracture and cystic fibrosis",
+    "rationale": "Respiratory disease increases opioid-induced respiratory depression risk.",
+    "clinical_application": "CF patients are at higher risk.",
+    "simplification": "CF + opioids = respiratory risk.",
+    "hints": "Respiratory disease = risk."
+  },
+  {
+    "id": 115,
+    "subject": "Musculoskeletal",
+    "question": "The following are drug therapy for Gout EXCEPT:",
+    "options": [
+      "Antacid",
+      "Allopurinol",
+      "Probenecid",
+      "Ibuprofen"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Antacid",
+    "rationale": "Antacids are not used for gout management.",
+    "clinical_application": "Gout drugs: allopurinol, probenecid, NSAIDs.",
+    "simplification": "Antacid = not for gout.",
+    "hints": "Antacid = not gout."
+  },
+  {
+    "id": 116,
+    "subject": "Musculoskeletal",
+    "question": "Rotator cuff muscle made up of the following four muscles EXCEPT:",
+    "options": [
+      "Supraspinatus",
+      "Infraspinatus",
+      "Subscapularis",
+      "Teres major"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Teres major",
+    "rationale": "Rotator cuff = SITS: supraspinatus, infraspinatus, teres minor, subscapularis.",
+    "clinical_application": "Teres major is not rotator cuff.",
+    "simplification": "Teres major ≠ rotator cuff.",
+    "hints": "SITS = rotator cuff."
+  },
+  {
+    "id": 117,
+    "subject": "Musculoskeletal",
+    "question": "Skeletal muscle tissues are controlled by?",
+    "options": [
+      "Somatic division",
+      "Parasympathetic division",
+      "CNS",
+      "Sympathetic division"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Somatic division",
+    "rationale": "Skeletal muscles are voluntarily controlled by the somatic nervous system.",
+    "clinical_application": "Somatic = voluntary.",
+    "simplification": "Somatic = controls skeletal muscle.",
+    "hints": "Somatic = voluntary."
+  },
+  {
+    "id": 118,
+    "subject": "Musculoskeletal",
+    "question": "A 15 year old boy has shortened limbs and ribs, frontal bossing of the forehead, bowing of the limbs, his IQ however are normal. The cells that are affected in his disorder are:",
+    "options": [
+      "Chondrocytes",
+      "Osteoclasts",
+      "Macrophages",
+      "Osteoblasts"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Chondrocytes",
+    "rationale": "Description suggests achondroplasia, involving chondrocytes.",
+    "clinical_application": "Achondroplasia = dwarfism.",
+    "simplification": "Achondroplasia = chondrocytes.",
+    "hints": "Chondrocytes = cartilage."
+  },
+  {
+    "id": 119,
+    "subject": "Musculoskeletal",
+    "question": "The axial skeleton.",
+    "options": [
+      "Consists of 126 bones",
+      "Forms the vertical axis of the body",
+      "Includes all bones of the body trunk and limbs",
+      "Includes only the bones of the lower limbs"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Forms the vertical axis of the body",
+    "rationale": "Axial skeleton forms the vertical axis.",
+    "clinical_application": "Axial = skull, vertebral column, ribs, sternum.",
+    "simplification": "Axial = body axis.",
+    "hints": "Axial = vertical axis."
+  },
+  {
+    "id": 120,
+    "subject": "Musculoskeletal",
+    "question": "Which of the following is the most superior of the tarsals and articulates with the distal end of the tibia?",
+    "options": [
+      "Calcaneus",
+      "Cuboid",
+      "Navicular",
+      "Talus"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Talus",
+    "rationale": "Talus articulates with tibia and fibula.",
+    "clinical_application": "Talus forms ankle joint.",
+    "simplification": "Talus = ankle bone.",
+    "hints": "Talus = superior tarsal."
+  },
+  {
+    "id": 121,
+    "subject": "Musculoskeletal",
+    "question": "The following are risk factors for lower back pain EXCEPT:",
+    "options": [
+      "Weight gain",
+      "Repetitive lifting of heavy object",
+      "Weight loss",
+      "Poor posture"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Weight loss",
+    "rationale": "Weight loss is not a risk factor; obesity is.",
+    "clinical_application": "Risk factors: obesity, lifting, posture.",
+    "simplification": "Weight loss = not risk.",
+    "hints": "Weight loss ≠ risk."
+  },
+  {
+    "id": 122,
+    "subject": "Musculoskeletal",
+    "question": "The greater sciatic notch is located on the:",
+    "options": [
+      "Ilium",
+      "Ischium",
+      "Femur",
+      "Pubis"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Ilium",
+    "rationale": "Greater sciatic notch is on the ilium.",
+    "clinical_application": "Pelvic anatomy.",
+    "simplification": "Sciatic notch = ilium.",
+    "hints": "Ilium = sciatic notch."
+  },
+  {
+    "id": 123,
+    "subject": "Musculoskeletal",
+    "question": "Which of the following does not apply to muscle tissues:",
+    "options": [
+      "Provide motion",
+      "Give shapes to the body",
+      "Help maintain posture",
+      "Manufacture red blood cells"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Manufacture red blood cells",
+    "rationale": "Blood cell production is a bone marrow function, not muscle.",
+    "clinical_application": "Muscle: movement, posture, heat.",
+    "simplification": "Muscles don't make RBCs.",
+    "hints": "RBC production = bone marrow."
+  },
+  {
+    "id": 124,
+    "subject": "Musculoskeletal",
+    "question": "Pairs of muscles that carry out opposite functions are called.",
+    "options": [
+      "Synovial",
+      "Antagonistic pairs",
+      "Agonistic pairs",
+      "Synergistic"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Antagonistic pairs",
+    "rationale": "Muscles that perform opposite actions are antagonistic.",
+    "clinical_application": "Example: biceps/triceps.",
+    "simplification": "Antagonistic = opposite.",
+    "hints": "Antagonistic = opposite actions."
+  },
+  {
+    "id": 125,
+    "subject": "Musculoskeletal",
+    "question": "Which client is most likely to receive opioids for extended periods of time?",
+    "options": [
+      "A client with fibromyalgia",
+      "A client with phantom limb pain",
+      "A client with progressive pancreatic cancer",
+      "A client with trigeminal neuralgia"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "A client with progressive pancreatic cancer",
+    "rationale": "Cancer pain often requires long-term opioid therapy.",
+    "clinical_application": "Chronic cancer pain = opioids.",
+    "simplification": "Cancer pain = long-term opioids.",
+    "hints": "Cancer = chronic pain."
+  },
+  {
+    "id": 126,
+    "subject": "Musculoskeletal",
+    "question": "Which of the following are sutures of the Cranium?",
+    "options": [
+      "Coronal Suture",
+      "Sagittal Suture",
+      "Lamboid Suture",
+      "All of the above"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "All of the above",
+    "rationale": "All are major cranial sutures.",
+    "clinical_application": "Cranial sutures connect skull bones.",
+    "simplification": "All are sutures.",
+    "hints": "Coronal, sagittal, lambdoid."
+  },
+  {
+    "id": 127,
+    "subject": "Musculoskeletal",
+    "question": "Quadratus lumborum muscle originated from....",
+    "options": [
+      "Iliac crest",
+      "Pubic symphysis",
+      "Spinous processes of thoracic",
+      "Internal surface of costal cartilage of ribs 7-12"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Iliac crest",
+    "rationale": "Quadratus lumborum originates from iliac crest.",
+    "clinical_application": "Low back muscle.",
+    "simplification": "Quadratus lumborum = iliac crest.",
+    "hints": "Iliac crest origin."
+  },
+  {
+    "id": 128,
+    "subject": "Musculoskeletal",
+    "question": "Which Of The Following Is A Component Of Actin Filaments Of A Sarcomere?",
+    "options": [
+      "Troponin And Actin",
+      "Troponin, Tropomyosin And Actin",
+      "Myosin And Troponin",
+      "Actin And Myosin"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Troponin, Tropomyosin And Actin",
+    "rationale": "Thin filaments contain actin, troponin, and tropomyosin.",
+    "clinical_application": "Regulatory proteins.",
+    "simplification": "Thin filament = actin + troponin + tropomyosin.",
+    "hints": "Actin filaments = thin filaments."
+  },
+  {
+    "id": 129,
+    "subject": "Musculoskeletal",
+    "question": "A partial or incomplete displacement of the joint surface is called:",
+    "options": [
+      "Sprain",
+      "Fracture",
+      "Subluxation",
+      "Bursitis"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Subluxation",
+    "rationale": "Subluxation is a partial dislocation.",
+    "clinical_application": "Partial joint displacement.",
+    "simplification": "Subluxation = partial dislocation.",
+    "hints": "Subluxation = partial."
+  },
+  {
+    "id": 130,
+    "subject": "Musculoskeletal",
+    "question": "The position that is most appropriate for patient with fractured ribs is....",
+    "options": [
+      "Upright position",
+      "Slim's position",
+      "Prone position",
+      "Lateral position"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Upright position",
+    "rationale": "Upright position improves lung expansion and reduces pain.",
+    "clinical_application": "Semi-Fowler's for rib fractures.",
+    "simplification": "Sit up for rib fractures.",
+    "hints": "Upright = easier breathing."
+  },
+  {
+    "id": 131,
+    "subject": "Musculoskeletal",
+    "question": "When the arms are raised above the head, the muscle that assists in elevating the trunk during climbing is......",
+    "options": [
+      "Psoas muscle",
+      "Teres major",
+      "Latissimus dorsi",
+      "Trapezium"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Latissimus dorsi",
+    "rationale": "Latissimus dorsi helps elevate the trunk during climbing.",
+    "clinical_application": "Latissimus dorsi = climbing muscle.",
+    "simplification": "Latissimus dorsi = climbing.",
+    "hints": "Latissimus dorsi = trunk elevation."
+  },
+  {
+    "id": 132,
+    "subject": "Musculoskeletal",
+    "question": "Which of the following is a chronic inflammatory disease that primarily affect the sacroiliac joint, apophyseal and costovertebral joints of the spine and adjacent soft tissues:",
+    "options": [
+      "Ankylosing spondylitis",
+      "Lyme's disease",
+      "Osteoarthritis",
+      "Gout"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Ankylosing spondylitis",
+    "rationale": "Ankylosing spondylitis mainly affects spine and SI joints.",
+    "clinical_application": "Inflammatory back pain.",
+    "simplification": "Ankylosing spondylitis = spine inflammation.",
+    "hints": "Ankylosing spondylitis = spine/SI."
+  },
+  {
+    "id": 133,
+    "subject": "Musculoskeletal",
+    "question": "The joint between adjacent vertebrae that includes an invertebral disc is classified as which type of joint?",
+    "options": [
+      "Synarthrosis",
+      "Diarthrosis",
+      "Amphiarthrosis",
+      "Synovial"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Amphiarthrosis",
+    "rationale": "Intervertebral discs allow slight movement, so they are amphiarthropic.",
+    "clinical_application": "Amphiarthrosis = slightly movable.",
+    "simplification": "Intervertebral = amphiarthrosis.",
+    "hints": "Amphiarthrosis = slight movement."
+  },
+  {
+    "id": 134,
+    "subject": "Musculoskeletal",
+    "question": "A 25-year-old client arrives in the emergency room with a possible fracture of the right femur. The nurse should anticipate an order for:",
+    "options": [
+      "Bryant's traction",
+      "Ice to the entire extremity",
+      "Buck's traction",
+      "An abduction pillow"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Buck's traction",
+    "rationale": "Buck's traction is commonly used temporarily for femoral fractures.",
+    "clinical_application": "Buck's traction = skin traction.",
+    "simplification": "Buck's = femur fracture traction.",
+    "hints": "Buck's = femoral fracture."
+  },
+  {
+    "id": 135,
+    "subject": "Musculoskeletal",
+    "question": "The cranium and sternum are example of",
+    "options": [
+      "Long bone",
+      "Short bone",
+      "Flat bone",
+      "Irregular bone"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Flat bone",
+    "rationale": "Cranium and sternum are flat bones.",
+    "clinical_application": "Flat bones protect organs.",
+    "simplification": "Cranium/sternum = flat bones.",
+    "hints": "Flat bones = skull, sternum."
+  },
+  {
+    "id": 136,
+    "subject": "Musculoskeletal",
+    "question": "Which assessment finding found while assessing a patient with a fracture who has traction requires immediate intervention?",
+    "options": [
+      "The weights are freely hanging on the floor",
+      "Pin sites are free from drainage",
+      "Patient uses the overhead trapezebar to move around in the bed",
+      "Patient's extremities have a capillary refill of less than 2 seconds."
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "The weights are freely hanging on the floor",
+    "rationale": "Traction weights must hang freely; if on floor, traction is ineffective.",
+    "clinical_application": "Weights should not rest on anything.",
+    "simplification": "Weights must hang free.",
+    "hints": "Weights = free hanging."
+  },
+  {
+    "id": 137,
+    "subject": "Musculoskeletal",
+    "question": "The two principal contractile proteins in skeletal muscles are....",
+    "options": [
+      "Actin and troponin",
+      "Troponin and tropomyosin",
+      "Actin and myosin",
+      "Myosin and tropomyosin"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Actin and myosin",
+    "rationale": "Actin and myosin are the main contractile proteins.",
+    "clinical_application": "Actin-myosin interaction = contraction.",
+    "simplification": "Actin + myosin = contraction.",
+    "hints": "Actin and myosin."
+  },
+  {
+    "id": 138,
+    "subject": "Musculoskeletal",
+    "question": "The smallest muscle in human body is",
+    "options": [
+      "Gutters maximus",
+      "Antagonists",
+      "Stapedius",
+      "None of the above"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Stapedius",
+    "rationale": "Stapedius muscle is the smallest in the body.",
+    "clinical_application": "In middle ear.",
+    "simplification": "Stapedius = smallest muscle.",
+    "hints": "Stapedius = smallest."
+  },
+  {
+    "id": 139,
+    "subject": "Musculoskeletal",
+    "question": "The following are immediate care for a patient with fracture EXCEPT:",
+    "options": [
+      "Prompt and correct body alignment",
+      "Maintain airway and assess signs of shock",
+      "Optimal reduction (replacing bone fragment in their correct anatomical position)",
+      "Splint the fracture to prevent movement of the fractured fragment and further injury"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Optimal reduction (replacing bone fragment in their correct anatomical position)",
+    "rationale": "Reduction is not immediate first aid; initial care focuses on airway, immobilization, shock.",
+    "clinical_application": "First aid = ABC, immobilize.",
+    "simplification": "Reduction = later, not immediate.",
+    "hints": "First aid ≠ reduction."
+  },
+  {
+    "id": 140,
+    "subject": "Musculoskeletal",
+    "question": "Which of these joints is classified as a synarthrosis?",
+    "options": [
+      "The pubic symphysis",
+      "An intervertebral disc",
+      "The manubriosternal joint",
+      "The shoulder joint"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "The manubriosternal joint",
+    "rationale": "Manubriosternal joint is a synarthrosis (immovable).",
+    "clinical_application": "Synarthrosis = immovable.",
+    "simplification": "Manubriosternal = immovable.",
+    "hints": "Synarthrosis = immovable."
+  },
+  {
+    "id": 141,
+    "subject": "Musculoskeletal",
+    "question": "Orbicularis oris muscle originated from.",
+    "options": [
+      "Maxilla and mandible",
+      "Zygomatic arch and maxilla",
+      "Temporal lines on parietal bone of skull",
+      "Zygomatic bone"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Maxilla and mandible",
+    "rationale": "Orbicularis oris originates partly from maxilla and mandible.",
+    "clinical_application": "Mouth muscle.",
+    "simplification": "Orbicularis oris = maxilla/mandible.",
+    "hints": "Maxilla + mandible origin."
+  },
+  {
+    "id": 142,
+    "subject": "Musculoskeletal",
+    "question": "A 5 year old has a fracture of the right upper arm. The x-ray showed that one side of the bone is bent while the other is broken. This is known as a ..... fracture",
+    "options": [
+      "Spiral",
+      "Greenstick",
+      "Oblique",
+      "Transverse"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Greenstick",
+    "rationale": "Greenstick fracture is incomplete — one side bends, other breaks.",
+    "clinical_application": "Common in children.",
+    "simplification": "Greenstick = bend + break.",
+    "hints": "Greenstick = children."
+  },
+  {
+    "id": 143,
+    "subject": "Musculoskeletal",
+    "question": "The basic functional unit of muscle is called:",
+    "options": [
+      "Sarcomere",
+      "Myosin",
+      "Myofibril",
+      "Spindle"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Sarcomere",
+    "rationale": "Sarcomere is the basic functional unit.",
+    "clinical_application": "Unit of contraction.",
+    "simplification": "Sarcomere = muscle unit.",
+    "hints": "Sarcomere = functional unit."
+  },
+  {
+    "id": 144,
+    "subject": "Musculoskeletal",
+    "question": "Which early morning activity helps to reduce the symptoms associated with rheumatoid arthritis?",
+    "options": [
+      "Brushing the teeth",
+      "Drinking a glass of juice",
+      "Holding a cup of coffee",
+      "Brushing the hair"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Holding a cup of coffee",
+    "rationale": "Warmth from a warm cup can reduce morning stiffness.",
+    "clinical_application": "Heat helps RA stiffness.",
+    "simplification": "Warmth = reduce stiffness.",
+    "hints": "Warmth helps RA."
+  },
+  {
+    "id": 145,
+    "subject": "Musculoskeletal",
+    "question": "Which of these joints is classified as a biaxial diarthrosis?",
+    "options": [
+      "The metacarpophalangeal joint",
+      "The hip joint",
+      "The elbow joint",
+      "The shoulder joint"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "The metacarpophalangeal joint",
+    "rationale": "MCP joints are biaxial synovial joints.",
+    "clinical_application": "Biaxial = two axes.",
+    "simplification": "MCP = biaxial.",
+    "hints": "MCP = biaxial."
+  },
+  {
+    "id": 146,
+    "subject": "Musculoskeletal",
+    "question": "The following diets are indicated in the management of Gout EXCEPT:",
+    "options": [
+      "High protein",
+      "Fatty diet",
+      "Fruits and vegetable",
+      "Carbohydrate diet"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Fatty diet",
+    "rationale": "High-fat diets are not recommended in gout management.",
+    "clinical_application": "Avoid purine-rich and high-fat foods.",
+    "simplification": "Fatty diet = not for gout.",
+    "hints": "Avoid fat in gout."
+  },
+  {
+    "id": 147,
+    "subject": "Musculoskeletal",
+    "question": "A family member asks you, 'Why can't you give more medicine? He is still having a lot of pain.' What is your best response?",
+    "options": [
+      "The doctor ordered the medicine to be given every 4 hours.",
+      "If the medication is given too frequently he could suffer ill effects.",
+      "Please tell him that I will be right there to check on him.",
+      "Let's wait about 30-40 minutes. If there is no relief I'll call the doctor."
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Please tell him that I will be right there to check on him.",
+    "rationale": "The nurse should first assess the patient before deciding on further medication.",
+    "clinical_application": "Assess first, then intervene.",
+    "simplification": "Assess patient first.",
+    "hints": "Assessment first."
+  },
+  {
+    "id": 148,
+    "subject": "Musculoskeletal",
+    "question": "What is sarcomere?",
+    "options": [
+      "Part between Two Z Line",
+      "Part Between Two A Line",
+      "Part between Two I Band",
+      "Part Between Two H Line"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Part between Two Z Line",
+    "rationale": "A sarcomere extends from one Z-line to another.",
+    "clinical_application": "Sarcomere = Z-line to Z-line.",
+    "simplification": "Sarcomere = Z to Z.",
+    "hints": "Z-line to Z-line."
+  },
+  {
+    "id": 149,
+    "subject": "Musculoskeletal",
+    "question": "Which ribs have 'buckle handle' type of movements?",
+    "options": [
+      "Rib no 1-2",
+      "Rib no 3-5",
+      "Rib no 6-10",
+      "Rib no 11-12"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Rib no 6-10",
+    "rationale": "Ribs 6-10 show bucket/buckle handle movement during respiration.",
+    "clinical_application": "Rib movement in breathing.",
+    "simplification": "Ribs 6-10 = buckle handle.",
+    "hints": "6-10 ribs."
+  },
+  {
+    "id": 150,
+    "subject": "Musculoskeletal",
+    "question": "Moving a limb away from the midline of the body is referred to as.",
+    "options": [
+      "Adduction",
+      "Abduction",
+      "Flexion",
+      "Extension"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Abduction",
+    "rationale": "Abduction = moving away from midline.",
+    "clinical_application": "Range of motion assessment.",
+    "simplification": "Away = abduction.",
+    "hints": "Away = abduction."
+  }
+]
