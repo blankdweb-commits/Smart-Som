@@ -194,10 +194,10 @@ const Quiz = () => {
 
   // Legacy defaults — the guided setup flow now supplies real values via
   // initQuiz overrides; these remain as fallbacks for direct initQuiz calls.
-  const [questionLimit] = useState(10);
-  const [customQuestionCount] = useState('');
-  const [useTimer] = useState(true);
-  const [customTimePerQuestion] = useState('30');
+  const [questionLimit, setQuestionLimit] = useState(10);
+  const [customQuestionCount, setCustomQuestionCount] = useState('');
+  const [useTimer, setUseTimer] = useState(true);
+  const [customTimePerQuestion, setCustomTimePerQuestion] = useState('30');
 
   const [showQuitModal, setShowQuitModal] = useState(false);
 
@@ -301,6 +301,13 @@ const Quiz = () => {
     const effCustomCount = overrides.customQuestionCount ?? customQuestionCount;
     const effUseTimer = overrides.useTimer ?? useTimer;
     const effCustomTime = overrides.customTimePerQuestion ?? customTimePerQuestion;
+
+    // Keep render-facing state in sync with effective overrides so timer
+    // UI (bars, countdown) obeys the setup-flow toggle.
+    if (overrides.useTimer !== undefined && effUseTimer !== useTimer) {
+      setUseTimer(effUseTimer);
+      setCustomTimePerQuestion(effCustomTime);
+    }
 
     let pool = [];
     
@@ -954,7 +961,7 @@ const Quiz = () => {
 
   // --- Speed Challenge Full‑Screen Render ---
   return (
-    <div className={`min-h-screen w-full flex flex-col ${quizMode === 'speed' ? 'bg-slate-950 text-white fixed inset-0 z-[9999] h-[100dvh] w-[100vw] overflow-y-auto m-0 p-0 justify-center items-center' : ''} transition-colors duration-500 pb-32 sm:pb-48 overflow-x-hidden relative`}>
+    <div className={`min-h-screen w-full flex flex-col ${quizMode === 'speed' ? 'bg-slate-950 text-white fixed inset-0 z-[9999] h-[100dvh] w-[100vw] overflow-y-auto m-0 p-0' : ''} transition-colors duration-500 pb-32 sm:pb-48 overflow-x-hidden relative`}>
       {quizMode === 'speed' && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute -top-24 -left-24 w-96 h-96 bg-medical-500/10 blur-[120px] rounded-full" />
@@ -968,12 +975,13 @@ const Quiz = () => {
         <div className={`flex ${quizMode === 'speed' ? 'flex-col justify-center items-center gap-4 sm:flex-row sm:justify-between' : 'justify-between items-center'} mb-6 sm:mb-8`}>
           <button
             onClick={() => setShowQuitModal(true)}
+            aria-label="Exit quiz"
             className={`p-2 sm:p-3 rounded-xl sm:rounded-2xl transition-all ${quizMode === 'speed' ? 'hover:bg-white/10' : 'hover:bg-slate-100 dark:hover:bg-white/5'}`}
           >
             <XCircle size={24} className={`sm:w-8 sm:h-8 ${quizMode === 'speed' ? 'text-slate-300' : 'text-slate-400'}`} />
           </button>
           <div className="flex flex-col items-center">
-            <p className={`text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] ${quizMode === 'speed' ? 'text-slate-300' : 'text-slate-400'}`}>{quizMode} MODE</p>
+            <p className={`text-[10px] sm:text-xs font-black uppercase tracking-[0.3em] ${quizMode === 'speed' ? 'text-slate-300' : 'text-slate-400'}`}>{String(quizMode || '').toUpperCase()} MODE</p>
             <h3 className="text-base sm:text-xl font-black tracking-tighter uppercase">{currentMilestone}</h3>
           </div>
           <div className="flex items-center gap-2">
@@ -984,15 +992,17 @@ const Quiz = () => {
           </div>
         </div>
 
-        {/* Timer bars - high contrast */}
+        {/* Timer bars - timer bar only renders when the timer toggle is on */}
         <div className={`w-full ${quizMode === 'speed' ? 'max-w-xl mx-auto mb-6' : 'mb-4'} space-y-2`}>
-          <div className={`w-full h-1.5 sm:h-2 rounded-full overflow-hidden ${quizMode === 'speed' ? 'bg-white/20' : 'bg-slate-100 dark:bg-white/5'}`}>
-            <motion.div
-              initial={false}
-              animate={{ width: `${(timeLeft / maxTime) * 100}%`, backgroundColor: timeLeft <= 5 ? '#ef4444' : '#10b981' }}
-              className="h-full transition-colors duration-500"
-            />
-          </div>
+          {useTimer && (
+            <div className={`w-full h-1.5 sm:h-2 rounded-full overflow-hidden ${quizMode === 'speed' ? 'bg-white/20' : 'bg-slate-100 dark:bg-white/5'}`}>
+              <motion.div
+                initial={false}
+                animate={{ width: `${(timeLeft / maxTime) * 100}%`, backgroundColor: timeLeft <= 5 ? '#ef4444' : '#10b981' }}
+                className="h-full transition-colors duration-500"
+              />
+            </div>
+          )}
 
           <div className={`w-full h-2 sm:h-3 rounded-full overflow-hidden p-0.5 border ${quizMode === 'speed' ? 'bg-white/20 border-white/30' : 'bg-slate-100 dark:bg-white/5 border-slate-50 dark:border-white/5'}`}>
             <motion.div
@@ -1007,10 +1017,12 @@ const Quiz = () => {
               <Star className="text-amber-400" size={14} fill="currentColor" />
               <span className="text-xs font-black tabular-nums text-white">{score * 10} XP</span>
             </div>
-            <div className="flex items-center gap-2">
-              <Clock className={timeLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-slate-300'} size={14} />
-              <span className={`text-xs font-black tabular-nums ${timeLeft <= 5 ? 'text-red-400' : 'text-white'}`}>{timeLeft}s</span>
-            </div>
+            {useTimer && (
+              <div className="flex items-center gap-2">
+                <Clock className={timeLeft <= 5 ? 'text-red-400 animate-pulse' : 'text-slate-300'} size={14} />
+                <span className={`text-xs font-black tabular-nums ${timeLeft <= 5 ? 'text-red-400' : 'text-white'}`}>{timeLeft}s</span>
+              </div>
+            )}
           </div>
         </div>
 
@@ -1073,11 +1085,13 @@ const Quiz = () => {
               <h2 className={`text-xl sm:text-3xl md:text-4xl font-black leading-tight tracking-tight px-2 sm:px-4 drop-shadow-sm ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
                 {typeof currentQ?.question === 'object' ? JSON.stringify(currentQ?.question) : currentQ?.question}
               </h2>
-              <div className="flex justify-center">
-                <div className="px-3 sm:px-4 py-1.5 bg-indigo-500/20 text-indigo-300 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] shadow-[0_0_10px_rgba(99,102,241,0.3)] border border-indigo-500/30">
-                  SOURCE: {currentQ?.source || "UNKNOWN SOURCE"}
+              {currentQ?.source && (
+                <div className="flex justify-center">
+                  <div className="px-3 sm:px-4 py-1.5 bg-indigo-500/20 text-indigo-300 rounded-lg text-[9px] font-black uppercase tracking-[0.2em] shadow-[0_0_10px_rgba(99,102,241,0.3)] border border-indigo-500/30">
+                    SOURCE: {currentQ.source}
+                  </div>
                 </div>
-              </div>
+              )}
             </div>
 
             <div className={`grid ${quizMode === 'speed' ? 'grid-cols-1 sm:grid-cols-2' : 'grid-cols-1'} gap-3 sm:gap-4`}>
@@ -1411,7 +1425,7 @@ const LifelineButton = ({ icon, label, used, onClick, dark }) => (
 );
 
 const OptionButton = ({ label, index, state, pollValue, onClick, disabled, dark, isSpeed, isLearningHighlight }) => {
-  const letters = ['A', 'B', 'C', 'D'];
+  const letters = ['A', 'B', 'C', 'D', 'E'];
 
   let baseStyles = dark
     ? 'bg-transparent border-white/10 text-slate-300 hover:bg-white/5 hover:border-white/20 hover:text-white'

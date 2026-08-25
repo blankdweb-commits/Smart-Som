@@ -65,12 +65,18 @@ try {
   for (let i = 0; i < 4; i++) await runSession('Clinical Challenge', 5);
   for (let i = 0; i < 2; i++) await runSession('Uselu Test Questions', 4);
 
-  console.log('Subjects observed in Clinical/Quick pool sessions:', [...subjectsSeen].join(', '));
-  console.log('Pharmacology seen:', subjectsSeen.has('Pharmacology') ? 'YES' : 'NO');
+  console.log('Subjects observed in Clinical pool sessions:', [...subjectsSeen].join(', '));
+  const richardBanksSeen = {
+    pharmacology: [...subjectsSeen].some(s => /pharmacology/i.test(s)),
+    musculoskeletal: [...subjectsSeen].some(s => /musculoskeletal/i.test(s)),
+    neurological: [...subjectsSeen].some(s => /neurological/i.test(s))
+  };
+  console.log('Richard banks seen in live sessions:', JSON.stringify(richardBanksSeen));
   console.log('Pharmacology leaked into Uselu sessions:', useluPharmCount, '(must be 0)');
 
-  const pass = subjectsSeen.has('Pharmacology') && useluPharmCount === 0;
-  console.log(pass ? '\nPASS: pharmacology merged into non-Uselu pools only' : '\nFAIL');
+  const pass = richardBanksSeen.pharmacology && richardBanksSeen.musculoskeletal &&
+    richardBanksSeen.neurological && useluPharmCount === 0;
+  console.log(pass ? '\nPASS: Richard banks (pharm/msk/neuro) merged into non-Uselu pools only' : '\nFAIL');
   await browser.close();
   process.exit(pass ? 0 : 1);
 } catch (e) {

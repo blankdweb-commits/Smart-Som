@@ -585,7 +585,7 @@ const Community = () => {
     try {
       const { error } = await supabase
         .from('community_comments')
-        .update({ content: editCommentContent.trim(), updated_at: new Date().toISOString() })
+        .update({ content: editCommentContent.trim() })
         .eq('id', editingCommentId)
         .eq('author_id', currentUserId);
 

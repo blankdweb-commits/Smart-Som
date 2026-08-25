@@ -293,73 +293,69 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, onComplete, onCancel }) =>
                 </div>
 
                 {/* Question Order */}
-                <div>
-                  <SectionLabel>Question Order</SectionLabel>
-                  <div className="grid grid-cols-2 gap-2">
-                    {!config.allowOrderChoice ? (
-                      <>
-                        <ChoiceButton selected disabled>
-                          Sequential
-                        </ChoiceButton>
-                        <ChoiceButton selected onClick={() => {}} colorClass="bg-indigo-600">
-                          <Shuffle size={12} className="inline mr-1 -mt-0.5" /> Randomized
-                        </ChoiceButton>
-                      </>
-                    ) : (
-                      <>
-                        <ChoiceButton
-                          selected={order === 'sequential'}
-                          onClick={() => setOrder('sequential')}
-                          colorClass="bg-indigo-600"
-                        >
-                          Sequential
-                        </ChoiceButton>
-                        <ChoiceButton
-                          selected={order === 'randomized'}
-                          onClick={() => setOrder('randomized')}
-                          colorClass="bg-indigo-600"
-                        >
-                          <Shuffle size={12} className="inline mr-1 -mt-0.5" /> Randomized
-                        </ChoiceButton>
-                      </>
-                    )}
+                {config.allowOrderChoice ? (
+                  <div>
+                    <SectionLabel>Question Order</SectionLabel>
+                    <div className="grid grid-cols-2 gap-2">
+                      <ChoiceButton
+                        selected={order === 'sequential'}
+                        onClick={() => setOrder('sequential')}
+                        colorClass="bg-indigo-600"
+                      >
+                        Sequential
+                      </ChoiceButton>
+                      <ChoiceButton
+                        selected={order === 'randomized'}
+                        onClick={() => setOrder('randomized')}
+                        colorClass="bg-indigo-600"
+                      >
+                        <Shuffle size={12} className="inline mr-1 -mt-0.5" /> Randomized
+                      </ChoiceButton>
+                    </div>
                   </div>
-                  {!config.allowOrderChoice && (
-                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2">
-                      Speed Challenge always uses randomized order
+                ) : (
+                  <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
+                    <Shuffle size={13} className="text-indigo-400 shrink-0" />
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                      Questions always randomized in this mode
                     </p>
-                  )}
-                </div>
+                  </div>
+                )}
 
                 {/* Answer Mode */}
-                <div>
-                  <SectionLabel>Answer Mode</SectionLabel>
-                  <div className="grid grid-cols-2 gap-2">
-                    <ChoiceButton
-                      selected={answerMode === 'instant-feedback'}
-                      onClick={() => config.allowExamMode && setAnswerMode('instant-feedback')}
-                      disabled={!config.allowExamMode && answerMode !== 'instant-feedback'}
-                      colorClass="bg-amber-600"
-                    >
-                      Instant Feedback
-                    </ChoiceButton>
-                    <ChoiceButton
-                      selected={answerMode === 'exam-mode'}
-                      onClick={() => config.allowExamMode && setAnswerMode('exam-mode')}
-                      disabled={!config.allowExamMode}
-                      colorClass="bg-amber-600"
-                    >
-                      Exam Mode
-                    </ChoiceButton>
-                  </div>
-                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2">
-                    {config.allowExamMode
-                      ? answerMode === 'exam-mode'
+                {config.allowExamMode ? (
+                  <div>
+                    <SectionLabel>Answer Mode</SectionLabel>
+                    <div className="grid grid-cols-2 gap-2">
+                      <ChoiceButton
+                        selected={answerMode === 'instant-feedback'}
+                        onClick={() => setAnswerMode('instant-feedback')}
+                        colorClass="bg-amber-600"
+                      >
+                        Instant Feedback
+                      </ChoiceButton>
+                      <ChoiceButton
+                        selected={answerMode === 'exam-mode'}
+                        onClick={() => setAnswerMode('exam-mode')}
+                        colorClass="bg-amber-600"
+                      >
+                        Exam Mode
+                      </ChoiceButton>
+                    </div>
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest mt-2">
+                      {answerMode === 'exam-mode'
                         ? 'Correct/incorrect shown per question — full review at the end'
-                        : 'Rationale and teaching notes appear after every answer'
-                      : 'Rapid feedback mode — rationale appears after every answer'}
-                  </p>
-                </div>
+                        : 'Rationale and teaching notes appear after every answer'}
+                    </p>
+                  </div>
+                ) : (
+                  <div className="flex items-center gap-2 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-100 dark:border-slate-700">
+                    <Zap size={13} className="text-amber-400 shrink-0" />
+                    <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                      Instant feedback mode — rationale after every answer
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3 mt-8">

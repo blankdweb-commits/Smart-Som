@@ -10,6 +10,13 @@ const durationLabel = (days) => {
   return 'week';
 };
 
+const paystackKey = import.meta.env.VITE_PAYSTACK_PUBLIC_KEY || '';
+const paystackMode = paystackKey.startsWith('pk_live_')
+  ? 'live'
+  : paystackKey.startsWith('pk_test_')
+  ? 'test'
+  : null;
+
 export default function Activate() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
@@ -183,7 +190,22 @@ export default function Activate() {
               <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
                 {userProfile.isActivated ? 'Extend Your Access' : 'Instant Activation'}
               </p>
-           </div>
+              {paystackMode && (
+                <span className={`inline-block mt-2 px-3 py-1 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                  paystackMode === 'live'
+                    ? 'bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                    : 'bg-amber-500/10 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                }`}>
+                  Paystack {paystackMode} mode
+                </span>
+              )}
+            </div>
+
+            {!paystackKey && (
+              <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl text-red-600 dark:text-red-400 text-xs font-bold text-center">
+                Payment key missing. Set VITE_PAYSTACK_PUBLIC_KEY in Vercel (Settings → Environment Variables) and redeploy.
+              </div>
+            )}
 
            {!supabase && (
              <div className="p-4 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800 rounded-xl text-amber-700 dark:text-amber-400 text-xs font-bold text-center">
