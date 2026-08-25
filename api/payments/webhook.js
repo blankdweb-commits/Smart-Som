@@ -24,6 +24,28 @@ export default async function handler(req, res) {
     const supabase = getSupabaseAdmin();
 
     try {
+      // 0. Idempotency — the callback verifier may have already processed this
+      // reference. Never create a duplicate subscription.
+      const { data: existingSub } = await supabase
+        .from('subscriptions')
+        .select('id')
+        .eq('reference', reference)
+        .maybeSingle();
+
+      if (existingSub) {
+        return res.status(200).json({ status: 'already_processed' });
+      }
+
+      const { data: existingTxn } = await supabase
+        .from('transactions')
+        .select('id')
+        .eq('reference', reference)
+        .maybeSingle();
+
+      if (existingTxn) {
+        return res.status(200).json({ status: 'already_processed' });
+      }
+
       // 1. Log Transaction
       const { error: txnError } = await supabase
         .from('transactions')
@@ -59,7 +81,7 @@ export default async function handler(req, res) {
       const expiresAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
       const graceUntil = new Date(expiresAt.getTime() + 2 * 24 * 60 * 60 * 1000);
 
-      await supabase.from('subscriptions').insert({
+      const { error: subError } = await supabase.from('subscriptions').insert({
         user_id: metadata?.user_id,
         plan: planName.toLowerCase(),
         status: 'active',
@@ -68,6 +90,9 @@ export default async function handler(req, res) {
         amount: amount / 100,
         reference
       });
+
+      // Unique constraint on subscriptions.reference catches callback races.
+      if (subError && subError.code !== '23505') throw subError;
 
       // 4. Activate the user profile.
       if (metadata?.user_id) {

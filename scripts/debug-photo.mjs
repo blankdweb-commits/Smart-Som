@@ -1,0 +1,10 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch();
+const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+await page.goto('http://localhost:5173/community', { waitUntil: 'networkidle' });
+await page.waitForTimeout(1500);
+const btns = await page.$$eval('button', bs => bs.map(b => b.textContent.trim().replace(/\s+/g, ' ').slice(0, 30)));
+console.log('buttons:', JSON.stringify(btns));
+const photo = await page.locator('button:has-text("Photo")').count();
+console.log('photo button count:', photo);
+await browser.close();

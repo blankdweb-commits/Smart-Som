@@ -83,10 +83,19 @@ try {
   await composer.first().fill(postText);
   await page.locator('button', { hasText: /^Post$/ }).first().click();
 
-  // Wait for realtime/refetch to show the post
-  await page.waitForTimeout(2500);
+  // Wait for realtime/refetch to show the post (realtime latency can vary)
+  let appeared = true;
+  try {
+    await page.waitForFunction(
+      (t) => document.body.innerText.includes(t),
+      postText,
+      { timeout: 15000 }
+    );
+  } catch {
+    appeared = false;
+  }
   const feedText = await page.textContent('body');
-  log('post appears in feed', (feedText || '').includes(postText));
+  log('post appears in feed', appeared && (feedText || '').includes(postText));
 
   // ---------- 4. REACT (LIKE) TO OWN POST ----------
   // Find the like button within the article containing our post text.
@@ -98,6 +107,7 @@ try {
   // We locate the post card by its content then descend.
   const card = page.locator('div.rounded-\\[2rem\\]', { hasText: postText }).last();
   const heartButton = card.locator('button').filter({ has: page.locator('svg.lucide-heart') }).first();
+  await heartButton.waitFor({ state: 'attached', timeout: 10000 }).catch(() => {});
 
   if (await heartButton.count() === 0) {
     log('like button found', false, 'no heart icon in post card');

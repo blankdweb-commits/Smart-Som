@@ -135,6 +135,11 @@ body.quiz-active [role="navigation"] {
   display: none !important;
 }
 
+/* iOS safe-area padding for fixed bottom bars */
+.pb-safe {
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
 /* Clinical Tidy scrollbars */
 ::-webkit-scrollbar {
   width: 6px;

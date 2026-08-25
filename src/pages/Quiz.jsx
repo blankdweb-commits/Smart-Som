@@ -19,17 +19,32 @@ import {
   LayoutDashboard,
   ChevronRight,
   TrendingUp,
-  Settings as SettingsIcon,
   ChevronLeft,
   Users,
   AlertCircle,
-  Sparkles,
-  Lock
+  Sparkles
 } from '../components/Icons';
 import useluData from '../data/flashcards/nmcn/uselu-posting-tests.json';
 import respirationData from '../data/flashcards/nmcn/Respiration-richard.json';
 import fluidData from '../data/flashcards/nmcn/fluid-electrolytes.json';
+import pharmacologyData from '../data/pharmacologyBank';
 import { motion, AnimatePresence } from 'framer-motion';
+import QuizSetupFlow from '../components/QuizSetupFlow';
+import QuizPlayer from '../components/QuizPlayer';
+
+// Maps setup-flow quiz ids to legacy engine mode ids.
+const SETUP_TO_MODE = {
+  'clinical-challenge': 'clinical',
+  'quick-quiz': 'quick',
+  'uselu-test': 'uselu',
+  'speed': 'speed'
+};
+const MODE_TO_SETUP = {
+  clinical: 'clinical-challenge',
+  quick: 'quick-quiz',
+  uselu: 'uselu-test',
+  speed: 'speed'
+};
 
 const MILESTONES = [
   { q: 5, label: 'Clinical Novice', reward: 'Bronze Badge' },
@@ -141,7 +156,7 @@ const exitFullscreen = async () => {
 
 // ----- Main Quiz Component -----
 const Quiz = () => {
-  const { flashcards, studyStats, updateQuizStats, darkMode } = useAppContext();
+  const { flashcards, studyStats, updateQuizStats } = useAppContext();
   const navigate = useNavigate();
   const [secretTaps, setSecretTaps] = useState(0);
   const [quizMode, setQuizMode] = useState(null);
@@ -152,7 +167,6 @@ const Quiz = () => {
   const [showResults, setShowResults] = useState(false);
 
   const [selectedOption, setSelectedOption] = useState(null);
-  const [attempts, setAttempts] = useState(0);
   const [showHint, setShowHint] = useState(false);
   const [showRationale, setShowRationale] = useState(false);
   const [isCorrect, setIsCorrect] = useState(null);
@@ -166,23 +180,32 @@ const Quiz = () => {
 
   const [maxTime, setMaxTime] = useState(20);
   const [isFinalAnswer, setIsFinalAnswer] = useState(false);
-  const [highestMilestone, setHighestMilestone] = useState("None");
   const [safetyNetScore, setSafetyNetScore] = useState(0);
 
-  const [questionLimit, setQuestionLimit] = useState(10);
-  const [customQuestionCount, setCustomQuestionCount] = useState('');
-  const [useTimer, setUseTimer] = useState(true);
-  const [customTimePerQuestion, setCustomTimePerQuestion] = useState('30');
+  // Legacy defaults — the guided setup flow now supplies real values via
+  // initQuiz overrides; these remain as fallbacks for direct initQuiz calls.
+  const [questionLimit] = useState(10);
+  const [customQuestionCount] = useState('');
+  const [useTimer] = useState(true);
+  const [customTimePerQuestion] = useState('30');
 
   const [showQuitModal, setShowQuitModal] = useState(false);
 
+  // ----- Guided setup flow + immersive player (Clinical / Quick / Uselu) -----
+  const [setupType, setSetupType] = useState(null);        // 'clinical-challenge' | 'quick-quiz' | 'uselu-test' | 'speed'
+  const [presetDifficulty, setPresetDifficulty] = useState(null); // deep-linked difficulty
+  const [playerActive, setPlayerActive] = useState(false);
+  const [activeConfig, setActiveConfig] = useState(null);  // config from QuizSetupFlow
+  const [playerResult, setPlayerResult] = useState(null);  // { score, total, answers[], durationSeconds }
+
   // ----- Difficulty progression -----
-  const { levelCompletions, recordQuizResult, recordWrongAnswers } = useAppContext();
+  const { recordQuizResult, recordWrongAnswers } = useAppContext();
   const [selectedDifficulty, setSelectedDifficulty] = useState(null);
   const [passInfo, setPassInfo] = useState(null); // { passed, pct }
   const wrongAnswersRef = React.useRef([]);
   const quizStartRef = React.useRef(null);
   const resultRecordedRef = React.useRef(false);
+  const streakRef = React.useRef(0);
 
   const DIFFICULTY_TIERS = [
     { id: 'Easy', dot: 'bg-emerald-500', ring: 'border-emerald-500/30', label: 'Build your foundation', passMark: 50, unlock: null },
@@ -200,14 +223,10 @@ const Quiz = () => {
     const d = params.get('difficulty');
     if (d && DIFFICULTY_TIERS.some(t => t.id === d) && !selectedDifficulty) {
       setSelectedDifficulty(d);
+      setPresetDifficulty(d);
       setSearchParams({}, { replace: true });
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
-
-  const isTierUnlocked = (tier) => {
-    if (!tier.unlock) return true;
-    return (levelCompletions?.[tier.unlock.from] || 0) >= tier.unlock.count;
-  };
 
   const matchesTier = (cardDifficulty, tierId) => {
     const d = String(cardDifficulty || '').toLowerCase();
@@ -229,17 +248,6 @@ const Quiz = () => {
       exitFullscreen();
     };
   }, []);
-
-  const subjects = useMemo(() => {
-    const s = new Map();
-    if (flashcards) {
-      flashcards.forEach(c => {
-        const name = c.subject || 'General';
-        s.set(name, (s.get(name) || 0) + 1);
-      });
-    }
-    return Array.from(s.entries()).map(([name, count]) => ({ name, count })).sort((a, b) => b.count - a.count);
-  }, [flashcards]);
 
   const currentMilestone = useMemo(() => {
     const milestone = [...MILESTONES].reverse().find(m => score >= m.q);
@@ -275,7 +283,15 @@ const Quiz = () => {
     return () => clearInterval(interval);
   }, [timeLeft, quizStarted, showResults, showRationale, isFinalAnswer, useTimer, handleTimeOut]);
 
-  const initQuiz = (mode, subject = null) => {
+  const initQuiz = (mode, subject = null, overrides = {}) => {
+    // Overrides let the guided setup flow configure this engine without
+    // relying on state that has not flushed yet. Legacy callers pass nothing.
+    const effDifficulty = overrides.selectedDifficulty ?? selectedDifficulty;
+    const effLimitPref = overrides.questionLimit ?? questionLimit;
+    const effCustomCount = overrides.customQuestionCount ?? customQuestionCount;
+    const effUseTimer = overrides.useTimer ?? useTimer;
+    const effCustomTime = overrides.customTimePerQuestion ?? customTimePerQuestion;
+
     let pool = [];
     
     if (mode === 'uselu') {
@@ -284,7 +300,7 @@ const Quiz = () => {
         pool = pool.filter(c => c.subject === subject);
       }
     } else {
-      pool = [...respirationData, ...fluidData];
+      pool = [...respirationData, ...fluidData, ...pharmacologyData];
       if (subject) {
         pool = pool.filter(c => c.subject === subject);
       }
@@ -296,24 +312,24 @@ const Quiz = () => {
 
     // Difficulty progression: prefer cards matching the selected tier.
     let tierPool = uniquePool;
-    if (selectedDifficulty) {
-      const tierMatches = uniquePool.filter(c => matchesTier(c.difficulty, selectedDifficulty));
+    if (effDifficulty) {
+      const tierMatches = uniquePool.filter(c => matchesTier(c.difficulty, effDifficulty));
       if (tierMatches.length >= 5) {
         tierPool = tierMatches;
       } else {
         // Top up from the whole bank filtered by tier across all flashcards
-        const globalTier = flashcards.filter(c => matchesTier(c.difficulty, selectedDifficulty));
+        const globalTier = flashcards.filter(c => matchesTier(c.difficulty, effDifficulty));
         tierPool = [...tierMatches, ...globalTier];
       }
     }
     const activePool = tierPool.length > 0 ? tierPool : uniquePool;
 
     let limit = 10;
-    const customVal = parseInt(customQuestionCount, 10);
+    const customVal = parseInt(effCustomCount, 10);
     if (!isNaN(customVal)) {
       limit = Math.max(5, Math.min(300, customVal));
     } else {
-      limit = Math.max(5, Math.min(300, questionLimit || 10));
+      limit = Math.max(5, Math.min(300, effLimitPref || 10));
     }
 
     const shuffled = activePool.sort(() => 0.5 - Math.random());
@@ -350,18 +366,18 @@ const Quiz = () => {
     setLifelinesUsed({ hint: false, fiftyFifty: false, askClass: false });
     setClassPoll(null);
     setIsFinalAnswer(false);
-    setHighestMilestone("None");
     setSafetyNetScore(0);
     setShowQuitModal(false);
     setShowQuestionPopup(false);
     setShowLifelineRestore(false);
     wrongAnswersRef.current = [];
+    streakRef.current = 0;
     setPassInfo(null);
     resultRecordedRef.current = false;
     quizStartRef.current = Date.now();
 
-    if (useTimer) {
-      const customTime = parseInt(customTimePerQuestion, 10);
+    if (effUseTimer) {
+      const customTime = parseInt(effCustomTime, 10);
       const time = (!isNaN(customTime)) ? Math.max(10, Math.min(60, customTime)) : 30;
       setTimeLeft(time);
       setMaxTime(time);
@@ -379,6 +395,175 @@ const Quiz = () => {
       exitFullscreen();
     }
   };
+
+  // ----- Guided Setup Flow handlers (Clinical / Quick / Uselu / Speed entry) -----
+
+  const openSetup = (setupId) => {
+    setSetupType(setupId);
+    window.scrollTo({ top: 0 });
+  };
+
+  const cancelSetup = () => {
+    setSetupType(null);
+    setPresetDifficulty(null);
+  };
+
+  // Builds a question set for the immersive player (non-speed modes).
+  const buildQuestionSet = (engineMode, difficulty, count, order) => {
+    let pool = engineMode === 'uselu'
+      ? useluData
+      : [...respirationData, ...fluidData, ...pharmacologyData];
+    const seen = new Set();
+    const uniquePool = pool.filter(c => seen.has(c.question) ? false : seen.add(c.question));
+
+    let tierPool = uniquePool;
+    if (difficulty) {
+      const tierMatches = uniquePool.filter(c => matchesTier(c.difficulty, difficulty));
+      if (tierMatches.length >= 5) {
+        tierPool = tierMatches;
+      } else {
+        const globalTier = flashcards.filter(c => matchesTier(c.difficulty, difficulty));
+        tierPool = [...tierMatches, ...globalTier];
+      }
+    }
+    const activePool = tierPool.length > 0 ? tierPool : uniquePool;
+
+    let working = [...activePool];
+    if (order === 'randomized') {
+      working.sort(() => 0.5 - Math.random());
+    }
+    const picked = working.slice(0, Math.min(count, working.length));
+
+    return picked.map(card => {
+      if (Array.isArray(card.options) && card.options.length >= 2 && card.correctAnswer) {
+        return {
+          ...card,
+          options: [...card.options].sort(() => 0.5 - Math.random()),
+        };
+      }
+      const targetAnswer = card.answer || card.correctAnswer;
+      const distractors = flashcards
+        .filter(c => c.id !== card.id && (c.answer || c.correctAnswer) !== targetAnswer)
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 3)
+        .map(c => c.answer || c.correctAnswer);
+      const options = [targetAnswer, ...distractors].sort(() => 0.5 - Math.random());
+      return { ...card, options, correctAnswer: targetAnswer };
+    });
+  };
+
+  const launchPlayer = (engineMode, cfg) => {
+    const questions = buildQuestionSet(engineMode, cfg.difficulty, cfg.questionCount, cfg.order);
+    if (questions.length === 0) return;
+    setActiveConfig({ ...cfg, engineMode });
+    setActiveQuestions(questions);
+    setPlayerResult(null);
+    setPassInfo(null);
+    wrongAnswersRef.current = [];
+    resultRecordedRef.current = false;
+    // eslint-disable-next-line react-hooks/purity
+    quizStartRef.current = Date.now();
+    setPlayerActive(true);
+    setSetupType(null);
+    exitFullscreen();
+    window.scrollTo({ top: 0 });
+  };
+
+  const [activeQuestions, setActiveQuestions] = useState([]);
+
+  const handleSetupComplete = (cfg) => {
+    const engineMode = SETUP_TO_MODE[setupType] || 'clinical';
+    if (engineMode === 'speed') {
+      // Speed Challenge keeps its EXISTING engine and template untouched.
+      // The setup flow only feeds it configuration values.
+      setSelectedDifficulty(cfg.difficulty || null);
+      setSetupType(null);
+      setPresetDifficulty(null);
+      initQuiz('speed', null, {
+        selectedDifficulty: cfg.difficulty || null,
+        questionLimit: cfg.questionCount,
+        customQuestionCount: '',
+        useTimer: cfg.timePerQuestion != null,
+        customTimePerQuestion: String(cfg.timePerQuestion ?? 30)
+      });
+      return;
+    }
+    launchPlayer(engineMode, cfg);
+  };
+
+  const handlePlayerComplete = (result) => {
+    setPlayerActive(false);
+    document.body.classList.remove('quiz-active');
+    setPlayerResult(result);
+
+    const pct = result.total > 0 ? Math.round((result.score / result.total) * 100) : 0;
+
+    if (activeConfig?.difficulty) {
+      recordQuizResult({
+        mode: activeConfig.engineMode,
+        difficulty: activeConfig.difficulty,
+        subject: 'Mixed Bank',
+        score: result.score,
+        total: result.total,
+        durationSeconds: result.durationSeconds
+      }).then(passed => setPassInfo({ passed, pct }));
+    } else {
+      setPassInfo({ passed: null, pct });
+    }
+
+    const wrongs = (result.answers || [])
+      .filter(a => !a.isCorrect)
+      .map(a => ({
+        name: a.subject || 'General',
+        subject: a.subject || 'General',
+        question: a.question
+      }));
+    if (wrongs.length > 0) {
+      recordWrongAnswers(wrongs);
+      updateQuizStats({});
+    }
+  };
+
+  const quitPlayer = () => {
+    setPlayerActive(false);
+    setActiveConfig(null);
+    setActiveQuestions([]);
+    document.body.classList.remove('quiz-active');
+  };
+
+  const backToModes = () => {
+    setPlayerActive(false);
+    setActiveConfig(null);
+    setActiveQuestions([]);
+    setPlayerResult(null);
+    setPresetDifficulty(null);
+    document.body.classList.remove('quiz-active');
+  };
+
+  const retrySameSession = () => {
+    if (!activeConfig) return;
+    const { engineMode, ...cfg } = activeConfig;
+    launchPlayer(engineMode, cfg);
+  };
+
+  const editSessionSetup = () => {
+    setPlayerResult(null);
+    if (activeConfig?.engineMode) {
+      setSetupType(MODE_TO_SETUP[activeConfig.engineMode] || 'clinical-challenge');
+    } else {
+      setSetupType('clinical-challenge');
+    }
+  };
+
+  // Immersive mode hides bottom navigation for the new-flow quizzes.
+  React.useEffect(() => {
+    if (playerActive) {
+      document.body.classList.add('quiz-active');
+    } else {
+      document.body.classList.remove('quiz-active');
+    }
+    return () => document.body.classList.remove('quiz-active');
+  }, [playerActive]);
 
   const handleOptionClick = (option) => {
     if (showRationale || showResults) return;
@@ -503,6 +688,128 @@ const Quiz = () => {
   }, [showResults]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // --- Render start ---
+
+  // Guided 3-step setup flow (Clinical / Quick / Uselu / Speed entry)
+  if (!quizStarted && !playerActive && !playerResult && setupType) {
+    return (
+      <QuizSetupFlow
+        quizType={setupType}
+        initialDifficulty={presetDifficulty}
+        onComplete={handleSetupComplete}
+        onCancel={cancelSetup}
+      />
+    );
+  }
+
+  // Immersive player for Clinical / Quick / Uselu
+  if (!quizStarted && playerActive && activeConfig) {
+    const playerModeLabels = {
+      clinical: 'Clinical Challenge',
+      quick: 'Quick Quiz',
+      uselu: 'Uselu Test Questions'
+    };
+    return (
+      <QuizPlayer
+        questions={activeQuestions}
+        config={{
+          difficulty: activeConfig.difficulty,
+          timePerQuestion: activeConfig.timePerQuestion,
+          answerMode: activeConfig.answerMode
+        }}
+        modeLabel={playerModeLabels[activeConfig.engineMode] || ''}
+        onSound={playQuizSound}
+        onComplete={handlePlayerComplete}
+        onQuit={quitPlayer}
+      />
+    );
+  }
+
+  // Results for the immersive flow
+  if (!quizStarted && playerResult) {
+    const pct = playerResult.total > 0 ? Math.round((playerResult.score / playerResult.total) * 100) : 0;
+    return (
+      <div className="max-w-3xl mx-auto pb-32 px-4 animate-in fade-in duration-500 space-y-6">
+        <motion.div
+          initial={{ scale: 0.9, opacity: 0 }}
+          animate={{ scale: 1, opacity: 1 }}
+          className="p-6 sm:p-10 rounded-3xl sm:rounded-[3.5rem] shadow-clinical border bg-white dark:bg-slate-800 border-slate-100 dark:border-slate-700 text-center"
+        >
+          <div className="w-16 h-16 sm:w-24 sm:h-24 bg-medical-50 dark:bg-medical-900/30 text-medical-600 dark:text-medical-400 rounded-2xl sm:rounded-[2.5rem] flex items-center justify-center mx-auto mb-6 sm:mb-8 shadow-lg">
+            <Trophy size={32} className="sm:w-12 sm:h-12" />
+          </div>
+          <h2 className="text-2xl sm:text-4xl font-black mb-2 tracking-tight uppercase text-slate-900 dark:text-white">Session Complete</h2>
+          <p className="text-slate-400 font-bold uppercase tracking-widest text-[9px] sm:text-[10px] mb-6 sm:mb-10">Performance Analytics Generated</p>
+
+          {passInfo && passInfo.passed !== null && activeConfig?.difficulty && (
+            <div className={`mb-6 p-4 rounded-2xl border ${passInfo.passed
+              ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-600 dark:text-emerald-400'
+              : 'bg-red-500/10 border-red-500/30 text-red-600 dark:text-red-400'}`}>
+              <p className="font-black uppercase tracking-widest text-xs">
+                {activeConfig.difficulty} Level {passInfo.passed ? '— Passed! Progress saved.' : `— Not passed (${pct}%).`}
+              </p>
+            </div>
+          )}
+
+          <div className="grid grid-cols-2 gap-3 sm:gap-4 mb-8">
+            <div className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+              <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Final Score</p>
+              <p className="text-2xl sm:text-3xl font-black text-slate-900 dark:text-white">{playerResult.score} <span className="text-xs sm:text-sm text-slate-400">/ {playerResult.total}</span></p>
+            </div>
+            <div className="p-4 sm:p-6 rounded-2xl sm:rounded-3xl bg-slate-50 dark:bg-slate-900 border border-slate-100 dark:border-slate-800">
+              <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest mb-1">Accuracy</p>
+              <p className="text-2xl sm:text-3xl font-black text-medical-500">{pct}%</p>
+            </div>
+          </div>
+
+          {/* Exam Mode full review */}
+          {activeConfig?.answerMode === 'exam-mode' && (
+            <div className="text-left space-y-3 mb-8">
+              <h3 className="text-sm font-black uppercase tracking-widest text-slate-900 dark:text-white px-1">Full Session Review</h3>
+              {(playerResult.answers || []).map((a, i) => (
+                <div key={i} className={`rounded-2xl border p-4 ${a.isCorrect ? 'bg-emerald-500/5 border-emerald-500/20' : 'bg-red-500/5 border-red-500/20'}`}>
+                  <div className="flex items-start justify-between gap-3 mb-2">
+                    <p className="text-xs font-bold text-slate-700 dark:text-slate-200 leading-snug flex-1">{i + 1}. {a.question}</p>
+                    <span className={`shrink-0 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${a.isCorrect ? 'bg-emerald-500/20 text-emerald-500' : 'bg-red-500/20 text-red-500'}`}>
+                      {a.isCorrect ? '✓ Correct' : '✕ Incorrect'}
+                    </span>
+                  </div>
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-2">Your Answer</p>
+                  <p className={`text-xs font-bold ${a.isCorrect ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500'}`}>→ {a.yourAnswer}</p>
+                  {!a.isCorrect && (
+                    <>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-2">Correct Answer</p>
+                      <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">→ {a.correctAnswer}</p>
+                      <p className="text-[10px] font-black uppercase tracking-widest text-red-400 mt-2">Conceptual Misalignment</p>
+                      <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
+                        Your selection addresses "{a.yourAnswer}", but the priority here is "{a.correctAnswer}". {a.hint}
+                      </p>
+                    </>
+                  )}
+                  <p className="text-[10px] font-black uppercase tracking-widest text-medical-500 mt-2">
+                    {a.isCorrect ? 'Why You Got It Right' : 'Why the Correct Answer'}
+                  </p>
+                  <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">{a.rationale}</p>
+                </div>
+              ))}
+            </div>
+          )}
+
+          <div className="flex flex-col sm:flex-row gap-3">
+            <button onClick={backToModes} className="flex-1 py-4 sm:py-5 rounded-2xl sm:rounded-[2rem] font-black uppercase tracking-widest text-xs bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white hover:opacity-90 transition-all">
+              Mode Selection
+            </button>
+            <button onClick={editSessionSetup} className="flex-1 py-4 sm:py-5 rounded-2xl sm:rounded-[2rem] font-black uppercase tracking-widest text-xs bg-slate-100 dark:bg-white/10 text-slate-900 dark:text-white hover:opacity-90 transition-all">
+              ← Edit Setup
+            </button>
+            <button onClick={retrySameSession} className="flex-1 py-4 sm:py-5 bg-medical-600 text-white rounded-2xl sm:rounded-[2rem] font-black uppercase tracking-widest text-xs shadow-xl shadow-medical-500/20 active:scale-95 transition-all">
+              Try Again
+            </button>
+          </div>
+        </motion.div>
+      </div>
+    );
+  }
+
   if (!quizStarted) {
     return (
       <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-700 max-w-6xl mx-auto pb-20 px-4">
@@ -536,155 +843,9 @@ const Quiz = () => {
           </div>
         </header>
 
-        {/* Choose Difficulty */}
-        <section className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-clinical border border-slate-100 dark:border-slate-700">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-medical-100 dark:bg-medical-900/30 text-medical-600 dark:text-medical-400 rounded-xl">
-              <Target size={18} />
-            </div>
-            <div>
-              <h2 className="text-base sm:text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Choose Difficulty</h2>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Pass a level to progress — completions unlock the next tier</p>
-            </div>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 sm:gap-3">
-            {DIFFICULTY_TIERS.map(tier => {
-              const unlocked = isTierUnlocked(tier);
-              const done = levelCompletions?.[tier.id] || 0;
-              const active = selectedDifficulty === tier.id;
-              return (
-                <button
-                  key={tier.id}
-                  type="button"
-                  disabled={!unlocked}
-                  onClick={() => setSelectedDifficulty(active ? null : tier.id)}
-                  className={`flex items-center gap-3 p-3 sm:p-4 rounded-2xl border-2 text-left transition-all
-                    ${!unlocked ? 'opacity-60 cursor-not-allowed bg-slate-50 dark:bg-slate-900 border-slate-100 dark:border-slate-800'
-                      : active ? `${tier.ring} bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg scale-[1.02]`
-                      : 'border-slate-100 dark:border-slate-800 hover:border-medical-400 bg-slate-50/50 dark:bg-slate-900/40'}`}
-                >
-                  <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${unlocked ? tier.dot : 'bg-slate-300 dark:bg-slate-600'}`} />
-                  <span className="flex-1 min-w-0">
-                    <span className={`block font-black text-sm tracking-tight ${active ? '' : 'text-slate-900 dark:text-white'}`}>
-                      {tier.id}
-                      {unlocked && done > 0 && (
-                        <span className="ml-2 text-[9px] font-black uppercase tracking-widest text-emerald-500">{done} completed</span>
-                      )}
-                    </span>
-                    <span className={`block text-[9px] font-bold uppercase tracking-widest truncate ${active ? 'text-white/60 dark:text-slate-900/60' : 'text-slate-400'}`}>
-                      {unlocked ? tier.label : `🔒 Complete ${tier.unlock.count} ${tier.unlock.from} levels to unlock`}
-                    </span>
-                  </span>
-                  {!unlocked && <Lock size={16} className="text-slate-400 shrink-0" />}
-                  {active && <CheckCircle2 size={16} className={active ? 'text-emerald-400 dark:text-emerald-600' : 'hidden'} />}
-                </button>
-              );
-            })}
-          </div>
-
-          {selectedDifficulty && (
-            <p className="mt-3 text-center text-[9px] font-black uppercase tracking-widest text-medical-600">
-              {selectedDifficulty} selected — pass mark {DIFFICULTY_TIERS.find(t => t.id === selectedDifficulty)?.passMark}% • pick a mode below to start
-            </p>
-          )}
-        </section>
-
-        <section className="bg-white dark:bg-slate-800 p-4 sm:p-6 rounded-2xl sm:rounded-3xl shadow-clinical border border-slate-100 dark:border-slate-700">
-          <div className="flex items-center gap-3 mb-4">
-            <div className="p-2 bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400 rounded-xl">
-              <SettingsIcon size={18} />
-            </div>
-            <h2 className="text-base sm:text-xl font-black text-slate-900 dark:text-white uppercase tracking-tight">Session Parameters</h2>
-          </div>
-
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Questions (5 to 300)</label>
-              <div className="grid grid-cols-3 gap-2">
-                {[5, 10, 20, 50, 100, 300].map(val => (
-                  <button
-                    key={val}
-                    onClick={() => {
-                      setQuestionLimit(val);
-                      setCustomQuestionCount('');
-                    }}
-                    className={`py-2 rounded-xl font-black text-xs transition-all ${questionLimit === val && customQuestionCount === ''
-                      ? 'bg-indigo-600 text-white shadow-md'
-                      : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                      }`}
-                  >
-                    {val}
-                  </button>
-                ))}
-              </div>
-              <input
-                type="number"
-                min="5"
-                max="300"
-                value={customQuestionCount}
-                onChange={(e) => {
-                  setCustomQuestionCount(e.target.value);
-                  const num = parseInt(e.target.value, 10);
-                  if (!isNaN(num)) {
-                    setQuestionLimit(num);
-                  }
-                }}
-                placeholder="Custom amount"
-                className="w-full py-2.5 px-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition-all"
-              />
-            </div>
-
-            <div className="space-y-2">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-widest ml-1">Timer (10s to 60s)</label>
-              <div className="grid grid-cols-2 gap-2 mb-2">
-                <button
-                  onClick={() => setUseTimer(true)}
-                  className={`py-2 rounded-xl font-black text-xs transition-all ${useTimer ? 'bg-emerald-500 text-white shadow-md' : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
-                >
-                  ON
-                </button>
-                <button
-                  onClick={() => setUseTimer(false)}
-                  className={`py-2 rounded-xl font-black text-xs transition-all ${!useTimer ? 'bg-red-500 text-white shadow-md' : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'}`}
-                >
-                  OFF
-                </button>
-              </div>
-              {useTimer && (
-                <>
-                  <div className="grid grid-cols-4 gap-2 mb-2">
-                    {[10, 20, 30, 60].map(val => (
-                      <button
-                        key={val}
-                        onClick={() => {
-                          setCustomTimePerQuestion(val.toString());
-                        }}
-                        className={`py-2 rounded-xl font-black text-xs transition-all ${customTimePerQuestion === val.toString()
-                          ? 'bg-emerald-500 text-white shadow-md'
-                          : 'bg-slate-50 dark:bg-slate-900 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-800'
-                          }`}
-                      >
-                        {val}s
-                      </button>
-                    ))}
-                  </div>
-                  <input
-                    type="number"
-                    min="10"
-                    max="60"
-                    value={customTimePerQuestion}
-                    onChange={(e) => {
-                      setCustomTimePerQuestion(e.target.value);
-                    }}
-                    placeholder="Custom secs (10-60)"
-                    className="w-full py-2.5 px-3 rounded-xl bg-slate-50 dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 font-bold text-xs outline-none focus:ring-2 focus:ring-emerald-500 focus:border-transparent transition-all"
-                  />
-                </>
-              )}
-            </div>
-          </div>
-        </section>
+        <p className="text-center text-[10px] font-bold uppercase tracking-widest text-slate-400 -mt-2">
+          Select a mode below to configure your session
+        </p>
 
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <ModeCard
@@ -694,7 +855,7 @@ const Quiz = () => {
             duration="Variable"
             timer={useTimer ? `${customTimePerQuestion || 30}s/Q` : "Relaxed"}
             color="medical"
-            onClick={() => initQuiz('clinical', null)}
+            onClick={() => openSetup(MODE_TO_SETUP.clinical)}
           />
           <ModeCard
             title="Quick Quiz"
@@ -703,10 +864,7 @@ const Quiz = () => {
             duration="Fast"
             timer="Instant"
             color="amber"
-            onClick={() => {
-              setQuestionLimit(10);
-              initQuiz('quick', null);
-            }}
+            onClick={() => openSetup(MODE_TO_SETUP.quick)}
           />
           <ModeCard
             title="Uselu Test Questions"
@@ -715,7 +873,7 @@ const Quiz = () => {
             duration="Focused"
             timer={useTimer ? `${customTimePerQuestion || 30}s/Q` : "Adaptive"}
             color="indigo"
-            onClick={() => initQuiz('uselu', null)}
+            onClick={() => openSetup(MODE_TO_SETUP.uselu)}
           />
           <ModeCard
             title="Speed Challenge"
@@ -724,7 +882,7 @@ const Quiz = () => {
             duration="Infinite"
             timer={useTimer ? `${customTimePerQuestion || 30}s/Q` : "Relaxed"}
             color="emerald"
-            onClick={() => initQuiz('speed', null)}
+            onClick={() => openSetup(MODE_TO_SETUP.speed)}
           />
         </div>
       </div>

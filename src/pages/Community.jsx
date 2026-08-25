@@ -9,18 +9,19 @@ import {
   MessageCircle,
   Share2,
   MoreHorizontal,
-  User,
-  Send,
-  Flag,
-  Trash2,
-  Edit2,
-  X,
-  Loader2,
-  CheckCircle2,
-  Lock
+   User,
+   Send,
+   Flag,
+   Trash2,
+   Edit2,
+   X,
+   Loader2,
+   CheckCircle2,
+  Lock,
+  ImageIcon
 } from '../components/Icons';
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase } from '../utils/supabase';
+import { supabase, uploadFile, getPublicUrl } from '../utils/supabase';
 import { useAppContext } from '../context/AppContext';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
@@ -41,12 +42,53 @@ const Community = () => {
   const [posting, setPosting] = useState(false);
   const [error, setError] = useState('');
 
+  // Image attachment states
+  const [selectedImage, setSelectedImage] = useState(null);   // File object
+  const [imagePreview, setImagePreview] = useState(null);     // object URL for preview
+  const imageInputRef = useRef(null);
+  const MAX_IMAGE_BYTES = 5 * 1024 * 1024; // 5 MB
+
+  const handleSelectImage = (e) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      setError('Only image files are allowed.');
+      return;
+    }
+    if (file.size > MAX_IMAGE_BYTES) {
+      setError('Image is too large. Maximum size is 5 MB.');
+      return;
+    }
+    setError('');
+    setSelectedImage(file);
+    setImagePreview(URL.createObjectURL(file));
+    // Allow re-selecting the same file later
+    e.target.value = '';
+  };
+
+  const clearSelectedImage = () => {
+    if (imagePreview) URL.revokeObjectURL(imagePreview);
+    setSelectedImage(null);
+    setImagePreview(null);
+  };
+
   // Comment section states
   const [activeCommentPostId, setActiveCommentPostId] = useState(null);
   const [comments, setComments] = useState([]);
   const [loadingComments, setLoadingComments] = useState(false);
   const [newCommentContent, setNewCommentContent] = useState('');
   const [postingComment, setPostingComment] = useState(false);
+
+  // Comment edit/delete states
+  const [editingCommentId, setEditingCommentId] = useState(null);
+  const [editCommentContent, setEditCommentContent] = useState('');
+  const [commentMenuId, setCommentMenuId] = useState(null);
+
+  // Ref mirror for use inside the once-registered realtime subscription
+  const activeCommentPostIdRef = useRef(null);
+  useEffect(() => {
+    activeCommentPostIdRef.current = activeCommentPostId;
+  }, [activeCommentPostId]);
 
   // Menu states
   const [activeMenuPostId, setActiveMenuPostId] = useState(null);
@@ -168,8 +210,23 @@ const Community = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'community_comments' }, (payload) => {
          if (payload.eventType === 'INSERT' && payload.new.post_id) {
             setPosts(prev => prev.map(p => p.id === payload.new.post_id ? { ...p, reply_count: Number(p.reply_count) + 1 } : p));
+            // Live-append the new comment if its drawer is currently open
+            if (payload.new.post_id === activeCommentPostIdRef.current && !payload.new.is_deleted) {
+               fetchSingleComment(payload.new.id).then(formatted => {
+                  if (formatted) {
+                     setComments(prev => prev.some(c => c.id === formatted.id) ? prev : [...prev, formatted]);
+                  }
+               });
+            }
          } else if (payload.eventType === 'DELETE' && payload.old.post_id) {
             setPosts(prev => prev.map(p => p.id === payload.old.post_id ? { ...p, reply_count: Math.max(0, Number(p.reply_count) - 1) } : p));
+         } else if (payload.eventType === 'UPDATE' && payload.new) {
+            // Soft-deleted comments disappear live from open drawers
+            if (payload.new.is_deleted) {
+               setComments(prev => prev.filter(c => c.id !== payload.new.id));
+            } else if (activeCommentPostIdRef.current === payload.new.post_id) {
+               setComments(prev => prev.map(c => c.id === payload.new.id ? { ...c, content: payload.new.content } : c));
+            }
          }
       })
       .subscribe();
@@ -240,7 +297,7 @@ const Community = () => {
 
   const handleNewPost = async () => {
     if (!requireAuth()) return;
-    if (!newPostContent.trim() || !supabase) return;
+    if ((!newPostContent.trim() && !selectedImage) || !supabase) return;
 
     const verified = await verifyAuthBeforeWrite();
     if (!verified) return;
@@ -248,22 +305,36 @@ const Community = () => {
     try {
       setPosting(true);
       setError('');
-      
+
+      // Upload image first (if attached), then insert the post with its URL.
+      let imageUrl = null;
+      if (selectedImage) {
+        const ext = (selectedImage.name.split('.').pop() || 'jpg').toLowerCase();
+        const safeExt = ['jpg', 'jpeg', 'png', 'webp', 'gif'].includes(ext) ? ext : 'jpg';
+        const imagePath = `${currentUserId}/${Date.now()}-post.${safeExt}`;
+        await uploadFile('uploads', imagePath, selectedImage);
+        imageUrl = getPublicUrl('uploads', imagePath);
+      }
+
       const { error: insertError } = await supabase
         .from('community_posts')
-        .insert({ 
-           author_id: currentUserId, 
-           content: newPostContent.trim() 
+        .insert({
+           author_id: currentUserId,
+           content: newPostContent.trim() || '',
+           ...(imageUrl ? { image_url: imageUrl } : {})
         });
 
       if (insertError) throw insertError;
-      
+
       setNewPostContent('');
+      clearSelectedImage();
     } catch (err) {
       console.error('Error creating post:', err);
       if (err.message?.includes('row-level security') || err.code === '42501') {
         setShowAuthModal(true);
         setError('You must be signed in to post.');
+      } else if (/bucket|storage/i.test(err.message || '')) {
+        setError('Could not upload the image. Please try again.');
       } else {
         setError('Unable to publish your post. Please try again.');
       }
@@ -390,7 +461,7 @@ const Community = () => {
        const { data, error } = await supabase
          .from('community_comments')
          .select(`
-            id, content, created_at,
+            id, content, created_at, author_id,
             author:author_id(id),
             profiles:community_profiles!author_id(display_name, avatar_url, year)
          `)
@@ -413,6 +484,29 @@ const Community = () => {
        console.error("Error fetching comments", err);
     } finally {
        setLoadingComments(false);
+    }
+  };
+
+  // Fetches a single comment (with profile data) — used by the realtime handler.
+  const fetchSingleComment = async (id) => {
+    try {
+      const { data } = await supabase
+        .from('community_comments')
+        .select(`
+           id, content, created_at, author_id,
+           profiles:community_profiles!author_id(display_name, avatar_url, year)
+        `)
+        .eq('id', id)
+        .maybeSingle();
+      if (!data || data.is_deleted) return null;
+      return {
+        ...data,
+        display_name: data.profiles?.display_name,
+        avatar_url: data.profiles?.avatar_url,
+        year: data.profiles?.year
+      };
+    } catch {
+      return null;
     }
   };
 
@@ -442,12 +536,12 @@ const Community = () => {
            author_id: currentUserId,
            content: newCommentContent.trim()
          })
-         .select(`
-            id, content, created_at,
-            author:author_id(id),
-            profiles:community_profiles!author_id(display_name, avatar_url, year)
-         `)
-         .single();
+          .select(`
+             id, content, created_at, author_id,
+             author:author_id(id),
+             profiles:community_profiles!author_id(display_name, avatar_url, year)
+          `)
+          .single();
          
        if (error) throw error;
        
@@ -473,6 +567,67 @@ const Community = () => {
      } finally {
        setPostingComment(false);
      }
+  };
+
+  const startEditComment = (comment) => {
+    setEditingCommentId(comment.id);
+    setEditCommentContent(comment.content);
+    setCommentMenuId(null);
+  };
+
+  const handleEditComment = async () => {
+    if (!requireAuth()) return;
+    if (!editCommentContent.trim() || !editingCommentId) return;
+
+    const verified = await verifyAuthBeforeWrite();
+    if (!verified) return;
+
+    try {
+      const { error } = await supabase
+        .from('community_comments')
+        .update({ content: editCommentContent.trim(), updated_at: new Date().toISOString() })
+        .eq('id', editingCommentId)
+        .eq('author_id', currentUserId);
+
+      if (error) throw error;
+
+      setComments(prev => prev.map(c => c.id === editingCommentId ? { ...c, content: editCommentContent.trim() } : c));
+      setEditingCommentId(null);
+      setEditCommentContent('');
+      setCommentMenuId(null);
+    } catch (err) {
+      console.error('Error editing comment:', err);
+      alert('Failed to edit reply.');
+    }
+  };
+
+  const handleDeleteComment = async (commentId) => {
+    if (!requireAuth()) return;
+    if (!confirm('Delete this reply?')) return;
+
+    const verified = await verifyAuthBeforeWrite();
+    if (!verified) return;
+
+    try {
+      const { error } = await supabase
+        .from('community_comments')
+        .update({ is_deleted: true })
+        .eq('id', commentId)
+        .eq('author_id', currentUserId);
+
+      if (error) throw error;
+
+      setComments(prev => prev.filter(c => c.id !== commentId));
+      if (activeCommentPostId) {
+        setPosts(posts.map(p => p.id === activeCommentPostId
+          ? { ...p, reply_count: Math.max(0, Number(p.reply_count) - 1) }
+          : p));
+      }
+      setCommentMenuId(null);
+    } catch (err) {
+      console.error('Error deleting comment:', err);
+      alert('Failed to delete reply.');
+    }
   };
 
   const handleComposerFocus = () => {
@@ -541,16 +696,56 @@ const Community = () => {
                 maxLength={1000}
               />
               {error && <p className="text-red-500 text-xs mt-2">{error}</p>}
+
+              {/* Image preview */}
+              {imagePreview && (
+                <div className="relative mt-3 inline-block">
+                  <img
+                    src={imagePreview}
+                    alt="Attachment preview"
+                    className="max-h-48 rounded-2xl border border-slate-200 dark:border-slate-700 object-cover"
+                  />
+                  <button
+                    onClick={clearSelectedImage}
+                    disabled={posting}
+                    className="absolute -top-2 -right-2 w-7 h-7 bg-slate-900 text-white rounded-full flex items-center justify-center shadow-lg hover:bg-red-600 transition-colors"
+                    aria-label="Remove image"
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+              )}
+
               <div className="flex justify-between items-center mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
-                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                  {newPostContent.length > 0 ? `${newPostContent.length}/1000 chars` : 'What\'s on your mind?'}
+                <div className="flex items-center gap-3">
+                  <input
+                    ref={imageInputRef}
+                    type="file"
+                    accept="image/*"
+                    onChange={handleSelectImage}
+                    className="hidden"
+                  />
+                  <button
+                    onClick={() => imageInputRef.current?.click()}
+                    disabled={posting || !!selectedImage}
+                    className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-medical-600 transition-colors disabled:opacity-40"
+                    aria-label="Attach an image"
+                  >
+                    <ImageIcon size={16} /> Photo
+                  </button>
+                  <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest hidden sm:block">
+                    {newPostContent.length > 0 ? `${newPostContent.length}/1000 chars` : selectedImage ? 'Image ready' : "What's on your mind?"}
+                  </p>
+                </div>
+                <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest sm:hidden">
+                  {newPostContent.length > 0 ? `${newPostContent.length}/1000` : ''}
                 </p>
                 <button
                   onClick={handleNewPost}
-                  disabled={!newPostContent.trim() || posting}
+                  disabled={(!newPostContent.trim() && !selectedImage) || posting}
                   className="px-5 py-2 bg-medical-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-medical-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2"
                 >
-                  {posting ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />} 
+                  {posting ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
                   {posting ? 'Posting...' : 'Post'}
                 </button>
               </div>
@@ -665,11 +860,23 @@ const Community = () => {
                              </button>
                           </div>
                        </div>
-                    ) : (
-                      <p className="text-sm text-slate-700 dark:text-slate-300 font-medium leading-relaxed mb-4 pl-[52px] pr-2 whitespace-pre-wrap">
-                        {post.content}
-                      </p>
-                    )}
+                     ) : (
+                       <p className="text-sm text-slate-700 dark:text-slate-300 font-medium leading-relaxed mb-4 pl-[52px] pr-2 whitespace-pre-wrap break-words">
+                         {post.content}
+                       </p>
+                     )}
+
+                     {/* Post image */}
+                     {!editingPostId && post.image_url && (
+                       <div className="pl-[52px] pr-2 mb-4">
+                         <img
+                           src={post.image_url}
+                           alt="Post attachment"
+                           loading="lazy"
+                           className="w-full max-h-96 object-cover rounded-2xl border border-slate-200 dark:border-slate-700"
+                         />
+                       </div>
+                     )}
 
                     <div className="flex items-center gap-5 text-slate-400 pl-[52px]">
                       <button
@@ -684,7 +891,7 @@ const Community = () => {
                          className={`flex items-center gap-1.5 text-xs font-semibold hover:text-blue-500 transition-colors ${activeCommentPostId === post.id ? 'text-blue-500' : ''}`}
                          aria-label="Reply to post"
                       >
-                        <MessageCircle size={15} className={activeCommentPostId === post.id ? 'fill-blue-500/20' : ''} /> {post.reply_count || 0} Reply
+                        <MessageCircle size={15} className={activeCommentPostId === post.id ? 'fill-blue-500/20' : ''} /> {post.reply_count || 0} {Number(post.reply_count) === 1 ? 'Reply' : 'Replies'}
                       </button>
                       <button 
                          onClick={() => handleShare(post)}
@@ -711,24 +918,82 @@ const Community = () => {
                                    </div>
                                 ) : (
                                    <div className="space-y-4 mb-4">
-                                      {comments.length > 0 ? comments.map(comment => (
-                                         <div key={comment.id} className="flex gap-3">
-                                            <div className="w-8 h-8 bg-medical-50 dark:bg-slate-800 text-medical-600 rounded-full flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden">
-                                               {comment.avatar_url ? (
-                                                  <img src={comment.avatar_url} alt={comment.display_name} className="w-full h-full object-cover" />
-                                               ) : (
-                                                  comment.display_name ? comment.display_name.charAt(0).toUpperCase() : <User size={12} />
-                                               )}
-                                            </div>
-                                            <div className="flex-1 bg-slate-50 dark:bg-slate-900/50 p-3 rounded-2xl rounded-tl-none">
-                                               <div className="flex items-center gap-2 mb-1">
-                                                  <p className="text-xs font-bold text-slate-900 dark:text-white">{comment.display_name || 'Anonymous'}</p>
-                                                  <p className="text-[9px] text-slate-400">{formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}</p>
-                                               </div>
-                                               <p className="text-sm text-slate-700 dark:text-slate-300 font-medium whitespace-pre-wrap">{comment.content}</p>
-                                            </div>
-                                         </div>
-                                      )) : (
+                                       {comments.length > 0 ? comments.map(comment => (
+                                          <div key={comment.id} className="flex gap-3">
+                                             <div className="w-8 h-8 bg-medical-50 dark:bg-slate-800 text-medical-600 rounded-full flex items-center justify-center font-bold text-xs shrink-0 overflow-hidden">
+                                                {comment.avatar_url ? (
+                                                   <img src={comment.avatar_url} alt={comment.display_name} className="w-full h-full object-cover" />
+                                                ) : (
+                                                   comment.display_name ? comment.display_name.charAt(0).toUpperCase() : <User size={12} />
+                                                )}
+                                             </div>
+                                             <div className="flex-1 min-w-0">
+                                                {editingCommentId === comment.id ? (
+                                                   <div className="bg-slate-50 dark:bg-slate-900/50 p-3 rounded-2xl rounded-tl-none border border-medical-200 dark:border-medical-800">
+                                                      <textarea
+                                                         value={editCommentContent}
+                                                         onChange={(e) => setEditCommentContent(e.target.value)}
+                                                         className="w-full bg-transparent text-slate-900 dark:text-white resize-none outline-none text-sm font-medium leading-relaxed"
+                                                         rows={2}
+                                                         maxLength={1000}
+                                                      />
+                                                      <div className="flex justify-end gap-2 mt-2">
+                                                         <button
+                                                            onClick={() => { setEditingCommentId(null); setEditCommentContent(''); }}
+                                                            className="px-3 py-1.5 text-xs font-bold text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 rounded-lg"
+                                                         >
+                                                            Cancel
+                                                         </button>
+                                                         <button
+                                                            onClick={handleEditComment}
+                                                            disabled={!editCommentContent.trim()}
+                                                            className="px-3 py-1.5 text-xs font-bold text-white bg-medical-600 hover:bg-medical-700 rounded-lg disabled:opacity-50"
+                                                         >
+                                                            Save
+                                                         </button>
+                                                      </div>
+                                                   </div>
+                                                ) : (
+                                                   <div className="relative bg-slate-50 dark:bg-slate-900/50 p-3 rounded-2xl rounded-tl-none group/comment">
+                                                      <div className="flex items-center gap-2 mb-1 pr-6">
+                                                         <p className="text-xs font-bold text-slate-900 dark:text-white">{comment.display_name || 'Anonymous'}</p>
+                                                         <p className="text-[9px] text-slate-400">{formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}</p>
+                                                      </div>
+                                                      <p className="text-sm text-slate-700 dark:text-slate-300 font-medium whitespace-pre-wrap break-words">{comment.content}</p>
+
+                                                      {/* Author-only menu */}
+                                                      {comment.author_id === currentUserId && (
+                                                         <div className="absolute top-2 right-2">
+                                                            <button
+                                                               onClick={() => setCommentMenuId(commentMenuId === comment.id ? null : comment.id)}
+                                                               className="p-1 rounded-full text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-200/60 dark:hover:bg-slate-700 transition-colors"
+                                                               aria-label="Reply options"
+                                                            >
+                                                               <MoreHorizontal size={14} />
+                                                            </button>
+                                                            {commentMenuId === comment.id && (
+                                                               <div className="absolute right-0 mt-1 w-32 bg-white dark:bg-slate-800 rounded-xl shadow-lg border border-slate-100 dark:border-slate-700 overflow-hidden z-20">
+                                                                  <button
+                                                                     onClick={() => startEditComment(comment)}
+                                                                     className="w-full text-left px-3 py-2 text-xs text-slate-700 dark:text-slate-300 hover:bg-slate-50 dark:hover:bg-slate-700 flex items-center gap-2"
+                                                                  >
+                                                                     <Edit2 size={12} /> Edit
+                                                                  </button>
+                                                                  <button
+                                                                     onClick={() => handleDeleteComment(comment.id)}
+                                                                     className="w-full text-left px-3 py-2 text-xs text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20 flex items-center gap-2"
+                                                                  >
+                                                                     <Trash2 size={12} /> Delete
+                                                                  </button>
+                                                               </div>
+                                                            )}
+                                                         </div>
+                                                      )}
+                                                   </div>
+                                                )}
+                                             </div>
+                                          </div>
+                                       )) : (
                                          <p className="text-xs text-slate-400 text-center py-2">No replies yet. Be the first!</p>
                                       )}
                                    </div>

@@ -497,10 +497,10 @@ insert into storage.buckets (id, name, public)
 values
   ('avatars', 'avatars', true),
   ('receipts', 'receipts', false),
-  ('uploads', 'uploads', false),
+  ('uploads', 'uploads', true),
   ('branding', 'branding', true),
   ('disputes-proof', 'disputes-proof', false)
-on conflict (id) do nothing;
+on conflict (id) do update set public = excluded.public;
 
 drop policy if exists "avatars_public_read" on storage.objects;
 create policy "avatars_public_read"
@@ -516,6 +516,11 @@ create policy "uploads_owner_all"
   on storage.objects for all
   using (bucket_id in ('uploads', 'receipts', 'disputes-proof') and auth.uid()::text = (storage.foldername(name))[1])
   with check (bucket_id in ('uploads', 'receipts', 'disputes-proof') and auth.uid()::text = (storage.foldername(name))[1]);
+
+-- Public read for uploads (community post images are publicly viewable).
+drop policy if exists "uploads_public_read" on storage.objects;
+create policy "uploads_public_read"
+  on storage.objects for select using (bucket_id = 'uploads');
 
 drop policy if exists "branding_public_read" on storage.objects;
 create policy "branding_public_read"
@@ -542,3 +547,73 @@ create trigger profiles_touch_updated_at
 -- Next step: run `node scripts/create-admin.mjs` to seed the
 -- super admin account (admin@apexscholars.com / changeme123).
 -- ============================================================
+
+-- ============================================================
+-- MIGRATION: Payment integrity (Paystack idempotency + indexes)
+-- Guarantees one subscription per payment reference so the
+-- callback verifier and the webhook can never double-activate.
+-- Safe to re-run.
+-- ============================================================
+
+-- One subscription per Paystack reference. Existing duplicates are
+-- collapsed first (keep earliest) so the constraint can be applied.
+delete from public.subscriptions a
+using public.subscriptions b
+where a.reference is not null
+  and b.reference is not null
+  and a.reference = b.reference
+  and a.id > b.id;
+
+alter table public.subscriptions
+  drop constraint if exists subscriptions_reference_unique;
+alter table public.subscriptions
+  add constraint subscriptions_reference_unique unique (reference);
+
+create index if not exists idx_subscriptions_reference on public.subscriptions(reference);
+create index if not exists idx_payments_reference on public.payments(reference);
+create index if not exists idx_transactions_reference on public.transactions(reference);
+create index if not exists idx_community_comments_post_id on public.community_comments(post_id);
+
+-- ============================================================
+-- MIGRATION: Image posts
+-- Expose community_posts.image_url through the aggregated feed
+-- view so clients can render post attachments. Column order
+-- changes require drop-and-recreate.
+-- ============================================================
+
+drop view if exists public.community_feed;
+
+create view public.community_feed as
+  select
+    p.id,
+    p.author_id,
+    p.content,
+    p.image_url,
+    p.created_at,
+    cp.display_name,
+    cp.avatar_url,
+    cp.year,
+    (select count(*) from public.community_post_likes l where l.post_id = p.id)::int as like_count,
+    (select count(*) from public.community_comments c where c.post_id = p.id and not c.is_deleted)::int as reply_count,
+    (select count(*) from public.community_post_shares s where s.post_id = p.id)::int as share_count,
+    exists (
+      select 1 from public.community_post_likes l2
+      where l2.post_id = p.id and l2.user_id = auth.uid()
+    ) as liked_by_current_user
+  from public.community_posts p
+  left join public.community_profiles cp on cp.id = p.author_id
+  where not p.is_deleted and not p.is_hidden;
+
+grant select on public.community_feed to anon, authenticated;
+
+-- ============================================================
+-- MIGRATION: Public uploads bucket
+-- Community post images are served via public URLs, so the
+-- uploads bucket must allow public reads (writes stay owner-only).
+-- ============================================================
+
+update storage.buckets set public = true where id = 'uploads';
+
+drop policy if exists "uploads_public_read" on storage.objects;
+create policy "uploads_public_read"
+  on storage.objects for select using (bucket_id = 'uploads');

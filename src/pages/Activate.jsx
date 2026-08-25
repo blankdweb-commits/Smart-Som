@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, ArrowRight, Star, Clock } from '../components/Icons';
+import { ShieldCheck, ArrowRight, Star, Clock, Loader2, AlertCircle, CheckCircle2 } from '../components/Icons';
 import { useAppContext } from '../context/AppContext';
 import { supabase } from '../utils/supabase';
 
@@ -13,22 +13,69 @@ const durationLabel = (days) => {
 export default function Activate() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
+  const [success, setSuccess] = useState(false);
+  const [paystackReady, setPaystackReady] = useState(!!window.PaystackPop);
+  const [activePlanId, setActivePlanId] = useState(null);
   const { userProfile, subscriptionPlans } = useAppContext();
   const navigate = useNavigate();
 
   useEffect(() => {
-    // Load Paystack script
-    const script = document.createElement("script");
-    script.src = "https://js.paystack.co/v1/inline.js";
-    script.async = true;
-    document.body.appendChild(script);
-    return () => { document.body.removeChild(script); };
+    // Load Paystack script — idempotent, with load/error handling so the
+    // button never silently fails on slow or blocked CDNs.
+    if (window.PaystackPop) {
+      setPaystackReady(true);
+      return;
+    }
+
+    const existing = document.querySelector('script[src*="js.paystack.co"]');
+    const script = existing || document.createElement('script');
+
+    const handleLoad = () => setPaystackReady(true);
+    const handleError = () => setError('Payment system failed to load. Check your connection and refresh the page.');
+
+    script.addEventListener('load', handleLoad);
+    script.addEventListener('error', handleError);
+
+    if (!existing) {
+      script.src = 'https://js.paystack.co/v1/inline.js';
+      script.async = true;
+      document.body.appendChild(script);
+    } else if (window.PaystackPop) {
+      setPaystackReady(true);
+    }
+
+    // Safety poll: some browsers fire load before PaystackPop attaches.
+    const poll = setInterval(() => {
+      if (window.PaystackPop) {
+        setPaystackReady(true);
+        clearInterval(poll);
+      }
+    }, 500);
+
+    return () => {
+      clearInterval(poll);
+      script.removeEventListener('load', handleLoad);
+      script.removeEventListener('error', handleError);
+    };
   }, []);
 
-  const handlePay = (plan) => {
-    if (!window.PaystackPop || !supabase) return;
+  const handlePay = async (plan) => {
+    setError(null);
 
-    supabase.auth.getSession().then(({ data }) => {
+    if (!supabase) {
+      setError('Payments require a configured backend.');
+      return;
+    }
+    if (!window.PaystackPop || !paystackReady) {
+      setError('Payment system is still loading. Please try again in a moment.');
+      return;
+    }
+
+    setLoading(true);
+    setActivePlanId(plan.id);
+
+    try {
+      const { data } = await supabase.auth.getSession();
       const activeSession = data?.session;
       if (!activeSession) {
         setError('Please sign in first to purchase a plan.');
@@ -45,7 +92,6 @@ export default function Activate() {
           user_id: activeSession.user.id
         },
         callback: async (response) => {
-          setLoading(true);
           try {
             // The server derives the user from this token — no user_id in the body.
             const res = await fetch('/api/verify-payment', {
@@ -58,7 +104,8 @@ export default function Activate() {
             });
             const resData = await res.json();
             if (resData.success) {
-              navigate('/dashboard');
+              setSuccess(true);
+              setTimeout(() => navigate('/dashboard'), 1200);
             } else {
               setError(resData.error || "Verification failed. Please contact support.");
             }
@@ -66,12 +113,25 @@ export default function Activate() {
             setError("Verification failed. Please contact support.");
           } finally {
             setLoading(false);
+            setActivePlanId(null);
           }
         },
-        onClose: () => {}
+        onClose: () => {
+          setLoading(false);
+          setActivePlanId(null);
+        }
       });
       handler.openIframe();
-    });
+    } finally {
+      // Loading state is cleared by callback/onClose; reset here only if the
+      // popup failed to open at all.
+      setTimeout(() => {
+        if (!window.document.querySelector('iframe[src*="paystack"]')) {
+          setLoading(false);
+          setActivePlanId(null);
+        }
+      }, 1500);
+    }
   };
 
   return (
@@ -132,29 +192,53 @@ export default function Activate() {
            )}
 
            <div className="space-y-4">
-              {subscriptionPlans.map((plan) => (
-                <button
-                  key={plan.id}
-                  onClick={() => handlePay(plan)}
-                  disabled={loading}
-                  className="w-full p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 hover:border-apex-500 transition-all text-left flex justify-between items-center group active:scale-[0.98] disabled:opacity-50"
-                >
-                  <div>
-                    <p className="font-black text-slate-900 dark:text-white">{plan.name} Access</p>
-                    <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
-                      NGN {Number(plan.price).toLocaleString()} / {durationLabel(plan.duration_days)}
-                    </p>
-                  </div>
-                  <div className="w-10 h-10 bg-apex-600 rounded-xl flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
-                    <ArrowRight size={18} />
-                  </div>
-                </button>
-              ))}
+              {subscriptionPlans.map((plan) => {
+                const isPlanLoading = loading && activePlanId === plan.id;
+                return (
+                  <button
+                    key={plan.id}
+                    onClick={() => handlePay(plan)}
+                    disabled={loading || !paystackReady}
+                    className="w-full p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 hover:border-apex-500 transition-all text-left flex justify-between items-center group active:scale-[0.98] disabled:opacity-50"
+                  >
+                    <div>
+                      <p className="font-black text-slate-900 dark:text-white flex items-center gap-2">
+                        {isPlanLoading && <Loader2 size={14} className="animate-spin text-apex-600" />}
+                        {plan.name} Access
+                      </p>
+                      <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
+                        NGN {Number(plan.price).toLocaleString()} / {durationLabel(plan.duration_days)}
+                      </p>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase mt-1 sm:hidden">
+                        Tap to pay securely
+                      </p>
+                    </div>
+                    <div className="w-10 h-10 bg-apex-600 rounded-xl flex items-center justify-center text-white opacity-0 group-hover:opacity-100 transition-opacity shrink-0 max-sm:opacity-100">
+                      {success ? <CheckCircle2 size={18} /> : <ArrowRight size={18} />}
+                    </div>
+                  </button>
+                );
+              })}
            </div>
 
+           {!paystackReady && !error && (
+             <div className="p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-center gap-2">
+               <Loader2 size={14} className="animate-spin text-slate-400" />
+               <p className="text-slate-500 dark:text-slate-400 text-xs font-bold">Loading payment system…</p>
+             </div>
+           )}
+
            {error && (
-             <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl">
+             <div className="p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-start gap-2">
+               <AlertCircle size={16} className="text-red-500 shrink-0 mt-0.5" />
                <p className="text-red-600 dark:text-red-400 text-xs font-bold">{error}</p>
+             </div>
+           )}
+
+           {success && (
+             <div className="p-4 bg-emerald-50 dark:bg-emerald-900/20 border border-emerald-200 dark:border-emerald-800 rounded-xl flex items-start gap-2">
+               <CheckCircle2 size={16} className="text-emerald-500 shrink-0 mt-0.5" />
+               <p className="text-emerald-600 dark:text-emerald-400 text-xs font-bold">Payment successful! Activating your subscription…</p>
              </div>
            )}
 
