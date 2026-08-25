@@ -1,0 +1,3314 @@
+[
+  {
+    "id": 1,
+    "subject": "Neurological Nursing",
+    "question": "This is also called the soma of the neuron and has a single nucleus that is surrounded by cytoplasm?",
+    "options": [
+      "Nissl Bodies",
+      "Cell Body",
+      "Ganglion",
+      "Neurofibrils"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Cell Body",
+    "rationale": "The soma is the cell body of a neuron, containing the nucleus and cytoplasm.",
+    "clinical_application": "The cell body is the metabolic center of the neuron.",
+    "simplification": "Soma = cell body.",
+    "hints": "Soma is another term for cell body."
+  },
+  {
+    "id": 2,
+    "subject": "Neurological Nursing",
+    "question": "The region of the brain which is responsible for higher mental functions and decision making is located in the.",
+    "options": [
+      "Parietal lobe",
+      "Occipital lobe",
+      "Frontal lobe",
+      "Temporal lobe"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Frontal lobe",
+    "rationale": "The frontal lobe is responsible for executive functions, decision making, and higher cognitive processes.",
+    "clinical_application": "Damage to the frontal lobe can cause personality changes and impaired judgment.",
+    "simplification": "Frontal lobe = thinking and decisions.",
+    "hints": "Frontal lobe = executive functions."
+  },
+  {
+    "id": 3,
+    "subject": "Neurological Nursing",
+    "question": "Gag reflex is mediated by cranial nerve",
+    "options": [
+      "X",
+      "IX",
+      "VIII",
+      "VII"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "IX",
+    "rationale": "The gag reflex is mediated by the glossopharyngeal nerve (CN IX) and vagus nerve (CN X), but primarily CN IX for the afferent limb.",
+    "clinical_application": "Assess gag reflex to evaluate CN IX and X function.",
+    "simplification": "Gag reflex = cranial nerve IX.",
+    "hints": "Glossopharyngeal = gag."
+  },
+  {
+    "id": 4,
+    "subject": "Neurological Nursing",
+    "question": "The nurse is evaluating neurological signs of the male client in spinal shock following spinal cord injury. Which of the following observations by the nurse indicates that spinal shock persists?",
+    "options": [
+      "Inability to elicit a Babinski's reflex",
+      "Reflex emptying of the bladder",
+      "Positive reflexes",
+      "Hyperreflexia"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Inability to elicit a Babinski's reflex",
+    "rationale": "During spinal shock, there is a temporary loss of reflex activity below the level of injury, including absence of Babinski reflex.",
+    "clinical_application": "Spinal shock is characterized by flaccid paralysis and absent reflexes.",
+    "simplification": "Spinal shock = no reflexes.",
+    "hints": "Absence of Babinski = spinal shock."
+  },
+  {
+    "id": 5,
+    "subject": "Neurological Nursing",
+    "question": "Medulla oblongata is also called...",
+    "options": [
+      "Proencephalon",
+      "Myelencephalon",
+      "Mesencephalon",
+      "Metencephalon"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Myelencephalon",
+    "rationale": "The medulla oblongata develops from the myelencephalon.",
+    "clinical_application": "The medulla contains vital centers for respiration and heart rate.",
+    "simplification": "Medulla = myelencephalon.",
+    "hints": "Myelencephalon is the embryonic hindbrain region."
+  },
+  {
+    "id": 6,
+    "subject": "Neurological Nursing",
+    "question": "The nurse is caring for a client admitted with suspected myasthenia gravis. Which finding is usually associated with a diagnosis of myasthenia gravis?",
+    "options": [
+      "Visual disturbances, including diplopia",
+      "Ascending paralysis and loss of motor functions",
+      "Cogwheel rigidity and loss of coordination",
+      "Progressive weakness that is worse at the day's end"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Progressive weakness that is worse at the day's end",
+    "rationale": "Myasthenia gravis causes muscle weakness that worsens with activity and improves with rest, often worse at the end of the day.",
+    "clinical_application": "Characteristic fatigable weakness in MG.",
+    "simplification": "MG: weakness gets worse later in the day.",
+    "hints": "Fatigable weakness = myasthenia gravis."
+  },
+  {
+    "id": 7,
+    "subject": "Neurological Nursing",
+    "question": "Klinefelter syndrome is associated appropriately with...",
+    "options": [
+      "Alcoholism",
+      "Chromosomal deficiency",
+      "Stress",
+      "Personality disorder"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Chromosomal deficiency",
+    "rationale": "Klinefelter syndrome is a chromosomal disorder (XXY) caused by an extra X chromosome.",
+    "clinical_application": "Associated with hypogonadism and infertility.",
+    "simplification": "Klinefelter = chromosomal abnormality.",
+    "hints": "Klinefelter = XXY."
+  },
+  {
+    "id": 8,
+    "subject": "Neurological Nursing",
+    "question": "Which group of hormones is released by the medulla of the adrenal gland:",
+    "options": [
+      "Epinephrine and non epinephrine",
+      "Glucocorticosteroid, mineralocorticosteroid and androgen",
+      "Thyroxine, tri- iodothyine and calcitonin",
+      "Insulin, glucagon and somastatin"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Epinephrine and non epinephrine",
+    "rationale": "The adrenal medulla secretes catecholamines: epinephrine and norepinephrine.",
+    "clinical_application": "Fight or flight response.",
+    "simplification": "Adrenal medulla = epinephrine and norepinephrine.",
+    "hints": "Medulla = catecholamines."
+  },
+  {
+    "id": 9,
+    "subject": "Neurological Nursing",
+    "question": "The 6th cranial nerve is...",
+    "options": [
+      "Facial",
+      "Abducens",
+      "Trigeminal",
+      "Vestibulocochlear"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Abducens",
+    "rationale": "Cranial nerve VI is the abducens nerve, which controls lateral eye movement.",
+    "clinical_application": "Damage causes inability to abduct the eye.",
+    "simplification": "CN VI = abducens.",
+    "hints": "Abducens = lateral eye movement."
+  },
+  {
+    "id": 10,
+    "subject": "Neurological Nursing",
+    "question": "An alcoholic client experiencing burning and tingling sensations of the feet. It is suggestive of",
+    "options": [
+      "Peripheral neuropathy",
+      "Wernicke's encephalopathy",
+      "Korkoff's psychosis",
+      "Seizure"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Peripheral neuropathy",
+    "rationale": "Chronic alcohol abuse often causes peripheral neuropathy, leading to burning and tingling in the extremities.",
+    "clinical_application": "Alcohol-induced neuropathy is common.",
+    "simplification": "Alcohol = nerve damage in feet.",
+    "hints": "Burning/tingling feet = peripheral neuropathy."
+  },
+  {
+    "id": 11,
+    "subject": "Neurological Nursing",
+    "question": "Vomiting center is situated in.",
+    "options": [
+      "Pons",
+      "Medulla",
+      "Cerebellum",
+      "Brain stem"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Medulla",
+    "rationale": "The vomiting center is located in the medulla oblongata.",
+    "clinical_application": "Stimulation of the medulla can induce vomiting.",
+    "simplification": "Vomiting center = medulla.",
+    "hints": "Medulla controls vomiting."
+  },
+  {
+    "id": 12,
+    "subject": "Neurological Nursing",
+    "question": "The nurse is teaching a client with Parkinson's disease ways to prevent curvatures of the spine associated with the disease. To prevent spinal flexion, the nurse should tell the client to:",
+    "options": [
+      "Periodically lie prone without a neck pillow.",
+      "Sleep only in dorsal recumbent position.",
+      "Rest in supine position with his head elevated.",
+      "Sleep on either side, but keep his back straight."
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Periodically lie prone without a neck pillow.",
+    "rationale": "Lying prone helps prevent flexed posture and spinal curvature in Parkinson's disease.",
+    "clinical_application": "Promote extension exercises to prevent contractures.",
+    "simplification": "Lie on stomach to avoid spine bending.",
+    "hints": "Prone position prevents flexion."
+  },
+  {
+    "id": 13,
+    "subject": "Neurological Nursing",
+    "question": "Which ion crosses the neuron membrane through open gated ion channels to initiate a graded potential?",
+    "options": [
+      "Na+",
+      "K+",
+      "Ca2+",
+      "Cl-"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Na+",
+    "rationale": "Graded potentials are initiated by the influx of sodium ions through ligand-gated or mechanically gated channels.",
+    "clinical_application": "Sodium influx depolarizes the membrane.",
+    "simplification": "Na+ enters to start graded potential.",
+    "hints": "Na+ influx = depolarization."
+  },
+  {
+    "id": 14,
+    "subject": "Neurological Nursing",
+    "question": "For a client with stroke, which criterion must be fulfilled before the client is fed:",
+    "options": [
+      "Speech returns to normal",
+      "Cranial nerves III, IV and VI are intact",
+      "The client swallows small sips of water without coughing",
+      "Gag reflex returns"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "The client swallows small sips of water without coughing",
+    "rationale": "Before feeding, a stroke patient must demonstrate a safe swallow, often assessed with water swallow test without coughing.",
+    "clinical_application": "Aspiration risk is high; swallow evaluation is critical.",
+    "simplification": "Must be able to swallow water without choking.",
+    "hints": "Swallow evaluation before feeding."
+  },
+  {
+    "id": 15,
+    "subject": "Neurological Nursing",
+    "question": "The nervous system consists of...",
+    "options": [
+      "Nervous Tissue",
+      "Nervous Muscle",
+      "Fibularis Longus",
+      "Cells"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Nervous Tissue",
+    "rationale": "The nervous system is composed of nervous tissue, which includes neurons and neuroglia.",
+    "clinical_application": "Basic structure of CNS and PNS.",
+    "simplification": "Nervous system = nervous tissue.",
+    "hints": "Tissue = neurons and glia."
+  },
+  {
+    "id": 16,
+    "subject": "Neurological Nursing",
+    "question": "Often the first signs of neurological disorders are deficits in basic cognitive functions and also deficits in skills that involve problem-solving, planning and engaging in goal-directed behaviour. These types of functions are known as:",
+    "options": [
+      "Directive functions",
+      "Executive functions",
+      "Management functions",
+      "Slave functions"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Executive functions",
+    "rationale": "Executive functions include higher-order cognitive processes like planning, problem-solving, and goal-directed behavior.",
+    "clinical_application": "Frontal lobe damage affects executive functions.",
+    "simplification": "Executive functions = planning and problem-solving.",
+    "hints": "Executive = high-level thinking."
+  },
+  {
+    "id": 17,
+    "subject": "Neurological Nursing",
+    "question": "The area between the Schwann cells where the axon is bare and in direct contact with the extracellular fluid is...",
+    "options": [
+      "Axon",
+      "Axon hillock",
+      "Node of Ranvier",
+      "Myelin sheath"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Node of Ranvier",
+    "rationale": "Nodes of Ranvier are gaps in the myelin sheath where the axon is exposed, allowing saltatory conduction.",
+    "clinical_application": "Nodes are important for rapid impulse transmission.",
+    "simplification": "Nodes of Ranvier = gaps in myelin.",
+    "hints": "Nodes = bare axon segments."
+  },
+  {
+    "id": 18,
+    "subject": "Neurological Nursing",
+    "question": "The movement of K+ out of the cell makes the inside of the cell less positive (more negative) and acts to restore the original resting voltage of the neuron process called.",
+    "options": [
+      "Depolarization",
+      "Hyperpolarization",
+      "Repolarization",
+      "Overshoot"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Repolarization",
+    "rationale": "Repolarization is the process where K+ leaves the cell, returning the membrane potential toward resting levels.",
+    "clinical_application": "Repolarization restores resting potential.",
+    "simplification": "K+ out = repolarization.",
+    "hints": "Repolarization = returning to rest."
+  },
+  {
+    "id": 19,
+    "subject": "Neurological Nursing",
+    "question": "Gradually increasing pain and weakness and numbness in the hand or wrist that radiates up the arm suggest:",
+    "options": [
+      "Amyotrophic lateral sclerosis",
+      "Carpal tunnel syndrome",
+      "Bloch-Sulzberger Syndrome",
+      "Dystonia"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Carpal tunnel syndrome",
+    "rationale": "Carpal tunnel syndrome causes pain, numbness, and weakness in the hand and wrist, often radiating up the arm.",
+    "clinical_application": "Entrapment of median nerve at wrist.",
+    "simplification": "Wrist pain/numbness = carpal tunnel.",
+    "hints": "Carpal tunnel = median nerve compression."
+  },
+  {
+    "id": 20,
+    "subject": "Neurological Nursing",
+    "question": "_____ form myelin sheaths around axons.",
+    "options": [
+      "Schwann Cells",
+      "Neurofibrils",
+      "The Cell Body",
+      "Nissl Bodies"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Schwann Cells",
+    "rationale": "Schwann cells produce myelin sheaths in the peripheral nervous system.",
+    "clinical_application": "Myelination speeds impulse conduction.",
+    "simplification": "Schwann cells = myelin in PNS.",
+    "hints": "Schwann cells = PNS myelin."
+  },
+  {
+    "id": 21,
+    "subject": "Neurological Nursing",
+    "question": "If you were told by a colleague that their assessment of a patient's Glasgow Coma Scale was E2, V3, M5, how would you interpret this?",
+    "options": [
+      "The patient's eyes open to sound, they are orientated are able to obey commands",
+      "The patient's eyes open to pain, they make incomprehensible sounds, and localize to pain",
+      "The patient's eyes open spontaneously, they are confused, and withdraw to pain",
+      "The patient's eyes do not open, they make no sounds, and show no motor response"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "The patient's eyes open to pain, they make incomprehensible sounds, and localize to pain",
+    "rationale": "E2 = eyes open to pain; V3 = inappropriate words or incomprehensible sounds (in this case, 'incomprehensible sounds' is V2, but V3 is usually inappropriate words; however, given options, B matches E2, V3, M5 where M5 is localizing to pain.",
+    "clinical_application": "GCS scoring helps assess level of consciousness.",
+    "simplification": "E2 = pain, V3 = inappropriate words, M5 = localizes pain.",
+    "hints": "GCS: E=eyes, V=verbal, M=motor."
+  },
+  {
+    "id": 22,
+    "subject": "Neurological Nursing",
+    "question": "Which part contributes to rapid transmission of action potentials on a peripheral neuron?",
+    "options": [
+      "Axon",
+      "Axon hillock",
+      "Nodes of Ranvier",
+      "Dendrites"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Nodes of Ranvier",
+    "rationale": "Nodes of Ranvier allow saltatory conduction, speeding up action potential propagation.",
+    "clinical_application": "Myelinated neurons conduct faster.",
+    "simplification": "Nodes = rapid transmission.",
+    "hints": "Saltatory conduction = fast."
+  },
+  {
+    "id": 23,
+    "subject": "Neurological Nursing",
+    "question": "When a neurotransmitter binds to a receptor on the target cell, it causes the target cell to have a.",
+    "options": [
+      "Repolarization",
+      "Growth phase",
+      "Growth inhibition",
+      "Action potential"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Action potential",
+    "rationale": "Binding of neurotransmitter can generate an action potential in the postsynaptic neuron if threshold is reached.",
+    "clinical_application": "Neurotransmission leads to excitation or inhibition.",
+    "simplification": "Neurotransmitter binding can trigger action potential.",
+    "hints": "Excitatory neurotransmitter → action potential."
+  },
+  {
+    "id": 24,
+    "subject": "Neurological Nursing",
+    "question": "A client with Parkinson's disease complains of \"choking\" when he swallows. Which intervention will improve the client's ability to swallow?",
+    "options": [
+      "Withholding liquids until after meals",
+      "Providing semi-liquids when possible",
+      "Providing a full liquid diet",
+      "Offering small, more frequent meals"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Providing semi-liquids when possible",
+    "rationale": "Semi-liquids are easier to swallow and reduce aspiration risk.",
+    "clinical_application": "Dysphagia in Parkinson's benefits from texture modification.",
+    "simplification": "Thicker fluids easier to swallow.",
+    "hints": "Semi-liquids = safer swallow."
+  },
+  {
+    "id": 25,
+    "subject": "Neurological Nursing",
+    "question": "Brocas area is present in",
+    "options": [
+      "Superior Temporal Gyrus",
+      "Post centered gyrus",
+      "Inferior Frontal Gyrus",
+      "Precentral Gyrus"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Inferior Frontal Gyrus",
+    "rationale": "Broca's area is located in the inferior frontal gyrus, typically in the left hemisphere.",
+    "clinical_application": "Damage causes expressive aphasia.",
+    "simplification": "Broca's = frontal lobe.",
+    "hints": "Broca's = speech production."
+  },
+  {
+    "id": 26,
+    "subject": "Neurological Nursing",
+    "question": "An elderly client has been noted to have increasing confusion late in the afternoon and before bedtime. The nurse is aware that the client is experiencing:",
+    "options": [
+      "Proprioception",
+      "Agnosia",
+      "Sundowning",
+      "Confabulation"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Sundowning",
+    "rationale": "Sundowning is the phenomenon of increased confusion and agitation in the late afternoon or evening.",
+    "clinical_application": "Common in dementia patients.",
+    "simplification": "Evening confusion = sundowning.",
+    "hints": "Sundowning = late-day confusion."
+  },
+  {
+    "id": 27,
+    "subject": "Neurological Nursing",
+    "question": "In planning the care for a client who has had a posterior fossa (infratentorial) craniotomy, which of the following is contraindicated when positioning the client?",
+    "options": [
+      "Keeping the head in neutral position",
+      "Log rolling or turning as a unit when turning",
+      "Keeping the client flat on one side or the other",
+      "Elevating the head of the bed to 30 degrees"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Elevating the head of the bed to 30 degrees",
+    "rationale": "For infratentorial craniotomy, the head should be flat to prevent brain herniation; elevating may increase ICP.",
+    "clinical_application": "Keep head flat or at 10-15 degrees.",
+    "simplification": "Do not elevate head after posterior fossa surgery.",
+    "hints": "Infratentorial = flat head."
+  },
+  {
+    "id": 28,
+    "subject": "Neurological Nursing",
+    "question": "A child is admitted to the pediatric unit with a sudden onset of one-sided flaccid paralysis. Which of these diagnostic tests will be most useful in supporting a diagnosis of poliomyelitis?",
+    "options": [
+      "Stool culture",
+      "Blood culture",
+      "Muscle biopsy",
+      "Chest radiograph"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Stool culture",
+    "rationale": "Poliovirus is excreted in stool; stool culture is used to confirm the diagnosis.",
+    "clinical_application": "Polio is diagnosed by viral isolation from stool or throat.",
+    "simplification": "Stool culture = polio diagnosis.",
+    "hints": "Polio = stool culture."
+  },
+  {
+    "id": 29,
+    "subject": "Neurological Nursing",
+    "question": "The dendrites of a neuron contain _____ which allow the neuron to bind to and respond to neurotransmitters.",
+    "options": [
+      "Myelin",
+      "Receptor proteins",
+      "Ion channels",
+      "Synaptic vesicles"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Receptor proteins",
+    "rationale": "Dendrites have receptor proteins that bind neurotransmitters.",
+    "clinical_application": "Receptors determine synaptic response.",
+    "simplification": "Dendrites have receptors for neurotransmitters.",
+    "hints": "Receptors = bind neurotransmitters."
+  },
+  {
+    "id": 30,
+    "subject": "Neurological Nursing",
+    "question": "Which of the following refers to the \"threshold\" of nerve transmission?",
+    "options": [
+      "The frequency of action potentials which occur down a neuron",
+      "The action potential created when potassium ions leave the neuron",
+      "The total polarity change across the membrane during an action potential",
+      "The minimum level of stimulus necessary for an action potential to occur"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "The minimum level of stimulus necessary for an action potential to occur",
+    "rationale": "Threshold is the minimum depolarization needed to trigger an action potential.",
+    "clinical_application": "Threshold determines excitability.",
+    "simplification": "Threshold = minimum stimulus needed.",
+    "hints": "Threshold = trigger level."
+  },
+  {
+    "id": 31,
+    "subject": "Neurological Nursing",
+    "question": "The reticular formation is a diffuse collection of.",
+    "options": [
+      "Only sensory neuron",
+      "Only motor neuron",
+      "Only Autonomic center",
+      "All of these"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "All of these",
+    "rationale": "The reticular formation contains sensory, motor, and autonomic nuclei.",
+    "clinical_application": "Involved in arousal and sleep-wake cycle.",
+    "simplification": "Reticular formation = all types.",
+    "hints": "Reticular = many functions."
+  },
+  {
+    "id": 32,
+    "subject": "Neurological Nursing",
+    "question": "Which of the following statement about herpes zoster is NOT true?",
+    "options": [
+      "It is caused by the varicella-zoster virus",
+      "It causes burning, tingling pain and lesions, generally on one side of the body",
+      "Anyone who has had chickenpox is at risk of postherpetic neuralgia",
+      "It is a sexually transmitted disease"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "It is a sexually transmitted disease",
+    "rationale": "Herpes zoster is not an STD; it is a reactivation of the varicella-zoster virus.",
+    "clinical_application": "Shingles is not transmitted sexually.",
+    "simplification": "Shingles is not sexually transmitted.",
+    "hints": "Shingles = chickenpox reactivation."
+  },
+  {
+    "id": 33,
+    "subject": "Neurological Nursing",
+    "question": "The entire nervous system is divided into two main regions. The",
+    "options": [
+      "Brain and the spinal chord",
+      "CNS and the PNS",
+      "Neurons and the glial cells",
+      "Motor neurons and the sensory neurons"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "CNS and the PNS",
+    "rationale": "The nervous system is divided into the central nervous system (CNS) and peripheral nervous system (PNS).",
+    "clinical_application": "CNS = brain and spinal cord; PNS = nerves.",
+    "simplification": "CNS + PNS = nervous system.",
+    "hints": "CNS and PNS."
+  },
+  {
+    "id": 34,
+    "subject": "Neurological Nursing",
+    "question": "All of the following may be associated with Guillain-Barre Syndrome EXCEPT:",
+    "options": [
+      "Weakening or tingling sensation in the legs",
+      "Weakness in the arms and upper body",
+      "Nearly complete paralysis",
+      "First symptom is altered mental status"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "First symptom is altered mental status",
+    "rationale": "GBS presents with ascending weakness, not altered mental status.",
+    "clinical_application": "GBS typically starts with leg weakness and tingling.",
+    "simplification": "GBS does not first affect mental status.",
+    "hints": "GBS = ascending paralysis, not mental changes."
+  },
+  {
+    "id": 35,
+    "subject": "Neurological Nursing",
+    "question": "Sensory nerve signals converge in the _____ where they are sorted and relayed to the proper sensory areas of the cerebrum for interpretation:",
+    "options": [
+      "Pons",
+      "Thalamus",
+      "Medulla",
+      "All"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Thalamus",
+    "rationale": "The thalamus is the sensory relay station, directing sensory information to appropriate cortical areas.",
+    "clinical_application": "Damage to thalamus affects sensory processing.",
+    "simplification": "Thalamus = sensory relay center.",
+    "hints": "Thalamus = relay station."
+  },
+  {
+    "id": 36,
+    "subject": "Neurological Nursing",
+    "question": "The most common cause of dementia in general population is.",
+    "options": [
+      "Epilepsy",
+      "Parkinson disease",
+      "Vascular disease",
+      "Alzheimer disease"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Alzheimer disease",
+    "rationale": "Alzheimer's disease is the most common cause of dementia.",
+    "clinical_application": "Alzheimer's accounts for 60-80% of dementia cases.",
+    "simplification": "Alzheimer's = most common dementia.",
+    "hints": "Alzheimer's is #1."
+  },
+  {
+    "id": 37,
+    "subject": "Neurological Nursing",
+    "question": "Which portion of the neuron release chemical neurotransmitters?",
+    "options": [
+      "Axon hillock",
+      "Cell body",
+      "Axon terminals",
+      "Dendrites"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Axon terminals",
+    "rationale": "Neurotransmitters are released from the axon terminals (synaptic boutons).",
+    "clinical_application": "Synaptic transmission occurs at terminals.",
+    "simplification": "Axon terminals release neurotransmitters.",
+    "hints": "Terminals = release neurotransmitters."
+  },
+  {
+    "id": 38,
+    "subject": "Neurological Nursing",
+    "question": "The basal ganglia comprises of",
+    "options": [
+      "The caudate, putamen and globus pallidus",
+      "The amygdala, hippocampus and cingulated gyrus",
+      "The inferior and superior colliculi",
+      "The thalamus and hypothalamus"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "The caudate, putamen and globus pallidus",
+    "rationale": "The basal ganglia include the caudate nucleus, putamen, and globus pallidus.",
+    "clinical_application": "Involved in motor control; affected in Parkinson's.",
+    "simplification": "Basal ganglia = caudate, putamen, globus pallidus.",
+    "hints": "Basal ganglia = motor control."
+  },
+  {
+    "id": 39,
+    "subject": "Neurological Nursing",
+    "question": "Which of the following nursing interventions is appropriate for a client with an ICP of 20 mm Hg?",
+    "options": [
+      "Administer low-dose barbiturate",
+      "Encourage the client to hyperventilate",
+      "Give the client a warming blanket",
+      "Restrict fluids"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Restrict fluids",
+    "rationale": "Elevated ICP may be managed with fluid restriction to reduce cerebral edema.",
+    "clinical_application": "ICP >20 mmHg requires interventions to lower pressure.",
+    "simplification": "Fluid restriction lowers ICP.",
+    "hints": "ICP >20 = fluid restriction."
+  },
+  {
+    "id": 40,
+    "subject": "Neurological Nursing",
+    "question": "Posterior cerebral artery is a branch of which of these?",
+    "options": [
+      "Vertebral artery",
+      "Basilar artery",
+      "Posterior cerebral artery",
+      "Posterior choroidal artery"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Basilar artery",
+    "rationale": "The posterior cerebral artery is a terminal branch of the basilar artery.",
+    "clinical_application": "Supplies occipital lobe; occlusion causes visual deficits.",
+    "simplification": "PCA arises from basilar artery.",
+    "hints": "Basilar → PCA."
+  },
+  {
+    "id": 41,
+    "subject": "Neurological Nursing",
+    "question": "When an individual displays a deficit in the comprehension of speech involving difficulties in recognizing spoken words and converting thoughts into words is known as....",
+    "options": [
+      "Wernicke's aphasia",
+      "Broca's aphasia",
+      "Beidecker's aphasia",
+      "Warnick's aphasia"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Wernicke's aphasia",
+    "rationale": "Wernicke's aphasia (receptive aphasia) is characterized by difficulty understanding speech and producing meaningful language.",
+    "clinical_application": "Wernicke's area in temporal lobe.",
+    "simplification": "Wernicke's = trouble understanding speech.",
+    "hints": "Wernicke's = receptive aphasia."
+  },
+  {
+    "id": 42,
+    "subject": "Neurological Nursing",
+    "question": "How does poliomyelitis virus spread?",
+    "options": [
+      "Through air droplets",
+      "Through fecal-oral route",
+      "Through direct contact with blood",
+      "Through sexual contact"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Through fecal-oral route",
+    "rationale": "Polio is transmitted via the fecal-oral route, often through contaminated water or food.",
+    "clinical_application": "Vaccination is key for prevention.",
+    "simplification": "Polio spreads through contaminated feces.",
+    "hints": "Fecal-oral = polio."
+  },
+  {
+    "id": 43,
+    "subject": "Neurological Nursing",
+    "question": "A client has been pronounced brain dead. The nurse assesses the following EXCEPT.",
+    "options": [
+      "Absent corneal reflex",
+      "Deep tendon reflexes",
+      "Dilated non reactive pupils",
+      "Decerebrate posturing"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Decerebrate posturing",
+    "rationale": "Decerebrate posturing indicates brainstem function; in brain death, there is no posturing.",
+    "clinical_application": "Brain death: no response, no reflexes, no respiration.",
+    "simplification": "Decerebrate posturing not seen in brain death.",
+    "hints": "Brain death = no motor responses."
+  },
+  {
+    "id": 44,
+    "subject": "Neurological Nursing",
+    "question": "Parkinson's disease is caused by the degeneration of neurons in an area of the brain called:",
+    "options": [
+      "Basal ganglia",
+      "Cerebellum",
+      "Curpus Callosum",
+      "Substantia nigra"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Substantia nigra",
+    "rationale": "Parkinson's involves loss of dopaminergic neurons in the substantia nigra.",
+    "clinical_application": "Leads to dopamine deficiency.",
+    "simplification": "Parkinson's = substantia nigra loss.",
+    "hints": "Substantia nigra = dopamine production."
+  },
+  {
+    "id": 45,
+    "subject": "Neurological Nursing",
+    "question": "A bundle of axons in the PNS is called",
+    "options": [
+      "Tract",
+      "Nerve",
+      "Nucleus",
+      "Ganglion"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Nerve",
+    "rationale": "In the PNS, a bundle of axons is called a nerve.",
+    "clinical_application": "In CNS, it's a tract.",
+    "simplification": "PNS bundle = nerve.",
+    "hints": "Nerve = PNS axons."
+  },
+  {
+    "id": 46,
+    "subject": "Neurological Nursing",
+    "question": "When the parasympathetic system is stimulated, what neurotransmitter is released?",
+    "options": [
+      "Acetylcholine",
+      "Norepinephrine",
+      "Dopamine",
+      "Serotonin"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Acetylcholine",
+    "rationale": "Parasympathetic postganglionic fibers release acetylcholine.",
+    "clinical_application": "ACh mediates rest-and-digest responses.",
+    "simplification": "Parasympathetic = ACh.",
+    "hints": "Parasympathetic = acetylcholine."
+  },
+  {
+    "id": 47,
+    "subject": "Neurological Nursing",
+    "question": "The cerebral cortex covers the.",
+    "options": [
+      "Brain",
+      "Cerebellum",
+      "Great cerebral commissure",
+      "Cerebral hemispheres"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Cerebral hemispheres",
+    "rationale": "The cerebral cortex is the outer layer of the cerebral hemispheres.",
+    "clinical_application": "Cortex is involved in higher brain functions.",
+    "simplification": "Cortex = outer covering of hemispheres.",
+    "hints": "Cortex = hemispheres."
+  },
+  {
+    "id": 48,
+    "subject": "Neurological Nursing",
+    "question": "A client has signs of increased ICP. Which of the following is an early indicator of deterioration in the client's condition?",
+    "options": [
+      "Decrease in LOC",
+      "Widening pulse pressure",
+      "Dilated, fixed pupil",
+      "Decrease in the pulse rate"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Decrease in LOC",
+    "rationale": "A decline in level of consciousness is often the earliest sign of increased ICP.",
+    "clinical_application": "Monitor LOC closely in head injury.",
+    "simplification": "LOC change = early ICP sign.",
+    "hints": "LOC first."
+  },
+  {
+    "id": 49,
+    "subject": "Neurological Nursing",
+    "question": "The right and left halves of the cerebrum (the cerebral hemispheres) are connected to each other mainly by a bundle of neuron axons called the:",
+    "options": [
+      "Thalamus",
+      "Insula",
+      "Corpus cavernosum",
+      "Corpus callosum"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Corpus callosum",
+    "rationale": "The corpus callosum is the main commissural tract connecting the two hemispheres.",
+    "clinical_application": "Severing corpus callosum treats severe epilepsy.",
+    "simplification": "Corpus callosum = connects hemispheres.",
+    "hints": "Corpus callosum = bridge."
+  },
+  {
+    "id": 50,
+    "subject": "Neurological Nursing",
+    "question": "A client who is regaining consciousness after a craniotomy becomes restless and attempts to pull out her IV line. Which nursing intervention protects the client without increasing her ICP?",
+    "options": [
+      "Apply a wrist restraint to each arm",
+      "Tuck her arms and hands under the draw sheet",
+      "Place her in a jacket restraint",
+      "Administer sedatives as ordered"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Apply a wrist restraint to each arm",
+    "rationale": "Soft wrist restraints allow movement but prevent pulling IV lines; avoid restraints that increase agitation or ICP.",
+    "clinical_application": "Use least restrictive restraints.",
+    "simplification": "Wrist restraints prevent IV pulls.",
+    "hints": "Wrist restraints = safest."
+  },
+  {
+    "id": 51,
+    "subject": "Neurological Nursing",
+    "question": "All motor neurons release acetylcholine as a neurotransmitter EXCEPT:",
+    "options": [
+      "Postganglionic sympathetic neurons",
+      "Somatic motor neurons",
+      "Postganglionic parasympathetic neurons",
+      "Specific cardiac and smooth muscle fibers."
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Postganglionic sympathetic neurons",
+    "rationale": "Postganglionic sympathetic neurons release norepinephrine (except sweat glands).",
+    "clinical_application": "Sympathetic = norepinephrine.",
+    "simplification": "Sympathetic postganglionic = NE (not ACh).",
+    "hints": "Sympathetic = NE."
+  },
+  {
+    "id": 52,
+    "subject": "Neurological Nursing",
+    "question": "The white fatty substance that coats axons to increase signal speed is...",
+    "options": [
+      "Myelin",
+      "Microfibrils",
+      "Dendrites",
+      "Adipocytes"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Myelin",
+    "rationale": "Myelin is a fatty substance that insulates axons and speeds impulse conduction.",
+    "clinical_application": "Demyelination causes neurological deficits.",
+    "simplification": "Myelin = fatty insulation.",
+    "hints": "Myelin = speeds signals."
+  },
+  {
+    "id": 53,
+    "subject": "Neurological Nursing",
+    "question": "The client with a head injury has been urinating copious amounts of dilute urine through the Foley catheter. The client's urine output for the previous shift was 3000 ml. The nurse implements a new physician order to administer:",
+    "options": [
+      "Dexamethasone (Decadron)",
+      "Desmopressin (DDAVP, stimate)",
+      "Ethacrynic acid (Edecrin)",
+      "Mannitol (Osmitrol)"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Desmopressin (DDAVP, stimate)",
+    "rationale": "Large volumes of dilute urine suggest diabetes insipidus; desmopressin (ADH analog) reduces urine output.",
+    "clinical_application": "Treats central DI after head injury.",
+    "simplification": "Desmopressin stops excessive urination.",
+    "hints": "DDAVP = ADH for DI."
+  },
+  {
+    "id": 54,
+    "subject": "Neurological Nursing",
+    "question": "Swallowing center is situated in.",
+    "options": [
+      "Pons",
+      "Cerebellum",
+      "Medulla",
+      "Midbrain"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Medulla",
+    "rationale": "The swallowing center is in the medulla oblongata.",
+    "clinical_application": "Stroke in medulla can cause dysphagia.",
+    "simplification": "Swallowing center = medulla.",
+    "hints": "Medulla controls swallowing."
+  },
+  {
+    "id": 55,
+    "subject": "Neurological Nursing",
+    "question": "A client is at risk for increased ICP. Which of the following would be a priority for the nurse to monitor?",
+    "options": [
+      "Tachycardia",
+      "Unequal pupil size",
+      "Decreasing body temperature",
+      "Decreasing systolic blood pressure"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Unequal pupil size",
+    "rationale": "Unequal pupils (anisocoria) is a sign of herniation and increased ICP.",
+    "clinical_application": "Pupil changes indicate brainstem compression.",
+    "simplification": "Unequal pupils = ICP emergency.",
+    "hints": "Pupil changes = ICP."
+  },
+  {
+    "id": 56,
+    "subject": "Neurological Nursing",
+    "question": "Which of these has the highest permeability in a resting nerve cell?",
+    "options": [
+      "Cl",
+      "Na+",
+      "K+",
+      "I-"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "K+",
+    "rationale": "At rest, the membrane is more permeable to K+ than to Na+, due to leak channels.",
+    "clinical_application": "Potassium permeability establishes resting potential.",
+    "simplification": "K+ most permeable at rest.",
+    "hints": "Resting membrane = K+ leak."
+  },
+  {
+    "id": 57,
+    "subject": "Neurological Nursing",
+    "question": "Targets of the autonomic nervous system include all of the following EXCEPT.",
+    "options": [
+      "Cardiac muscle",
+      "Glands",
+      "Skeletal muscle",
+      "Smooth muscle in hollow organs"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Skeletal muscle",
+    "rationale": "The autonomic nervous system innervates cardiac muscle, glands, and smooth muscle, but not skeletal muscle (which is somatic).",
+    "clinical_application": "Somatic NS controls skeletal muscle.",
+    "simplification": "Autonomic = involuntary muscles, not skeletal.",
+    "hints": "Skeletal muscle = somatic, not autonomic."
+  },
+  {
+    "id": 58,
+    "subject": "Neurological Nursing",
+    "question": "A 45 year old man called Hamish is admitted to the Emergency Department on Sunday 1 January 2014 after being assaulted. When you ask the patient to tell you his name, where he is and what the date is, he answers, Hamish, Hospital, and December. How would you record this finding on GCS?",
+    "options": [
+      "None",
+      "Orientated",
+      "Confused",
+      "Words"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Confused",
+    "rationale": "Since he answered place correctly but month wrong (December instead of January), he is disoriented to time but not to person and place, so verbal response is 'confused' (V4).",
+    "clinical_application": "GCS verbal = confused if disoriented.",
+    "simplification": "Wrong date = confused.",
+    "hints": "Confused = disoriented."
+  },
+  {
+    "id": 59,
+    "subject": "Neurological Nursing",
+    "question": "Fluconolodular lobe of the cerebellum is concern with",
+    "options": [
+      "Equilibrium",
+      "Coordination",
+      "Baroreceptor",
+      "Chemoreceptor"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Equilibrium",
+    "rationale": "The flocculonodular lobe of the cerebellum is involved in balance and equilibrium.",
+    "clinical_application": "Lesions cause balance problems.",
+    "simplification": "Flocculonodular = balance.",
+    "hints": "Equilibrium = balance."
+  },
+  {
+    "id": 60,
+    "subject": "Neurological Nursing",
+    "question": "Executive functions involves problem-solving, planning, initiative, organising, and they monitor and inhibit complex behaviours. These functions are normally associated with which area of the brain?",
+    "options": [
+      "The neocortex",
+      "The corpus callosum",
+      "The cerebellum",
+      "The prefrontal cortex"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "The prefrontal cortex",
+    "rationale": "Executive functions are mediated by the prefrontal cortex.",
+    "clinical_application": "Frontal lobe damage impairs executive functions.",
+    "simplification": "Prefrontal cortex = executive functions.",
+    "hints": "Prefrontal = planning, decisions."
+  },
+  {
+    "id": 61,
+    "subject": "Neurological Nursing",
+    "question": "Cerebrospinal fluid (CSF) consist of the following EXCEPT:",
+    "options": [
+      "A few leukocytes",
+      "Erythrocytes",
+      "Cellulose",
+      "Mineral salt"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Cellulose",
+    "rationale": "CSF contains leukocytes, glucose, proteins, and mineral salts, but not cellulose.",
+    "clinical_application": "CSF analysis helps diagnose infections.",
+    "simplification": "CSF does not have cellulose.",
+    "hints": "Cellulose not in CSF."
+  },
+  {
+    "id": 62,
+    "subject": "Neurological Nursing",
+    "question": "The nurse is using the Glascow coma scale to assess the client's motor response. The nurse places pressure at the base of the client's fingernail for 20 seconds. The client's only response is withdrawal of his hand. The nurse interprets the client's response as:",
+    "options": [
+      "A score of 6 because he follows commands",
+      "A score of 5 because he localizes pain",
+      "A score of 4 because he uses flexion",
+      "A score of 3 because he uses extension"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "A score of 4 because he uses flexion",
+    "rationale": "Withdrawal from pain is scored as 4 on the motor component of GCS.",
+    "clinical_application": "Motor scores range from 1 (none) to 6 (obeys).",
+    "simplification": "Withdrawal = motor score 4.",
+    "hints": "Withdrawal = score 4."
+  },
+  {
+    "id": 63,
+    "subject": "Neurological Nursing",
+    "question": "In diagnosing seizure, which of the following is the most beneficial?",
+    "options": [
+      "Skull radiographs",
+      "EEG",
+      "Brain scan",
+      "Lumbar puncture"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "EEG",
+    "rationale": "EEG is the most useful test for diagnosing epilepsy and seizure disorders.",
+    "clinical_application": "EEG records brain electrical activity.",
+    "simplification": "EEG = best for seizures.",
+    "hints": "EEG = seizure diagnosis."
+  },
+  {
+    "id": 64,
+    "subject": "Neurological Nursing",
+    "question": "Somatic motor neurons have axons that conduct signals from the CNS to _____ and are usually under _____ control:",
+    "options": [
+      "Skeletal muscle; involuntary",
+      "Hollow organs; voluntary",
+      "Hollow organs; involuntary",
+      "Skeletal muscle; voluntary"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Skeletal muscle; voluntary",
+    "rationale": "Somatic motor neurons innervate skeletal muscle and are under voluntary control.",
+    "clinical_application": "Voluntary movement.",
+    "simplification": "Somatic = skeletal muscle, voluntary.",
+    "hints": "Somatic = voluntary skeletal."
+  },
+  {
+    "id": 65,
+    "subject": "Neurological Nursing",
+    "question": "The pH of cerebrospinal fluid is",
+    "options": [
+      "7.23",
+      "7.6",
+      "7.0",
+      "7.7"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "7.23",
+    "rationale": "CSF is slightly acidic compared to blood; normal pH is around 7.3 (range 7.28-7.32).",
+    "clinical_application": "CSF pH changes in acidosis/alkalosis.",
+    "simplification": "CSF pH ~7.23.",
+    "hints": "CSF slightly acidic."
+  },
+  {
+    "id": 66,
+    "subject": "Neurological Nursing",
+    "question": "All of the following are true about Tourette syndrome EXCEPT:",
+    "options": [
+      "Drug treatment completely eliminates symptoms",
+      "It is involuntary and may be a chronic condition",
+      "Symptoms are generally most severe during adolescence",
+      "Symptoms are generally detected in children"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Drug treatment completely eliminates symptoms",
+    "rationale": "Tourette symptoms are managed but not completely eliminated; medications reduce tics.",
+    "clinical_application": "Treatment includes behavioral therapy and medications.",
+    "simplification": "Tourette cannot be completely cured.",
+    "hints": "No complete elimination."
+  },
+  {
+    "id": 67,
+    "subject": "Neurological Nursing",
+    "question": "Telencephalon refers to.",
+    "options": [
+      "Brain stem",
+      "Cerebrum",
+      "Diencephalon",
+      "Cerebellum"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Cerebrum",
+    "rationale": "The telencephalon develops into the cerebrum (cerebral hemispheres).",
+    "clinical_application": "Embryonic brain division.",
+    "simplification": "Telencephalon = cerebrum.",
+    "hints": "Telencephalon = cerebrum."
+  },
+  {
+    "id": 68,
+    "subject": "Neurological Nursing",
+    "question": "Signals from the sense organs (such as the ears, eyes, nose, and mouth) are received and analyzed in what part of the brain?",
+    "options": [
+      "The cerebellum",
+      "The cerebrum",
+      "The brainstem",
+      "The diencephalon"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "The cerebrum",
+    "rationale": "Sensory signals are processed in the cerebral cortex.",
+    "clinical_application": "Cortical areas interpret senses.",
+    "simplification": "Cerebrum = sensory analysis.",
+    "hints": "Cerebrum = higher processing."
+  },
+  {
+    "id": 69,
+    "subject": "Neurological Nursing",
+    "question": "The volume of cerebrospinal fluid is about.",
+    "options": [
+      "300mls",
+      "200mls",
+      "150mls",
+      "100mls"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "150mls",
+    "rationale": "Total CSF volume is about 150 mL in adults.",
+    "clinical_application": "CSF is continuously produced.",
+    "simplification": "CSF volume ~150 mL.",
+    "hints": "150 mL normal."
+  },
+  {
+    "id": 70,
+    "subject": "Neurological Nursing",
+    "question": "You are called to see a patient who has fallen through a plate glass door. As you approach the patient you observe that their eyes are extremely swollen and they are unable to open them. How would you record the eye component of the GCS scale?",
+    "options": [
+      "None",
+      "To pain",
+      "Eyes Not testable(NT)",
+      "No eye movement"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Eyes Not testable(NT)",
+    "rationale": "If eyes cannot be opened due to swelling, record as 'Not testable' (NT).",
+    "clinical_application": "GCS documentation accounts for physical barriers.",
+    "simplification": "Swollen eyes = NT.",
+    "hints": "NT = not testable."
+  },
+  {
+    "id": 71,
+    "subject": "Neurological Nursing",
+    "question": "The largest part of the brain that occupies the anterior and middle cranial fossa is called.",
+    "options": [
+      "Cerebrum",
+      "Cerebellum",
+      "Brainstem",
+      "Diencephalon"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Cerebrum",
+    "rationale": "The cerebrum is the largest part of the brain, filling the anterior and middle cranial fossae.",
+    "clinical_application": "Cerebrum controls higher functions.",
+    "simplification": "Cerebrum = biggest brain part.",
+    "hints": "Cerebrum = largest."
+  },
+  {
+    "id": 72,
+    "subject": "Neurological Nursing",
+    "question": "The inferior and superior colliculi compose the.....",
+    "options": [
+      "Thalamus",
+      "Myelencephalon",
+      "Tectum",
+      "Tegmentum"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Tectum",
+    "rationale": "The colliculi (superior and inferior) are part of the tectum in the midbrain.",
+    "clinical_application": "Involved in visual and auditory reflexes.",
+    "simplification": "Colliculi = tectum.",
+    "hints": "Tectum = colliculi."
+  },
+  {
+    "id": 73,
+    "subject": "Neurological Nursing",
+    "question": "What does Bell's palsy cause?",
+    "options": [
+      "Incontinence",
+      "Paralysis of one of the arms",
+      "Weakness on one side of the body",
+      "Paralysis on one side of the face"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Paralysis on one side of the face",
+    "rationale": "Bell's palsy is a unilateral facial paralysis due to CN VII dysfunction.",
+    "clinical_application": "Often idiopathic; treat with steroids.",
+    "simplification": "Bell's palsy = one-sided face droop.",
+    "hints": "Facial nerve palsy."
+  },
+  {
+    "id": 74,
+    "subject": "Neurological Nursing",
+    "question": "Brain and spinal tumors may be treated with any or all of the following modalities EXCEPT:",
+    "options": [
+      "Surgery",
+      "Radiation",
+      "Chemotherapy",
+      "Positron emission tomography"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Positron emission tomography",
+    "rationale": "PET is a diagnostic imaging technique, not a treatment modality.",
+    "clinical_application": "Treatment: surgery, radiation, chemo.",
+    "simplification": "PET = diagnosis, not treatment.",
+    "hints": "PET = scanning, not therapy."
+  },
+  {
+    "id": 75,
+    "subject": "Neurological Nursing",
+    "question": "Nightmares are seen in",
+    "options": [
+      "REM",
+      "NREM II",
+      "NREM III",
+      "NREM IV"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "REM",
+    "rationale": "Nightmares occur during REM sleep.",
+    "clinical_application": "REM sleep is associated with vivid dreaming.",
+    "simplification": "Nightmares in REM sleep.",
+    "hints": "REM = dreaming."
+  },
+  {
+    "id": 76,
+    "subject": "Neurological Nursing",
+    "question": "The nurse is caring for a client with stage III Alzheimer's disease. A characteristic of this stage is:",
+    "options": [
+      "Memory loss",
+      "Failing to recognize familiar objects",
+      "Wandering at night",
+      "Failing to communicate"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Wandering at night",
+    "rationale": "Stage III (moderate) Alzheimer's includes behavioral changes like wandering and sundowning.",
+    "clinical_application": "Safety measures needed.",
+    "simplification": "Stage III = wandering, agitation.",
+    "hints": "Wandering = stage III."
+  },
+  {
+    "id": 77,
+    "subject": "Neurological Nursing",
+    "question": "Meningitis alters intracranial physiology, causing:",
+    "options": [
+      "Cerebral edema",
+      "Increased permeability of the blood-brain barrier",
+      "Raised intracranial pressure",
+      "All of these"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "All of these",
+    "rationale": "Meningitis causes inflammation leading to edema, increased BBB permeability, and elevated ICP.",
+    "clinical_application": "Treat with antibiotics and manage ICP.",
+    "simplification": "Meningitis causes all these.",
+    "hints": "Meningitis = multiple effects."
+  },
+  {
+    "id": 78,
+    "subject": "Neurological Nursing",
+    "question": "When an individual has a disruption of the ability to speak is known generally as..",
+    "options": [
+      "Wernicke's aphasia",
+      "Broca's aphasia",
+      "Beidecker's aphasia",
+      "Warnick's aphasia"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Broca's aphasia",
+    "rationale": "Broca's aphasia (expressive aphasia) is characterized by difficulty producing speech.",
+    "clinical_application": "Damage to Broca's area.",
+    "simplification": "Broca's = trouble speaking.",
+    "hints": "Broca's = expressive."
+  },
+  {
+    "id": 79,
+    "subject": "Neurological Nursing",
+    "question": "The nurse is planning care for the client in spinal shock. Which of the following actions would be least helpful in minimizing the effects of vasodilation below the level of the injury?",
+    "options": [
+      "Moving the client quickly as one unit",
+      "Applying Teds or compression stockings",
+      "Monitoring vital signs before and during position changes",
+      "Administering vasopressors as ordered"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Moving the client quickly as one unit",
+    "rationale": "Rapid movement can trigger autonomic dysreflexia; slow, careful turning is needed.",
+    "clinical_application": "Spinal shock causes vasodilation; manage with compression and slow movements.",
+    "simplification": "Quick movement is not helpful.",
+    "hints": "Avoid sudden moves."
+  },
+  {
+    "id": 80,
+    "subject": "Neurological Nursing",
+    "question": "The region of the CNS that contains the vital centers for regulating breathing rate, heart rate, and blood pressure is the.",
+    "options": [
+      "Thalamus",
+      "Cerebrum",
+      "Medulla oblongata",
+      "Cerebellum"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Medulla oblongata",
+    "rationale": "The medulla oblongata contains vital centers for respiratory, cardiac, and vasomotor control.",
+    "clinical_application": "Damage to medulla can be fatal.",
+    "simplification": "Medulla = vital centers.",
+    "hints": "Medulla = breathing, heart rate, BP."
+  },
+  {
+    "id": 81,
+    "subject": "Neurological Nursing",
+    "question": "The location of a specific gene on a chromosome is called?",
+    "options": [
+      "The gene position",
+      "The gene location",
+      "The gene pocus",
+      "The gene locus"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "The gene locus",
+    "rationale": "Locus is the specific position of a gene on a chromosome.",
+    "clinical_application": "Used in genetic mapping.",
+    "simplification": "Gene locus = position on chromosome.",
+    "hints": "Locus = location."
+  },
+  {
+    "id": 82,
+    "subject": "Neurological Nursing",
+    "question": "In each component of the Glasgow Coma Scale the 'Best Response' is...",
+    "options": [
+      "No response",
+      "Spontaneous",
+      "A normal response",
+      "all of the above"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "A normal response",
+    "rationale": "Best response indicates normal function: eyes open spontaneously, oriented verbal, obeys commands.",
+    "clinical_application": "GCS 15 = best.",
+    "simplification": "Best = normal response.",
+    "hints": "Normal = best."
+  },
+  {
+    "id": 83,
+    "subject": "Neurological Nursing",
+    "question": "Symptoms of trigeminal neuralgia may include all of the following EXCEPT:",
+    "options": [
+      "Extreme, intermittent facial pain in the jaw or cheek",
+      "Tingling or numbness on one side of the face",
+      "Pain triggered by contact with the face or facial movements",
+      "Inability to swallow"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Inability to swallow",
+    "rationale": "Trigeminal neuralgia affects CN V (sensory), not swallowing (CN IX, X).",
+    "clinical_application": "Pain is severe and triggered.",
+    "simplification": "Trigeminal neuralgia = facial pain, not swallowing.",
+    "hints": "Swallowing not affected."
+  },
+  {
+    "id": 84,
+    "subject": "Neurological Nursing",
+    "question": "Each cerebral hemisphere is divided into how many lobes?",
+    "options": [
+      "2",
+      "3",
+      "4",
+      "8"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "4",
+    "rationale": "Each hemisphere has four lobes: frontal, parietal, temporal, occipital.",
+    "clinical_application": "Lobes have specific functions.",
+    "simplification": "4 lobes per hemisphere.",
+    "hints": "Frontal, parietal, temporal, occipital."
+  },
+  {
+    "id": 85,
+    "subject": "Neurological Nursing",
+    "question": "Polio can be eradicated by which of the following?",
+    "options": [
+      "Attention to sewage control and hygiene",
+      "Killed polio vaccine",
+      "Live polio vaccine",
+      "Combination of the killed and live vaccines."
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Combination of the killed and live vaccines.",
+    "rationale": "Polio eradication requires high vaccination coverage, including both inactivated (IPV) and oral (OPV) vaccines.",
+    "clinical_application": "Global vaccination campaigns.",
+    "simplification": "Vaccines eradicate polio.",
+    "hints": "Vaccines = key."
+  },
+  {
+    "id": 86,
+    "subject": "Neurological Nursing",
+    "question": "The risk of Down's syndrome to offspring is higher in mother at the age of",
+    "options": [
+      "30 years",
+      "35 years",
+      "25 years",
+      "20 years"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "35 years",
+    "rationale": "Advanced maternal age (>35) increases risk of Down syndrome.",
+    "clinical_application": "Prenatal screening offered for older mothers.",
+    "simplification": "Maternal age >35 = higher risk.",
+    "hints": "35+ years."
+  },
+  {
+    "id": 87,
+    "subject": "Neurological Nursing",
+    "question": "Which substance causes the microfilaments to contract and pull the synaptic vesicles to the presynaptic membrane?",
+    "options": [
+      "Sodium ions",
+      "Calcium ions",
+      "Noradrenalin",
+      "Acetylcholine"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Calcium ions",
+    "rationale": "Calcium influx triggers vesicle docking and neurotransmitter release.",
+    "clinical_application": "Ca2+ is essential for synaptic transmission.",
+    "simplification": "Calcium triggers neurotransmitter release.",
+    "hints": "Ca2+ = vesicle movement."
+  },
+  {
+    "id": 88,
+    "subject": "Neurological Nursing",
+    "question": "The following are major structural classification of neurons EXCEPT:",
+    "options": [
+      "Multi polar neurons",
+      "Bipolar neurons",
+      "Pseudounipolar neurons",
+      "Anaxonic neurons"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Anaxonic neurons",
+    "rationale": "Anaxonic neurons are not a major structural classification; the major types are multipolar, bipolar, and unipolar (pseudounipolar).",
+    "clinical_application": "Structural classification based on number of processes.",
+    "simplification": "Anaxonic is not a major type.",
+    "hints": "Major: multipolar, bipolar, unipolar."
+  },
+  {
+    "id": 89,
+    "subject": "Neurological Nursing",
+    "question": "Each of the three components of the Glasgow Coma Scale has a number of steps. Which of these are the correct combinations?",
+    "options": [
+      "Eyes 5, Verbal 4, Motor 6",
+      "Eyes 4, Verbal 5, Motor 5",
+      "Eyes 4, Verbal 5, Motor 6",
+      "Eyes 5, Verbal 5, Motor 6"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Eyes 4, Verbal 5, Motor 6",
+    "rationale": "GCS: Eyes = 4 (spontaneous to no response), Verbal = 5 (oriented to no response), Motor = 6 (obeys to no response).",
+    "clinical_application": "E4, V5, M6 is maximum.",
+    "simplification": "Eyes 4, Verbal 5, Motor 6.",
+    "hints": "GCS max = 4-5-6."
+  },
+  {
+    "id": 90,
+    "subject": "Neurological Nursing",
+    "question": "Which neurotransmitter is responsible for many of the functions of the frontal lobe?",
+    "options": [
+      "GABA",
+      "Histamine",
+      "Dopamine",
+      "Norepinephrine"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Dopamine",
+    "rationale": "Dopamine is involved in frontal lobe functions such as executive functions, motivation, and motor control.",
+    "clinical_application": "Dopamine deficit in frontal lobe contributes to ADHD and Parkinson's.",
+    "simplification": "Dopamine = frontal lobe functions.",
+    "hints": "Dopamine = executive functions."
+  },
+  {
+    "id": 91,
+    "subject": "Neurological Nursing",
+    "question": "The most severe form of meningitis is considered to be:",
+    "options": [
+      "Bacterial",
+      "Aseptic",
+      "Septic",
+      "Viral"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Bacterial",
+    "rationale": "Bacterial meningitis is the most severe and life-threatening, requiring prompt antibiotics.",
+    "clinical_application": "Mortality high if untreated.",
+    "simplification": "Bacterial meningitis = most severe.",
+    "hints": "Bacterial = worst."
+  },
+  {
+    "id": 92,
+    "subject": "Neurological Nursing",
+    "question": "What are the three components of the Glasgow Coma Scale?",
+    "options": [
+      "Eyes, Motor, Memory",
+      "Eyes, Motor, Pain",
+      "Eyes, Verbal, Motor",
+      "Eyes, Pain, Verbal"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Eyes, Verbal, Motor",
+    "rationale": "GCS assesses eye opening, verbal response, and motor response.",
+    "clinical_application": "Used to assess consciousness.",
+    "simplification": "GCS = Eyes, Verbal, Motor.",
+    "hints": "E, V, M."
+  },
+  {
+    "id": 93,
+    "subject": "Neurological Nursing",
+    "question": "What is the advantage of reflex arcs?",
+    "options": [
+      "They stop the sensation of pain in the brain",
+      "They provide a quick response to a stimulus",
+      "They take place independently of any nerve function",
+      "They allow us to think about an appropriate response to a stimulus."
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "They provide a quick response to a stimulus",
+    "rationale": "Reflex arcs allow rapid, involuntary responses to protect the body.",
+    "clinical_application": "Knee-jerk reflex is an example.",
+    "simplification": "Reflexes = quick response.",
+    "hints": "Quick = reflex."
+  },
+  {
+    "id": 94,
+    "subject": "Neurological Nursing",
+    "question": "The most common form of transient facial paralysis is:",
+    "options": [
+      "Alzheimer's disease",
+      "Transient ischemic attack",
+      "Bell's palsy",
+      "Erb's palsy"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Bell's palsy",
+    "rationale": "Bell's palsy is the most common cause of acute facial paralysis.",
+    "clinical_application": "Usually resolves within weeks.",
+    "simplification": "Bell's palsy = common facial paralysis.",
+    "hints": "Bell's palsy = facial nerve."
+  },
+  {
+    "id": 95,
+    "subject": "Neurological Nursing",
+    "question": "Cerebral hemisphere accounts for about:",
+    "options": [
+      "83% of total brain mass",
+      "90% of total brain mass",
+      "73% of total brain mass",
+      "63% of total brain mass"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "83% of total brain mass",
+    "rationale": "The cerebral hemispheres make up about 83% of brain mass.",
+    "clinical_application": "Largest brain region.",
+    "simplification": "Cerebrum = 83%.",
+    "hints": "83%."
+  },
+  {
+    "id": 96,
+    "subject": "Neurological Nursing",
+    "question": "A difference in the number of positive and negative charges on the two sides of a membrane is referred to?",
+    "options": [
+      "Action potential",
+      "Membrane potential",
+      "Membrane impulse",
+      "Charge difference"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Membrane potential",
+    "rationale": "Membrane potential is the voltage difference across the membrane due to ion distribution.",
+    "clinical_application": "Resting potential is a type of membrane potential.",
+    "simplification": "Membrane potential = charge difference across membrane.",
+    "hints": "Membrane potential = voltage."
+  },
+  {
+    "id": 97,
+    "subject": "Neurological Nursing",
+    "question": "Which of the following is not a characteristic of a neuron?",
+    "options": [
+      "They do not divide",
+      "they have longevity",
+      "They originate around the embryonic pharynx",
+      "They have a high metabolic rate."
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "They originate around the embryonic pharynx",
+    "rationale": "Neurons originate from the neural tube, not pharynx.",
+    "clinical_application": "Neurons are post-mitotic.",
+    "simplification": "Neurons don't come from pharynx.",
+    "hints": "Neurons = neural tube."
+  },
+  {
+    "id": 98,
+    "subject": "Neurological Nursing",
+    "question": "What does AVPU stands for?",
+    "options": [
+      "Alert, Voice, Pain, Unresponsive",
+      "Alive, Voice, Pinch, Unresponsive",
+      "Awake, Voice, Pain, Unresponsive",
+      "Asleep, Voice, Pain, Unresponsive"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Alert, Voice, Pain, Unresponsive",
+    "rationale": "AVPU is a quick consciousness assessment: Alert, responds to Voice, responds to Pain, Unresponsive.",
+    "clinical_application": "Simplified for prehospital use.",
+    "simplification": "AVPU = Alert, Voice, Pain, Unresponsive.",
+    "hints": "AVPU."
+  },
+  {
+    "id": 99,
+    "subject": "Neurological Nursing",
+    "question": "Which of the following cranial nerves is affected when client has difficulty in maintaining balance:",
+    "options": [
+      "Cranial nerve VIII",
+      "Cranial nerve VI",
+      "Cranial nerve V",
+      "Cranial nerve III"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Cranial nerve VIII",
+    "rationale": "CN VIII (vestibulocochlear) is responsible for balance and hearing.",
+    "clinical_application": "Vestibular dysfunction causes balance issues.",
+    "simplification": "CN VIII = balance.",
+    "hints": "Vestibulocochlear = balance."
+  },
+  {
+    "id": 100,
+    "subject": "Neurological Nursing",
+    "question": "A 40-year-old paraplegic must perform intermittent catherization of the bladder. Which of the following instructions should be given?",
+    "options": [
+      "Gently rotate the catheter during removal",
+      "Measure the quantity of urine.",
+      "Clean the meatus from back to front.",
+      "Clean the meatus with soap and water."
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Measure the quantity of urine.",
+    "rationale": "Intermittent catheterization requires monitoring urine output; measuring quantity is important.",
+    "clinical_application": "Proper sterile technique and fluid monitoring.",
+    "simplification": "Measure urine output.",
+    "hints": "Urine output monitoring."
+  },
+  {
+    "id": 101,
+    "subject": "Neurological Nursing",
+    "question": "Most sensory nuclei of the thalamus project to the...",
+    "options": [
+      "Cerebral cortex",
+      "Cerebellum",
+      "Spinal cord",
+      "Basal ganglia"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Cerebral cortex",
+    "rationale": "Thalamic nuclei relay sensory information to the cerebral cortex.",
+    "clinical_application": "Sensory processing.",
+    "simplification": "Thalamus → cortex.",
+    "hints": "Thalamus relays to cortex."
+  },
+  {
+    "id": 102,
+    "subject": "Neurological Nursing",
+    "question": "A lesion with membraneous sac containing cerebrospinal fluid and neural tissue is referred to:",
+    "options": [
+      "Meningomyelocle",
+      "Meningocle",
+      "Spinal bifida",
+      "Spinal bifida occulta"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Meningomyelocle",
+    "rationale": "Myelomeningocele involves a sac containing CSF, meninges, and neural tissue.",
+    "clinical_application": "Severe form of spina bifida.",
+    "simplification": "Myelomeningocele = sac with neural tissue.",
+    "hints": "Contains neural tissue."
+  },
+  {
+    "id": 103,
+    "subject": "Neurological Nursing",
+    "question": "The \"fight or flight\" response is the term used to describe activation of the",
+    "options": [
+      "Parasympathetic division",
+      "Sympathetic division",
+      "Somatic nervous system",
+      "CNS"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Sympathetic division",
+    "rationale": "The sympathetic nervous system mediates the fight-or-flight response.",
+    "clinical_application": "Stress response.",
+    "simplification": "Sympathetic = fight or flight.",
+    "hints": "Sympathetic = fight/flight."
+  },
+  {
+    "id": 104,
+    "subject": "Neurological Nursing",
+    "question": "Endocytosis, exocytosis, and transcytosis are examples of?",
+    "options": [
+      "Osmosis",
+      "Diffusion",
+      "Passive transport",
+      "Active transport"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Active transport",
+    "rationale": "These processes require energy (ATP), thus are forms of active transport.",
+    "clinical_application": "Membrane trafficking.",
+    "simplification": "Endocytosis/exocytosis = active transport.",
+    "hints": "Uses energy."
+  },
+  {
+    "id": 105,
+    "subject": "Neurological Nursing",
+    "question": "Movement of which of the following ions causes depolarization?",
+    "options": [
+      "Sodium",
+      "Potassium",
+      "Calcium",
+      "Chloride"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Sodium",
+    "rationale": "Depolarization is caused by sodium influx into the cell.",
+    "clinical_application": "Na+ entry makes inside more positive.",
+    "simplification": "Na+ in = depolarization.",
+    "hints": "Na+ influx."
+  },
+  {
+    "id": 106,
+    "subject": "Neurological Nursing",
+    "question": "The nurse is caring for a client with epilepsy who is being treated with carbamazepine (Tegretol). Which laboratory value indicates an adverse effect of the medication?",
+    "options": [
+      "Uric acid of 5mg/dL",
+      "Hematocrit of 33%",
+      "WBC 2000 per cubic millimeter",
+      "Platelets 150,000 per cubic millimeter"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "WBC 2000 per cubic millimeter",
+    "rationale": "Carbamazepine can cause bone marrow suppression, leading to leukopenia (low WBC).",
+    "clinical_application": "Monitor CBC periodically.",
+    "simplification": "Carbamazepine = low WBC.",
+    "hints": "WBC < 4000 is concern."
+  },
+  {
+    "id": 107,
+    "subject": "Neurological Nursing",
+    "question": "A complete set of chromosomes containing all the genetic information of an individual is called?",
+    "options": [
+      "Their genome",
+      "Their genotype",
+      "Their autosome",
+      "Their sequence"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Their genome",
+    "rationale": "The genome is the complete set of genetic material (all chromosomes) in an organism.",
+    "clinical_application": "Genomics in medicine.",
+    "simplification": "Genome = all genes.",
+    "hints": "Genome = all DNA."
+  },
+  {
+    "id": 108,
+    "subject": "Neurological Nursing",
+    "question": "While conversing with a patient who had a stroke six months ago, you note their speech is hard to understand and slurred. This is known as:",
+    "options": [
+      "Dysarthria",
+      "Apraxia",
+      "Alexia",
+      "Dysphagia"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Dysarthria",
+    "rationale": "Slurred speech due to muscle weakness is dysarthria.",
+    "clinical_application": "Occurs in stroke and motor neuron diseases.",
+    "simplification": "Slurred speech = dysarthria.",
+    "hints": "Dysarthria = slurred."
+  },
+  {
+    "id": 109,
+    "subject": "Neurological Nursing",
+    "question": "Which of the following respiratory patterns indicate increasing ICP in the brain stem?",
+    "options": [
+      "Slow, irregular respirations",
+      "Rapid, shallow respirations",
+      "Nasal flaring",
+      "Asymmetric chest expansion"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Slow, irregular respirations",
+    "rationale": "Brainstem compression due to ICP can cause irregular breathing patterns (Cheyne-Stokes, ataxic).",
+    "clinical_application": "Monitor respiratory rate and rhythm.",
+    "simplification": "Irregular breathing = ICP sign.",
+    "hints": "Brainstem = respiratory center."
+  },
+  {
+    "id": 110,
+    "subject": "Neurological Nursing",
+    "question": "_____ is a nucleic acid that is usually single- stranded?",
+    "options": [
+      "Genes",
+      "RNA",
+      "DNA",
+      "Chromosomes"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "RNA",
+    "rationale": "RNA is typically single-stranded, whereas DNA is double-stranded.",
+    "clinical_application": "RNA functions in protein synthesis.",
+    "simplification": "RNA = single strand.",
+    "hints": "RNA = single-stranded."
+  },
+  {
+    "id": 111,
+    "subject": "Neurological Nursing",
+    "question": "Which of the following is NOT a function of cerebrospinal fluid:",
+    "options": [
+      "To exchange nutrients and metabolic waste",
+      "To improve conduction of nerve signals between different brain regions",
+      "To provide mechanical protection to the brain",
+      "To carry neuroactive hormones in the nervous system"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "To improve conduction of nerve signals between different brain regions",
+    "rationale": "CSF does not improve conduction; it provides buoyancy, protection, and nutrient/waste exchange.",
+    "clinical_application": "CSF functions.",
+    "simplification": "CSF does not enhance signal conduction.",
+    "hints": "Not a conductive function."
+  },
+  {
+    "id": 112,
+    "subject": "Neurological Nursing",
+    "question": "One of the most common features of neurological disorders is language deficits and are collectively known as:",
+    "options": [
+      "Dysphasias",
+      "Alogias",
+      "Anomias",
+      "Aphasias"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Aphasias",
+    "rationale": "Aphasias are language disorders caused by brain damage.",
+    "clinical_application": "Types: Broca's, Wernicke's, global.",
+    "simplification": "Language deficits = aphasias.",
+    "hints": "Aphasia = language disorder."
+  },
+  {
+    "id": 113,
+    "subject": "Neurological Nursing",
+    "question": "Down's syndrome (Mongolism) is a genetic disorder. This means that the disorder is transmitted",
+    "options": [
+      "by vital invasion of the placenta",
+      "Through the genes of one or both parents",
+      "by bacterial infection immediately after birth",
+      "by viral infection in utero"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Through the genes of one or both parents",
+    "rationale": "Down syndrome is caused by an extra chromosome 21, usually inherited from the mother.",
+    "clinical_application": "Genetic counseling.",
+    "simplification": "Down syndrome = inherited genetic.",
+    "hints": "Genetic = inherited."
+  },
+  {
+    "id": 114,
+    "subject": "Neurological Nursing",
+    "question": "Which of the following hormones plays a major role in blood circulation rhythm:",
+    "options": [
+      "Acetylcholine",
+      "Serotonin",
+      "Melanin",
+      "Dopamine"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Serotonin",
+    "rationale": "Serotonin is involved in vasoconstriction and regulates blood circulation.",
+    "clinical_application": "Serotonin affects vascular tone.",
+    "simplification": "Serotonin = blood circulation.",
+    "hints": "Serotonin = vascular."
+  },
+  {
+    "id": 115,
+    "subject": "Neurological Nursing",
+    "question": "Which of the following is characterized by a short axon and long dendrites?",
+    "options": [
+      "Interneuron",
+      "Synaptic cleft",
+      "Motor neuron",
+      "Sensory neuron"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Interneuron",
+    "rationale": "Interneurons typically have short axons and long dendrites, integrating signals within CNS.",
+    "clinical_application": "Found in spinal cord and brain.",
+    "simplification": "Interneurons = short axon.",
+    "hints": "Interneurons = short axon."
+  },
+  {
+    "id": 116,
+    "subject": "Neurological Nursing",
+    "question": "During assessment, the nurse knows that well-recognized signs common to all types of meningitis is the following EXCEPT:",
+    "options": [
+      "Positive Kernig's sign",
+      "Positive Brudzinski's sign",
+      "Photophobia",
+      "Negative Kernig's sign"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Negative Kernig's sign",
+    "rationale": "Kernig's sign is positive in meningitis, not negative.",
+    "clinical_application": "Meningeal signs include Kernig's, Brudzinski's, photophobia.",
+    "simplification": "Kernig's sign = positive in meningitis.",
+    "hints": "Negative Kernig is abnormal."
+  },
+  {
+    "id": 117,
+    "subject": "Neurological Nursing",
+    "question": "The most inferior part of the brain stem is known as the:",
+    "options": [
+      "Pons",
+      "Cerebrum",
+      "Cerebellum",
+      "Medulla oblongata"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Medulla oblongata",
+    "rationale": "The medulla oblongata is the most inferior part of the brainstem, connecting to the spinal cord.",
+    "clinical_application": "Vital centers.",
+    "simplification": "Medulla = lowest brainstem.",
+    "hints": "Medulla = inferior."
+  },
+  {
+    "id": 118,
+    "subject": "Neurological Nursing",
+    "question": "Proteins are made up of.",
+    "options": [
+      "Carbohydrates",
+      "Starch",
+      "Genes",
+      "Amino acids"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Amino acids",
+    "rationale": "Proteins are polymers of amino acids.",
+    "clinical_application": "Protein synthesis.",
+    "simplification": "Proteins = amino acids.",
+    "hints": "Amino acids = protein building blocks."
+  },
+  {
+    "id": 119,
+    "subject": "Neurological Nursing",
+    "question": "If an individual suffers a traumatic event and has a neurological disorder that means they may be unable to recall anything from the moment of the injury or to retain memories of recent events. This is known as:",
+    "options": [
+      "anterograde amnesia",
+      "retrograde amnesia",
+      "postevent amnesia",
+      "antenatal amnesia"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "anterograde amnesia",
+    "rationale": "Inability to form new memories after an event is anterograde amnesia.",
+    "clinical_application": "Common in hippocampal damage.",
+    "simplification": "Anterograde = can't form new memories.",
+    "hints": "Anterograde = forward."
+  },
+  {
+    "id": 120,
+    "subject": "Neurological Nursing",
+    "question": "The cells of nervous tissue that are not neurons but that assist neurons are called:",
+    "options": [
+      "Amyloid plaques",
+      "Fibroblasts",
+      "Leukocytes",
+      "Neuroglia"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Neuroglia",
+    "rationale": "Neuroglia (glial cells) support and protect neurons.",
+    "clinical_application": "Glial cells include astrocytes, oligodendrocytes, microglia.",
+    "simplification": "Neuroglia = support cells.",
+    "hints": "Glia = support."
+  },
+  {
+    "id": 121,
+    "subject": "Neurological Nursing",
+    "question": "During the first 24 hours after thrombolytic therapy for ischemic stroke, the primary goal is to control the client's:",
+    "options": [
+      "Pulse",
+      "Blood pressure",
+      "Respirations",
+      "Temperature"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Blood pressure",
+    "rationale": "After thrombolysis, strict blood pressure control is essential to reduce the risk of hemorrhage.",
+    "clinical_application": "Monitor BP closely.",
+    "simplification": "Post-thrombolysis = monitor BP.",
+    "hints": "BP control."
+  },
+  {
+    "id": 122,
+    "subject": "Neurological Nursing",
+    "question": "This brain area is a routing center for incoming sense signals:",
+    "options": [
+      "Cerebellum",
+      "Brain stem",
+      "Thalamus",
+      "Hypothalamus"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Thalamus",
+    "rationale": "The thalamus is the sensory relay station.",
+    "clinical_application": "Directs sensory info.",
+    "simplification": "Thalamus = routing center.",
+    "hints": "Thalamus = relay."
+  },
+  {
+    "id": 123,
+    "subject": "Neurological Nursing",
+    "question": "The part of the neuron that transmits electrical signal to a target cell is.",
+    "options": [
+      "Axon",
+      "Soma",
+      "Cell body",
+      "Dendrite"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Axon",
+    "rationale": "The axon conducts electrical impulses away from the cell body to target cells.",
+    "clinical_application": "Axon terminals release neurotransmitters.",
+    "simplification": "Axon = transmits signal.",
+    "hints": "Axon = output."
+  },
+  {
+    "id": 124,
+    "subject": "Neurological Nursing",
+    "question": "The bacterial toxin that causes botulism prevents the release of acetylcholine from pre-synaptic membranes. Which event in the transmission of a nerve impulse would be affected first by this poison?",
+    "options": [
+      "The depolarization of an effector",
+      "The opening of sodium gates in dendrites",
+      "The production of an action potential at the nodes of Ranvier",
+      "The operation of the sodium-potassium pump in the neuron membrane"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "The depolarization of an effector",
+    "rationale": "Botulinum toxin blocks ACh release, preventing depolarization of the muscle (effector) membrane.",
+    "clinical_application": "Causes flaccid paralysis.",
+    "simplification": "Botulism stops ACh release → no effector depolarization.",
+    "hints": "Stops ACh → no muscle contraction."
+  },
+  {
+    "id": 125,
+    "subject": "Neurological Nursing",
+    "question": "The hypothalamus does not contain a control center for the homeostatic regulation of...",
+    "options": [
+      "Body temperature",
+      "Various emotional states",
+      "Urination",
+      "Eating"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Urination",
+    "rationale": "Hypothalamus regulates temperature, emotions, and eating; urination is controlled by spinal reflexes and higher centers, not directly hypothalamic.",
+    "clinical_application": "Hypothalamus = homeostasis.",
+    "simplification": "Hypothalamus = temp, emotions, eating.",
+    "hints": "Urination not hypothalamic."
+  },
+  {
+    "id": 126,
+    "subject": "Neurological Nursing",
+    "question": "This neurotransmitter is not a biogenic amine:",
+    "options": [
+      "Serotonin",
+      "Dopamine",
+      "Norepinephrine",
+      "Acetylcholine"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Acetylcholine",
+    "rationale": "Acetylcholine is a quaternary ammonium compound, not a biogenic amine (which are derived from amino acids).",
+    "clinical_application": "Cholinergic vs. adrenergic.",
+    "simplification": "ACh is not a biogenic amine.",
+    "hints": "Biogenic amines = catecholamines, serotonin."
+  },
+  {
+    "id": 127,
+    "subject": "Neurological Nursing",
+    "question": "Myasthenia gravis occurs when antibodies attack _____ receptors at the neuromuscular junction leading to _____.",
+    "options": [
+      "Metabotropic; muscle weakness",
+      "Nicotinic acetylcholine; muscle weakness",
+      "Dopaminergic adrenergic; muscle contraction",
+      "Nicotinic adrenergic; muscle contraction"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Nicotinic acetylcholine; muscle weakness",
+    "rationale": "MG is an autoimmune disorder where antibodies block nicotinic ACh receptors, causing muscle weakness.",
+    "clinical_application": "Symptoms fluctuate.",
+    "simplification": "MG = antibodies block ACh receptors → weakness.",
+    "hints": "Nicotinic receptors at NMJ."
+  },
+  {
+    "id": 128,
+    "subject": "Neurological Nursing",
+    "question": "What is the expected outcome of thrombolytic drug therapy?",
+    "options": [
+      "Increased vascular permeability",
+      "Prevention of hemorrhage",
+      "Dissolved emboli",
+      "Vasoconstriction"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Dissolved emboli",
+    "rationale": "Thrombolytics dissolve blood clots (emboli) to restore blood flow.",
+    "clinical_application": "Used in ischemic stroke and MI.",
+    "simplification": "Thrombolytics = clot busters.",
+    "hints": "Dissolve clots."
+  },
+  {
+    "id": 129,
+    "subject": "Neurological Nursing",
+    "question": "The part of a sensory neuron that transmits impulses from a receptor to the cell body is the",
+    "options": [
+      "Axon",
+      "Synapse",
+      "Dendrite",
+      "Neurotransmitter"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Dendrite",
+    "rationale": "In sensory neurons, dendrites (or peripheral processes) carry impulses toward the cell body.",
+    "clinical_application": "Afferent pathway.",
+    "simplification": "Sensory neuron dendrite = receptor to cell body.",
+    "hints": "Dendrites receive."
+  },
+  {
+    "id": 130,
+    "subject": "Neurological Nursing",
+    "question": "The region of the CNS that contains the vital centers for regulating breathing rate, heart rate, and blood pressure is the....",
+    "options": [
+      "Thalamus",
+      "Cerebrum",
+      "Medulla oblongata",
+      "Cerebellum"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Medulla oblongata",
+    "rationale": "Medulla houses respiratory, cardiac, and vasomotor centers.",
+    "clinical_application": "Critical for life.",
+    "simplification": "Medulla = vital centers.",
+    "hints": "Medulla = breathing, heart, BP."
+  },
+  {
+    "id": 131,
+    "subject": "Neurological Nursing",
+    "question": "What is the work of commissural tract?",
+    "options": [
+      "Connects different parts of cerebral hemisphere",
+      "Connects different areas of 2 cerebral hemisphere",
+      "Connects cerebral cortex with grey matter of other parts of brain",
+      "Connects cerebral cortex with white matter of other parts of brain"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Connects different areas of 2 cerebral hemisphere",
+    "rationale": "Commissural tracts (e.g., corpus callosum) connect corresponding areas of the two hemispheres.",
+    "clinical_application": "Interhemispheric communication.",
+    "simplification": "Commissural tracts = connect hemispheres.",
+    "hints": "Commissural = between hemispheres."
+  },
+  {
+    "id": 132,
+    "subject": "Neurological Nursing",
+    "question": "Neurotransmitters can inhibit or excite neurons. _____ is excitatory for example, _____ is inhibitory whereas",
+    "options": [
+      "GABA; glutamate",
+      "Glutamate; GABA",
+      "Serotonin; dopamine",
+      "None of these"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Glutamate; GABA",
+    "rationale": "Glutamate is the main excitatory neurotransmitter; GABA is the main inhibitory.",
+    "clinical_application": "Balance of excitation/inhibition.",
+    "simplification": "Glutamate excites, GABA inhibits.",
+    "hints": "Glutamate = excitatory, GABA = inhibitory."
+  },
+  {
+    "id": 133,
+    "subject": "Neurological Nursing",
+    "question": "The largest nerve in the body is",
+    "options": [
+      "Pudental",
+      "Inferior gluteal",
+      "Superior gluteal",
+      "Sciatic nerve"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Sciatic nerve",
+    "rationale": "The sciatic nerve is the largest and longest nerve in the body.",
+    "clinical_application": "Innervates lower limb.",
+    "simplification": "Sciatic = largest nerve.",
+    "hints": "Sciatic = largest."
+  },
+  {
+    "id": 134,
+    "subject": "Neurological Nursing",
+    "question": "Which of the following statement is NOT true?",
+    "options": [
+      "Cerebrum is largest part of brain",
+      "Falx cerebri is formed by pia matter",
+      "The superficial part of cerebrum is formed by cell bodies",
+      "Each hemisphere contain one lateral ventricle"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Falx cerebri is formed by pia matter",
+    "rationale": "Falx cerebri is formed by dura mater, not pia mater.",
+    "clinical_application": "Meninges layers.",
+    "simplification": "Falx = dura mater, not pia.",
+    "hints": "Falx = dura."
+  },
+  {
+    "id": 135,
+    "subject": "Neurological Nursing",
+    "question": "Which of the patient below is at most risk for a hemorrhagic stroke?",
+    "options": [
+      "A 65 year old male patient with carotid stenosis",
+      "A 89 year old female with atherosclerosis",
+      "An 88 year old male with uncontrolled hypertension and a history of brain aneurysm repair 2 years ago",
+      "A 55 year old female with atrial flutter"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "An 88 year old male with uncontrolled hypertension and a history of brain aneurysm repair 2 years ago",
+    "rationale": "Uncontrolled hypertension and prior aneurysm increase hemorrhagic stroke risk.",
+    "clinical_application": "Risk factors: HTN, aneurysm.",
+    "simplification": "Hypertension + aneurysm = high hemorrhagic stroke risk.",
+    "hints": "HTN and aneurysm."
+  },
+  {
+    "id": 136,
+    "subject": "Neurological Nursing",
+    "question": "The hypothalamus is located in",
+    "options": [
+      "In the cerebellum",
+      "Between the pons and medulla oblongata",
+      "Between the cerebrum and the brain stem",
+      "Within the mid brain"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Between the cerebrum and the brain stem",
+    "rationale": "Hypothalamus is part of the diencephalon, located below the thalamus and above the brainstem.",
+    "clinical_application": "Regulates homeostasis.",
+    "simplification": "Hypothalamus = between cerebrum and brainstem.",
+    "hints": "Hypothalamus = diencephalon."
+  },
+  {
+    "id": 137,
+    "subject": "Neurological Nursing",
+    "question": "Which of the following is a characteristic of a resting potential?",
+    "options": [
+      "Secretion of calcium ions",
+      "Neurotransmitters move into the axon",
+      "Depolarization of the post-synaptic membrane",
+      "A net negative charge on the inside of the axon"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "A net negative charge on the inside of the axon",
+    "rationale": "Resting potential is characterized by negative inside relative to outside.",
+    "clinical_application": "~ -70 mV.",
+    "simplification": "Resting = inside negative.",
+    "hints": "Negative inside."
+  },
+  {
+    "id": 138,
+    "subject": "Neurological Nursing",
+    "question": "The meninges covering the brain and spinal cord are arranged in the following sequence from outer to inner:",
+    "options": [
+      "Arachnoid, dura mater and pia mater",
+      "Dura, Arachnoid and Pia mater",
+      "Pia, Arachnoid and dural mater",
+      "Arachnoid, pia and dura mater"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Dura, Arachnoid and Pia mater",
+    "rationale": "Outer to inner: dura mater, arachnoid mater, pia mater.",
+    "clinical_application": "Epidural, subdural, subarachnoid spaces.",
+    "simplification": "Dura, arachnoid, pia.",
+    "hints": "DAP."
+  },
+  {
+    "id": 139,
+    "subject": "Neurological Nursing",
+    "question": "Voluntary control of skeletal muscle is provided by.",
+    "options": [
+      "Peripheral nervous system",
+      "Somatic nervous system",
+      "Efferent nervous system",
+      "Autonomic nervous system"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Somatic nervous system",
+    "rationale": "Somatic motor neurons control skeletal muscle voluntarily.",
+    "clinical_application": "Voluntary movement.",
+    "simplification": "Somatic = voluntary skeletal.",
+    "hints": "Somatic NS."
+  },
+  {
+    "id": 140,
+    "subject": "Neurological Nursing",
+    "question": "What is the function of associated areas?",
+    "options": [
+      "Connects each other",
+      "Connects to the areas of cortex",
+      "Movements of muscle",
+      "both A and B"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "both A and B",
+    "rationale": "Association areas integrate information from different cortical areas.",
+    "clinical_application": "Higher cognitive functions.",
+    "simplification": "Association areas = connect and integrate.",
+    "hints": "Associate = integrate."
+  },
+  {
+    "id": 141,
+    "subject": "Neurological Nursing",
+    "question": "The human genome is..",
+    "options": [
+      "All of our genes",
+      "All of our DNA",
+      "All of the DNA and RNA in our cells",
+      "Responsible for all our physical characteristics"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "All of our DNA",
+    "rationale": "The genome is the entire DNA sequence (all chromosomes), not just genes.",
+    "clinical_application": "Includes non-coding DNA.",
+    "simplification": "Genome = all DNA.",
+    "hints": "Genome = total DNA."
+  },
+  {
+    "id": 142,
+    "subject": "Neurological Nursing",
+    "question": "Which of the following is NOT a chromosome instability syndrome?",
+    "options": [
+      "Klinefelter syndrome",
+      "Ataxia telangiectasia",
+      "Fanconi anaemia",
+      "Bloom syndrome"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Klinefelter syndrome",
+    "rationale": "Klinefelter (XXY) is a chromosomal aneuploidy, not a chromosome instability syndrome (which involve DNA repair defects).",
+    "clinical_application": "Chromosome instability syndromes predispose to cancer.",
+    "simplification": "Klinefelter = not instability.",
+    "hints": "Instability = DNA repair defects."
+  },
+  {
+    "id": 143,
+    "subject": "Neurological Nursing",
+    "question": "How many chromosomes does human have?",
+    "options": [
+      "46",
+      "48",
+      "54",
+      "56"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "46",
+    "rationale": "Humans have 46 chromosomes (23 pairs).",
+    "clinical_application": "Karyotype.",
+    "simplification": "46 chromosomes.",
+    "hints": "46."
+  },
+  {
+    "id": 144,
+    "subject": "Neurological Nursing",
+    "question": "The parasympathetic and sympathetic nervous system are concerned with control of......",
+    "options": [
+      "voluntary movement",
+      "involuntary functions",
+      "skeletal muscle",
+      "conscious thought"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "involuntary functions",
+    "rationale": "Autonomic nervous system regulates involuntary functions like heart rate, digestion, etc.",
+    "clinical_application": "Autonomic control.",
+    "simplification": "Autonomic = involuntary.",
+    "hints": "Involuntary."
+  },
+  {
+    "id": 145,
+    "subject": "Neurological Nursing",
+    "question": "A nurse is giving discharge instructions to a client who will be taking phenobarbital (Luminal). The nurse would educate the client in which of the following that directly correlates with the safety of the client?",
+    "options": [
+      "Take the medication with meals only",
+      "Decrease the dosage once with symptoms of dizziness and lightheadedness",
+      "Take the medication at the same time each day",
+      "Avoid using sleep aids while taking the medication"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Avoid using sleep aids while taking the medication",
+    "rationale": "Phenobarbital is a CNS depressant; combining with other sleep aids increases risk of respiratory depression and sedation.",
+    "clinical_application": "Patient safety.",
+    "simplification": "Don't mix phenobarbital with sleep aids.",
+    "hints": "CNS depressants = avoid others."
+  },
+  {
+    "id": 146,
+    "subject": "Neurological Nursing",
+    "question": "What are the two main categories of seizures?",
+    "options": [
+      "Active and resting",
+      "Alpha and beta",
+      "Petit mal and grand mal",
+      "Focal and generalized"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Focal and generalized",
+    "rationale": "Seizures are classified as focal (partial) or generalized.",
+    "clinical_application": "Classification guides treatment.",
+    "simplification": "Seizures = focal or generalized.",
+    "hints": "Focal vs. generalized."
+  },
+  {
+    "id": 147,
+    "subject": "Neurological Nursing",
+    "question": "The following changes affect the nervous system of an adult:",
+    "options": [
+      "Reduced temperature control",
+      "Reduced speed in nerve conduction",
+      "Increased confusion with physical illness",
+      "increase temperature control"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Reduced speed in nerve conduction",
+    "rationale": "With aging, nerve conduction velocity decreases.",
+    "clinical_application": "Aging effects.",
+    "simplification": "Aging = slower nerve conduction.",
+    "hints": "Slower conduction."
+  },
+  {
+    "id": 148,
+    "subject": "Neurological Nursing",
+    "question": "The most common inherited neurological disorder is:",
+    "options": [
+      "Huntington's disease",
+      "Charcot-Marie-Tooth disease",
+      "Myotonic dystrophy",
+      "Fragile X syndrome"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Charcot-Marie-Tooth disease",
+    "rationale": "CMT is the most common inherited peripheral neuropathy.",
+    "clinical_application": "Progressive muscle weakness.",
+    "simplification": "CMT = most common inherited neurological.",
+    "hints": "CMT."
+  },
+  {
+    "id": 149,
+    "subject": "Neurological Nursing",
+    "question": "The genetic disorder sickle-cell anemia is an example of.",
+    "options": [
+      "pleiotropy",
+      "epistasis",
+      "heterozygous dominance",
+      "homozygous dominance"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "pleiotropy",
+    "rationale": "Sickle-cell anemia has multiple effects (pleiotropy) due to a single gene mutation affecting hemoglobin.",
+    "clinical_application": "Single gene, multiple traits.",
+    "simplification": "Sickle-cell = pleiotropy.",
+    "hints": "Pleiotropy = multiple effects."
+  },
+  {
+    "id": 150,
+    "subject": "Neurological Nursing",
+    "question": "What transmits electrical information from the ear to the brain?",
+    "options": [
+      "Outer hair cells",
+      "Auditory nerve fibres",
+      "Ganglion cells",
+      "Rods and cones"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Auditory nerve fibres",
+    "rationale": "Auditory nerve fibers (CN VIII) carry electrical signals from the cochlea to the brain.",
+    "clinical_application": "Hearing pathway.",
+    "simplification": "Auditory nerve = ear to brain.",
+    "hints": "Auditory nerve = hearing."
+  },
+  {
+    "id": 151,
+    "subject": "Neurological Nursing",
+    "question": "Huntington's disease is a heritable disorder that involves:",
+    "options": [
+      "Sudden paralysis",
+      "Chorea, loss of cognitive abilities, and emotional disturbance",
+      "Uncontrollable swearing and repetitive actions",
+      "Inability to recognize faces"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Chorea, loss of cognitive abilities, and emotional disturbance",
+    "rationale": "Huntington's is characterized by chorea, cognitive decline, and psychiatric symptoms.",
+    "clinical_application": "Autosomal dominant.",
+    "simplification": "Huntington's = chorea, dementia, mood changes.",
+    "hints": "Chorea + dementia."
+  },
+  {
+    "id": 152,
+    "subject": "Neurological Nursing",
+    "question": "The part of the nervous system that controls voluntary contractions of skeletal muscle is the:",
+    "options": [
+      "Somatic nervous system",
+      "Autonomic nervous system",
+      "Sympathetic nervous system",
+      "Parasympathetic nervous system"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Somatic nervous system",
+    "rationale": "Somatic NS controls voluntary skeletal muscle.",
+    "clinical_application": "Motor cortex.",
+    "simplification": "Somatic = voluntary muscle.",
+    "hints": "Somatic = voluntary."
+  },
+  {
+    "id": 153,
+    "subject": "Neurological Nursing",
+    "question": "Which of following substances is LEAST able to cross the blood brain barrier?",
+    "options": [
+      "Amino acids",
+      "Glucose",
+      "Urea",
+      "Sodium"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Urea",
+    "rationale": "Urea is a polar molecule and poorly crosses the BBB, unlike glucose and amino acids which have transporters, and sodium which has limited permeability.",
+    "clinical_application": "BBB restricts many substances.",
+    "simplification": "Urea doesn't cross BBB well.",
+    "hints": "Urea = poor BBB penetration."
+  },
+  {
+    "id": 154,
+    "subject": "Neurological Nursing",
+    "question": "Gene exclusively present on Y-chromosomes is referred to as.",
+    "options": [
+      "Hologynic genes",
+      "Holandric genes",
+      "Histone",
+      "Sex linked gene"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Holandric genes",
+    "rationale": "Holandric genes are those located on the Y chromosome and are passed from father to sons.",
+    "clinical_application": "Y-linked inheritance.",
+    "simplification": "Holandric = Y chromosome genes.",
+    "hints": "Holandric = Y-linked."
+  },
+  {
+    "id": 155,
+    "subject": "Neurological Nursing",
+    "question": "The responsibility of a nurse when an epileptic patient complains of flashes of light is to tell the patient to:",
+    "options": [
+      "Drink cold water",
+      "Run home and take his drug",
+      "Stop what he is doing and sit on the floor",
+      "close his eye immediately"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Stop what he is doing and sit on the floor",
+    "rationale": "Flashes of light may be an aura preceding seizure; patient should sit down to prevent injury.",
+    "clinical_application": "Seizure precautions.",
+    "simplification": "Sit down to avoid injury.",
+    "hints": "Seizure aura = sit down."
+  },
+  {
+    "id": 156,
+    "subject": "Neurological Nursing",
+    "question": "DNA and RNA are made up of four chemical bases joined to a sugar and phosphate, called nucleotides that match up with each other. In DNA, the adenine base forms special bonds to make a base pair with:",
+    "options": [
+      "Guanine",
+      "Cytosine",
+      "Thymine",
+      "Uracil"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Thymine",
+    "rationale": "Adenine pairs with thymine in DNA.",
+    "clinical_application": "Base pairing.",
+    "simplification": "A-T in DNA.",
+    "hints": "A pairs with T."
+  },
+  {
+    "id": 157,
+    "subject": "Neurological Nursing",
+    "question": "The short processes of the cell body of the neuron are called the:",
+    "options": [
+      "Dendrite",
+      "Hillock",
+      "Axon Hillock",
+      "Axon"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Dendrite",
+    "rationale": "Dendrites are short, branching processes that receive signals.",
+    "clinical_application": "Input region.",
+    "simplification": "Dendrites = short processes.",
+    "hints": "Dendrites receive."
+  },
+  {
+    "id": 158,
+    "subject": "Neurological Nursing",
+    "question": "All of the following statements about amyotrophic lateral sclerosis are true except:",
+    "options": [
+      "It causes degeneration and death of upper and lower motor neurons",
+      "Patients lose strength and control of voluntary muscles",
+      "It impairs cognition and senses",
+      "It progresses rapidly and is fatal"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "It impairs cognition and senses",
+    "rationale": "ALS primarily affects motor neurons; cognition and senses are usually spared (except in some variants).",
+    "clinical_application": "ALS = motor neuron disease.",
+    "simplification": "ALS does not usually affect senses.",
+    "hints": "ALS = motor only."
+  },
+  {
+    "id": 159,
+    "subject": "Neurological Nursing",
+    "question": "Lack of ceramide trihexosidase, also known as alpha-galactoside-A causes:",
+    "options": [
+      "Fahr's syndrome",
+      "Fabry disease",
+      "Fisher syndrome",
+      "Gaucher's disease"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Fabry disease",
+    "rationale": "Fabry disease is caused by deficiency of alpha-galactosidase A.",
+    "clinical_application": "X-linked lipid storage disorder.",
+    "simplification": "Fabry = alpha-galactosidase A deficiency.",
+    "hints": "Fabry = enzyme deficiency."
+  },
+  {
+    "id": 160,
+    "subject": "Neurological Nursing",
+    "question": "The priority nursing assessment for a client with cerebrovascular accident within the first hours of admission is.",
+    "options": [
+      "Cholesterol level",
+      "Bowel sound",
+      "Pupil size and papillary response",
+      "Echocardiogram"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Pupil size and papillary response",
+    "rationale": "Pupil assessment is crucial to monitor for increased ICP or brainstem involvement.",
+    "clinical_application": "Neurological checks.",
+    "simplification": "Pupil checks = priority.",
+    "hints": "Pupils = CNS status."
+  },
+  {
+    "id": 161,
+    "subject": "Neurological Nursing",
+    "question": "Genes are made up of",
+    "options": [
+      "DNA",
+      "RNA",
+      "Proteins",
+      "Enzymes"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "DNA",
+    "rationale": "Genes are segments of DNA.",
+    "clinical_application": "Genetic material.",
+    "simplification": "Genes = DNA.",
+    "hints": "DNA."
+  },
+  {
+    "id": 162,
+    "subject": "Neurological Nursing",
+    "question": "A severe form of epilepsy that appears during the first year of life is called:",
+    "options": [
+      "Dandy- Walker syndrome",
+      "Devic's syndrome",
+      "Dravet syndrome",
+      "Fabry disease"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Dravet syndrome",
+    "rationale": "Dravet syndrome (severe myoclonic epilepsy of infancy) begins in the first year.",
+    "clinical_application": "Genetic epilepsy.",
+    "simplification": "Dravet = infantile epilepsy.",
+    "hints": "Dravet syndrome."
+  },
+  {
+    "id": 163,
+    "subject": "Neurological Nursing",
+    "question": "Place the following structures in order from least to most complex organization: chromatin nucleosome, DNA, chromosome:",
+    "options": [
+      "DNA, nucleosome, chromatin, chromosome",
+      "Nucleosome, DNA, chromosome, chromatin",
+      "DNA, chromatin, nucleosome, chromosome",
+      "Nucleosome, chromatin, DNA, chromosome"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "DNA, nucleosome, chromatin, chromosome",
+    "rationale": "Order: DNA wraps around histones to form nucleosomes, which compact into chromatin, further condensed into chromosomes.",
+    "clinical_application": "DNA packaging.",
+    "simplification": "DNA → nucleosome → chromatin → chromosome.",
+    "hints": "Levels of organization."
+  },
+  {
+    "id": 164,
+    "subject": "Neurological Nursing",
+    "question": "The state of complete unconsciousness when the person's eyes are wide open is called.........",
+    "options": [
+      "Night vigil",
+      "Coma Vigil",
+      "open coma",
+      "Coma stupour"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "open coma",
+    "rationale": "Coma with eyes open is sometimes termed 'coma vigil' or 'open coma' (e.g., akinetic mutism).",
+    "clinical_application": "Unconsciousness with eyes open.",
+    "simplification": "Eyes open in coma = open coma.",
+    "hints": "Open eyes + coma."
+  },
+  {
+    "id": 165,
+    "subject": "Neurological Nursing",
+    "question": "Which of the following conditions is caused by a trinucleotide (triplet) repeat expansion?",
+    "options": [
+      "Huntington's disease",
+      "Cystic fibrosis",
+      "Sickle cell disease",
+      "Hemophilia"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Huntington's disease",
+    "rationale": "Huntington's is caused by CAG repeat expansion in the HTT gene.",
+    "clinical_application": "Anticipation.",
+    "simplification": "Huntington's = triplet repeat.",
+    "hints": "Triplet repeat = Huntington's."
+  },
+  {
+    "id": 166,
+    "subject": "Neurological Nursing",
+    "question": "Which of the following is not a sex chromosome atypical condition?",
+    "options": [
+      "Turner's syndrome",
+      "Klinefelter's syndrome",
+      "XXX syndrome",
+      "YYY syndrome"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "YYY syndrome",
+    "rationale": "YYY is not a recognized syndrome; sex chromosome anomalies include Turner (XO), Klinefelter (XXY), and XXX (triple X).",
+    "clinical_application": "Sex chromosome disorders.",
+    "simplification": "YYY does not exist.",
+    "hints": "YYY not a syndrome."
+  },
+  {
+    "id": 167,
+    "subject": "Neurological Nursing",
+    "question": "Which area of the temporal lobes is thought to be specialized for processing face-like stimuli?",
+    "options": [
+      "The fusiform gyrus area (FGA)",
+      "The focal face area (FFA)",
+      "The fusiform facial area (FFA)",
+      "The face formation arena (FFA)"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "The fusiform facial area (FFA)",
+    "rationale": "The fusiform face area (FFA) is specialized for face recognition.",
+    "clinical_application": "Prosopagnosia if damaged.",
+    "simplification": "FFA = face processing.",
+    "hints": "FFA = fusiform face area."
+  },
+  {
+    "id": 168,
+    "subject": "Neurological Nursing",
+    "question": "Which region of chromatin is transcriptionally silent?",
+    "options": [
+      "Nucleoid",
+      "Centromere",
+      "Euchromatin",
+      "Heterochromatin"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Heterochromatin",
+    "rationale": "Heterochromatin is tightly packed and transcriptionally inactive.",
+    "clinical_application": "Gene expression regulation.",
+    "simplification": "Heterochromatin = silent.",
+    "hints": "Heterochromatin = inactive."
+  },
+  {
+    "id": 169,
+    "subject": "Neurological Nursing",
+    "question": "The spinal nerves conduct impulses between the:",
+    "options": [
+      "Spinal cord and parts of the body not serve by the cranial nerves",
+      "Brain and cranial nerve",
+      "CNS and PNS",
+      "Brain and spinal cord"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Spinal cord and parts of the body not serve by the cranial nerves",
+    "rationale": "Spinal nerves connect the spinal cord to the rest of the body (except head/neck via cranial nerves).",
+    "clinical_application": "Spinal nerve function.",
+    "simplification": "Spinal nerves = body (except head).",
+    "hints": "Spinal nerves = body."
+  },
+  {
+    "id": 170,
+    "subject": "Neurological Nursing",
+    "question": "Symptoms of Parkinson's disease includes all of the following EXCEPT:",
+    "options": [
+      "Tremors of the hands, arms, legs, jaw, and face",
+      "Stiff limbs",
+      "Bradykinesia and impaired balance",
+      "Impaired cognition"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Impaired cognition",
+    "rationale": "Parkinson's primarily motor; cognition may be affected later but is not a primary symptom.",
+    "clinical_application": "Motor symptoms: tremor, rigidity, bradykinesia.",
+    "simplification": "Parkinson's = motor, not early cognitive.",
+    "hints": "Motor symptoms."
+  },
+  {
+    "id": 171,
+    "subject": "Neurological Nursing",
+    "question": "In general, afferent nerves carry sensory information:",
+    "options": [
+      "To the central nervous system",
+      "To the peripheral nervous system",
+      "From the central nervous system",
+      "From the cortex"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "To the central nervous system",
+    "rationale": "Afferent nerves carry signals from periphery to CNS.",
+    "clinical_application": "Sensory = afferent.",
+    "simplification": "Afferent = toward CNS.",
+    "hints": "Afferent = arrives."
+  },
+  {
+    "id": 172,
+    "subject": "Neurological Nursing",
+    "question": "Narcolepsy is a disorder characterized by:",
+    "options": [
+      "Narcotic abuse",
+      "Grand mal seizures",
+      "Reliance on soporific drugs",
+      "Inability to regulate sleep-wake cycles"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Inability to regulate sleep-wake cycles",
+    "rationale": "Narcolepsy is a chronic sleep disorder with excessive daytime sleepiness and sudden sleep attacks.",
+    "clinical_application": "REM sleep dysregulation.",
+    "simplification": "Narcolepsy = sleep-wake disorder.",
+    "hints": "Sleep-wake regulation."
+  },
+  {
+    "id": 173,
+    "subject": "Neurological Nursing",
+    "question": "Genes for which of the following are coded on the Y chromosome:",
+    "options": [
+      "Haemophilia",
+      "Testosterone",
+      "Male pattern baldness",
+      "Testis development"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Testis development",
+    "rationale": "SRY gene on Y chromosome triggers testis development.",
+    "clinical_application": "Sex determination.",
+    "simplification": "Y chromosome = testis development.",
+    "hints": "SRY = testis."
+  },
+  {
+    "id": 174,
+    "subject": "Neurological Nursing",
+    "question": "Amyloid plaques and neurofibrillary tangles are the hallmarks of:",
+    "options": [
+      "Alzheimer's disease",
+      "Amyotrophic lateral sclerosis",
+      "Ataxia Telengectasia",
+      "Autism"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Alzheimer's disease",
+    "rationale": "Alzheimer's is characterized by amyloid plaques and neurofibrillary tangles.",
+    "clinical_application": "Pathological markers.",
+    "simplification": "Alzheimer's = plaques and tangles.",
+    "hints": "Amyloid plaques = Alzheimer's."
+  },
+  {
+    "id": 175,
+    "subject": "Neurological Nursing",
+    "question": "Which of the following generally acts to conserve energy?",
+    "options": [
+      "Somatic nervous system",
+      "Peripheral nervous system",
+      "Sympathetic nervous system",
+      "Parasympathetic nervous system"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Parasympathetic nervous system",
+    "rationale": "Parasympathetic promotes rest and digest, conserving energy.",
+    "clinical_application": "Rest-and-digest.",
+    "simplification": "Parasympathetic = conserve energy.",
+    "hints": "Parasympathetic = rest."
+  },
+  {
+    "id": 176,
+    "subject": "Neurological Nursing",
+    "question": "The primary auditory cortex is located in:",
+    "options": [
+      "The frontal lobe",
+      "The parietal lobe",
+      "The temporal lobe",
+      "The occipital lobe"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "The temporal lobe",
+    "rationale": "Primary auditory cortex is in the superior temporal gyrus.",
+    "clinical_application": "Hearing.",
+    "simplification": "Auditory cortex = temporal lobe.",
+    "hints": "Temporal = hearing."
+  },
+  {
+    "id": 177,
+    "subject": "Neurological Nursing",
+    "question": "Which of the following is part of the elongation step of DNA synthesis?",
+    "options": [
+      "Pulling apart the two DNA strands",
+      "Attaching complementary nucleotides to the template strand",
+      "Untwisting the DNA helix",
+      "None of the above"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Attaching complementary nucleotides to the template strand",
+    "rationale": "Elongation is the addition of nucleotides to the growing strand.",
+    "clinical_application": "DNA replication.",
+    "simplification": "Elongation = adding nucleotides.",
+    "hints": "Elongation = building."
+  },
+  {
+    "id": 178,
+    "subject": "Neurological Nursing",
+    "question": "Cystic fibrosis is..",
+    "options": [
+      "Sex-linked recessive disorder",
+      "Autosomal recessive disorder",
+      "Autosomal dominant disorder",
+      "Chromosomal abnormality"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Autosomal recessive disorder",
+    "rationale": "Cystic fibrosis is inherited in an autosomal recessive pattern.",
+    "clinical_application": "CFTR gene mutation.",
+    "simplification": "CF = autosomal recessive.",
+    "hints": "Autosomal recessive."
+  },
+  {
+    "id": 179,
+    "subject": "Neurological Nursing",
+    "question": "Miss Paige is an adolescent who has a seizure disorder; which of the following would not be a focus of a teaching program?",
+    "options": [
+      "Peer pressure",
+      "Drug and alcohol abuse",
+      "Ability to obtain a driver's license",
+      "Increased risk of infections"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Increased risk of infections",
+    "rationale": "Seizure disorder itself does not increase infection risk; teaching should focus on lifestyle, safety, and medication.",
+    "clinical_application": "Adolescent education.",
+    "simplification": "Infections not a seizure focus.",
+    "hints": "Not infection risk."
+  },
+  {
+    "id": 180,
+    "subject": "Neurological Nursing",
+    "question": "Difficulty in speaking and understanding speech is termed:",
+    "options": [
+      "Apnea",
+      "Ataxia",
+      "Aphasia",
+      "Dyslexia"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Aphasia",
+    "rationale": "Aphasia is impairment of language production or comprehension.",
+    "clinical_application": "Language disorder.",
+    "simplification": "Aphasia = speech/language difficulty.",
+    "hints": "Aphasia = language."
+  },
+  {
+    "id": 181,
+    "subject": "Neurological Nursing",
+    "question": "The nurse is doing bowel and bladder retraining for the client with paraplegia. Which of the following is not a factor for the nurse to consider?",
+    "options": [
+      "Diet pattern",
+      "Mobility",
+      "Fluid intake",
+      "Sexual function"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Sexual function",
+    "rationale": "Bowel/bladder retraining focuses on diet, mobility, and fluid intake; sexual function is separate.",
+    "clinical_application": "Rehabilitation.",
+    "simplification": "Sexual function not part of bowel/bladder training.",
+    "hints": "Not related."
+  },
+  {
+    "id": 182,
+    "subject": "Neurological Nursing",
+    "question": "Which structure is part of the tectum?",
+    "options": [
+      "Superior colliculus",
+      "Periaqueductal grey",
+      "Substantia nigra",
+      "Red nucleus"
+    ],
+    "correct_answer": "A",
+    "correct_answer_text": "Superior colliculus",
+    "rationale": "Tectum consists of superior and inferior colliculi.",
+    "clinical_application": "Visual reflex.",
+    "simplification": "Tectum = colliculi.",
+    "hints": "Superior colliculus = tectum."
+  },
+  {
+    "id": 183,
+    "subject": "Neurological Nursing",
+    "question": "Cerebral hemisphere accounts for _____ percentage of total brain mass:",
+    "options": [
+      "73",
+      "90",
+      "63",
+      "83"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "83",
+    "rationale": "The cerebrum is about 83% of brain mass.",
+    "clinical_application": "Brain anatomy.",
+    "simplification": "83%.",
+    "hints": "83%."
+  },
+  {
+    "id": 184,
+    "subject": "Neurological Nursing",
+    "question": "The following are common risk factors for epilepsy EXCEPT:",
+    "options": [
+      "Metabolic disturbances",
+      "Head Trauma",
+      "Hypoxia",
+      "Febrile condition"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Febrile condition",
+    "rationale": "Febrile seizures are not a risk factor for epilepsy; they are a separate entity.",
+    "clinical_application": "Febrile seizures are usually benign.",
+    "simplification": "Febrile condition not a risk factor.",
+    "hints": "Febrile = not epilepsy risk."
+  },
+  {
+    "id": 185,
+    "subject": "Neurological Nursing",
+    "question": "Which of the following is a method for measuring neuroanatomy?",
+    "options": [
+      "Electroencephalography (EEG)",
+      "Functional magnetic resonance imaging (fMRI)",
+      "Magnetic resonance imaging (MRI)",
+      "Positron emission tomography (PET)"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Magnetic resonance imaging (MRI)",
+    "rationale": "MRI provides high-resolution structural images of the brain.",
+    "clinical_application": "Neuroimaging.",
+    "simplification": "MRI = anatomical imaging.",
+    "hints": "MRI = anatomy."
+  },
+  {
+    "id": 186,
+    "subject": "Neurological Nursing",
+    "question": "Which of the following genotypes causes Klinefelter syndrome?",
+    "options": [
+      "XO",
+      "XXY",
+      "XX",
+      "XYY"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "XXY",
+    "rationale": "Klinefelter syndrome is 47,XXY.",
+    "clinical_application": "Male hypogonadism.",
+    "simplification": "XXY = Klinefelter.",
+    "hints": "XXY."
+  },
+  {
+    "id": 187,
+    "subject": "Neurological Nursing",
+    "question": "A patient who has been prescribed the antiparkinsonian medication carbidopa/levodopa, asks the healthcare provider, 'Why am I getting these two medications?' How should the healthcare provider respond?",
+    "options": [
+      "You will experience fewer side effects when you take both medications together.",
+      "The carbidopa prevents the breakdown of the levodopa.",
+      "This drug combination is composed of two types of the same medication.",
+      "The levodopa turns the carbidopa into dopamine when it reaches"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "The carbidopa prevents the breakdown of the levodopa.",
+    "rationale": "Carbidopa inhibits peripheral decarboxylase, preventing breakdown of levodopa before it reaches the brain.",
+    "clinical_application": "Increases levodopa availability.",
+    "simplification": "Carbidopa keeps levodopa from breaking down.",
+    "hints": "Carbidopa = peripheral decarboxylase inhibitor."
+  },
+  {
+    "id": 188,
+    "subject": "Neurological Nursing",
+    "question": "The tendency of an offspring to resemble its parent is known as..",
+    "options": [
+      "Variation",
+      "Heredity",
+      "Resemblance",
+      "Inheritance"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Heredity",
+    "rationale": "Heredity is the transmission of traits from parents to offspring.",
+    "clinical_application": "Genetics.",
+    "simplification": "Heredity = resemblance to parents.",
+    "hints": "Heredity = inheritance."
+  },
+  {
+    "id": 189,
+    "subject": "Neurological Nursing",
+    "question": "When a lumbar puncture is performed for the purpose of obtaining a specimen of spinal fluid, the needle is usually inserted between the third and fourth lumbar vertebrae because:",
+    "options": [
+      "The vertebrae are smaller at this level",
+      "The spinal cord can be penetrated most easily at this level",
+      "there is no spinal fluid below this point",
+      "The spinal cord ends above the second lumbar vertebra"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "The spinal cord ends above the second lumbar vertebra",
+    "rationale": "The spinal cord ends at L1-L2; needle below L2 avoids cord injury.",
+    "clinical_application": "Safe site for LP.",
+    "simplification": "Spinal cord ends at L2, so LP at L3-L4 is safe.",
+    "hints": "Avoid spinal cord."
+  },
+  {
+    "id": 190,
+    "subject": "Neurological Nursing",
+    "question": "Why is there no duplication of the DNA between meiosis I and meiosis II?",
+    "options": [
+      "To produce genetically identical daughter cells",
+      "To increase genetic variability",
+      "To reduce the chromosome number to haploid in the resulting daughter cells",
+      "The chromosomes duplicate twice during meiosis I."
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "To reduce the chromosome number to haploid in the resulting daughter cells",
+    "rationale": "DNA duplication occurs before meiosis I; meiosis II separates sister chromatids without replication to produce haploid cells.",
+    "clinical_application": "Meiosis.",
+    "simplification": "No duplication in meiosis II to halve chromosome number.",
+    "hints": "Haploid = no extra duplication."
+  },
+  {
+    "id": 191,
+    "subject": "Neurological Nursing",
+    "question": "The autonomic nervous system is part of the.",
+    "options": [
+      "Somatic nervous system",
+      "Peripheral nervous system",
+      "Parasympathetic nervous system",
+      "Sympathetic nervous system"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Peripheral nervous system",
+    "rationale": "The autonomic nervous system is a subdivision of the peripheral nervous system.",
+    "clinical_application": "PNS includes autonomic and somatic.",
+    "simplification": "ANS = part of PNS.",
+    "hints": "Autonomic = PNS."
+  },
+  {
+    "id": 192,
+    "subject": "Neurological Nursing",
+    "question": "When a gene is 'expressed' it is:",
+    "options": [
+      "Transported around the body to make proteins",
+      "Used as a blueprint to assemble the protein it codes for",
+      "Passed on from parents to children",
+      "Replicated within the cell"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Used as a blueprint to assemble the protein it codes for",
+    "rationale": "Gene expression is the process of transcription and translation to produce protein.",
+    "clinical_application": "Central dogma.",
+    "simplification": "Gene expression = making protein.",
+    "hints": "Expression = protein synthesis."
+  },
+  {
+    "id": 193,
+    "subject": "Neurological Nursing",
+    "question": "Many vital reflexes have their center in the.",
+    "options": [
+      "Cerebrum",
+      "Cerebellum",
+      "Pons",
+      "Medulla Oblongata"
+    ],
+    "correct_answer": "D",
+    "correct_answer_text": "Medulla Oblongata",
+    "rationale": "Medulla contains centers for reflexes like swallowing, coughing, sneezing.",
+    "clinical_application": "Brainstem reflexes.",
+    "simplification": "Medulla = vital reflexes.",
+    "hints": "Reflex centers."
+  },
+  {
+    "id": 194,
+    "subject": "Neurological Nursing",
+    "question": "During an interview with a patient with a diagnosis of Parkinson disease (PD), which of the following speech patterns will the healthcare provider anticipate?",
+    "options": [
+      "Pressured and hurried",
+      "Bubbly and spirited",
+      "Slow, slurred, and monotone",
+      "Clear and rhythmic"
+    ],
+    "correct_answer": "C",
+    "correct_answer_text": "Slow, slurred, and monotone",
+    "rationale": "Parkinson's patients often have hypophonia, slow speech, and monotone voice.",
+    "clinical_application": "Speech therapy.",
+    "simplification": "Parkinson's speech = slow and monotone.",
+    "hints": "Hypophonia."
+  },
+  {
+    "id": 195,
+    "subject": "Neurological Nursing",
+    "question": "Muscular movements of the body are coordinated in the....",
+    "options": [
+      "Cerebrum",
+      "Cerebellum",
+      "Brainstem",
+      "Spinal cord"
+    ],
+    "correct_answer": "B",
+    "correct_answer_text": "Cerebellum",
+    "rationale": "The cerebellum coordinates voluntary movements and balance.",
+    "clinical_application": "Motor coordination.",
+    "simplification":
