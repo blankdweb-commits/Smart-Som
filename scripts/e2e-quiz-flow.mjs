@@ -23,21 +23,23 @@ const page = await ctx.newPage();
 page.on('pageerror', err => console.log('PAGEERROR:', err.message));
 
 try {
-  // ---------- 0. Pharmacology bank sanity ----------
+  // ---------- 0. Richard banks sanity (pharmacology + musculoskeletal + neurological) ----------
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
   const pharm = await page.evaluate(async () => {
-    const mod = await import('/src/data/pharmacologyBank.js');
+    const mod = await import('/src/data/richardBank.js');
+    const banks = [mod.pharmacologyData, mod.musculoskeletalData, mod.neurologicalData];
+    const all = banks.flat();
     return {
-      count: mod.default.length,
-      subjects: [...new Set(mod.default.map(q => q.subject))],
-      missingAnswers: mod.default.filter(q => !q.correctAnswer).length,
-      badOptions: mod.default.filter(q => !Array.isArray(q.options) || q.options.length < 2).length,
-      answersInOptions: mod.default.filter(q => q.options.includes(q.correctAnswer)).length
+      counts: banks.map(b => b.length),
+      total: all.length,
+      missingAnswers: all.filter(q => !q.correctAnswer).length,
+      badOptions: all.filter(q => !Array.isArray(q.options) || q.options.length < 2).length,
+      answersInOptions: all.filter(q => q.options.includes(q.correctAnswer)).length
     };
   });
-  log('pharmacology bank normalized', pharm.count === 100 && pharm.missingAnswers === 0 &&
-    pharm.badOptions === 0 && pharm.answersInOptions === pharm.count,
-    `${pharm.count} questions, subject=${pharm.subjects.join(',')}`);
+  log('Richard banks normalized (pharm/msk/neuro)', pharm.total === 445 && pharm.missingAnswers === 0 &&
+    pharm.badOptions === 0 && pharm.answersInOptions === pharm.total,
+    `counts=${pharm.counts.join('/')}`);
 
   // ---------- 1. Mode selection -> setup flow ----------
   await page.goto(`${BASE}/quiz`, { waitUntil: 'networkidle' });

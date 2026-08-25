@@ -27,7 +27,17 @@ import {
 import useluData from '../data/flashcards/nmcn/uselu-posting-tests.json';
 import respirationData from '../data/flashcards/nmcn/Respiration-richard.json';
 import fluidData from '../data/flashcards/nmcn/fluid-electrolytes.json';
-import pharmacologyData from '../data/pharmacologyBank';
+import { pharmacologyData, musculoskeletalData, neurologicalData } from '../data/richardBank';
+
+// Combined pool for all non-Uselu modes. Uselu Test Questions keeps its
+// dedicated bank and never draws from this pool.
+const GENERAL_POOL = [
+  ...respirationData,
+  ...fluidData,
+  ...pharmacologyData,
+  ...musculoskeletalData,
+  ...neurologicalData
+];
 import { motion, AnimatePresence } from 'framer-motion';
 import QuizSetupFlow from '../components/QuizSetupFlow';
 import QuizPlayer from '../components/QuizPlayer';
@@ -300,7 +310,7 @@ const Quiz = () => {
         pool = pool.filter(c => c.subject === subject);
       }
     } else {
-      pool = [...respirationData, ...fluidData, ...pharmacologyData];
+      pool = GENERAL_POOL;
       if (subject) {
         pool = pool.filter(c => c.subject === subject);
       }
@@ -410,9 +420,7 @@ const Quiz = () => {
 
   // Builds a question set for the immersive player (non-speed modes).
   const buildQuestionSet = (engineMode, difficulty, count, order) => {
-    let pool = engineMode === 'uselu'
-      ? useluData
-      : [...respirationData, ...fluidData, ...pharmacologyData];
+    let pool = engineMode === 'uselu' ? useluData : GENERAL_POOL;
     const seen = new Set();
     const uniquePool = pool.filter(c => seen.has(c.question) ? false : seen.add(c.question));
 
