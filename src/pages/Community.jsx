@@ -455,28 +455,44 @@ const Community = () => {
     }
   };
 
+  // Batch-fetches author profiles. community_profiles is a SQL VIEW, so
+  // PostgREST embedded joins (profiles:community_profiles!author_id) cannot
+  // resolve against it — profile data must be queried separately.
+  const fetchProfiles = async (authorIds) => {
+    if (!authorIds || authorIds.length === 0 || !supabase) return {};
+    try {
+      const { data } = await supabase
+        .from('community_profiles')
+        .select('id, display_name, avatar_url, year')
+        .in('id', authorIds);
+      const map = {};
+      (data || []).forEach(p => { map[p.id] = p; });
+      return map;
+    } catch {
+      return {};
+    }
+  };
+
   const fetchComments = async (postId) => {
     setLoadingComments(true);
     try {
        const { data, error } = await supabase
          .from('community_comments')
-         .select(`
-            id, content, created_at, author_id,
-            author:author_id(id),
-            profiles:community_profiles!author_id(display_name, avatar_url, year)
-         `)
+         .select('id, content, created_at, author_id, is_deleted')
          .eq('post_id', postId)
          .eq('is_deleted', false)
          .order('created_at', { ascending: true });
-       
+
        if (error) throw error;
-       
-       // Flatten profiles mapping
+
+       const authorIds = [...new Set((data || []).map(c => c.author_id).filter(Boolean))];
+       const profileMap = await fetchProfiles(authorIds);
+
        const formattedComments = (data || []).map(c => ({
          ...c,
-         display_name: c.profiles?.display_name,
-         avatar_url: c.profiles?.avatar_url,
-         year: c.profiles?.year
+         display_name: profileMap[c.author_id]?.display_name,
+         avatar_url: profileMap[c.author_id]?.avatar_url,
+         year: profileMap[c.author_id]?.year
        }));
 
        setComments(formattedComments);
@@ -492,18 +508,16 @@ const Community = () => {
     try {
       const { data } = await supabase
         .from('community_comments')
-        .select(`
-           id, content, created_at, author_id,
-           profiles:community_profiles!author_id(display_name, avatar_url, year)
-        `)
+        .select('id, content, created_at, author_id, is_deleted')
         .eq('id', id)
         .maybeSingle();
       if (!data || data.is_deleted) return null;
+      const profileMap = await fetchProfiles([data.author_id]);
       return {
         ...data,
-        display_name: data.profiles?.display_name,
-        avatar_url: data.profiles?.avatar_url,
-        year: data.profiles?.year
+        display_name: profileMap[data.author_id]?.display_name,
+        avatar_url: profileMap[data.author_id]?.avatar_url,
+        year: profileMap[data.author_id]?.year
       };
     } catch {
       return null;
@@ -529,6 +543,9 @@ const Community = () => {
 
      try {
        setPostingComment(true);
+       // Plain insert — no embedded select. community_profiles is a VIEW so
+       // PostgREST embedded joins fail against it; profile data is fetched
+       // separately below.
        const { data, error } = await supabase
          .from('community_comments')
          .insert({
@@ -536,25 +553,22 @@ const Community = () => {
            author_id: currentUserId,
            content: newCommentContent.trim()
          })
-          .select(`
-             id, content, created_at, author_id,
-             author:author_id(id),
-             profiles:community_profiles!author_id(display_name, avatar_url, year)
-          `)
-          .single();
-         
+         .select('id, content, created_at, author_id')
+         .single();
+
        if (error) throw error;
-       
+
+       const profileMap = data.author_id ? await fetchProfiles([data.author_id]) : {};
        const newComment = {
          ...data,
-         display_name: data.profiles?.display_name,
-         avatar_url: data.profiles?.avatar_url,
-         year: data.profiles?.year
+         display_name: profileMap[data.author_id]?.display_name || 'You',
+         avatar_url: profileMap[data.author_id]?.avatar_url,
+         year: profileMap[data.author_id]?.year
        };
 
-       setComments(prev => [...prev, newComment]);
+       setComments(prev => prev.some(c => c.id === newComment.id) ? prev : [...prev, newComment]);
        setNewCommentContent('');
-       
+
        // Optimistically update comment count
        setPosts(posts.map(p => p.id === postId ? { ...p, reply_count: Number(p.reply_count) + 1 } : p));
      } catch (err) {

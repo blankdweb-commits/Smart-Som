@@ -580,6 +580,17 @@ const Quiz = () => {
     return () => document.body.classList.remove('quiz-active');
   }, [playerActive]);
 
+  // Speed Challenge runs its own fullscreen engine — hide bottom nav too.
+  const speedActive = quizStarted && quizMode === 'speed' && !showResults;
+  React.useEffect(() => {
+    if (speedActive) {
+      document.body.classList.add('quiz-active');
+    } else {
+      document.body.classList.remove('quiz-active');
+    }
+    return () => document.body.classList.remove('quiz-active');
+  }, [speedActive]);
+
   const handleOptionClick = (option) => {
     if (showRationale || showResults) return;
     if (eliminatedOptions.includes(option)) return;
@@ -623,7 +634,11 @@ const Quiz = () => {
         question: currentQ.question
       });
     }
-    setShowRationale(true);
+    // Speed mode: review overlay only interrupts on WRONG answers — correct
+    // answers keep the run moving. Other modes show rationale every time.
+    if (!correct || quizMode !== 'speed') {
+      setShowRationale(true);
+    }
   };
 
   const nextQuestion = () => {
@@ -961,7 +976,7 @@ const Quiz = () => {
 
   // --- Speed Challenge Full‑Screen Render ---
   return (
-    <div className={`min-h-screen w-full flex flex-col ${quizMode === 'speed' ? 'bg-slate-950 text-white fixed inset-0 z-[9999] h-[100dvh] w-[100vw] overflow-y-auto m-0 p-0' : ''} transition-colors duration-500 pb-32 sm:pb-48 overflow-x-hidden relative`}>
+    <div className={`min-h-screen w-full flex flex-col ${quizMode === 'speed' ? 'bg-slate-950 text-white fixed inset-0 z-[9999] h-[100dvh] w-[100vw] overflow-y-auto m-0 p-0 pb-10 sm:pb-12' : ''} transition-colors duration-500 ${quizMode === 'speed' ? '' : 'pb-32 sm:pb-48'} overflow-x-hidden relative`}>
       {quizMode === 'speed' && (
         <div className="absolute inset-0 pointer-events-none overflow-hidden">
           <div className="absolute -top-24 -left-24 w-96 h-96 bg-medical-500/10 blur-[120px] rounded-full" />
@@ -1027,7 +1042,7 @@ const Quiz = () => {
         </div>
 
         {/* Lifelines - high contrast */}
-        <div className={`w-full ${quizMode === 'speed' ? 'max-w-md mx-auto mb-10' : 'px-3 sm:px-6 mt-4 sm:mt-8 relative z-30'}`}>
+        <div className={`w-full ${quizMode === 'speed' ? 'max-w-md mx-auto mb-6 sm:mb-10' : 'px-3 sm:px-6 mt-4 sm:mt-8 relative z-30'}`}>
           <div className={`backdrop-blur-xl p-2 sm:p-4 rounded-2xl sm:rounded-3xl shadow-sm border grid grid-cols-3 gap-2 sm:gap-4 ${quizMode === 'speed' ? 'bg-slate-900/80 border-white/20' : 'bg-white/80 dark:bg-slate-900/80 border-slate-100 dark:border-white/5'}`}>
             <LifelineButton
               icon={<Target size={18} className="sm:w-6 sm:h-6" />} label="50/50"
@@ -1080,7 +1095,7 @@ const Quiz = () => {
                     </span>
                   )}
                 </div>
-                <p className="text-[9px] sm:text-[10px] font-bold text-slate-300 uppercase tracking-widest">Question {currentQuestionIndex + 1}</p>
+                <p className="text-[9px] sm:text-[10px] font-bold text-slate-300 uppercase tracking-widest">Question {currentQuestionIndex + 1} of {quizQuestions.length}</p>
               </div>
               <h2 className={`text-xl sm:text-3xl md:text-4xl font-black leading-tight tracking-tight px-2 sm:px-4 drop-shadow-sm ${quizMode === 'speed' ? 'text-white' : 'text-slate-900 dark:text-white'}`}>
                 {typeof currentQ?.question === 'object' ? JSON.stringify(currentQ?.question) : currentQ?.question}
@@ -1128,11 +1143,11 @@ const Quiz = () => {
             initial={{ y: 100, opacity: 0 }}
             animate={{ y: 0, opacity: 1 }}
             exit={{ y: 100, opacity: 0 }}
-            className="fixed bottom-20 sm:bottom-32 left-1/2 -translate-x-1/2 w-[95%] sm:max-w-md px-4 sm:px-6 z-40"
+            className="fixed bottom-6 sm:bottom-32 left-1/2 -translate-x-1/2 w-[95%] sm:max-w-md px-4 sm:px-6 z-40 pb-safe"
           >
             <button
               onClick={() => confirmAnswer()}
-              className="w-full py-4 sm:py-6 bg-amber-500 text-black rounded-2xl sm:rounded-[2rem] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-xs sm:text-sm shadow-2xl shadow-amber-500/40 animate-bounce"
+              className="w-full py-4 sm:py-6 bg-amber-500 text-black rounded-2xl sm:rounded-[2rem] font-black uppercase tracking-[0.2em] sm:tracking-[0.3em] text-xs sm:text-sm shadow-2xl shadow-amber-500/40 active:scale-95 transition-transform"
             >
               FINAL ANSWER?
             </button>
@@ -1223,6 +1238,11 @@ const Quiz = () => {
                 <div className="mb-4">
                   <p className="text-[9px] sm:text-[10px] font-black uppercase text-medical-400 mb-1 tracking-widest">Correct Answer</p>
                   <p className="text-sm font-bold text-slate-200 leading-snug">{currentQ?.correctAnswer}</p>
+                  {quizMode === 'speed' && (
+                    <p className="mt-2 text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-red-400 animate-pulse">
+                      One-life rule — this run ends here
+                    </p>
+                  )}
                 </div>
               )}
               <div className="max-h-40 overflow-y-auto custom-scrollbar mb-6 sm:mb-8">
@@ -1240,7 +1260,7 @@ const Quiz = () => {
                   <p className="text-sm font-bold text-slate-200 leading-snug italic">"{currentQ?.hint || 'Focus on the physiological foundation and the primary action that ensures long-term stability.'}"</p>
                 </div>
               </div>
-              <button onClick={nextQuestion} className="w-full py-4 sm:py-6 bg-white text-slate-900 rounded-2xl sm:rounded-[2rem] font-black uppercase tracking-[0.3em] text-xs shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3 sm:gap-4 hover:gap-6">{currentQuestionIndex < quizQuestions.length - 1 ? 'Next Challenge' : 'Complete Quiz'} <ArrowRight size={18} className="sm:w-5 sm:h-5" /></button>
+              <button onClick={nextQuestion} className="w-full py-4 sm:py-6 bg-white text-slate-900 rounded-2xl sm:rounded-[2rem] font-black uppercase tracking-[0.3em] text-xs shadow-2xl active:scale-95 transition-all flex items-center justify-center gap-3 sm:gap-4 hover:gap-6">{(quizMode === 'speed' && !isCorrect) ? 'View Run Results' : currentQuestionIndex < quizQuestions.length - 1 ? 'Next Challenge' : 'Complete Quiz'} <ArrowRight size={18} className="sm:w-5 sm:h-5" /></button>
             </motion.div>
           </div>
         )}
