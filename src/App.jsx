@@ -13,8 +13,10 @@ const ExamTimetable = lazy(() => import('./pages/ExamTimetable'));
 const Quiz = lazy(() => import('./pages/Quiz'));
 const Papers = lazy(() => import('./pages/Papers'));
 const Payments = lazy(() => import('./pages/Payments'));
+const PaymentVerify = lazy(() => import('./pages/PaymentVerify'));
 const AdminFinance = lazy(() => import('./pages/AdminFinance'));
 const AdminQuestionManager = lazy(() => import('./pages/AdminQuestionManager'));
+const AdminUsers = lazy(() => import('./pages/AdminUsers'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Community = lazy(() => import('./pages/Community'));
 const PronunciationHelper = lazy(() => import('./pages/PronunciationHelper'));
@@ -42,11 +44,13 @@ const AppRouter = () => (
         <Route path="/exams" element={<ExamTimetable />} />
         <Route path="/papers" element={<Papers />} />
         <Route path="/payments" element={<Payments />} />
+        <Route path="/payments/verify" element={<PaymentVerify />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/community" element={<Community />} />
         <Route path="/pronunciation" element={<PronunciationHelper />} />
         <Route path="/admin/finance" element={<AdminFinance />} />
         <Route path="/admin/questions" element={<AdminQuestionManager />} />
+        <Route path="/admin/users" element={<AdminUsers />} />
       </Route>
 
       <Route path="/login" element={<Auth />} />

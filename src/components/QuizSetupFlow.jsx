@@ -12,7 +12,8 @@ import {
   List,
   Lock,
   Sparkles,
-  BookOpen
+  BookOpen,
+  Heart
 } from './Icons';
 
 // Per-quiz-type configuration — drives what Step 2 shows.
@@ -100,6 +101,50 @@ const QUIZ_CONFIGS = {
     allowExamMode: true,
     defaultOrder: 'randomized',
     bankNote: '799 questions available in this bank'
+  },
+  'weakness-challenge': {
+    title: 'Fix My Weak Areas',
+    identity: 'A custom quiz pulled from your weakest topics (accuracy < 60%). Unlocks after 100 questions.',
+    icon: <Target size={22} />,
+    accentText: 'text-rose-400',
+    accentBg: 'bg-rose-500/20 border-rose-500/30',
+    questionCounts: [10, 15, 20, 30],
+    timerOptions: [
+      { value: null, label: 'No Time Limit' },
+      { value: 15, label: '15s / Q' },
+      { value: 30, label: '30s / Q' },
+      { value: 45, label: '45s / Q' }
+    ],
+    allowOrderChoice: false,
+    allowExamMode: false,
+    defaultAnswerMode: 'instant-feedback',
+    defaultOrder: 'randomized',
+    bankNote: 'Questions are drawn from your computed weak topics'
+  },
+  'midwifery-200': {
+    title: 'Midwifery 200-Level',
+    identity: '200-Level midwifery questions across four core subjects.',
+    icon: <Heart size={22} />,
+    accentText: 'text-pink-400',
+    accentBg: 'bg-pink-500/20 border-pink-500/30',
+    subjects: [
+      'Principles of Management and Teaching',
+      'Medical-Surgical Nursing II',
+      'Child Health',
+      'Home Health Care Nursing'
+    ],
+    questionCounts: [10, 20, 30, 50, 100],
+    timerOptions: [
+      { value: null, label: 'No Time Limit' },
+      { value: 15, label: '15s / Q' },
+      { value: 30, label: '30s / Q' },
+      { value: 45, label: '45s / Q' },
+      { value: 60, label: '60s / Q' }
+    ],
+    allowOrderChoice: true,
+    allowExamMode: true,
+    defaultOrder: 'randomized',
+    bankNote: '509 questions available in this bank'
   }
 };
 

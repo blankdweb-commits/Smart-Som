@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo, useCallback } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import {
@@ -9,12 +9,13 @@ import {
   Clock,
   Trophy,
   Shield,
-  BookOpen
+  BookOpen,
+  Heart
 } from '../components/Icons';
 import useluData from '../data/flashcards/nmcn/uselu-posting-tests.json';
 import respirationData from '../data/flashcards/nmcn/Respiration-richard.json';
 import fluidData from '../data/flashcards/nmcn/fluid-electrolytes.json';
-import { pharmacologyData, musculoskeletalData, neurologicalData, nursing200Data } from '../data/richardBank';
+import { pharmacologyData, musculoskeletalData, neurologicalData, nursing200Data, midwiferyData } from '../data/richardBank';
 
 // Combined pool for all non-Uselu modes. Uselu Test Questions keeps its
 // dedicated bank and never draws from this pool.
@@ -30,6 +31,9 @@ const GENERAL_POOL = [
 // it is intentionally NOT part of GENERAL_POOL so the Clinical/Quick modes
 // don't mix 200-level questions into the general pools.
 const NURSING200_POOL = nursing200Data;
+
+// Midwifery 200-Level — dedicated bank with its own mode
+const MIDWIFERY_POOL = midwiferyData;
 import { motion, AnimatePresence } from 'framer-motion';
 import QuizSetupFlow from '../components/QuizSetupFlow';
 import QuizPlayer from '../components/QuizPlayer';
@@ -39,13 +43,17 @@ const SETUP_TO_MODE = {
   'clinical-challenge': 'clinical',
   'quick-quiz': 'quick',
   'uselu-test': 'uselu',
-  'nursing-200': 'nursing200'
+  'nursing-200': 'nursing200',
+  'midwifery-200': 'midwifery',
+  'weakness-challenge': 'weakness'
 };
 const MODE_TO_SETUP = {
   clinical: 'clinical-challenge',
   quick: 'quick-quiz',
   uselu: 'uselu-test',
-  nursing200: 'nursing-200'
+  nursing200: 'nursing-200',
+  midwifery: 'midwifery-200',
+  weakness: 'weakness-challenge'
 };
 
 // ----- Sound System (unchanged) -----
@@ -151,12 +159,22 @@ const Quiz = () => {
   const [activeQuestions, setActiveQuestions] = useState([]);
 
   // ----- Difficulty progression -----
-  const { recordQuizResult, recordWrongAnswers } = useAppContext();
+  const { recordQuizResult, recordWrongAnswers, recordAttempts, learningAnalytics, userProfile, loadingAuth } = useAppContext();
   const [selectedDifficulty, setSelectedDifficulty] = useState(null);
   const [passInfo, setPassInfo] = useState(null); // { passed, pct }
   const wrongAnswersRef = React.useRef([]);
   const quizStartRef = React.useRef(null);
   const resultRecordedRef = React.useRef(false);
+  const [weaknessIntentHandled, setWeaknessIntentHandled] = useState(false);
+
+  const weakConceptNames = React.useMemo(() => {
+    const names = new Set();
+    (learningAnalytics.weakConcepts || []).forEach(w => {
+      if (w?.name) names.add(String(w.name).trim().toLowerCase());
+      if (w?.subject) names.add(String(w.subject).trim().toLowerCase());
+    });
+    return names;
+  }, [learningAnalytics.weakConcepts]);
 
   const DIFFICULTY_TIERS = [
     { id: 'Easy', dot: 'bg-emerald-500', ring: 'border-emerald-500/30', label: 'Build your foundation', passMark: 50, unlock: null },
@@ -169,7 +187,7 @@ const Quiz = () => {
 
   // Deep-link support: /quiz?difficulty=Hard (e.g. from a completed flashcard session)
   const [, setSearchParams] = useSearchParams();
-  const SUBJECT_FILTERS = ['Pharmacology', 'Musculoskeletal', 'Neurological Nursing', 'Medical Surgical', 'Chemistry', 'Mental Health'];
+  const SUBJECT_FILTERS = ['Pharmacology', 'Musculoskeletal', 'Neurological Nursing', 'Medical Surgical', 'Chemistry', 'Mental Health', 'Principles of Management and Teaching', 'Medical-Surgical Nursing II', 'Child Health', 'Home Health Care Nursing'];
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const d = params.get('difficulty');
@@ -186,6 +204,22 @@ const Quiz = () => {
       setSearchParams({}, { replace: true });
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // Deep-link: /quiz?weakness=1 → Fix My Weak Areas (PAID — gated by is_activated).
+  React.useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    if (!params.get('weakness') || weaknessIntentHandled) return;
+    if (loadingAuth) return;
+    setWeaknessIntentHandled(true);
+    setSearchParams({}, { replace: true });
+    if (!userProfile.isActivated) {
+      navigate('/activate');
+      return;
+    }
+    setSetupType('weakness-challenge');
+    window.scrollTo({ top: 0 });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [loadingAuth, userProfile.isActivated, weaknessIntentHandled, navigate]);
 
   const matchesTier = (cardDifficulty, tierId) => {
     const d = String(cardDifficulty || '').toLowerCase();
@@ -221,17 +255,50 @@ const Quiz = () => {
     setPresetSubject(null);
   };
 
+  // Normalizes a card into a quiz question with shuffled (or synthesized) options.
+  const boxCard = (card) => {
+    if (Array.isArray(card.options) && card.options.length >= 2 && card.correctAnswer) {
+      return {
+        ...card,
+        options: [...card.options].sort(() => 0.5 - Math.random()),
+      };
+    }
+    const targetAnswer = card.answer || card.correctAnswer;
+    const distractors = flashcards
+      .filter(c => c.id !== card.id && (c.answer || c.correctAnswer) !== targetAnswer)
+      .sort(() => 0.5 - Math.random())
+      .slice(0, 3)
+      .map(c => c.answer || c.correctAnswer);
+    const options = [targetAnswer, ...distractors].sort(() => 0.5 - Math.random());
+    return { ...card, options, correctAnswer: targetAnswer };
+  };
+
   // Builds a question set for the immersive player.
   const buildQuestionSet = (engineMode, difficulty, count, order, subject) => {
     let pool;
     if (engineMode === 'uselu') pool = useluData;
     else if (engineMode === 'nursing200') pool = NURSING200_POOL;
+    else if (engineMode === 'midwifery') pool = MIDWIFERY_POOL;
     else pool = GENERAL_POOL;
     if (subject) {
       pool = pool.filter(c => c.subject === subject);
     }
     const seen = new Set();
     const uniquePool = pool.filter(c => seen.has(c.question) ? false : seen.add(c.question));
+
+    // Weakness Challenge: prioritize the learner's computed weak topics.
+    if (engineMode === 'weakness') {
+      const weakMatches = uniquePool.filter(c => {
+        const probe = [c.topic, c.category, c.subject].map(x => String(x || '').trim().toLowerCase()).filter(Boolean);
+        return probe.some(p => weakConceptNames.has(p));
+      });
+      if (weakMatches.length >= 5) {
+        return weakMatches
+          .sort(() => 0.5 - Math.random())
+          .slice(0, Math.min(count, weakMatches.length))
+          .map(card => boxCard(card));
+      }
+    }
 
     let tierPool = uniquePool;
     if (difficulty) {
@@ -254,22 +321,7 @@ const Quiz = () => {
     }
     const picked = working.slice(0, Math.min(count, working.length));
 
-    return picked.map(card => {
-      if (Array.isArray(card.options) && card.options.length >= 2 && card.correctAnswer) {
-        return {
-          ...card,
-          options: [...card.options].sort(() => 0.5 - Math.random()),
-        };
-      }
-      const targetAnswer = card.answer || card.correctAnswer;
-      const distractors = flashcards
-        .filter(c => c.id !== card.id && (c.answer || c.correctAnswer) !== targetAnswer)
-        .sort(() => 0.5 - Math.random())
-        .slice(0, 3)
-        .map(c => c.answer || c.correctAnswer);
-      const options = [targetAnswer, ...distractors].sort(() => 0.5 - Math.random());
-      return { ...card, options, correctAnswer: targetAnswer };
-    });
+    return picked.map(card => boxCard(card));
   };
 
   const launchPlayer = (engineMode, cfg) => {
@@ -281,7 +333,6 @@ const Quiz = () => {
     setPassInfo(null);
     wrongAnswersRef.current = [];
     resultRecordedRef.current = false;
-    // eslint-disable-next-line react-hooks/purity
     quizStartRef.current = Date.now();
     setPlayerActive(true);
     setSetupType(null);
@@ -324,6 +375,11 @@ const Quiz = () => {
     if (wrongs.length > 0) {
       recordWrongAnswers(wrongs);
       updateQuizStats({});
+    }
+
+    // Weakness Challenge data source — log every answered question.
+    if (result.answers && result.answers.length > 0) {
+      recordAttempts(result.answers);
     }
   };
 
@@ -390,7 +446,9 @@ const Quiz = () => {
       clinical: 'Clinical Challenge',
       quick: 'Quick Quiz',
       uselu: 'Uselu Test Questions',
-      nursing200: 'Nursing 200-Level'
+      nursing200: 'Nursing 200-Level',
+      midwifery: 'Midwifery 200-Level',
+      weakness: 'Fix My Weak Areas'
     };
     return (
       <QuizPlayer
@@ -567,6 +625,15 @@ const Quiz = () => {
             color="emerald"
             onClick={() => openSetup(MODE_TO_SETUP.nursing200)}
           />
+          <ModeCard
+            title="Midwifery 200-Level"
+            desc="200-Level midwifery questions across four core subjects."
+            icon={<Heart size={28} className="sm:w-8 sm:h-8" />}
+            duration="Focused"
+            timer="Adaptive"
+            color="pink"
+            onClick={() => openSetup(MODE_TO_SETUP.midwifery)}
+          />
         </div>
       </div>
   );
@@ -577,7 +644,8 @@ const ModeCard = ({ title, desc, icon, duration, timer, color, onClick }) => {
     medical: 'hover:border-medical-500 group-hover:text-medical-500 bg-medical-500/10 text-medical-600',
     amber: 'hover:border-amber-500 group-hover:text-amber-500 bg-amber-500/10 text-amber-600',
     indigo: 'hover:border-indigo-500 group-hover:text-indigo-500 bg-indigo-500/10 text-indigo-600',
-    emerald: 'hover:border-emerald-500 group-hover:text-emerald-500 bg-emerald-500/10 text-emerald-600'
+    emerald: 'hover:border-emerald-500 group-hover:text-emerald-500 bg-emerald-500/10 text-emerald-600',
+    pink: 'hover:border-pink-500 group-hover:text-pink-500 bg-pink-500/10 text-pink-600'
   };
   return (
     <button onClick={onClick} className={`p-4 sm:p-6 bg-white dark:bg-slate-800 rounded-2xl sm:rounded-3xl border-2 border-slate-100 dark:border-slate-700 transition-all text-left group active:scale-95 flex flex-col justify-between min-h-[160px] sm:min-h-[200px] shadow-sm hover:shadow-xl ${colors[color].split(' ')[0]}`}>

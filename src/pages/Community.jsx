@@ -24,19 +24,21 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase, uploadFile, getPublicUrl } from '../utils/supabase';
 import { useAppContext } from '../context/AppContext';
 import { formatDistanceToNow } from 'date-fns';
-import { useNavigate } from 'react-router-dom';
 import CommunityAuthModal from '../components/CommunityAuthModal';
+import StudyGroups from '../components/StudyGroups';
+import { COMMUNITY_SECTIONS, getSection, SECTION_ORDER } from '../data/communitySections';
 
 const POSTS_PER_PAGE = 15;
 
 const Community = () => {
-  const { session, userProfile } = useAppContext();
-  const navigate = useNavigate();
+  const { session } = useAppContext();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
+  const [activeSection, setActiveSection] = useState('all');
+  const [newPostSection, setNewPostSection] = useState('general');
 
   const [newPostContent, setNewPostContent] = useState('');
   const [posting, setPosting] = useState(false);
@@ -89,6 +91,11 @@ const Community = () => {
   useEffect(() => {
     activeCommentPostIdRef.current = activeCommentPostId;
   }, [activeCommentPostId]);
+
+  const activeSectionRef = useRef('all');
+  useEffect(() => {
+    activeSectionRef.current = activeSection;
+  }, [activeSection]);
 
   // Menu states
   const [activeMenuPostId, setActiveMenuPostId] = useState(null);
@@ -152,11 +159,18 @@ const Community = () => {
       const from = pageIndex * POSTS_PER_PAGE;
       const to = from + POSTS_PER_PAGE - 1;
 
-      const { data, error: fetchError } = await supabase
+      let query = supabase
         .from('community_feed')
         .select('*')
+        .is('group_id', null) // group-scoped posts live in the Study Groups feed
         .order('created_at', { ascending: false })
         .range(from, to);
+
+      if (activeSection !== 'all') {
+        query = query.eq('section', activeSection);
+      }
+
+      const { data, error: fetchError } = await query;
 
       if (fetchError) throw fetchError;
 
@@ -174,7 +188,12 @@ const Community = () => {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, []);
+  }, [activeSection]);
+
+  const switchSection = (key) => {
+    setActiveSection(key);
+    if (key !== 'all' && key !== 'study-groups') setNewPostSection(key);
+  };
 
   useEffect(() => {
     fetchPosts(0, false);
@@ -189,12 +208,13 @@ const Community = () => {
       .on('postgres_changes', { event: '*', schema: 'public', table: 'community_posts' }, (payload) => {
         if (payload.eventType === 'INSERT') {
           fetchSinglePost(payload.new.id).then(newPost => {
-            if (newPost) {
-               setPosts(prev => {
-                 if (prev.some(p => p.id === newPost.id)) return prev;
-                 return [newPost, ...prev];
-               });
-            }
+            if (!newPost) return;
+            if (newPost.group_id) return; // group feed only
+            if (activeSectionRef.current !== 'all' && (newPost.section || 'general') !== activeSectionRef.current) return;
+            setPosts(prev => {
+              if (prev.some(p => p.id === newPost.id)) return prev;
+              return [newPost, ...prev];
+            });
           });
         } else if (payload.eventType === 'UPDATE') {
           if (payload.new.is_deleted || payload.new.is_hidden) {
@@ -204,7 +224,7 @@ const Community = () => {
           }
         }
       })
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'community_post_likes' }, (payload) => {
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'community_post_likes' }, () => {
          // Optionally refresh specific post counts or just rely on local state to avoid jumpiness
       })
       .on('postgres_changes', { event: '*', schema: 'public', table: 'community_comments' }, (payload) => {
@@ -321,6 +341,7 @@ const Community = () => {
         .insert({
            author_id: currentUserId,
            content: newPostContent.trim() || '',
+           section: newPostSection,
            ...(imageUrl ? { image_url: imageUrl } : {})
         });
 
@@ -671,6 +692,51 @@ const Community = () => {
           <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Connect with nursing students across Nigeria.</p>
         </header>
 
+        {/* Section Tabs */}
+        <div className="bg-white dark:bg-slate-800 rounded-2xl border border-slate-100 dark:border-slate-700 shadow-clinical p-2">
+          <div className="flex gap-1.5 overflow-x-auto scrollbar-none py-1">
+            <button
+              onClick={() => switchSection('all')}
+              className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${
+                activeSection === 'all'
+                  ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow'
+                  : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-900'
+              }`}
+            >
+              <Sparkles size={13} /> All & General
+            </button>
+            {SECTION_ORDER.map(key => {
+              const s = COMMUNITY_SECTIONS[key];
+              const active = activeSection === key;
+              return (
+                <button
+                  key={key}
+                  onClick={() => switchSection(key)}
+                  className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${
+                    active ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-900'
+                  }`}
+                >
+                  <span>{s.emoji}</span> {s.label}
+                </button>
+              );
+            })}
+            <button
+              onClick={() => switchSection('study-groups')}
+              className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${
+                activeSection === 'study-groups'
+                  ? 'bg-emerald-600 text-white shadow'
+                  : 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
+              }`}
+            >
+              <Users size={13} /> Study Groups
+            </button>
+          </div>
+        </div>
+
+        {activeSection === 'study-groups' && <StudyGroups />}
+
+        {activeSection !== 'study-groups' && (
+        <>
         {/* New Post Composer */}
         <motion.div
           initial={{ y: 10, opacity: 0 }}
@@ -730,6 +796,29 @@ const Community = () => {
                 </div>
               )}
 
+              {/* Section picker */}
+              <div className="flex flex-wrap items-center gap-1.5 mt-3">
+                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 mr-1">Post in:</span>
+                {['general', ...SECTION_ORDER.filter(k => k !== 'general')].map(key => {
+                  const s = COMMUNITY_SECTIONS[key];
+                  const activePick = newPostSection === key;
+                  return (
+                    <button
+                      key={key}
+                      type="button"
+                      onClick={() => setNewPostSection(key)}
+                      className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all active:scale-95 ${
+                        activePick
+                          ? `text-white ${s.chip} border-transparent shadow`
+                          : 'text-slate-500 border-slate-200 dark:border-slate-700 hover:border-medical-400'
+                      }`}
+                    >
+                      <span>{s.emoji}</span> {s.label}
+                    </button>
+                  );
+                })}
+              </div>
+
               <div className="flex justify-between items-center mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
                 <div className="flex items-center gap-3">
                   <input
@@ -777,7 +866,7 @@ const Community = () => {
           ) : posts.length > 0 ? (
             <>
               <AnimatePresence>
-                {posts.map((post, idx) => (
+                {posts.map((post) => (
                   <motion.div
                     key={post.id}
                     initial={{ y: 20, opacity: 0 }}
@@ -800,6 +889,16 @@ const Community = () => {
                               <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[8px] font-black uppercase rounded-md">
                                 YEAR {post.year}
                               </span>
+                            )}
+                            {post.section && post.section !== 'general' && (
+                              (() => {
+                                const sec = getSection(post.section);
+                                return (
+                                  <span className={`px-2 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider ${sec.accentBg} ${sec.accentText}`}>
+                                    {sec.emoji} {sec.label}
+                                  </span>
+                                );
+                              })()
                             )}
                           </div>
                           <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">
@@ -1083,6 +1182,8 @@ const Community = () => {
             </div>
           )}
         </div>
+        </>
+        )}
 
         {/* Info Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

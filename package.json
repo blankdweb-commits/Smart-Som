@@ -8,7 +8,10 @@
     "build": "vite build",
     "lint": "eslint .",
     "preview": "vite preview",
-    "start": "vite preview --host 0.0.0.0 --port $PORT"
+    "start": "vite preview --host 0.0.0.0 --port $PORT",
+    "e2e:weakness": "node scripts/e2e-weakness.mjs",
+    "e2e:community-sections": "node scripts/e2e-community-sections.mjs",
+    "e2e:study-groups": "node scripts/e2e-study-groups.mjs"
   },
   "dependencies": {
     "@daformat/react-swipeable-cards": "^1.0.4",

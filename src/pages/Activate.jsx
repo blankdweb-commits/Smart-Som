@@ -1,5 +1,4 @@
-import React, { useState, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useState } from 'react';
 import { ShieldCheck, ArrowRight, Star, Clock, Loader2, AlertCircle, CheckCircle2 } from '../components/Icons';
 import { useAppContext } from '../context/AppContext';
 import { supabase } from '../utils/supabase';
@@ -21,60 +20,23 @@ export default function Activate() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [success, setSuccess] = useState(false);
-  const [paystackReady, setPaystackReady] = useState(!!window.PaystackPop);
   const [activePlanId, setActivePlanId] = useState(null);
-  const { userProfile, subscriptionPlans } = useAppContext();
-  const navigate = useNavigate();
+  const { userProfile, subscriptionPlans, session } = useAppContext();
 
-  useEffect(() => {
-    // Load Paystack script — idempotent, with load/error handling so the
-    // button never silently fails on slow or blocked CDNs.
-    if (window.PaystackPop) {
-      setPaystackReady(true);
-      return;
-    }
-
-    const existing = document.querySelector('script[src*="js.paystack.co"]');
-    const script = existing || document.createElement('script');
-
-    const handleLoad = () => setPaystackReady(true);
-    const handleError = () => setError('Payment system failed to load. Check your connection and refresh the page.');
-
-    script.addEventListener('load', handleLoad);
-    script.addEventListener('error', handleError);
-
-    if (!existing) {
-      script.src = 'https://js.paystack.co/v1/inline.js';
-      script.async = true;
-      document.body.appendChild(script);
-    } else if (window.PaystackPop) {
-      setPaystackReady(true);
-    }
-
-    // Safety poll: some browsers fire load before PaystackPop attaches.
-    const poll = setInterval(() => {
-      if (window.PaystackPop) {
-        setPaystackReady(true);
-        clearInterval(poll);
-      }
-    }, 500);
-
-    return () => {
-      clearInterval(poll);
-      script.removeEventListener('load', handleLoad);
-      script.removeEventListener('error', handleError);
-    };
-  }, []);
-
+  // HOSTED CHECKOUT FLOW (works on iOS — no injected iframe that Safari can
+  // silently block). The server initializes a Paystack session, the browser is
+  // redirected to Paystack's hosted page, and Paystack redirects the payer back
+  // to the LIVE callback URL: <origin>/payments/verify
   const handlePay = async (plan) => {
     setError(null);
+    setSuccess(false);
 
     if (!supabase) {
       setError('Payments require a configured backend.');
       return;
     }
-    if (!window.PaystackPop || !paystackReady) {
-      setError('Payment system is still loading. Please try again in a moment.');
+    if (!session?.access_token) {
+      setError('Please sign in first to purchase a plan.');
       return;
     }
 
@@ -82,62 +44,28 @@ export default function Activate() {
     setActivePlanId(plan.id);
 
     try {
-      const { data } = await supabase.auth.getSession();
-      const activeSession = data?.session;
-      if (!activeSession) {
-        setError('Please sign in first to purchase a plan.');
+      const res = await fetch('/api/initiate-payment', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session.access_token}`
+        },
+        body: JSON.stringify({ plan_id: plan.id })
+      });
+
+      const body = await res.json();
+      if (res.ok && body.authorization_url) {
+        // Going to a new page — loading state stays until we return.
+        window.location.assign(body.authorization_url);
         return;
       }
 
-      const handler = window.PaystackPop.setup({
-        key: import.meta.env.VITE_PAYSTACK_PUBLIC_KEY,
-        email: activeSession.user.email,
-        amount: Math.round(plan.price * 100),
-        currency: "NGN",
-        metadata: {
-          plan_id: plan.id,
-          user_id: activeSession.user.id
-        },
-        callback: async (response) => {
-          try {
-            // The server derives the user from this token — no user_id in the body.
-            const res = await fetch('/api/verify-payment', {
-              method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-                Authorization: `Bearer ${activeSession.access_token}`
-              },
-              body: JSON.stringify({ reference: response.reference })
-            });
-            const resData = await res.json();
-            if (resData.success) {
-              setSuccess(true);
-              setTimeout(() => navigate('/dashboard'), 1200);
-            } else {
-              setError(resData.error || "Verification failed. Please contact support.");
-            }
-          } catch {
-            setError("Verification failed. Please contact support.");
-          } finally {
-            setLoading(false);
-            setActivePlanId(null);
-          }
-        },
-        onClose: () => {
-          setLoading(false);
-          setActivePlanId(null);
-        }
-      });
-      handler.openIframe();
+      setError(body.error || 'Payment could not be started. Please try again.');
+    } catch {
+      setError('Could not start payment. Check your connection and try again.');
     } finally {
-      // Loading state is cleared by callback/onClose; reset here only if the
-      // popup failed to open at all.
-      setTimeout(() => {
-        if (!window.document.querySelector('iframe[src*="paystack"]')) {
-          setLoading(false);
-          setActivePlanId(null);
-        }
-      }, 1500);
+      setLoading(false);
+      setActivePlanId(null);
     }
   };
 
@@ -220,7 +148,7 @@ export default function Activate() {
                   <button
                     key={plan.id}
                     onClick={() => handlePay(plan)}
-                    disabled={loading || !paystackReady}
+                    disabled={loading}
                     className="w-full p-6 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-700 hover:border-apex-500 transition-all text-left flex justify-between items-center group active:scale-[0.98] disabled:opacity-50"
                   >
                     <div>
@@ -243,10 +171,10 @@ export default function Activate() {
               })}
            </div>
 
-           {!paystackReady && !error && (
+           {loading && (
              <div className="p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-center gap-2">
                <Loader2 size={14} className="animate-spin text-slate-400" />
-               <p className="text-slate-500 dark:text-slate-400 text-xs font-bold">Loading payment system…</p>
+               <p className="text-slate-500 dark:text-slate-400 text-xs font-bold">Connecting to Paystack…</p>
              </div>
            )}
 

@@ -43,11 +43,17 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit 
   const recordAnswer = (opt, correct, wasTimeout) => {
     answersRef.current.push({
       question: typeof q.question === 'object' ? JSON.stringify(q.question) : q.question,
+      questionId: q.id || '',
       subject: q.subject || 'General',
       category: q.category || 'General',
+      topic: q.topic || q.category || 'General',
+      difficulty: q.difficulty || config.difficulty || '',
+      mode: config.mode || modeLabel || 'standard',
+      isCorrect: correct,
+      correct,
+      timedOut: wasTimeout,
       yourAnswer: opt ?? 'No answer submitted',
       correctAnswer: q.correctAnswer,
-      isCorrect: correct,
       rationale:
         q.rationale ||
         'Nurses must apply critical thinking and clinical protocols to ensure patient safety and prioritize airway, breathing, and circulation.',

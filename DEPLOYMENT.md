@@ -25,7 +25,20 @@ This guide provides instructions for deploying the Apex Scholars platform to pro
 1.  Create an account at [Paystack](https://paystack.com).
 2.  Go to **Settings > API Keys & Webhooks**.
 3.  Note down your **Public Key** and **Secret Key**.
-4.  Set your **Webhook URL** to: `https://your-vercel-domain.vercel.app/api/payments/webhook`
+4.  Set your **Webhook URL** to:
+    `https://<your-live-domain>/api/payments/webhook`
+    (e.g. `https://myapexlaprat.vercel.app/api/payments/webhook`). This receives
+    real-time `charge.success` events so the subscription is activated even if
+    the user closes the page during checkout.
+5.  Set your **Callback URL** to:
+    `https://<your-live-domain>/payments/verify`
+    (e.g. `https://myapexlaprat.vercel.app/payments/verify`). Users are
+    redirected here after a successful hosted checkout, where the app
+    server-verifies the reference and activates the plan. The app also sends
+    this callback URL with every `transaction/initialize` call automatically.
+6.  Always use the **live** public/secret keys (`pk_live_...` / `sk_live_...`)
+    for real transactions. Put both in Vercel environment variables (below) —
+    never commit live keys.
 
 ## 3. Vercel Deployment
 
@@ -39,7 +52,7 @@ This guide provides instructions for deploying the Apex Scholars platform to pro
 | `SUPABASE_SERVICE_ROLE_KEY` | Your Supabase Service Role Key (Server-side only) |
 | `VITE_PAYSTACK_PUBLIC_KEY` | Your Paystack Public Key |
 | `PAYSTACK_SECRET_KEY` | Your Paystack Secret Key (Server-side only) |
-| `APP_URL` | Your production URL (e.g., `https://apexscholars.vercel.app`) |
+| `APP_URL` | Your production URL (e.g., `https://myapexlaprat.vercel.app`) |
 
 3.  Deploy the project.
 

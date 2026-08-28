@@ -80,6 +80,8 @@ export function AppProvider({ children }) {
 
   const [learningAnalytics, setLearningAnalytics] = useState({
     weakTopics: [],
+    weakConcepts: [],
+    totalAttempts: 0,
     recommendedRevision: [],
     dailyChallenge: { id: null, question: '', answer: '', completed: false, lastDate: null }
   });
@@ -138,8 +140,18 @@ export function AppProvider({ children }) {
       // Learning analytics (weak topics)
       const { data: analytics } = await supabase.from('learning_analytics').select('*').eq('user_id', userId).maybeSingle();
       if (analytics) {
-         setLearningAnalytics(prev => ({ ...prev, weakTopics: analytics.weak_topics || [] }));
+         setLearningAnalytics(prev => ({ ...prev, weakTopics: analytics.weak_topics || [], weakConcepts: analytics.weak_concepts || [], totalAttempts: analytics.total_attempts || 0 }));
       }
+
+      // Weakness Challenge milestone — all-time question-attempt count
+      const { count } = await supabase
+        .from('question_attempts')
+        .select('*', { count: 'exact', head: true })
+        .eq('user_id', userId);
+      if (typeof count === 'number') {
+        setLearningAnalytics(prev => ({ ...prev, totalAttempts: count }));
+      }
+      computeWeakConcepts(userId);
 
       // SRS progress for bundled cards
       const { data: userCards } = await supabase.from('user_flashcards').select('*').eq('user_id', userId);
@@ -466,6 +478,84 @@ export function AppProvider({ children }) {
     return Array.from(map.values()).sort((a, b) => b.count - a.count).slice(0, 10);
   };
 
+  // ---------- Weakness Challenge ----------
+  // Weak concept = topic with accuracy < 60% across >= 2 attempts
+  // (rolling 90-day window). Top 14 by accuracy drive "Fix My Weak
+  // Areas". Persisted to learning_analytics.weak_concepts.
+  const computeWeakConcepts = async (userId) => {
+    if (!supabase || !userId) return;
+    const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+    const { data, error } = await supabase
+      .from('question_attempts')
+      .select('topic, subject, correct')
+      .eq('user_id', userId)
+      .gte('created_at', since);
+    if (error || !data) {
+      if (error) console.warn('Weak concepts fetch failed:', error.message);
+      return;
+    }
+
+    const groups = new Map();
+    data.forEach(a => {
+      const name = String(a.topic || 'General').trim() || 'General';
+      const key = `${name}::${a.subject || 'General'}`;
+      if (!groups.has(key)) {
+        groups.set(key, { name, subject: a.subject || 'General', attempts: 0, correct: 0 });
+      }
+      const g = groups.get(key);
+      g.attempts += 1;
+      if (a.correct) g.correct += 1;
+    });
+
+    const weakConcepts = Array.from(groups.values())
+      .filter(g => g.attempts >= 2)
+      .map(g => ({ name: g.name, subject: g.subject, attempts: g.attempts, accuracy: +(g.correct / g.attempts).toFixed(3) }))
+      .filter(g => g.accuracy < 0.6)
+      .sort((a, b) => a.accuracy - b.accuracy || b.attempts - a.attempts)
+      .slice(0, 14);
+
+    const totalAttempts = data.length;
+    setLearningAnalytics(prev => ({ ...prev, weakConcepts, totalAttempts }));
+
+    const { error: upError } = await supabase
+      .from('learning_analytics')
+      .upsert({ user_id: userId, weak_concepts: weakConcepts, total_attempts: totalAttempts, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
+    if (upError) console.warn('Weak concepts save failed:', upError.message);
+  };
+
+  // Log one row per answered quiz question (correct/wrong/timed-out) so the
+  // weakness engine has per-topic accuracy data. Call after a quiz completes.
+  const recordAttempts = async (answers) => {
+    if (!answers || answers.length === 0) return;
+    if (!supabase || !session?.user) return;
+    const userId = session.user.id;
+
+    setLearningAnalytics(prev => ({ ...prev, totalAttempts: (prev.totalAttempts || 0) + answers.length }));
+
+    const rows = answers.map(a => ({
+      user_id: userId,
+      question_id: String(a.questionId ?? a.id ?? ''),
+      question: String(a.question || '').slice(0, 2000),
+      topic: (String(a.topic || '').trim() || 'General'),
+      subject: a.subject || 'General',
+      correct: !!a.correct,
+      timed_out: !!a.timedOut,
+      mode: a.mode || 'standard',
+      difficulty: a.difficulty || ''
+    }));
+
+    const { error } = await supabase
+      .from('question_attempts')
+      .insert(rows);
+    if (error) {
+      console.warn('Attempt log failed:', error.message);
+      // Roll back the optimistic count so the milestone stays accurate.
+      setLearningAnalytics(prev => ({ ...prev, totalAttempts: Math.max(0, (prev.totalAttempts || 0) - answers.length) }));
+      return;
+    }
+    await computeWeakConcepts(userId);
+  };
+
   // ---------- Plans & transactions ----------
   useEffect(() => {
     // Fallback plans are always available so the payment page never renders
@@ -721,6 +811,7 @@ export function AppProvider({ children }) {
     setTransactions([]);
     setLevelCompletions({});
     setQuizHistory([]);
+    setLearningAnalytics({ weakTopics: [], weakConcepts: [], totalAttempts: 0, recommendedRevision: [], dailyChallenge: { id: null, question: '', answer: '', completed: false, lastDate: null } });
   };
 
   const amountPaid = transactions.filter(t => t.status === 'success').reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
@@ -755,7 +846,7 @@ export function AppProvider({ children }) {
       updatePaymentPurpose: () => {}, addPaymentPurpose: () => {}, deletePaymentPurpose: () => {},
       addAuditLog: () => {}, updateCardProgress, incrementCardsStudied,
       updateQuizStats, fetchUserData, feeDetails,
-      recordQuizResult, recordWrongAnswers, touchActivity,
+      recordQuizResult, recordWrongAnswers, recordAttempts, computeWeakConcepts, touchActivity,
       addFlashcard, updateFlashcard, deleteFlashcard, importFlashcards,
       signOut
     }}>

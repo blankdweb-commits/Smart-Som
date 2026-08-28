@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { BookOpen, TrendingUp, Award, Zap, ArrowRight, Star, Clock, AlertCircle, Target, CheckCircle, ChevronRight } from '../components/Icons';
+import { BookOpen, TrendingUp, Award, Zap, ArrowRight, Star, Clock, AlertCircle, Target, CheckCircle, ChevronRight, Lock, Sparkles } from '../components/Icons';
 import { differenceInDays } from 'date-fns';
 
 import DailyChallengeWidget from '../components/DailyChallengeWidget';
@@ -51,22 +51,6 @@ const Dashboard = () => {
       questions,
       accuracy: questions > 0 ? Math.round((correct / questions) * 100) : 0
     };
-  }, [quizHistory]);
-
-  const subjectAccuracy = React.useMemo(() => {
-    const map = {};
-    quizHistory.forEach(r => {
-      const sub = r.subject || 'Mixed Bank';
-      const agg = map[sub] || { subject: sub, attempts: 0, correct: 0, total: 0 };
-      agg.attempts += 1;
-      agg.correct += r.score || 0;
-      agg.total += r.total || 0;
-      map[sub] = agg;
-    });
-    return Object.values(map)
-      .map(a => ({ ...a, accuracy: a.total > 0 ? Math.round((a.correct / a.total) * 100) : 0 }))
-      .sort((a, b) => a.accuracy - b.accuracy)
-      .slice(0, 5);
   }, [quizHistory]);
 
   const upcomingExams = exams
@@ -187,7 +171,14 @@ const Dashboard = () => {
             <TodayProgressWidget streak={studyStats.streak} stats={todayStats} />
           </div>
 
-          <WeakAreasTable areas={subjectAccuracy} onFix={(subject) => navigate(`/quiz?subject=${encodeURIComponent(subject)}`)} />
+          <WeaknessChallengeCard
+  totalAttempts={learningAnalytics.totalAttempts || 0}
+  weakConcepts={learningAnalytics.weakConcepts || []}
+  isActivated={userProfile.isActivated}
+  onFix={() => navigate('/quiz?weakness=1')}
+  onActivate={() => navigate('/activate')}
+  onPractice={() => navigate('/quiz')}
+/>
 
           {isExamSoon && (
             <div className="space-y-4">
@@ -331,47 +322,111 @@ const TodayProgressWidget = ({ streak, stats }) => (
   </div>
 );
 
-// ---- Weak Areas: per-subject accuracy table with "Fix [Subject]" deep-links ----
-const WeakAreasTable = ({ areas, onFix }) => (
-  <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-800">
-    <div className="flex items-center gap-2 mb-1">
-      <Target className="text-red-500" size={20} />
-      <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Your Weak Areas</h3>
-    </div>
-    <p className="text-xs text-slate-500">Accuracy breakdown by subject — start a targeted session to improve.</p>
+// ---- Weakness Challenge: 100-question milestone → custom quiz from weak topics ----
+const WEAKNESS_MILESTONE = 100;
 
-    <div className="mt-4 space-y-3">
-      {areas.length > 0 ? areas.map((area, i) => {
-        const status = area.accuracy < 60 ? 'Needs Work' : area.accuracy < 80 ? 'Building' : 'Strong';
-        const statusColor = area.accuracy < 60 ? 'text-red-500' : area.accuracy < 80 ? 'text-amber-500' : 'text-emerald-500';
-        return (
-          <div key={`${area.subject}-${i}`} className="flex items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-            <div className="min-w-0 flex-1">
-              <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">{area.subject}</p>
-              <p className="text-[10px] text-slate-400 uppercase font-black">{area.attempts} attempt{area.attempts === 1 ? '' : 's'}</p>
-            </div>
-            <div className="text-right shrink-0">
-              <p className={`text-xs font-black ${statusColor}`}>{status}</p>
-              <p className="text-[10px] text-slate-400 font-black">{area.accuracy}% acc</p>
+const WeaknessChallengeCard = ({ totalAttempts, weakConcepts, isActivated, onFix, onActivate, onPractice }) => {
+  const progress = Math.min(100, Math.round((totalAttempts / WEAKNESS_MILESTONE) * 100));
+  const remaining = Math.max(0, WEAKNESS_MILESTONE - totalAttempts);
+  const unlocked = isActivated && totalAttempts >= WEAKNESS_MILESTONE;
+
+  return (
+    <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-800 relative overflow-hidden">
+      <div className="absolute -top-10 -right-10 w-40 h-40 bg-rose-500/10 rounded-full blur-2xl pointer-events-none" />
+
+      <div className="relative">
+        <div className="flex items-center gap-2 mb-1">
+          <Target className="text-rose-500" size={20} />
+          <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Weakness Challenge</h3>
+          {!isActivated && (
+            <span className="ml-auto flex items-center gap-1 px-2 py-1 bg-amber-100 dark:bg-amber-900/40 text-amber-700 dark:text-amber-400 rounded-full text-[9px] font-black uppercase tracking-widest">
+              <Lock size={10} /> Premium
+            </span>
+          )}
+        </div>
+        <p className="text-xs text-slate-500 leading-relaxed">
+          Answer 100 questions to unlock a custom quiz pulled from your weakest topics (accuracy below 60%).
+        </p>
+
+        {!isActivated ? (
+          <div className="mt-5 p-4 bg-slate-50 dark:bg-slate-900 rounded-2xl border border-slate-100 dark:border-slate-800 flex items-center justify-between gap-3">
+            <div className="flex items-center gap-3">
+              <div className="p-2.5 bg-amber-100 dark:bg-amber-900/40 rounded-2xl">
+                <Lock size={16} className="text-amber-600 dark:text-amber-400" />
+              </div>
+              <div>
+                <p className="text-sm font-black text-slate-900 dark:text-white">Premium feature</p>
+                <p className="text-[10px] text-slate-400 font-bold">Activate your account to unlock.</p>
+              </div>
             </div>
             <button
-              onClick={() => onFix(area.subject)}
-              className="shrink-0 flex items-center gap-1 px-3 py-2 bg-apex-600 text-white rounded-xl font-black uppercase tracking-widest text-[9px] hover:bg-apex-700 transition-all active:scale-95"
+              onClick={onActivate}
+              className="shrink-0 flex items-center gap-1 px-4 py-2.5 bg-apex-600 text-white rounded-xl font-black uppercase tracking-widest text-[9px] hover:bg-apex-700 transition-all active:scale-95"
             >
-              Fix <ChevronRight size={12} />
+              Activate <ChevronRight size={12} />
             </button>
           </div>
-        );
-      }) : (
-        <div className="py-6 text-center">
-          <div className="w-12 h-12 bg-slate-100 dark:bg-slate-900 rounded-2xl flex items-center justify-center mx-auto mb-3">
-            <CheckCircle size={20} className="text-apex-600" />
+        ) : !unlocked ? (
+          <div className="mt-5">
+            <div className="flex justify-between items-center text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2">
+              <span>{totalAttempts} / {WEAKNESS_MILESTONE} questions</span>
+              <span>{progress}%</span>
+            </div>
+            <div className="w-full h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden border border-slate-50 dark:border-slate-800">
+              <motion.div
+                initial={{ width: 0 }}
+                animate={{ width: `${progress}%` }}
+                className="h-full bg-rose-500 rounded-full"
+              />
+            </div>
+            <p className="text-[10px] text-slate-400 font-medium mt-2">
+              {remaining} more {remaining === 1 ? 'question' : 'questions'} to unlock your custom weakness quiz.
+            </p>
           </div>
-          <p className="text-xs text-slate-400 italic">Complete a few quizzes to see your weak areas.</p>
-        </div>
-      )}
+        ) : (
+          <div className="mt-5">
+            {weakConcepts.length > 0 ? (
+              <>
+                <p className="text-[9px] font-black uppercase tracking-widest text-slate-400 mb-2">
+                  {weakConcepts.length} weak {weakConcepts.length === 1 ? 'concept' : 'concepts'} · below 60% accuracy
+                </p>
+                <div className="space-y-2">
+                  {weakConcepts.slice(0, 5).map((w, i) => (
+                    <div key={i} className="flex items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">{w.name}</p>
+                        <p className="text-[10px] text-slate-400 uppercase font-black">{w.attempts} attempt{w.attempts === 1 ? '' : 's'} · {w.subject}</p>
+                      </div>
+                      <span className="shrink-0 text-xs font-black text-red-500">{Math.round(w.accuracy * 100)}%</span>
+                    </div>
+                  ))}
+                </div>
+                <button
+                  onClick={onFix}
+                  className="mt-4 w-full flex items-center justify-center gap-2 px-4 py-3.5 bg-rose-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-rose-600/20 hover:bg-rose-700 transition-all active:scale-95"
+                >
+                  <Sparkles size={14} /> Fix My Weak Areas <ArrowRight size={14} />
+                </button>
+              </>
+            ) : (
+              <div className="py-5 text-center">
+                <div className="w-12 h-12 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl flex items-center justify-center mx-auto mb-3">
+                  <CheckCircle size={20} className="text-emerald-500" />
+                </div>
+                <p className="text-xs text-slate-400 italic">No weak topics detected — you're on your way to mastery.</p>
+                <button
+                  onClick={onPractice}
+                  className="mt-4 px-4 py-2.5 bg-apex-600 text-white rounded-xl font-black uppercase tracking-widest text-[9px] hover:bg-apex-700 transition-all active:scale-95"
+                >
+                  Keep Practicing <ArrowRight size={12} />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
     </div>
-  </div>
-);
+  );
+};
 
 export default Dashboard;

@@ -21,6 +21,7 @@ const Sidebar = () => {
   // open by design (dashboard-first), but are not discoverable here.
   const adminItems = userProfile.isAdmin ? [
     { name: 'Finance Admin', icon: Shield, path: '/admin/finance' },
+    { name: 'User Management', icon: Users, path: '/admin/users' },
     { name: 'Question Bank', icon: Search, path: '/admin/questions' },
   ] : [];
 
