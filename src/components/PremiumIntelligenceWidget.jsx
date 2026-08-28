@@ -4,23 +4,38 @@ import { Target, TrendingDown, BookOpen, ChevronRight, Zap, AlertTriangle } from
 import { useNavigate } from 'react-router-dom';
 
 const PremiumIntelligenceWidget = () => {
-  const { userProfile, flashcards, studyStats } = useAppContext();
+  const { userProfile, flashcards, studyStats, quizHistory } = useAppContext();
   const navigate = useNavigate();
 
   const isMonthly = userProfile.subscriptionTier === 'monthly';
 
-  // Mock weakness tracking for demonstration (would normally come from analytics engine)
+  // Real weaknesses from actual quiz result history, grouped by subject.
   const weaknesses = useMemo(() => {
-    const subjects = [...new Set(flashcards.map(c => c.subject))];
-    return subjects
-      .map(s => ({
-        name: s,
-        accuracy: Math.floor(Math.random() * 40) + 30, // 30-70%
-        count: flashcards.filter(c => c.subject === s).length
-      }))
+    if (!quizHistory || quizHistory.length === 0) {
+      const subjects = [...new Set(flashcards.map(c => c.subject))];
+      return subjects
+        .map(s => ({
+          name: s,
+          accuracy: 100,
+          count: flashcards.filter(c => c.subject === s).length
+        }))
+        .sort((a, b) => a.accuracy - b.accuracy)
+        .slice(0, 2);
+    }
+    const map = {};
+    quizHistory.forEach(r => {
+      const sub = r.subject || 'Mixed Bank';
+      const agg = map[sub] || { name: sub, correct: 0, total: 0, count: 0 };
+      agg.correct += r.score || 0;
+      agg.total += r.total || 0;
+      agg.count += 1;
+      map[sub] = agg;
+    });
+    return Object.values(map)
+      .map(a => ({ ...a, accuracy: a.total > 0 ? Math.round((a.correct / a.total) * 100) : 0 }))
       .sort((a, b) => a.accuracy - b.accuracy)
       .slice(0, 2);
-  }, [flashcards]);
+  }, [quizHistory, flashcards]);
 
   if (!isMonthly) {
     return (

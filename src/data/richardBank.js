@@ -1,6 +1,7 @@
 import rawPharmacology from './flashcards/nmcn/Phamarcology-Richard.json';
 import rawMusculoskeletal from './flashcards/nmcn/muscleskeletal-Richard.json';
 import rawNeurological from './flashcards/nmcn/Neurological-Nursing.json';
+import rawNursing200 from './flashcards/nmcn/200level questions.json';
 
 // Normalizes Richard-style question banks to the shared question shape used
 // by the quiz engine. These raw files store answers as letters ("A".."D")
@@ -56,4 +57,9 @@ export const musculoskeletalData = normalizeRichardBank(rawMusculoskeletal, {
 export const neurologicalData = normalizeRichardBank(rawNeurological, {
   prefix: 'neuro',
   source: "Richard's Neurological"
+});
+
+export const nursing200Data = normalizeRichardBank(rawNursing200, {
+  prefix: 'n200',
+  source: 'Nursing 200-Level'
 });

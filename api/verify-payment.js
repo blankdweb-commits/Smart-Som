@@ -108,9 +108,24 @@ export default async function handler(req, res) {
       metadata: result.data.metadata || { plan_id: planId }
     }, { onConflict: 'reference' });
 
-    // 5. Activate Subscription
+    // 5. Activate Subscription. Renewals extend on top of any existing active
+    // subscription (starting from the later of now / current expiry) so a
+    // paying user never loses remaining days.
     const now = new Date();
-    const expiresAt = new Date(now.getTime() + durationDays * 24 * 60 * 60 * 1000);
+    const { data: activeSub } = await supabase
+      .from('subscriptions')
+      .select('expires_at')
+      .eq('user_id', user.id)
+      .eq('status', 'active')
+      .gte('expires_at', now.toISOString())
+      .order('expires_at', { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const base = activeSub?.expires_at && new Date(activeSub.expires_at) > now
+      ? new Date(activeSub.expires_at)
+      : now;
+    const expiresAt = new Date(base.getTime() + durationDays * 24 * 60 * 60 * 1000);
     const graceUntil = new Date(expiresAt.getTime() + 2 * 24 * 60 * 60 * 1000);
 
     const { error: subInsertError } = await supabase.from('subscriptions').insert({

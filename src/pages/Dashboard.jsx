@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { BookOpen, Calendar, TrendingUp, Award, Zap, ArrowRight, Star, Clock, Lock, AlertCircle, Brain, Target } from '../components/Icons';
+import { BookOpen, TrendingUp, Award, Zap, ArrowRight, Star, Clock, AlertCircle, Target, CheckCircle, ChevronRight } from '../components/Icons';
 import { differenceInDays } from 'date-fns';
 
 import DailyChallengeWidget from '../components/DailyChallengeWidget';
@@ -9,7 +9,7 @@ import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
 const Dashboard = () => {
   const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
-  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics } = useAppContext();
+  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics, quizHistory } = useAppContext();
   const navigate = useNavigate();
 
   // Redirect if not logged in - Only if not in DEV_MODE and NOT in Dashboard-First mode
@@ -37,6 +37,37 @@ const Dashboard = () => {
       .sort((a, b) => b.total - a.total)
       .slice(0, 5);
   }, [flashcards]);
+
+  const todayStats = React.useMemo(() => {
+    const today = new Date();
+    const startOfToday = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+    const rows = quizHistory.filter(r => {
+      const ts = new Date(r.created_at).getTime();
+      return ts >= startOfToday;
+    });
+    const questions = rows.reduce((sum, r) => sum + (r.total || 0), 0);
+    const correct = rows.reduce((sum, r) => sum + (r.score || 0), 0);
+    return {
+      questions,
+      accuracy: questions > 0 ? Math.round((correct / questions) * 100) : 0
+    };
+  }, [quizHistory]);
+
+  const subjectAccuracy = React.useMemo(() => {
+    const map = {};
+    quizHistory.forEach(r => {
+      const sub = r.subject || 'Mixed Bank';
+      const agg = map[sub] || { subject: sub, attempts: 0, correct: 0, total: 0 };
+      agg.attempts += 1;
+      agg.correct += r.score || 0;
+      agg.total += r.total || 0;
+      map[sub] = agg;
+    });
+    return Object.values(map)
+      .map(a => ({ ...a, accuracy: a.total > 0 ? Math.round((a.correct / a.total) * 100) : 0 }))
+      .sort((a, b) => a.accuracy - b.accuracy)
+      .slice(0, 5);
+  }, [quizHistory]);
 
   const upcomingExams = exams
     .filter(e => new Date(e.date) >= new Date())
@@ -153,34 +184,10 @@ const Dashboard = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <DailyChallengeWidget />
-            <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
-              <div>
-                <h3 className="text-lg font-black flex items-center gap-2 text-slate-900 dark:text-white uppercase tracking-tight">
-                  <Target className="text-red-500" size={20} /> Attention Required
-                </h3>
-                <p className="text-xs text-slate-500 mt-1">Focus on these topics to improve your score.</p>
-              </div>
-              <div className="mt-4 space-y-3">
-                {(DEV_MODE && learningAnalytics.weakTopics.length === 0 ? [
-                  { name: 'Pharmacology', count: 12, subject: 'Medical Surgical' },
-                  { name: 'Acid-Base Balance', count: 8, subject: 'Foundations' }
-                ] : learningAnalytics.weakTopics).map((topic, i) => (
-                  <div key={i} className="flex items-center justify-between p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
-                    <div>
-                      <p className="text-sm font-bold text-slate-800 dark:text-slate-200">{topic.name}</p>
-                      <p className="text-[10px] text-slate-400 uppercase font-black">{topic.subject}</p>
-                    </div>
-                    <span className="text-xs font-black text-red-500 bg-red-50 dark:bg-red-900/20 px-2 py-1 rounded-lg">{topic.count} errors</span>
-                  </div>
-                ))}
-                {learningAnalytics.weakTopics.length === 0 && !DEV_MODE && (
-                   <div className="py-4 text-center">
-                      <p className="text-xs text-slate-400 italic">No critical weak spots detected yet. Keep studying!</p>
-                   </div>
-                )}
-              </div>
-            </div>
+            <TodayProgressWidget streak={studyStats.streak} stats={todayStats} />
           </div>
+
+          <WeakAreasTable areas={subjectAccuracy} onFix={(subject) => navigate(`/quiz?subject=${encodeURIComponent(subject)}`)} />
 
           {isExamSoon && (
             <div className="space-y-4">
@@ -294,6 +301,75 @@ const StatsCard = ({ title, value, icon, color }) => (
     <div>
       <p className="text-[9px] sm:text-[10px] text-slate-400 font-black uppercase tracking-widest">{title}</p>
       <p className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tighter mt-0.5">{value}</p>
+    </div>
+  </div>
+);
+
+// ---- Today's Progress widget: streak + questions answered today + accuracy ----
+const TodayProgressWidget = ({ streak, stats }) => (
+  <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-800 flex flex-col justify-between">
+    <div>
+      <h3 className="text-lg font-black flex items-center gap-2 text-slate-900 dark:text-white uppercase tracking-tight">
+        <TrendingUp className="text-apex-600" size={20} /> Today's Progress
+      </h3>
+      <p className="text-xs text-slate-500 mt-1">Your momentum at a glance.</p>
+    </div>
+    <div className="mt-4 grid grid-cols-3 gap-3">
+      <div className="p-3 bg-amber-50 dark:bg-amber-900/20 rounded-xl text-center">
+        <p className="text-[9px] font-black text-amber-600 uppercase tracking-widest">Streak</p>
+        <p className="text-2xl font-black text-amber-700 dark:text-amber-400 mt-1">{streak}d</p>
+      </div>
+      <div className="p-3 bg-blue-50 dark:bg-blue-900/20 rounded-xl text-center">
+        <p className="text-[9px] font-black text-blue-600 uppercase tracking-widest">Questions</p>
+        <p className="text-2xl font-black text-blue-700 dark:text-blue-400 mt-1">{stats.questions}</p>
+      </div>
+      <div className="p-3 bg-emerald-50 dark:bg-emerald-900/20 rounded-xl text-center">
+        <p className="text-[9px] font-black text-emerald-600 uppercase tracking-widest">Accuracy</p>
+        <p className="text-2xl font-black text-emerald-700 dark:text-emerald-400 mt-1">{stats.accuracy}%</p>
+      </div>
+    </div>
+  </div>
+);
+
+// ---- Weak Areas: per-subject accuracy table with "Fix [Subject]" deep-links ----
+const WeakAreasTable = ({ areas, onFix }) => (
+  <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-800">
+    <div className="flex items-center gap-2 mb-1">
+      <Target className="text-red-500" size={20} />
+      <h3 className="text-lg font-black text-slate-900 dark:text-white uppercase tracking-tight">Your Weak Areas</h3>
+    </div>
+    <p className="text-xs text-slate-500">Accuracy breakdown by subject — start a targeted session to improve.</p>
+
+    <div className="mt-4 space-y-3">
+      {areas.length > 0 ? areas.map((area, i) => {
+        const status = area.accuracy < 60 ? 'Needs Work' : area.accuracy < 80 ? 'Building' : 'Strong';
+        const statusColor = area.accuracy < 60 ? 'text-red-500' : area.accuracy < 80 ? 'text-amber-500' : 'text-emerald-500';
+        return (
+          <div key={`${area.subject}-${i}`} className="flex items-center justify-between gap-3 p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl">
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-bold text-slate-800 dark:text-slate-200 truncate">{area.subject}</p>
+              <p className="text-[10px] text-slate-400 uppercase font-black">{area.attempts} attempt{area.attempts === 1 ? '' : 's'}</p>
+            </div>
+            <div className="text-right shrink-0">
+              <p className={`text-xs font-black ${statusColor}`}>{status}</p>
+              <p className="text-[10px] text-slate-400 font-black">{area.accuracy}% acc</p>
+            </div>
+            <button
+              onClick={() => onFix(area.subject)}
+              className="shrink-0 flex items-center gap-1 px-3 py-2 bg-apex-600 text-white rounded-xl font-black uppercase tracking-widest text-[9px] hover:bg-apex-700 transition-all active:scale-95"
+            >
+              Fix <ChevronRight size={12} />
+            </button>
+          </div>
+        );
+      }) : (
+        <div className="py-6 text-center">
+          <div className="w-12 h-12 bg-slate-100 dark:bg-slate-900 rounded-2xl flex items-center justify-center mx-auto mb-3">
+            <CheckCircle size={20} className="text-apex-600" />
+          </div>
+          <p className="text-xs text-slate-400 italic">Complete a few quizzes to see your weak areas.</p>
+        </div>
+      )}
     </div>
   </div>
 );

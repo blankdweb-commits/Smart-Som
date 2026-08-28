@@ -11,7 +11,8 @@ import {
   Shield,
   List,
   Lock,
-  Sparkles
+  Sparkles,
+  BookOpen
 } from './Icons';
 
 // Per-quiz-type configuration — drives what Step 2 shows.
@@ -71,6 +72,34 @@ const QUIZ_CONFIGS = {
     allowExamMode: true,
     defaultOrder: 'randomized',
     bankNote: '61 questions available in this bank'
+  },
+  'nursing-200': {
+    title: 'Nursing 200-Level',
+    identity: '200-Level course questions across seven core subjects.',
+    icon: <BookOpen size={22} />,
+    accentText: 'text-emerald-400',
+    accentBg: 'bg-emerald-500/20 border-emerald-500/30',
+    subjects: [
+      'Community Health Nursing I',
+      'Foundation of Nursing IV',
+      'Medical-Surgical Nursing III',
+      'Politics and Governance in Nursing',
+      'Pharmacology III',
+      'Reproductive Health II',
+      'Research Methodology II'
+    ],
+    questionCounts: [10, 20, 30, 50, 100],
+    timerOptions: [
+      { value: null, label: 'No Time Limit' },
+      { value: 15, label: '15s / Q' },
+      { value: 30, label: '30s / Q' },
+      { value: 45, label: '45s / Q' },
+      { value: 60, label: '60s / Q' }
+    ],
+    allowOrderChoice: true,
+    allowExamMode: true,
+    defaultOrder: 'randomized',
+    bankNote: '799 questions available in this bank'
   }
 };
 
@@ -81,9 +110,9 @@ const DIFFICULTIES = [
   { id: 'Expert', dot: 'bg-red-500', ring: 'hover:border-red-500', activeRing: 'border-red-500', desc: 'Deeper clinical reasoning' }
 ];
 
-const ProgressIndicator = ({ step }) => (
-  <div className="flex items-center justify-center gap-1.5" aria-label={`Step ${step} of 3`}>
-    {[1, 2, 3].map((i) => (
+const ProgressIndicator = ({ step, total = 3 }) => (
+  <div className="flex items-center justify-center gap-1.5" aria-label={`Step ${step} of ${total}`}>
+    {Array.from({ length: total }, (_, i) => i + 1).map((i) => (
       <React.Fragment key={i}>
         {i > 1 && (
           <span className={`w-6 sm:w-10 h-[3px] rounded-full transition-colors duration-300 ${step >= i ? 'bg-medical-500' : 'bg-slate-300 dark:bg-slate-700'}`} />
@@ -123,13 +152,24 @@ const ChoiceButton = ({ selected, onClick, children, disabled, colorClass = 'bg-
   </button>
 );
 
-const QuizSetupFlow = ({ quizType, initialDifficulty, onComplete, onCancel }) => {
+const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete, onCancel }) => {
   const config = QUIZ_CONFIGS[quizType] || QUIZ_CONFIGS['clinical-challenge'];
+
+  const requiresSubject = config.subjects && config.subjects.length > 0;
+  const totalSteps = requiresSubject ? 4 : 3;
+  const diffStep = requiresSubject ? 2 : 1;
+  const sessStep = requiresSubject ? 3 : 2;
+  const reviewStep = requiresSubject ? 4 : 3;
 
   const [step, setStep] = useState(1);
   const [difficulty, setDifficulty] = useState(
     DIFFICULTIES.some((d) => d.id === initialDifficulty) ? initialDifficulty : null
   );
+  const [subject, setSubject] = useState(() => {
+    if (!requiresSubject) return initialSubject || null;
+    if (initialSubject && config.subjects.includes(initialSubject)) return initialSubject;
+    return null;
+  });
   const [questionCount, setQuestionCount] = useState(config.questionCounts.includes(20) ? 20 : config.questionCounts[0]);
   const [timePerQuestion, setTimePerQuestion] = useState(
     config.timerOptions.find((t) => t.value === 30) != null ? 30 : config.timerOptions[0].value
@@ -148,7 +188,8 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, onComplete, onCancel }) =>
       questionCount,
       timePerQuestion,
       order,
-      answerMode
+      answerMode,
+      subject
     });
   };
 
@@ -169,15 +210,73 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, onComplete, onCancel }) =>
           </h1>
           <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-medium mt-1">{config.identity}</p>
         </div>
-        <ProgressIndicator step={step} />
-        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">Step {step} of 3</p>
+        <ProgressIndicator step={step} total={totalSteps} />
+        <p className="text-[9px] font-black uppercase tracking-[0.3em] text-slate-400">Step {step} of {totalSteps}</p>
       </header>
 
       <div className="mt-6 bg-white dark:bg-slate-800 rounded-3xl shadow-clinical border border-slate-100 dark:border-slate-700 p-5 sm:p-8">
         <AnimatePresence mode="wait">
-          {/* ---------------- STEP 1 : DIFFICULTY ---------------- */}
-          {step === 1 && (
-            <motion.div key="step1" variants={stepVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.25 }}>
+          {/* ---------------- SUBJECT SELECTION (Nursing 200-Level) ---------------- */}
+          {requiresSubject && step === 1 && (
+            <motion.div key="subject-step" variants={stepVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.25 }}>
+              <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight mb-1">
+                Choose Subject
+              </h2>
+              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-5">
+                Select one subject to focus your test
+              </p>
+
+              <div className="grid grid-cols-1 gap-3">
+                {config.subjects.map((s) => {
+                  const active = subject === s;
+                  return (
+                    <button
+                      key={s}
+                      type="button"
+                      onClick={() => setSubject(s)}
+                      className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${
+                        active
+                          ? 'border-emerald-500 bg-emerald-500/10 text-slate-900 dark:text-white shadow-lg scale-[1.01]'
+                          : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/40 hover:border-emerald-400'
+                      }`}
+                    >
+                      <BookOpen size={18} className={`shrink-0 ${active ? 'text-emerald-500' : 'text-slate-400'}`} />
+                      <span className="flex-1 min-w-0">
+                        <span className={`block font-black text-sm tracking-tight ${active ? '' : 'text-slate-900 dark:text-white'}`}>{s}</span>
+                      </span>
+                      {active && <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />}
+                    </button>
+                  );
+                })}
+              </div>
+
+              <button
+                type="button"
+                disabled={!subject}
+                onClick={() => setStep(diffStep)}
+                className={`mt-6 w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all ${
+                  subject
+                    ? 'bg-emerald-600 text-white shadow-xl shadow-emerald-500/20 active:scale-95 hover:opacity-90'
+                    : 'bg-slate-100 dark:bg-slate-900 text-slate-400 cursor-not-allowed'
+                }`}
+              >
+                Continue <ArrowRight size={16} />
+              </button>
+            </motion.div>
+          )}
+
+          {/* ---------------- STEP {diffStep} : DIFFICULTY ---------------- */}
+          {step === diffStep && (
+            <motion.div key="step-diff" variants={stepVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.25 }}>
+              {subject && (
+                <div className="mb-5 p-4 rounded-2xl bg-apex-600/10 border border-apex-500/30 flex items-center gap-3">
+                  <Target size={18} className="text-apex-600 shrink-0" />
+                  <div>
+                    <p className="text-[9px] font-black text-apex-600 uppercase tracking-widest">Targeted Practice</p>
+                    <p className="text-sm font-black text-slate-900 dark:text-white">All questions from {subject}</p>
+                  </div>
+                </div>
+              )}
               <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight mb-1">
                 Choose Difficulty
               </h2>
@@ -214,24 +313,35 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, onComplete, onCancel }) =>
                 })}
               </div>
 
-              <button
-                type="button"
-                disabled={!difficulty}
-                onClick={() => setStep(2)}
-                className={`mt-6 w-full py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all ${
-                  difficulty
-                    ? 'bg-medical-600 text-white shadow-xl shadow-medical-500/20 active:scale-95 hover:opacity-90'
-                    : 'bg-slate-100 dark:bg-slate-900 text-slate-400 cursor-not-allowed'
-                }`}
-              >
-                Continue <ArrowRight size={16} />
-              </button>
+              <div className="flex gap-3 mt-6">
+                {requiresSubject && (
+                  <button
+                    type="button"
+                    onClick={() => setStep(1)}
+                    className="flex-1 py-4 rounded-2xl bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all"
+                  >
+                    <ArrowLeft size={16} /> Back
+                  </button>
+                )}
+                <button
+                  type="button"
+                  disabled={!difficulty}
+                  onClick={() => setStep(sessStep)}
+                  className={`${requiresSubject ? 'flex-[2]' : 'w-full'} py-4 rounded-2xl font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 transition-all ${
+                    difficulty
+                      ? 'bg-medical-600 text-white shadow-xl shadow-medical-500/20 active:scale-95 hover:opacity-90'
+                      : 'bg-slate-100 dark:bg-slate-900 text-slate-400 cursor-not-allowed'
+                  }`}
+                >
+                  Continue <ArrowRight size={16} />
+                </button>
+              </div>
             </motion.div>
           )}
 
-          {/* ---------------- STEP 2 : SESSION PARAMETERS ---------------- */}
-          {step === 2 && (
-            <motion.div key="step2" variants={stepVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.25 }}>
+          {/* ---------------- STEP {sessStep} : SESSION PARAMETERS ---------------- */}
+          {step === sessStep && (
+            <motion.div key="step-sess" variants={stepVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.25 }}>
               <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight mb-1">
                 Customize Your Session
               </h2>
@@ -339,14 +449,14 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, onComplete, onCancel }) =>
               <div className="flex gap-3 mt-8">
                 <button
                   type="button"
-                  onClick={() => setStep(1)}
+                  onClick={() => setStep(diffStep)}
                   className="flex-1 py-4 rounded-2xl bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all"
                 >
                   <ArrowLeft size={16} /> Back
                 </button>
                 <button
                   type="button"
-                  onClick={() => setStep(3)}
+                  onClick={() => setStep(reviewStep)}
                   className="flex-[2] py-4 rounded-2xl bg-medical-600 text-white font-black uppercase tracking-widest text-xs shadow-xl shadow-medical-500/20 flex items-center justify-center gap-2 active:scale-95 hover:opacity-90 transition-all"
                 >
                   Continue <ArrowRight size={16} />
@@ -355,9 +465,9 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, onComplete, onCancel }) =>
             </motion.div>
           )}
 
-          {/* ---------------- STEP 3 : REVIEW SESSION ---------------- */}
-          {step === 3 && (
-            <motion.div key="step3" variants={stepVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.25 }}>
+          {/* ---------------- STEP {reviewStep} : REVIEW SESSION ---------------- */}
+          {step === reviewStep && (
+            <motion.div key="step-review" variants={stepVariants} initial="initial" animate="animate" exit="exit" transition={{ duration: 0.25 }}>
               <h2 className="text-xl sm:text-2xl font-black text-slate-900 dark:text-white uppercase tracking-tight mb-1">
                 Review Your Session
               </h2>
@@ -365,9 +475,20 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, onComplete, onCancel }) =>
                 Confirm your setup before you begin
               </p>
 
+              {subject && (
+                <div className="mb-5 p-4 rounded-2xl bg-apex-600/10 border border-apex-500/30 flex items-center gap-3">
+                  <Target size={18} className="text-apex-600 shrink-0" />
+                  <div>
+                    <p className="text-[9px] font-black text-apex-600 uppercase tracking-widest">Targeted Practice</p>
+                    <p className="text-sm font-black text-slate-900 dark:text-white">All questions from {subject}</p>
+                  </div>
+                </div>
+              )}
+
               <div className="rounded-2xl border border-slate-200 dark:border-slate-700 overflow-hidden">
                 {[
                   { label: 'Quiz', value: config.title },
+                  ...(subject ? [{ label: 'Subject', value: subject }] : []),
                   { label: 'Difficulty', value: difficulty },
                   { label: 'Questions', value: String(questionCount) },
                   { label: 'Time', value: timeLabel },
@@ -389,7 +510,7 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, onComplete, onCancel }) =>
               <div className="flex gap-3 mt-8">
                 <button
                   type="button"
-                  onClick={() => setStep(2)}
+                  onClick={() => setStep(sessStep)}
                   className="flex-1 py-4 rounded-2xl bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300 font-black uppercase tracking-widest text-xs flex items-center justify-center gap-2 hover:bg-slate-200 dark:hover:bg-slate-800 transition-all"
                 >
                   <ArrowLeft size={16} /> Edit

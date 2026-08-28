@@ -83,6 +83,7 @@ export function AppProvider({ children }) {
     recommendedRevision: [],
     dailyChallenge: { id: null, question: '', answer: '', completed: false, lastDate: null }
   });
+  const [quizHistory, setQuizHistory] = useState([]);
 
   // Dark mode must be applied to <html> for Tailwind's class strategy to work.
   useEffect(() => {
@@ -163,11 +164,26 @@ export function AppProvider({ children }) {
 
       // Level completions (for difficulty unlocking)
       refreshLevelCompletions(userId);
+      fetchQuizHistory(userId);
     } catch (e) {
       console.error("Fetch data error:", e);
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session]);
+
+  const fetchQuizHistory = async (userId) => {
+    if (!supabase) return;
+    const uid = userId || session?.user?.id;
+    if (!uid) return;
+    const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+    const { data } = await supabase
+      .from('quiz_results')
+      .select('subject, score, total, passed, difficulty, duration_seconds, created_at')
+      .eq('user_id', uid)
+      .gte('created_at', since)
+      .order('created_at', { ascending: false });
+    setQuizHistory(data || []);
+  };
 
   const refreshLevelCompletions = async (userId) => {
     if (!supabase) return;
@@ -406,6 +422,7 @@ export function AppProvider({ children }) {
       refreshLevelCompletions(session.user.id);
     }
 
+    fetchQuizHistory(session.user.id);
     touchActivity();
     return passed;
   };
@@ -451,12 +468,17 @@ export function AppProvider({ children }) {
 
   // ---------- Plans & transactions ----------
   useEffect(() => {
+    // Fallback plans are always available so the payment page never renders
+    // empty. IDs match the seeded subscription_plans table (Monthly=1,
+    // Weekly=2, Yearly=3) so server-side plan resolution stays consistent
+    // even if the live query fails or returns no rows.
+    const FALLBACK_PLANS = [
+      { id: 1, name: 'Monthly', price: 6999, duration_days: 30, is_active: true },
+      { id: 2, name: 'Weekly', price: 1999.9, duration_days: 7, is_active: true },
+      { id: 3, name: 'Yearly', price: 49999, duration_days: 365, is_active: true }
+    ];
     if (!supabase) {
-      setSubscriptionPlans([
-        { id: 1, name: 'Weekly', price: 1999.9, duration_days: 7, is_active: true },
-        { id: 2, name: 'Monthly', price: 6999, duration_days: 30, is_active: true },
-        { id: 3, name: 'Yearly', price: 49999, duration_days: 365, is_active: true }
-      ]);
+      setSubscriptionPlans(FALLBACK_PLANS);
       return;
     }
     supabase
@@ -464,9 +486,14 @@ export function AppProvider({ children }) {
       .select('*')
       .eq('is_active', true)
       .order('price', { ascending: true })
-      .then(({ data }) => {
-        if (data && data.length > 0) setSubscriptionPlans(data);
-      });
+      .then(({ data, error }) => {
+        if (!error && data && data.length > 0) {
+          setSubscriptionPlans(data);
+        } else {
+          setSubscriptionPlans(FALLBACK_PLANS);
+        }
+      })
+      .catch(() => setSubscriptionPlans(FALLBACK_PLANS));
   }, []);
 
   useEffect(() => {
@@ -517,6 +544,7 @@ export function AppProvider({ children }) {
         setExams([]);
         setTransactions([]);
         setLevelCompletions({});
+        setQuizHistory([]);
       }
       setLoadingAuth(false);
     });
@@ -692,6 +720,7 @@ export function AppProvider({ children }) {
     setExams([]);
     setTransactions([]);
     setLevelCompletions({});
+    setQuizHistory([]);
   };
 
   const amountPaid = transactions.filter(t => t.status === 'success').reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
@@ -718,6 +747,7 @@ export function AppProvider({ children }) {
       session, loadingAuth, flashcards, setFlashcards, exams, setExams,
       addExam, updateExam, deleteExam,
       curriculumSubjects, curriculumTopics, levelCompletions, refreshLevelCompletions,
+      quizHistory, fetchQuizHistory,
       studyStats, setStudyStats, userProfile, updateProfile,
       darkMode, toggleDarkMode, toggleSound, soundEnabled, setSoundEnabled,
       transactions, auditLogs, subscriptionPlans, paymentPurposes, learningAnalytics,

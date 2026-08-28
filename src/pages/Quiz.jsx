@@ -8,12 +8,13 @@ import {
   Target,
   Clock,
   Trophy,
-  Shield
+  Shield,
+  BookOpen
 } from '../components/Icons';
 import useluData from '../data/flashcards/nmcn/uselu-posting-tests.json';
 import respirationData from '../data/flashcards/nmcn/Respiration-richard.json';
 import fluidData from '../data/flashcards/nmcn/fluid-electrolytes.json';
-import { pharmacologyData, musculoskeletalData, neurologicalData } from '../data/richardBank';
+import { pharmacologyData, musculoskeletalData, neurologicalData, nursing200Data } from '../data/richardBank';
 
 // Combined pool for all non-Uselu modes. Uselu Test Questions keeps its
 // dedicated bank and never draws from this pool.
@@ -24,6 +25,11 @@ const GENERAL_POOL = [
   ...musculoskeletalData,
   ...neurologicalData
 ];
+
+// Nursing 200-Level is a dedicated bank drawn by its own mode card only —
+// it is intentionally NOT part of GENERAL_POOL so the Clinical/Quick modes
+// don't mix 200-level questions into the general pools.
+const NURSING200_POOL = nursing200Data;
 import { motion, AnimatePresence } from 'framer-motion';
 import QuizSetupFlow from '../components/QuizSetupFlow';
 import QuizPlayer from '../components/QuizPlayer';
@@ -32,12 +38,14 @@ import QuizPlayer from '../components/QuizPlayer';
 const SETUP_TO_MODE = {
   'clinical-challenge': 'clinical',
   'quick-quiz': 'quick',
-  'uselu-test': 'uselu'
+  'uselu-test': 'uselu',
+  'nursing-200': 'nursing200'
 };
 const MODE_TO_SETUP = {
   clinical: 'clinical-challenge',
   quick: 'quick-quiz',
-  uselu: 'uselu-test'
+  uselu: 'uselu-test',
+  nursing200: 'nursing-200'
 };
 
 // ----- Sound System (unchanged) -----
@@ -136,6 +144,7 @@ const Quiz = () => {
   // ----- Guided setup flow + immersive player (Clinical / Quick / Uselu) -----
   const [setupType, setSetupType] = useState(null);        // 'clinical-challenge' | 'quick-quiz' | 'uselu-test'
   const [presetDifficulty, setPresetDifficulty] = useState(null); // deep-linked difficulty
+  const [presetSubject, setPresetSubject] = useState(null); // deep-linked subject
   const [playerActive, setPlayerActive] = useState(false);
   const [activeConfig, setActiveConfig] = useState(null);  // config from QuizSetupFlow
   const [playerResult, setPlayerResult] = useState(null);  // { score, total, answers[], durationSeconds }
@@ -160,12 +169,20 @@ const Quiz = () => {
 
   // Deep-link support: /quiz?difficulty=Hard (e.g. from a completed flashcard session)
   const [, setSearchParams] = useSearchParams();
+  const SUBJECT_FILTERS = ['Pharmacology', 'Musculoskeletal', 'Neurological Nursing', 'Medical Surgical', 'Chemistry', 'Mental Health'];
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const d = params.get('difficulty');
     if (d && DIFFICULTY_TIERS.some(t => t.id === d) && !selectedDifficulty) {
       setSelectedDifficulty(d);
       setPresetDifficulty(d);
+    }
+    const s = params.get('subject');
+    if (s && SUBJECT_FILTERS.includes(s)) {
+      setPresetSubject(s);
+      setSetupType('clinical-challenge');
+    }
+    if (d && s) {
       setSearchParams({}, { replace: true });
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
@@ -201,11 +218,18 @@ const Quiz = () => {
   const cancelSetup = () => {
     setSetupType(null);
     setPresetDifficulty(null);
+    setPresetSubject(null);
   };
 
   // Builds a question set for the immersive player.
-  const buildQuestionSet = (engineMode, difficulty, count, order) => {
-    let pool = engineMode === 'uselu' ? useluData : GENERAL_POOL;
+  const buildQuestionSet = (engineMode, difficulty, count, order, subject) => {
+    let pool;
+    if (engineMode === 'uselu') pool = useluData;
+    else if (engineMode === 'nursing200') pool = NURSING200_POOL;
+    else pool = GENERAL_POOL;
+    if (subject) {
+      pool = pool.filter(c => c.subject === subject);
+    }
     const seen = new Set();
     const uniquePool = pool.filter(c => seen.has(c.question) ? false : seen.add(c.question));
 
@@ -215,7 +239,10 @@ const Quiz = () => {
       if (tierMatches.length >= 5) {
         tierPool = tierMatches;
       } else {
-        const globalTier = flashcards.filter(c => matchesTier(c.difficulty, difficulty));
+        const globalTier = flashcards.filter(c =>
+          matchesTier(c.difficulty, difficulty) &&
+          (!subject || c.subject === subject)
+        );
         tierPool = [...tierMatches, ...globalTier];
       }
     }
@@ -246,7 +273,7 @@ const Quiz = () => {
   };
 
   const launchPlayer = (engineMode, cfg) => {
-    const questions = buildQuestionSet(engineMode, cfg.difficulty, cfg.questionCount, cfg.order);
+    const questions = buildQuestionSet(engineMode, cfg.difficulty, cfg.questionCount, cfg.order, cfg.subject);
     if (questions.length === 0) return;
     setActiveConfig({ ...cfg, engineMode });
     setActiveQuestions(questions);
@@ -278,7 +305,7 @@ const Quiz = () => {
       recordQuizResult({
         mode: activeConfig.engineMode,
         difficulty: activeConfig.difficulty,
-        subject: 'Mixed Bank',
+        subject: activeConfig.subject || 'Mixed Bank',
         score: result.score,
         total: result.total,
         durationSeconds: result.durationSeconds
@@ -313,6 +340,7 @@ const Quiz = () => {
     setActiveQuestions([]);
     setPlayerResult(null);
     setPresetDifficulty(null);
+    setPresetSubject(null);
     document.body.classList.remove('quiz-active');
   };
 
@@ -349,6 +377,7 @@ const Quiz = () => {
       <QuizSetupFlow
         quizType={setupType}
         initialDifficulty={presetDifficulty}
+        initialSubject={presetSubject}
         onComplete={handleSetupComplete}
         onCancel={cancelSetup}
       />
@@ -360,7 +389,8 @@ const Quiz = () => {
     const playerModeLabels = {
       clinical: 'Clinical Challenge',
       quick: 'Quick Quiz',
-      uselu: 'Uselu Test Questions'
+      uselu: 'Uselu Test Questions',
+      nursing200: 'Nursing 200-Level'
     };
     return (
       <QuizPlayer
@@ -500,7 +530,7 @@ const Quiz = () => {
           Select a mode below to configure your session
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
           <ModeCard
             title="Clinical Challenge"
             desc="Simulated exam environment with critical rationales."
@@ -527,6 +557,15 @@ const Quiz = () => {
             timer="Adaptive"
             color="indigo"
             onClick={() => openSetup(MODE_TO_SETUP.uselu)}
+          />
+          <ModeCard
+            title="Nursing 200-Level"
+            desc="200-Level course questions across seven subjects."
+            icon={<BookOpen size={28} className="sm:w-8 sm:h-8" />}
+            duration="Focused"
+            timer="Adaptive"
+            color="emerald"
+            onClick={() => openSetup(MODE_TO_SETUP.nursing200)}
           />
         </div>
       </div>
