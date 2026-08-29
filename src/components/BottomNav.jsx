@@ -1,8 +1,26 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, BookOpen, Calendar, Award, Users, Volume2, Search, Brain, FileUp } from './Icons';
 
 const BottomNav = () => {
+  const [quizActive, setQuizActive] = useState(() =>
+    typeof document !== 'undefined' && document.body.classList.contains('quiz-active')
+  );
+
+  // Hide the bottom navigation while an immersive quiz is in progress. The
+  // Quiz page toggles the 'quiz-active' class on <body>; observe it so the nav
+  // disappears the moment a quiz starts (and reappears when it ends).
+  useEffect(() => {
+    const target = document.body;
+    const update = () => setQuizActive(target.classList.contains('quiz-active'));
+    update();
+    const observer = new MutationObserver(update);
+    observer.observe(target, { attributes: true, attributeFilter: ['class'] });
+    return () => observer.disconnect();
+  }, []);
+
+  if (quizActive) return null;
+
   const navItems = [
     { name: 'Home', icon: LayoutDashboard, path: '/dashboard' },
     { name: 'Quiz', icon: Brain, path: '/quiz' },

@@ -437,6 +437,22 @@ export function AppProvider({ children }) {
     }
   }, [session]);
 
+  // Global rank by Smart Coin balance: number of users with strictly more SC
+  // than the current user, plus one. Uses the idx_profiles_smart_coins index.
+  const fetchSCRank = useCallback(async () => {
+    if (!session || !supabase) return null;
+    try {
+      const { count, error } = await supabase
+        .from('profiles')
+        .select('id', { count: 'exact', head: true })
+        .gt('smart_coins', smartCoins);
+      if (error) return null;
+      return (count ?? 0) + 1;
+    } catch {
+      return null;
+    }
+  }, [session, smartCoins]);
+
   // ---------- Streaks & study activity ----------
   const touchActivity = useCallback(async () => {
     const now = new Date();
@@ -512,11 +528,12 @@ export function AppProvider({ children }) {
     const thresholds = { Easy: 50, Medium: 60, Hard: 70, Expert: 75, Master: 80, Extreme: 85 };
     const passed = pct >= (thresholds[difficulty] ?? 60);
 
-    // Local XP/milestone feedback
+    // Local stats/milestone feedback
     updateQuizStats({});
-    // SC is intentionally scarce: the daily 9 SC (activated) grant is the
-    // primary faucet. Passing quizzes no longer mints additional SC so the
-    // wallet stays rare and meaningful.
+    // SC performance reward — flat, auto-credited to the wallet balance.
+    // Correct answers pay base (0.1 SC) except on Hard/Expert difficulty,
+    // which pay 0.5 SC per correct answer. The daily 9 SC faucet and the
+    // -3 SC fail penalty remain separate.
 
     if (!supabase || !session) return passed;
 
@@ -540,6 +557,15 @@ export function AppProvider({ children }) {
     // -3 SC on failed quiz, capped at once per day.
     if (!passed) {
       await recordQuizFailPenalty(resultId);
+    }
+
+    // Auto-credit the SC performance reward for this session. Hard/Expert
+    // difficulty pays 0.5 per correct answer; all other difficulties pay 0.1.
+    const lowTier = String(difficulty).toLowerCase();
+    const rate = (lowTier === 'hard' || lowTier === 'expert' || lowTier === 'extreme') ? 0.5 : 0.1;
+    const payout = Math.max(0, Number(score) || 0) * rate;
+    if (payout > 0) {
+      await applySC(payout, 'quiz_performance', resultId);
     }
 
     // Per-group "unique streak": advancing a member's streak inside a study
@@ -705,6 +731,47 @@ export function AppProvider({ children }) {
     }
     await computeWeakConcepts(userId);
   };
+
+  // One feedback vote per (user, question): 👍 = true / 👎 = false, with an
+  // optional report reason. Upserts so a learner can change their rating.
+  // Feeds admin quality monitoring of the question bank.
+  const submitQuestionFeedback = useCallback(async ({ questionId: qid, rating, reason = '' }) => {
+    if (!session || !supabase) return;
+    const qId = String(qid == null ? '' : qid).trim();
+    if (!qId) return;
+    try {
+      await supabase.from('question_feedback').upsert(
+        {
+          user_id: session.user.id,
+          question_id: qId,
+          rating: !!rating,
+          reason: String(reason || '').slice(0, 500),
+          created_at: new Date().toISOString()
+        },
+        { onConflict: 'user_id,question_id' }
+      );
+    } catch (err) {
+      // The table may not exist yet on environments where migration-v7 hasn't
+      // been applied; never let a feedback write break the quiz flow.
+      console.warn('Question feedback save failed:', err.message);
+    }
+  }, [session]);
+
+  // Fetch the set of question ids the user has already answered (from
+  // question_attempts). Drives the no-repetition + same-niche selection engine.
+  const fetchAttemptedQuestionIds = useCallback(async () => {
+    if (!session || !supabase) return new Set();
+    try {
+      const { data, error } = await supabase
+        .from('question_attempts')
+        .select('question_id')
+        .eq('user_id', session.user.id);
+      if (error) return new Set();
+      return new Set((data || []).map(r => String(r.question_id)).filter(Boolean));
+    } catch {
+      return new Set();
+    }
+  }, [session]);
 
   // ---------- Plans & transactions ----------
   useEffect(() => {
@@ -997,9 +1064,10 @@ export function AppProvider({ children }) {
       addAuditLog: () => {}, updateCardProgress, incrementCardsStudied,
       updateQuizStats, fetchUserData, feeDetails,
       recordQuizResult, recordWrongAnswers, recordAttempts, computeWeakConcepts, touchActivity,
+      submitQuestionFeedback, fetchAttemptedQuestionIds,
       addFlashcard, updateFlashcard, deleteFlashcard, importFlashcards,
       smartCoins, scLedger, claimDailySC, earnSC, spendSC, recordStreakBreak, recordQuizFailPenalty,
-      bumpGroupQuizStreak,
+      bumpGroupQuizStreak, fetchSCRank,
       streakFreezeActive, setStreakFreezeActive,
       signOut
     }}>

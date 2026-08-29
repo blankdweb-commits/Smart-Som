@@ -567,7 +567,7 @@ const StudyGroups = () => {
                     Open
                   </button>
                   <button
-                    onClick={() => navigate(`/community/groups/${group.id}`)}
+                    onClick={() => navigate(`/study-groups/${group.id}`)}
                     className="px-4 py-2.5 bg-apex-600 text-white rounded-xl font-black uppercase tracking-widest text-[9px] flex items-center gap-1.5 hover:bg-apex-700 transition-all active:scale-95"
                   >
                     <Users size={12} /> Group Page

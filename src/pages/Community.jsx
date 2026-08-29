@@ -25,20 +25,23 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { supabase, uploadFile, getPublicUrl } from '../utils/supabase';
 import { useAppContext } from '../context/AppContext';
 import { formatDistanceToNow } from 'date-fns';
+import { useParams, useNavigate, Link } from 'react-router-dom';
 import CommunityAuthModal from '../components/CommunityAuthModal';
-import StudyGroups from '../components/StudyGroups';
 import { COMMUNITY_SECTIONS, getSection, SECTION_ORDER } from '../data/communitySections';
 
 const POSTS_PER_PAGE = 15;
 
 const Community = () => {
   const { session } = useAppContext();
+  const { section } = useParams();
+  const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
-  const [activeSection, setActiveSection] = useState('all');
+  // Section is URL-driven now: /community (=> 'all') or /community/:section.
+  const activeSection = section || 'all';
   const [newPostSection, setNewPostSection] = useState('general');
 
   const [newPostContent, setNewPostContent] = useState('');
@@ -192,8 +195,8 @@ const Community = () => {
   }, [activeSection]);
 
   const switchSection = (key) => {
-    setActiveSection(key);
-    if (key !== 'all' && key !== 'study-groups') setNewPostSection(key);
+    if (key !== 'all') setNewPostSection(key);
+    navigate(key === 'all' ? '/community' : `/community/${key}`);
   };
 
   useEffect(() => {
@@ -721,22 +724,15 @@ const Community = () => {
                 </button>
               );
             })}
-            <button
-              onClick={() => switchSection('study-groups')}
-              className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${
-                activeSection === 'study-groups'
-                  ? 'bg-emerald-600 text-white shadow'
-                  : 'text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20'
-              }`}
+            <Link
+              to="/study-groups"
+              className="shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
             >
               <Users size={13} /> Study Groups
-            </button>
+            </Link>
           </div>
         </div>
 
-        {activeSection === 'study-groups' && <StudyGroups />}
-
-        {activeSection !== 'study-groups' && (
         <>
         {/* New Post Composer */}
         <motion.div
@@ -1184,7 +1180,6 @@ const Community = () => {
           )}
         </div>
         </>
-        )}
 
         {/* Info Grid */}
         <div className="grid grid-cols-1 md:grid-cols-2 gap-8">

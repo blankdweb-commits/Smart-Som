@@ -15,9 +15,19 @@ const PROJECT_REF = (() => {
   return url.replace('https://', '').split('.')[0];
 })();
 
-const token = process.env.ACCESS_TOKEN;
+// The Management API token may come from the shell env or the .env file.
+// Accepts ACCESS_TOKEN or SUPABASE_ACCESS_TOKEN.
+let token = process.env.ACCESS_TOKEN;
 if (!token) {
-  console.error('Set ACCESS_TOKEN env var first.');
+  const env = {};
+  for (const line of fs.readFileSync(path.join(process.cwd(), '.env'), 'utf8').split(/\r?\n/)) {
+    const m = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
+    if (m && m[2]) env[m[1]] = m[2];
+  }
+  token = env.ACCESS_TOKEN || env.SUPABASE_ACCESS_TOKEN;
+}
+if (!token) {
+  console.error('Set ACCESS_TOKEN (or SUPABASE_ACCESS_TOKEN) env var first.');
   process.exit(1);
 }
 

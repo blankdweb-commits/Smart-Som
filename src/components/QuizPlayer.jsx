@@ -24,7 +24,7 @@ const pad = (n) => String(n).padStart(2, '0');
  * Conceptual Misalignment, per-question timer, exam vs instant feedback.
  */
 const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit }) => {
-  const { smartCoins, spendSC, streakFreezeActive, setStreakFreezeActive } = useAppContext();
+  const { smartCoins, spendSC, streakFreezeActive, setStreakFreezeActive, submitQuestionFeedback } = useAppContext();
   const total = questions.length;
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState(null);
@@ -40,6 +40,20 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit 
     hint: config.powerUps?.hint ?? 5,
     streakFreeze: config.powerUps?.streakFreeze ?? 12
   });
+
+  // Question feedback ("How was this question?") — one vote per question.
+  const [feedback, setFeedback] = useState(null); // null | 'good' | 'bad'
+  const [feedbackReason, setFeedbackReason] = useState('');
+  const [feedbackSaved, setFeedbackSaved] = useState(false);
+  const [showReason, setShowReason] = useState(false);
+
+  // Reset feedback when advancing to a new question.
+  React.useEffect(() => {
+    setFeedback(null);
+    setFeedbackReason('');
+    setFeedbackSaved(false);
+    setShowReason(false);
+  }, [idx]);
 
   const answersRef = useRef([]);
   const startRef = useRef(null);
@@ -140,6 +154,16 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit 
     setIsCorrect(false);
     setTimedOut(false);
     setTimeLeft(hasTimer ? config.timePerQuestion : 0);
+  };
+
+  const submitFeedback = async () => {
+    if (!feedback || feedbackSaved) return;
+    setFeedbackSaved(true);
+    await submitQuestionFeedback({
+      questionId: q?.id || q?.question,
+      rating: feedback === 'good',
+      reason: feedback === 'bad' ? feedbackReason : ''
+    });
   };
 
   // ---- SC power-ups ----
@@ -435,6 +459,56 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit 
                     </p>
                   </div>
                 )}
+
+                {/* How was this question? */}
+                <div className="rounded-2xl p-4 bg-slate-900/40 border border-white/10">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 text-center mb-3">How was this question?</p>
+                  {feedbackSaved ? (
+                    <p className="text-center text-[11px] font-black uppercase tracking-widest text-emerald-400 !italic">
+                      Feedback recorded ✓
+                    </p>
+                  ) : (
+                    <div className="flex gap-2 justify-center">
+                      <button
+                        onClick={() => { setFeedback('good'); setShowReason(false); }}
+                        className={`flex-1 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all active:scale-95 ${
+                          feedback === 'good' ? 'bg-emerald-500 text-black' : 'bg-white/10 text-slate-300 hover:bg-white/20'
+                        }`}
+                      >
+                        👍 Good Question
+                      </button>
+                      <button
+                        onClick={() => { setFeedback('bad'); setShowReason(true); }}
+                        className={`flex-1 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all active:scale-95 ${
+                          feedback === 'bad' ? 'bg-red-500 text-black' : 'bg-white/10 text-slate-300 hover:bg-white/20'
+                        }`}
+                      >
+                        👎 Report Issue
+                      </button>
+                    </div>
+                  )}
+
+                  {showReason && !feedbackSaved && (
+                    <div className="mt-3">
+                      <input
+                        value={feedbackReason}
+                        onChange={(e) => setFeedbackReason(e.target.value)}
+                        placeholder="Tell us what went wrong (optional)..."
+                        className="w-full bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-sm text-slate-200 placeholder-slate-500 outline-none"
+                        maxLength={300}
+                      />
+                    </div>
+                  )}
+
+                  {feedback && !feedbackSaved && (
+                    <button
+                      onClick={submitFeedback}
+                      className="w-full mt-3 py-2.5 rounded-xl bg-medical-600 text-white font-black uppercase tracking-widest text-[10px] shadow-lg shadow-medical-500/20 active:scale-95 transition-all"
+                    >
+                      Save Feedback
+                    </button>
+                  )}
+                </div>
 
                 {/* Next */}
                 <button

@@ -41,10 +41,11 @@ try {
   const { urlNow } = await signupFlow(page, BASE, `Group Quiz Tester ${stamp}`, email, 'testpass123');
   tester.log('signup', true, urlNow);
 
-  // Belong to a group so the streak RPC has a membership row.
-  await page.goto(`${BASE}/community`, { waitUntil: 'networkidle' });
-  await page.locator('button', { hasText: 'Study Groups' }).filter({ visible: true }).first().click().catch(() => {});
+  // Belong to a group so the streak RPC has a membership row. Study Groups now
+  // live on their own page at /study-groups (separate from the community feed).
+  await page.goto(`${BASE}/study-groups`, { waitUntil: 'networkidle' });
   await waitForText(page, 'Verified Study Groups').catch(() => {});
+  await waitForText(page, 'Create Group').catch(() => {});
 
   const groupName = `E2E Quiz Group ${stamp}`;
   await page.locator('button', { hasText: 'Create Group' }).first().click();
@@ -59,7 +60,7 @@ try {
   tester.log('created study group', (await page.textContent('body')).includes(groupName));
 
   // The create flow renders an inline detail — go back to the list, then open
-  // the standalone group page (route /community/groups/:id) via the Group Page button.
+  // the standalone group page (route /study-groups/:id) via the Group Page button.
   const backBtn = page.locator('button', { hasText: 'Back to Study Groups' });
   await backBtn.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
   if ((await backBtn.count()) > 0) await backBtn.click();
@@ -68,7 +69,7 @@ try {
   await gpBtn.waitFor({ state: 'visible', timeout: 10000 }).catch(() => {});
   if ((await gpBtn.count()) > 0) await gpBtn.click();
   await page.waitForTimeout(1500);
-  tester.log('opened standalone group page', /\/community\/groups\/\d+/.test(page.url()), page.url());
+  tester.log('opened standalone group page', /\/study-groups\/\d+/.test(page.url()), page.url());
 
   // The new "Take Quiz" CTA must be present and link the group to the quiz.
   await waitForText(page, 'Take Quiz').catch(() => {});

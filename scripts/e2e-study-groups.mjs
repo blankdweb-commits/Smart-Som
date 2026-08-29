@@ -21,12 +21,10 @@ try {
   const { urlNow } = await signupFlow(page, BASE, `Group Tester ${stamp}`, email, 'testpass123');
   tester.log('signup', true, urlNow);
 
-  await page.goto(`${BASE}/community`, { waitUntil: 'networkidle' });
-  await waitForText(page, 'Community Hub').catch(() => {});
-
-  await page.locator('button', { hasText: 'Study Groups' }).first().click();
+  await page.goto(`${BASE}/study-groups`, { waitUntil: 'networkidle' });
+  await waitForText(page, 'Create Group').catch(() => {});
   await waitForText(page, 'Verified Study Groups').catch(() => {});
-  tester.log('study groups section opens', /Verified Study Groups/i.test(await page.textContent('body')));
+  tester.log('study groups page opens', /Verified Study Groups/i.test(await page.textContent('body')));
 
   const groupName = `E2E Group ${stamp}`;
   const focus = 'E2E Pharmacology Sprint';

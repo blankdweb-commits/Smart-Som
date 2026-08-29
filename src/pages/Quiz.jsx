@@ -16,6 +16,7 @@ import useluData from '../data/flashcards/nmcn/uselu-posting-tests.json';
 import respirationData from '../data/flashcards/nmcn/Respiration-richard.json';
 import fluidData from '../data/flashcards/nmcn/fluid-electrolytes.json';
 import { pharmacologyData, musculoskeletalData, neurologicalData, nursing200Data, midwiferyData } from '../data/richardBank';
+import { questionId } from '../utils/questionMetadata';
 
 // Combined pool for all non-Uselu modes. Uselu Test Questions keeps its
 // dedicated bank and never draws from this pool.
@@ -57,48 +58,28 @@ const MODE_TO_SETUP = {
   weakness: 'weakness-challenge'
 };
 
-// ----- Sound System (unchanged) -----
+// ----- Sound System (Supabase-hosted; every clip is <= 4s) -----
+const MAX_SOUND_SECONDS = 4;
+const SOUND_BASE = `${(import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '')}/storage/v1/object/public/sounds`;
+const soundAt = (name) => `${SOUND_BASE}/${name}`;
 const SOUND_POOL = {
-  start: [
-    'https://www.myinstants.com/media/sounds/show-me-what-you-got.mp3',
-    'https://www.myinstants.com/media/sounds/are-you-ready-kids.mp3'
-  ],
-  correct: [
-    'https://www.myinstants.com/media/sounds/im-ready.mp3',
-    'https://www.myinstants.com/media/sounds/f-is-for-friends.mp3',
-    'https://www.myinstants.com/media/sounds/krusty-krab-pizza.mp3',
-    'https://www.myinstants.com/media/sounds/is-mayonnaise-an-instrument.mp3',
-    'https://www.myinstants.com/media/sounds/its-a-giraffe.mp3',
-    'https://www.myinstants.com/media/sounds/giggity.mp3',
-    'https://www.myinstants.com/media/sounds/freaking-sweet.mp3',
-    'https://www.myinstants.com/media/sounds/oh-my-god.mp3',
-    'https://www.myinstants.com/media/sounds/awesome.mp3',
-    'https://www.myinstants.com/media/sounds/think-mark.mp3',
-    'https://www.myinstants.com/media/sounds/i-can-do-whatever-i-want.mp3',
-    'https://www.myinstants.com/media/sounds/you-dont-seem-to-understand.mp3',
-    'https://www.myinstants.com/media/sounds/i-am-the-strongest.mp3'
-  ],
-  wrong: [
-    'https://www.myinstants.com/media/sounds/im-ugly-and-im-proud.mp3',
-    'https://www.myinstants.com/media/sounds/ravioli-ravioli-give-me-the-formuoli.mp3',
-    'https://www.myinstants.com/media/sounds/squidward.mp3',
-    'https://www.myinstants.com/media/sounds/patrick.mp3',
-    'https://www.myinstants.com/media/sounds/family-guy-thats-not-a-joke.mp3',
-    'https://www.myinstants.com/media/sounds/wheres-my-money.mp3',
-    'https://www.myinstants.com/media/sounds/family-guy-youre-a-moron.mp3',
-    'https://www.myinstants.com/media/sounds/family-guy-what-the-deuce.mp3',
-    'https://www.myinstants.com/media/sounds/family-guy-bird-is-the-word.mp3',
-    'https://www.myinstants.com/media/sounds/im-so-sorry-mark.mp3',
-    'https://www.myinstants.com/media/sounds/you-pathetic-excuse.mp3',
-    'https://www.myinstants.com/media/sounds/why-did-you-make-me-do-this.mp3'
-  ],
-  timeout: [
-    'https://www.myinstants.com/media/sounds/family-guy-time-out.mp3',
-    'https://www.myinstants.com/media/sounds/the-krusty-krab-is-closed.mp3'
-  ]
+  start: [soundAt('start-0')],
+  correct: ['correct-0', 'correct-1', 'correct-2', 'correct-3', 'correct-4'].map(soundAt),
+  wrong: ['wrong-0', 'wrong-1', 'wrong-2', 'wrong-3'].map(soundAt),
+  timeout: [soundAt('timeout-0')]
 };
 
 const audioCache = {};
+const clipTimers = new Map();
+
+const stopClip = (el) => {
+  const t = clipTimers.get(el);
+  if (t) {
+    clearTimeout(t);
+    clipTimers.delete(el);
+  }
+  try { el.pause(); } catch { /* ignore */ }
+};
 
 const playQuizSound = (type) => {
   try {
@@ -116,18 +97,18 @@ const playQuizSound = (type) => {
     }
 
     const audioPool = audioCache[url];
-    let audioToPlay = audioPool.find(a => a.paused || a.ended);
-    if (!audioToPlay) {
-      audioToPlay = audioPool[0];
-    }
+    let el = audioPool.find(a => a.paused || a.ended) || audioPool[0];
 
-    audioToPlay.currentTime = 0;
-    audioToPlay.volume = 1.0;
-    const playPromise = audioToPlay.play();
-
+    stopClip(el);
+    el.currentTime = 0;
+    el.volume = 1.0;
+    const playPromise = el.play();
     if (playPromise !== undefined) {
       playPromise.catch(err => console.warn('Audio playback blocked:', err));
     }
+
+    // Hard-stop any clip at MAX_SOUND_SECONDS, regardless of source length.
+    clipTimers.set(el, setTimeout(() => stopClip(el), MAX_SOUND_SECONDS * 1000));
   } catch (e) {
     console.warn('Sound system error:', e);
   }
@@ -145,6 +126,17 @@ const exitFullscreen = async () => {
 };
 
 // ----- Main Quiz Component -----
+// Difficulty tiers are module constants so they stay a single stable reference
+// for the readiness computation and deep-link handling.
+const DIFFICULTY_TIERS = [
+  { id: 'Easy', dot: 'bg-emerald-500', ring: 'border-emerald-500/30', label: 'Build your foundation', passMark: 50, unlock: null },
+  { id: 'Medium', dot: 'bg-blue-500', ring: 'border-blue-500/30', label: 'Test your understanding', passMark: 60, unlock: null },
+  { id: 'Hard', dot: 'bg-orange-500', ring: 'border-orange-500/30', label: 'Challenge your clinical reasoning', passMark: 70, unlock: null },
+  { id: 'Expert', dot: 'bg-red-500', ring: 'border-red-500/30', label: 'Deeper clinical reasoning', passMark: 75, unlock: { from: 'Hard', count: 3 } },
+  { id: 'Master', dot: 'bg-purple-500', ring: 'border-purple-500/30', label: 'Advanced examination scenarios', passMark: 80, unlock: { from: 'Expert', count: 10 } },
+  { id: 'Extreme', dot: 'bg-slate-900 dark:bg-white', ring: 'border-slate-500/30', label: 'The hardest questions we have', passMark: 85, unlock: { from: 'Master', count: 14 } }
+];
+
 const Quiz = () => {
   const { flashcards, updateQuizStats } = useAppContext();
   const navigate = useNavigate();
@@ -161,8 +153,27 @@ const Quiz = () => {
   const [activeQuestions, setActiveQuestions] = useState([]);
 
   // ----- Difficulty progression -----
-  const { recordQuizResult, recordWrongAnswers, recordAttempts, learningAnalytics, userProfile, loadingAuth } = useAppContext();
+  const { recordQuizResult, recordWrongAnswers, recordAttempts, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchSCRank, studyStats, levelCompletions, session, fetchAttemptedQuestionIds } = useAppContext();
   const [selectedDifficulty, setSelectedDifficulty] = useState(null);
+  const [globalRank, setGlobalRank] = useState(null);
+
+  // Load the live SC global rank once (lightweight, non-blocking).
+  React.useEffect(() => {
+    let active = true;
+    fetchSCRank().then(rank => { if (active) setGlobalRank(rank); });
+    return () => { active = false; };
+  }, [fetchSCRank]);
+
+  // Set of question ids this learner has already answered — powers the
+  // no-repetition / same-niche-different-angle selection engine.
+  const attemptedIdsRef = React.useRef(new Set());
+  const refreshAttemptedIds = React.useCallback(async () => {
+    const ids = await fetchAttemptedQuestionIds();
+    attemptedIdsRef.current = ids;
+  }, [fetchAttemptedQuestionIds]);
+  React.useEffect(() => {
+    if (session?.user) refreshAttemptedIds();
+  }, [session?.user, refreshAttemptedIds]);
   const [passInfo, setPassInfo] = useState(null); // { passed, pct }
   const wrongAnswersRef = React.useRef([]);
   const quizStartRef = React.useRef(null);
@@ -178,14 +189,22 @@ const Quiz = () => {
     return names;
   }, [learningAnalytics.weakConcepts]);
 
-  const DIFFICULTY_TIERS = [
-    { id: 'Easy', dot: 'bg-emerald-500', ring: 'border-emerald-500/30', label: 'Build your foundation', passMark: 50, unlock: null },
-    { id: 'Medium', dot: 'bg-blue-500', ring: 'border-blue-500/30', label: 'Test your understanding', passMark: 60, unlock: null },
-    { id: 'Hard', dot: 'bg-orange-500', ring: 'border-orange-500/30', label: 'Challenge your clinical reasoning', passMark: 70, unlock: null },
-    { id: 'Expert', dot: 'bg-red-500', ring: 'border-red-500/30', label: 'Deeper clinical reasoning', passMark: 75, unlock: { from: 'Hard', count: 3 } },
-    { id: 'Master', dot: 'bg-purple-500', ring: 'border-purple-500/30', label: 'Advanced examination scenarios', passMark: 80, unlock: { from: 'Expert', count: 10 } },
-    { id: 'Extreme', dot: 'bg-slate-900 dark:bg-white', ring: 'border-slate-500/30', label: 'The hardest questions we have', passMark: 85, unlock: { from: 'Master', count: 14 } }
-  ];
+  // Exam Readiness score (0-100) derived from real learning data — display only.
+  const readiness = React.useMemo(() => {
+    const passedTiers = DIFFICULTY_TIERS.filter(t => (levelCompletions || {})[t.id]).length;
+    const totalAttempts = (learningAnalytics && learningAnalytics.totalAttempts) || 0;
+    const weakCount = ((learningAnalytics && learningAnalytics.weakConcepts) || []).length;
+    const quizStreak = (studyStats && studyStats.quizStreak) || 0;
+    const dayStreak = (studyStats && studyStats.streak) || 0;
+
+    let score = 0;
+    score += Math.min(50, (passedTiers / DIFFICULTY_TIERS.length) * 50); // up to 50 from passed tiers
+    score += Math.min(20, totalAttempts * 0.5);                          // up to 20 from volume
+    score += Math.min(15, quizStreak * 3);                               // up to 15 from quiz streak
+    score += Math.min(10, dayStreak * 1.5);                              // up to 10 from daily streak
+    score -= Math.min(20, weakCount * 2.5);                              // weak concepts reduce readiness
+    return Math.max(0, Math.min(100, Math.round(score)));
+  }, [levelCompletions, learningAnalytics, studyStats]);
 
   // Deep-link support: /quiz?difficulty=Hard (e.g. from a completed flashcard session)
   const [, setSearchParams] = useSearchParams();
@@ -295,6 +314,10 @@ const Quiz = () => {
     const seen = new Set();
     const uniquePool = pool.filter(c => seen.has(c.question) ? false : seen.add(c.question));
 
+    // No-repetition: never re-serve a question the learner has already answered
+    // while undiscovered ones remain.
+    const attempted = attemptedIdsRef.current;
+
     // Weakness Challenge: prioritize the learner's computed weak topics.
     if (engineMode === 'weakness') {
       const weakMatches = uniquePool.filter(c => {
@@ -302,9 +325,13 @@ const Quiz = () => {
         return probe.some(p => weakConceptNames.has(p));
       });
       if (weakMatches.length >= 5) {
-        return weakMatches
+        // Same-niche-different-angle: put unseen weak matches first so repeats
+        // are only used once the learner has cleared the weakness pool.
+        const unseenWeak = weakMatches.filter(c => !attempted.has(questionId(c)));
+        const ordered = [...unseenWeak, ...weakMatches];
+        return ordered
           .sort(() => 0.5 - Math.random())
-          .slice(0, Math.min(count, weakMatches.length))
+          .slice(0, Math.min(count, ordered.length))
           .map(card => boxCard(card));
       }
     }
@@ -324,9 +351,17 @@ const Quiz = () => {
     }
     const activePool = tierPool.length > 0 ? tierPool : uniquePool;
 
-    let working = [...activePool];
+    // No-repetition: serve unseen tier questions first, then previously-seen
+    // ones only as a top-up (same-niche-different-angle) so the set is never
+    // empty. Shuffling happens within each group to preserve that priority.
+    const activeUnseen = activePool.filter(c => !attempted.has(questionId(c)));
+    const activeSeen = activePool.filter(c => attempted.has(questionId(c)));
+    const shuffleArr = (arr) => [...arr].sort(() => 0.5 - Math.random());
+    let working;
     if (order === 'randomized') {
-      working.sort(() => 0.5 - Math.random());
+      working = [...shuffleArr(activeUnseen), ...shuffleArr(activeSeen)];
+    } else {
+      working = [...activeUnseen, ...activeSeen];
     }
     const picked = working.slice(0, Math.min(count, working.length));
 
@@ -354,7 +389,7 @@ const Quiz = () => {
     launchPlayer(engineMode, cfg);
   };
 
-  const handlePlayerComplete = (result) => {
+  const handlePlayerComplete = async (result) => {
     setPlayerActive(false);
     document.body.classList.remove('quiz-active');
     setPlayerResult(result);
@@ -389,8 +424,10 @@ const Quiz = () => {
 
     // Weakness Challenge data source — log every answered question.
     if (result.answers && result.answers.length > 0) {
-      recordAttempts(result.answers);
+      await recordAttempts(result.answers);
     }
+    // Refresh the no-repetition set so the next session starts fresh.
+    await refreshAttemptedIds();
   };
 
   const quitPlayer = () => {
@@ -585,11 +622,19 @@ const Quiz = () => {
           <div className="flex items-center gap-3 sm:gap-4 bg-white dark:bg-slate-800 p-3 sm:p-4 rounded-2xl sm:rounded-3xl shadow-clinical border border-slate-100 dark:border-slate-700 w-full sm:w-auto justify-between sm:justify-start">
             <div className="text-center px-2 sm:px-4 border-r border-slate-100 dark:border-slate-700 flex-1 sm:flex-none">
               <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Global Rank</p>
-              <p className="text-lg sm:text-xl font-black text-indigo-600">#42</p>
+              <p className="text-lg sm:text-xl font-black text-indigo-600">{globalRank ? `#${globalRank}` : '—'}</p>
+            </div>
+            <div className="text-center px-2 sm:px-4 border-r border-slate-100 dark:border-slate-700 flex-1 sm:flex-none">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Smart Coins</p>
+              <p className="text-lg sm:text-xl font-black text-emerald-500">{Number(smartCoins || 0).toLocaleString(undefined, { maximumFractionDigits: 1 })}</p>
+            </div>
+            <div className="text-center px-2 sm:px-4 border-r border-slate-100 dark:border-slate-700 flex-1 sm:flex-none">
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Quiz Streak</p>
+              <p className="text-lg sm:text-xl font-black text-amber-500">{studyStats?.quizStreak || 0}</p>
             </div>
             <div className="text-center px-2 sm:px-4 flex-1 sm:flex-none">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">XP Earned</p>
-              <p className="text-lg sm:text-xl font-black text-emerald-500">1,240</p>
+              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Exam Readiness</p>
+              <p className={`text-lg sm:text-xl font-black ${readiness >= 70 ? 'text-medical-500' : readiness >= 40 ? 'text-amber-500' : 'text-red-500'}`}>{readiness}%</p>
             </div>
           </div>
         </header>
