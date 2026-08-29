@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { X, Plus, Trash2, Bell, Shield, Info, LinkIcon, CheckCircle2, Book } from './Icons';
-import { motion, AnimatePresence } from 'framer-motion';
+  // eslint-disable-next-line no-unused-vars
+import { motion } from 'framer-motion';
 import { useAppContext } from '../context/AppContext';
 import AutocompleteInput from './AutocompleteInput';
 

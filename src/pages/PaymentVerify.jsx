@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams, Link } from 'react-router-dom';
 import { Loader2, CheckCircle2, AlertCircle, CreditCard, ArrowRight } from '../components/Icons';
+  // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import { supabase } from '../utils/supabase';
 

@@ -1,6 +1,7 @@
 import React from 'react';
-import { format, differenceInDays, isSameDay, isBefore, parseISO } from 'date-fns';
+import { differenceInDays, isSameDay, isBefore, parseISO } from 'date-fns';
 import { Calendar, Clock, AlertTriangle, CheckCircle2, TrendingUp, Sparkles } from './Icons';
+  // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 
 const ExamDashboard = ({ exams }) => {

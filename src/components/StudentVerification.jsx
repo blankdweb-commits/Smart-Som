@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { User, Shield, ArrowRight, CheckCircle2, AlertCircle } from './Icons';
+  // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 
 const StudentVerification = ({ onVerified }) => {

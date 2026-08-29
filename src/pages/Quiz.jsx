@@ -34,7 +34,8 @@ const NURSING200_POOL = nursing200Data;
 
 // Midwifery 200-Level — dedicated bank with its own mode
 const MIDWIFERY_POOL = midwiferyData;
-import { motion, AnimatePresence } from 'framer-motion';
+  // eslint-disable-next-line no-unused-vars
+import { motion } from 'framer-motion';
 import QuizSetupFlow from '../components/QuizSetupFlow';
 import QuizPlayer from '../components/QuizPlayer';
 
@@ -153,6 +154,7 @@ const Quiz = () => {
   const [setupType, setSetupType] = useState(null);        // 'clinical-challenge' | 'quick-quiz' | 'uselu-test'
   const [presetDifficulty, setPresetDifficulty] = useState(null); // deep-linked difficulty
   const [presetSubject, setPresetSubject] = useState(null); // deep-linked subject
+  const [groupQuizId, setGroupQuizId] = useState(null); // deep-linked study group id
   const [playerActive, setPlayerActive] = useState(false);
   const [activeConfig, setActiveConfig] = useState(null);  // config from QuizSetupFlow
   const [playerResult, setPlayerResult] = useState(null);  // { score, total, answers[], durationSeconds }
@@ -187,7 +189,7 @@ const Quiz = () => {
 
   // Deep-link support: /quiz?difficulty=Hard (e.g. from a completed flashcard session)
   const [, setSearchParams] = useSearchParams();
-  const SUBJECT_FILTERS = ['Pharmacology', 'Musculoskeletal', 'Neurological Nursing', 'Medical Surgical', 'Chemistry', 'Mental Health', 'Principles of Management and Teaching', 'Medical-Surgical Nursing II', 'Child Health', 'Home Health Care Nursing'];
+  const SUBJECT_FILTERS = ['Pharmacology', 'Musculoskeletal', 'Neurological Nursing', 'Medical Surgical', 'Chemistry', 'Mental Health', 'Principles of Management and Teaching', 'Medical-Surgical Nursing II', 'Child Health', 'Home Health Care Nursing', 'Entrepreneurship in Midwifery'];
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const d = params.get('difficulty');
@@ -199,6 +201,13 @@ const Quiz = () => {
     if (s && SUBJECT_FILTERS.includes(s)) {
       setPresetSubject(s);
       setSetupType('clinical-challenge');
+    }
+    // Deep-link from a study group: stamp results with the group_id so the
+    // per-group quiz streak can advance. Opens the Midwifery 200-Level setup.
+    const g = params.get('groupId');
+    if (g && /^\d+$/.test(g)) {
+      setGroupQuizId(Number(g));
+      if (!s) setSetupType('midwifery-200');
     }
     if (d && s) {
       setSearchParams({}, { replace: true });
@@ -359,7 +368,8 @@ const Quiz = () => {
         subject: activeConfig.subject || 'Mixed Bank',
         score: result.score,
         total: result.total,
-        durationSeconds: result.durationSeconds
+        durationSeconds: result.durationSeconds,
+        groupId: groupQuizId
       }).then(passed => setPassInfo({ passed, pct }));
     } else {
       setPassInfo({ passed: null, pct });
@@ -627,7 +637,7 @@ const Quiz = () => {
           />
           <ModeCard
             title="Midwifery 200-Level"
-            desc="200-Level midwifery questions across four core subjects."
+            desc="200-Level midwifery questions across five core subjects."
             icon={<Heart size={28} className="sm:w-8 sm:h-8" />}
             duration="Focused"
             timer="Adaptive"

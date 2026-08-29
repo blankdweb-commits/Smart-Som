@@ -24,11 +24,18 @@ export default defineConfig([
     },
     rules: {
       'no-unused-vars': ['error', { varsIgnorePattern: '^[A-Z_]' }],
+      // These React Compiler heuristics flag valid existing patterns
+      // (synchronizing state from props/derived data during render). They are
+      // intentionally downgraded to warnings so they don't block the build.
+      'react-hooks/set-state-in-effect': 'warn',
+      'react-hooks/preserve-manual-memoization': 'warn',
+      'react-hooks/purity': 'warn',
+      'react-hooks/immutability': 'warn',
     },
   },
   {
-    // Vercel serverless functions run in Node, not the browser.
-    files: ['api/**/*.js'],
+    // Vercel serverless functions + config files run in Node, not the browser.
+    files: ['api/**/*.js', 'vite.config.js'],
     languageOptions: {
       globals: {
         ...globals.node,

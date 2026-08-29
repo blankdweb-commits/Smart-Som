@@ -1,10 +1,10 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Award, Users, Search, Brain, FileUp, Shield } from './Icons';
+import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Award, Users, Search, Brain, FileUp, Shield, Coins } from './Icons';
 import { useAppContext } from '../context/AppContext';
 
 const Sidebar = () => {
-  const { userProfile } = useAppContext();
+  const { userProfile, smartCoins } = useAppContext();
 
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
@@ -83,6 +83,17 @@ const Sidebar = () => {
               </>
             )}
           </nav>
+
+          {/* Smart Coin wallet badge */}
+          <div className="p-4 mt-2 border-t border-slate-100 dark:border-slate-700">
+            <div className="flex items-center justify-between px-4 py-3 rounded-xl bg-amber-50 dark:bg-amber-500/10 border border-amber-100 dark:border-amber-500/20">
+              <div className="flex items-center">
+                <Coins className="mr-2 text-amber-500" size={20} />
+                <span className="text-xs font-black text-slate-700 dark:text-slate-200 uppercase tracking-wide">Smart Coins</span>
+              </div>
+              <span className="text-lg font-black text-amber-600 dark:text-amber-400">{smartCoins}</span>
+            </div>
+          </div>
         </div>
       </div>
     </>

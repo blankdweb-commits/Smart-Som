@@ -80,9 +80,11 @@ import {
   Eye,
   Mail,
   Phone,
-  LogOut
+  LogOut,
+  Coins,
+  SkipForward,
+  Snowflake
 } from 'lucide-react';
-
 export {
   AlertCircle,
   AlertTriangle,
@@ -166,5 +168,8 @@ export {
   Eye,
   Mail,
   Phone,
-  LogOut
+  LogOut,
+  Coins,
+  SkipForward,
+  Snowflake
 };

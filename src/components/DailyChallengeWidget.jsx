@@ -1,10 +1,11 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { Brain, Sparkles, ChevronRight, CheckCircle2, XCircle, AlertCircle, Trophy, Target } from './Icons';
+  // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 
 const DailyChallengeWidget = () => {
-  const { flashcards, userProfile, studyStats } = useAppContext();
+  const { flashcards, userProfile } = useAppContext();
   const [challengeStarted, setChallengeStarted] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [dailyQuestions, setDailyQuestions] = useState([]);

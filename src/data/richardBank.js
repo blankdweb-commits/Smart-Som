@@ -21,6 +21,22 @@ const tierForIndex = (i) => {
   return 'Hard';
 };
 
+// The app's difficulty scale is Easy / Medium / Hard / Expert (plus higher
+// tiers used in other pools). When a bank card carries an explicit difficulty
+// value on the fancier scale, honor it so curated metadata is used instead of
+// the deterministic position fallback.
+const DIFFICULTY_LABELS = new Set(['Easy', 'Medium', 'Hard', 'Expert', 'Master', 'Extreme']);
+
+const realDifficulty = (q, i) => {
+  const d = q.difficulty;
+  if (typeof d === 'string' && DIFFICULTY_LABELS.has(d)) return d;
+  if (typeof d === 'string' && /easy/i.test(d)) return 'Easy';
+  if (typeof d === 'string' && /medium|moderate|intermediate/i.test(d)) return 'Medium';
+  if (typeof d === 'string' && /hard|difficult/i.test(d)) return 'Hard';
+  if (typeof d === 'string' && /expert|advanced/i.test(d)) return 'Expert';
+  return tierForIndex(i);
+};
+
 const normalizeRichardBank = (raw, { prefix, source }) =>
   raw.map((q, i) => {
     const letterIdx = LETTER_TO_INDEX[String(q.correct_answer || '').trim().toUpperCase()];
@@ -40,7 +56,7 @@ const normalizeRichardBank = (raw, { prefix, source }) =>
         'Focus on the core nursing principle being tested.',
       subject: q.subject || source,
       category: 'NMCN',
-      difficulty: tierForIndex(i),
+      difficulty: realDifficulty(q, i),
       source
     };
   });

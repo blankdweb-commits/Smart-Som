@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { BookOpen, TrendingUp, Award, Zap, ArrowRight, Star, Clock, AlertCircle, Target, CheckCircle, ChevronRight, Lock, Sparkles } from '../components/Icons';
+import { BookOpen, TrendingUp, Award, Zap, ArrowRight, Star, Clock, AlertCircle, Target, CheckCircle, ChevronRight, Lock, Sparkles, Coins } from '../components/Icons';
 import { differenceInDays } from 'date-fns';
 
 import DailyChallengeWidget from '../components/DailyChallengeWidget';
@@ -9,7 +9,7 @@ import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
 const Dashboard = () => {
   const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
-  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics, quizHistory } = useAppContext();
+  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics, quizHistory, smartCoins, scLedger, claimDailySC } = useAppContext();
   const navigate = useNavigate();
 
   // Redirect if not logged in - Only if not in DEV_MODE and NOT in Dashboard-First mode
@@ -255,6 +255,40 @@ const Dashboard = () => {
         </div>
 
         <div className="space-y-8">
+           <div className="bg-amber-500 rounded-[2.5rem] p-8 text-white shadow-xl relative overflow-hidden">
+            <div className="absolute top-0 right-0 p-8 opacity-10">
+              <Coins size={120} />
+            </div>
+            <h3 className="text-xl font-black mb-2 relative z-10 uppercase tracking-tight">Smart Coins</h3>
+            <p className="text-[10px] uppercase font-black text-white/70 tracking-widest relative z-10 mb-4">Rare currency · power-ups & streaks</p>
+            <div className="flex items-end justify-between relative z-10">
+              <div>
+                <p className="text-5xl font-black tracking-tighter">{smartCoins} <span className="text-xl">SC</span></p>
+                <p className="text-xs font-bold text-white/80 mt-1">{userProfile.isActivated ? 'Earn 9 SC daily when activated' : 'Activate your account to start earning SC'}</p>
+              </div>
+              <button
+                onClick={claimDailySC}
+                disabled={!userProfile.isActivated}
+                className="bg-white text-amber-600 font-black text-sm uppercase tracking-wide px-4 py-3 rounded-2xl shadow hover:bg-amber-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+              >
+                Claim +9
+              </button>
+            </div>
+            {scLedger.length > 0 && (
+              <div className="mt-5 pt-4 border-t border-white/20 relative z-10">
+                <p className="text-[10px] font-black text-white/70 uppercase tracking-widest mb-2">Recent activity</p>
+                <div className="max-h-28 overflow-y-auto space-y-1 pr-1">
+                  {scLedger.slice(0, 6).map(e => (
+                    <div key={e.id} className="flex justify-between text-xs font-bold bg-white/10 backdrop-blur rounded-xl px-3 py-1.5">
+                      <span className="capitalize text-white/90">{String(e.reason || 'misc').replace(/_/g, ' ')}</span>
+                      <span className={e.amount >= 0 ? 'text-white' : 'text-red-200'}>{e.amount >= 0 ? `+${e.amount}` : e.amount} SC</span>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+
            <div className="bg-apex-600 rounded-[2.5rem] p-8 text-white shadow-xl relative overflow-hidden group">
             <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
               <Award size={120} />

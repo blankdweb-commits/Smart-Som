@@ -34,7 +34,7 @@ const CommunityHubWidget = () => {
     } finally {
       setLoading(false);
     }
-  }, [currentUserId]);
+  }, []);
 
   useEffect(() => {
     fetchPosts();

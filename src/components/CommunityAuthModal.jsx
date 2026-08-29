@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+  // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../utils/supabase';
 import {
@@ -87,7 +88,7 @@ const CommunityAuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
         return;
       }
 
-      const { data, error: signInError } = await supabase.auth.signInWithPassword({
+      const { error: signInError } = await supabase.auth.signInWithPassword({
         email: formData.email,
         password: formData.password,
       });

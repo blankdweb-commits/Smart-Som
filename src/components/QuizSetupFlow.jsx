@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+  // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckCircle2,
@@ -123,7 +124,7 @@ const QUIZ_CONFIGS = {
   },
   'midwifery-200': {
     title: 'Midwifery 200-Level',
-    identity: '200-Level midwifery questions across four core subjects.',
+    identity: '200-Level midwifery questions across five core subjects.',
     icon: <Heart size={22} />,
     accentText: 'text-pink-400',
     accentBg: 'bg-pink-500/20 border-pink-500/30',
@@ -131,7 +132,8 @@ const QUIZ_CONFIGS = {
       'Principles of Management and Teaching',
       'Medical-Surgical Nursing II',
       'Child Health',
-      'Home Health Care Nursing'
+      'Home Health Care Nursing',
+      'Entrepreneurship in Midwifery'
     ],
     questionCounts: [10, 20, 30, 50, 100],
     timerOptions: [
@@ -144,7 +146,7 @@ const QUIZ_CONFIGS = {
     allowOrderChoice: true,
     allowExamMode: true,
     defaultOrder: 'randomized',
-    bankNote: '509 questions available in this bank'
+    bankNote: '709 questions available in this bank'
   }
 };
 

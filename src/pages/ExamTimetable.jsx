@@ -10,6 +10,7 @@ import jsPDF from 'jspdf';
 import html2canvas from 'html2canvas';
 import Calendar from 'react-calendar';
 import 'react-calendar/dist/Calendar.css';
+  // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ExamTimetable = () => {

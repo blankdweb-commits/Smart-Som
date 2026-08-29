@@ -20,6 +20,7 @@ import {
   Lock,
   ImageIcon
 } from '../components/Icons';
+  // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase, uploadFile, getPublicUrl } from '../utils/supabase';
 import { useAppContext } from '../context/AppContext';

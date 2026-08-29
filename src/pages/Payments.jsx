@@ -6,6 +6,7 @@ import {
   Clock,
   Zap
 } from '../components/Icons';
+  // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 
 const Payments = () => {

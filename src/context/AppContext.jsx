@@ -71,6 +71,17 @@ export function AppProvider({ children }) {
     milestone: 'Clinical Beginner'
   });
   const [userProfile, setUserProfile] = useState(ANONYMOUS_PROFILE);
+  // ---- Smart Coin (SC) currency ----
+  // Wallet is persisted on profiles.smart_coins; daily payout and the
+  // once-per-day fail penalty are tracked so each is awarded/deducted once/day.
+  const [smartCoins, setSmartCoins] = useState(0);
+  const [scLastPayout, setScLastPayout] = useState(null);   // ISO timestamptz
+  const [scLastFailDate, setScLastFailDate] = useState(null); // YYYY-MM-DD
+  const [scLedger, setScLedger] = useState([]);
+  const [streakFreezeActive, setStreakFreezeActive] = useState(false);
+  const SC_DAILY_PAYOUT = 9;
+  const SC_STREAK_BREAK_PENALTY = 5;
+  const SC_QUIZ_FAIL_PENALTY = 3;
   const [paymentPurposes] = useState([]);
   const [subscriptionPlans, setSubscriptionPlans] = useState([]);
   const [transactions, setTransactions] = useState([]);
@@ -135,7 +146,22 @@ export function AppProvider({ children }) {
           milestone: profile.milestone || 'Clinical Beginner',
           lastStudyDate: profile.last_active_date || null
         }));
+
+        setSmartCoins(Number(profile.smart_coins) || 0);
+        setScLastPayout(profile.sc_last_payout || null);
+        setScLastFailDate(profile.sc_last_fail_date || null);
       }
+
+      // Smart coin ledger history (recent, for wallet/history UI).
+      const { data: ledger } = await supabase.from('smart_coin_ledger')
+        .select('id, amount, balance_after, reason, created_at')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false })
+        .limit(30);
+      if (ledger) setScLedger(ledger);
+
+      // Claim the daily SC grant for activated accounts (idempotent per day).
+      await claimDailySC();
 
       // Learning analytics (weak topics)
       const { data: analytics } = await supabase.from('learning_analytics').select('*').eq('user_id', userId).maybeSingle();
@@ -312,6 +338,105 @@ export function AppProvider({ children }) {
     }
   };
 
+  // ============ SMART COIN (SC) ============
+  const scTodayStr = useCallback(() => {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }, []);
+
+  const scIsToday = useCallback((isoOrDate) => {
+    if (!isoOrDate) return false;
+    const d = new Date(isoOrDate);
+    if (isNaN(d.getTime())) return String(isoOrDate) === scTodayStr();
+    return scTodayStr() === `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  }, [scTodayStr]);
+
+  // Apply an SC delta locally + persist, with audit ledger row. amount is
+  // signed (+ earn, - loss). Never lets the wallet go below 0.
+  const applySC = useCallback(async (amount, reason, refId = null) => {
+    if (!session) return;
+    const delta = Number(amount) || 0;
+    const next = Math.max(0, smartCoins + delta);
+    if (delta !== 0) setSmartCoins(next);
+
+    if (supabase) {
+      await supabase.from('profiles')
+        .update({ smart_coins: next })
+        .eq('id', session.user.id);
+      if (delta !== 0) {
+        const { data } = await supabase.from('smart_coin_ledger')
+          .insert({ user_id: session.user.id, amount: delta, balance_after: next, reason, ref_id: refId ?? null })
+          .select('id, amount, balance_after, reason, created_at')
+          .single();
+        if (data) setScLedger(prev => [data, ...prev].slice(0, 30));
+      }
+    }
+    return next;
+  }, [session, smartCoins]);
+
+  // Daily 9 SC for activated accounts (granted once per day, no rollover).
+  const claimDailySC = useCallback(async () => {
+    if (!session) return 0;
+    const activated = userProfile.isActivated;
+    if (!activated) return smartCoins;
+
+    if (scIsToday(scLastPayout)) return smartCoins; // already granted today
+    return applySC(SC_DAILY_PAYOUT, 'daily_activated');
+  }, [session, userProfile.isActivated, scIsToday, scLastPayout, applySC, smartCoins]);
+
+  // Small capped bonus from study accomplishments (kept limited to stay rare).
+  const earnSC = useCallback(async (amount, reason, refId = null) => {
+    if (!session) return smartCoins;
+    return applySC(Number(amount) || 0, reason || 'bonus', refId);
+  }, [session, applySC, smartCoins]);
+
+  // Spend SC on power-ups etc. Refuses if insufficient. Returns new balance.
+  const spendSC = useCallback(async (amount, reason, refId = null) => {
+    if (!session) return smartCoins;
+    const cost = Math.abs(Number(amount) || 0);
+    if (cost > smartCoins) return smartCoins;
+    return applySC(-cost, reason || 'spend', refId);
+  }, [session, smartCoins, applySC]);
+
+  // -5 SC when the daily activity streak is broken (gap of >= 1 day).
+  // An active streak-freeze consumes itself instead, waiving the penalty.
+  const recordStreakBreak = useCallback(async () => {
+    if (!session) return;
+    if (streakFreezeActive) {
+      setStreakFreezeActive(false);
+      return; // freeze absorbed the break — no SC lost
+    }
+    await applySC(-SC_STREAK_BREAK_PENALTY, 'streak_break');
+  }, [session, streakFreezeActive, applySC]);
+
+  // -3 SC on a failed quiz, but only once per day (fair + keeps SC rare).
+  const recordQuizFailPenalty = useCallback(async (refId = null) => {
+    if (!session) return;
+    if (scIsToday(scLastFailDate)) return; // already penalized today
+    setScLastFailDate(scTodayStr());
+    if (supabase) {
+      await supabase.from('profiles')
+        .update({ sc_last_fail_date: scTodayStr() })
+        .eq('id', session.user.id);
+    }
+    await applySC(-SC_QUIZ_FAIL_PENALTY, 'quiz_fail', refId);
+  }, [session, scIsToday, scLastFailDate, scTodayStr, applySC]);
+
+  // Advance the member's per-group quiz streak via the group member RPC.
+  // Only meaningful when a quiz is launched from a study group.
+  const bumpGroupQuizStreak = useCallback(async (groupId) => {
+    if (!session || groupId == null || !supabase) return null;
+    try {
+      const { data, error } = await supabase
+        .rpc('bump_group_quiz_streak', { p_group_id: Number(groupId), p_user_id: session.user.id });
+      if (error) console.warn('Group streak bump failed:', error.message);
+      return error ? null : data;
+    } catch (err) {
+      console.warn('Group streak bump failed:', err.message);
+      return null;
+    }
+  }, [session]);
+
   // ---------- Streaks & study activity ----------
   const touchActivity = useCallback(async () => {
     const now = new Date();
@@ -319,12 +444,16 @@ export function AppProvider({ children }) {
     const last = studyStats.lastStudyDate ? new Date(studyStats.lastStudyDate) : null;
 
     let nextStreak = studyStats.streak || 0;
+    let brokeStreak = false;
     if (!last) {
       nextStreak = Math.max(1, nextStreak);
     } else if (last.toDateString() !== todayStr) {
       const yesterday = new Date(now);
       yesterday.setDate(now.getDate() - 1);
-      nextStreak = last.toDateString() === yesterday.toDateString() ? nextStreak + 1 : 1;
+      const wasYesterday = last.toDateString() === yesterday.toDateString();
+      nextStreak = wasYesterday ? nextStreak + 1 : 1;
+      // Streak was broken if the last activity was more than one day ago.
+      brokeStreak = !wasYesterday;
     } else {
       return; // already counted today
     }
@@ -336,7 +465,11 @@ export function AppProvider({ children }) {
         .update({ streak: nextStreak, last_active_date: now.toISOString() })
         .eq('id', session.user.id);
     }
-  }, [studyStats.streak, studyStats.lastStudyDate, session]);
+    // Penalize a broken streak with -5 SC (study loss mechanic).
+    if (brokeStreak && nextStreak === 1) {
+      await recordStreakBreak();
+    }
+  }, [studyStats.streak, studyStats.lastStudyDate, session, recordStreakBreak]);
 
   const persistStats = useCallback(async (fields) => {
     if (!supabase || !session || !fields || Object.keys(fields).length === 0) return;
@@ -374,19 +507,23 @@ export function AppProvider({ children }) {
   };
 
   // ---------- Quiz results & progression ----------
-  const recordQuizResult = async ({ mode = 'standard', difficulty = 'Easy', subject = '', score = 0, total = 0, durationSeconds = 0 }) => {
+  const recordQuizResult = async ({ mode = 'standard', difficulty = 'Easy', subject = '', score = 0, total = 0, durationSeconds = 0, groupId = null }) => {
     const pct = total > 0 ? Math.round((score / total) * 100) : 0;
     const thresholds = { Easy: 50, Medium: 60, Hard: 70, Expert: 75, Master: 80, Extreme: 85 };
     const passed = pct >= (thresholds[difficulty] ?? 60);
 
     // Local XP/milestone feedback
     updateQuizStats({});
+    // SC is intentionally scarce: the daily 9 SC (activated) grant is the
+    // primary faucet. Passing quizzes no longer mints additional SC so the
+    // wallet stays rare and meaningful.
 
     if (!supabase || !session) return passed;
 
     const levelKey = `${subject || 'Mixed Bank'}|${difficulty}`;
 
-    const { error: resError } = await supabase.from('quiz_results').insert({
+    let resultId = null;
+    const { data: resData, error: resError } = await supabase.from('quiz_results').insert({
       user_id: session.user.id,
       mode,
       difficulty,
@@ -394,9 +531,22 @@ export function AppProvider({ children }) {
       score,
       total,
       passed,
-      duration_seconds: durationSeconds
-    });
+      duration_seconds: durationSeconds,
+      group_id: groupId ?? null
+    }).select('id').single();
     if (resError) console.error('Quiz result save failed:', resError.message);
+    else resultId = resData?.id;
+
+    // -3 SC on failed quiz, capped at once per day.
+    if (!passed) {
+      await recordQuizFailPenalty(resultId);
+    }
+
+    // Per-group "unique streak": advancing a member's streak inside a study
+    // group when they pass a quiz launched from that group (reset on a gap).
+    if (passed && groupId != null) {
+      await bumpGroupQuizStreak(groupId);
+    }
 
     // Upsert progression row for this level key
     const { error: progError } = await supabase.from('user_quiz_progress').upsert({
@@ -848,6 +998,9 @@ export function AppProvider({ children }) {
       updateQuizStats, fetchUserData, feeDetails,
       recordQuizResult, recordWrongAnswers, recordAttempts, computeWeakConcepts, touchActivity,
       addFlashcard, updateFlashcard, deleteFlashcard, importFlashcards,
+      smartCoins, scLedger, claimDailySC, earnSC, spendSC, recordStreakBreak, recordQuizFailPenalty,
+      bumpGroupQuizStreak,
+      streakFreezeActive, setStreakFreezeActive,
       signOut
     }}>
       {children}

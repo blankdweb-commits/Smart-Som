@@ -24,22 +24,18 @@ import {
   ArrowRight,
   Zap
 } from '../components/Icons';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 
 const AdminFinance =  () => {
   const {
     transactions,
     userProfile,
-    paymentPurposes,
-    subscriptionPlans,
     auditLogs = [],
     loadingAuth
   } = useAppContext();
 
   const navigate = useNavigate();
   const [activeTab, setActiveTab] = useState('overview');
-  const [searchTerm, setSearchTerm] = useState('');
 
   if (loadingAuth) return <div className="p-20 text-center font-black animate-pulse">Initializing Financial Core...</div>;
 

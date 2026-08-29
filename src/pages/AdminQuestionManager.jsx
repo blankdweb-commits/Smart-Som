@@ -18,7 +18,6 @@ import {
   HelpCircle,
   BookOpen
 } from '../components/Icons';
-import { motion, AnimatePresence } from 'framer-motion';
 import Toast from '../components/Toast';
 import FlashcardForm from '../components/FlashcardForm';
 
@@ -61,7 +60,7 @@ const AdminQuestionManager = () => {
       let data;
       try {
         data = JSON.parse(text);
-      } catch (err) {
+      } catch {
         throw new Error("Invalid JSON format. Please check the file structure.");
       }
 

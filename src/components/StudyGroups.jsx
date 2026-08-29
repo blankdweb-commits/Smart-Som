@@ -16,7 +16,9 @@ import {
   BookOpen,
   Sparkles
 } from './Icons';
+  // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
+import { useNavigate } from 'react-router-dom';
 import { supabase } from '../utils/supabase';
 import { useAppContext } from '../context/AppContext';
 import { formatDistanceToNow } from 'date-fns';
@@ -35,6 +37,7 @@ const GroupBadge = ({ verified }) =>
 
 const StudyGroups = () => {
   const { session, userProfile } = useAppContext();
+  const navigate = useNavigate();
   const isAdmin = userProfile.isAdmin;
   const currentUserId = session?.user?.id;
   const isAuthenticated = !!currentUserId && session?.user?.is_anonymous !== true;
@@ -562,6 +565,12 @@ const StudyGroups = () => {
                     className="flex-1 px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-black uppercase tracking-widest text-[9px] hover:opacity-90 transition-all active:scale-95"
                   >
                     Open
+                  </button>
+                  <button
+                    onClick={() => navigate(`/community/groups/${group.id}`)}
+                    className="px-4 py-2.5 bg-apex-600 text-white rounded-xl font-black uppercase tracking-widest text-[9px] flex items-center gap-1.5 hover:bg-apex-700 transition-all active:scale-95"
+                  >
+                    <Users size={12} /> Group Page
                   </button>
                   {isOwner ? (
                     <button

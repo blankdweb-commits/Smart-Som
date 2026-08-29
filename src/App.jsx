@@ -21,6 +21,7 @@ const Settings = lazy(() => import('./pages/Settings'));
 const Community = lazy(() => import('./pages/Community'));
 const PronunciationHelper = lazy(() => import('./pages/PronunciationHelper'));
 const XpHall = lazy(() => import('./pages/XpHall'));
+const GroupPage = lazy(() => import('./pages/GroupPage'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center h-screen bg-white dark:bg-slate-900">
@@ -47,6 +48,7 @@ const AppRouter = () => (
         <Route path="/payments/verify" element={<PaymentVerify />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="/community" element={<Community />} />
+        <Route path="/community/groups/:id" element={<GroupPage />} />
         <Route path="/pronunciation" element={<PronunciationHelper />} />
         <Route path="/admin/finance" element={<AdminFinance />} />
         <Route path="/admin/questions" element={<AdminQuestionManager />} />

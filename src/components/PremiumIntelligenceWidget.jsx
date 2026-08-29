@@ -4,7 +4,7 @@ import { Target, TrendingDown, BookOpen, ChevronRight, Zap, AlertTriangle } from
 import { useNavigate } from 'react-router-dom';
 
 const PremiumIntelligenceWidget = () => {
-  const { userProfile, flashcards, studyStats, quizHistory } = useAppContext();
+  const { userProfile, flashcards, quizHistory } = useAppContext();
   const navigate = useNavigate();
 
   const isMonthly = userProfile.subscriptionTier === 'monthly';

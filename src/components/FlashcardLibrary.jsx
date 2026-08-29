@@ -7,15 +7,14 @@ import FlashcardStudySession from '../components/FlashcardStudySession';
 import ShareModal from '../components/ShareModal';
 import Toast from '../components/Toast';
 import { Search, AlertCircle, ArrowLeft, ChevronRight, Award, Book, Folder, Lock, Zap } from './Icons';
-import { extractTextFromFile, parseQuestionsAndAnswers } from '../utils/fileParser';
 import { CURRICULUM_MASTER } from '../data/curriculumMaster';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 
 const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   const {
-    flashcards, userProfile, exams,
-    addFlashcard, updateFlashcard, deleteFlashcard,
-    updateCardProgress, importFlashcards, incrementCardsStudied, levelCompletions
+    flashcards, exams,
+    addFlashcard, updateFlashcard,
+    updateCardProgress, incrementCardsStudied, levelCompletions
   } = useAppContext();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -45,7 +44,6 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   };
 
   const DEV_MODE = (import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true');
-  const isActivated = userProfile.isActivated || userProfile.subscriptionStatus === 'grace' || DEV_MODE;
 
   const [currentProgram, setCurrentProgram] = useState(null);
   const [currentLevel, setCurrentLevel] = useState(null);
@@ -73,8 +71,6 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   }, [searchParams, flashcards]);
 
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isShareModalOpen, setIsShareModalOpen] = useState(false);
-  const [shareData, setShareData] = useState(null);
   const [editingCard, setEditingCard] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
   const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
@@ -82,7 +78,6 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
   const [isExamPriority, setIsExamPriority] = useState(false);
   const [toast, setToast] = useState(null);
   const [visibleCount, setVisibleCount] = useState(12);
-  const [isUploading, setIsUploading] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => setDebouncedSearchTerm(searchTerm), 300);
@@ -172,44 +167,11 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
     setStudyPhase('setup');
   };
 
-  const handleFileUpload = async (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-    setIsUploading(true);
-    try {
-      const text = await extractTextFromFile(file);
-      const parsedCards = parseQuestionsAndAnswers(text);
-      if (parsedCards.length > 0) {
-        await new Promise(resolve => setTimeout(resolve, 2000));
-        const enhancedCards = parsedCards.map(card => ({
-          ...card,
-          category: 'User-Trained',
-          level: currentLevel || 'Year 1',
-          semester: currentSemester || 'Semester 1',
-          subject: currentSubject || 'AI Imported',
-          source: file.name
-        }));
-        const count = importFlashcards(enhancedCards);
-        setToast({ message: `AI Training Complete! Generated ${count} high-yield cards.`, type: 'success' });
-      } else {
-        setToast({ message: "Analysis failed: No clear Q&A patterns detected.", type: 'error' });
-      }
-    } catch (error) {
-      console.error(error);
-      setToast({ message: "AI Error: " + error.message, type: 'error' });
-    } finally {
-      setIsUploading(false);
-      e.target.value = null;
-    }
-  };
-
   const handleToggleImportant = (id) => {
     const card = flashcards.find(c => c.id === id);
     if (card) updateFlashcard(id, { important: !card.important });
   };
 
-  const handleEdit = (card) => { setEditingCard(card); setIsFormOpen(true); };
-  const handleShare = (card) => { setShareData(card); setIsShareModalOpen(true); };
   const handleFormSubmit = (data) => {
     if (editingCard) updateFlashcard(editingCard.id, data);
     else addFlashcard({ ...data, category: initialCategory, level: currentLevel, semester: currentSemester, subject: currentSubject });

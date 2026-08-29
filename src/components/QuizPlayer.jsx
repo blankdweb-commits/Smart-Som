@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+  // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import {
   CheckCircle2,
@@ -7,8 +8,13 @@ import {
   Clock,
   X,
   AlertCircle,
-  Zap
+  Zap,
+  Coins,
+  HelpCircle,
+  SkipForward,
+  Snowflake
 } from './Icons';
+import { useAppContext } from '../context/AppContext';
 
 const pad = (n) => String(n).padStart(2, '0');
 
@@ -18,6 +24,7 @@ const pad = (n) => String(n).padStart(2, '0');
  * Conceptual Misalignment, per-question timer, exam vs instant feedback.
  */
 const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit }) => {
+  const { smartCoins, spendSC, streakFreezeActive, setStreakFreezeActive } = useAppContext();
   const total = questions.length;
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState(null);
@@ -27,6 +34,12 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit 
   const [timeLeft, setTimeLeft] = useState(config.timePerQuestion ?? 0);
   const [score, setScore] = useState(0);
   const [showQuitModal, setShowQuitModal] = useState(false);
+  const [showHint, setShowHint] = useState(false);
+  const [powerups] = useState({
+    skip: config.powerUps?.skip ?? 8,
+    hint: config.powerUps?.hint ?? 5,
+    streakFreeze: config.powerUps?.streakFreeze ?? 12
+  });
 
   const answersRef = useRef([]);
   const startRef = useRef(null);
@@ -127,6 +140,48 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit 
     setIsCorrect(false);
     setTimedOut(false);
     setTimeLeft(hasTimer ? config.timePerQuestion : 0);
+  };
+
+  // ---- SC power-ups ----
+  const useSkip = async () => {
+    if (isLocked) return;
+    const newBalance = await spendSC(powerups.skip, 'powerup_skip');
+    if (newBalance === smartCoins) return; // insufficient funds — no-op
+    onSound?.('skip');
+    setSelected(null);
+    setLockedAnswer(undefined);
+    setIsCorrect(false);
+    setTimedOut(false);
+    setTimeLeft(hasTimer ? config.timePerQuestion : 0);
+    if (isLast) {
+      onComplete({
+        score,
+        total,
+        durationSeconds: Math.round((Date.now() - startRef.current) / 1000),
+        answers: [...answersRef.current]
+      });
+    } else {
+      setIdx((i) => i + 1);
+    }
+  };
+
+  const useHint = async () => {
+    if (isLocked) return;
+    const newBalance = await spendSC(powerups.hint, 'powerup_hint');
+    if (newBalance === smartCoins) return; // insufficient funds
+    setShowHint(true);
+    onSound?.('hint');
+  };
+
+  const toggleStreakFreeze = async () => {
+    if (!streakFreezeActive) {
+      const newBalance = await spendSC(powerups.streakFreeze, 'powerup_streak_freeze');
+      if (newBalance === smartCoins) return; // insufficient funds
+      setStreakFreezeActive(true);
+      onSound?.('freeze');
+    } else {
+      setStreakFreezeActive(false);
+    }
   };
 
   // Option card visual state
@@ -245,6 +300,56 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit 
               );
             })}
           </div>
+
+          {/* SC power-ups bar */}
+          <div className="mt-5 flex flex-wrap items-center gap-2">
+            <div className="flex items-center mr-auto gap-1.5 px-3 py-2 rounded-xl bg-white/5 border border-white/10">
+              <Coins size={14} className="text-amber-400" />
+              <span className="text-xs font-black tabular-nums text-amber-300">{smartCoins} SC</span>
+            </div>
+            {!isLocked && (
+              <>
+                <button
+                  onClick={useSkip}
+                  disabled={smartCoins < powerups.skip}
+                  className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-black uppercase tracking-wide flex items-center gap-1.5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                >
+                  <SkipForward size={14} /> Skip · {powerups.skip}
+                </button>
+                <button
+                  onClick={useHint}
+                  disabled={smartCoins < powerups.hint || showHint}
+                  className="px-3 py-2 rounded-xl bg-white/5 border border-white/10 text-xs font-black uppercase tracking-wide flex items-center gap-1.5 hover:bg-white/10 disabled:opacity-40 disabled:cursor-not-allowed transition"
+                >
+                  <HelpCircle size={14} /> Hint · {powerups.hint}
+                </button>
+                <button
+                  onClick={toggleStreakFreeze}
+                  disabled={smartCoins < powerups.streakFreeze && !streakFreezeActive}
+                  className={`px-3 py-2 rounded-xl border text-xs font-black uppercase tracking-wide flex items-center gap-1.5 transition disabled:opacity-40 disabled:cursor-not-allowed ${
+                    streakFreezeActive
+                      ? 'bg-cyan-500/20 border-cyan-500/50 text-cyan-300'
+                      : 'bg-white/5 border-white/10 hover:bg-white/10'
+                  }`}
+                >
+                  <Snowflake size={14} /> {streakFreezeActive ? 'Frozen' : 'Freeze'} · {powerups.streakFreeze}
+                </button>
+              </>
+            )}
+          </div>
+
+          {showHint && !isLocked && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              className="mt-4 p-4 rounded-2xl bg-cyan-500/10 border border-cyan-500/30 text-sm font-medium text-cyan-100"
+            >
+              <p className="text-[9px] font-black uppercase tracking-widest text-cyan-400 mb-1 flex items-center gap-1.5">
+                <HelpCircle size={12} /> Hint
+              </p>
+              {q?.hint || q?.hints || 'Focus on the priority and the presenting signs to find the correct answer.'}
+            </motion.div>
+          )}
 
           {/* Confirm bar (pre-lock) */}
           <AnimatePresence>
