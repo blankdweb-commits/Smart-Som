@@ -3,12 +3,16 @@ import { Link, useLocation, Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
 import FeeBanner from './FeeBanner';
-import { Sun, Moon, Calendar, Menu, Settings } from './Icons';
+import ErrorBoundary from './ErrorBoundary';
+import SearchOverlay from './SearchOverlay';
+import NotificationBell from './NotificationBell';
+import { Sun, Moon, Calendar, Menu, Settings, Search } from './Icons';
 import { useAppContext } from '../context/AppContext';
 
 const Layout = ({ children }) => {
   const location = useLocation();
   const { darkMode, toggleDarkMode } = useAppContext();
+  const [searchOpen, setSearchOpen] = React.useState(false);
   const DEV_MODE =  (import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true');
 
   return (
@@ -26,6 +30,16 @@ const Layout = ({ children }) => {
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2">
+            <button
+              onClick={() => setSearchOpen(true)}
+              aria-label="Search"
+              className="p-2 rounded-lg text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"
+            >
+              <Search size={20} />
+            </button>
+
+            <NotificationBell />
+
             <Link
               to="/settings"
               className={`p-2 rounded-lg transition-all ${
@@ -50,10 +64,13 @@ const Layout = ({ children }) => {
         <FeeBanner />
 
         <div className="max-w-7xl mx-auto p-4 sm:p-6 lg:p-8">
-          {children || <Outlet />}
+          <ErrorBoundary>
+            {children || <Outlet />}
+          </ErrorBoundary>
         </div>
       </main>
       <BottomNav />
+      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
     </div>
   );
 };

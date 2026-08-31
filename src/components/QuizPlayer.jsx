@@ -15,6 +15,7 @@ import {
   Snowflake
 } from './Icons';
 import { useAppContext } from '../context/AppContext';
+import { supabase } from '../utils/supabase';
 
 const pad = (n) => String(n).padStart(2, '0');
 
@@ -47,12 +48,72 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit 
   const [feedbackSaved, setFeedbackSaved] = useState(false);
   const [showReason, setShowReason] = useState(false);
 
+  // Learning feedback (Explain Simply / Clinical Example / Memory Trick).
+  const [feedbackMode, setFeedbackMode] = useState(null); // null | 'simple' | 'clinical' | 'memory'
+  const [feedbackLoading, setFeedbackLoading] = useState(false);
+  const [feedbackText, setFeedbackText] = useState('');
+
+  // First-question tap hint — shown only on the very first question, never again.
+  const [showTapHint, setShowTapHint] = useState(
+    () => idx === 0 && !localStorage.getItem('apex:quizTapHintSeen')
+  );
+  const dismissTapHint = () => {
+    setShowTapHint(false);
+    try { localStorage.setItem('apex:quizTapHintSeen', '1'); } catch { /* ignore */ }
+  };
+
+  const explainConcept = async (mode) => {
+    if (isLocked || feedbackLoading) return;
+    setFeedbackMode(mode);
+    setFeedbackLoading(true);
+    setFeedbackText('');
+    try {
+      const { data } = await supabase.auth.getSession();
+      const token = data?.session?.access_token;
+      const res = await fetch('/api/explain-concept', {
+        method: 'POST',
+        headers: token
+          ? { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
+          : { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          question: typeof q.question === 'object' ? JSON.stringify(q.question) : q.question,
+          correctAnswer: q.correctAnswer,
+          options: q.options,
+          mode
+        })
+      });
+      const body = await res.json();
+      if (res.ok && body.success && body.explanation) {
+        setFeedbackText(body.explanation);
+      } else {
+        // Graceful degradation — reuse the built-in rationale/ hint.
+        setFeedbackText(
+          mode === 'memory'
+            ? (q.hint || 'Associate the key sign with the priority intervention to lock it in memory.')
+            : (q.rationale || 'Focus on the core clinical principle: assess, prioritize, and protect patient safety.')
+        );
+      }
+    } catch {
+      // Network / offline / not-deployed fallback.
+      setFeedbackText(
+        mode === 'memory'
+          ? (q.hint || 'Associate the key sign with the priority intervention to lock it in memory.')
+          : (q.rationale || 'Focus on the core clinical principle: assess, prioritize, and protect patient safety.')
+      );
+    } finally {
+      setFeedbackLoading(false);
+    }
+  };
+
   // Reset feedback when advancing to a new question.
   React.useEffect(() => {
     setFeedback(null);
     setFeedbackReason('');
     setFeedbackSaved(false);
     setShowReason(false);
+    setFeedbackMode(null);
+    setFeedbackText('');
+    if (idx > 0) setShowTapHint(false);
   }, [idx]);
 
   const answersRef = useRef([]);
@@ -325,6 +386,29 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit 
             })}
           </div>
 
+          {/* First-run tap hint */}
+          {showTapHint && (
+            <motion.div
+              initial={{ opacity: 0, y: 8 }}
+              animate={{ opacity: 1, y: 0 }}
+              role="status"
+              className="mt-4 flex items-start gap-3 p-4 rounded-2xl bg-amber-500/10 border border-amber-500/30"
+            >
+              <div className="p-2 bg-amber-500/20 rounded-xl text-amber-300 shrink-0">
+                <Zap size={16} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="text-sm font-bold text-amber-200 leading-snug">
+                  Tap an option once to select it, then tap again (or Confirm Answer) to lock it in.
+                </p>
+                <p className="text-[10px] font-bold text-amber-400/80 uppercase tracking-widest mt-1">No pressure — take your time.</p>
+              </div>
+              <button onClick={dismissTapHint} aria-label="Dismiss hint" className="text-amber-300/70 hover:text-amber-200 p-1 shrink-0">
+                <X size={16} />
+              </button>
+            </motion.div>
+          )}
+
           {/* SC power-ups bar */}
           <div className="mt-5 flex flex-wrap items-center gap-2">
             <div className="flex items-center mr-auto gap-1.5 px-3 py-2 rounded-xl bg-white/5 border border-white/10">
@@ -509,6 +593,43 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit 
                     </button>
                   )}
                 </div>
+
+                {/* Learning feedback */}
+                {instant && (
+                  <div className="rounded-2xl p-4 bg-indigo-500/10 border border-indigo-500/30">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-300 mb-3 text-center">Deepen Your Understanding</p>
+                    <div className="grid grid-cols-3 gap-2">
+                      {[
+                        { mode: 'simple', label: '💡 Explain Simply' },
+                        { mode: 'clinical', label: '🏥 Clinical Example' },
+                        { mode: 'memory', label: '🧠 Memory Trick' }
+                      ].map((b) => (
+                        <button
+                          key={b.mode}
+                          onClick={() => explainConcept(b.mode)}
+                          disabled={feedbackLoading}
+                          className={`px-2 py-2.5 rounded-xl font-black uppercase tracking-widest text-[9px] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
+                            feedbackMode === b.mode
+                              ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
+                              : 'bg-white/10 text-indigo-200 hover:bg-white/20'
+                          }`}
+                        >
+                          {b.label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {feedbackMode && (
+                      <div className="mt-3 p-4 rounded-2xl bg-slate-900/60 border border-white/10">
+                        {feedbackLoading ? (
+                          <p className="text-sm font-bold text-indigo-200 animate-pulse">Crafting your explanation…</p>
+                        ) : (
+                          <p className="text-sm font-medium leading-relaxed text-slate-100">{feedbackText}</p>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                )}
 
                 {/* Next */}
                 <button

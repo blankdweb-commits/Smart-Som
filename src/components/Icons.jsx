@@ -83,9 +83,9 @@ import {
   LogOut,
   Coins,
   SkipForward,
-  Snowflake
-} from 'lucide-react';
-export {
+  Snowflake,
+  Flame
+} from 'lucide-react';export {
   AlertCircle,
   AlertTriangle,
   ArrowLeft,
@@ -171,5 +171,6 @@ export {
   LogOut,
   Coins,
   SkipForward,
-  Snowflake
+  Snowflake,
+  Flame
 };

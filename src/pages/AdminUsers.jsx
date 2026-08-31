@@ -12,7 +12,8 @@ import {
   ShieldCheck,
   ArrowLeft,
   Lock,
-  Mail
+  Mail,
+  BookOpen
 } from '../components/Icons';
 import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 import { useNavigate } from 'react-router-dom';
@@ -39,7 +40,7 @@ const AdminUsers = () => {
     try {
       const { data, error } = await supabase
         .from('profiles')
-        .select('id, full_name, email, phone, department, level, role, is_activated, created_at')
+        .select('id, full_name, email, phone, department, level, role, is_activated, flashcard_access, flashcard_granted_at, created_at')
         .order('created_at', { ascending: false })
         .limit(300);
       if (error) throw error;
@@ -107,6 +108,29 @@ const AdminUsers = () => {
       setToast({ message: `Role updated to ${newRole}`, type: 'success' });
     } catch (err) {
       setToast({ message: `Failed to update role: ${err.message}`, type: 'error' });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  // Grant/revoke Flashcard access. IMPORTANT: Flashcard access is a separate,
+  // admin-granted entitlement — it is NOT tied to premium status.
+  const handleToggleFlashcardAccess = async (user) => {
+    if (!user || user.role === 'super_admin' || user.id === currentUserId) return;
+    const key = `flashcard:${user.id}`;
+    setBusy(key);
+    try {
+      const { error } = await supabase.rpc('admin_set_flashcard_access', {
+        p_user_id: user.id,
+        p_granted: !user.flashcard_access
+      });
+      if (error) throw error;
+      setUsers(prev => prev.map(u => u.id === user.id
+        ? { ...u, flashcard_access: !u.flashcard_access, flashcard_granted_at: !u.flashcard_access ? new Date().toISOString() : null }
+        : u));
+      setToast({ message: user.flashcard_access ? 'Flashcard access revoked' : 'Flashcard access granted', type: 'success' });
+    } catch (err) {
+      setToast({ message: `Failed to update flashcard access: ${err.message}`, type: 'error' });
     } finally {
       setBusy(null);
     }
@@ -186,6 +210,7 @@ const AdminUsers = () => {
               const locked = isSuper || isSelf;
               const busyAct = busy === `activation:${user.id}`;
               const busyRole = busy === `role:${user.id}`;
+              const busyFC = busy === `flashcard:${user.id}`;
               return (
                 <motion.div
                   key={user.id}
@@ -199,7 +224,7 @@ const AdminUsers = () => {
                     </div>
                     <div className="min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-black text-sm text-slate-900 dark:text-white truncate">{user.full_name || 'Unnamed Student'}</p>
+                        <p className="font-black text-sm text-slate-900 dark:text-white truncate">{user.full_name || 'Auxibaby'}</p>
                         {isSelf && <span className="text-[9px] font-black uppercase tracking-widest px-2 py-0.5 bg-slate-200 dark:bg-slate-700 rounded-full text-slate-500">You</span>}
                         <span className={`text-[9px] font-black uppercase tracking-widest px-2 py-0.5 rounded-full ${isSuper ? 'bg-amber-500/10 text-amber-600' : user.role === 'admin' ? 'bg-indigo-500/10 text-indigo-600' : 'bg-slate-200 dark:bg-slate-700 text-slate-500'}`}>
                           {user.role === 'super_admin' ? 'Super Admin' : user.role}
@@ -247,6 +272,18 @@ const AdminUsers = () => {
                       {user.is_activated ? 'Active' : 'Off'}
                     </span>
 
+                    <button
+                      onClick={() => handleToggleFlashcardAccess(user)}
+                      disabled={locked || busyFC}
+                      className={`flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-[10px] uppercase tracking-widest transition-all disabled:opacity-40 disabled:cursor-not-allowed ${user.flashcard_access ? 'bg-purple-500/15 text-purple-600' : 'bg-slate-200 dark:bg-slate-700 text-slate-500'}`}
+                    >
+                      {busyFC ? <Loader2 size={12} className="animate-spin" /> : <BookOpen size={12} />}
+                      {user.flashcard_access ? 'Revoke' : 'Grant'}
+                    </button>
+                    <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1">
+                      <BookOpen size={10} /> Flashcards
+                    </span>
+
                     {locked && (
                       <span className="text-[9px] font-black uppercase tracking-widest text-amber-500 flex items-center gap-1">
                         <Lock size={11} /> {isSuper ? (isSelf ? '' : 'Protected') : 'Yourself'}
@@ -263,7 +300,7 @@ const AdminUsers = () => {
       <div className="flex items-start gap-3 p-4 bg-indigo-50 dark:bg-indigo-900/20 rounded-2xl border border-indigo-100 dark:border-indigo-900">
         <ShieldCheck className="shrink-0 text-indigo-500 mt-0.5" size={18} />
         <p className="text-xs font-semibold text-indigo-700 dark:text-indigo-300 leading-relaxed">
-          Super admin accounts are protected from modification. You cannot deactivate or change the role of your own account from this screen.
+          Super admin accounts are protected from modification. You cannot deactivate or change the role of your own account from this screen. Flashcard access is an admin-granted entitlement that is separate from premium status.
         </p>
       </div>
 

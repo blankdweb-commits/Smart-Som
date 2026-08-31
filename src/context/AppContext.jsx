@@ -3,6 +3,13 @@ import { initialFlashcards } from '../data/initialData';
 import { allBuiltInFlashcards } from '../data/loadFlashcards';
 import { CURRICULUM_MASTER } from '../data/curriculumMaster';
 import { supabase } from '../utils/supabase';
+import { authHeaders } from '../utils/apiHeaders';
+import {
+  computeCurrentIdentity,
+  computeProgressToNext,
+  shouldCelebrate,
+  acknowledgeUnlock
+} from '../utils/identityEngine';
 
 const AppContext = createContext();
 
@@ -68,7 +75,7 @@ export function AppProvider({ children }) {
     cardsStudied: 0,
     quizStreak: 0,
     maxQuizStreak: 0,
-    milestone: 'Clinical Beginner'
+    milestone: 'Auxibaby 👶'
   });
   const [userProfile, setUserProfile] = useState(ANONYMOUS_PROFILE);
   // ---- Smart Coin (SC) currency ----
@@ -97,6 +104,27 @@ export function AppProvider({ children }) {
     dailyChallenge: { id: null, question: '', answer: '', completed: false, lastDate: null }
   });
   const [quizHistory, setQuizHistory] = useState([]);
+
+  // ---- Command Center Upgrade state (migration-v10) ----
+  // Single-device & quota & difficulty & achievements
+  const [sessionRevoked, setSessionRevoked] = useState(false); // forced sign-out signal
+  const [quota, setQuota] = useState({
+    isLoading: false,
+    premium: false,
+    unlimited: false,
+    questions_remaining: 50,
+    in_cooldown: false,
+    window_expires_at: null,
+    window_started_at: null,
+    lastSync: null
+  });
+  const [difficultyProgress, setDifficultyProgress] = useState(null); // { Easy:{...}, ... }
+  const [userAchievements, setUserAchievements] = useState([]);
+  // Flashcards are ADMIN-GRANTED (not premium). Server-authoritative flag.
+  const [flashcardAccess, setFlashcardAccess] = useState(false);
+  // Smart Coins are LOCKED until 1v1 launches (per product spec): every new
+  // user starts at 0 and the faucet/spend stays dormant.
+  const SC_FEATURE_LOCKED = true;
 
   // Dark mode must be applied to <html> for Tailwind's class strategy to work.
   useEffect(() => {
@@ -143,7 +171,7 @@ export function AppProvider({ children }) {
           cardsStudied: profile.cards_studied || 0,
           quizStreak: profile.quiz_streak || 0,
           maxQuizStreak: profile.max_quiz_streak || 0,
-          milestone: profile.milestone || 'Clinical Beginner',
+          milestone: profile.milestone || 'Auxibaby 👶',
           lastStudyDate: profile.last_active_date || null
         }));
 
@@ -353,7 +381,9 @@ export function AppProvider({ children }) {
 
   // Apply an SC delta locally + persist, with audit ledger row. amount is
   // signed (+ earn, - loss). Never lets the wallet go below 0.
+  // Smart Coins are LOCKED until 1v1 launches — all mutations are no-ops.
   const applySC = useCallback(async (amount, reason, refId = null) => {
+    if (SC_FEATURE_LOCKED) return smartCoins;
     if (!session) return;
     const delta = Number(amount) || 0;
     const next = Math.max(0, smartCoins + delta);
@@ -375,7 +405,9 @@ export function AppProvider({ children }) {
   }, [session, smartCoins]);
 
   // Daily 9 SC for activated accounts (granted once per day, no rollover).
+  // Smart Coins are LOCKED until 1v1 launches — the faucet stays dormant.
   const claimDailySC = useCallback(async () => {
+    if (SC_FEATURE_LOCKED) return 0;
     if (!session) return 0;
     const activated = userProfile.isActivated;
     if (!activated) return smartCoins;
@@ -386,12 +418,15 @@ export function AppProvider({ children }) {
 
   // Small capped bonus from study accomplishments (kept limited to stay rare).
   const earnSC = useCallback(async (amount, reason, refId = null) => {
+    if (SC_FEATURE_LOCKED) return smartCoins;
     if (!session) return smartCoins;
     return applySC(Number(amount) || 0, reason || 'bonus', refId);
   }, [session, applySC, smartCoins]);
 
   // Spend SC on power-ups etc. Refuses if insufficient. Returns new balance.
+  // Smart Coins locked — spending is disabled until 1v1 launches.
   const spendSC = useCallback(async (amount, reason, refId = null) => {
+    if (SC_FEATURE_LOCKED) return smartCoins;
     if (!session) return smartCoins;
     const cost = Math.abs(Number(amount) || 0);
     if (cost > smartCoins) return smartCoins;
@@ -401,6 +436,7 @@ export function AppProvider({ children }) {
   // -5 SC when the daily activity streak is broken (gap of >= 1 day).
   // An active streak-freeze consumes itself instead, waiving the penalty.
   const recordStreakBreak = useCallback(async () => {
+    if (SC_FEATURE_LOCKED) return;
     if (!session) return;
     if (streakFreezeActive) {
       setStreakFreezeActive(false);
@@ -411,6 +447,7 @@ export function AppProvider({ children }) {
 
   // -3 SC on a failed quiz, but only once per day (fair + keeps SC rare).
   const recordQuizFailPenalty = useCallback(async (refId = null) => {
+    if (SC_FEATURE_LOCKED) return;
     if (!session) return;
     if (scIsToday(scLastFailDate)) return; // already penalized today
     setScLastFailDate(scTodayStr());
@@ -844,14 +881,22 @@ export function AppProvider({ children }) {
     initAuth();
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
-      if (event === 'SIGNED_IN') setSession(currentSession);
-      else if (event === 'SIGNED_OUT') {
+      if (event === 'SIGNED_IN') {
+        setSession(currentSession);
+        setSessionRevoked(false);
+        // Register this device as the single active session (server-enforced).
+        registerSessionServerSide(currentSession);
+      } else if (event === 'SIGNED_OUT') {
         setSession(null);
         setUserProfile(ANONYMOUS_PROFILE);
         setExams([]);
         setTransactions([]);
         setLevelCompletions({});
         setQuizHistory([]);
+        setSessionRevoked(false);
+        setQuota(s => ({ ...s, premium: false, unlimited: false, questions_remaining: 50, in_cooldown: false, window_expires_at: null }));
+        setDifficultyProgress(null);
+        setUserAchievements([]);
       }
       setLoadingAuth(false);
     });
@@ -859,9 +904,215 @@ export function AppProvider({ children }) {
     return () => { if (subscription) subscription.unsubscribe(); };
   }, []);
 
+  // ---------------- Command Center helpers ----------------
+
+  // Builds the shared auth + per-device session headers for Apex API routes
+  // (so server-side single-device enforcement resolves THIS device).
+  const apexHeaders = useCallback((sess) => authHeaders(sess), []);
+
+  // Register the current session server-side (single-device enforcement).
+  // Best-effort: never blocks login if the endpoint is down.
+  const registerSessionServerSide = useCallback(async (sess) => {
+    if (!sess?.access_token) return;
+    if (!supabase) return;
+    try {
+      const device = (() => {
+        try { return `${navigator.userAgent ?? 'device'}`.slice(0, 120); } catch { return 'device'; }
+      })();
+      const headers = apexHeaders(sess);
+      headers['Content-Type'] = 'application/json';
+      await fetch('/api/session/register', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ device_identifier: device })
+      });
+    } catch (err) {
+      // Non-fatal telemetry.
+      console.warn('Session register skipped:', err.message);
+    }
+  }, [supabase, apexHeaders]);
+
+  // Validate the current session is still the active one (single-device).
+  // If it was revoked by a newer login, flips sessionRevoked so the app can
+  // show the "signed in on another device" screen.
+  const validateSessionActive = useCallback(async (sess = session) => {
+    if (!sess?.access_token) return true;
+    if (!supabase) return true;
+    try {
+      const headers = apexHeaders(sess);
+      headers['Content-Type'] = 'application/json';
+      const res = await fetch('/api/session/validate', {
+        method: 'POST',
+        headers
+      });
+      const body = await res.json();
+      const revoked = !!body?.revoked || (body?.authenticated === false && !!body?.revoked);
+      if (revoked) {
+        setSessionRevoked(true);
+        return false;
+      }
+      setSessionRevoked(false);
+      return true;
+    } catch {
+      return true; // network error — don't lock user out
+    }
+  }, [session, supabase, apexHeaders]);
+
+  // Server-verified premium: derived from the fetched subscription status
+  // (single source of truth from subscriptions table, not a client flag).
+  const isPremium = useMemo(
+    () => userProfile.subscriptionStatus === 'active' || userProfile.subscriptionStatus === 'grace',
+    [userProfile.subscriptionStatus]
+  );
+
+  // ---- Free-user quota (50 questions / 12h cooldown) ----
+  // Refresh the quota from the server (server timestamps only).
+  const fetchQuotaStatus = useCallback(async () => {
+    if (!session?.access_token) return;
+    setQuota(s => ({ ...s, isLoading: true }));
+    try {
+      const res = await fetch('/api/quota/status', {
+        method: 'GET',
+        headers: apexHeaders(session)
+      });
+      const body = await res.json();
+      if (res.ok) {
+        setQuota(prev => ({
+          ...prev,
+          premium: !!body.premium,
+          unlimited: !!body.unlimited,
+          questions_remaining: body.questions_remaining ?? prev.questions_remaining,
+          in_cooldown: !!body.in_cooldown,
+          window_expires_at: body.window_expires_at ?? prev.window_expires_at,
+          window_started_at: body.window_started_at ?? prev.window_started_at,
+          lastSync: Date.now()
+        }));
+      }
+    } catch (err) {
+      console.warn('Quota fetch skipped:', err.message);
+    } finally {
+      setQuota(s => ({ ...s, isLoading: false }));
+    }
+  }, [session?.access_token, apexHeaders]);
+
+  // Atomically consume quota for answered questions. Opts: skip when premium.
+  // Returns the updated quota state, or null if exhausted/blocked.
+  const consumeQuota = useCallback(async (count = 1, sess = session) => {
+    if (!sess?.access_token) return null;
+    if (isPremium) return { premium: true, unlimited: true, questions_remaining: null, in_cooldown: false };
+    try {
+      const headers = apexHeaders(sess);
+      headers['Content-Type'] = 'application/json';
+      const res = await fetch('/api/quota/consume', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ count })
+      });
+      const body = await res.json();
+      if (res.ok) {
+        setQuota(prev => ({
+          ...prev,
+          premium: !!body.premium,
+          unlimited: !!body.unlimited,
+          questions_remaining: body.questions_remaining ?? prev.questions_remaining,
+          in_cooldown: !!body.in_cooldown,
+          window_expires_at: body.window_expires_at ?? prev.window_expires_at,
+          window_started_at: body.window_started_at ?? prev.window_started_at,
+          lastSync: Date.now()
+        }));
+        return body;
+      }
+      return null;
+    } catch (err) {
+      console.warn('Quota consume skipped:', err.message);
+      return null;
+    }
+  }, [session, isPremium, apexHeaders]);
+
+  // ---- Difficulty unlocks (server-side) ----
+  const fetchDifficultyStatus = useCallback(async (sess = session) => {
+    if (!sess?.access_token) return;
+    try {
+      const res = await fetch('/api/progress/difficulty', {
+        method: 'GET',
+        headers: apexHeaders(sess)
+      });
+      const body = await res.json();
+      if (res.ok && body?.progress) {
+        setDifficultyProgress(body.progress);
+      }
+    } catch (err) {
+      console.warn('Difficulty fetch skipped:', err.message);
+    }
+  }, [session?.access_token, apexHeaders]);
+
+  // Record a batch of answered questions for difficulty + history on server.
+  const recordAnsweredBatch = useCallback(async ({ difficulty, answers }, sess = session) => {
+    if (!sess?.access_token) return;
+    try {
+      const headers = apexHeaders(sess);
+      headers['Content-Type'] = 'application/json';
+      await fetch('/api/progress/difficulty', {
+        method: 'POST',
+        headers,
+        body: JSON.stringify({ difficulty, answers })
+      });
+      fetchDifficultyStatus(sess);
+    } catch (err) {
+      console.warn('Progress record skipped:', err.message);
+    }
+  }, [session, fetchDifficultyStatus, apexHeaders]);
+
+  // ---- Achievements ----
+  const fetchAchievements = useCallback(async (sess = session) => {
+    if (!sess?.access_token || !supabase) return;
+    try {
+      const { data } = await supabase
+        .from('user_achievements')
+        .select('achievement_id, unlocked_at');
+      setUserAchievements(data || []);
+    } catch (err) {
+      console.warn('Achievements fetch skipped:', err.message);
+    }
+  }, [session, supabase]);
+
+  // ---- Flashcards: admin-granted access (server-authoritative RPC) ----
+  // Not premium-gated. Re-runs on session/mount so revoked users revalidate
+  // on refresh. SECURITY DEFINER `can_access_flashcards` bypasses profiles RLS.
+  const fetchFlashcardAccess = useCallback(async (sess = session) => {
+    if (!sess?.access_token || !supabase) return;
+    try {
+      const { data } = await supabase.rpc('can_access_flashcards');
+      setFlashcardAccess(!!data);
+    } catch (err) {
+      console.warn('Flashcard access fetch skipped:', err.message);
+    }
+  }, [session, supabase]);
+
+  // ---- Reset quota when logging out ----
+  useEffect(() => {
+    if (!supabase) setLoadingAuth(false);
+  }, [supabase]);
+
   useEffect(() => {
     if (session) fetchUserData();
   }, [session, fetchUserData]);
+
+  // Load Command Center state once a session is established (quota, difficulty,
+  // achievements) and periodically validate single-device status.
+  useEffect(() => {
+    if (!session?.access_token) return;
+    fetchQuotaStatus();
+    fetchDifficultyStatus();
+    fetchAchievements();
+    fetchFlashcardAccess();
+    validateSessionActive();
+    const iv = setInterval(() => {
+      validateSessionActive();
+    }, 4 * 60 * 1000); // re-validate every 4 min (best-effort)
+    return () => clearInterval(iv);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session?.access_token]);
 
   const updateProfile = (data) => setUserProfile(prev => ({ ...prev, ...data }));
   const toggleSound = () => {
@@ -1029,6 +1280,10 @@ export function AppProvider({ children }) {
     setLevelCompletions({});
     setQuizHistory([]);
     setLearningAnalytics({ weakTopics: [], weakConcepts: [], totalAttempts: 0, recommendedRevision: [], dailyChallenge: { id: null, question: '', answer: '', completed: false, lastDate: null } });
+    setSessionRevoked(false);
+    setQuota(s => ({ ...s, premium: false, unlimited: false, questions_remaining: 50, in_cooldown: false, window_expires_at: null }));
+    setDifficultyProgress(null);
+    setUserAchievements([]);
   };
 
   const amountPaid = transactions.filter(t => t.status === 'success').reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
@@ -1050,6 +1305,47 @@ export function AppProvider({ children }) {
 
   const curriculumTopics = useMemo(() => CURRICULUM_INDEX.topics, []);
 
+  // ---- Identity engine: derive current tier from real learning stats ----
+  const identityStats = useMemo(() => {
+    const totalQ = quizHistory.reduce((sum, r) => sum + (r.total || 0), 0);
+    const correctQ = quizHistory.reduce((sum, r) => sum + (r.score || 0), 0);
+    const attempts = learningAnalytics.totalAttempts || 0;
+    // Prefer live attempt log; fall back to quiz-history total when empty.
+    const totalAttempts = attempts > 0 ? attempts : totalQ;
+    return {
+      totalAttempts,
+      quizStreak: studyStats.quizStreak || 0,
+      cardsStudied: studyStats.cardsStudied || 0,
+      accuracy: totalQ > 0 ? Math.round((correctQ / totalQ) * 100) : 0,
+      scEarned: smartCoins || 0,
+      speedRuns: 0
+    };
+  }, [quizHistory, learningAnalytics.totalAttempts, studyStats.quizStreak, studyStats.cardsStudied, smartCoins]);
+
+  const identity = useMemo(() => computeCurrentIdentity(identityStats), [identityStats]);
+  const identityProgress = useMemo(() => computeProgressToNext(identityStats, identity), [identityStats, identity]);
+
+  // Populated when the user crosses into a new tier after an activity, so the
+  // dashboard can show the IdentityUnlockModal. Cleared via dismissIdentityUnlock.
+  const [identityUnlock, setIdentityUnlock] = useState(null);
+  const dismissIdentityUnlock = useCallback(() => setIdentityUnlock(null), []);
+
+  const refreshIdentityUnlock = useCallback(() => {
+    const current = computeCurrentIdentity(identityStats);
+    if (current.tier > 0 && shouldCelebrate(current.tier)) {
+      acknowledgeUnlock(current.tier);
+      setIdentityUnlock(current);
+    }
+  }, [identityStats]);
+
+  // Re-evaluate for a fresh tier unlock after any quiz activity (history or
+  // attempt count changes), so the celebration fires right after a milestone.
+  useEffect(() => {
+    refreshIdentityUnlock();
+    // Only re-run when the underlying stats change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [identityStats.totalAttempts, quizHistory.length]);
+
   return (
     <AppContext.Provider value={{
       session, loadingAuth, flashcards, setFlashcards, exams, setExams,
@@ -1069,6 +1365,14 @@ export function AppProvider({ children }) {
       smartCoins, scLedger, claimDailySC, earnSC, spendSC, recordStreakBreak, recordQuizFailPenalty,
       bumpGroupQuizStreak, fetchSCRank,
       streakFreezeActive, setStreakFreezeActive,
+      identity, identityProgress, identityUnlock, dismissIdentityUnlock, refreshIdentityUnlock,
+      // ---- Command Center exports ----
+      sessionRevoked, SC_FEATURE_LOCKED, isPremium,
+      quota, fetchQuotaStatus, consumeQuota,
+      difficultyProgress, fetchDifficultyStatus, recordAnsweredBatch,
+      userAchievements, fetchAchievements,
+      flashcardAccess, fetchFlashcardAccess,
+      validateSessionActive, registerSessionServerSide,
       signOut
     }}>
       {children}

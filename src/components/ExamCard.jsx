@@ -4,7 +4,7 @@ import { MapPin, Clock, Edit2, Trash2, ChevronRight, CheckCircle2, AlertCircle, 
   // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 
-const ExamCard = ({ exam, onEdit, onDelete, onUpdateReadiness, onToggleTopic }) => {
+const ExamCard = ({ exam, onEdit, onDelete, onUpdateReadiness, onToggleTopic, isAdmin }) => {
   const [isExpanded, setIsExpanded] = useState(false);
   const [showActions, setShowActions] = useState(false);
 
@@ -45,12 +45,14 @@ const ExamCard = ({ exam, onEdit, onDelete, onUpdateReadiness, onToggleTopic }) 
             </span>
           </div>
           <div className="flex items-center gap-1">
-            <button
-              onClick={(e) => { e.stopPropagation(); setShowActions(!showActions); }}
-              className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-full transition-colors text-slate-400"
-            >
-              <MoreVertical size={18} />
-            </button>
+            {isAdmin && (
+              <button
+                onClick={(e) => { e.stopPropagation(); setShowActions(!showActions); }}
+                className="p-2 hover:bg-white dark:hover:bg-slate-700 rounded-full transition-colors text-slate-400"
+              >
+                <MoreVertical size={18} />
+              </button>
+            )}
           </div>
         </div>
 
@@ -194,12 +196,14 @@ const ExamCard = ({ exam, onEdit, onDelete, onUpdateReadiness, onToggleTopic }) 
                     <BookOpen size={14} /> Study Materials <ExternalLink size={10} />
                   </a>
                 )}
-                <button
-                  onClick={() => onEdit(exam)}
-                  className="flex-1 px-4 py-3 bg-medical-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-medical-600/20 active:scale-95"
-                >
-                  Edit Details
-                </button>
+                {isAdmin && (
+                  <button
+                    onClick={() => onEdit(exam)}
+                    className="flex-1 px-4 py-3 bg-medical-600 text-white rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg shadow-medical-600/20 active:scale-95"
+                  >
+                    Edit Details
+                  </button>
+                )}
               </div>
             </div>
           </motion.div>

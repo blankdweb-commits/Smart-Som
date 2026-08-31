@@ -21,7 +21,7 @@ create table if not exists public.profiles (
   cards_studied integer default 0,
   quiz_streak integer default 0,
   max_quiz_streak integer default 0,
-  milestone text default 'Clinical Beginner',
+  milestone text default 'Auxibaby 👶',
   created_at timestamptz not null default now(),
   updated_at timestamptz not null default now()
 );
@@ -34,7 +34,7 @@ alter table public.profiles add column if not exists streak integer default 0;
 alter table public.profiles add column if not exists cards_studied integer default 0;
 alter table public.profiles add column if not exists quiz_streak integer default 0;
 alter table public.profiles add column if not exists max_quiz_streak integer default 0;
-alter table public.profiles add column if not exists milestone text default 'Clinical Beginner';
+alter table public.profiles add column if not exists milestone text default 'Auxibaby 👶';
 alter table public.profiles add column if not exists updated_at timestamptz not null default now();
 
 create index if not exists idx_profiles_email on public.profiles(email);
@@ -48,13 +48,14 @@ language plpgsql
 security definer set search_path = public
 as $$
 begin
-  insert into public.profiles (id, full_name, email, phone, level)
+  insert into public.profiles (id, full_name, email, phone, level, milestone)
   values (
     new.id,
     coalesce(new.raw_user_meta_data->>'full_name', ''),
     coalesce(new.email, ''),
     coalesce(new.raw_user_meta_data->>'phone', ''),
-    coalesce(new.raw_user_meta_data->>'nursing_year', '')
+    coalesce(new.raw_user_meta_data->>'nursing_year', ''),
+    'Auxibaby 👶'
   )
   on conflict (id) do nothing;
   return new;

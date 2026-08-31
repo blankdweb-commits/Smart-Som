@@ -5,11 +5,16 @@ import { BookOpen, TrendingUp, Award, Zap, ArrowRight, Star, Clock, AlertCircle,
 import { differenceInDays } from 'date-fns';
 
 import DailyChallengeWidget from '../components/DailyChallengeWidget';
+import IdentityCard from '../components/IdentityCard';
+import IdentityUnlockModal from '../components/IdentityUnlockModal';
+import Recommendations from '../components/Recommendations';
+import StudyCoachWidget from '../components/StudyCoachWidget';
+import { greetingForName } from '../utils/getGreeting';
 import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
 const Dashboard = () => {
   const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
-  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics, quizHistory, smartCoins, scLedger, claimDailySC } = useAppContext();
+  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics, quizHistory, smartCoins, scLedger, claimDailySC, identity, identityUnlock, dismissIdentityUnlock, quota, fetchQuotaStatus, difficultyProgress, isPremium, SC_FEATURE_LOCKED } = useAppContext();
   const navigate = useNavigate();
 
   // Redirect if not logged in - Only if not in DEV_MODE and NOT in Dashboard-First mode
@@ -82,6 +87,11 @@ const Dashboard = () => {
 
   const [currentTip, setCurrentTip] = React.useState(0);
 
+  // Load free-user quota status for the Command Center on mount.
+  React.useEffect(() => {
+    if (session?.user && !isPremium) fetchQuotaStatus();
+  }, [session?.user, isPremium, fetchQuotaStatus]);
+
   const quickReference = [
     { label: "Normal BP", value: "120/80 mmHg" },
     { label: "Normal HR", value: "60-100 bpm" },
@@ -98,22 +108,89 @@ const Dashboard = () => {
     return () => clearInterval(interval);
   }, [tipsCount]);
 
+  // ---- Exam Readiness score (weighted: accuracy, volume, streak) ----
+  const readinessScore = React.useMemo(() => {
+    const acc = todayStats.accuracy;
+    const questions = todayStats.questions;
+    const streak = studyStats.streak || 0;
+    const accScore = Math.min(50, (acc / 100) * 50);
+    const volScore = Math.min(30, Math.min(1, questions / 50) * 30);
+    const streakScore = Math.min(20, Math.min(1, streak / 7) * 20);
+    return Math.round(accScore + volScore + streakScore);
+  }, [todayStats.accuracy, todayStats.questions, studyStats.streak]);
+
+  const readinessLabel =
+    readinessScore >= 80 ? 'Combat Ready' :
+    readinessScore >= 50 ? 'Getting Sharper' :
+    readinessScore >= 20 ? 'Warming Up' : 'Just Started';
+
+  const readinessHint =
+    readinessScore >= 80 ? 'You are exam-ready. Keep the momentum through review. 🔥' :
+    readinessScore >= 50 ? 'Solid base — push accuracy above 70% to level up.' :
+    'Answer a few questions today to build your readiness score.';
+
+  // ---- Contextual CTA (weak area callout + action) ----
+  const weakAreas = (learningAnalytics.weakConcepts || []).slice(0, 3);
+  const contextualCTA = React.useMemo(() => {
+    if (nearExams.length > 0) {
+      return {
+        title: `${nearExams[0].title.split(' ')[0]} Exam Soon`,
+        body: 'Your exam window is close. Sharpen the high-yield topics now.',
+        label: 'Revise Now',
+        to: '/flashcards',
+        tone: 'rose'
+      };
+    }
+    if (todayStats.questions === 0) {
+      return {
+        title: 'Start Today\u2019s Mission',
+        body: 'No questions answered yet. Warm up with a quick practice set.',
+        label: 'Start Quiz',
+        to: '/quiz',
+        tone: 'apex'
+      };
+    }
+    return {
+      title: 'Fix My Weakest Areas',
+      body: weakAreas.length
+        ? `You\u2019re below 60% on ${weakAreas.length} concept${weakAreas.length > 1 ? 's' : ''}. Turn those around.`
+        : 'Targeted practice sharpens the areas that cost you marks.',
+      label: 'Get Targeted',
+      to: '/quiz?weakness=1',
+      tone: 'rose'
+    };
+  }, [nearExams, todayStats.questions, weakAreas.length]);
+
+  const ctaTone =
+    contextualCTA.tone === 'rose'
+      ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20'
+      : 'bg-apex-600 hover:bg-apex-700 shadow-apex-600/20';
+
   return (
     <div className="relative space-y-6 sm:space-y-8 pb-32 animate-in fade-in duration-700 max-w-5xl mx-auto px-1 sm:px-0 overflow-x-hidden">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="w-full">
-          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">Apex Scholars</h2>
+          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-apex-600 dark:text-apex-400 mb-1 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Nursing Exam Command Center
+          </p>
+          <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
+            {greetingForName(userProfile.fullName || session?.user?.user_metadata?.full_name, 'Scholar')}
+            {' '}{identity?.emoji || '👶'}
+          </h2>
           <p className="text-slate-500 dark:text-slate-400 font-medium mt-1 text-sm sm:text-base">Institutional Productivity Hub • {userProfile.level}</p>
         </div>
         <div className="flex gap-3">
            <button
             onClick={() => navigate('/flashcards')}
+            aria-label="Open flashcards"
             className="p-4 bg-white dark:bg-slate-800 rounded-[1.5rem] shadow-soft border border-slate-100 dark:border-slate-700 hover:text-apex-600 transition-all"
            >
              <Zap size={24} />
            </button>
         </div>
       </header>
+
+      <IdentityUnlockModal identity={identityUnlock} onClose={dismissIdentityUnlock} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
@@ -166,9 +243,36 @@ const Dashboard = () => {
           )}
 
 
+          <motion.div
+            initial={{ opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            className="p-6 rounded-[2rem] bg-white dark:bg-slate-800 shadow-clinical border border-slate-100 dark:border-slate-700 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4"
+          >
+            <div className="flex items-start gap-4 min-w-0">
+              <div className={`w-12 h-12 rounded-2xl ${ctaTone.split(' ')[0]} flex items-center justify-center text-white shrink-0`}>
+                <Target size={22} />
+              </div>
+              <div className="min-w-0">
+                <h4 className="font-black text-lg text-slate-900 dark:text-white leading-tight">{contextualCTA.title}</h4>
+                <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mt-0.5">{contextualCTA.body}</p>
+              </div>
+            </div>
+            <button
+              onClick={() => navigate(contextualCTA.to)}
+              className={`shrink-0 px-5 py-3 ${ctaTone} text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg transition-all active:scale-95 flex items-center gap-2`}
+            >
+              {contextualCTA.label} <ArrowRight size={14} />
+            </button>
+          </motion.div>
+
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <DailyChallengeWidget />
             <TodayProgressWidget streak={studyStats.streak} stats={todayStats} />
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <QuotaCard quota={quota} isPremium={isPremium} onRefresh={fetchQuotaStatus} />
+            <DifficultyProgressCard progress={difficultyProgress} isPremium={isPremium} />
           </div>
 
           <WeaknessChallengeCard
@@ -255,6 +359,35 @@ const Dashboard = () => {
         </div>
 
         <div className="space-y-8">
+           <IdentityCard stats={{
+             totalAttempts: learningAnalytics.totalAttempts || 0,
+             quizStreak: studyStats.quizStreak || 0,
+             cardsStudied: studyStats.cardsStudied || 0,
+             accuracy: todayStats.accuracy,
+             scEarned: smartCoins || 0,
+             speedRuns: 0
+           }} />
+
+           <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-700">
+             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-1.5">
+               <Target size={14} className="text-apex-600" /> Exam Readiness
+             </h4>
+             <div className="flex items-center justify-between mb-2">
+               <span className="text-sm font-black text-slate-700 dark:text-slate-200">{readinessLabel}</span>
+               <span className="text-xl font-black text-apex-600">{readinessScore}%</span>
+             </div>
+             <div className="w-full h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden border border-slate-50 dark:border-slate-800">
+               <motion.div
+                 initial={{ width: 0 }}
+                 animate={{ width: `${readinessScore}%` }}
+                 className="h-full bg-gradient-to-r from-apex-500 to-apex-600 rounded-full"
+               />
+             </div>
+             <p className="text-xs text-slate-400 font-medium mt-3">{readinessHint}</p>
+           </div>
+
+           <StudyCoachWidget />
+
            <div className="bg-amber-500 rounded-[2.5rem] p-8 text-white shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-10">
               <Coins size={120} />
@@ -264,15 +397,25 @@ const Dashboard = () => {
             <div className="flex items-end justify-between relative z-10">
               <div>
                 <p className="text-5xl font-black tracking-tighter">{smartCoins} <span className="text-xl">SC</span></p>
-                <p className="text-xs font-bold text-white/80 mt-1">{userProfile.isActivated ? 'Earn 9 SC daily when activated' : 'Activate your account to start earning SC'}</p>
+                <p className="text-xs font-bold text-white/80 mt-1">
+                  {SC_FEATURE_LOCKED
+                    ? 'Transfer unlocked with the upcoming 1v1 Duel Arena'
+                    : (userProfile.isActivated ? 'Earn 9 SC daily when activated' : 'Activate your account to start earning SC')}
+                </p>
               </div>
-              <button
-                onClick={claimDailySC}
-                disabled={!userProfile.isActivated}
-                className="bg-white text-amber-600 font-black text-sm uppercase tracking-wide px-4 py-3 rounded-2xl shadow hover:bg-amber-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
-              >
-                Claim +9
-              </button>
+              {SC_FEATURE_LOCKED ? (
+                <span className="bg-white/20 text-white text-[10px] font-black uppercase tracking-widest px-4 py-3 rounded-2xl backdrop-blur">
+                  Locked
+                </span>
+              ) : (
+                <button
+                  onClick={claimDailySC}
+                  disabled={!userProfile.isActivated}
+                  className="bg-white text-amber-600 font-black text-sm uppercase tracking-wide px-4 py-3 rounded-2xl shadow hover:bg-amber-50 disabled:opacity-50 disabled:cursor-not-allowed transition"
+                >
+                  Claim +9
+                </button>
+              )}
             </div>
             {scLedger.length > 0 && (
               <div className="mt-5 pt-4 border-t border-white/20 relative z-10">
@@ -312,6 +455,19 @@ const Dashboard = () => {
                 <p className="text-slate-600 dark:text-slate-300 italic font-medium leading-relaxed tracking-tight">"{studyTips[currentTip]}"</p>
              </div>
           </div>
+
+          <Recommendations stats={{
+            questionsToday: todayStats.questions,
+            accuracy: todayStats.accuracy,
+            weakConcepts: learningAnalytics.weakConcepts || [],
+            dueFlashcards: dueFlashcards.length,
+            nearExams: nearExams.map(e => ({
+              subject: e.title.split(' ')[0],
+              days: differenceInDays(new Date(e.date), new Date())
+            })),
+            streak: studyStats.streak || 0,
+            isActivated: !!userProfile.isActivated
+          }} />
         </div>
       </div>
     </div>
@@ -459,6 +615,105 @@ const WeaknessChallengeCard = ({ totalAttempts, weakConcepts, isActivated, onFix
           </div>
         )}
       </div>
+    </div>
+  );
+};
+
+// ---- Free-user quota card: 50 questions / 12h cooldown (premium = unlimited) ----
+const QuotaCard = ({ quota, isPremium, onRefresh }) => {
+  const used = isPremium ? null : (quota?.questions_used ?? 0);
+  const remaining = isPremium ? null : (quota?.questions_remaining ?? 0);
+  const percent = isPremium ? 100 : Math.max(0, Math.min(100, Math.round((used / 50) * 100)));
+
+  const cooldownLabel = quota?.resets_at
+    ? new Date(quota.resets_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    : null;
+
+  return (
+    <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-800">
+      <div className="flex items-center justify-between mb-1">
+        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Free Daily Quota</h3>
+        {isPremium ? (
+          <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-2.5 py-1 rounded-full">Unlimited</span>
+        ) : (
+          <span className="text-[9px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 dark:bg-amber-900/30 px-2.5 py-1 rounded-full">50 / 12h</span>
+        )}
+      </div>
+
+      {isPremium ? (
+        <div className="flex items-center gap-3 mt-3">
+          <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
+            <CheckCircle size={18} className="text-emerald-600" />
+          </div>
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">You have unlimited questions. Keep the momentum going.</p>
+        </div>
+      ) : (
+        <>
+          <div className="flex items-end justify-between mt-2">
+            <span className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">
+              {remaining}
+              <span className="text-sm text-slate-400 font-bold ml-1">left</span>
+            </span>
+            <span className="text-[10px] text-slate-400 font-bold">resets {cooldownLabel || 'in 12h'}</span>
+          </div>
+          <div className="w-full h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden mt-3 border border-slate-50 dark:border-slate-800">
+            <div className="h-full bg-amber-500 rounded-full" style={{ width: `${percent}%` }} />
+          </div>
+          {remaining <= 10 && (
+            <button
+              onClick={onRefresh}
+              className="w-full mt-3 py-2.5 bg-amber-500 text-white rounded-xl font-black uppercase tracking-widest text-[9px] hover:bg-amber-600 transition-all active:scale-95"
+            >
+              Check My Quota
+            </button>
+          )}
+        </>
+      )}
+    </div>
+  );
+};
+
+// ---- Difficulty unlock progress: correct answers across tiers ----
+const DifficultyProgressCard = ({ progress, isPremium }) => {
+  const tiers = [
+    { key: 'medium', label: 'Medium', need: 50 },
+    { key: 'hard', label: 'Hard', need: 80 },
+    { key: 'expert', label: 'Expert', need: 100 }
+  ];
+
+  return (
+    <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-800">
+      <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Difficulty Unlocks</h3>
+      <div className="mt-4 space-y-4">
+        {tiers.map(t => {
+          const row = Array.isArray(progress)
+            ? progress.find(p => String(p.difficulty).toLowerCase() === t.key)
+            : null;
+          const got = row?.correct_count ?? 0;
+          const pct = Math.min(100, Math.round((got / t.need) * 100));
+          const unlocked = row?.unlocked === true || got >= t.need;
+          return (
+            <div key={t.key}>
+              <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">
+                <span className="flex items-center gap-1.5">
+                  {unlocked ? <CheckCircle size={12} className="text-emerald-500" /> : <Lock size={12} className="text-slate-400" />}
+                  {t.label}
+                </span>
+                <span className={unlocked ? 'text-emerald-600' : 'text-slate-500'}>{unlocked ? 'Unlocked' : `${got}/${t.need}`}</span>
+              </div>
+              <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                <div
+                  className={`h-full rounded-full ${unlocked ? 'bg-emerald-500' : 'bg-apex-600'}`}
+                  style={{ width: `${pct}%` }}
+                />
+              </div>
+            </div>
+          );
+        })}
+      </div>
+      {!isPremium && (
+        <p className="text-[10px] text-slate-400 italic mt-4">Correct answers unlock higher difficulty tiers.</p>
+      )}
     </div>
   );
 };

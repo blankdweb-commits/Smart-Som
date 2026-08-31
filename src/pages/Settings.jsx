@@ -138,7 +138,7 @@ export default function Settings() {
               {(userProfile.fullName || 'A').charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <p className="font-black text-slate-900 dark:text-white truncate">{userProfile.fullName || 'Anonymous Scholar'}</p>
+              <p className="font-black text-slate-900 dark:text-white truncate">{userProfile.fullName || 'Auxibaby'}</p>
               <p className="text-xs font-bold text-slate-400 truncate">{session?.user?.email || userProfile.email || 'Not signed in'}</p>
             </div>
           </div>

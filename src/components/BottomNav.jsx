@@ -25,8 +25,8 @@ const BottomNav = () => {
     { name: 'Home', icon: LayoutDashboard, path: '/dashboard' },
     { name: 'Quiz', icon: Brain, path: '/quiz' },
     { name: 'Cards', icon: BookOpen, path: '/flashcards' },
-    { name: 'Exams', icon: Calendar, path: '/exams' },
-    { name: 'Papers', icon: FileUp, path: '/papers' },
+    { name: 'Voting', icon: Calendar, path: '/voting' },
+    { name: 'Market', icon: FileUp, path: '/marketplace' },
     { name: 'Circle', icon: Users, path: '/community' },
   ];
 

@@ -14,7 +14,8 @@ import 'react-calendar/dist/Calendar.css';
 import { motion, AnimatePresence } from 'framer-motion';
 
 const ExamTimetable = () => {
-  const { exams, addExam, updateExam, deleteExam } = useAppContext();
+  const { exams, addExam, updateExam, deleteExam, userProfile } = useAppContext();
+  const isAdmin = !!userProfile.isAdmin;
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [editingExam, setEditingExam] = useState(null);
   const [view, setView] = useState('list'); // 'list' or 'calendar'
@@ -84,8 +85,10 @@ const ExamTimetable = () => {
       {/* Header Area */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div>
-          <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Exam Central</h2>
-          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">Manage your academic milestones and readiness.</p>
+          <h2 className="text-4xl font-black text-slate-900 dark:text-white tracking-tight">Exam Center</h2>
+          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1">
+            {isAdmin ? 'Manage the official school timetable and readiness.' : 'View the official timetable and your readiness.'}
+          </p>
         </div>
         <div className="flex gap-3 w-full md:w-auto">
           <button
@@ -94,12 +97,14 @@ const ExamTimetable = () => {
           >
             <Download size={18} /> Export
           </button>
-          <button
-            onClick={() => { setEditingExam(null); setIsFormOpen(true); }}
-            className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-4 bg-medical-600 hover:bg-medical-700 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-medical-600/20 active:scale-95 transition-all"
-          >
-            <Plus size={18} /> Schedule
-          </button>
+          {isAdmin && (
+            <button
+              onClick={() => { setEditingExam(null); setIsFormOpen(true); }}
+              className="flex-1 md:flex-none flex items-center justify-center gap-2 px-6 py-4 bg-medical-600 hover:bg-medical-700 text-white rounded-2xl font-black uppercase tracking-widest text-xs shadow-xl shadow-medical-600/20 active:scale-95 transition-all"
+            >
+              <Plus size={18} /> Schedule
+            </button>
+          )}
         </div>
       </div>
 
@@ -144,6 +149,7 @@ const ExamTimetable = () => {
                   onDelete={handleDelete}
                   onUpdateReadiness={handleUpdateReadiness}
                   onToggleTopic={handleToggleTopic}
+                  isAdmin={isAdmin}
                 />
               )) : (
                 <motion.div
@@ -153,12 +159,16 @@ const ExamTimetable = () => {
                 >
                   <CalendarIcon size={64} className="opacity-20" />
                   <p className="font-black uppercase tracking-widest text-lg">No Assessments Scheduled</p>
-                  <button
-                    onClick={() => setIsFormOpen(true)}
-                    className="text-medical-600 font-bold hover:underline"
-                  >
-                    Add your first exam now
-                  </button>
+                  {isAdmin ? (
+                    <button
+                      onClick={() => setIsFormOpen(true)}
+                      className="text-medical-600 font-bold hover:underline"
+                    >
+                      Add the first exam now
+                    </button>
+                  ) : (
+                    <p className="text-sm text-slate-400">The school timetable has not been published yet. Check back soon.</p>
+                  )}
                 </motion.div>
               )}
             </AnimatePresence>
@@ -188,7 +198,7 @@ const ExamTimetable = () => {
               </h4>
               <div className="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scrollbar">
                 {sortedExams.length > 0 ? sortedExams.map(exam => (
-                  <div key={exam.id} className="p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border-l-4 border-medical-500 group cursor-pointer hover:bg-white dark:hover:bg-slate-700 transition-all shadow-sm" onClick={() => handleEdit(exam)}>
+                  <div key={exam.id} className={`p-4 bg-slate-50 dark:bg-slate-900/40 rounded-2xl border-l-4 border-medical-500 group transition-all shadow-sm ${isAdmin ? 'cursor-pointer hover:bg-white dark:hover:bg-slate-700' : ''}`} onClick={() => isAdmin && handleEdit(exam)}>
                     <p className="font-black text-slate-800 dark:text-white text-sm group-hover:text-medical-600 transition-colors">{exam.title}</p>
                     <div className="flex items-center gap-3 mt-2">
                       <span className="text-[10px] font-bold text-slate-400 uppercase">{format(parseISO(exam.date), 'MMM dd')}</span>

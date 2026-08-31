@@ -15,22 +15,50 @@ import {
 import useluData from '../data/flashcards/nmcn/uselu-posting-tests.json';
 import respirationData from '../data/flashcards/nmcn/Respiration-richard.json';
 import fluidData from '../data/flashcards/nmcn/fluid-electrolytes.json';
+import rawNclex from '../data/flashcards/nclex/nclex-rn-ngn.json';
 import { pharmacologyData, musculoskeletalData, neurologicalData, nursing200Data, midwiferyData } from '../data/richardBank';
 import { questionId } from '../utils/questionMetadata';
 
 // Combined pool for all non-Uselu modes. Uselu Test Questions keeps its
 // dedicated bank and never draws from this pool.
-const GENERAL_POOL = [
+// NMCN-category exam banks (respiratory, pharmacology, musculoskeletal,
+// neurological). fluid-electrolytes is NCLEX-category and is deliberately
+// excluded from the NMCN pool.
+const NMCN_POOL = [
   ...respirationData,
-  ...fluidData,
   ...pharmacologyData,
   ...musculoskeletalData,
   ...neurologicalData
 ];
 
+// NCLEX-category exam banks — drawn ONLY by the Clinical and Quick modes when
+// the learner picks the NCLEX (or Both) source. Never mixed into Uselu /
+// 200-level modes. The rich fluid-electrolytes bank is a full MCQ bank;
+// nclex-rn-ngn is flashcard-shaped (single `answer`, no options array), so
+// `boxCard` synthesizes distractor options for it at build time.
+const NCLEX_POOL = [
+  ...fluidData,
+  ...(Array.isArray(rawNclex) ? rawNclex : []).map((q, i) => ({
+    id: String(q.id || `nclex-idx-${i}`),
+    question: q.question,
+    options: Array.isArray(q.options) ? [...q.options] : [],
+    correctAnswer: q.correctAnswer || q.answer || undefined,
+    rationale: q.rationale || undefined,
+    hint: q.hint || 'Think through the nursing priority and reasoning being tested.',
+    subject: q.subject || 'NCLEX-RN',
+    topic: q.topic,
+    category: 'NCLEX',
+    difficulty: q.difficulty || 'Medium',
+    source: 'NCLEX'
+  }))
+];
+
+// All exam-purpose banks (used by Clinical/Quick "Both" and Weakness modes).
+const ALL_EXAM_POOL = [...NMCN_POOL, ...NCLEX_POOL];
+
 // Nursing 200-Level is a dedicated bank drawn by its own mode card only —
-// it is intentionally NOT part of GENERAL_POOL so the Clinical/Quick modes
-// don't mix 200-level questions into the general pools.
+// it is intentionally NOT part of the NMCN/NCLEX exam pools so the
+// Clinical/Quick modes don't mix 200-level questions into the general pools.
 const NURSING200_POOL = nursing200Data;
 
 // Midwifery 200-Level — dedicated bank with its own mode
@@ -151,9 +179,11 @@ const Quiz = () => {
   const [activeConfig, setActiveConfig] = useState(null);  // config from QuizSetupFlow
   const [playerResult, setPlayerResult] = useState(null);  // { score, total, answers[], durationSeconds }
   const [activeQuestions, setActiveQuestions] = useState([]);
+  // Free-user 50/12h quota gate: surfaced when the user exhausts their window.
+  const [quotaNotice, setQuotaNotice] = useState(null); // { remaining, exhausted }
 
   // ----- Difficulty progression -----
-  const { recordQuizResult, recordWrongAnswers, recordAttempts, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchSCRank, studyStats, levelCompletions, session, fetchAttemptedQuestionIds } = useAppContext();
+  const { recordQuizResult, recordWrongAnswers, recordAttempts, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchSCRank, studyStats, levelCompletions, session, fetchAttemptedQuestionIds, consumeQuota, isPremium, fetchQuotaStatus, recordAnsweredBatch } = useAppContext();
   const [selectedDifficulty, setSelectedDifficulty] = useState(null);
   const [globalRank, setGlobalRank] = useState(null);
 
@@ -208,7 +238,7 @@ const Quiz = () => {
 
   // Deep-link support: /quiz?difficulty=Hard (e.g. from a completed flashcard session)
   const [, setSearchParams] = useSearchParams();
-  const SUBJECT_FILTERS = ['Pharmacology', 'Musculoskeletal', 'Neurological Nursing', 'Medical Surgical', 'Chemistry', 'Mental Health', 'Principles of Management and Teaching', 'Medical-Surgical Nursing II', 'Child Health', 'Home Health Care Nursing', 'Entrepreneurship in Midwifery'];
+  const SUBJECT_FILTERS = ['Pharmacology', 'Musculoskeletal', 'Neurological Nursing', 'Medical Surgical', 'Chemistry', 'Mental Health', 'Principles of Management and Teaching', 'Medical-Surgical Nursing II', 'Child Health', 'Home Health Care Nursing', 'Entrepreneurship in Midwifery', 'Community Health Nursing I', 'Fundamentals of Nursing', 'Medical-Surgical Nursing', 'Unit I: Introduction to Nutrition', 'Unit II: Nutritional Needs', 'Unit III: Food Planning, Preparation, and Safety', 'Pharmacology III', 'Concept of Politics and Government', 'Political Interaction', 'Political Activities', 'Reproductive Health', 'Research Methodology'];
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const d = params.get('difficulty');
@@ -302,12 +332,19 @@ const Quiz = () => {
   };
 
   // Builds a question set for the immersive player.
-  const buildQuestionSet = (engineMode, difficulty, count, order, subject) => {
+  const buildQuestionSet = (engineMode, difficulty, count, order, subject, examSource) => {
     let pool;
     if (engineMode === 'uselu') pool = useluData;
     else if (engineMode === 'nursing200') pool = NURSING200_POOL;
     else if (engineMode === 'midwifery') pool = MIDWIFERY_POOL;
-    else pool = GENERAL_POOL;
+    else {
+      // Clinical / Quick: honor the exam-source toggle. NCLEX / NMCN are ONLY
+      // available here — never in Uselu / 200-level modes (Weakness uses the
+      // full merged pool below). Fluid-electrolytes is NCLEX-category.
+      if (examSource === 'nclex') pool = NCLEX_POOL;
+      else if (examSource === 'nmcn') pool = NMCN_POOL;
+      else pool = ALL_EXAM_POOL;
+    }
     if (subject) {
       pool = pool.filter(c => c.subject === subject);
     }
@@ -368,9 +405,29 @@ const Quiz = () => {
     return picked.map(card => boxCard(card));
   };
 
-  const launchPlayer = (engineMode, cfg) => {
-    const questions = buildQuestionSet(engineMode, cfg.difficulty, cfg.questionCount, cfg.order, cfg.subject);
+  const launchPlayer = async (engineMode, cfg, opts = {}) => {
+    const questions = buildQuestionSet(engineMode, cfg.difficulty, cfg.questionCount, cfg.order, cfg.subject, cfg.examSource);
     if (questions.length === 0) return;
+
+    // FREE-USER QUOTA GATE (50 questions / 12h cooldown).
+    // Premium users are unlimited (server-verified; consumeQuota short-circuits).
+    // We reserve the whole set up front so a user cannot bank more than the cap.
+    // Retrying the SAME already-reserved set skips consumption (no double charge).
+    if (!opts.skipQuota && !isPremium && session) {
+      try {
+        const res = await consumeQuota(questions.length, session);
+        if (!res) { setQuotaNotice({ remaining: 0, exhausted: true }); fetchQuotaStatus(); return; }
+        if (res.in_cooldown) {
+          setQuotaNotice({ remaining: res.questions_remaining ?? 0, exhausted: true });
+          fetchQuotaStatus();
+          return;
+        }
+      } catch (err) {
+        console.warn('Quota gate skipped (fallback allow):', err.message);
+      }
+    }
+
+    setQuotaNotice(null);
     setActiveConfig({ ...cfg, engineMode });
     setActiveQuestions(questions);
     setPlayerResult(null);
@@ -425,6 +482,22 @@ const Quiz = () => {
     // Weakness Challenge data source — log every answered question.
     if (result.answers && result.answers.length > 0) {
       await recordAttempts(result.answers);
+
+      // Difficulty unlock progression — record genuinely correct answers per
+      // difficulty tier (server ignores incorrect, tracks the gate counts).
+      // Correct answers only count toward unlocking (spec requirement).
+      const byDifficulty = {};
+      (result.answers || []).forEach(a => {
+        if (!a.correct) return;
+        const d = (a.difficulty || activeConfig?.difficulty || 'Easy');
+        (byDifficulty[d] = byDifficulty[d] || []).push({
+          question_id: String(a.questionId ?? a.id ?? '').trim(),
+          correct: true
+        });
+      });
+      for (const [diff, ans] of Object.entries(byDifficulty)) {
+        if (ans.length > 0) await recordAnsweredBatch({ difficulty: diff, answers: ans });
+      }
     }
     // Refresh the no-repetition set so the next session starts fresh.
     await refreshAttemptedIds();
@@ -450,7 +523,7 @@ const Quiz = () => {
   const retrySameSession = () => {
     if (!activeConfig) return;
     const { engineMode, ...cfg } = activeConfig;
-    launchPlayer(engineMode, cfg);
+    launchPlayer(engineMode, cfg, { skipQuota: true });
   };
 
   const editSessionSetup = () => {
@@ -473,6 +546,31 @@ const Quiz = () => {
   }, [playerActive]);
 
   // --- Render start ---
+
+  // Free-user quota exhausted: show the cooldown gate before anything else.
+  if (quotaNotice && !playerActive) {
+    return (
+      <div className="min-h-[70vh] max-w-md mx-auto px-4 pt-10 flex items-center justify-center animate-in fade-in">
+        <div className="w-full text-center">
+          <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center mb-5">
+            <Timer className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+          </div>
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">Daily question limit reached</h2>
+          <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-6">
+            Free learners get <span className="font-semibold">50 questions every 12 hours</span>. You've used them all
+            for this window. Your cooldown begins the moment you hit the limit — come back soon, or{' '}
+            <span className="font-semibold text-teal-600">go Premium for unlimited questions</span>.
+          </p>
+          <button
+            onClick={async () => { setQuotaNotice(null); await fetchQuotaStatus(); }}
+            className="w-full bg-teal-600 hover:bg-teal-500 text-white font-semibold py-3.5 rounded-xl transition-colors"
+          >
+            Check my quota
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   // Guided 3-step setup flow (Clinical / Quick / Uselu entry)
   if (!playerActive && !playerResult && setupType) {

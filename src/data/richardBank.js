@@ -37,18 +37,36 @@ const realDifficulty = (q, i) => {
   return tierForIndex(i);
 };
 
+// A bank stores its answer either as a single option letter ("A".."E") with the
+// text duplicated in correct_answer_text (Richard-style), OR as the full answer
+// text directly in correct_answer with no separate text field (200-level file).
+// Detect which convention a row uses so the correct answer is never left
+// undefined.
+const resolveCorrectAnswer = (q) => {
+  const raw = String(q.correct_answer || '').trim();
+  const letterIdx = LETTER_TO_INDEX[raw.toUpperCase()];
+  // Letter convention: correct_answer is a single letter A–E.
+  if (letterIdx != null && Array.isArray(q.options)) {
+    return q.correct_answer_text || String(q.options[letterIdx]);
+  }
+  // Full-text convention: correct_answer IS the answer text.
+  return raw || q.correct_answer_text || undefined;
+};
+
+// Prefer the bank's own numeric id when present. The 200-level file uses
+// `question_id`; the midwifery/other banks use `id`.
+const bankItemId = (q, prefix, i) => {
+  const numeric = typeof q.id !== 'undefined' ? q.id : q.question_id;
+  return typeof numeric !== 'undefined' ? `${prefix}-${numeric}` : `${prefix}-idx-${i}`;
+};
+
 const normalizeRichardBank = (raw, { prefix, source }) =>
   raw.map((q, i) => {
-    const letterIdx = LETTER_TO_INDEX[String(q.correct_answer || '').trim().toUpperCase()];
-    const fromText = q.correct_answer_text ? String(q.correct_answer_text) : undefined;
-    const fromLetter =
-      letterIdx != null && Array.isArray(q.options) ? String(q.options[letterIdx]) : undefined;
-
     return {
-      id: typeof q.id !== 'undefined' ? `${prefix}-${q.id}` : `${prefix}-idx-${i}`,
+      id: bankItemId(q, prefix, i),
       question: q.question,
       options: Array.isArray(q.options) ? [...q.options] : [],
-      correctAnswer: fromText || fromLetter,
+      correctAnswer: resolveCorrectAnswer(q),
       rationale: q.rationale || q.clinical_application || undefined,
       hint:
         q.hints ||

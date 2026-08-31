@@ -30,16 +30,24 @@ const XpHall = () => {
   const [opponent, setOpponent] = useState("The House");
   const [opponentId, setOpponentId] = useState(null);
   const [txState, setTxState] = useState(null); // null | 'pending' | 'done'
+  const [confirmHighWager, setConfirmHighWager] = useState(false); // confirm modal for stakes >= 10
   const ownWaitingKeyRef = useRef(null); // id of my duel_waiting row (to clean up)
+  const askedRef = useRef(new Set()); // card ids asked this arena session (variety)
 
   const fetchHistory = useCallback(async () => {
     if (!supabase) return;
     try {
-      const { data } = await supabase
+      let userId = null;
+      try {
+        userId = (await supabase.auth.getUser()).data.user?.id;
+      } catch { /* ignore */ }
+      let query = supabase
         .from('duels')
         .select('id, opponent, mode, stake, outcome, delta, created_at')
         .order('created_at', { ascending: false })
         .limit(20);
+      if (userId) query = query.eq('user_id', userId);
+      const { data } = await query;
       if (data) setDuelHistory(data);
     } catch {
       // ignore
@@ -150,13 +158,21 @@ const XpHall = () => {
   const shuffle = (arr) => [...arr].sort(() => 0.5 - Math.random());
 
   const pickQuestion = useCallback(() => {
-    let hardCards = flashcards?.filter(c => {
+    let hardCards = (flashcards || []).filter(c => {
       const d = String(c.difficulty || '').toLowerCase();
       return d === 'hard' || d === 'difficult' || d === 'expert' || d === 'extreme';
-    }) || [];
+    });
+    // Fall back to the full deck only when there is no hard pool at all.
     if (hardCards.length === 0) hardCards = flashcards || [];
-    const randomCard = hardCards[Math.floor(Math.random() * hardCards.length)];
-    if (!randomCard) return null;
+    if (hardCards.length === 0) return null;
+
+    // Prefer a card we have not yet asked this session to maximize variety.
+    const unseen = hardCards.filter(c => !askedRef.current.has(c.id));
+    const pool = unseen.length > 0 ? unseen : hardCards;
+    const randomCard = pool[Math.floor(Math.random() * pool.length)];
+    if (randomCard) askedRef.current.add(randomCard.id);
+    if (askedRef.current.size > 40) askedRef.current.clear();
+
     let options = [];
     const correct = randomCard.correctAnswer || randomCard.answer;
     if (Array.isArray(randomCard.options) && randomCard.options.length >= 2) {
@@ -164,9 +180,9 @@ const XpHall = () => {
     } else {
       const distractors = (flashcards || [])
         .filter(c => c.id !== randomCard.id && (c.answer || c.correctAnswer) !== correct)
-        .slice(0, 3)
         .map(c => c.answer || c.correctAnswer);
-      options = shuffle([correct, ...distractors]);
+      const unique = [...new Set(distractors.filter(Boolean))].slice(0, 3);
+      options = shuffle([correct, ...unique]);
     }
     return { ...randomCard, question: randomCard.question, correctAnswer: correct, generatedOptions: options };
   }, [flashcards]);
@@ -184,14 +200,18 @@ const XpHall = () => {
   }, [phase, questionTimeLeft, userAnswerState]);
 
   const buildBreakdown = (won, players) => {
-    const rows = [{ name: "You", score: won ? 10 : 0 }];
+    const rows = [{ name: "You" }];
     for (let i = 1; i < players; i++) {
-      rows.push({ name: opponent, score: won ? 0 : 9 });
+      rows.push({ name: opponent });
     }
     const winnerName = won ? "You" : opponent;
     return rows.map(e => ({
       ...e,
       result: e.name === winnerName ? 'won' : 'lost',
+      // Honest outcome label — no fabricated 10/0 scores.
+      status: e.name === "You"
+        ? (won ? 'Answered correctly' : 'Wrong or timed out')
+        : (e.name === winnerName ? 'Answered correctly' : 'Eliminated'),
       delta: e.name === winnerName ? stake * (players - 1) : -stake,
     }));
   };
@@ -213,11 +233,24 @@ const XpHall = () => {
         } else {
           await spendSC(stake, 'duel_loss');
         }
-        if (supabase && opponentId) {
-          await supabase.from('duels').insert({
-            user_id: (await supabase.auth.getUser()).data.user?.id,
-            opponent, opponent_id: opponentId, mode: mode.id, stake, outcome, delta,
-          }).then(() => {});
+        // Record the duel for BOTH human opponents and solo runs vs The House.
+        // (Previously gated on opponentId, so House matches were never saved.)
+        if (supabase) {
+          let userId = null;
+          try {
+            userId = (await supabase.auth.getUser()).data.user?.id;
+          } catch { /* ignore */ }
+          if (userId) {
+            await supabase.from('duels').insert({
+              user_id: userId,
+              opponent,
+              opponent_id: opponentId || null,
+              mode: mode.id,
+              stake,
+              outcome,
+              delta
+            }).then(() => {});
+          }
         }
       } catch { /* ignore */ }
       setTxState('done');
@@ -355,6 +388,21 @@ const XpHall = () => {
                   </div>
                 </div>
               </div>
+              {smartCoins <= 0 ? (
+                <div className="rounded-2xl p-6 bg-amber-500/10 border border-amber-500/30 text-center space-y-4">
+                  <div className="text-4xl">🪙</div>
+                  <div>
+                    <h3 className="font-black text-amber-300 text-lg">No Smart Coins to wager</h3>
+                    <p className="text-sm text-white/60 font-medium mt-1">
+                      This arena is real-stakes only. Complete quizzes and daily challenges to earn Smart Coins, then come back to duel.
+                    </p>
+                  </div>
+                  <button onClick={() => navigate("/quiz")}
+                    className="w-full py-4 rounded-2xl bg-gradient-to-r from-emerald-500 to-teal-600 font-black uppercase tracking-widest text-xs shadow-lg shadow-emerald-500/30 active:scale-95 transition-all">
+                    Earn Smart Coins
+                  </button>
+                </div>
+              ) : (
               <div className="space-y-4">
                 <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">Set Your Wager</p>
                 <div className="grid grid-cols-5 gap-3">
@@ -369,11 +417,38 @@ const XpHall = () => {
                 </p>
                 {stake > smartCoins && <p className="text-red-400 text-center text-xs font-bold animate-pulse">⚠️ Insufficient SC. Choose a lower wager.</p>}
               </div>
-              <button disabled={stake > smartCoins} onClick={() => startBattle()}
+              )}
+              {smartCoins > 0 && (
+              <button disabled={stake > smartCoins} onClick={() => { if (stake >= 10) setConfirmHighWager(true); else startBattle(); }}
                 className="w-full py-6 rounded-[2rem] bg-gradient-to-r from-indigo-600 to-purple-600 font-black uppercase tracking-[0.3em] text-sm shadow-2xl shadow-indigo-500/30 active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center gap-3"
               >
                 <Zap size={18} fill="currentColor" /> Enter the Arena
               </button>
+              )}
+
+              {confirmHighWager && (
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  className="rounded-2xl p-6 bg-red-500/10 border border-red-500/30 space-y-4"
+                >
+                  <div className="flex items-start gap-3">
+                    <AlertCircle size={20} className="text-red-400 shrink-0 mt-0.5" />
+                    <div>
+                      <h3 className="font-black text-red-300">High-stakes duel</h3>
+                      <p className="text-sm text-white/60 font-medium">
+                        You are about to wager <span className="text-amber-400 font-black">{stake} SC</span>. This is real — if you lose, it comes out of your balance.
+                      </p>
+                    </div>
+                  </div>
+                  <div className="grid grid-cols-2 gap-3">
+                    <button onClick={() => setConfirmHighWager(false)}
+                      className="py-3.5 rounded-2xl bg-white/10 font-black uppercase tracking-widest text-xs hover:bg-white/15 active:scale-95 transition-all">Cancel</button>
+                    <button onClick={() => { setConfirmHighWager(false); startBattle(); }}
+                      className="py-3.5 rounded-2xl bg-red-600 font-black uppercase tracking-widest text-xs shadow-lg shadow-red-500/30 active:scale-95 transition-all">I Understand, Fight</button>
+                  </div>
+                </motion.div>
+              )}
             </motion.div>
           )}
 
@@ -443,7 +518,7 @@ const XpHall = () => {
                   {result.winner === "You" ? "Victory!" : "Eliminated"}
                 </h2>
                 <p className="text-white/50 mt-2 font-medium">{result.winner === "You" ? "You dominated the hall." : `${result.winner} claimed the SC.`}</p>
-                <div className={`mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-lg ${result.delta >= 0 ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"}`}>
+                <div className={`mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-lg animate-pulse ${result.delta >= 0 ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"}`}>
                   {result.delta >= 0 ? '+' : ''}{result.delta} SC
                 </div>
               </div>
@@ -455,7 +530,7 @@ const XpHall = () => {
                       <span className="font-bold">{p.name}</span>
                     </div>
                     <div className="text-right">
-                      <p className="text-xs text-white/40 font-bold uppercase tracking-widest mb-0.5">Score: {p.score}/10</p>
+                      <p className="text-xs text-white/40 font-bold uppercase tracking-widest mb-0.5">{p.status}</p>
                       <p className={`font-black text-lg ${p.delta > 0 ? "text-emerald-400" : "text-red-400"}`}>{p.delta > 0 ? "+" : ""}{p.delta} SC</p>
                     </div>
                   </div>

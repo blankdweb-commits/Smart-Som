@@ -1,4 +1,5 @@
 import React, { useState, useMemo } from 'react';
+import { useAppContext } from '../context/AppContext';
   // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -25,7 +26,7 @@ const QUIZ_CONFIGS = {
     icon: <Shield size={22} />,
     accentText: 'text-medical-400',
     accentBg: 'bg-medical-500/20 border-medical-500/30',
-    questionCounts: [10, 20, 30, 50, 100],
+    questionCounts: [10, 20, 30, 50],
     timerOptions: [
       { value: null, label: 'No Time Limit' },
       { value: 10, label: '10s / Q' },
@@ -36,7 +37,14 @@ const QUIZ_CONFIGS = {
     allowOrderChoice: true,
     allowExamMode: true,
     defaultOrder: 'randomized',
-    bankNote: null
+    bankNote: null,
+    allowExamSource: true,
+    examSources: [
+      { value: 'both', label: 'NMCN + NCLEX', desc: 'Mixed exam-style questions' },
+      { value: 'nmcn', label: 'NMCN', desc: 'Nigerian nursing council questions' },
+      { value: 'nclex', label: 'NCLEX', desc: 'North American licensing questions' }
+    ],
+    defaultExamSource: 'both'
   },
   'quick-quiz': {
     title: 'Quick Quiz',
@@ -54,7 +62,14 @@ const QUIZ_CONFIGS = {
     allowExamMode: false,
     defaultAnswerMode: 'instant-feedback',
     defaultOrder: 'randomized',
-    bankNote: null
+    bankNote: null,
+    allowExamSource: true,
+    examSources: [
+      { value: 'both', label: 'NMCN + NCLEX', desc: 'Mixed exam-style questions' },
+      { value: 'nmcn', label: 'NMCN', desc: 'Nigerian nursing council questions' },
+      { value: 'nclex', label: 'NCLEX', desc: 'North American licensing questions' }
+    ],
+    defaultExamSource: 'both'
   },
   'uselu-test': {
     title: 'Uselu Test Questions',
@@ -75,22 +90,27 @@ const QUIZ_CONFIGS = {
     defaultOrder: 'randomized',
     bankNote: '61 questions available in this bank'
   },
-  'nursing-200': {
+    'nursing-200': {
     title: 'Nursing 200-Level',
-    identity: '200-Level course questions across seven core subjects.',
+    identity: '200-Level course questions across twelve core subjects.',
     icon: <BookOpen size={22} />,
     accentText: 'text-emerald-400',
     accentBg: 'bg-emerald-500/20 border-emerald-500/30',
     subjects: [
       'Community Health Nursing I',
-      'Foundation of Nursing IV',
-      'Medical-Surgical Nursing III',
-      'Politics and Governance in Nursing',
+      'Fundamentals of Nursing',
+      'Medical-Surgical Nursing',
+      'Unit I: Introduction to Nutrition',
+      'Unit II: Nutritional Needs',
+      'Unit III: Food Planning, Preparation, and Safety',
       'Pharmacology III',
-      'Reproductive Health II',
-      'Research Methodology II'
+      'Concept of Politics and Government',
+      'Political Interaction',
+      'Political Activities',
+      'Reproductive Health',
+      'Research Methodology'
     ],
-    questionCounts: [10, 20, 30, 50, 100],
+    questionCounts: [10, 20, 30, 50],
     timerOptions: [
       { value: null, label: 'No Time Limit' },
       { value: 15, label: '15s / Q' },
@@ -101,7 +121,7 @@ const QUIZ_CONFIGS = {
     allowOrderChoice: true,
     allowExamMode: true,
     defaultOrder: 'randomized',
-    bankNote: '799 questions available in this bank'
+    bankNote: '3,517 questions available in this bank'
   },
   'weakness-challenge': {
     title: 'Fix My Weak Areas',
@@ -135,7 +155,7 @@ const QUIZ_CONFIGS = {
       'Home Health Care Nursing',
       'Entrepreneurship in Midwifery'
     ],
-    questionCounts: [10, 20, 30, 50, 100],
+    questionCounts: [10, 20, 30, 50],
     timerOptions: [
       { value: null, label: 'No Time Limit' },
       { value: 15, label: '15s / Q' },
@@ -201,6 +221,40 @@ const ChoiceButton = ({ selected, onClick, children, disabled, colorClass = 'bg-
 
 const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete, onCancel }) => {
   const config = QUIZ_CONFIGS[quizType] || QUIZ_CONFIGS['clinical-challenge'];
+  const { difficultyProgress, isPremium } = useAppContext();
+
+  // Free users must use a per-question timer (never "No Time Limit"); premium
+  // users may go untimed. Filter the untimed option accordingly.
+  const freeTimerLocked = !isPremium;
+  const timerOptions = useMemo(() => {
+    if (freeTimerLocked) return config.timerOptions.filter(t => t.value != null);
+    return config.timerOptions;
+  }, [config.timerOptions, freeTimerLocked]);
+
+  // Difficulty unlock gating — Medium (50 Easy correct), Hard (80 Medium),
+  // Expert (100 Hard correct), driven by the server-computed value.
+  // Fail-open while the server status hasn't loaded (null) so the setup is
+  // never blocked on first render.
+  const unlockedTiers = useMemo(() => {
+    if (difficultyProgress == null) return new Set(DIFFICULTIES.map(d => d.id));
+    const set = new Set(['Easy']);
+    const lookup = Array.isArray(difficultyProgress)
+      ? new Map(difficultyProgress.map(p => [String(p.difficulty).toLowerCase(), p.unlocked === true]))
+      : new Map();
+    if (lookup.get('medium')) set.add('Medium');
+    if (lookup.get('hard')) set.add('Hard');
+    if (lookup.get('expert')) set.add('Expert');
+    return set;
+  }, [difficultyProgress]);
+
+  const difficultyHint = (id) => {
+    if (difficultyProgress == null) return null;
+    const row = Array.isArray(difficultyProgress)
+      ? difficultyProgress.find(p => String(p.difficulty).toLowerCase() === id.toLowerCase())
+      : null;
+    if (!row || row.unlocked) return null;
+    return `${row.gate_progress ?? 0}/${row.target ?? 0} correct answers to unlock`;
+  };
 
   const requiresSubject = config.subjects && config.subjects.length > 0;
   const totalSteps = requiresSubject ? 4 : 3;
@@ -223,11 +277,21 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
   );
   const [order, setOrder] = useState(config.defaultOrder || 'randomized');
   const [answerMode, setAnswerMode] = useState(config.defaultAnswerMode || 'instant-feedback');
+  const [examSource, setExamSource] = useState(config.defaultExamSource || 'both');
 
   const timeLabel = useMemo(() => {
     if (timePerQuestion == null) return 'No Time Limit';
     return `${timePerQuestion}s per question`;
   }, [timePerQuestion]);
+
+  // Free users can't go untimed — snap any lingering null selection to a
+  // default timed value (30s if offered, else the first available option).
+  React.useEffect(() => {
+    if (freeTimerLocked && timePerQuestion == null && timerOptions.length > 0) {
+      const fallback = timerOptions.some(t => t.value === 30) ? 30 : timerOptions[0].value;
+      setTimePerQuestion(fallback);
+    }
+  }, [freeTimerLocked, timePerQuestion, timerOptions]);
 
   const handleStart = () => {
     onComplete({
@@ -236,7 +300,8 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
       timePerQuestion,
       order,
       answerMode,
-      subject
+      subject,
+      examSource
     });
   };
 
@@ -334,25 +399,36 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {DIFFICULTIES.map((d) => {
                   const active = difficulty === d.id;
+                  const locked = !unlockedTiers.has(d.id);
+                  const hint = difficultyHint(d.id);
                   return (
                     <button
                       key={d.id}
                       type="button"
-                      onClick={() => setDifficulty(d.id)}
+                      disabled={locked}
+                      onClick={() => !locked && setDifficulty(d.id)}
                       className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${
-                        active
+                        locked
+                          ? 'opacity-45 cursor-not-allowed border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/40'
+                          : active
                           ? `${d.activeRing} bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg scale-[1.02]`
                           : `border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/40 ${d.ring}`
                       }`}
                     >
-                      <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${d.dot}`} />
+                      <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${locked ? 'bg-slate-300 dark:bg-slate-600' : d.dot}`} />
                       <span className="flex-1 min-w-0">
-                        <span className={`block font-black text-sm tracking-tight ${active ? '' : 'text-slate-900 dark:text-white'}`}>
+                        <span className={`flex items-center gap-1.5 font-black text-sm tracking-tight ${locked ? 'text-slate-400' : active ? '' : 'text-slate-900 dark:text-white'}`}>
+                          {locked && <Lock size={13} className="shrink-0" />}
                           {d.id}
                         </span>
-                        <span className={`block text-[9px] font-bold uppercase tracking-widest truncate ${active ? 'text-white/60 dark:text-slate-900/60' : 'text-slate-400'}`}>
+                        <span className={`block text-[9px] font-bold uppercase tracking-widest truncate ${locked ? 'text-slate-400' : active ? 'text-white/60 dark:text-slate-900/60' : 'text-slate-400'}`}>
                           {d.desc}
                         </span>
+                        {locked && hint && (
+                          <span className="block text-[9px] font-bold uppercase tracking-widest text-amber-500 mt-0.5">
+                            {hint}
+                          </span>
+                        )}
                       </span>
                       {active && <CheckCircle2 size={18} className="text-emerald-400 dark:text-emerald-600 shrink-0" />}
                     </button>
@@ -413,8 +489,8 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
                 {/* Time Limit */}
                 <div>
                   <SectionLabel>Time Limit</SectionLabel>
-                  <div className={`grid gap-2 ${config.timerOptions.length > 4 ? 'grid-cols-2 sm:grid-cols-5' : 'grid-cols-3'}`}>
-                    {config.timerOptions.map((t) => (
+                  <div className={`grid gap-2 ${timerOptions.length > 4 ? 'grid-cols-2 sm:grid-cols-5' : 'grid-cols-3'}`}>
+                    {timerOptions.map((t) => (
                       <ChoiceButton
                         key={t.label}
                         selected={timePerQuestion === t.value}
@@ -424,6 +500,11 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
                         {t.label}
                       </ChoiceButton>
                     ))}
+                    {freeTimerLocked && !timerOptions.some(t => t.value === null) && (
+                      <div className="flex items-center justify-center gap-1.5 px-3 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-dashed border-slate-200 dark:border-slate-700 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                        <Lock size={11} className="shrink-0" /> No Time Limit is premium
+                      </div>
+                    )}
                   </div>
                 </div>
 
@@ -491,6 +572,32 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
                     </p>
                   </div>
                 )}
+
+                {/* Question Source (Clinical / Quick only) */}
+                {config.allowExamSource && config.examSources && (
+                  <div>
+                    <SectionLabel>Question Source</SectionLabel>
+                    <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
+                      {config.examSources.map((s) => (
+                        <button
+                          key={s.value}
+                          type="button"
+                          onClick={() => setExamSource(s.value)}
+                          className={`p-3 rounded-2xl border-2 text-left transition-all ${
+                            examSource === s.value
+                              ? 'border-medical-500 bg-medical-500/10 text-slate-900 dark:text-white shadow-lg scale-[1.02]'
+                              : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/40 hover:border-medical-400'
+                          }`}
+                        >
+                          <span className={`block font-black text-xs tracking-tight ${examSource === s.value ? '' : 'text-slate-900 dark:text-white'}`}>
+                            {s.label}
+                          </span>
+                          <span className="block text-[9px] font-bold uppercase tracking-widest text-slate-400 mt-0.5">{s.desc}</span>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               <div className="flex gap-3 mt-8">
@@ -540,7 +647,10 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
                   { label: 'Questions', value: String(questionCount) },
                   { label: 'Time', value: timeLabel },
                   { label: 'Question Order', value: order === 'sequential' ? 'Sequential' : 'Randomized' },
-                  { label: 'Answer Mode', value: answerMode === 'exam-mode' ? 'Exam Mode' : 'Instant Feedback' }
+                  { label: 'Answer Mode', value: answerMode === 'exam-mode' ? 'Exam Mode' : 'Instant Feedback' },
+                  ...(config.allowExamSource && config.examSources ? [
+                    { label: 'Source', value: (config.examSources.find(s => s.value === examSource) || {}).label || 'Both' }
+                  ] : [])
                 ].map((row, i) => (
                   <div
                     key={row.label}
