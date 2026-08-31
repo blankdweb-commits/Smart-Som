@@ -2,14 +2,22 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Search, X, BookOpen, Calendar, Star, ArrowRight } from './Icons';
 import { useAppContext } from '../context/AppContext';
+import { safeGet, safeSet } from '../utils/safeStorage';
 
 const RECENT_KEY = 'apex:recentSearches';
 
 const loadRecent = () => {
-  try { return JSON.parse(localStorage.getItem(RECENT_KEY) || '[]'); } catch { return []; }
+  const raw = safeGet(RECENT_KEY);
+  if (!raw) return [];
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
 };
 const saveRecent = (terms) => {
-  try { localStorage.setItem(RECENT_KEY, JSON.stringify(terms.slice(0, 6))); } catch { /* ignore */ }
+  safeSet(RECENT_KEY, JSON.stringify(terms.slice(0, 6)));
 };
 
 // Global search overlay. Searches flashcards, exams, and curriculum subjects,

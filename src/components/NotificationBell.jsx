@@ -2,14 +2,22 @@ import React, { useMemo, useState } from 'react';
 import { Bell, X, Flame, Calendar, Target, Sparkles } from './Icons';
 import { useAppContext } from '../context/AppContext';
 import { differenceInDays } from 'date-fns';
+import { safeGet, safeSet } from '../utils/safeStorage';
 
 const CACHE_KEY = 'apex:notifDismissed';
 
 const loadDismissed = () => {
-  try { return new Set(JSON.parse(localStorage.getItem(CACHE_KEY) || '[]')); } catch { return new Set(); }
+  const raw = safeGet(CACHE_KEY);
+  if (!raw) return new Set();
+  try {
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? new Set(parsed) : new Set();
+  } catch {
+    return new Set();
+  }
 };
 const saveDismissed = (set) => {
-  try { localStorage.setItem(CACHE_KEY, JSON.stringify([...set])); } catch { /* ignore */ }
+  safeSet(CACHE_KEY, JSON.stringify([...set]));
 };
 
 function uid() {

@@ -4,6 +4,7 @@ import { allBuiltInFlashcards } from '../data/loadFlashcards';
 import { CURRICULUM_MASTER } from '../data/curriculumMaster';
 import { supabase } from '../utils/supabase';
 import { authHeaders } from '../utils/apiHeaders';
+import { safeGet, safeSet } from '../utils/safeStorage';
 import {
   computeCurrentIdentity,
   computeProgressToNext,
@@ -62,12 +63,12 @@ export function AppProvider({ children }) {
   const [flashcards, setFlashcards] = useState([...initialFlashcards, ...allBuiltInFlashcards]);
   const [exams, setExams] = useState([]);
   const [soundEnabled, setSoundEnabled] = useState(() => {
-    const saved = localStorage.getItem('soundEnabled');
-    return saved ? JSON.parse(saved) : true;
+    const saved = safeGet('soundEnabled', { parsed: true });
+    return typeof saved === 'boolean' ? saved : true;
   });
   const [darkMode, setDarkMode] = useState(() => {
-    const saved = localStorage.getItem('darkMode');
-    return saved ? JSON.parse(saved) : false;
+    const saved = safeGet('darkMode', { parsed: true });
+    return typeof saved === 'boolean' ? saved : false;
   });
   const [studyStats, setStudyStats] = useState({
     streak: 0,
@@ -1117,13 +1118,13 @@ export function AppProvider({ children }) {
   const updateProfile = (data) => setUserProfile(prev => ({ ...prev, ...data }));
   const toggleSound = () => {
     setSoundEnabled(s => {
-      localStorage.setItem('soundEnabled', JSON.stringify(!s));
+      safeSet('soundEnabled', JSON.stringify(!s));
       return !s;
     });
   };
   const toggleDarkMode = () => {
     setDarkMode(d => {
-      localStorage.setItem('darkMode', JSON.stringify(!d));
+      safeSet('darkMode', JSON.stringify(!d));
       return !d;
     });
   };

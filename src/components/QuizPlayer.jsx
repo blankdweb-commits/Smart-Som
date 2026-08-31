@@ -16,6 +16,7 @@ import {
 } from './Icons';
 import { useAppContext } from '../context/AppContext';
 import { supabase } from '../utils/supabase';
+import { safeGet, safeSet } from '../utils/safeStorage';
 
 const pad = (n) => String(n).padStart(2, '0');
 
@@ -55,11 +56,11 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit 
 
   // First-question tap hint — shown only on the very first question, never again.
   const [showTapHint, setShowTapHint] = useState(
-    () => idx === 0 && !localStorage.getItem('apex:quizTapHintSeen')
+    () => idx === 0 && !safeGet('apex:quizTapHintSeen')
   );
   const dismissTapHint = () => {
     setShowTapHint(false);
-    try { localStorage.setItem('apex:quizTapHintSeen', '1'); } catch { /* ignore */ }
+    safeSet('apex:quizTapHintSeen', '1');
   };
 
   const explainConcept = async (mode) => {

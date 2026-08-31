@@ -1,4 +1,5 @@
 import { IDENTITIES } from '../data/identities.js';
+import { safeGet, safeSet } from './safeStorage';
 
 // The identity engine evaluates a user's learning stats and returns the
 // highest tier whose thresholds are all satisfied. Thresholds that are not
@@ -72,8 +73,11 @@ export function checkUnlocks(stats = {}, previousTierTier = 0) {
 const UNLOCK_KEY = 'apex:identityUnlocks';
 
 export function loadAcknowledgedUnlocks() {
+  const raw = safeGet(UNLOCK_KEY);
+  if (!raw) return [];
   try {
-    return JSON.parse(localStorage.getItem(UNLOCK_KEY) || '[]');
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed) ? parsed : [];
   } catch {
     return [];
   }
@@ -90,7 +94,7 @@ export function acknowledgeUnlock(tier) {
   try {
     const seen = new Set(loadAcknowledgedUnlocks());
     seen.add(tier);
-    localStorage.setItem(UNLOCK_KEY, JSON.stringify([...seen]));
+    safeSet(UNLOCK_KEY, JSON.stringify([...seen]));
   } catch {
     /* ignore storage errors */
   }
