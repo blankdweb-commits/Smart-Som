@@ -42,59 +42,24 @@ export const getTokenFromRequest = (req) => {
   return authHeader.slice(7) || null;
 };
 
-// Single-device enforcement.
-// Resolves the user AND verifies that their current access token matches the
-// ACTIVE session recorded in user_sessions. If a newer session has revoked
-// this one, returns { user:null, revoked:true } so the caller can respond
-// with a 401 + specific "signed in elsewhere" signal.
-// Also touches last_seen for telemetry.
-export const getUserAndVerifySession = async (req, opts = {}) => {
+// Resolves the authenticated user from a request bearer token.
+// Single-device enforcement has been REMOVED (it caused false "signed in
+// elsewhere" revocations and added a per-request RPC round-trip). The server
+// no longer checks user_sessions; it only authenticates via the access token.
+export const getUserAndVerifySession = async (req) => {
   const user = await getUserFromRequest(req);
   if (!user) return { user: null, revoked: false };
   const token = getTokenFromRequest(req);
-  // The session unique id is supplied by the client as an X-Session-Id header
-  // (a per-device UUID persisted in localStorage). It is deliberately NOT
-  // derived from identity fields — user.identities[0].id is identical across
-  // all of a user's sessions, which would defeat single-device enforcement.
-  // Fall back to the raw token slice only when the header is absent.
-  const sessionId = req.headers['x-session-id'] || token || user.id;
-
-  const supabase = getSupabaseAdmin();
-  if (!supabase) return { user, revoked: false, sessionId };
-
-  try {
-    const { data, error } = await supabase.rpc('session_is_active', {
-      p_user_id: user.id,
-      p_session_id: sessionId
-    });
-    if (error) {
-      // Function may not exist on env where migration-v10 hasn't run; degrade
-      // to permissive (do not lock users out).
-      return { user, revoked: false, sessionId };
-    }
-    if (data === false) {
-      return { user, revoked: true, sessionId };
-    }
-    // Touch last_seen (best-effort; ignore errors).
-    if (opts.touch !== false) {
-      try {
-        await supabase.rpc('touch_session', { p_user_id: user.id, p_session_id: sessionId });
-      } catch { /* ignore */ }
-    }
-    return { user, revoked: false, sessionId };
-  } catch {
-    return { user, revoked: false, sessionId };
-  }
+  const sessionId = req.headers['x-session-id'] || token || user.id || null;
+  return { user, revoked: false, sessionId };
 };
 
-// Convenience wrapper: returns { status, body, user } — a pre-built 401 when the
-// session is revoked so routes can `return json(res, result.status, result.body)`.
-export const authorizeRequest = async (req, opts = {}) => {
-  const { user, revoked, sessionId } = await getUserAndVerifySession(req, opts);
-  // Treat a revoked (superseded) session as unauthorized too: the user IS
-  // authenticated, but their device is no longer the single active session.
-  if (!user || revoked) {
-    return { status: 401, body: { error: revoked ? 'SESSION_REVOKED' : 'Unauthorized' }, user: null, revoked, sessionId: null };
+// Convenience wrapper: returns { status, body, user } with a pre-built 401 when
+// the request is unauthenticated.
+export const authorizeRequest = async (req) => {
+  const { user, sessionId } = await getUserAndVerifySession(req);
+  if (!user) {
+    return { status: 401, body: { error: 'Unauthorized' }, user: null, revoked: false, sessionId: null };
   }
   return { status: 200, body: null, user, revoked: false, sessionId };
 };

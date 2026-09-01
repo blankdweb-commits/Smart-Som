@@ -1,77 +1,39 @@
 // ============================================================
-// Session Management API — single-device enforcement.
+// Session Management API.
 //
-// POST /api/session/register
-//   Registers the caller's access token(s) as the user's single ACTIVE session,
-//   revoking any prior active sessions (force sign-out of old device).
-//   Body: { device_identifier } (optional, opaque, non-sensitive).
+// Single-device enforcement was REMOVED (it caused false "signed in elsewhere"
+// revocations and a per-request RPC round-trip). These endpoints are kept as
+// stable no-op success responses so any client that still calls them receives
+// a clean { authenticated:true, revoked:false } and is never locked out.
 //
-// POST /api/session/validate
-//   Returns whether the caller's session is currently the active one.
-//   Used by protected client flows to detect forced sign-out.
-//
-// GET  /api/session/status   (alias of validate)
+// POST /api/session/register  -> acknowledged, no enforcement
+// POST /api/session/validate  -> always active for a valid token
+// POST /api/session/status    -> alias of validate
+// GET  /api/session/status    -> alias of validate
 // ============================================================
-import { getSupabaseAdmin, authorizeRequest } from './_utils';
-
-const DEVICE_MAX_LEN = 120;
+import { getUserFromRequest } from './_utils';
 
 const registerSession = async (req, res) => {
-  const { user, sessionId, status, body } = await authorizeRequest(req, { touch: false });
-  if (!user) return res.status(status).json(body);
-
-  const supabase = getSupabaseAdmin();
-  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
-
-  const { device_identifier } = req.body || {};
-  const device = String(device_identifier || '').slice(0, DEVICE_MAX_LEN);
-
-  try {
-    const { data, error } = await supabase.rpc('register_session', {
-      p_user_id: user.id,
-      p_session_id: sessionId,
-      p_device_identifier: device
-    });
-    if (error) {
-      // Fallback if the migration hasn't been applied — insert directly.
-      const fallback = await supabase
-        .from('user_sessions')
-        .upsert({
-          user_id: user.id,
-          session_id: sessionId,
-          device_identifier: device,
-          is_active: true
-        }, { onConflict: 'session_id' })
-        .select('id')
-        .single();
-      if (fallback.error) {
-        console.error('Session register failed:', fallback.error.message);
-        // Non-fatal: do not block login on telemetry failure.
-        return res.status(200).json({ success: true, mode: 'degraded' });
-      }
-      return res.status(200).json({ success: true, mode: 'fallback', id: fallback.data?.id });
-    }
-    return res.status(200).json({ success: true, mode: 'strict', id: data });
-  } catch (err) {
-    console.error('Session register error:', err.message);
-    return res.status(200).json({ success: true, mode: 'degraded' });
-  }
+  const user = await getUserFromRequest(req);
+  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  return res.status(200).json({ success: true, mode: 'noop' });
 };
 
 const validateSession = async (req, res) => {
-  const { user, revoked, sessionId, status } = await authorizeRequest(req, { touch: false });
+  const user = await getUserFromRequest(req);
   if (!user) {
-    return res.status(status).json({
+    return res.status(401).json({
       authenticated: false,
-      revoked: !!revoked,
-      sessionId: sessionId || null
+      revoked: false,
+      active: false,
+      sessionId: null
     });
   }
   return res.status(200).json({
     authenticated: true,
     revoked: false,
     active: true,
-    sessionId: sessionId || null
+    sessionId: req.headers['x-session-id'] || null
   });
 };
 

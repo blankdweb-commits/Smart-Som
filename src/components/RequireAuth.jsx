@@ -1,11 +1,9 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 
-// Wraps protected routes. Redirects to /signin when unauthenticated and to
-// /session-revoked when the single active session has been superseded by a
-// login on another device.
+// Wraps protected routes. Redirects to /signin when unauthenticated.
 export default function RequireAuth({ children }) {
-  const { session, loadingAuth, sessionRevoked } = useAppContext();
+  const { session, loadingAuth } = useAppContext();
   const location = useLocation();
 
   if (loadingAuth) {
@@ -21,10 +19,6 @@ export default function RequireAuth({ children }) {
 
   if (!session) {
     return <Navigate to="/signin" replace state={{ from: location }} />;
-  }
-
-  if (sessionRevoked) {
-    return <Navigate to="/session-revoked" replace />;
   }
 
   return children;

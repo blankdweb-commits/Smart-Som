@@ -23,7 +23,6 @@ const PronunciationHelper = lazy(() => import('./pages/PronunciationHelper'));
 const XpHall = lazy(() => import('./pages/XpHall'));
 const GroupPage = lazy(() => import('./pages/GroupPage'));
 const StudyGroups = lazy(() => import('./components/StudyGroups'));
-const SessionRevoked = lazy(() => import('./pages/SessionRevoked'));
 const Marketplace = lazy(() => import('./pages/Marketplace'));
 const Voting = lazy(() => import('./pages/Voting'));
 const Reviews = lazy(() => import('./pages/Reviews'));
@@ -67,7 +66,6 @@ const AppRouter = () => (
 
       <Route path="/login" element={<Auth />} />
       <Route path="/signup" element={<Auth />} />
-      <Route path="/session-revoked" element={<SessionRevoked />} />
       <Route path="/xp-hall" element={<XpHall />} />
 
       <Route path="*" element={<Navigate to="/dashboard" replace />} />

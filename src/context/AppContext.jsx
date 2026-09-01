@@ -107,8 +107,7 @@ export function AppProvider({ children }) {
   const [quizHistory, setQuizHistory] = useState([]);
 
   // ---- Command Center Upgrade state (migration-v10) ----
-  // Single-device & quota & difficulty & achievements
-  const [sessionRevoked, setSessionRevoked] = useState(false); // forced sign-out signal
+  // Quota & difficulty & achievements
   const [quota, setQuota] = useState({
     isLoading: false,
     premium: false,
@@ -871,11 +870,13 @@ export function AppProvider({ children }) {
     const initAuth = async () => {
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
+        console.log('DBG initAuth getSession resolved', !!currentSession);
         if (currentSession) setSession(currentSession);
       } catch (err) {
         console.error('Auth init error:', err);
       } finally {
         setLoadingAuth(false);
+        console.log('DBG initAuth setLoadingAuth(false)');
       }
     };
 
@@ -884,9 +885,6 @@ export function AppProvider({ children }) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
       if (event === 'SIGNED_IN') {
         setSession(currentSession);
-        setSessionRevoked(false);
-        // Register this device as the single active session (server-enforced).
-        registerSessionServerSide(currentSession);
       } else if (event === 'SIGNED_OUT') {
         setSession(null);
         setUserProfile(ANONYMOUS_PROFILE);
@@ -894,7 +892,6 @@ export function AppProvider({ children }) {
         setTransactions([]);
         setLevelCompletions({});
         setQuizHistory([]);
-        setSessionRevoked(false);
         setQuota(s => ({ ...s, premium: false, unlimited: false, questions_remaining: 50, in_cooldown: false, window_expires_at: null }));
         setDifficultyProgress(null);
         setUserAchievements([]);
@@ -907,57 +904,8 @@ export function AppProvider({ children }) {
 
   // ---------------- Command Center helpers ----------------
 
-  // Builds the shared auth + per-device session headers for Apex API routes
-  // (so server-side single-device enforcement resolves THIS device).
+  // Builds the shared auth headers for Apex API routes.
   const apexHeaders = useCallback((sess) => authHeaders(sess), []);
-
-  // Register the current session server-side (single-device enforcement).
-  // Best-effort: never blocks login if the endpoint is down.
-  const registerSessionServerSide = useCallback(async (sess) => {
-    if (!sess?.access_token) return;
-    if (!supabase) return;
-    try {
-      const device = (() => {
-        try { return `${navigator.userAgent ?? 'device'}`.slice(0, 120); } catch { return 'device'; }
-      })();
-      const headers = apexHeaders(sess);
-      headers['Content-Type'] = 'application/json';
-      await fetch('/api/session/register', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ device_identifier: device })
-      });
-    } catch (err) {
-      // Non-fatal telemetry.
-      console.warn('Session register skipped:', err.message);
-    }
-  }, [supabase, apexHeaders]);
-
-  // Validate the current session is still the active one (single-device).
-  // If it was revoked by a newer login, flips sessionRevoked so the app can
-  // show the "signed in on another device" screen.
-  const validateSessionActive = useCallback(async (sess = session) => {
-    if (!sess?.access_token) return true;
-    if (!supabase) return true;
-    try {
-      const headers = apexHeaders(sess);
-      headers['Content-Type'] = 'application/json';
-      const res = await fetch('/api/session/validate', {
-        method: 'POST',
-        headers
-      });
-      const body = await res.json();
-      const revoked = !!body?.revoked || (body?.authenticated === false && !!body?.revoked);
-      if (revoked) {
-        setSessionRevoked(true);
-        return false;
-      }
-      setSessionRevoked(false);
-      return true;
-    } catch {
-      return true; // network error — don't lock user out
-    }
-  }, [session, supabase, apexHeaders]);
 
   // Server-verified premium: derived from the fetched subscription status
   // (single source of truth from subscriptions table, not a client flag).
@@ -1100,18 +1048,13 @@ export function AppProvider({ children }) {
   }, [session, fetchUserData]);
 
   // Load Command Center state once a session is established (quota, difficulty,
-  // achievements) and periodically validate single-device status.
+  // achievements, flashcard access).
   useEffect(() => {
     if (!session?.access_token) return;
     fetchQuotaStatus();
     fetchDifficultyStatus();
     fetchAchievements();
     fetchFlashcardAccess();
-    validateSessionActive();
-    const iv = setInterval(() => {
-      validateSessionActive();
-    }, 4 * 60 * 1000); // re-validate every 4 min (best-effort)
-    return () => clearInterval(iv);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [session?.access_token]);
 
@@ -1281,7 +1224,6 @@ export function AppProvider({ children }) {
     setLevelCompletions({});
     setQuizHistory([]);
     setLearningAnalytics({ weakTopics: [], weakConcepts: [], totalAttempts: 0, recommendedRevision: [], dailyChallenge: { id: null, question: '', answer: '', completed: false, lastDate: null } });
-    setSessionRevoked(false);
     setQuota(s => ({ ...s, premium: false, unlimited: false, questions_remaining: 50, in_cooldown: false, window_expires_at: null }));
     setDifficultyProgress(null);
     setUserAchievements([]);
@@ -1368,12 +1310,11 @@ export function AppProvider({ children }) {
       streakFreezeActive, setStreakFreezeActive,
       identity, identityProgress, identityUnlock, dismissIdentityUnlock, refreshIdentityUnlock,
       // ---- Command Center exports ----
-      sessionRevoked, SC_FEATURE_LOCKED, isPremium,
+      SC_FEATURE_LOCKED, isPremium,
       quota, fetchQuotaStatus, consumeQuota,
       difficultyProgress, fetchDifficultyStatus, recordAnsweredBatch,
       userAchievements, fetchAchievements,
       flashcardAccess, fetchFlashcardAccess,
-      validateSessionActive, registerSessionServerSide,
       signOut
     }}>
       {children}
