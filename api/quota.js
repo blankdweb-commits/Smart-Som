@@ -1,11 +1,14 @@
 // ============================================================
 // Quota API — free-user 50-question / 12-hour cooldown.
 //
-// GET  /api/quota/status   → current quota state (server timestamps).
+// GET  /api/quota/status          → current quota state (server timestamps).
+// GET  /api/quota/subject-status  → per-subject cooldown state for the Course
+//      Selector UI (free users only; premium returns unlimited).
 // POST /api/quota/consume  → atomically consume one answered question.
-//      Body: { count } (optional, default 1). Consumes that many ONLY if the
-//      caller passes category-A evidence (genuine answered question path).
-//      Premium users are exempt server-side (never consumed against them).
+//      Body: { count, subject } (count optional, default 1; subject optional,
+//      used to track the per-subject simulated cooldown). Consumes that many
+//      ONLY if the caller passes category-A evidence (genuine answered
+//      question path). Premium users are exempt server-side.
 // ============================================================
 import { getSupabaseAdmin, authorizeRequest } from './_utils';
 
@@ -46,6 +49,34 @@ const getStatus = async (req, res) => {
   }
 };
 
+// Per-subject simulated cooldown state for the Course Selector UI.
+const getSubjectStatus = async (req, res) => {
+  const { user, status, body } = await authorizeRequest(req);
+  if (!user) return res.status(status).json(body);
+
+  const supabase = getSupabaseAdmin();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+
+  // Premium users are unlimited — no per-subject cooldown applies.
+  const premium = await isPremium(user.id, supabase);
+  if (premium) {
+    return res.status(200).json({ premium: true, unlimited: true, subjects: {} });
+  }
+
+  try {
+    const { data, error } = await supabase.rpc('get_subject_quota_status', { p_user_id: user.id });
+    if (error) throw error;
+    return res.status(200).json({
+      premium: false,
+      unlimited: false,
+      subjects: data || {}
+    });
+  } catch (err) {
+    console.error('Subject quota status error:', err.message);
+    return res.status(500).json({ error: 'Internal error reading subject quota' });
+  }
+};
+
 const consume = async (req, res) => {
   const { user, status, body } = await authorizeRequest(req);
   if (!user) return res.status(status).json(body);
@@ -78,10 +109,26 @@ const consume = async (req, res) => {
     const inCooldown = remaining === -1 || remaining === 0;
     // Fetch full state for accurate countdown timestamps.
     const state = await supabase.rpc('get_quota_status', { p_user_id: user.id });
+    const consumedNow = inCooldown ? 0 : Math.min(requested, remaining >= 0 ? requested : 0);
+    // Track the per-subject simulated cooldown (free users only). The subject
+    // is optional; when omitted we skip this so the Course Selector still
+    // works with just the global quota.
+    const subject = String(req.body?.subject || '').trim();
+    if (!inCooldown && consumedNow > 0 && subject) {
+      try {
+        await supabase.rpc('record_subject_usage', {
+          p_user_id: user.id,
+          p_subject: subject,
+          p_count: consumedNow
+        });
+      } catch (err) {
+        console.warn('Subject usage record failed:', err.message);
+      }
+    }
     return res.status(200).json({
       premium: false,
       unlimited: false,
-      consumed: inCooldown ? 0 : Math.min(requested, remaining >= 0 ? requested : 0),
+      consumed: consumedNow,
       questions_remaining: state.data?.questions_remaining ?? remaining,
       in_cooldown: state.data?.questions_remaining <= 0,
       window_expires_at: state.data?.window_expires_at ?? null,
@@ -120,6 +167,7 @@ async function isPremium(userId, supabase) {
 
 export default async function handler(req, res) {
   const path = (req.url || '/').split('?')[0];
+  if (req.method === 'GET' && path.endsWith('/subject-status')) return getSubjectStatus(req, res);
   if (req.method === 'GET' && path.endsWith('/status')) return getStatus(req, res);
   if (req.method === 'POST' && path.endsWith('/consume')) return consume(req, res);
   return res.status(405).json({ error: 'Method not allowed' });

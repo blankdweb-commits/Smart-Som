@@ -15,7 +15,6 @@ import {
   Snowflake
 } from './Icons';
 import { useAppContext } from '../context/AppContext';
-import { supabase } from '../utils/supabase';
 import { safeGet, safeSet } from '../utils/safeStorage';
 
 const pad = (n) => String(n).padStart(2, '0');
@@ -49,10 +48,9 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit 
   const [feedbackSaved, setFeedbackSaved] = useState(false);
   const [showReason, setShowReason] = useState(false);
 
-  // Learning feedback (Explain Simply / Clinical Example / Memory Trick).
-  const [feedbackMode, setFeedbackMode] = useState(null); // null | 'simple' | 'clinical' | 'memory'
-  const [feedbackLoading, setFeedbackLoading] = useState(false);
-  const [feedbackText, setFeedbackText] = useState('');
+  // Learning feedback — local only: reveals the built-in rationale/hint so no
+  // external AI fetch is involved.
+  const [showExplanation, setShowExplanation] = useState(false);
 
   // First-question tap hint — shown only on the very first question, never again.
   const [showTapHint, setShowTapHint] = useState(
@@ -63,57 +61,13 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit 
     safeSet('apex:quizTapHintSeen', '1');
   };
 
-  const explainConcept = async (mode) => {
-    if (isLocked || feedbackLoading) return;
-    setFeedbackMode(mode);
-    setFeedbackLoading(true);
-    setFeedbackText('');
-    try {
-      const { data } = await supabase.auth.getSession();
-      const token = data?.session?.access_token;
-      const res = await fetch('/api/explain-concept', {
-        method: 'POST',
-        headers: token
-          ? { 'Content-Type': 'application/json', Authorization: `Bearer ${token}` }
-          : { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
-          question: typeof q.question === 'object' ? JSON.stringify(q.question) : q.question,
-          correctAnswer: q.correctAnswer,
-          options: q.options,
-          mode
-        })
-      });
-      const body = await res.json();
-      if (res.ok && body.success && body.explanation) {
-        setFeedbackText(body.explanation);
-      } else {
-        // Graceful degradation — reuse the built-in rationale/ hint.
-        setFeedbackText(
-          mode === 'memory'
-            ? (q.hint || 'Associate the key sign with the priority intervention to lock it in memory.')
-            : (q.rationale || 'Focus on the core clinical principle: assess, prioritize, and protect patient safety.')
-        );
-      }
-    } catch {
-      // Network / offline / not-deployed fallback.
-      setFeedbackText(
-        mode === 'memory'
-          ? (q.hint || 'Associate the key sign with the priority intervention to lock it in memory.')
-          : (q.rationale || 'Focus on the core clinical principle: assess, prioritize, and protect patient safety.')
-      );
-    } finally {
-      setFeedbackLoading(false);
-    }
-  };
-
   // Reset feedback when advancing to a new question.
   React.useEffect(() => {
     setFeedback(null);
     setFeedbackReason('');
     setFeedbackSaved(false);
     setShowReason(false);
-    setFeedbackMode(null);
-    setFeedbackText('');
+    setShowExplanation(false);
     if (idx > 0) setShowTapHint(false);
   }, [idx]);
 
@@ -595,37 +549,33 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit 
                   )}
                 </div>
 
-                {/* Learning feedback */}
+                {/* Learning feedback — local rationale/hint, no AI */}
                 {instant && (
                   <div className="rounded-2xl p-4 bg-indigo-500/10 border border-indigo-500/30">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-300 mb-3 text-center">Deepen Your Understanding</p>
-                    <div className="grid grid-cols-3 gap-2">
-                      {[
-                        { mode: 'simple', label: '💡 Explain Simply' },
-                        { mode: 'clinical', label: '🏥 Clinical Example' },
-                        { mode: 'memory', label: '🧠 Memory Trick' }
-                      ].map((b) => (
-                        <button
-                          key={b.mode}
-                          onClick={() => explainConcept(b.mode)}
-                          disabled={feedbackLoading}
-                          className={`px-2 py-2.5 rounded-xl font-black uppercase tracking-widest text-[9px] transition-all active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed ${
-                            feedbackMode === b.mode
-                              ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30'
-                              : 'bg-white/10 text-indigo-200 hover:bg-white/20'
-                          }`}
-                        >
-                          {b.label}
-                        </button>
-                      ))}
-                    </div>
-
-                    {feedbackMode && (
-                      <div className="mt-3 p-4 rounded-2xl bg-slate-900/60 border border-white/10">
-                        {feedbackLoading ? (
-                          <p className="text-sm font-bold text-indigo-200 animate-pulse">Crafting your explanation…</p>
-                        ) : (
-                          <p className="text-sm font-medium leading-relaxed text-slate-100">{feedbackText}</p>
+                    <button
+                      onClick={() => setShowExplanation((v) => !v)}
+                      className="w-full px-4 py-2.5 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all active:scale-95 flex items-center justify-center gap-2 bg-indigo-500 text-white shadow-lg shadow-indigo-500/30"
+                    >
+                      {showExplanation ? 'Hide Explanation' : '💡 Deepen Your Understanding'}
+                    </button>
+                    {showExplanation && (
+                      <div className="mt-3 space-y-2">
+                        {q.rationale && (
+                          <p className="text-sm font-medium leading-relaxed text-slate-100">
+                            <span className="font-black uppercase tracking-widest text-indigo-300 text-[10px]">Rationale · </span>
+                            {q.rationale}
+                          </p>
+                        )}
+                        {q.hint && (
+                          <p className="text-sm font-medium leading-relaxed text-slate-100">
+                            <span className="font-black uppercase tracking-widest text-indigo-300 text-[10px]">Hint · </span>
+                            {q.hint}
+                          </p>
+                        )}
+                        {!q.rationale && !q.hint && (
+                          <p className="text-sm font-medium leading-relaxed text-slate-100">
+                            Focus on the core clinical principle: assess, prioritize, and protect patient safety.
+                          </p>
                         )}
                       </div>
                     )}

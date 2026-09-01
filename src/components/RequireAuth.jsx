@@ -1,7 +1,7 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 
-// Wraps protected routes. Redirects to /signin when unauthenticated.
+// Wraps protected routes. Redirects to /login when unauthenticated.
 export default function RequireAuth({ children }) {
   const { session, loadingAuth } = useAppContext();
   const location = useLocation();
@@ -18,7 +18,7 @@ export default function RequireAuth({ children }) {
   }
 
   if (!session) {
-    return <Navigate to="/signin" replace state={{ from: location }} />;
+    return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
   return children;

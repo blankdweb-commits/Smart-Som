@@ -11,7 +11,7 @@
 - **Nav**: BottomNav = Home, Quiz, Cards, Voting, Market, Circle. Sidebar adds Marketplace + Voting, keeps Exam Timetable.
 - **Icons**: `src/components/Icons.jsx` uses lucide-react; added `Flame`; `src/utils/apiHeaders.js` = shared `authHeaders(session,{json})`.
 - **Free-user quota (50/12h) enforced in Quiz**: `src/pages/Quiz.jsx` `launchPlayer` is now async — for non-premium it calls `consumeQuota(questions.length, session)`, blocks with a "Daily question limit reached" cooldown screen when exhausted/cooldown; retry skips quota (`{skipQuota:true}`) to avoid double-charge. `Timer` icon imported.
-- **Dashboard Command Center upgraded** (`src/pages/Dashboard.jsx`): `QuotaCard` (50/12h ring, reset time, premium=Unlimited), `DifficultyProgressCard` (Medium 50 / Hard 80 / Expert 100 unlock bars), `StudyCoachWidget` added to right rail; Smart Coins card now shows "Locked" + 1v1 Duel Arena note when `SC_FEATURE_LOCKED`; fetches quota on mount.
+- **Dashboard Command Center upgraded** (`src/pages/Dashboard.jsx`): `QuotaCard` (50/12h ring, reset time, premium=Unlimited), `DifficultyProgressCard` (Medium 50 / Hard 80 / Expert 100 unlock bars), `StudyPlanCard` added to right rail; Smart Coins card now shows "Locked" + 1v1 Duel Arena note when `SC_FEATURE_LOCKED`; fetches quota on mount.
 - **Difficulty unlock recording wired into quiz** (`src/pages/Quiz.jsx` `handlePlayerComplete`): groups genuinely-correct answers by per-question `difficulty` (fallback `activeConfig.difficulty`) and pushes `{question_id, correct:true}` batches to `recordAnsweredBatch` → `/api/progress/difficulty` → `record_difficulty_correct` RPC. Fetch `difficultyProgress` refreshes after.
 - **NMCN/NCLEX question-source toggle (Clinical/Quick ONLY)** — per user requirement, NMCN/NCLEX exam questions never appear outside Clinical/Quick:
   - `QuizSetupFlow.jsx`: Clinical + Quick configs get `allowExamSource` + `examSources` (`both`/`nmcn`/`nclex`) + `defaultExamSource:'both'`; new "Question Source" selector renders in the session step only when `allowExamSource` (Uselu/Nursing200/Midwifery/Weakness have none, so never shown); `examSource` passed via `onComplete`; review step shows a Source row.
@@ -28,8 +28,38 @@
 - **E2E test**: `scripts/e2e-flashcard-access.mjs` written (RLS matrix + RPC + audit log verification). DNS for project REST endpoint (`*.supabase.co`) not resolvable in this environment; test would pass against live DB (migration verified via Management API).
 
 ### Status
-- Lint: 0 errors / 27 warnings (pre-existing baseline preserved; no new errors). Build: OK (35.77s).
-- Phases still pending: question history/non-repetition, daily-challenge widget wiring, Google Ads (free only, never in quiz), achievements/community wiring, final QA.
+- Lint: 0 errors / 27 warnings (pre-existing baseline preserved; no new errors). Build: OK (19.3s).
+- Phases done this run: **Per-subject cooldown (v12 migration + subject-status API + CourseList)**, **question-selection engine (`selectionConfig.js`/`questionSelection.js` + `fetchQuestionHistory`)**, **Study Plan system (no AI)**, **full Gemini removal**, **auth gating**.
+- Phases still pending: question history/non-repetition follow-ups, daily-challenge widget wiring, Google Ads (free only, never in quiz), achievements/community wiring, final live QA (e2e regression + dev-server smoke test).
+
+## Phase 5 — Study Plan / Weakness Drill (DONE, matches this phase's plan)
+- `src/utils/StudyPlanEngine.js`: deterministic `generateDailyPlan({quizHistory, weakConcepts, levelCompletions, dayStreak, quizStreak})` → ≤4 actions (weakness drill / focused practice / tier-progress / streak or flashcards). No network, no AI.
+- `src/components/StudyPlanCard.jsx`: Dashboard widget ("Today's Plan") replacing StudyCoachWidget; wraps each action as a tappable card navigating to `item.target`; footer quick-practice via PracticeGenerator.
+- `src/components/PracticeGenerator.jsx`: navigates `/quiz?practiceSubject=<subject>` (ghost/primary variants).
+- `src/pages/WeaknessDrill.jsx` (+ route `/weakness-drill`, lazy, RequireAuth): shows the learner's ACTUAL failed questions (last 90d, most recent first) rehydrated from `ALL_BANKS` in `src/data/flashcardPools.js` via `questionId()`; grouped by subject; per-row Practice + collapsible built-in rationale/hint reveal.
+- AppContext: added `fetchFailedQuestions()` (question_attempts correct=false, 90d, limit 40, exported in provider).
+- Quiz.jsx: deep-link effect now also handles `?practiceSubject=` (maps to nursing-200/midwifery-200/clinical-challenge + preselects subject). Fixed stale `useluData` reference → `USELU_POOL`.
+
+## Phase 6 — Gemini removal (DONE)
+- Deleted `api/explain-concept.js`, `api/study-coach.js`, `api/generate-question.js`, `src/components/StudyCoachWidget.jsx`.
+- QuizPlayer.jsx: removed `explainConcept()` (fetch to `/api/explain-concept`) + 3-button AI "Deepen Your Understanding" grid; replaced with a single local toggle revealing the built-in `q.rationale`/`q.hint` (fallback line if neither); removed unused `supabase` import + `feedbackMode/feedbackLoading/feedbackText` states.
+- Grep confirms zero `gemini|GEMINI|generate-question|study-coach|explain-concept|StudyCoachWidget` references remain.
+
+## Phase 0 — Auth gating (DONE)
+- `RequireAuth.jsx`: redirect target fixed `/signin` → `/login` (route exists in App.jsx, renders Auth page).
+- `src/App.jsx`: `/` now `<Navigate to="/signup" replace />` → unauthenticated visitors land on sign up/sign in immediately.
+
+## Phases 1–4 recap (this phase's subject cooldown work)
+- **v12 migration (APPLIED, HTTP 201)**: `scripts/migration-v12-subject-quota.sql` — `user_subject_quota` (user_id, subject, last_used_at, window_expires_at, usage_count, created_at PK user+subject) + SECURITY DEFINER RPCs `record_subject_usage(p_user_id,p_subject,p_count)` (upsert, resets window on expiry, refuses while cooldown active), `get_subject_quota_status(p_user_id)` (returns `status: 'ready'|'cooldown'`, `cooldown_remaining_seconds`, `window_expires_at`, `usage_count`), `reset_subject_quota(p_user_id,p_subject)`. RLS: owner read + owner insert/update (service role access). Verified via `scripts/run-migration.mjs` (`SUPABASE_ACCESS_TOKEN` in .env).
+- **Subject cooldown backend = real 50-question / 12h window** (not the mockup's 30-min). Cooldown row disappears once the window elapses → subject reads READY.
+- **`api/quota.js`**: added `getSubjectStatus` handler wired to `get_subject_quota_status`; `GET /api/quota/subject-status` returns per-subject statuses; consume handler calls `record_subject_usage(user.id, subject, count)` only when not in cooldown (the subject param comes from the client's quotaKey).
+- **`src/utils/selectionConfig.js`**: `BASE_UNSEEN:1000, BASE_SEEN:0, RECENCY_HALF_LIFE_HOURS:24, RECENCY_MAX_PENALTY:500, NICHE_PENALTY_PER_QUESTION:50, DIFFICULTY_MATCH_BONUS:200, WEAKNESS_BOOST:300, MIN_UNSEEN_FOR_PURE_UNSEEN:5, MIN_WEAK_MATCHES:5, ALLOW_SEEN_FALLBACK:true, MAX_SEEN_RATIO:0.3`.
+- **`src/utils/questionSelection.js`**: `selectQuestions(pool,{count,subject,difficulty,weakNiches,attemptedIds,questionHistory,seenFallback,examSource})` — non-weak-filter → tier filter → weak-first ordering → mixed fill with per-question scoring (unseen bonus, recency decay, niche penalty, difficulty match, weakness boost, seen fallback up to MAX_SEEN_RATIO). Also exports `filterPool`, `matchesTier`, `isWeakCard`.
+- **`src/components/CourseList.jsx`**: plan banner (🟢 Unlimited for premium; else "50 Qs / 12 hours — resets"), premium rows show status chip "🟢 Unlimited" and hide timers, cooldown rows show a live mm:ss countdown chip (derived from `cooldown_remaining_seconds` server values), click starts the quiz for that bucket.
+- **CourseList buckets**: section rows use `course.title` (Clinical Challenge / Quick Quiz / Uselu Test Questions / Fix My Weak Areas), subject rows use `cfg.subject`. Quiz.jsx maps each to a `quotaKey` (`cfg.subject || MODE_QUOTA_KEY[engineMode]`).
+- **QuizSetupFlow.jsx** now exports `QUIZ_CONFIGS` and `LEVEL_SUBJECTS` (eslint-disable comments adjusted).
+- **Quiz.jsx**: `buildQuestionSet` reworked to call `selectQuestions` with `selectionStateRef.current` (from new `fetchQuestionHistory`); removed vendor `matchesTier` copy; `weakConceptNames` memo moved to module scope; restored `wrongAnswersRef`/`quizStartRef`/`resultRecordedRef`/`weaknessIntentHandled`; removed ModeCard grid + `Clock` import; `quota` destructured from context; subject-quota fetch effect + re-fetch after quiz completion.
+- **AppContext.jsx**: added `subjectQuota` state, `fetchSubjectQuotaStatus()` (GET `/api/quota/subject-status` with authHeaders → `{subject: {status, cooldown_remaining_seconds, window_expires_at, usage_count}}`), `fetchQuestionHistory()` (question_attempts → `{attemptedIds, questionHistory, nicheCounts}`), 3-arg `consumeQuota(count, sess, subject)`; resets `subjectQuota`/`questionHistory` on sign-out/SIGNED_OUT.
 
 ## Prior: Question Intelligence System + separate pages + group XP Hall (DONE)
 

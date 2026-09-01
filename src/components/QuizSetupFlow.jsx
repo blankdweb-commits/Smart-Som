@@ -170,6 +170,16 @@ const QUIZ_CONFIGS = {
   }
 };
 
+// 200-Level banks carry per-subject rows on the course screen. Kept here next
+// to the step-1 subject picker so both the setup flow and the Course List use
+// the same canonical subject lists.
+export { QUIZ_CONFIGS };
+// eslint-disable-next-line react-refresh/only-export-components
+export const LEVEL_SUBJECTS = {
+  'nursing-200': QUIZ_CONFIGS['nursing-200'].subjects,
+  'midwifery-200': QUIZ_CONFIGS['midwifery-200'].subjects
+};
+
 const DIFFICULTIES = [
   { id: 'Easy', dot: 'bg-emerald-500', ring: 'hover:border-emerald-500', activeRing: 'border-emerald-500', desc: 'Build your foundation' },
   { id: 'Medium', dot: 'bg-blue-500', ring: 'hover:border-blue-500', activeRing: 'border-blue-500', desc: 'Test your understanding' },

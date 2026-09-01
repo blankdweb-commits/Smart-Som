@@ -6,66 +6,25 @@ import {
   Timer,
   Zap,
   Target,
-  Clock,
   Trophy,
   Shield,
   BookOpen,
   Heart
 } from '../components/Icons';
-import useluData from '../data/flashcards/nmcn/uselu-posting-tests.json';
-import respirationData from '../data/flashcards/nmcn/Respiration-richard.json';
-import fluidData from '../data/flashcards/nmcn/fluid-electrolytes.json';
-import rawNclex from '../data/flashcards/nclex/nclex-rn-ngn.json';
-import { pharmacologyData, musculoskeletalData, neurologicalData, nursing200Data, midwiferyData } from '../data/richardBank';
-import { questionId } from '../utils/questionMetadata';
+import {
+  USELU_POOL,
+  NMCN_POOL,
+  NCLEX_POOL,
+  ALL_EXAM_POOL,
+  NURSING200_POOL,
+  MIDWIFERY_POOL
+} from '../data/flashcardPools';
+import { selectQuestions } from '../utils/questionSelection';
+import CourseList from '../components/CourseList';
 
-// Combined pool for all non-Uselu modes. Uselu Test Questions keeps its
-// dedicated bank and never draws from this pool.
-// NMCN-category exam banks (respiratory, pharmacology, musculoskeletal,
-// neurological). fluid-electrolytes is NCLEX-category and is deliberately
-// excluded from the NMCN pool.
-const NMCN_POOL = [
-  ...respirationData,
-  ...pharmacologyData,
-  ...musculoskeletalData,
-  ...neurologicalData
-];
-
-// NCLEX-category exam banks — drawn ONLY by the Clinical and Quick modes when
-// the learner picks the NCLEX (or Both) source. Never mixed into Uselu /
-// 200-level modes. The rich fluid-electrolytes bank is a full MCQ bank;
-// nclex-rn-ngn is flashcard-shaped (single `answer`, no options array), so
-// `boxCard` synthesizes distractor options for it at build time.
-const NCLEX_POOL = [
-  ...fluidData,
-  ...(Array.isArray(rawNclex) ? rawNclex : []).map((q, i) => ({
-    id: String(q.id || `nclex-idx-${i}`),
-    question: q.question,
-    options: Array.isArray(q.options) ? [...q.options] : [],
-    correctAnswer: q.correctAnswer || q.answer || undefined,
-    rationale: q.rationale || undefined,
-    hint: q.hint || 'Think through the nursing priority and reasoning being tested.',
-    subject: q.subject || 'NCLEX-RN',
-    topic: q.topic,
-    category: 'NCLEX',
-    difficulty: q.difficulty || 'Medium',
-    source: 'NCLEX'
-  }))
-];
-
-// All exam-purpose banks (used by Clinical/Quick "Both" and Weakness modes).
-const ALL_EXAM_POOL = [...NMCN_POOL, ...NCLEX_POOL];
-
-// Nursing 200-Level is a dedicated bank drawn by its own mode card only —
-// it is intentionally NOT part of the NMCN/NCLEX exam pools so the
-// Clinical/Quick modes don't mix 200-level questions into the general pools.
-const NURSING200_POOL = nursing200Data;
-
-// Midwifery 200-Level — dedicated bank with its own mode
-const MIDWIFERY_POOL = midwiferyData;
   // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
-import QuizSetupFlow from '../components/QuizSetupFlow';
+import QuizSetupFlow, { QUIZ_CONFIGS, LEVEL_SUBJECTS } from '../components/QuizSetupFlow';
 import QuizPlayer from '../components/QuizPlayer';
 
 // Maps setup-flow quiz ids to engine mode ids.
@@ -84,6 +43,15 @@ const MODE_TO_SETUP = {
   nursing200: 'nursing-200',
   midwifery: 'midwifery-200',
   weakness: 'weakness-challenge'
+};
+
+// Courses that have no explicit subject use their mode title as the
+// per-subject cooldown bucket so the Course List can show a status chip.
+const MODE_QUOTA_KEY = {
+  clinical: 'Clinical Challenge',
+  quick: 'Quick Quiz',
+  uselu: 'Uselu Test Questions',
+  weakness: 'Fix My Weak Areas'
 };
 
 // ----- Sound System (Supabase-hosted; every clip is <= 4s) -----
@@ -183,7 +151,7 @@ const Quiz = () => {
   const [quotaNotice, setQuotaNotice] = useState(null); // { remaining, exhausted }
 
   // ----- Difficulty progression -----
-  const { recordQuizResult, recordWrongAnswers, recordAttempts, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchSCRank, studyStats, levelCompletions, session, fetchAttemptedQuestionIds, consumeQuota, isPremium, fetchQuotaStatus, recordAnsweredBatch } = useAppContext();
+  const { recordQuizResult, recordWrongAnswers, recordAttempts, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchSCRank, studyStats, levelCompletions, session, fetchQuestionHistory, consumeQuota, isPremium, fetchQuotaStatus, recordAnsweredBatch, subjectQuota, fetchSubjectQuotaStatus, quota } = useAppContext();
   const [selectedDifficulty, setSelectedDifficulty] = useState(null);
   const [globalRank, setGlobalRank] = useState(null);
 
@@ -194,22 +162,6 @@ const Quiz = () => {
     return () => { active = false; };
   }, [fetchSCRank]);
 
-  // Set of question ids this learner has already answered — powers the
-  // no-repetition / same-niche-different-angle selection engine.
-  const attemptedIdsRef = React.useRef(new Set());
-  const refreshAttemptedIds = React.useCallback(async () => {
-    const ids = await fetchAttemptedQuestionIds();
-    attemptedIdsRef.current = ids;
-  }, [fetchAttemptedQuestionIds]);
-  React.useEffect(() => {
-    if (session?.user) refreshAttemptedIds();
-  }, [session?.user, refreshAttemptedIds]);
-  const [passInfo, setPassInfo] = useState(null); // { passed, pct }
-  const wrongAnswersRef = React.useRef([]);
-  const quizStartRef = React.useRef(null);
-  const resultRecordedRef = React.useRef(false);
-  const [weaknessIntentHandled, setWeaknessIntentHandled] = useState(false);
-
   const weakConceptNames = React.useMemo(() => {
     const names = new Set();
     (learningAnalytics.weakConcepts || []).forEach(w => {
@@ -218,6 +170,37 @@ const Quiz = () => {
     });
     return names;
   }, [learningAnalytics.weakConcepts]);
+
+  // Learner selection state — the scored no-repetition engine's input.
+  // { attemptedIds: Set, questionHistory: Map, nicheCounts: Map, weakNiches: Set }
+  const selectionStateRef = React.useRef({
+    attemptedIds: new Set(),
+    questionHistory: new Map(),
+    nicheCounts: new Map(),
+    weakNiches: new Set()
+  });
+  const refreshSelectionState = React.useCallback(async () => {
+    const history = await fetchQuestionHistory();
+    selectionStateRef.current = {
+      ...history,
+      weakNiches: weakConceptNames
+    };
+    return history;
+  }, [fetchQuestionHistory, weakConceptNames]);
+  React.useEffect(() => {
+    if (session?.user) refreshSelectionState();
+  }, [session?.user, refreshSelectionState]);
+
+  // Refresh the per-subject cooldown state whenever the learner or their
+  // quota changes, so the Course List chips stay accurate after a session.
+  React.useEffect(() => {
+    if (session?.user) fetchSubjectQuotaStatus();
+  }, [session?.user, fetchSubjectQuotaStatus]);
+  const [passInfo, setPassInfo] = useState(null); // { passed, pct }
+  const wrongAnswersRef = React.useRef([]);
+  const quizStartRef = React.useRef(null);
+  const resultRecordedRef = React.useRef(false);
+  const [weaknessIntentHandled, setWeaknessIntentHandled] = useState(false);
 
   // Exam Readiness score (0-100) derived from real learning data — display only.
   const readiness = React.useMemo(() => {
@@ -251,6 +234,17 @@ const Quiz = () => {
       setPresetSubject(s);
       setSetupType('clinical-challenge');
     }
+    // Deep-link from the Study Plan "Practice <weakest subject>" CTA: open the
+    // setup flow for the course that contains the subject, preselecting it so
+    // the learner only presses Start. Falls back to Clinical Challenge.
+    const ps = params.get('practiceSubject');
+    if (ps) {
+      if (LEVEL_SUBJECTS['nursing-200'].includes(ps)) setSetupType('nursing-200');
+      else if (LEVEL_SUBJECTS['midwifery-200'].includes(ps)) setSetupType('midwifery-200');
+      else setSetupType('clinical-challenge');
+      setPresetSubject(ps);
+      setSelectedDifficulty(null);
+    }
     // Deep-link from a study group: stamp results with the group_id so the
     // per-group quiz streak can advance. Opens the Midwifery 200-Level setup.
     const g = params.get('groupId');
@@ -278,21 +272,6 @@ const Quiz = () => {
     window.scrollTo({ top: 0 });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [loadingAuth, userProfile.isActivated, weaknessIntentHandled, navigate]);
-
-  const matchesTier = (cardDifficulty, tierId) => {
-    const d = String(cardDifficulty || '').toLowerCase();
-    switch (tierId) {
-      case 'Easy': return d === 'easy';
-      case 'Medium': return d === 'medium' || d === 'moderate';
-      case 'Hard': return d === 'hard';
-      // Authored Expert/Master/Extreme banks do not exist yet; these tiers draw
-      // from the Hard pool with stricter passing marks until curated content lands.
-      case 'Expert':
-      case 'Master':
-      case 'Extreme': return d === 'hard' || d === 'expert' || d === 'master' || d === 'extreme';
-      default: return true;
-    }
-  };
 
   useEffect(() => {
     return () => {
@@ -331,10 +310,12 @@ const Quiz = () => {
     return { ...card, options, correctAnswer: targetAnswer };
   };
 
-  // Builds a question set for the immersive player.
+  // Builds a question set for the immersive player via the configurable
+  // no-repetition selection engine (see utils/questionSelection.js + the
+  // SELECTION_CONFIG tunables in utils/selectionConfig.js).
   const buildQuestionSet = (engineMode, difficulty, count, order, subject, examSource) => {
     let pool;
-    if (engineMode === 'uselu') pool = useluData;
+    if (engineMode === 'uselu') pool = USELU_POOL;
     else if (engineMode === 'nursing200') pool = NURSING200_POOL;
     else if (engineMode === 'midwifery') pool = MIDWIFERY_POOL;
     else {
@@ -345,64 +326,16 @@ const Quiz = () => {
       else if (examSource === 'nmcn') pool = NMCN_POOL;
       else pool = ALL_EXAM_POOL;
     }
-    if (subject) {
-      pool = pool.filter(c => c.subject === subject);
-    }
-    const seen = new Set();
-    const uniquePool = pool.filter(c => seen.has(c.question) ? false : seen.add(c.question));
 
-    // No-repetition: never re-serve a question the learner has already answered
-    // while undiscovered ones remain.
-    const attempted = attemptedIdsRef.current;
+    const intended = selectQuestions(pool, {
+      questionCount: count,
+      order,
+      subject,
+      difficulty,
+      prioritizeWeakness: engineMode === 'weakness'
+    }, selectionStateRef.current);
 
-    // Weakness Challenge: prioritize the learner's computed weak topics.
-    if (engineMode === 'weakness') {
-      const weakMatches = uniquePool.filter(c => {
-        const probe = [c.topic, c.category, c.subject].map(x => String(x || '').trim().toLowerCase()).filter(Boolean);
-        return probe.some(p => weakConceptNames.has(p));
-      });
-      if (weakMatches.length >= 5) {
-        // Same-niche-different-angle: put unseen weak matches first so repeats
-        // are only used once the learner has cleared the weakness pool.
-        const unseenWeak = weakMatches.filter(c => !attempted.has(questionId(c)));
-        const ordered = [...unseenWeak, ...weakMatches];
-        return ordered
-          .sort(() => 0.5 - Math.random())
-          .slice(0, Math.min(count, ordered.length))
-          .map(card => boxCard(card));
-      }
-    }
-
-    let tierPool = uniquePool;
-    if (difficulty) {
-      const tierMatches = uniquePool.filter(c => matchesTier(c.difficulty, difficulty));
-      if (tierMatches.length >= 5) {
-        tierPool = tierMatches;
-      } else {
-        const globalTier = flashcards.filter(c =>
-          matchesTier(c.difficulty, difficulty) &&
-          (!subject || c.subject === subject)
-        );
-        tierPool = [...tierMatches, ...globalTier];
-      }
-    }
-    const activePool = tierPool.length > 0 ? tierPool : uniquePool;
-
-    // No-repetition: serve unseen tier questions first, then previously-seen
-    // ones only as a top-up (same-niche-different-angle) so the set is never
-    // empty. Shuffling happens within each group to preserve that priority.
-    const activeUnseen = activePool.filter(c => !attempted.has(questionId(c)));
-    const activeSeen = activePool.filter(c => attempted.has(questionId(c)));
-    const shuffleArr = (arr) => [...arr].sort(() => 0.5 - Math.random());
-    let working;
-    if (order === 'randomized') {
-      working = [...shuffleArr(activeUnseen), ...shuffleArr(activeSeen)];
-    } else {
-      working = [...activeUnseen, ...activeSeen];
-    }
-    const picked = working.slice(0, Math.min(count, working.length));
-
-    return picked.map(card => boxCard(card));
+    return intended.map(card => boxCard(card));
   };
 
   const launchPlayer = async (engineMode, cfg, opts = {}) => {
@@ -415,7 +348,8 @@ const Quiz = () => {
     // Retrying the SAME already-reserved set skips consumption (no double charge).
     if (!opts.skipQuota && !isPremium && session) {
       try {
-        const res = await consumeQuota(questions.length, session);
+        const quotaKey = cfg.subject || MODE_QUOTA_KEY[engineMode] || '';
+        const res = await consumeQuota(questions.length, session, quotaKey);
         if (!res) { setQuotaNotice({ remaining: 0, exhausted: true }); fetchQuotaStatus(); return; }
         if (res.in_cooldown) {
           setQuotaNotice({ remaining: res.questions_remaining ?? 0, exhausted: true });
@@ -499,8 +433,9 @@ const Quiz = () => {
         if (ans.length > 0) await recordAnsweredBatch({ difficulty: diff, answers: ans });
       }
     }
-    // Refresh the no-repetition set so the next session starts fresh.
-    await refreshAttemptedIds();
+    // Refresh the selection state so the next session starts fresh.
+    await refreshSelectionState();
+    await fetchSubjectQuotaStatus();
   };
 
   const quitPlayer = () => {
@@ -738,80 +673,68 @@ const Quiz = () => {
         </header>
 
         <p className="text-center text-[10px] font-bold uppercase tracking-widest text-slate-400 -mt-2">
-          Select a mode below to configure your session
+          Select a course below to configure your session
         </p>
 
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          <ModeCard
-            title="Clinical Challenge"
-            desc="Simulated exam environment with critical rationales."
-            icon={<Shield size={28} className="sm:w-8 sm:h-8" />}
-            duration="Variable"
-            timer="Adaptive"
-            color="medical"
-            onClick={() => openSetup(MODE_TO_SETUP.clinical)}
-          />
-          <ModeCard
-            title="Quick Quiz"
-            desc="Rapid questions for instant knowledge verification."
-            icon={<Zap size={28} className="sm:w-8 sm:h-8" />}
-            duration="Fast"
-            timer="Instant"
-            color="amber"
-            onClick={() => openSetup(MODE_TO_SETUP.quick)}
-          />
-          <ModeCard
-            title="Uselu Test Questions"
-            desc="Focused practice with the Uselu Posting test question bank."
-            icon={<Target size={28} className="sm:w-8 sm:h-8" />}
-            duration="Focused"
-            timer="Adaptive"
-            color="indigo"
-            onClick={() => openSetup(MODE_TO_SETUP.uselu)}
-          />
-          <ModeCard
-            title="Nursing 200-Level"
-            desc="200-Level course questions across seven subjects."
-            icon={<BookOpen size={28} className="sm:w-8 sm:h-8" />}
-            duration="Focused"
-            timer="Adaptive"
-            color="emerald"
-            onClick={() => openSetup(MODE_TO_SETUP.nursing200)}
-          />
-          <ModeCard
-            title="Midwifery 200-Level"
-            desc="200-Level midwifery questions across five core subjects."
-            icon={<Heart size={28} className="sm:w-8 sm:h-8" />}
-            duration="Focused"
-            timer="Adaptive"
-            color="pink"
-            onClick={() => openSetup(MODE_TO_SETUP.midwifery)}
-          />
-        </div>
+        <CourseList
+          courses={[
+            {
+              id: 'clinical-challenge',
+              title: 'Clinical Challenge',
+              desc: QUIZ_CONFIGS['clinical-challenge'].identity,
+              icon: <Shield size={24} className="sm:w-7 sm:h-7" />,
+              color: { icon: 'bg-medical-500/10 text-medical-500' }
+            },
+            {
+              id: 'quick-quiz',
+              title: 'Quick Quiz',
+              desc: QUIZ_CONFIGS['quick-quiz'].identity,
+              icon: <Zap size={24} className="sm:w-7 sm:h-7" />,
+              color: { icon: 'bg-amber-500/10 text-amber-500' }
+            },
+            {
+              id: 'uselu-test',
+              title: 'Uselu Test Questions',
+              desc: QUIZ_CONFIGS['uselu-test'].identity,
+              icon: <Target size={24} className="sm:w-7 sm:h-7" />,
+              color: { icon: 'bg-indigo-500/10 text-indigo-500' }
+            },
+            {
+              id: 'nursing-200',
+              title: 'Nursing 200-Level',
+              desc: QUIZ_CONFIGS['nursing-200'].identity,
+              icon: <BookOpen size={24} className="sm:w-7 sm:h-7" />,
+              color: { icon: 'bg-emerald-500/10 text-emerald-500' },
+              subjects: LEVEL_SUBJECTS['nursing-200']
+            },
+            {
+              id: 'midwifery-200',
+              title: 'Midwifery 200-Level',
+              desc: QUIZ_CONFIGS['midwifery-200'].identity,
+              icon: <Heart size={24} className="sm:w-7 sm:h-7" />,
+              color: { icon: 'bg-pink-500/10 text-pink-500' },
+              subjects: LEVEL_SUBJECTS['midwifery-200']
+            },
+            {
+              id: 'weakness-challenge',
+              title: 'Fix My Weak Areas',
+              desc: QUIZ_CONFIGS['weakness-challenge'].identity,
+              icon: <Timer size={24} className="sm:w-7 sm:h-7" />,
+              color: { icon: 'bg-rose-500/10 text-rose-500' }
+            }
+          ]}
+          onLaunch={(setupType, preselectSubject) => {
+            if (preselectSubject) {
+              setPresetSubject(preselectSubject);
+              setSelectedDifficulty(null);
+            }
+            openSetup(setupType);
+          }}
+          premium={isPremium}
+          subjectQuota={subjectQuota}
+          globalQuota={quota}
+        />
       </div>
-  );
-};
-
-const ModeCard = ({ title, desc, icon, duration, timer, color, onClick }) => {
-  const colors = {
-    medical: 'hover:border-medical-500 group-hover:text-medical-500 bg-medical-500/10 text-medical-600',
-    amber: 'hover:border-amber-500 group-hover:text-amber-500 bg-amber-500/10 text-amber-600',
-    indigo: 'hover:border-indigo-500 group-hover:text-indigo-500 bg-indigo-500/10 text-indigo-600',
-    emerald: 'hover:border-emerald-500 group-hover:text-emerald-500 bg-emerald-500/10 text-emerald-600',
-    pink: 'hover:border-pink-500 group-hover:text-pink-500 bg-pink-500/10 text-pink-600'
-  };
-  return (
-    <button onClick={onClick} className={`p-4 sm:p-6 bg-white dark:bg-slate-800 rounded-2xl sm:rounded-3xl border-2 border-slate-100 dark:border-slate-700 transition-all text-left group active:scale-95 flex flex-col justify-between min-h-[160px] sm:min-h-[200px] shadow-sm hover:shadow-xl ${colors[color].split(' ')[0]}`}>
-      <div>
-        <div className={`w-10 h-10 sm:w-14 sm:h-14 rounded-xl sm:rounded-2xl flex items-center justify-center mb-3 sm:mb-6 transition-all group-hover:scale-110 shadow-inner ${colors[color].split(' ').pop()} ${colors[color].split(' ')[1]}`}>{icon}</div>
-        <h3 className="text-base sm:text-xl font-black text-slate-900 dark:text-white mb-1 sm:mb-2 tracking-tight group-hover:translate-x-1 transition-transform">{title}</h3>
-        <p className="text-slate-500 dark:text-slate-400 text-xs sm:text-sm font-medium leading-relaxed line-clamp-2">{desc}</p>
-      </div>
-      <div className="flex gap-3 sm:gap-4 mt-3 sm:mt-6">
-        <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-black uppercase text-slate-400 tracking-wider"><Clock size={12} /> {duration}</div>
-        <div className="flex items-center gap-1.5 text-[9px] sm:text-[10px] font-black uppercase text-slate-400 tracking-wider"><Timer size={12} /> {timer}</div>
-      </div>
-    </button>
   );
 };
 

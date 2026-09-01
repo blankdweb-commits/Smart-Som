@@ -8,7 +8,7 @@ import DailyChallengeWidget from '../components/DailyChallengeWidget';
 import IdentityCard from '../components/IdentityCard';
 import IdentityUnlockModal from '../components/IdentityUnlockModal';
 import Recommendations from '../components/Recommendations';
-import StudyCoachWidget from '../components/StudyCoachWidget';
+import StudyPlanCard from '../components/StudyPlanCard';
 import { greetingForName } from '../utils/getGreeting';
 import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
@@ -386,7 +386,7 @@ const Dashboard = () => {
              <p className="text-xs text-slate-400 font-medium mt-3">{readinessHint}</p>
            </div>
 
-           <StudyCoachWidget />
+           <StudyPlanCard />
 
            <div className="bg-amber-500 rounded-[2.5rem] p-8 text-white shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-10">

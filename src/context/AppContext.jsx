@@ -120,6 +120,8 @@ export function AppProvider({ children }) {
   });
   const [difficultyProgress, setDifficultyProgress] = useState(null); // { Easy:{...}, ... }
   const [userAchievements, setUserAchievements] = useState([]);
+  // Per-subject simulated cooldown (free users only): { subject: { questions_used, window_expires_at, cooldown_remaining_seconds } }
+  const [subjectQuota, setSubjectQuota] = useState({ premium: false, unlimited: false, subjects: {} });
   // Flashcards are ADMIN-GRANTED (not premium). Server-authoritative flag.
   const [flashcardAccess, setFlashcardAccess] = useState(false);
   // Smart Coins are LOCKED until 1v1 launches (per product spec): every new
@@ -810,6 +812,73 @@ export function AppProvider({ children }) {
     }
   }, [session]);
 
+  // Full per-question history for the scored selection engine. Returns
+  // { attemptedIds: Set, questionHistory: Map<qid, row>, nicheCounts: Map<key, count> }.
+  // Exposed so Quiz.jsx can build its `userState` for selectQuestions().
+  const fetchQuestionHistory = useCallback(async () => {
+    if (!session || !supabase) {
+      return { attemptedIds: new Set(), questionHistory: new Map(), nicheCounts: new Map() };
+    }
+    try {
+      const { data, error } = await supabase
+        .from('question_attempts')
+        .select('question_id, question, topic, subject, created_at, correct')
+        .eq('user_id', session.user.id);
+      if (error) {
+        console.warn('Question history fetch failed:', error.message);
+        return { attemptedIds: new Set(), questionHistory: new Map(), nicheCounts: new Map() };
+      }
+      const attemptedIds = new Set();
+      const questionHistory = new Map();
+      const nicheCounts = new Map();
+      (data || []).forEach(r => {
+        const qid = String(r.question_id || '').trim();
+        if (!qid) return;
+        attemptedIds.add(qid);
+        const existing = questionHistory.get(qid);
+        if (!existing || new Date(r.created_at).getTime() > new Date(existing.last_seen).getTime()) {
+          questionHistory.set(qid, {
+            last_seen: r.created_at,
+            last_result: !!r.correct,
+            correct_count: existing?.correct_count ?? 0,
+            attempt_count: existing?.attempt_count ?? 1
+          });
+        }
+        // Same-niche-different-angle counting uses topic then subject.
+        const key = String(r.topic || r.subject || 'General').trim() || 'General';
+        nicheCounts.set(key, (nicheCounts.get(key) || 0) + 1);
+      });
+      return { attemptedIds, questionHistory, nicheCounts };
+    } catch {
+      return { attemptedIds: new Set(), questionHistory: new Map(), nicheCounts: new Map() };
+    }
+  }, [session]);
+
+  // Real failed questions from the learner's answer log (most recent first).
+  // Powers the Weakness Drill page — these are the actual wrong answers, not
+  // abstract "topics".
+  const fetchFailedQuestions = useCallback(async () => {
+    if (!session || !supabase) return [];
+    try {
+      const since = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString();
+      const { data, error } = await supabase
+        .from('question_attempts')
+        .select('question_id, question, topic, subject, difficulty, created_at')
+        .eq('user_id', session.user.id)
+        .eq('correct', false)
+        .gte('created_at', since)
+        .order('created_at', { ascending: false })
+        .limit(40);
+      if (error) {
+        console.warn('Failed questions fetch failed:', error.message);
+        return [];
+      }
+      return data || [];
+    } catch {
+      return [];
+    }
+  }, [session]);
+
   // ---------- Plans & transactions ----------
   useEffect(() => {
     // Fallback plans are always available so the payment page never renders
@@ -893,6 +962,7 @@ export function AppProvider({ children }) {
         setLevelCompletions({});
         setQuizHistory([]);
         setQuota(s => ({ ...s, premium: false, unlimited: false, questions_remaining: 50, in_cooldown: false, window_expires_at: null }));
+        setSubjectQuota({ premium: false, unlimited: false, subjects: {} });
         setDifficultyProgress(null);
         setUserAchievements([]);
       }
@@ -944,9 +1014,30 @@ export function AppProvider({ children }) {
     }
   }, [session?.access_token, apexHeaders]);
 
+  // Per-subject simulated cooldown state for the Course Selector UI.
+  const fetchSubjectQuotaStatus = useCallback(async (sess = session) => {
+    if (!sess?.access_token) return;
+    try {
+      const res = await fetch('/api/quota/subject-status', {
+        method: 'GET',
+        headers: apexHeaders(sess)
+      });
+      const body = await res.json();
+      if (res.ok) {
+        setSubjectQuota({
+          premium: !!body.premium,
+          unlimited: !!body.unlimited,
+          subjects: body.subjects || {}
+        });
+      }
+    } catch (err) {
+      console.warn('Subject quota fetch skipped:', err.message);
+    }
+  }, [session?.access_token, apexHeaders]);
+
   // Atomically consume quota for answered questions. Opts: skip when premium.
   // Returns the updated quota state, or null if exhausted/blocked.
-  const consumeQuota = useCallback(async (count = 1, sess = session) => {
+  const consumeQuota = useCallback(async (count = 1, sess = session, subject = '') => {
     if (!sess?.access_token) return null;
     if (isPremium) return { premium: true, unlimited: true, questions_remaining: null, in_cooldown: false };
     try {
@@ -955,7 +1046,7 @@ export function AppProvider({ children }) {
       const res = await fetch('/api/quota/consume', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ count })
+        body: JSON.stringify({ count, subject })
       });
       const body = await res.json();
       if (res.ok) {
@@ -1225,6 +1316,7 @@ export function AppProvider({ children }) {
     setQuizHistory([]);
     setLearningAnalytics({ weakTopics: [], weakConcepts: [], totalAttempts: 0, recommendedRevision: [], dailyChallenge: { id: null, question: '', answer: '', completed: false, lastDate: null } });
     setQuota(s => ({ ...s, premium: false, unlimited: false, questions_remaining: 50, in_cooldown: false, window_expires_at: null }));
+    setSubjectQuota({ premium: false, unlimited: false, subjects: {} });
     setDifficultyProgress(null);
     setUserAchievements([]);
   };
@@ -1303,7 +1395,7 @@ export function AppProvider({ children }) {
       addAuditLog: () => {}, updateCardProgress, incrementCardsStudied,
       updateQuizStats, fetchUserData, feeDetails,
       recordQuizResult, recordWrongAnswers, recordAttempts, computeWeakConcepts, touchActivity,
-      submitQuestionFeedback, fetchAttemptedQuestionIds,
+      submitQuestionFeedback, fetchAttemptedQuestionIds, fetchQuestionHistory, fetchFailedQuestions,
       addFlashcard, updateFlashcard, deleteFlashcard, importFlashcards,
       smartCoins, scLedger, claimDailySC, earnSC, spendSC, recordStreakBreak, recordQuizFailPenalty,
       bumpGroupQuizStreak, fetchSCRank,
@@ -1311,7 +1403,7 @@ export function AppProvider({ children }) {
       identity, identityProgress, identityUnlock, dismissIdentityUnlock, refreshIdentityUnlock,
       // ---- Command Center exports ----
       SC_FEATURE_LOCKED, isPremium,
-      quota, fetchQuotaStatus, consumeQuota,
+      quota, fetchQuotaStatus, consumeQuota, subjectQuota, fetchSubjectQuotaStatus,
       difficultyProgress, fetchDifficultyStatus, recordAnsweredBatch,
       userAchievements, fetchAchievements,
       flashcardAccess, fetchFlashcardAccess,

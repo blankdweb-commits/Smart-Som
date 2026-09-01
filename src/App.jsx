@@ -26,6 +26,7 @@ const StudyGroups = lazy(() => import('./components/StudyGroups'));
 const Marketplace = lazy(() => import('./pages/Marketplace'));
 const Voting = lazy(() => import('./pages/Voting'));
 const Reviews = lazy(() => import('./pages/Reviews'));
+const WeaknessDrill = lazy(() => import('./pages/WeaknessDrill'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center h-screen bg-white dark:bg-slate-900">
@@ -39,13 +40,14 @@ const PageLoader = () => (
 const AppRouter = () => (
   <Suspense fallback={<PageLoader />}>
     <Routes>
-      <Route path="/" element={<Navigate to="/dashboard" replace />} />
+      <Route path="/" element={<Navigate to="/signup" replace />} />
 
       <Route element={<Layout />}>
         <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
         <Route path="/activate" element={<RequireAuth><Activate /></RequireAuth>} />
         <Route path="/flashcards" element={<RequireAuth><Flashcards /></RequireAuth>} />
         <Route path="/quiz" element={<RequireAuth><Quiz /></RequireAuth>} />
+        <Route path="/weakness-drill" element={<RequireAuth><WeaknessDrill /></RequireAuth>} />
         <Route path="/exams" element={<RequireAuth><ExamTimetable /></RequireAuth>} />
         <Route path="/papers" element={<Navigate to="/marketplace" replace />} />
         <Route path="/marketplace" element={<RequireAuth><Marketplace /></RequireAuth>} />
