@@ -45,13 +45,26 @@ const MODE_TO_SETUP = {
   weakness: 'weakness-challenge'
 };
 
-// Courses that have no explicit subject use their mode title as the
-// per-subject cooldown bucket so the Course List can show a status chip.
-const MODE_QUOTA_KEY = {
+const PLAYER_MODE_LABELS = {
   clinical: 'Clinical Challenge',
   quick: 'Quick Quiz',
   uselu: 'Uselu Test Questions',
+  nursing200: 'Nursing 200-Level',
+  midwifery: 'Midwifery 200-Level',
   weakness: 'Fix My Weak Areas'
+};
+
+// Human-friendly course name for the cooldown dialog.
+const courseLabel = (engineMode, cfg) => {
+  if (cfg?.subject) return cfg.subject;
+  if (cfg?.courseKey && !/^[a-z0-9-]+:(both|nmcn|nclex)$/.test(cfg.courseKey)) return cfg.courseKey;
+  return PLAYER_MODE_LABELS[engineMode] || cfg?.courseKey || 'this course';
+};
+
+const fmtClock = (s) => {
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
 };
 
 // ----- Sound System (Supabase-hosted; every clip is <= 4s) -----
@@ -147,11 +160,13 @@ const Quiz = () => {
   const [activeConfig, setActiveConfig] = useState(null);  // config from QuizSetupFlow
   const [playerResult, setPlayerResult] = useState(null);  // { score, total, answers[], durationSeconds }
   const [activeQuestions, setActiveQuestions] = useState([]);
-  // Free-user 50/12h quota gate: surfaced when the user exhausts their window.
-  const [quotaNotice, setQuotaNotice] = useState(null); // { remaining, exhausted }
+  // Per-course round gate: shown when a free user's round for this course is
+  // still cooling down (server-authoritative result from consumeCourseQuota).
+  const [cooldownNotice, setCooldownNotice] = useState(null); // { courseKey, label, seconds, engineMode, cfg }
+  const pendingLaunchRef = React.useRef(null); // keeps the original engineMode/cfg for the "Start now" retry
 
   // ----- Difficulty progression -----
-  const { recordQuizResult, recordWrongAnswers, recordAttempts, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchSCRank, studyStats, levelCompletions, session, fetchQuestionHistory, consumeQuota, isPremium, fetchQuotaStatus, recordAnsweredBatch, subjectQuota, fetchSubjectQuotaStatus, quota } = useAppContext();
+  const { recordQuizResult, recordWrongAnswers, recordAttempts, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchSCRank, studyStats, levelCompletions, session, fetchQuestionHistory, consumeCourseQuota, isPremium, fetchCourseQuotaStatus, recordAnsweredBatch, courseQuota } = useAppContext();
   const [selectedDifficulty, setSelectedDifficulty] = useState(null);
   const [globalRank, setGlobalRank] = useState(null);
 
@@ -191,11 +206,11 @@ const Quiz = () => {
     if (session?.user) refreshSelectionState();
   }, [session?.user, refreshSelectionState]);
 
-  // Refresh the per-subject cooldown state whenever the learner or their
-  // quota changes, so the Course List chips stay accurate after a session.
+  // Refresh the per-course quota map whenever the learner changes, so the
+  // Course List chips stay accurate.
   React.useEffect(() => {
-    if (session?.user) fetchSubjectQuotaStatus();
-  }, [session?.user, fetchSubjectQuotaStatus]);
+    if (session?.user) fetchCourseQuotaStatus();
+  }, [session?.user, fetchCourseQuotaStatus]);
   const [passInfo, setPassInfo] = useState(null); // { passed, pct }
   const wrongAnswersRef = React.useRef([]);
   const quizStartRef = React.useRef(null);
@@ -342,26 +357,42 @@ const Quiz = () => {
     const questions = buildQuestionSet(engineMode, cfg.difficulty, cfg.questionCount, cfg.order, cfg.subject, cfg.examSource);
     if (questions.length === 0) return;
 
-    // FREE-USER QUOTA GATE (50 questions / 12h cooldown).
-    // Premium users are unlimited (server-verified; consumeQuota short-circuits).
-    // We reserve the whole set up front so a user cannot bank more than the cap.
+    // FREE-USER PER-COURSE ROUND GATE (v13): one 10-question round per course,
+    // then a 1h cooldown on THAT course only. The charge happens here — the
+    // round is reserved SERVER-SIDE (consumeCourseQuota → RPC) before any
+    // question renders, so quitting early still consumes the round and a
+    // manipulated client can never bypass the cooldown.
     // Retrying the SAME already-reserved set skips consumption (no double charge).
     if (!opts.skipQuota && !isPremium && session) {
       try {
-        const quotaKey = cfg.subject || MODE_QUOTA_KEY[engineMode] || '';
-        const res = await consumeQuota(questions.length, session, quotaKey);
-        if (!res) { setQuotaNotice({ remaining: 0, exhausted: true }); fetchQuotaStatus(); return; }
-        if (res.in_cooldown) {
-          setQuotaNotice({ remaining: res.questions_remaining ?? 0, exhausted: true });
-          fetchQuotaStatus();
+        const courseKey = (cfg.courseKey || '').trim();
+        const res = await consumeCourseQuota(courseKey, questions.length, session);
+        pendingLaunchRef.current = { engineMode, cfg };
+        if (!res) {
+          setCooldownNotice({ courseKey, label: courseLabel(engineMode, cfg), seconds: 0, engineMode, cfg, unavailable: true });
+          return;
+        }
+        if (res.allowed === false || res.is_ready === false) {
+          const seconds = Number(res.cooldown_remaining_seconds) || 0;
+          setCooldownNotice({
+            courseKey,
+            label: courseLabel(engineMode, cfg),
+            seconds,
+            expiresAt: res.window_expires_at || new Date(Date.now() + seconds * 1000).toISOString(),
+            engineMode,
+            cfg,
+            unavailable: false
+          });
+          fetchCourseQuotaStatus();
           return;
         }
       } catch (err) {
-        console.warn('Quota gate skipped (fallback allow):', err.message);
+        console.warn('Course quota gate skipped (fallback allow):', err.message);
       }
     }
 
-    setQuotaNotice(null);
+    setCooldownNotice(null);
+    pendingLaunchRef.current = null;
     setActiveConfig({ ...cfg, engineMode });
     setActiveQuestions(questions);
     setPlayerResult(null);
@@ -435,7 +466,7 @@ const Quiz = () => {
     }
     // Refresh the selection state so the next session starts fresh.
     await refreshSelectionState();
-    await fetchSubjectQuotaStatus();
+    await fetchCourseQuotaStatus();
   };
 
   const quitPlayer = () => {
@@ -482,25 +513,71 @@ const Quiz = () => {
 
   // --- Render start ---
 
-  // Free-user quota exhausted: show the cooldown gate before anything else.
-  if (quotaNotice && !playerActive) {
+  // Per-course round cooldown (free users): show the centered gate before
+  // anything else so the learner knows exactly when their next round is ready.
+  const [tickNow, setTickNow] = useState(Date.now());
+  React.useEffect(() => {
+    if (!cooldownNotice || cooldownNotice.unavailable) return undefined;
+    const id = setInterval(() => setTickNow(Date.now()), 1000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cooldownNotice && cooldownNotice.expiresAt, cooldownNotice && cooldownNotice.unavailable]);
+  if (cooldownNotice && !playerActive) {
+    const remaining = cooldownNotice.unavailable
+      ? 0
+      : Math.max(0, Math.ceil((new Date(cooldownNotice.expiresAt).getTime() - tickNow) / 1000));
+    const ready = !cooldownNotice.unavailable && remaining <= 0;
     return (
       <div className="min-h-[70vh] max-w-md mx-auto px-4 pt-10 flex items-center justify-center animate-in fade-in">
-        <div className="w-full text-center">
-          <div className="w-16 h-16 mx-auto rounded-2xl bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center mb-5">
-            <Timer className="w-8 h-8 text-amber-600 dark:text-amber-400" />
+        <div className="w-full text-center bg-white dark:bg-slate-800 rounded-3xl shadow-clinical border border-slate-100 dark:border-slate-700 p-6 sm:p-8">
+          <div className={`w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-5 ${ready ? 'bg-emerald-100 dark:bg-emerald-900/40' : 'bg-amber-100 dark:bg-amber-900/40'}`}>
+            <Timer className={`w-8 h-8 ${ready ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`} />
           </div>
-          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">Daily question limit reached</h2>
-          <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-6">
-            Free learners get <span className="font-semibold">50 questions every 12 hours</span>. You've used them all
-            for this window. Your cooldown begins the moment you hit the limit — come back soon, or{' '}
-            <span className="font-semibold text-teal-600">go Premium for unlimited questions</span>.
+          <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
+            {ready ? 'Your next round is ready' : 'Next round not ready yet'}
+          </h2>
+          <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-4">
+            {cooldownNotice.unavailable ? (
+              <>We couldn't reach the quota service. Please check your connection and try again.</>
+            ) : ready ? (
+              <>Fresh round for <span className="font-semibold text-slate-700 dark:text-slate-200">{cooldownNotice.label}</span> is available.</>
+            ) : (
+              <>Free plan: one <span className="font-semibold">10-question round per course</span>, then a 1-hour cooldown. Come back in{' '}
+                <span className="font-semibold text-amber-600 dark:text-amber-400 tabular-nums">
+                  {fmtClock(remaining)}
+                </span> to restart <span className="font-semibold text-slate-700 dark:text-slate-200">{cooldownNotice.label}</span> — or go Premium for unlimited rounds.</>
+            )}
           </p>
+
+          {cooldownNotice.unavailable && (
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Quota service unreachable</p>
+          )}
+
+          <div className="grid gap-2.5 mt-5">
+            {ready && !cooldownNotice.unavailable && (
+              <button
+                onClick={() => {
+                  const pending = pendingLaunchRef.current;
+                  setCooldownNotice(null);
+                  if (pending) launchPlayer(pending.engineMode, pending.cfg);
+                }}
+                className="w-full bg-teal-600 hover:bg-teal-500 text-white font-semibold py-3.5 rounded-xl transition-colors"
+              >
+                Start round now
+              </button>
+            )}
+            <button
+              onClick={() => setCooldownNotice(null)}
+              className={ready ? "w-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold py-3.5 rounded-xl transition-colors" : "w-full bg-teal-600 hover:bg-teal-500 text-white font-semibold py-3.5 rounded-xl transition-colors"}
+            >
+              🔄 Try another course
+            </button>
+          </div>
           <button
-            onClick={async () => { setQuotaNotice(null); await fetchQuotaStatus(); }}
-            className="w-full bg-teal-600 hover:bg-teal-500 text-white font-semibold py-3.5 rounded-xl transition-colors"
+            onClick={() => navigate('/activate')}
+            className="mt-2 w-full flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-widest text-teal-600 dark:text-teal-400 py-2 hover:underline"
           >
-            Check my quota
+            ⭐ Go Premium — unlimited rounds
           </button>
         </div>
       </div>
@@ -522,14 +599,6 @@ const Quiz = () => {
 
   // Immersive player for Clinical / Quick / Uselu
   if (playerActive && activeConfig) {
-    const playerModeLabels = {
-      clinical: 'Clinical Challenge',
-      quick: 'Quick Quiz',
-      uselu: 'Uselu Test Questions',
-      nursing200: 'Nursing 200-Level',
-      midwifery: 'Midwifery 200-Level',
-      weakness: 'Fix My Weak Areas'
-    };
     return (
       <QuizPlayer
         questions={activeQuestions}
@@ -538,7 +607,7 @@ const Quiz = () => {
           timePerQuestion: activeConfig.timePerQuestion,
           answerMode: activeConfig.answerMode
         }}
-        modeLabel={playerModeLabels[activeConfig.engineMode] || ''}
+        modeLabel={PLAYER_MODE_LABELS[activeConfig.engineMode] || ''}
         onSound={playQuizSound}
         onComplete={handlePlayerComplete}
         onQuit={quitPlayer}
@@ -731,8 +800,7 @@ const Quiz = () => {
             openSetup(setupType);
           }}
           premium={isPremium}
-          subjectQuota={subjectQuota}
-          globalQuota={quota}
+          courseQuota={courseQuota}
         />
       </div>
   );

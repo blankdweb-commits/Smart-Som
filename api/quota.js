@@ -1,79 +1,34 @@
 // ============================================================
-// Quota API — free-user 50-question / 12-hour cooldown.
+// Quota API — per-course round quota (v13). Free users only.
 //
-// GET  /api/quota/status          → current quota state (server timestamps).
-// GET  /api/quota/subject-status  → per-subject cooldown state for the Course
-//      Selector UI (free users only; premium returns unlimited).
-// POST /api/quota/consume  → atomically consume one answered question.
-//      Body: { count, subject } (count optional, default 1; subject optional,
-//      used to track the per-subject simulated cooldown). Consumes that many
-//      ONLY if the caller passes category-A evidence (genuine answered
-//      question path). Premium users are exempt server-side.
+// GET  /api/quota/course-status  → per-course quota map for the Course Selector
+//      { [course_key]: { questions_used, rounds_completed, last_round_completed_at,
+//                         window_expires_at, cooldown_remaining_seconds, is_ready } }
+// POST /api/quota/course-consume → reserve a round for a course.
+//      Body: { course_key, count? }
+//      FREE users are charged exactly 10 questions + a 1h cooldown, regardless
+//      of `count`. PREMIUM users get 10-30 (server-clamped) with no cooldown.
+//      The count is validated SERVER-SIDE only — never trusted from the client.
+//      Returns { allowed, premium, questions_remaining, round_completed,
+//                rounds_completed, window_expires_at, cooldown_remaining_seconds,
+//                is_ready }.
 // ============================================================
-import { getSupabaseAdmin, authorizeRequest } from './_utils';
+import { getSupabaseAdmin, authorizeRequest } from './_utils.js';
 
-const PREMIUM_FREE_UNLIMITED = true; // premium = unlimited by design
-
-const getStatus = async (req, res) => {
+const courseStatus = async (req, res) => {
   const { user, status, body } = await authorizeRequest(req);
   if (!user) return res.status(status).json(body);
 
   const supabase = getSupabaseAdmin();
   if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
 
-  // Premium users have no quota.
-  const premium = await isPremium(user.id, supabase);
-  if (premium) {
-    return res.status(200).json({
-      premium: true,
-      unlimited: true,
-      questions_remaining: null,
-      in_cooldown: false,
-      window_expires_at: null
-    });
-  }
-
   try {
-    const { data, error } = await supabase.rpc('get_quota_status', { p_user_id: user.id });
+    const { data, error } = await supabase.rpc('get_course_quota_status', { p_user_id: user.id });
     if (error) throw error;
-    return res.status(200).json({
-      premium: false,
-      unlimited: false,
-      ...(data || {}),
-      questions_remaining: data?.questions_remaining ?? 0,
-      in_cooldown: (data?.questions_remaining ?? 0) <= 0
-    });
+    return res.status(200).json({ subjects: data || {} });
   } catch (err) {
-    console.error('Quota status error:', err.message);
-    return res.status(500).json({ error: 'Internal error reading quota' });
-  }
-};
-
-// Per-subject simulated cooldown state for the Course Selector UI.
-const getSubjectStatus = async (req, res) => {
-  const { user, status, body } = await authorizeRequest(req);
-  if (!user) return res.status(status).json(body);
-
-  const supabase = getSupabaseAdmin();
-  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
-
-  // Premium users are unlimited — no per-subject cooldown applies.
-  const premium = await isPremium(user.id, supabase);
-  if (premium) {
-    return res.status(200).json({ premium: true, unlimited: true, subjects: {} });
-  }
-
-  try {
-    const { data, error } = await supabase.rpc('get_subject_quota_status', { p_user_id: user.id });
-    if (error) throw error;
-    return res.status(200).json({
-      premium: false,
-      unlimited: false,
-      subjects: data || {}
-    });
-  } catch (err) {
-    console.error('Subject quota status error:', err.message);
-    return res.status(500).json({ error: 'Internal error reading subject quota' });
+    console.error('Course quota status error:', err.message);
+    return res.status(500).json({ error: 'Internal error reading course quota' });
   }
 };
 
@@ -84,63 +39,34 @@ const consume = async (req, res) => {
   const supabase = getSupabaseAdmin();
   if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
 
-  // Premium = unlimited; never consume against them.
-  const premium = await isPremium(user.id, supabase);
-  if (premium) {
-    return res.status(200).json({
-      premium: true,
-      unlimited: true,
-      consumed: 0,
-      questions_remaining: null,
-      in_cooldown: false
-    });
+  const courseKey = String(req.body?.course_key || '').trim();
+  if (!courseKey || courseKey.length < 3) {
+    return res.status(400).json({ error: 'Missing or invalid course_key' });
   }
 
-  const requested = Math.max(1, Math.min(50, Number(req.body?.count) || 1));
+  // Server-side premium check — single source of truth. Never trusts a client flag.
+  const premium = await isPremium(user.id, supabase);
+  const requested = Number(req.body?.count) || 10;
 
   try {
-    let remaining = null;
-    for (let i = 0; i < requested; i++) {
-      const { data, error } = await supabase.rpc('consume_question', { p_user_id: user.id });
-      if (error) throw error;
-      remaining = data;
-      if (remaining === -1) break; // exhausted
-    }
-    const inCooldown = remaining === -1 || remaining === 0;
-    // Fetch full state for accurate countdown timestamps.
-    const state = await supabase.rpc('get_quota_status', { p_user_id: user.id });
-    const consumedNow = inCooldown ? 0 : Math.min(requested, remaining >= 0 ? requested : 0);
-    // Track the per-subject simulated cooldown (free users only). The subject
-    // is optional; when omitted we skip this so the Course Selector still
-    // works with just the global quota.
-    const subject = String(req.body?.subject || '').trim();
-    if (!inCooldown && consumedNow > 0 && subject) {
-      try {
-        await supabase.rpc('record_subject_usage', {
-          p_user_id: user.id,
-          p_subject: subject,
-          p_count: consumedNow
-        });
-      } catch (err) {
-        console.warn('Subject usage record failed:', err.message);
-      }
-    }
+    const { data, error } = await supabase.rpc('consume_course_quota', {
+      p_user_id: user.id,
+      p_course_key: courseKey,
+      p_count: requested,
+      p_is_premium: premium
+    });
+    if (error) throw error;
     return res.status(200).json({
-      premium: false,
-      unlimited: false,
-      consumed: consumedNow,
-      questions_remaining: state.data?.questions_remaining ?? remaining,
-      in_cooldown: state.data?.questions_remaining <= 0,
-      window_expires_at: state.data?.window_expires_at ?? null,
-      window_started_at: state.data?.window_started_at ?? null
+      premium,
+      ...(data || {})
     });
   } catch (err) {
-    console.error('Quota consume error:', err.message);
-    return res.status(500).json({ error: 'Internal error consuming quota' });
+    console.error('Course quota consume error:', err.message);
+    return res.status(500).json({ error: 'Internal error consuming course quota' });
   }
 };
 
-// Server-side premium check — single source of truth. Never trusts a client flag.
+// Server-side premium check (subscriptions table, authoritative).
 async function isPremium(userId, supabase) {
   if (!supabase) return false;
   try {
@@ -155,10 +81,6 @@ async function isPremium(userId, supabase) {
     const now = Date.now();
     if (new Date(data.expires_at).getTime() > now) return true;
     if (data.grace_until && new Date(data.grace_until).getTime() > now) return true;
-    if (data.status === 'active' && data.expires_at) {
-      // Allow a small tolerance; authoritative is expires_at > now.
-      return false;
-    }
     return false;
   } catch {
     return false;
@@ -167,8 +89,8 @@ async function isPremium(userId, supabase) {
 
 export default async function handler(req, res) {
   const path = (req.url || '/').split('?')[0];
-  if (req.method === 'GET' && path.endsWith('/subject-status')) return getSubjectStatus(req, res);
-  if (req.method === 'GET' && path.endsWith('/status')) return getStatus(req, res);
-  if (req.method === 'POST' && path.endsWith('/consume')) return consume(req, res);
-  return res.status(405).json({ error: 'Method not allowed' });
+  if (req.method === 'GET' && path.endsWith('/course-status')) return courseStatus(req, res);
+  if (req.method === 'POST' && path.endsWith('/course-consume')) return consume(req, res);
+  // Old v10/v12 endpoints are gone — tell callers explicitly.
+  return res.status(410).json({ error: 'Gone — use /api/quota/course-status or /api/quota/course-consume' });
 }

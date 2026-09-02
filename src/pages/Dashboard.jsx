@@ -16,7 +16,7 @@ import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
 const Dashboard = () => {
   const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
-  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics, quizHistory, smartCoins, scLedger, claimDailySC, identity, identityUnlock, dismissIdentityUnlock, quota, fetchQuotaStatus, difficultyProgress, isPremium, SC_FEATURE_LOCKED, userAchievements } = useAppContext();
+  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics, quizHistory, smartCoins, scLedger, claimDailySC, identity, identityUnlock, dismissIdentityUnlock, courseQuota, fetchCourseQuotaStatus, difficultyProgress, isPremium, SC_FEATURE_LOCKED, userAchievements } = useAppContext();
   const navigate = useNavigate();
 
   // Redirect if not logged in - Only if not in DEV_MODE and NOT in Dashboard-First mode
@@ -89,10 +89,10 @@ const Dashboard = () => {
 
   const [currentTip, setCurrentTip] = React.useState(0);
 
-  // Load free-user quota status for the Command Center on mount.
+  // Load the per-course round-quota map for the Command Center on mount.
   React.useEffect(() => {
-    if (session?.user && !isPremium) fetchQuotaStatus();
-  }, [session?.user, isPremium, fetchQuotaStatus]);
+    if (session?.user) fetchCourseQuotaStatus();
+  }, [session?.user, fetchCourseQuotaStatus]);
 
   const quickReference = [
     { label: "Normal BP", value: "120/80 mmHg" },
@@ -273,7 +273,7 @@ const Dashboard = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <QuotaCard quota={quota} isPremium={isPremium} onRefresh={fetchQuotaStatus} />
+            <CourseQuotaCard courseQuota={courseQuota} isPremium={isPremium} />
             <DifficultyProgressCard progress={difficultyProgress} isPremium={isPremium} />
           </div>
 
@@ -641,24 +641,45 @@ const WeaknessChallengeCard = ({ totalAttempts, weakConcepts, isActivated, onFix
   );
 };
 
-// ---- Free-user quota card: 50 questions / 12h cooldown (premium = unlimited) ----
-const QuotaCard = ({ quota, isPremium, onRefresh }) => {
-  const used = isPremium ? null : (quota?.questions_used ?? 0);
-  const remaining = isPremium ? null : (quota?.questions_remaining ?? 0);
-  const percent = isPremium ? 100 : Math.max(0, Math.min(100, Math.round((used / 50) * 100)));
+// ---- Per-course round quota card (v13): free = 10 Q / 1h cooldown per course ----
+// Server-authoritative rows mirrored straight from the RPC status map. Premium
+// learners always see "Unlimited".
+const CourseQuotaCard = ({ courseQuota, isPremium }) => {
+  const [now, setNow] = React.useState(0);
+  React.useEffect(() => {
+    if (!courseQuota) return undefined;
+    setNow(Date.now());
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [courseQuota]);
 
-  const cooldownLabel = quota?.resets_at
-    ? new Date(quota.resets_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
-    : null;
+  const onCooldown = (key) => {
+    const row = (courseQuota || {})[key];
+    if (isPremium || !row || row.is_ready === true) return false;
+    return true;
+  };
+
+  const rows = [
+    { key: 'clinical-challenge:both', label: 'Clinical Challenge' },
+    { key: 'quick-quiz:both', label: 'Quick Quiz' },
+    { key: 'uselu-test', label: 'Uselu Test Questions' },
+    { key: 'weakness-challenge', label: 'Fix My Weak Areas' }
+  ];
+
+  const fmtClock = (s) => {
+    const m = Math.floor(s / 60);
+    const sec = Math.floor(s % 60);
+    return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+  };
 
   return (
     <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-800">
-      <div className="flex items-center justify-between mb-1">
-        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Free Daily Quota</h3>
+      <div className="flex items-center justify-between mb-3">
+        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Course Rounds</h3>
         {isPremium ? (
           <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-2.5 py-1 rounded-full">Unlimited</span>
         ) : (
-          <span className="text-[9px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 dark:bg-amber-900/30 px-2.5 py-1 rounded-full">50 / 12h</span>
+          <span className="text-[9px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 dark:bg-amber-900/30 px-2.5 py-1 rounded-full">10 / hour</span>
         )}
       </div>
 
@@ -667,28 +688,36 @@ const QuotaCard = ({ quota, isPremium, onRefresh }) => {
           <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
             <CheckCircle size={18} className="text-emerald-600" />
           </div>
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">You have unlimited questions. Keep the momentum going.</p>
+          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Unlimited rounds on every course. Keep the momentum going.</p>
         </div>
       ) : (
         <>
-          <div className="flex items-end justify-between mt-2">
-            <span className="text-3xl font-black text-slate-900 dark:text-white tracking-tighter">
-              {remaining}
-              <span className="text-sm text-slate-400 font-bold ml-1">left</span>
-            </span>
-            <span className="text-[10px] text-slate-400 font-bold">resets {cooldownLabel || 'in 12h'}</span>
+          <div className="space-y-2.5">
+            {rows.map(r => {
+              const row = (courseQuota || {})[r.key] || null;
+              const cooling = onCooldown(r.key);
+              const remaining = cooling
+                ? Math.max(0, Math.ceil((new Date(row.window_expires_at).getTime() - now) / 1000))
+                : 0;
+              return (
+                <div key={r.key} className="flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-700/60">
+                  <span className="text-xs font-bold text-slate-700 dark:text-slate-200 tracking-tight truncate">{r.label}</span>
+                  {cooling ? (
+                    <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[9px] font-black uppercase tracking-widest tabular-nums">
+                      <Clock size={10} /> {fmtClock(remaining)}
+                    </span>
+                  ) : (
+                    <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[9px] font-black uppercase tracking-widest">
+                      <CheckCircle size={10} /> Ready
+                    </span>
+                  )}
+                </div>
+              );
+            })}
           </div>
-          <div className="w-full h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden mt-3 border border-slate-50 dark:border-slate-800">
-            <div className="h-full bg-amber-500 rounded-full" style={{ width: `${percent}%` }} />
-          </div>
-          {remaining <= 10 && (
-            <button
-              onClick={onRefresh}
-              className="w-full mt-3 py-2.5 bg-amber-500 text-white rounded-xl font-black uppercase tracking-widest text-[9px] hover:bg-amber-600 transition-all active:scale-95"
-            >
-              Check My Quota
-            </button>
-          )}
+          <p className="text-[10px] text-slate-400 italic mt-4">
+            One 10-question round per course, then a fresh round in 1 hour. 200-Level subjects track their own rounds.
+          </p>
         </>
       )}
     </div>

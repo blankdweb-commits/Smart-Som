@@ -109,16 +109,9 @@ export function AppProvider({ children }) {
 
   // ---- Command Center Upgrade state (migration-v10) ----
   // Quota & difficulty & achievements
-  const [quota, setQuota] = useState({
-    isLoading: false,
-    premium: false,
-    unlimited: false,
-    questions_remaining: 50,
-    in_cooldown: false,
-    window_expires_at: null,
-    window_started_at: null,
-    lastSync: null
-  });
+  // Per-course round quota (v13): { [courseKey]: { questions_used, rounds_completed,
+  //   last_round_completed_at, window_expires_at, cooldown_remaining_seconds, is_ready } }
+  const [courseQuota, setCourseQuota] = useState({});
   const [difficultyProgress, setDifficultyProgress] = useState(null); // { Easy:{...}, ... }
   const [userAchievements, setUserAchievements] = useState([]);
   // Today's daily goal state — driven by the Daily Challenge widget. Powers the
@@ -128,8 +121,6 @@ export function AppProvider({ children }) {
   // Celebration toast for freshly-earned achievements: { emoji, title, subtitle, tone } | null.
   const [achievementToast, setAchievementToast] = useState(null);
   const dismissAchievementToast = useCallback(() => setAchievementToast(null), []);
-  // Per-subject simulated cooldown (free users only): { subject: { questions_used, window_expires_at, cooldown_remaining_seconds } }
-  const [subjectQuota, setSubjectQuota] = useState({ premium: false, unlimited: false, subjects: {} });
   // Flashcards are ADMIN-GRANTED (not premium). Server-authoritative flag.
   const [flashcardAccess, setFlashcardAccess] = useState(false);
   // Smart Coins are LOCKED until 1v1 launches (per product spec): every new
@@ -999,8 +990,7 @@ export function AppProvider({ children }) {
         setTransactions([]);
         setLevelCompletions({});
         setQuizHistory([]);
-        setQuota(s => ({ ...s, premium: false, unlimited: false, questions_remaining: 50, in_cooldown: false, window_expires_at: null }));
-        setSubjectQuota({ premium: false, unlimited: false, subjects: {} });
+        setCourseQuota({});
         setDifficultyProgress(null);
         setUserAchievements([]);
         setDailyChallengeDone(false);
@@ -1024,90 +1014,59 @@ export function AppProvider({ children }) {
     [userProfile.subscriptionStatus]
   );
 
-  // ---- Free-user quota (50 questions / 12h cooldown) ----
-  // Refresh the quota from the server (server timestamps only).
-  const fetchQuotaStatus = useCallback(async () => {
-    if (!session?.access_token) return;
-    setQuota(s => ({ ...s, isLoading: true }));
-    try {
-      const res = await fetch('/api/quota/status', {
-        method: 'GET',
-        headers: apexHeaders(session)
-      });
-      const body = await res.json();
-      if (res.ok) {
-        setQuota(prev => ({
-          ...prev,
-          premium: !!body.premium,
-          unlimited: !!body.unlimited,
-          questions_remaining: body.questions_remaining ?? prev.questions_remaining,
-          in_cooldown: !!body.in_cooldown,
-          window_expires_at: body.window_expires_at ?? prev.window_expires_at,
-          window_started_at: body.window_started_at ?? prev.window_started_at,
-          lastSync: Date.now()
-        }));
-      }
-    } catch (err) {
-      console.warn('Quota fetch skipped:', err.message);
-    } finally {
-      setQuota(s => ({ ...s, isLoading: false }));
-    }
-  }, [session?.access_token, apexHeaders]);
-
-  // Per-subject simulated cooldown state for the Course Selector UI.
-  const fetchSubjectQuotaStatus = useCallback(async (sess = session) => {
+  // ---- Per-course round quota (v13): free = 10 Q / 1h cooldown per course ----
+  // Server-authoritative: we only mirror what the server RPCs return. No local
+  // arithmetic, no optimistic updates, nothing a manipulated client could fake.
+  const fetchCourseQuotaStatus = useCallback(async (sess = session) => {
     if (!sess?.access_token) return;
     try {
-      const res = await fetch('/api/quota/subject-status', {
+      const res = await fetch('/api/quota/course-status', {
         method: 'GET',
         headers: apexHeaders(sess)
       });
       const body = await res.json();
       if (res.ok) {
-        setSubjectQuota({
-          premium: !!body.premium,
-          unlimited: !!body.unlimited,
-          subjects: body.subjects || {}
-        });
+        setCourseQuota(body.subjects || {});
       }
     } catch (err) {
-      console.warn('Subject quota fetch skipped:', err.message);
+      console.warn('Course quota fetch skipped:', err.message);
     }
   }, [session?.access_token, apexHeaders]);
 
-  // Atomically consume quota for answered questions. Opts: skip when premium.
-  // Returns the updated quota state, or null if exhausted/blocked.
-  const consumeQuota = useCallback(async (count = 1, sess = session, subject = '') => {
-    if (!sess?.access_token) return null;
-    if (isPremium) return { premium: true, unlimited: true, questions_remaining: null, in_cooldown: false };
+  // Reserve a round for a course. FREE users are charged exactly 10 questions +
+  // a 1h cooldown server-side; PREMIUM users reserve 10-30 with no cooldown.
+  // Returns the authoritative server state, or null if the call failed.
+  const consumeCourseQuota = useCallback(async (courseKey, count = 10, sess = session) => {
+    if (!sess?.access_token || !courseKey) return null;
     try {
       const headers = apexHeaders(sess);
       headers['Content-Type'] = 'application/json';
-      const res = await fetch('/api/quota/consume', {
+      const res = await fetch('/api/quota/course-consume', {
         method: 'POST',
         headers,
-        body: JSON.stringify({ count, subject })
+        body: JSON.stringify({ course_key: courseKey, count })
       });
       const body = await res.json();
       if (res.ok) {
-        setQuota(prev => ({
+        setCourseQuota(prev => ({
           ...prev,
-          premium: !!body.premium,
-          unlimited: !!body.unlimited,
-          questions_remaining: body.questions_remaining ?? prev.questions_remaining,
-          in_cooldown: !!body.in_cooldown,
-          window_expires_at: body.window_expires_at ?? prev.window_expires_at,
-          window_started_at: body.window_started_at ?? prev.window_started_at,
-          lastSync: Date.now()
+          [courseKey]: {
+            questions_used: body.questions_used,
+            rounds_completed: body.rounds_completed,
+            last_round_completed_at: body.last_round_completed_at,
+            window_expires_at: body.window_expires_at,
+            cooldown_remaining_seconds: body.cooldown_remaining_seconds ?? 0,
+            is_ready: !!body.is_ready
+          }
         }));
         return body;
       }
       return null;
     } catch (err) {
-      console.warn('Quota consume skipped:', err.message);
+      console.warn('Course quota consume skipped:', err.message);
       return null;
     }
-  }, [session, isPremium, apexHeaders]);
+  }, [session?.access_token, apexHeaders]);
 
   // ---- Difficulty unlocks (server-side) ----
   const fetchDifficultyStatus = useCallback(async (sess = session) => {
@@ -1277,8 +1236,8 @@ export function AppProvider({ children }) {
   // achievements, flashcard access).
   useEffect(() => {
     if (!session?.access_token) return;
-    fetchQuotaStatus();
-    fetchDifficultyStatus();
+fetchCourseQuotaStatus();
+  fetchDifficultyStatus();
     fetchAchievements();
     fetchFlashcardAccess();
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -1450,8 +1409,7 @@ export function AppProvider({ children }) {
     setLevelCompletions({});
     setQuizHistory([]);
     setLearningAnalytics({ weakTopics: [], weakConcepts: [], totalAttempts: 0, recommendedRevision: [], dailyChallenge: { id: null, question: '', answer: '', completed: false, lastDate: null } });
-    setQuota(s => ({ ...s, premium: false, unlimited: false, questions_remaining: 50, in_cooldown: false, window_expires_at: null }));
-    setSubjectQuota({ premium: false, unlimited: false, subjects: {} });
+    setCourseQuota({});
     setDifficultyProgress(null);
     setUserAchievements([]);
     setDailyChallengeDone(false);
@@ -1522,7 +1480,7 @@ export function AppProvider({ children }) {
       identity, identityProgress, identityUnlock, dismissIdentityUnlock, refreshIdentityUnlock,
       // ---- Command Center exports ----
       SC_FEATURE_LOCKED, isPremium,
-      quota, fetchQuotaStatus, consumeQuota, subjectQuota, fetchSubjectQuotaStatus,
+      courseQuota, fetchCourseQuotaStatus, consumeCourseQuota,
       difficultyProgress, fetchDifficultyStatus, recordAnsweredBatch,
       userAchievements, fetchAchievements, syncAchievements,
       dailyChallengeDone, markDailyChallengeDone,

@@ -19,6 +19,8 @@ import {
 } from './Icons';
 
 // Per-quiz-type configuration — drives what Step 2 shows.
+// Question counts are 10-30 for premium; free users are locked to 10 (the UI
+// forces [10] and the server enforces it again at consume time).
 const QUIZ_CONFIGS = {
   'clinical-challenge': {
     title: 'Clinical Challenge',
@@ -26,7 +28,7 @@ const QUIZ_CONFIGS = {
     icon: <Shield size={22} />,
     accentText: 'text-medical-400',
     accentBg: 'bg-medical-500/20 border-medical-500/30',
-    questionCounts: [10, 20, 30, 50],
+    questionCounts: [10, 20, 30],
     timerOptions: [
       { value: null, label: 'No Time Limit' },
       { value: 10, label: '10s / Q' },
@@ -55,6 +57,7 @@ const QUIZ_CONFIGS = {
     questionCounts: [10],
     timerOptions: [
       { value: 10, label: '10s / Q' },
+      { value: 15, label: '15s / Q' },
       { value: 20, label: '20s / Q' },
       { value: 30, label: '30s / Q' }
     ],
@@ -77,7 +80,7 @@ const QUIZ_CONFIGS = {
     icon: <Target size={22} />,
     accentText: 'text-indigo-400',
     accentBg: 'bg-indigo-500/20 border-indigo-500/30',
-    questionCounts: [10, 20, 30, 50],
+    questionCounts: [10, 20, 30],
     timerOptions: [
       { value: null, label: 'No Time Limit' },
       { value: 15, label: '15s / Q' },
@@ -110,7 +113,7 @@ const QUIZ_CONFIGS = {
       'Reproductive Health',
       'Research Methodology'
     ],
-    questionCounts: [10, 20, 30, 50],
+    questionCounts: [10, 20, 30],
     timerOptions: [
       { value: null, label: 'No Time Limit' },
       { value: 15, label: '15s / Q' },
@@ -155,7 +158,7 @@ const QUIZ_CONFIGS = {
       'Home Health Care Nursing',
       'Entrepreneurship in Midwifery'
     ],
-    questionCounts: [10, 20, 30, 50],
+    questionCounts: [10, 20, 30],
     timerOptions: [
       { value: null, label: 'No Time Limit' },
       { value: 15, label: '15s / Q' },
@@ -233,11 +236,17 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
   const config = QUIZ_CONFIGS[quizType] || QUIZ_CONFIGS['clinical-challenge'];
   const { difficultyProgress, isPremium } = useAppContext();
 
-  // Free users must use a per-question timer (never "No Time Limit"); premium
-  // users may go untimed. Filter the untimed option accordingly.
+  // Free users: locked to exactly 10 questions and a 10s/15s per-question timer.
+  // Premium users: 10-30 questions, any timer (incl. no limit).
   const freeTimerLocked = !isPremium;
+  // Effective question counts — free users only ever see [10].
+  const visibleCounts = useMemo(() => {
+    if (!isPremium) return [10];
+    return config.questionCounts;
+  }, [config.questionCounts, isPremium]);
+  // Effective timer options — free users are capped at 15s per question.
   const timerOptions = useMemo(() => {
-    if (freeTimerLocked) return config.timerOptions.filter(t => t.value != null);
+    if (freeTimerLocked) return config.timerOptions.filter(t => t.value != null && t.value <= 15);
     return config.timerOptions;
   }, [config.timerOptions, freeTimerLocked]);
 
@@ -281,9 +290,9 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
     if (initialSubject && config.subjects.includes(initialSubject)) return initialSubject;
     return null;
   });
-  const [questionCount, setQuestionCount] = useState(config.questionCounts.includes(20) ? 20 : config.questionCounts[0]);
+  const [questionCount, setQuestionCount] = useState(visibleCounts.includes(20) ? 20 : visibleCounts[0]);
   const [timePerQuestion, setTimePerQuestion] = useState(
-    config.timerOptions.find((t) => t.value === 30) != null ? 30 : config.timerOptions[0].value
+    timerOptions.find((t) => t.value === 30) != null ? 30 : timerOptions[0].value
   );
   const [order, setOrder] = useState(config.defaultOrder || 'randomized');
   const [answerMode, setAnswerMode] = useState(config.defaultAnswerMode || 'instant-feedback');
@@ -294,24 +303,35 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
     return `${timePerQuestion}s per question`;
   }, [timePerQuestion]);
 
-  // Free users can't go untimed — snap any lingering null selection to a
-  // default timed value (30s if offered, else the first available option).
+  // Free users can't go untimed or over 15s — snap a lingering selection to the
+  // first allowed value.
   React.useEffect(() => {
-    if (freeTimerLocked && timePerQuestion == null && timerOptions.length > 0) {
-      const fallback = timerOptions.some(t => t.value === 30) ? 30 : timerOptions[0].value;
-      setTimePerQuestion(fallback);
+    if (!freeTimerLocked) return;
+    if (timerOptions.length === 0) return;
+    if (timePerQuestion == null || timePerQuestion > 15) {
+      setTimePerQuestion(timerOptions[0].value);
     }
   }, [freeTimerLocked, timePerQuestion, timerOptions]);
+
+  // Server-authoritative course key: 200-Level keys are composite
+  // (<quizType>:<subject>), exam-source modes append the source, the rest use
+  // the bare quiz type.
+  const courseKey = React.useMemo(() => {
+    if (subject) return `${quizType}:${subject}`;
+    if (config.allowExamSource && examSource) return `${quizType}:${examSource}`;
+    return quizType;
+  }, [quizType, subject, examSource, config.allowExamSource]);
 
   const handleStart = () => {
     onComplete({
       difficulty,
-      questionCount,
+      questionCount: isPremium ? questionCount : 10,
       timePerQuestion,
       order,
       answerMode,
       subject,
-      examSource
+      examSource,
+      courseKey
     });
   };
 
@@ -483,17 +503,22 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
               </p>
 
               <div className="space-y-6">
-                {/* Number of Questions */}
+                {/* Number of Questions — free locked to 10, premium 10-30 */}
                 <div>
                   <SectionLabel>Number of Questions</SectionLabel>
-                  <div className={`grid gap-2 ${config.questionCounts.length > 4 ? 'grid-cols-5' : `grid-cols-${Math.min(config.questionCounts.length, 4)}`}`}>
-                    {config.questionCounts.map((val) => (
+                  <div className={`grid gap-2 ${visibleCounts.length > 4 ? 'grid-cols-5' : `grid-cols-${Math.min(Math.max(visibleCounts.length, 1), 4)}`}`}>
+                    {visibleCounts.map((val) => (
                       <ChoiceButton key={val} selected={questionCount === val} onClick={() => setQuestionCount(val)}>
                         {val}
-                        {config.questionCounts.length === 1 && <Lock size={10} className="inline ml-1 -mt-0.5" />}
+                        {visibleCounts.length === 1 && <Lock size={10} className="inline ml-1 -mt-0.5" />}
                       </ChoiceButton>
                     ))}
                   </div>
+                  {freeTimerLocked && (
+                    <p className="mt-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
+                      <Lock size={10} className="inline mr-1 -mt-0.5" /> Free plan: 10 questions per round
+                    </p>
+                  )}
                 </div>
 
                 {/* Time Limit */}
@@ -512,7 +537,7 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
                     ))}
                     {freeTimerLocked && !timerOptions.some(t => t.value === null) && (
                       <div className="flex items-center justify-center gap-1.5 px-3 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-dashed border-slate-200 dark:border-slate-700 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
-                        <Lock size={11} className="shrink-0" /> No Time Limit is premium
+                        <Lock size={11} className="shrink-0" /> Faster/slower timers are premium
                       </div>
                     )}
                   </div>

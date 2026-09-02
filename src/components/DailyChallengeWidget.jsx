@@ -1,8 +1,9 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
+import { useNavigate } from 'react-router-dom';
 import { authHeaders } from '../utils/apiHeaders';
 import { safeGet, safeSet } from '../utils/safeStorage';
-import { Sparkles, ChevronRight, CheckCircle2, XCircle, Trophy, Loader2 } from './Icons';
+import { Sparkles, ChevronRight, CheckCircle2, XCircle, Trophy, Loader2, Clock } from './Icons';
   // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -53,6 +54,12 @@ const CHALLENGE_LOOKUP = BUILD_LOOKUP();
 
 const CHALLENGE_SIZE = 5;
 
+const fmtClock = (s) => {
+  const m = Math.floor(s / 60);
+  const sec = Math.floor(s % 60);
+  return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
+};
+
 const todayKey = () => {
   const d = new Date();
   return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
@@ -60,7 +67,8 @@ const todayKey = () => {
 const doneMarker = () => `apex:dailyChallengeDone:${todayKey()}`;
 
 const DailyChallengeWidget = () => {
-  const { flashcards, userProfile, session, markDailyChallengeDone } = useAppContext();
+  const { flashcards, userProfile, session, markDailyChallengeDone, isPremium, consumeCourseQuota } = useAppContext();
+  const navigate = useNavigate();
   const [challengeStarted, setChallengeStarted] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [dailyQuestions, setDailyQuestions] = useState([]);
@@ -70,6 +78,34 @@ const DailyChallengeWidget = () => {
   const [isCompleted, setIsCompleted] = useState(false);
   const [loading, setLoading] = useState(false);
   const [gotQuestionIds, setGotQuestionIds] = useState(false);
+  // Per-course round gate (v13): the Daily Challenge charges its own round
+  // (`daily-challenge` key). Blocked starts render a centered notification.
+  const [cooldown, setCooldown] = useState(null); // { seconds, expiresAt }
+  const [tickNow, setTickNow] = useState(Date.now());
+
+  useEffect(() => {
+    if (!cooldown) return undefined;
+    const id = setInterval(() => setTickNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [cooldown]);
+
+  // Server-authoritative start: reserve the daily-challenge round FIRST, then
+  // unlock the questions. A blocked round shows the centered cooldown notice.
+  const startChallenge = async () => {
+    if (!isPremium && session?.access_token) {
+      const res = await consumeCourseQuota('daily-challenge', CHALLENGE_SIZE, session);
+      if (!res) return; // network hiccup — stay on the CTA, nothing charged
+      if (res.allowed === false || res.is_ready === false) {
+        const seconds = Number(res.cooldown_remaining_seconds) || 0;
+        setCooldown({
+          seconds,
+          expiresAt: res.window_expires_at || new Date(Date.now() + seconds * 1000).toISOString()
+        });
+        return;
+      }
+    }
+    setChallengeStarted(true);
+  };
 
   // Load today's challenge from the serverless API (authHeaders = Bearer +
   // X-Session-Id). Falls back to client-side generation when unavailable.
@@ -230,37 +266,57 @@ const DailyChallengeWidget = () => {
 
   if (dailyQuestions.length === 0) return null;
 
+  const renderOverlay = cooldown && (
+    <DailyCooldownOverlay
+      expiresAt={cooldown.expiresAt}
+      now={tickNow}
+      onDismiss={() => { setCooldown(null); navigate('/quiz'); }}
+      onStart={() => { setCooldown(null); startChallenge(); }}
+      onPremium={() => navigate('/activate')}
+    />
+  );
+
   if (!challengeStarted) {
     return (
-      <div className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-clinical border border-slate-100 dark:border-slate-700 relative overflow-hidden group">
-        <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform">
-          <Sparkles size={80} className="text-apex-600" />
+      <>
+        {renderOverlay}
+        <div className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-clinical border border-slate-100 dark:border-slate-700 relative overflow-hidden group">
+          <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform">
+            <Sparkles size={80} className="text-apex-600" />
+          </div>
+          <div className="relative z-10">
+            <h4 className="text-[10px] font-black text-apex-600 uppercase tracking-[0.2em] mb-4">
+              {gotQuestionIds ? 'Daily Remediation' : 'Daily Precision'}
+            </h4>
+            <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">Today's Clinical Challenge</h3>
+            <p className="text-slate-500 dark:text-slate-400 font-medium text-sm mb-8 max-w-[240px]">
+              {gotQuestionIds
+                ? `${dailyQuestions.length} questions from your recent misses — targeted review.`
+                : `5 randomized concepts tailored for ${userProfile.level || 'Year 1'}.`}
+            </p>
+            <div className="flex items-center gap-3 flex-wrap">
+              <button
+                onClick={startChallenge}
+                className="px-6 py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center gap-2 hover:gap-4 transition-all"
+              >
+                Start Challenge <ChevronRight size={14} />
+              </button>
+              {!isPremium && (
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Free: 1 round / hour</span>
+              )}
+            </div>
+          </div>
         </div>
-        <div className="relative z-10">
-          <h4 className="text-[10px] font-black text-apex-600 uppercase tracking-[0.2em] mb-4">
-            {gotQuestionIds ? 'Daily Remediation' : 'Daily Precision'}
-          </h4>
-          <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">Today's Clinical Challenge</h3>
-          <p className="text-slate-500 dark:text-slate-400 font-medium text-sm mb-8 max-w-[240px]">
-            {gotQuestionIds
-              ? `${dailyQuestions.length} questions from your recent misses — targeted review.`
-              : `5 randomized concepts tailored for ${userProfile.level || 'Year 1'}.`}
-          </p>
-          <button
-            onClick={() => setChallengeStarted(true)}
-            className="px-6 py-3 bg-slate-900 dark:bg-white dark:text-slate-900 text-white rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center gap-2 hover:gap-4 transition-all"
-          >
-            Start Challenge <ChevronRight size={14} />
-          </button>
-        </div>
-      </div>
+      </>
     );
   }
 
   const currentQ = dailyQuestions[currentIdx];
 
   return (
-    <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-[2.5rem] shadow-clinical border border-slate-100 dark:border-slate-700 min-h-[350px] flex flex-col animate-in fade-in duration-500">
+    <>
+      {renderOverlay}
+      <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-[2.5rem] shadow-clinical border border-slate-100 dark:border-slate-700 min-h-[350px] flex flex-col animate-in fade-in duration-500">
        <div className="flex justify-between items-center mb-6">
           <div className="flex gap-1">
              {dailyQuestions.map((_, i) => (
@@ -310,6 +366,46 @@ const DailyChallengeWidget = () => {
             </motion.div>
          )}
        </AnimatePresence>
+      </div>
+    </>
+  );
+};
+
+// Centered cooldown notification (fixed overlay, in the middle of the app).
+const DailyCooldownOverlay = ({ expiresAt, now, onDismiss, onStart, onPremium }) => {
+  const remaining = Math.max(0, Math.ceil((new Date(expiresAt).getTime() - now) / 1000));
+  const ready = remaining <= 0;
+  return (
+    <div className="fixed inset-0 z-50 flex items-center justify-center px-4 bg-slate-900/60 dark:bg-slate-950/70 backdrop-blur-sm">
+      <div className="w-full max-w-sm bg-white dark:bg-slate-800 rounded-3xl shadow-2xl border border-slate-100 dark:border-slate-700 p-6 text-center animate-in zoom-in duration-200">
+        <div className={`w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 ${ready ? 'bg-emerald-100 dark:bg-emerald-900/40' : 'bg-amber-100 dark:bg-amber-900/40'}`}>
+          <Clock className={`w-8 h-8 ${ready ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`} />
+        </div>
+        <h3 className="text-xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">
+          {ready ? 'Next round is ready' : 'Daily Challenge on cooldown'}
+        </h3>
+        <p className="text-sm text-slate-500 dark:text-slate-400 font-medium mb-5">
+          {ready ? (
+            <>A fresh Daily Challenge round is available now.</>
+          ) : (
+            <>Each round reserves a <span className="font-semibold">1-hour cooldown</span> (free plan). Next round in{' '}
+              <span className="font-black text-amber-600 dark:text-amber-400 tabular-nums">{fmtClock(remaining)}</span>.</>
+          )}
+        </p>
+        <div className="grid gap-2">
+          {ready && (
+            <button onClick={onStart} className="w-full py-3 bg-teal-600 hover:bg-teal-500 text-white rounded-xl font-black uppercase tracking-widest text-[10px]">
+              Start now
+            </button>
+          )}
+          <button onClick={onDismiss} className="w-full py-3 bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 rounded-xl font-black uppercase tracking-widest text-[10px]">
+            🔄 Try another course
+          </button>
+          <button onClick={onPremium} className="w-full py-2.5 text-teal-600 dark:text-teal-400 font-black uppercase tracking-widest text-[10px] hover:underline">
+            ⭐ Go Premium — unlimited rounds
+          </button>
+        </div>
+      </div>
     </div>
   );
 };
