@@ -372,7 +372,7 @@ const Quiz = () => {
           setCooldownNotice({ courseKey, label: courseLabel(engineMode, cfg), seconds: 0, engineMode, cfg, unavailable: true });
           return;
         }
-        if (res.allowed === false || res.is_ready === false) {
+        if (res.allowed === false) {
           const seconds = Number(res.cooldown_remaining_seconds) || 0;
           setCooldownNotice({
             courseKey,
@@ -567,7 +567,12 @@ const Quiz = () => {
               </button>
             )}
             <button
-              onClick={() => setCooldownNotice(null)}
+              onClick={() => {
+                // "Try another course" -> leave the setup for the current
+                // course behind and show the course grid (chips + Ready state).
+                setCooldownNotice(null);
+                cancelSetup();
+              }}
               className={ready ? "w-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold py-3.5 rounded-xl transition-colors" : "w-full bg-teal-600 hover:bg-teal-500 text-white font-semibold py-3.5 rounded-xl transition-colors"}
             >
               🔄 Try another course
