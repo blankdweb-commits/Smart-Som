@@ -67,61 +67,15 @@ const fmtClock = (s) => {
   return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
 };
 
-// ----- Sound System (Supabase-hosted; every clip is <= 4s) -----
-const MAX_SOUND_SECONDS = 4;
-const SOUND_BASE = `${(import.meta.env.VITE_SUPABASE_URL || '').replace(/\/$/, '')}/storage/v1/object/public/sounds`;
-const soundAt = (name) => `${SOUND_BASE}/${name}`;
-const SOUND_POOL = {
-  start: [soundAt('start-0')],
-  correct: ['correct-0', 'correct-1', 'correct-2', 'correct-3', 'correct-4'].map(soundAt),
-  wrong: ['wrong-0', 'wrong-1', 'wrong-2', 'wrong-3'].map(soundAt),
-  timeout: [soundAt('timeout-0')]
-};
+// ----- Bundled local audio manager (Part 20) -----
+// Replaces the old Supabase-hosted / remote-dependent sound system. All clips
+// ship in /public/audio and are played through the shared AudioManager, which
+// is created once (module singleton) and hardened against failures.
+import { audioManager } from '../utils/audio';
+import { useQuizAudio } from '../hooks/useQuizAudio';
 
-const audioCache = {};
-const clipTimers = new Map();
-
-const stopClip = (el) => {
-  const t = clipTimers.get(el);
-  if (t) {
-    clearTimeout(t);
-    clipTimers.delete(el);
-  }
-  try { el.pause(); } catch { /* ignore */ }
-};
-
-const playQuizSound = (type) => {
-  try {
-    const pool = SOUND_POOL[type] || [];
-    if (pool.length === 0) return;
-
-    const url = pool[Math.floor(Math.random() * pool.length)];
-
-    if (!audioCache[url]) {
-      audioCache[url] = Array.from({ length: 3 }).map(() => {
-        const audio = new Audio(url);
-        audio.preload = 'auto';
-        return audio;
-      });
-    }
-
-    const audioPool = audioCache[url];
-    let el = audioPool.find(a => a.paused || a.ended) || audioPool[0];
-
-    stopClip(el);
-    el.currentTime = 0;
-    el.volume = 1.0;
-    const playPromise = el.play();
-    if (playPromise !== undefined) {
-      playPromise.catch(err => console.warn('Audio playback blocked:', err));
-    }
-
-    // Hard-stop any clip at MAX_SOUND_SECONDS, regardless of source length.
-    clipTimers.set(el, setTimeout(() => stopClip(el), MAX_SOUND_SECONDS * 1000));
-  } catch (e) {
-    console.warn('Sound system error:', e);
-  }
-};
+// Single-clip events played directly from the manager (intro/exit/correct/wrong).
+const playQuizSound = (type) => audioManager.play(type);
 
 const exitFullscreen = async () => {
   try {
@@ -148,6 +102,8 @@ const DIFFICULTY_TIERS = [
 
 const Quiz = () => {
   const { flashcards, updateQuizStats } = useAppContext();
+  const { unlock: unlockAudio, preload: preloadAudio, playIntro, manager: audioRef } = useQuizAudio();
+  const introHandledRef = React.useRef(false);
   const navigate = useNavigate();
   const [secretTaps, setSecretTaps] = useState(0);
 
@@ -400,6 +356,17 @@ const Quiz = () => {
     wrongAnswersRef.current = [];
     resultRecordedRef.current = false;
     quizStartRef.current = Date.now();
+
+    // Audio (Part 20/23): the START gesture is when we unlock autoplay and
+    // preload the local pool. Intro plays once per quiz start — not on every
+    // render, not on StrictMode re-runs.
+    if (!introHandledRef.current) {
+      introHandledRef.current = true;
+      unlockAudio();
+      preloadAudio();
+      playIntro();
+    }
+
     setPlayerActive(true);
     setSetupType(null);
     exitFullscreen();
@@ -415,6 +382,8 @@ const Quiz = () => {
     setPlayerActive(false);
     document.body.classList.remove('quiz-active');
     setPlayerResult(result);
+    // A finished session allows the next Start to replay the intro sound once.
+    introHandledRef.current = false;
 
     const pct = result.total > 0 ? Math.round((result.score / result.total) * 100) : 0;
 
@@ -474,6 +443,11 @@ const Quiz = () => {
     setActiveConfig(null);
     setActiveQuestions([]);
     document.body.classList.remove('quiz-active');
+    // Exit music already started when the Quit dialog opened (in QuizPlayer).
+    // On a real exit let it ring out ~2s longer before stopping.
+    audioRef.scheduleExitStop(2000);
+    // Allow intro to replay on the next Start gesture.
+    introHandledRef.current = false;
   };
 
   const backToModes = () => {
@@ -484,6 +458,7 @@ const Quiz = () => {
     setPresetDifficulty(null);
     setPresetSubject(null);
     document.body.classList.remove('quiz-active');
+    introHandledRef.current = false;
   };
 
   const retrySameSession = () => {
@@ -616,6 +591,8 @@ const Quiz = () => {
         onSound={playQuizSound}
         onComplete={handlePlayerComplete}
         onQuit={quitPlayer}
+        onExitSoundStart={() => audioRef.playExitForDialog()}
+        onExitSoundStop={() => audioRef.stopExit()}
       />
     );
   }

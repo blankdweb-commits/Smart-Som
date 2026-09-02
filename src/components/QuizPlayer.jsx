@@ -24,7 +24,7 @@ const pad = (n) => String(n).padStart(2, '0');
  * Handles: question presentation, answer locking, one-look review with
  * Conceptual Misalignment, per-question timer, exam vs instant feedback.
  */
-const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit }) => {
+const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit, onExitSoundStart, onExitSoundStop }) => {
   const { smartCoins, spendSC, streakFreezeActive, setStreakFreezeActive, submitQuestionFeedback } = useAppContext();
   const total = questions.length;
   const [idx, setIdx] = useState(0);
@@ -254,7 +254,7 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit 
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <button
-            onClick={() => setShowQuitModal(true)}
+            onClick={() => { setShowQuitModal(true); onExitSoundStart?.(); }}
             className="p-2.5 rounded-xl hover:bg-white/10 transition-all"
             aria-label="Exit quiz"
           >
@@ -616,7 +616,7 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit 
               </p>
               <div className="space-y-3">
                 <button
-                  onClick={() => setShowQuitModal(false)}
+                  onClick={() => { setShowQuitModal(false); onExitSoundStop?.(); }}
                   className="w-full py-4 bg-medical-600 text-white rounded-2xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-medical-500/20 active:scale-95 transition-all"
                 >
                   Stay and Master
