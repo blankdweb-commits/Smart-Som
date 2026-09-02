@@ -4,7 +4,7 @@
 // authorization_url. On iOS/mobile Safari the injected inline popup iframe
 // is unreliable, so the client redirects to this URL, pays on Paystack's
 // hosted page, and Paystack redirects back to the callback (verify) URL.
-import { getSupabaseAdmin, getUserFromRequest } from './_utils';
+import { getSupabaseAdmin, getUserFromRequest } from './_utils.js';
 
 const KOBOS = 100;
 

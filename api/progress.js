@@ -14,7 +14,7 @@
 // GET /api/progress/history
 //      Returns the user's seen question ids (for non-repetition).
 // ============================================================
-import { getSupabaseAdmin, authorizeRequest } from './_utils';
+import { getSupabaseAdmin, authorizeRequest } from './_utils.js';
 
 const DIFFICULTY_ORDER = ['Easy', 'Medium', 'Hard', 'Expert'];
 // Unlock thresholds (correct answers only) per the spec.

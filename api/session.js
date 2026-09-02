@@ -11,7 +11,7 @@
 // POST /api/session/status    -> alias of validate
 // GET  /api/session/status    -> alias of validate
 // ============================================================
-import { getUserFromRequest } from './_utils';
+import { getUserFromRequest } from './_utils.js';
 
 const registerSession = async (req, res) => {
   const user = await getUserFromRequest(req);

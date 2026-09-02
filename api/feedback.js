@@ -9,7 +9,7 @@
 // GET /api/feedback/mine     → the caller's submissions.
 // (Admin review happens client-side against feedback_submissions + is_admin.)
 // ============================================================
-import { getSupabaseAdmin, authorizeRequest } from './_utils';
+import { getSupabaseAdmin, authorizeRequest } from './_utils.js';
 
 const VALID_TYPES = new Set([
   'app_review',

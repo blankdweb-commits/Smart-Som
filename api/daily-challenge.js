@@ -9,7 +9,7 @@
 // POST /api/daily-challenge/complete
 //   Body: { score, total, question_ids }
 // ============================================================
-import { getSupabaseAdmin, authorizeRequest } from './_utils';
+import { getSupabaseAdmin, authorizeRequest } from './_utils.js';
 
 const CHALLENGE_SIZE = 5;
 const HARDCODED_POOL = null; // resolved client-side; server returns ids only
