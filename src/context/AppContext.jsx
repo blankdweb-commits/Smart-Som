@@ -11,6 +11,7 @@ import {
   shouldCelebrate,
   acknowledgeUnlock
 } from '../utils/identityEngine';
+import { evaluateAchievements, ACHIEVEMENT_CATALOG } from '../utils/achievementEngine';
 
 const AppContext = createContext();
 
@@ -120,6 +121,13 @@ export function AppProvider({ children }) {
   });
   const [difficultyProgress, setDifficultyProgress] = useState(null); // { Easy:{...}, ... }
   const [userAchievements, setUserAchievements] = useState([]);
+  // Today's daily goal state — driven by the Daily Challenge widget. Powers the
+  // 'daily-goal' achievement and is reset with the rest on sign-out.
+  const [dailyChallengeDone, setDailyChallengeDone] = useState(false);
+  const markDailyChallengeDone = useCallback(() => setDailyChallengeDone(true), []);
+  // Celebration toast for freshly-earned achievements: { emoji, title, subtitle, tone } | null.
+  const [achievementToast, setAchievementToast] = useState(null);
+  const dismissAchievementToast = useCallback(() => setAchievementToast(null), []);
   // Per-subject simulated cooldown (free users only): { subject: { questions_used, window_expires_at, cooldown_remaining_seconds } }
   const [subjectQuota, setSubjectQuota] = useState({ premium: false, unlimited: false, subjects: {} });
   // Flashcards are ADMIN-GRANTED (not premium). Server-authoritative flag.
@@ -137,8 +145,33 @@ export function AppProvider({ children }) {
     if (!supabase || !session) return;
     try {
       const userId = session.user.id;
-      const { data: profile, error: profileError } = await supabase.from('profiles').select('*').eq('id', userId).single();
+      let { data: profile, error: profileError } = await supabase.from('profiles').select('*').eq('id', userId).single();
       if (profileError) console.error('Profile load failed:', profileError.message);
+
+      // Safety net: if the DB trigger missed (fresh user, upsert race, manual
+      // signup), create the profile here with the same fields the trigger uses.
+      // 23505 = the trigger won the race, so just re-fetch the existing row.
+      if (!profile) {
+        const meta = session.user.user_metadata || {};
+        const { error: createError } = await supabase
+          .from('profiles')
+          .insert({
+            id: userId,
+            full_name: meta.full_name || '',
+            email: session.user.email || '',
+            phone: meta.phone || '',
+            level: meta.nursing_year || '',
+            milestone: 'Auxibaby 👶',
+            is_activated: false,
+            role: 'student'
+          });
+        if (!createError || createError?.code === '23505') {
+          const { data: fresh } = await supabase.from('profiles').select('*').eq('id', userId).single();
+          profile = fresh || null;
+        } else {
+          console.warn('Profile creation failed — user should retry later:', createError?.message);
+        }
+      }
 
       const { data: subscription } = await supabase.from('subscriptions').select('*').eq('user_id', userId).order('created_at', { ascending: false }).limit(1).maybeSingle();
 
@@ -939,13 +972,18 @@ export function AppProvider({ children }) {
     const initAuth = async () => {
       try {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
-        console.log('DBG initAuth getSession resolved', !!currentSession);
-        if (currentSession) setSession(currentSession);
+        if (currentSession) {
+          setSession(currentSession);
+          // Refresh the stored session so the access token is fresh on reload
+          // (covers near-expiry tokens without waiting for an API 401).
+          const refreshed = await supabase.auth.refreshSession();
+          if (refreshed?.error) console.warn('Session refresh skipped:', refreshed.error.message);
+          else if (refreshed?.data?.session) setSession(refreshed.data.session);
+        }
       } catch (err) {
         console.error('Auth init error:', err);
       } finally {
         setLoadingAuth(false);
-        console.log('DBG initAuth setLoadingAuth(false)');
       }
     };
 
@@ -965,6 +1003,8 @@ export function AppProvider({ children }) {
         setSubjectQuota({ premium: false, unlimited: false, subjects: {} });
         setDifficultyProgress(null);
         setUserAchievements([]);
+        setDailyChallengeDone(false);
+        setAchievementToast(null);
       }
       setLoadingAuth(false);
     });
@@ -1103,6 +1143,27 @@ export function AppProvider({ children }) {
     }
   }, [session, fetchDifficultyStatus, apexHeaders]);
 
+  // ---- Identity engine: derive current tier from real learning stats ----
+  // Declared BEFORE the achievements helpers below (syncAchievements depends on
+  // `identity`); keeping it here avoids a TDZ crash on app mount.
+  const identityStats = useMemo(() => {
+    const totalQ = quizHistory.reduce((sum, r) => sum + (r.total || 0), 0);
+    const correctQ = quizHistory.reduce((sum, r) => sum + (r.score || 0), 0);
+    const attempts = learningAnalytics.totalAttempts || 0;
+    // Prefer live attempt log; fall back to quiz-history total when empty.
+    const totalAttempts = attempts > 0 ? attempts : totalQ;
+    return {
+      totalAttempts,
+      quizStreak: studyStats.quizStreak || 0,
+      cardsStudied: studyStats.cardsStudied || 0,
+      accuracy: totalQ > 0 ? Math.round((correctQ / totalQ) * 100) : 0,
+      scEarned: smartCoins || 0,
+      speedRuns: 0
+    };
+  }, [quizHistory, learningAnalytics.totalAttempts, studyStats.quizStreak, studyStats.cardsStudied, smartCoins]);
+
+  const identity = useMemo(() => computeCurrentIdentity(identityStats), [identityStats]);
+
   // ---- Achievements ----
   const fetchAchievements = useCallback(async (sess = session) => {
     if (!sess?.access_token || !supabase) return;
@@ -1115,6 +1176,80 @@ export function AppProvider({ children }) {
       console.warn('Achievements fetch skipped:', err.message);
     }
   }, [session, supabase]);
+
+  // Persist newly-earned achievements (client-side deterministic evaluation —
+  // same engine as the wall page). Idempotent: unique (user_id, achievement_id).
+  // No server formula needed; the catalog is publicly readable.
+  const syncAchievements = useCallback(async (sess = session) => {
+    if (!sess?.user?.id || !supabase) return;
+    try {
+      const earned = evaluateAchievements({
+        quizHistory,
+        studyStats,
+        levelCompletions,
+        learningAnalytics,
+        identity,
+        dailyGoalDone: dailyChallengeDone
+      });
+      if (earned.length === 0) return;
+
+      const [catalogRes, ownedRes] = await Promise.all([
+        supabase.from('achievements').select('id, key'),
+        supabase.from('user_achievements').select('achievement_id')
+      ]);
+      if (catalogRes.error || ownedRes.error) return;
+
+      const keyToId = new Map((catalogRes.data || []).map(r => [r.key, r.id]));
+      const owned = new Set((ownedRes.data || []).map(r => String(r.achievement_id)));
+      const toInsert = [];
+      const newly = [];
+
+      for (const key of earned) {
+        const id = keyToId.get(key);
+        if (id == null || owned.has(String(id))) continue;
+        toInsert.push({ user_id: sess.user.id, achievement_id: id });
+        newly.push(ACHIEVEMENT_CATALOG.find(a => a.key === key) || { key, name: key, emoji: '🏆' });
+      }
+      if (toInsert.length === 0) return;
+
+      const { error } = await supabase.from('user_achievements').insert(toInsert);
+      if (error) {
+        console.warn('Achievements sync skipped:', error.message);
+        return;
+      }
+      setUserAchievements(prev => [
+        ...prev,
+        ...toInsert.map(r => ({ achievement_id: r.achievement_id, unlocked_at: new Date().toISOString() }))
+      ]);
+      if (newly.length > 0) {
+        // Queue celebration toast (one per fresh unlock — pick the newest).
+        setAchievementToast({
+          id: Date.now(),
+          emoji: newly[0].emoji || '🏆',
+          title: newly[0].name || 'Achievement Unlocked',
+          subtitle: newly.length > 1 ? `Plus ${newly.length - 1} more unlocked!` : 'New milestone reached.',
+          tone: newly[0].tone || 'bg-apex-600'
+        });
+      }
+      return newly;
+    } catch (err) {
+      console.warn('Achievements sync failed:', err.message);
+      return;
+    }
+  }, [session, supabase, quizHistory, studyStats, levelCompletions, learningAnalytics, identity, dailyChallengeDone]);
+
+  // Re-evaluate achievements whenever learning signals change (after a quiz,
+  // a streak bump, a difficulty unlock, or completing the daily goal).
+  const achievementTick = useMemo(
+    () => `${quizHistory.length}|${studyStats?.streak || 0}|${studyStats?.quizStreak || 0}|${learningAnalytics?.totalAttempts || 0}|${Object.keys(levelCompletions || {}).length}|${dailyChallengeDone ? '1' : '0'}`,
+    [quizHistory.length, studyStats?.streak, studyStats?.quizStreak, learningAnalytics?.totalAttempts, levelCompletions, dailyChallengeDone]
+  );
+  useEffect(() => {
+    if (!session?.user) return;
+    const t = setTimeout(() => syncAchievements(), 1200);
+    return () => clearTimeout(t);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [achievementTick, session?.user]);
 
   // ---- Flashcards: admin-granted access (server-authoritative RPC) ----
   // Not premium-gated. Re-runs on session/mount so revoked users revalidate
@@ -1319,6 +1454,8 @@ export function AppProvider({ children }) {
     setSubjectQuota({ premium: false, unlimited: false, subjects: {} });
     setDifficultyProgress(null);
     setUserAchievements([]);
+    setDailyChallengeDone(false);
+    setAchievementToast(null);
   };
 
   const amountPaid = transactions.filter(t => t.status === 'success').reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
@@ -1340,24 +1477,6 @@ export function AppProvider({ children }) {
 
   const curriculumTopics = useMemo(() => CURRICULUM_INDEX.topics, []);
 
-  // ---- Identity engine: derive current tier from real learning stats ----
-  const identityStats = useMemo(() => {
-    const totalQ = quizHistory.reduce((sum, r) => sum + (r.total || 0), 0);
-    const correctQ = quizHistory.reduce((sum, r) => sum + (r.score || 0), 0);
-    const attempts = learningAnalytics.totalAttempts || 0;
-    // Prefer live attempt log; fall back to quiz-history total when empty.
-    const totalAttempts = attempts > 0 ? attempts : totalQ;
-    return {
-      totalAttempts,
-      quizStreak: studyStats.quizStreak || 0,
-      cardsStudied: studyStats.cardsStudied || 0,
-      accuracy: totalQ > 0 ? Math.round((correctQ / totalQ) * 100) : 0,
-      scEarned: smartCoins || 0,
-      speedRuns: 0
-    };
-  }, [quizHistory, learningAnalytics.totalAttempts, studyStats.quizStreak, studyStats.cardsStudied, smartCoins]);
-
-  const identity = useMemo(() => computeCurrentIdentity(identityStats), [identityStats]);
   const identityProgress = useMemo(() => computeProgressToNext(identityStats, identity), [identityStats, identity]);
 
   // Populated when the user crosses into a new tier after an activity, so the
@@ -1405,7 +1524,9 @@ export function AppProvider({ children }) {
       SC_FEATURE_LOCKED, isPremium,
       quota, fetchQuotaStatus, consumeQuota, subjectQuota, fetchSubjectQuotaStatus,
       difficultyProgress, fetchDifficultyStatus, recordAnsweredBatch,
-      userAchievements, fetchAchievements,
+      userAchievements, fetchAchievements, syncAchievements,
+      dailyChallengeDone, markDailyChallengeDone,
+      achievementToast, dismissAchievementToast,
       flashcardAccess, fetchFlashcardAccess,
       signOut
     }}>

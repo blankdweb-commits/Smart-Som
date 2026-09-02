@@ -116,7 +116,15 @@ export const filterPool = (pool, config) => {
   return dedupePool(list);
 };
 
-const shuffle = (arr) => [...arr].sort(() => 0.5 - Math.random());
+// Durstenfeld (in-place) Fisher–Yates — unbiased, unlike sort-by-random.
+const shuffle = (arr) => {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [a[i], a[j]] = [a[j], a[i]];
+  }
+  return a;
+};
 
 // Selection entry point.
 //   pool       — the raw questions for this mode/bank

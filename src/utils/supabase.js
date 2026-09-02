@@ -1,14 +1,18 @@
 import { createClient } from '@supabase/supabase-js';
 
 const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+// New-format Supabase projects expose a publishable key (sb_publishable_...)
+// that replaces the legacy anon JWT for browser clients. Prefer it, fall back
+// to the legacy name so old env files keep working.
+const supabaseKey = import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY
+  || import.meta.env.VITE_SUPABASE_ANON_KEY;
 
-if (!supabaseUrl || !supabaseAnonKey) {
-  console.warn('Supabase URL or Anon Key is missing. Live features will be disabled.');
+if (!supabaseUrl || !supabaseKey) {
+  console.warn('Supabase URL or Anon/Publishable Key is missing. Live features will be disabled.');
 }
 
-export const supabase = (supabaseUrl && supabaseAnonKey)
-  ? createClient(supabaseUrl, supabaseAnonKey, { auth: { debug: true } })
+export const supabase = (supabaseUrl && supabaseKey)
+  ? createClient(supabaseUrl, supabaseKey)
   : null;
 
 // Storage Helpers

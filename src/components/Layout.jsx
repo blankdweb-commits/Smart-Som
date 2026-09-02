@@ -6,12 +6,13 @@ import FeeBanner from './FeeBanner';
 import ErrorBoundary from './ErrorBoundary';
 import SearchOverlay from './SearchOverlay';
 import NotificationBell from './NotificationBell';
+import AchievementToast from './AchievementToast';
 import { Sun, Moon, Calendar, Menu, Settings, Search } from './Icons';
 import { useAppContext } from '../context/AppContext';
 
 const Layout = ({ children }) => {
   const location = useLocation();
-  const { darkMode, toggleDarkMode } = useAppContext();
+  const { darkMode, toggleDarkMode, achievementToast, dismissAchievementToast } = useAppContext();
   const [searchOpen, setSearchOpen] = React.useState(false);
   const DEV_MODE =  (import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true');
 
@@ -71,6 +72,7 @@ const Layout = ({ children }) => {
       </main>
       <BottomNav />
       <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
+      <AchievementToast toast={achievementToast} onDismiss={dismissAchievementToast} />
     </div>
   );
 };

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, ArrowRight, Star, Clock, Loader2, AlertCircle, CheckCircle2 } from '../components/Icons';
 import { useAppContext } from '../context/AppContext';
 import { supabase } from '../utils/supabase';
@@ -22,6 +23,7 @@ export default function Activate() {
   const [success, setSuccess] = useState(false);
   const [activePlanId, setActivePlanId] = useState(null);
   const { userProfile, subscriptionPlans, session } = useAppContext();
+  const navigate = useNavigate();
 
   // HOSTED CHECKOUT FLOW (works on iOS — no injected iframe that Safari can
   // silently block). The server initializes a Paystack session, the browser is
@@ -170,6 +172,24 @@ export default function Activate() {
                 );
               })}
            </div>
+
+           {!userProfile.isActivated && (
+             <button
+               onClick={() => navigate('/dashboard')}
+               disabled={loading}
+               className="w-full p-5 bg-white dark:bg-slate-800 rounded-2xl border-2 border-slate-200 dark:border-slate-700 hover:border-apex-500 hover:bg-apex-50 dark:hover:bg-apex-900/20 transition-all text-left flex justify-between items-center group active:scale-[0.98] disabled:opacity-50"
+             >
+               <div>
+                 <p className="font-black text-slate-900 dark:text-white">Continue as Free</p>
+                 <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
+                   50 questions / 12 hours — upgrade anytime
+                 </p>
+               </div>
+               <div className="w-10 h-10 bg-slate-200 dark:bg-slate-700 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 group-hover:bg-apex-600 group-hover:text-white transition-all shrink-0">
+                 <ArrowRight size={18} />
+               </div>
+             </button>
+           )}
 
            {loading && (
              <div className="p-3 bg-slate-50 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl flex items-center justify-center gap-2">

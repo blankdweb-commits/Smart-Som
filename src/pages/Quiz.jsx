@@ -417,16 +417,16 @@ const Quiz = () => {
     if (result.answers && result.answers.length > 0) {
       await recordAttempts(result.answers);
 
-      // Difficulty unlock progression — record genuinely correct answers per
-      // difficulty tier (server ignores incorrect, tracks the gate counts).
-      // Correct answers only count toward unlocking (spec requirement).
+      // Full exposure history — record EVERY answered question id (hits and
+      // misses) so user_question_history reflects the true review store. The
+      // server only credits difficulty-unlock counters for genuinely correct
+      // answers (record_difficulty_correct is gated internally on a.correct).
       const byDifficulty = {};
       (result.answers || []).forEach(a => {
-        if (!a.correct) return;
         const d = (a.difficulty || activeConfig?.difficulty || 'Easy');
         (byDifficulty[d] = byDifficulty[d] || []).push({
           question_id: String(a.questionId ?? a.id ?? '').trim(),
-          correct: true
+          correct: !!a.correct
         });
       });
       for (const [diff, ans] of Object.entries(byDifficulty)) {

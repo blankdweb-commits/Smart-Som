@@ -1,0 +1,16 @@
+import { chromium } from 'playwright';
+const browser = await chromium.launch({ args: ['--disable-gpu', '--use-gl=swiftshader'] });
+const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
+const logs = [];
+page.on('console', m => logs.push(`[${m.type()}] ${m.text()}`));
+page.on('pageerror', e => logs.push(`[PAGEERROR] ${e.message}`));
+await page.goto('http://localhost:5173/signup', { waitUntil: 'networkidle' }).catch(e => logs.push(`[GOTO] ${e.message}`));
+await page.waitForTimeout(4000);
+const body = await page.textContent('body').catch(() => '');
+console.log('URL:', page.url());
+console.log('BODY LEN:', (body || '').length);
+console.log('BODY HEAD:', (body || '').slice(0, 300).replace(/\s+/g, ' '));
+await page.screenshot({ path: 'test-results/debug-signup.png' }).catch(() => {});
+console.log('--- CONSOLE ---');
+console.log(logs.slice(0, 40).join('\n'));
+await browser.close();

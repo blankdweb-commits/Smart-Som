@@ -9,12 +9,14 @@ import IdentityCard from '../components/IdentityCard';
 import IdentityUnlockModal from '../components/IdentityUnlockModal';
 import Recommendations from '../components/Recommendations';
 import StudyPlanCard from '../components/StudyPlanCard';
+import AdBanner from '../components/AdBanner';
+import { ACHIEVEMENT_CATALOG } from '../utils/achievementEngine';
 import { greetingForName } from '../utils/getGreeting';
 import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
 const Dashboard = () => {
   const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
-  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics, quizHistory, smartCoins, scLedger, claimDailySC, identity, identityUnlock, dismissIdentityUnlock, quota, fetchQuotaStatus, difficultyProgress, isPremium, SC_FEATURE_LOCKED } = useAppContext();
+  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics, quizHistory, smartCoins, scLedger, claimDailySC, identity, identityUnlock, dismissIdentityUnlock, quota, fetchQuotaStatus, difficultyProgress, isPremium, SC_FEATURE_LOCKED, userAchievements } = useAppContext();
   const navigate = useNavigate();
 
   // Redirect if not logged in - Only if not in DEV_MODE and NOT in Dashboard-First mode
@@ -387,6 +389,26 @@ const Dashboard = () => {
            </div>
 
            <StudyPlanCard />
+
+           <button
+             onClick={() => navigate('/achievements')}
+             className="w-full bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-700 text-left transition-all hover:border-slate-200 dark:hover:border-slate-600 flex items-center justify-between"
+           >
+             <span className="flex items-center gap-3">
+               <span className="w-10 h-10 rounded-xl bg-apex-600/10 text-apex-600 flex items-center justify-center">
+                 <Award size={18} />
+               </span>
+               <span>
+                 <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Achievements</span>
+                 <span className="block text-lg font-black text-slate-900 dark:text-white leading-tight">
+                   {userAchievements.length}<span className="text-sm text-slate-400">/{ACHIEVEMENT_CATALOG.length} unlocked</span>
+                 </span>
+               </span>
+             </span>
+             <ArrowRight size={15} className="text-slate-300 dark:text-slate-600" />
+           </button>
+
+           <AdBanner slot={import.meta.env.VITE_ADSENSE_SLOT_DASHBOARD || ''} />
 
            <div className="bg-amber-500 rounded-[2.5rem] p-8 text-white shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-10">

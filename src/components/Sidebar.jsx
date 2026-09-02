@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Award, Users, Search, Brain, FileUp, Shield, Coins } from './Icons';
+import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Award, Users, Search, Brain, FileUp, Shield, Coins, Target } from './Icons';
 import { useAppContext } from '../context/AppContext';
 
 const Sidebar = () => {
@@ -10,6 +10,8 @@ const Sidebar = () => {
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
     { name: 'Flashcards', icon: BookOpen, path: '/flashcards' },
     { name: 'Quiz Mode', icon: Brain, path: '/quiz' },
+    { name: 'Weakness Drill', icon: Target, path: '/weakness-drill' },
+    { name: 'Achievements', icon: Award, path: '/achievements' },
     { name: 'Exam Timetable', icon: Calendar, path: '/exams' },
     { name: 'Marketplace', icon: FileUp, path: '/marketplace' },
     { name: 'Voting', icon: Award, path: '/voting' },

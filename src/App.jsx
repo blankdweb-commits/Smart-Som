@@ -27,6 +27,7 @@ const Marketplace = lazy(() => import('./pages/Marketplace'));
 const Voting = lazy(() => import('./pages/Voting'));
 const Reviews = lazy(() => import('./pages/Reviews'));
 const WeaknessDrill = lazy(() => import('./pages/WeaknessDrill'));
+const Achievements = lazy(() => import('./pages/Achievements'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center h-screen bg-white dark:bg-slate-900">
@@ -48,6 +49,7 @@ const AppRouter = () => (
         <Route path="/flashcards" element={<RequireAuth><Flashcards /></RequireAuth>} />
         <Route path="/quiz" element={<RequireAuth><Quiz /></RequireAuth>} />
         <Route path="/weakness-drill" element={<RequireAuth><WeaknessDrill /></RequireAuth>} />
+        <Route path="/achievements" element={<RequireAuth><Achievements /></RequireAuth>} />
         <Route path="/exams" element={<RequireAuth><ExamTimetable /></RequireAuth>} />
         <Route path="/papers" element={<Navigate to="/marketplace" replace />} />
         <Route path="/marketplace" element={<RequireAuth><Marketplace /></RequireAuth>} />

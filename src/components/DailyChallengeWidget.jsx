@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { authHeaders } from '../utils/apiHeaders';
+import { safeGet, safeSet } from '../utils/safeStorage';
 import { Sparkles, ChevronRight, CheckCircle2, XCircle, Trophy, Loader2 } from './Icons';
   // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
@@ -52,8 +53,14 @@ const CHALLENGE_LOOKUP = BUILD_LOOKUP();
 
 const CHALLENGE_SIZE = 5;
 
+const todayKey = () => {
+  const d = new Date();
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+};
+const doneMarker = () => `apex:dailyChallengeDone:${todayKey()}`;
+
 const DailyChallengeWidget = () => {
-  const { flashcards, userProfile, session } = useAppContext();
+  const { flashcards, userProfile, session, markDailyChallengeDone } = useAppContext();
   const [challengeStarted, setChallengeStarted] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
   const [dailyQuestions, setDailyQuestions] = useState([]);
@@ -70,12 +77,26 @@ const DailyChallengeWidget = () => {
     let active = true;
     const load = async () => {
       if (flashcards.length === 0 || dailyQuestions.length > 0) return;
+      // Already wrapped up today (server row completed or local marker) —
+      // surface the completed state instead of re-running the same set.
+      if (safeGet(doneMarker())) {
+        setIsCompleted(true);
+        return;
+      }
       setLoading(true);
       let resolved = [];
+      let servedCompleted = false;
+      let servedScore = 0;
+      let servedTotal = CHALLENGE_SIZE;
       if (session?.access_token) {
         try {
           const res = await fetch('/api/daily-challenge', { headers: authHeaders(session) });
           const body = await res.json();
+          if (body?.completed) {
+            servedCompleted = true;
+            servedScore = body.score || 0;
+            servedTotal = body.total || CHALLENGE_SIZE;
+          }
           const ids = Array.isArray(body?.question_ids) ? body.question_ids : [];
           if (ids.length > 0) {
             for (const id of ids) {
@@ -88,6 +109,18 @@ const DailyChallengeWidget = () => {
         }
       }
       if (!active) return;
+
+      if (servedCompleted) {
+        // Persist so future mounts today stay in the done state.
+        safeSet(doneMarker(), '1');
+        markDailyChallengeDone?.();
+        setChallengeScore(servedScore);
+        setDailyQuestions(Array(Math.max(1, servedTotal)));
+        setGotQuestionIds(true);
+        setIsCompleted(true);
+        setLoading(false);
+        return;
+      }
 
       if (resolved.length > 0) {
         // Build MCQ options for any card without them (bank cards may be
@@ -128,10 +161,12 @@ const DailyChallengeWidget = () => {
     };
     load();
     return () => { active = false; };
-  }, [flashcards, userProfile, session, dailyQuestions.length]);
+  }, [flashcards, userProfile, session, dailyQuestions.length, markDailyChallengeDone]);
 
   // Report completion to the server for persistence/stats.
   const reportComplete = useMemo(() => async (score, total, ids) => {
+    safeSet(doneMarker(), '1');
+    markDailyChallengeDone?.();
     if (!session?.access_token) return;
     try {
       await fetch('/api/daily-challenge/complete', {
@@ -142,7 +177,7 @@ const DailyChallengeWidget = () => {
     } catch (err) {
       console.warn('Daily challenge complete skipped:', err.message);
     }
-  }, [session]);
+  }, [session, markDailyChallengeDone]);
 
   const handleAnswer = (option) => {
     if (selectedOption || dailyQuestions.length === 0) return;
@@ -174,8 +209,6 @@ const DailyChallengeWidget = () => {
     );
   }
 
-  if (dailyQuestions.length === 0) return null;
-
   if (isCompleted) {
     return (
       <div className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-clinical border border-slate-100 dark:border-slate-700 text-center animate-in zoom-in duration-500">
@@ -187,13 +220,15 @@ const DailyChallengeWidget = () => {
           You mastered {challengeScore}/{dailyQuestions.length} concepts today.
         </p>
         <div className="flex items-center justify-center gap-2">
-          {[...Array(CHALLENGE_SIZE)].map((_, i) => (
+          {[...Array(dailyQuestions.length)].map((_, i) => (
             <div key={i} className={`w-3 h-3 rounded-full ${i < challengeScore ? 'bg-emerald-500' : 'bg-slate-200 dark:bg-slate-700'}`} />
           ))}
         </div>
       </div>
     );
   }
+
+  if (dailyQuestions.length === 0) return null;
 
   if (!challengeStarted) {
     return (

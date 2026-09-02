@@ -3,11 +3,13 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { supabase } from '../utils/supabase';
 import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 import { Mail, Lock, User, Phone, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
+import Toast from '../components/Toast';
 
 export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
+  const [toast, setToast] = useState(null);
   const navigate = useNavigate();
   const location = useLocation();
   // Route-aware initial view: /signup opens the registration form directly.
@@ -25,17 +27,6 @@ export default function Auth() {
 
   const NURSING_YEARS = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'];
 
-  const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
-
-  const handleDevLogin = () => {
-    setFormData({
-      ...formData,
-      email: 'student@apexscholars.com',
-      password: 'testing123'
-    });
-    setView('signin');
-  };
-
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
@@ -44,8 +35,7 @@ export default function Auth() {
 
     try {
       if (!supabase) {
-        console.warn('Supabase not configured, bypassing to dashboard with mock data');
-        navigate('/dashboard');
+        setError('Authentication is unavailable. Please try again later.');
         return;
       }
 
@@ -67,7 +57,7 @@ export default function Auth() {
           password: formData.password,
         });
         if (error) throw error;
-        navigate(location.state?.from || '/');
+        navigate(location.state?.from || '/dashboard');
       } else if (view === 'signup') {
         if (formData.password.length < 6) throw new Error('Password must be at least 6 characters');
         if (formData.password !== formData.confirmPassword) throw new Error('Passwords do not match');
@@ -84,14 +74,36 @@ export default function Auth() {
             }
           }
         });
-        if (error) throw error;
-        
-        if (data?.session) {
-          navigate(location.state?.from || '/');
-        } else {
-          setSuccessMsg('Account created successfully! You can now sign in.');
+
+        // Supabase reports an existing email as an auth error (or user:null for
+        // an unconfirmed user). Both cases mean the account already exists.
+        const alreadyExists = error?.message
+          && /already registered|already exists|already been registered|email.*conflict/i.test(error.message);
+
+        if (alreadyExists) {
+          setToast({ message: 'An account with this email already exists. Please sign in.', type: 'error' });
           setView('signin');
-          setFormData({ ...formData, password: '', confirmPassword: '' });
+          setLoading(false);
+          return;
+        }
+        if (error) throw error;
+
+        // Email confirmation is OFF, so a session should already exist. If not,
+        // recover it explicitly so the new user is signed straight in.
+        if (data?.session) {
+          navigate('/activate');
+        } else {
+          const { data: recovered } = await supabase.auth.getSession();
+          if (recovered?.session) {
+            navigate('/activate');
+          } else if (!data?.user) {
+            setToast({ message: 'An account with this email already exists. Please sign in.', type: 'error' });
+            setView('signin');
+          } else {
+            setSuccessMsg('Account created successfully! You can now sign in.');
+            setView('signin');
+            setFormData({ ...formData, password: '', confirmPassword: '' });
+          }
         }
       }
     } catch (err) {
@@ -254,16 +266,6 @@ export default function Auth() {
             >
               {view === 'signin' ? "Don't have an account? Sign Up" : "Back to Sign In"}
             </button>
-
-            {DEV_MODE && (
-              <button
-                type="button"
-                onClick={handleDevLogin}
-                className="w-full py-3 bg-amber-500/10 border border-amber-500/20 text-amber-500 rounded-xl text-[10px] font-black uppercase tracking-[0.2em] hover:bg-amber-500/20 transition-all"
-              >
-                Fast Dev Login (Student)
-              </button>
-            )}
           </div>
 
           <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-center gap-2 text-slate-500 text-sm">
@@ -272,6 +274,8 @@ export default function Auth() {
           </div>
         </div>
       </motion.div>
+
+      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }
