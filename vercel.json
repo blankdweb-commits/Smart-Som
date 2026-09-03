@@ -2,6 +2,38 @@
   "version": 2,
   "rewrites": [
     {
+      "source": "/api/session/:path*",
+      "destination": "/api/session"
+    },
+    {
+      "source": "/api/quota/:path*",
+      "destination": "/api/quota"
+    },
+    {
+      "source": "/api/progress/:path*",
+      "destination": "/api/progress"
+    },
+    {
+      "source": "/api/daily-challenge/:path*",
+      "destination": "/api/daily-challenge"
+    },
+    {
+      "source": "/api/feedback/:path*",
+      "destination": "/api/feedback"
+    },
+    {
+      "source": "/api/initiate-payment/:path*",
+      "destination": "/api/initiate-payment"
+    },
+    {
+      "source": "/api/verify-payment/:path*",
+      "destination": "/api/verify-payment"
+    },
+    {
+      "source": "/api/payments/:path*",
+      "destination": "/api/payments"
+    },
+    {
       "source": "/api/:path*",
       "destination": "/api/:path*"
     },
