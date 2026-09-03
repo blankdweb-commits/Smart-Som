@@ -111,9 +111,11 @@ try {
       // Fresh round — consume should SUCCEED and charge 10 + start cooldown
       log(`[${course.label}] first round allowed`, fb.allowed === true, `allowed=${fb.allowed}`);
 
-      // Server must charge exactly 10 questions (free clamp)
-      const q = typeof fb.questions_used === 'number' ? Math.min(Number(fb.questions_used) || 0, 9999) : null;
-      log(`[${course.label}] round charged 10 questions`, q === 10, `questions_used=${q}`);
+      // Server must charge exactly 10 questions (free clamp). The API exposes
+      // this as questions_remaining:0 after a 10-question round (no leftover).
+      const remaining = fb.questions_remaining;
+      log(`[${course.label}] round charged all 10 questions`, remaining === 0,
+        `questions_remaining=${remaining}`);
 
       // 1h cooldown window must be set
       const cd = fb.cooldown_remaining_seconds;
