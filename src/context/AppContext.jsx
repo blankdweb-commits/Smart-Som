@@ -29,6 +29,48 @@ const ANONYMOUS_PROFILE = {
   graceUntil: null
 };
 
+// Fetch an Apex /api endpoint and guarantee a JSON result. If the server ever
+// returns HTML (e.g. a broken deploy routing /api/* to the SPA), we surface a
+// clear diagnostic instead of letting `response.json()` throw a confusing
+// "Unexpected token '<'" deep inside a caller. Never dumps auth tokens.
+const callApexApi = async (url, { method = 'GET', headers = {}, body } = {}) => {
+  const opts = { method, headers };
+  if (body !== undefined) {
+    opts.headers = { ...headers, 'Content-Type': 'application/json' };
+    opts.body = JSON.stringify(body);
+  }
+  let res;
+  try {
+    res = await fetch(url, opts);
+  } catch (err) {
+    return { ok: false, networkError: true, status: 0, error: err.message };
+  }
+  const contentType = (res.headers.get('content-type') || '').toLowerCase();
+  const isJson = contentType.includes('application/json') || contentType.includes('+json');
+  if (!isJson) {
+    let snippet = '';
+    try {
+      const text = await res.text();
+      snippet = text.slice(0, 160).replace(/\s+/g, ' ').trim();
+    } catch {
+      // body unreadable; keep snippet empty
+    }
+    console.error(
+      `API returned non-JSON (expected JSON):\n` +
+      `  ${method} ${url}\n  Status: ${res.status}\n  Content-Type: ${contentType}\n  Body: ${snippet || '(empty)'}`
+    );
+    return { ok: false, status: res.status, contentType, error: 'Non-JSON response', body: snippet };
+  }
+  let data;
+  try {
+    data = await res.json();
+  } catch (err) {
+    console.error(`API returned invalid JSON body: ${method} ${url} Status: ${res.status}`, err.message);
+    return { ok: false, status: res.status, contentType, error: 'Invalid JSON body' };
+  }
+  return { ok: res.ok, status: res.status, data };
+};
+
 // ---------- Curriculum Subject Index ----------
 // Every official course across all years/semesters merged with every subject
 // present in the bundled card banks. Powers autocomplete everywhere.
@@ -1113,18 +1155,11 @@ export function AppProvider({ children }) {
   // arithmetic, no optimistic updates, nothing a manipulated client could fake.
   const fetchCourseQuotaStatus = useCallback(async (sess = session) => {
     if (!sess?.access_token) return;
-    try {
-      const res = await fetch('/api/quota/course-status', {
-        method: 'GET',
-        headers: apexHeaders(sess)
-      });
-      const body = await res.json();
-      if (res.ok) {
-        setCourseQuota(body.subjects || {});
-      }
-    } catch (err) {
-      console.warn('Course quota fetch skipped:', err.message);
-    }
+    const { ok, data } = await callApexApi('/api/quota/course-status', {
+      method: 'GET',
+      headers: apexHeaders(sess)
+    });
+    if (ok && data) setCourseQuota(data.subjects || {});
   }, [session?.access_token, apexHeaders]);
 
   // Reserve a round for a course. FREE users are charged exactly 10 questions +
@@ -1132,68 +1167,47 @@ export function AppProvider({ children }) {
   // Returns the authoritative server state, or null if the call failed.
   const consumeCourseQuota = useCallback(async (courseKey, count = 10, sess = session) => {
     if (!sess?.access_token || !courseKey) return null;
-    try {
-      const headers = apexHeaders(sess);
-      headers['Content-Type'] = 'application/json';
-      const res = await fetch('/api/quota/course-consume', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ course_key: courseKey, count })
-      });
-      const body = await res.json();
-      if (res.ok) {
-        setCourseQuota(prev => ({
-          ...prev,
-          [courseKey]: {
-            questions_used: body.questions_used,
-            rounds_completed: body.rounds_completed,
-            last_round_completed_at: body.last_round_completed_at,
-            window_expires_at: body.window_expires_at,
-            cooldown_remaining_seconds: body.cooldown_remaining_seconds ?? 0,
-            is_ready: !!body.is_ready
-          }
-        }));
-        return body;
-      }
-      return null;
-    } catch (err) {
-      console.warn('Course quota consume skipped:', err.message);
-      return null;
+    const { ok, data: body } = await callApexApi('/api/quota/course-consume', {
+      method: 'POST',
+      headers: apexHeaders(sess),
+      body: { course_key: courseKey, count }
+    });
+    if (ok && body) {
+      setCourseQuota(prev => ({
+        ...prev,
+        [courseKey]: {
+          questions_used: body.questions_used,
+          rounds_completed: body.rounds_completed,
+          last_round_completed_at: body.last_round_completed_at,
+          window_expires_at: body.window_expires_at,
+          cooldown_remaining_seconds: body.cooldown_remaining_seconds ?? 0,
+          is_ready: !!body.is_ready
+        }
+      }));
+      return body;
     }
+    return null;
   }, [session?.access_token, apexHeaders]);
 
   // ---- Difficulty unlocks (server-side) ----
   const fetchDifficultyStatus = useCallback(async (sess = session) => {
     if (!sess?.access_token) return;
-    try {
-      const res = await fetch('/api/progress/difficulty', {
-        method: 'GET',
-        headers: apexHeaders(sess)
-      });
-      const body = await res.json();
-      if (res.ok && body?.progress) {
-        setDifficultyProgress(body.progress);
-      }
-    } catch (err) {
-      console.warn('Difficulty fetch skipped:', err.message);
-    }
+    const { ok, data } = await callApexApi('/api/progress/difficulty', {
+      method: 'GET',
+      headers: apexHeaders(sess)
+    });
+    if (ok && data?.progress) setDifficultyProgress(data.progress);
   }, [session?.access_token, apexHeaders]);
 
   // Record a batch of answered questions for difficulty + history on server.
   const recordAnsweredBatch = useCallback(async ({ difficulty, answers }, sess = session) => {
     if (!sess?.access_token) return;
-    try {
-      const headers = apexHeaders(sess);
-      headers['Content-Type'] = 'application/json';
-      await fetch('/api/progress/difficulty', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ difficulty, answers })
-      });
-      fetchDifficultyStatus(sess);
-    } catch (err) {
-      console.warn('Progress record skipped:', err.message);
-    }
+    await callApexApi('/api/progress/difficulty', {
+      method: 'POST',
+      headers: apexHeaders(sess),
+      body: { difficulty, answers }
+    });
+    fetchDifficultyStatus(sess);
   }, [session, fetchDifficultyStatus, apexHeaders]);
 
   // ---- Identity engine: derive current tier from real learning stats ----

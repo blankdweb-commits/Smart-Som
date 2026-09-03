@@ -153,6 +153,7 @@ export default function Auth() {
                   <input
                     type="text"
                     placeholder="Full Name"
+                    autoComplete="name"
                     required
                     className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
                     value={formData.fullName}
@@ -164,6 +165,7 @@ export default function Auth() {
                   <input
                     type="tel"
                     placeholder="Phone Number (optional)"
+                    autoComplete="tel"
                     className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
                     value={formData.phone}
                     onChange={(e) => setFormData({...formData, phone: e.target.value})}
@@ -189,6 +191,7 @@ export default function Auth() {
               <input
                 type="email"
                 placeholder="Email Address"
+                autoComplete="email"
                 required
                 className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
                 value={formData.email}
@@ -202,6 +205,7 @@ export default function Auth() {
                 <input
                   type="password"
                   placeholder="Password"
+                  autoComplete={view === 'signup' ? 'new-password' : 'current-password'}
                   required
                   className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
                   value={formData.password}
@@ -216,6 +220,7 @@ export default function Auth() {
                 <input
                   type="password"
                   placeholder="Confirm Password"
+                  autoComplete="new-password"
                   required
                   className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
                   value={formData.confirmPassword}
