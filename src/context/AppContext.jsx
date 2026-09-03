@@ -123,6 +123,10 @@ export function AppProvider({ children }) {
   const dismissAchievementToast = useCallback(() => setAchievementToast(null), []);
   // Flashcards are ADMIN-GRANTED (not premium). Server-authoritative flag.
   const [flashcardAccess, setFlashcardAccess] = useState(false);
+  // Session / device mapping (v14): 'soft' (default) or 'strict'. Always tracks
+  // the current device and records active devices for remote per-device revoke.
+  const [sessionMode, setSessionMode] = useState('soft');
+  const [activeDevices, setActiveDevices] = useState([]);
   // Smart Coins are LOCKED until 1v1 launches (per product spec): every new
   // user starts at 0 and the faucet/spend stays dormant.
   const SC_FEATURE_LOCKED = true;
@@ -1007,6 +1011,96 @@ export function AppProvider({ children }) {
   // Builds the shared auth headers for Apex API routes.
   const apexHeaders = useCallback((sess) => authHeaders(sess), []);
 
+  // ---- Session / device mapping (v14) ----
+  // Registers the current device with the server (soft: records only; strict:
+  // enforces single-active-device with a grace window). Non-blocking: failures
+  // never interrupt the app, they only log a warning.
+  const registerDeviceSession = useCallback(async (sess = session) => {
+    if (!sess?.access_token) return null;
+    try {
+      const res = await fetch('/api/session/register', {
+        method: 'POST',
+        headers: { ...apexHeaders(sess), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ device_identifier: `web-${typeof navigator !== 'undefined' && navigator.platform ? navigator.platform : 'device'}` })
+      });
+      const body = await res.json().catch(() => null);
+      if (res.ok && body) {
+        if (body.sessionMode) setSessionMode(body.sessionMode);
+        return body;
+      }
+      return null;
+    } catch (err) {
+      console.warn('Session register skipped:', err.message);
+      return null;
+    }
+  }, [session?.access_token, apexHeaders]);
+
+  // Refresh the active-device list (used by the revoke UI).
+  const fetchActiveDevices = useCallback(async (sess = session) => {
+    if (!sess?.access_token) return [];
+    try {
+      const res = await fetch('/api/session/devices', { method: 'GET', headers: apexHeaders(sess) });
+      const body = await res.json().catch(() => null);
+      if (res.ok && body?.devices) {
+        if (body.sessionMode) setSessionMode(body.sessionMode);
+        setActiveDevices(body.devices);
+        return body.devices;
+      }
+      return [];
+    } catch (err) {
+      console.warn('Session devices fetch skipped:', err.message);
+      return [];
+    }
+  }, [session?.access_token, apexHeaders]);
+
+  // Revoke a specific device (by session_id or device id). Never revokes the
+  // current device.
+  const revokeDevice = useCallback(async (sessionId, sess = session) => {
+    if (!sess?.access_token || !sessionId) return null;
+    try {
+      const res = await fetch('/api/session/revoke', {
+        method: 'POST',
+        headers: { ...apexHeaders(sess), 'Content-Type': 'application/json' },
+        body: JSON.stringify({ session_id: sessionId })
+      });
+      const body = await res.json().catch(() => null);
+      if (res.ok) fetchActiveDevices(sess);
+      return body;
+    } catch (err) {
+      console.warn('Session revoke skipped:', err.message);
+      return null;
+    }
+  }, [session?.access_token, apexHeaders, fetchActiveDevices]);
+
+  // Heartbeat: keep this device's last_seen fresh while the user is active.
+  const touchDeviceSession = useCallback(async (sess = session) => {
+    if (!sess?.access_token) return;
+    try {
+      await fetch('/api/session/touch', {
+        method: 'POST',
+        headers: { ...apexHeaders(sess), 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      });
+    } catch {
+      // Silent — heartbeat is best-effort and never blocks the app.
+    }
+  }, [session?.access_token, apexHeaders]);
+
+  // On sign-in / reload: register the device, record heartbeat, and keep the
+  // device listed. Strict mode is surfaced via the server status, never by a
+  // local lockout.
+  useEffect(() => {
+    if (!session?.access_token) {
+      setActiveDevices([]);
+      return;
+    }
+    registerDeviceSession(session);
+    fetchActiveDevices(session);
+    const touch = setInterval(() => touchDeviceSession(session), 60_000);
+    return () => clearInterval(touch);
+  }, [session?.access_token, registerDeviceSession, fetchActiveDevices, touchDeviceSession]);
+
+
   // Server-verified premium: derived from the fetched subscription status
   // (single source of truth from subscriptions table, not a client flag).
   const isPremium = useMemo(
@@ -1486,6 +1580,7 @@ fetchCourseQuotaStatus();
       dailyChallengeDone, markDailyChallengeDone,
       achievementToast, dismissAchievementToast,
       flashcardAccess, fetchFlashcardAccess,
+      sessionMode, activeDevices, registerDeviceSession, fetchActiveDevices, revokeDevice,
       signOut
     }}>
       {children}
