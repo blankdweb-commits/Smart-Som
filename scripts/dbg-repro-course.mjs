@@ -38,7 +38,7 @@ await waitBody('Clinical Challenge', 20000);
 
 await btn('Clinical Challenge').click();
 await waitBody('Choose Difficulty', 15000);
-await btn('Hard').click();
+await btn('Easy').click();
 await btn('Continue').click();
 await waitBody('Customize Your Session', 15000);
 await waitBody('Free plan: 10 questions per round', 10000);

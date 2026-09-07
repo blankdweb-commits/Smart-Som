@@ -1,6 +1,6 @@
-# Apex Scholars - Deployment Guide
+# Polynurse Exam Center - Deployment Guide
 
-This guide provides instructions for deploying the Apex Scholars platform to production using **Vercel**, **Supabase**, and **Paystack**.
+This guide provides instructions for deploying the Polynurse Exam Center platform to production using **Vercel**, **Supabase**, and **Paystack**.
 
 ## Prerequisites
 

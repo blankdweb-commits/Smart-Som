@@ -2,7 +2,7 @@
 // Progress API — server-side difficulty unlocks + question history.
 //
 // POST /api/progress/difficulty
-//      Body: { difficulty: 'Easy'|'Medium'|'Hard'|'Expert', answers: [
+//      Body: { difficulty: 'Easy'|'Moderate'|'Hard'|'Expert', course_key?, answers: [
 //        { question_id, correct } ... ] }
 //      Increments the correct-count for the difficulty ONLY for genuinely
 //      correct answers, per the spec (incorrect answers do not contribute).
@@ -16,18 +16,18 @@
 // ============================================================
 import { getSupabaseAdmin, authorizeRequest } from './_utils.js';
 
-const DIFFICULTY_ORDER = ['Easy', 'Medium', 'Hard', 'Expert'];
+const DIFFICULTY_ORDER = ['Easy', 'Moderate', 'Hard', 'Expert'];
 // Unlock thresholds (correct answers only) per the spec.
 const UNLOCK_THRESHOLDS = {
-  Easy: 0,       // always unlocked
-  Medium: 50,    // needs 50 Easy correct
-  Hard: 80,      // needs 80 Medium correct
-  Expert: 100    // needs 100 Hard correct
+  Easy: 0,        // always unlocked
+  Moderate: 50,   // needs 50 Easy correct
+  Hard: 80,       // needs 80 Moderate correct
+  Expert: 100     // needs 100 Hard correct
 };
 // The difficulty whose CORRECT count gates the target difficulty.
 const GATED_BY = {
-  Medium: 'Easy',
-  Hard: 'Medium',
+  Moderate: 'Easy',
+  Hard: 'Moderate',
   Expert: 'Hard'
 };
 
@@ -38,10 +38,15 @@ const getDifficulty = async (req, res) => {
   const supabase = getSupabaseAdmin();
   if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
 
+  const courseKey = String(req.query?.course_key || '').trim() || null;
+
   try {
-    const { data, error } = await supabase.rpc('get_difficulty_status', { p_user_id: user.id });
+    const { data, error } = await supabase.rpc('get_difficulty_status', {
+      p_user_id: user.id,
+      p_course_key: courseKey || null
+    });
     if (error) throw error;
-    const counts = data || {}; // { Easy: n, Medium: n, ... }
+    const counts = data || {}; // { Easy: n, Moderate: n, ... }
     const progress = DIFFICULTY_ORDER.map(d => {
       const count = counts[d] || 0;
       const requiredBy = GATED_BY[d];
@@ -71,11 +76,12 @@ const postDifficulty = async (req, res) => {
   const supabase = getSupabaseAdmin();
   if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
 
-  const { difficulty, answers } = req.body || {};
+  const { difficulty, answers, course_key } = req.body || {};
   const diff = String(difficulty || '').trim();
   if (!DIFFICULTY_ORDER.includes(diff)) {
     return res.status(400).json({ error: 'Invalid difficulty' });
   }
+  const courseKey = String(course_key || '').trim() || 'global';
 
   const list = Array.isArray(answers) ? answers : [];
   let correctConsumed = 0;
@@ -88,7 +94,11 @@ const postDifficulty = async (req, res) => {
       if (correct) {
         await supabase.rpc('record_question_seen', { p_user_id: user.id, p_question_id: qid, p_correct: true });
         // Increment difficulty correct count only when genuinely correct.
-        await supabase.rpc('record_difficulty_correct', { p_user_id: user.id, p_difficulty: diff });
+        await supabase.rpc('record_difficulty_correct', {
+          p_user_id: user.id,
+          p_difficulty: diff,
+          p_course_key: courseKey
+        });
         correctConsumed += 1;
       } else {
         await supabase.rpc('record_question_seen', { p_user_id: user.id, p_question_id: qid, p_correct: false });

@@ -60,13 +60,13 @@ const StatusChip = ({ premium, ready, untilIso, label }) => {
 };
 
 // Composite server-side course keys:
-//   - Clinical / Quick Quiz are per EXAM SOURCE (nmcn | nclex | both). The
-//     selector "both" is the default shown on the parent row.
+//   - NCLEX / NMCN are framework-dedicated (Clinical->nclex, Quick Quiz->nmcn).
 //   - 200-Level banks are per SUBJECT (<courseId>:<subject>).
 //   - Uselu / Weakness / Daily Challenge use the bare course id.
 const statusKey = (courseId, subject) => {
   if (subject) return `${courseId}:${subject}`;
-  if (courseId === 'clinical-challenge' || courseId === 'quick-quiz') return `${courseId}:both`;
+  if (courseId === 'clinical-challenge') return `${courseId}:nclex`;
+  if (courseId === 'quick-quiz') return `${courseId}:nmcn`;
   return courseId;
 };
 
@@ -79,17 +79,18 @@ const rowStatus = (courseId, subject, courseQuota) => {
   return { ready: false, untilIso: row.window_expires_at || null };
 };
 
-const CourseList = ({ courses, onLaunch, premium, courseQuota }) => {
+const CourseList = ({ courses, onLaunch, premium, courseQuota, hideBanner = false, hideFooter = false }) => {
   return (
     <div className="space-y-6">
       {/* Plan banner */}
+      {!hideBanner && (
       <div className={`rounded-2xl sm:rounded-3xl border p-4 sm:p-5 flex items-center justify-between gap-3 ${premium ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-amber-500/5 border-amber-500/30'}`}>
         <div className="flex items-center gap-3">
           {premium ? <Sparkles size={18} className="text-emerald-500 shrink-0" /> : <Clock size={18} className="text-amber-500 shrink-0" />}
           <div>
             <p className="text-[9px] font-black uppercase tracking-widest text-slate-400">{premium ? 'Premium Plan' : 'Free Plan'}</p>
             <p className={`text-xs sm:text-sm font-black ${premium ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-900 dark:text-white'}`}>
-              {premium ? 'Unlimited practice — no cooldowns' : '10 questions per round · new round every hour (per course)'}
+              {premium ? 'Unlimited practice — no cooldowns' : '10 questions per round · new round every 30 minutes (per course)'}
             </p>
           </div>
         </div>
@@ -99,6 +100,7 @@ const CourseList = ({ courses, onLaunch, premium, courseQuota }) => {
           </span>
         )}
       </div>
+      )}
 
       {/* Course sections */}
       {courses.map((course) => {
@@ -172,7 +174,7 @@ const CourseList = ({ courses, onLaunch, premium, courseQuota }) => {
       })}
 
       {/* Free plan note */}
-      {!premium && (
+      {!hideFooter && (
         <p className="text-center text-[9px] font-bold uppercase tracking-widest text-slate-400 flex items-center justify-center gap-1.5">
           <Lock size={10} className="shrink-0" /> Some content requires a Premium plan to unlock
         </p>

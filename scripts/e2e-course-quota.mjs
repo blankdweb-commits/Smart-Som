@@ -38,8 +38,8 @@ try {
   log('free consume allowed', !!c1.data && c1.data.allowed === true, JSON.stringify(c1.data));
   log('free consume forces 10 questions + completes round', !!c1.data && c1.data.round_completed === true && c1.data.premium === false, `remaining=${c1.data?.questions_remaining}`);
 
-  // 5. One-hour cooldown set
-  log('1h cooldown set (is_ready=false, ~3600s)', !!c1.data && c1.data.is_ready === false && c1.data.cooldown_remaining_seconds >= 3595, `cooldown=${c1.data?.cooldown_remaining_seconds}s`);
+  // 5. 30-minute cooldown set (v21 spec: 10 questions / round / 30 min per course)
+  log('30m cooldown set (is_ready=false, ~1800s)', !!c1.data && c1.data.is_ready === false && c1.data.cooldown_remaining_seconds >= 1790 && c1.data.cooldown_remaining_seconds <= 1800, `cooldown=${c1.data?.cooldown_remaining_seconds}s`);
 
   // 6. Second consume while cooling down = REFUSED
   const c2 = await admin.rpc('consume_course_quota', { p_user_id: userId, p_course_key: 'clinical-challenge:nclex', p_count: 10, p_is_premium: false });

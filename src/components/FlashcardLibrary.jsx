@@ -197,7 +197,7 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
       <div className="min-h-screen bg-slate-900 flex flex-col items-center justify-center px-6 text-center">
         <div className="w-20 h-20 bg-slate-800 rounded-[2rem] flex items-center justify-center text-slate-400 mb-6"><Lock size={40} /></div>
         <h1 className="text-2xl font-black text-white uppercase tracking-tight">Sign in required</h1>
-        <p className="text-slate-400 font-medium mt-2 max-w-sm">You must be signed in to access the Apex Flashcards vault.</p>
+        <p className="text-slate-400 font-medium mt-2 max-w-sm">You must be signed in to access the Polynurse Flashcards vault.</p>
         <button onClick={() => navigate('/dashboard')} className="mt-8 px-6 py-3 bg-white text-slate-900 rounded-2xl font-bold text-sm">Back to Home</button>
       </div>
     );
@@ -211,7 +211,7 @@ const FlashcardLibrary = ({ initialCategory = 'Academic' }) => {
           This is highly classified.
         </h1>
         <p className="text-slate-400 font-semibold mt-4 max-w-md leading-relaxed">
-          You are not authorised to access this area. Apex Flashcards access was not granted to this account.
+          You are not authorised to access this area. Polynurse Flashcards access was not granted to this account.
         </p>
         <p className="text-slate-500 text-sm font-medium mt-3 max-w-sm leading-relaxed">
           If you believe this is a mistake, contact an administrator to request flashcard access.

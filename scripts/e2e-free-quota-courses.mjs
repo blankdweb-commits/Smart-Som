@@ -1,10 +1,10 @@
 import { createBrowser, loadEnv, createLogger, loginFlow, waitForText, exit } from './e2e-utils.mjs';
 
-// E2E: per-course free-user quota + 1h cooldown using the provided free account.
+// E2E: per-course free-user quota + 30m cooldown using the provided free account.
 //   - login with the free user
 //   - confirm free (no premium)
 //   - for EACH course: read quota status via API, start a round, confirm the
-//     server charges exactly 10 questions + starts a 1h cooldown, and that a
+//     server charges exactly 10 questions + starts a 30m cooldown, and that a
 //     second immediate round is BLOCKED (allowed:false)
 const BASE = 'http://localhost:5173';
 const EMAIL = 'blankdweb@mark.com';
@@ -117,9 +117,9 @@ try {
       log(`[${course.label}] round charged all 10 questions`, remaining === 0,
         `questions_remaining=${remaining}`);
 
-      // 1h cooldown window must be set
+      // 30-min cooldown window must be set
       const cd = fb.cooldown_remaining_seconds;
-      log(`[${course.label}] 1h cooldown started`, typeof cd === 'number' && cd > 0 && cd <= 3600,
+      log(`[${course.label}] 30m cooldown started`, typeof cd === 'number' && cd > 0 && cd <= 1800,
         `cooldown_remaining_seconds=${cd}`);
       log(`[${course.label}] is_ready=false after round`, fb.is_ready === false, `is_ready=${fb.is_ready}`);
 

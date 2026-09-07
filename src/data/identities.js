@@ -1,4 +1,4 @@
-// 12-tier identity progression ladder for Apex Scholars.
+// 12-tier identity progression ladder for Polynurse Exam Center.
 // Every new user starts at Tier 0 (Auxibaby 👶) and earns higher identities
 // through real learning milestones (questions answered, quizzes, accuracy,
 // speed challenges, and Smart Coins earned).

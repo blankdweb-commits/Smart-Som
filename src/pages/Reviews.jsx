@@ -39,7 +39,7 @@ export default function Reviews() {
     try {
       const { data } = await supabase
         .from('feedback_submissions')
-        .select('*, profiles(full_name, email)')
+        .select('*, profiles(identity_name)')
         .order('created_at', { ascending: false })
         .limit(200);
       setAllSubmissions(data || []);
@@ -107,7 +107,7 @@ export default function Reviews() {
     <div className="max-w-md mx-auto px-4 pt-6 pb-28">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-slate-800 dark:text-slate-100">Reviews & Suggestions</h1>
-        <p className="text-sm text-slate-500 dark:text-slate-400">Help shape Apex Scholars for you.</p>
+        <p className="text-sm text-slate-500 dark:text-slate-400">Help shape Polynurse Exam Center for you.</p>
       </div>
 
       {isAdmin && (
@@ -151,7 +151,7 @@ export default function Reviews() {
 
           {category === 'app_review' && (
             <div className="mb-5">
-              <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">How would you rate Apex Scholars?</p>
+              <p className="text-xs font-medium text-slate-600 dark:text-slate-300 mb-2">How would you rate Polynurse Exam Center?</p>
               <div className="flex gap-1.5">
                 {[1, 2, 3, 4, 5].map(star => (
                   <button
@@ -250,7 +250,7 @@ export default function Reviews() {
                     </div>
                     <p className="text-sm text-slate-700 dark:text-slate-200 mb-1">{s.message}</p>
                     <p className="text-[10px] text-slate-400 mb-2">
-                      {s.profiles?.full_name || s.profiles?.email || 'Anonymous'}
+                      {s.profiles?.identity_name || 'Anonymous'}
                     </p>
                     {s.status !== 'resolved' && (
                       <button

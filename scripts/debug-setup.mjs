@@ -5,7 +5,7 @@ await page.goto('http://localhost:5173/quiz', { waitUntil: 'networkidle' });
 await page.waitForTimeout(1000);
 await page.click('text=Clinical Challenge');
 await page.waitForTimeout(500);
-await page.click('button:has-text("Hard")');
+await page.click('button:has-text("Easy")');
 await page.waitForTimeout(250);
 await page.click('button:has-text("Continue")');
 await page.waitForTimeout(600);

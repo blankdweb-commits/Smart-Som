@@ -56,7 +56,7 @@ const processModule = (path, module) => {
        (String(finalLevel) === '3' || String(finalLevel) === '300' || String(finalLevel) === '300L' || String(finalLevel) === 'year-3') ? 'Year 3' : finalLevel;
 
     // Detection for Richard's Bank
-    const source = card.source || (path.toLowerCase().includes('richard') ? "Richard's Bank" : "Apex Scholars Core Bank");
+    const source = card.source || (path.toLowerCase().includes('richard') ? "Richard's Bank" : "Polynurse Core Bank");
 
     return {
       category: finalCategory,

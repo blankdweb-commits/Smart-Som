@@ -31,7 +31,7 @@ const AdminQuestionManager = () => {
   const [editingCard, setEditingCard] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
 
-  const sources = useMemo(() => ['All', ...new Set(flashcards.map(c => c.source || 'Apex Core'))], [flashcards]);
+  const sources = useMemo(() => ['All', ...new Set(flashcards.map(c => c.source || 'Polynurse Core'))], [flashcards]);
 
   const filteredCards = useMemo(() => {
     return flashcards.filter(c => {
@@ -210,7 +210,7 @@ const AdminQuestionManager = () => {
                         <td className="px-6 py-6">
                            <div className="flex flex-col gap-1">
                               <span className="text-[9px] font-black text-indigo-600 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-md w-fit">{card.subject}</span>
-                              <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Source: {card.source || 'Apex Core'}</span>
+                              <span className="text-[8px] font-bold text-slate-400 uppercase tracking-tighter">Source: {card.source || 'Polynurse Core'}</span>
                            </div>
                         </td>
                         <td className="px-6 py-6">

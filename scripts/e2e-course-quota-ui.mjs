@@ -43,7 +43,7 @@ try {
   await page.goto(`${BASE}/quiz`, { waitUntil: 'networkidle' }).catch(() => {});
   await waitBody('Clinical Challenge', 25000);
   const gridText = (await page.textContent('body').catch(() => '')) || '';
-  log('free plan banner present', gridText.includes('10 questions per round') && gridText.includes('new round every hour'));
+  log('free plan banner present', gridText.includes('10 questions per round') && gridText.includes('new round every 30 minutes'));
   const headers = ['Clinical Challenge', 'Quick Quiz', 'Uselu Test Questions', 'Fix My Weak Areas', 'Nursing 200-Level', 'Midwifery 200-Level'];
   const missing = headers.filter(h => !gridText.includes(h));
   log('all course sections listed', missing.length === 0, missing.length ? `missing=${missing}` : '6/6');
@@ -51,7 +51,21 @@ try {
   // ---------- 3. Clinical Challenge setup: free-locked options ----------
   await btn('Clinical Challenge').click();
   await waitBody('Choose Difficulty', 15000);
-  await btn('Hard').click();
+  const lockCheck = await page.evaluate(() => {
+    const locked = (label) => {
+      const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim().includes(label));
+      return b ? { disabled: b.disabled, text: (b.textContent || '').replace(/\s+/g, ' ').trim().slice(0, 40) } : null;
+    };
+    return { moderate: locked('Moderate'), hard: locked('Hard'), expert: locked('Expert'), easy: locked('Easy') };
+  });
+  log('per-course difficulty locked for new user (Moderate/Hard/Expert disabled, Easy open)',
+    lockCheck.easy && lockCheck.easy.disabled === false &&
+    lockCheck.moderate && lockCheck.moderate.disabled === true &&
+    lockCheck.hard && lockCheck.hard.disabled === true &&
+    lockCheck.expert && lockCheck.expert.disabled === true,
+    JSON.stringify(lockCheck));
+  // New free user: only Easy is unlocked (progressive per-course difficulty).
+  await btn('Easy').click();
   await btn('Continue').click();
   await waitBody('Customize Your Session', 15000);
   await waitBody('Free plan: 10 questions per round', 10000); // let the section settle
@@ -89,8 +103,8 @@ try {
   await page.click('button[aria-label="Exit quiz"]');
   await waitBody('Exit for now', 10000);
   await page.click('button:has-text("Exit for now")');
-  const chipShown = await waitBody('Next round · 1h', 20000);
-  log('course entry shows "Next round · 1h" cooldown chip', chipShown, await bodySnapshot());
+  const chipShown = await waitBody('Next round · 30m', 20000);
+  log('course entry shows "Next round · 30m" cooldown chip', chipShown, await bodySnapshot());
 
   // ---------- 6. Second start attempt -> centered cooldown modal ----------
   await btn('Clinical Challenge').click();

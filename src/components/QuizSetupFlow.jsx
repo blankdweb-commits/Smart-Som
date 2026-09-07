@@ -23,11 +23,11 @@ import {
 // forces [10] and the server enforces it again at consume time).
 const QUIZ_CONFIGS = {
   'clinical-challenge': {
-    title: 'Clinical Challenge',
-    identity: 'Simulated exam environment with critical rationales.',
+    title: 'NCLEX',
+    identity: 'Simulated NCLEX environment with critical rationales. NCLEX questions only.',
     icon: <Shield size={22} />,
-    accentText: 'text-medical-400',
-    accentBg: 'bg-medical-500/20 border-medical-500/30',
+    accentText: 'text-polynurse-400',
+    accentBg: 'bg-polynurse-500/20 border-polynurse-500/30',
     questionCounts: [10, 20, 30],
     timerOptions: [
       { value: null, label: 'No Time Limit' },
@@ -39,18 +39,12 @@ const QUIZ_CONFIGS = {
     allowOrderChoice: true,
     allowExamMode: true,
     defaultOrder: 'randomized',
-    bankNote: null,
-    allowExamSource: true,
-    examSources: [
-      { value: 'both', label: 'NMCN + NCLEX', desc: 'Mixed exam-style questions' },
-      { value: 'nmcn', label: 'NMCN', desc: 'Nigerian nursing council questions' },
-      { value: 'nclex', label: 'NCLEX', desc: 'North American licensing questions' }
-    ],
-    defaultExamSource: 'both'
+    framework: 'NCLEX',
+    bankNote: 'NCLEX questions only'
   },
   'quick-quiz': {
-    title: 'Quick Quiz',
-    identity: 'Rapid questions for instant knowledge verification.',
+    title: 'NMCN',
+    identity: 'NMCN licensing questions for instant knowledge verification. NMCN questions only.',
     icon: <Zap size={22} />,
     accentText: 'text-amber-400',
     accentBg: 'bg-amber-500/20 border-amber-500/30',
@@ -65,14 +59,8 @@ const QUIZ_CONFIGS = {
     allowExamMode: false,
     defaultAnswerMode: 'instant-feedback',
     defaultOrder: 'randomized',
-    bankNote: null,
-    allowExamSource: true,
-    examSources: [
-      { value: 'both', label: 'NMCN + NCLEX', desc: 'Mixed exam-style questions' },
-      { value: 'nmcn', label: 'NMCN', desc: 'Nigerian nursing council questions' },
-      { value: 'nclex', label: 'NCLEX', desc: 'North American licensing questions' }
-    ],
-    defaultExamSource: 'both'
+    framework: 'NMCN',
+    bankNote: 'NMCN questions only'
   },
   'uselu-test': {
     title: 'Uselu Test Questions',
@@ -95,23 +83,17 @@ const QUIZ_CONFIGS = {
   },
     'nursing-200': {
     title: 'Nursing 200-Level',
-    identity: '200-Level course questions across twelve core subjects.',
+    identity: '200-Level course questions across core subjects.',
     icon: <BookOpen size={22} />,
     accentText: 'text-emerald-400',
     accentBg: 'bg-emerald-500/20 border-emerald-500/30',
     subjects: [
-      'Community Health Nursing I',
       'Fundamentals of Nursing',
-      'Medical-Surgical Nursing',
-      'Unit I: Introduction to Nutrition',
-      'Unit II: Nutritional Needs',
-      'Unit III: Food Planning, Preparation, and Safety',
       'Pharmacology III',
-      'Concept of Politics and Government',
-      'Political Interaction',
-      'Political Activities',
       'Reproductive Health',
-      'Research Methodology'
+      'Research Methodology',
+      'Nutrition & Dietetics',
+      'Politics and Governance in Nursing'
     ],
     questionCounts: [10, 20, 30],
     timerOptions: [
@@ -124,7 +106,7 @@ const QUIZ_CONFIGS = {
     allowOrderChoice: true,
     allowExamMode: true,
     defaultOrder: 'randomized',
-    bankNote: '3,517 questions available in this bank'
+    bankNote: 'Questions available across 6 core subjects'
   },
   'weakness-challenge': {
     title: 'Fix My Weak Areas',
@@ -170,6 +152,105 @@ const QUIZ_CONFIGS = {
     allowExamMode: true,
     defaultOrder: 'randomized',
     bankNote: '709 questions available in this bank'
+  },
+  'nursing-300': {
+    title: 'Nursing 300-Level',
+    identity: '300-Level nursing questions across core subjects.',
+    icon: <BookOpen size={22} />,
+    accentText: 'text-teal-400',
+    accentBg: 'bg-teal-500/20 border-teal-500/30',
+    subjects: [
+      'Community Health II',
+      'Emergency and Disaster Nursing',
+      'Medical-Surgical Nursing IV',
+      'Mental Health/Psychiatric Nursing',
+      'Quality Improvement in Healthcare and Patient Safety',
+      'Reproductive Health III'
+    ],
+    questionCounts: [10, 20, 30],
+    timerOptions: [
+      { value: null, label: 'No Time Limit' },
+      { value: 15, label: '15s / Q' },
+      { value: 30, label: '30s / Q' },
+      { value: 45, label: '45s / Q' },
+      { value: 60, label: '60s / Q' }
+    ],
+    allowOrderChoice: true,
+    allowExamMode: true,
+    defaultOrder: 'randomized',
+    bankNote: '2,758 questions available in this bank'
+  },
+  'midwifery-300': {
+    title: 'Midwifery 300-Level',
+    identity: '300-Level midwifery questions across core subjects.',
+    icon: <Heart size={22} />,
+    accentText: 'text-rose-400',
+    accentBg: 'bg-rose-500/20 border-rose-500/30',
+    subjects: [
+      'Neonatal Nursing',
+      'Quality Improvement in Healthcare and Patient Safety',
+      'Complications of Puerperium',
+      'Obstetric Emergencies and Life-Saving Skills',
+      'Complications in Pregnancy and Childbirth',
+      'Midwifery Procedures',
+      'Preventive Strategies of Risk Conditions',
+      'Introduction to Fertility',
+      'Introduction to Family Planning',
+      'Data Collection',
+      'Family Planning Methods',
+      'Reproductive Health Conditions',
+      'Clinic Management',
+      'Research and Statistics'
+    ],
+    questionCounts: [10, 20, 30],
+    timerOptions: [
+      { value: null, label: 'No Time Limit' },
+      { value: 15, label: '15s / Q' },
+      { value: 30, label: '30s / Q' },
+      { value: 45, label: '45s / Q' },
+      { value: 60, label: '60s / Q' }
+    ],
+    allowOrderChoice: true,
+    allowExamMode: true,
+    defaultOrder: 'randomized',
+    bankNote: '2,764 questions available in this bank'
+  },
+  'midwifery-200-s2': {
+    title: 'Midwifery 200-Level · 2nd Semester',
+    identity: '200-Level midwifery second-semester questions across core subjects.',
+    icon: <Heart size={22} />,
+    accentText: 'text-fuchsia-400',
+    accentBg: 'bg-fuchsia-500/20 border-fuchsia-500/30',
+    subjects: [
+      'Introduction to Midwifery Practice',
+      'Ethics in Midwifery Practice',
+      'The Law and the Midwife',
+      'Contemporary Legal Issues',
+      'Theories and Concepts',
+      'Quality Improvement in Midwifery Practice',
+      'Newborn Assessment & Resuscitation',
+      'Subsequent Care of the Newborn',
+      'The Newborn',
+      'Newborn Feeding',
+      'Discharge and Follow-up Care',
+      'Pharmacology in Midwifery',
+      'Midwifery',
+      'Complicated midwifery',
+      'Applied Anatomy and Physiology',
+      'Community Midwifery'
+    ],
+    questionCounts: [10, 20, 30],
+    timerOptions: [
+      { value: null, label: 'No Time Limit' },
+      { value: 15, label: '15s / Q' },
+      { value: 30, label: '30s / Q' },
+      { value: 45, label: '45s / Q' },
+      { value: 60, label: '60s / Q' }
+    ],
+    allowOrderChoice: true,
+    allowExamMode: true,
+    defaultOrder: 'randomized',
+    bankNote: '2,245 questions available in this bank'
   }
 };
 
@@ -180,15 +261,35 @@ export { QUIZ_CONFIGS };
 // eslint-disable-next-line react-refresh/only-export-components
 export const LEVEL_SUBJECTS = {
   'nursing-200': QUIZ_CONFIGS['nursing-200'].subjects,
-  'midwifery-200': QUIZ_CONFIGS['midwifery-200'].subjects
+  'midwifery-200': QUIZ_CONFIGS['midwifery-200'].subjects,
+  'nursing-300': QUIZ_CONFIGS['nursing-300'].subjects,
+  'midwifery-300': QUIZ_CONFIGS['midwifery-300'].subjects,
+  'midwifery-200-s2': QUIZ_CONFIGS['midwifery-200-s2'].subjects
 };
 
 const DIFFICULTIES = [
   { id: 'Easy', dot: 'bg-emerald-500', ring: 'hover:border-emerald-500', activeRing: 'border-emerald-500', desc: 'Build your foundation' },
-  { id: 'Medium', dot: 'bg-blue-500', ring: 'hover:border-blue-500', activeRing: 'border-blue-500', desc: 'Test your understanding' },
+  { id: 'Moderate', dot: 'bg-blue-500', ring: 'hover:border-blue-500', activeRing: 'border-blue-500', desc: 'Test your understanding' },
   { id: 'Hard', dot: 'bg-orange-500', ring: 'hover:border-orange-500', activeRing: 'border-orange-500', desc: 'Challenge your clinical reasoning' },
   { id: 'Expert', dot: 'bg-red-500', ring: 'hover:border-red-500', activeRing: 'border-red-500', desc: 'Deeper clinical reasoning' }
 ];
+
+// Lock thresholds for the course-level progressive unlock (must mirror the
+// server's authoritative checks in questionSelectionService.js).
+const UNLOCK_THRESHOLDS = { Moderate: 50, Hard: 80, Expert: 100 };
+const DIFFICULTY_ORDER = ['Easy', 'Moderate', 'Hard', 'Expert'];
+
+// Server-authoritative per-course unlock state -> presentation only. The
+// server ALWAYS re-checks at batch-create time; the UI only mirrors it.
+const isLocked = (progress, difficulty) => {
+  if (!progress) return false; // unknown -> optimistically unlocked; server decides
+  const idx = DIFFICULTY_ORDER.indexOf(difficulty);
+  if (idx <= 0) return false;
+  const gate = DIFFICULTY_ORDER[idx - 1];
+  const need = UNLOCK_THRESHOLDS[difficulty];
+  const gateCount = progress.findIndex ? (progress.find(p => p.difficulty === gate)?.correct_count || 0) : 0;
+  return gateCount < need;
+};
 
 const ProgressIndicator = ({ step, total = 3 }) => (
   <div className="flex items-center justify-center gap-1.5" aria-label={`Step ${step} of ${total}`}>
@@ -234,7 +335,7 @@ const ChoiceButton = ({ selected, onClick, children, disabled, colorClass = 'bg-
 
 const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete, onCancel }) => {
   const config = QUIZ_CONFIGS[quizType] || QUIZ_CONFIGS['clinical-challenge'];
-  const { difficultyProgress, isPremium } = useAppContext();
+  const { isPremium, difficultyProgress, fetchDifficultyStatus, session } = useAppContext();
 
   // Free users: locked to exactly 10 questions and a 10s/15s per-question timer.
   // Premium users: 10-30 questions, any timer (incl. no limit).
@@ -249,31 +350,6 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
     if (freeTimerLocked) return config.timerOptions.filter(t => t.value != null && t.value <= 15);
     return config.timerOptions;
   }, [config.timerOptions, freeTimerLocked]);
-
-  // Difficulty unlock gating — Medium (50 Easy correct), Hard (80 Medium),
-  // Expert (100 Hard correct), driven by the server-computed value.
-  // Fail-open while the server status hasn't loaded (null) so the setup is
-  // never blocked on first render.
-  const unlockedTiers = useMemo(() => {
-    if (difficultyProgress == null) return new Set(DIFFICULTIES.map(d => d.id));
-    const set = new Set(['Easy']);
-    const lookup = Array.isArray(difficultyProgress)
-      ? new Map(difficultyProgress.map(p => [String(p.difficulty).toLowerCase(), p.unlocked === true]))
-      : new Map();
-    if (lookup.get('medium')) set.add('Medium');
-    if (lookup.get('hard')) set.add('Hard');
-    if (lookup.get('expert')) set.add('Expert');
-    return set;
-  }, [difficultyProgress]);
-
-  const difficultyHint = (id) => {
-    if (difficultyProgress == null) return null;
-    const row = Array.isArray(difficultyProgress)
-      ? difficultyProgress.find(p => String(p.difficulty).toLowerCase() === id.toLowerCase())
-      : null;
-    if (!row || row.unlocked) return null;
-    return `${row.gate_progress ?? 0}/${row.target ?? 0} correct answers to unlock`;
-  };
 
   const requiresSubject = config.subjects && config.subjects.length > 0;
   const totalSteps = requiresSubject ? 4 : 3;
@@ -314,13 +390,23 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
   }, [freeTimerLocked, timePerQuestion, timerOptions]);
 
   // Server-authoritative course key: 200-Level keys are composite
-  // (<quizType>:<subject>), exam-source modes append the source, the rest use
-  // the bare quiz type.
+  // (<quizType>:<subject>), framework-dedicated modes append the framework
+  // (<clinical-challenge>:nclex, <quick-quiz>:nmcn), the rest use the bare
+  // quiz type.
   const courseKey = React.useMemo(() => {
     if (subject) return `${quizType}:${subject}`;
-    if (config.allowExamSource && examSource) return `${quizType}:${examSource}`;
+    if (config.framework) return `${quizType}:${config.framework.toLowerCase()}`;
     return quizType;
-  }, [quizType, subject, examSource, config.allowExamSource]);
+  }, [quizType, subject, config.framework]);
+
+  // Per-course difficulty progress drives the (presentation-only) lock UI.
+  // The server remains authoritative at batch-create time.
+  const courseDifficulty = (difficultyProgress || {})[courseKey];
+  React.useEffect(() => {
+    if (session?.access_token && courseKey) {
+      fetchDifficultyStatus(session, courseKey);
+    }
+  }, [courseKey, session, fetchDifficultyStatus]);
 
   const handleStart = () => {
     onComplete({
@@ -429,17 +515,19 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                 {DIFFICULTIES.map((d) => {
                   const active = difficulty === d.id;
-                  const locked = !unlockedTiers.has(d.id);
-                  const hint = difficultyHint(d.id);
+                  const locked = isLocked(courseDifficulty, d.id);
+                  const gate = DIFFICULTY_ORDER[DIFFICULTY_ORDER.indexOf(d.id) - 1];
+                  const gateCount = courseDifficulty?.find?.(p => p.difficulty === gate)?.correct_count || 0;
                   return (
                     <button
                       key={d.id}
                       type="button"
                       disabled={locked}
                       onClick={() => !locked && setDifficulty(d.id)}
+                      title={locked && gate ? `Answer ${UNLOCK_THRESHOLDS[d.id] - gateCount} more ${gate} questions correctly to unlock` : d.desc}
                       className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${
                         locked
-                          ? 'opacity-45 cursor-not-allowed border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/40'
+                          ? 'opacity-40 cursor-not-allowed border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/40'
                           : active
                           ? `${d.activeRing} bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow-lg scale-[1.02]`
                           : `border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/40 ${d.ring}`
@@ -448,19 +536,16 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
                       <span className={`w-2.5 h-2.5 rounded-full shrink-0 ${locked ? 'bg-slate-300 dark:bg-slate-600' : d.dot}`} />
                       <span className="flex-1 min-w-0">
                         <span className={`flex items-center gap-1.5 font-black text-sm tracking-tight ${locked ? 'text-slate-400' : active ? '' : 'text-slate-900 dark:text-white'}`}>
-                          {locked && <Lock size={13} className="shrink-0" />}
                           {d.id}
+                          {locked && <Lock size={13} className="shrink-0" />}
                         </span>
                         <span className={`block text-[9px] font-bold uppercase tracking-widest truncate ${locked ? 'text-slate-400' : active ? 'text-white/60 dark:text-slate-900/60' : 'text-slate-400'}`}>
-                          {d.desc}
+                          {locked && gate
+                            ? `${UNLOCK_THRESHOLDS[d.id] - gateCount} more ${gate} correct`
+                            : d.desc}
                         </span>
-                        {locked && hint && (
-                          <span className="block text-[9px] font-bold uppercase tracking-widest text-amber-500 mt-0.5">
-                            {hint}
-                          </span>
-                        )}
                       </span>
-                      {active && <CheckCircle2 size={18} className="text-emerald-400 dark:text-emerald-600 shrink-0" />}
+                      {active && !locked && <CheckCircle2 size={18} className="text-emerald-400 dark:text-emerald-600 shrink-0" />}
                     </button>
                   );
                 })}

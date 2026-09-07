@@ -24,7 +24,9 @@ async function getMode(supabase) {
   try {
     const { data } = await supabase.rpc('get_session_mode');
     if (data) mode = data;
-  } catch {}
+  } catch {
+    /* ignore */
+  }
   modeCache = { value: mode, at: Date.now() };
   return mode;
 }
@@ -100,7 +102,9 @@ const status = async (req, res) => {
       try {
         const { data } = await supabase.rpc('session_is_active', { p_user_id: user.id, p_session_id: sessionId });
         if (data === false) revoked = true;
-      } catch {}
+      } catch {
+        /* ignore — fall back to allowing session */
+      }
     }
   }
 

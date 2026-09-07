@@ -28,7 +28,7 @@ const totalQuestions = (quizHistory = []) =>
 // penalty for weak concepts. Kept consistent so the badge matches the number
 // shown on the quiz screen.
 const examReadiness = ({ levelCompletions = {}, learningAnalytics = {}, studyStats = {} } = {}) => {
-  const tiers = ['Easy', 'Medium', 'Hard', 'Expert', 'Master', 'Extreme'];
+  const tiers = ['Easy', 'Moderate', 'Hard', 'Expert', 'Master', 'Extreme'];
   const passedTiers = tiers.filter(t => levelCompletions[t]).length;
   const totalAttempts = learningAnalytics.totalAttempts || 0;
   const weakCount = (learningAnalytics.weakConcepts || []).length;

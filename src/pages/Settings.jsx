@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../utils/supabase';
 import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 import {
@@ -12,7 +12,8 @@ import {
   Save,
   Lock,
   GraduationCap,
-  Building2
+  Building2,
+  Sparkles
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import Toast from '../components/Toast';
@@ -27,11 +28,12 @@ const DEPARTMENTS = [
 ];
 
 export default function Settings() {
-  const { userProfile, updateProfile, session, signOut } = useAppContext();
+  const { userProfile, updateProfile, session, signOut, identity } = useAppContext();
   const navigate = useNavigate();
 
   const [profileForm, setProfileForm] = useState({
     fullName: userProfile.fullName || '',
+    identityName: userProfile.identityName || '',
     phone: userProfile.phone || '',
     department: userProfile.department || '',
     level: userProfile.level || ''
@@ -58,6 +60,7 @@ export default function Settings() {
         .from('profiles')
         .update({
           full_name: profileForm.fullName.trim(),
+          identity_name: profileForm.identityName.trim(),
           phone: profileForm.phone.trim(),
           department: profileForm.department,
           level: profileForm.level
@@ -158,6 +161,11 @@ export default function Settings() {
                 {userProfile.role === 'super_admin' ? 'Super Admin' : 'Admin'}
               </span>
             )}
+            {identity && (
+              <span className="px-3 py-1.5 bg-gradient-to-r from-medical-500 to-apex-600 text-white rounded-lg text-[9px] font-black uppercase tracking-widest shadow-md shadow-medical-500/20">
+                {identity.emoji} {identity.name}
+              </span>
+            )}
           </div>
         </div>
 
@@ -181,6 +189,22 @@ export default function Settings() {
         <h2 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-6">Profile Details</h2>
 
         <form onSubmit={handleProfileSave} className="space-y-4">
+          <div className="relative">
+            <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-medical-500" />
+            <input
+              type="text"
+              placeholder="Identity Name (what others see)"
+              className={inputCls}
+              value={profileForm.identityName}
+              maxLength={24}
+              onChange={(e) => setProfileForm({ ...profileForm, identityName: e.target.value })}
+            />
+          </div>
+          <p className="text-[11px] font-medium text-slate-400 -mt-1">
+            This is the name shown to other Scholars in Community, 1v1 and 3v3 — your real name
+            stays private. Leave blank to show as "Scholar".
+          </p>
+
           <div className="relative">
             <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input
@@ -324,6 +348,31 @@ export default function Settings() {
           </button>
         </motion.div>
       )}
+
+      {/* Legal */}
+      <motion.div
+        initial={{ y: 10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.18 }}
+        className="bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-100 dark:border-slate-700 p-6 sm:p-8 shadow-clinical"
+      >
+        <h2 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-4">Legal</h2>
+        <div className="flex flex-col sm:flex-row gap-2">
+          {[
+            { to: '/legal/terms', label: 'Terms of Service' },
+            { to: '/legal/privacy', label: 'Privacy Policy' },
+            { to: '/legal/cookies', label: 'Cookie & Local Storage Policy' }
+          ].map(l => (
+            <Link
+              key={l.to}
+              to={l.to}
+              className="px-4 py-3 bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-medical-600 hover:border-medical-500 transition-colors text-center"
+            >
+              {l.label}
+            </Link>
+          ))}
+        </div>
+      </motion.div>
 
       {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>

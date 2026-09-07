@@ -1,8 +1,9 @@
 import React, { lazy, Suspense } from 'react';
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
-import { AppProvider } from './context/AppContext';
+import { AppProvider, useAppContext } from './context/AppContext';
 import Layout from './components/Layout';
 import RequireAuth from './components/RequireAuth';
+import CookieConsentBanner from './components/CookieConsentBanner';
 import { MotionConfig } from 'framer-motion';
 
 // Lazy load pages
@@ -28,6 +29,7 @@ const Voting = lazy(() => import('./pages/Voting'));
 const Reviews = lazy(() => import('./pages/Reviews'));
 const WeaknessDrill = lazy(() => import('./pages/WeaknessDrill'));
 const Achievements = lazy(() => import('./pages/Achievements'));
+const LegalPage = lazy(() => import('./pages/Legal'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center h-screen bg-white dark:bg-slate-900">
@@ -35,13 +37,22 @@ const PageLoader = () => (
   </div>
 );
 
+// Session-aware root redirect: a device that already has a persisted session
+// (recognized by supabase-js from localStorage) lands on the dashboard; only
+// genuinely signed-out visitors are sent to the sign-up page.
+const RootRedirect = () => {
+  const { session, loadingAuth } = useAppContext();
+  if (loadingAuth) return <PageLoader />;
+  return <Navigate to={session ? '/dashboard' : '/signup'} replace />;
+};
+
 // --- MAIN ROUTER ---
 // Dashboard-first application. Routes are intentionally open;
 // admin surfaces are gated in-app by profile role (nav hidden for non-admins).
 const AppRouter = () => (
   <Suspense fallback={<PageLoader />}>
     <Routes>
-      <Route path="/" element={<Navigate to="/signup" replace />} />
+      <Route path="/" element={<RootRedirect />} />
 
       <Route element={<Layout />}>
         <Route path="/dashboard" element={<RequireAuth><Dashboard /></RequireAuth>} />
@@ -72,6 +83,10 @@ const AppRouter = () => (
       <Route path="/signup" element={<Auth />} />
       <Route path="/xp-hall" element={<XpHall />} />
 
+      <Route path="/legal/terms" element={<LegalPage section="terms" />} />
+      <Route path="/legal/privacy" element={<LegalPage section="privacy" />} />
+      <Route path="/legal/cookies" element={<LegalPage section="cookies" />} />
+
       <Route path="*" element={<Navigate to="/dashboard" replace />} />
     </Routes>
   </Suspense>
@@ -83,6 +98,7 @@ function App() {
       <MotionConfig reducedMotion="user">
         <Router>
           <AppRouter />
+          <CookieConsentBanner />
         </Router>
       </MotionConfig>
     </AppProvider>

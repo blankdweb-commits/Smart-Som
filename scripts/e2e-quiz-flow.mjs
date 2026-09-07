@@ -23,7 +23,25 @@ const page = await ctx.newPage();
 page.on('pageerror', err => console.log('PAGEERROR:', err.message));
 
 try {
-  // ---------- 0. Richard banks sanity (pharmacology + musculoskeletal + neurological) ----------
+  // ---------- 0. Fresh signup (server-authoritative quota + per-course
+  // difficulty locks require an authenticated user; only Easy is unlocked) ----------
+  const stamp = Date.now().toString().slice(-8);
+  const u = { name: `Flow ${stamp}`, email: `flow${stamp}@apextest.local`, password: 'testpass123' };
+  await page.goto(`${BASE}/signup`, { waitUntil: 'networkidle' });
+  await page.fill('input[placeholder="Full Name"]', u.name);
+  await page.fill('input[placeholder="Email Address"]', u.email);
+  await page.fill('input[placeholder="Password"]', u.password);
+  await page.fill('input[placeholder="Confirm Password"]', u.password);
+  await page.click('button[type="submit"]');
+  await page.waitForTimeout(3500);
+  const sessOk = await page.evaluate(async () => {
+    const mod = await import('/src/utils/supabase.js');
+    const { data } = await mod.supabase.auth.getSession();
+    return !!data.session;
+  });
+  log('verified fresh signup + session (locked to Easy)', sessOk, u.email);
+
+  // ---------- 1. Richard banks sanity (pharmacology + musculoskeletal + neurological) ----------
   await page.goto(BASE, { waitUntil: 'domcontentloaded' });
   const pharm = await page.evaluate(async () => {
     const mod = await import('/src/data/richardBank.js');
@@ -55,10 +73,11 @@ try {
   const continueDisabled = await page.isDisabled('button:has-text("Continue")');
   log('Continue disabled before difficulty selection', continueDisabled);
 
-  await page.click('button:has-text("Hard")');
+  // Fresh user: only Easy is unlocked (progressive per-course difficulty).
+  await page.click('button:has-text("Easy")');
   await page.waitForTimeout(300);
   const continueEnabled = !(await page.isDisabled('button:has-text("Continue")'));
-  log('Hard selected enables Continue', continueEnabled);
+  log('Easy selected enables Continue', continueEnabled);
   await page.click('button:has-text("Continue")');
   await page.waitForTimeout(400);
 

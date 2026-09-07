@@ -13,6 +13,13 @@ const PORT = Number(process.env.API_PORT || 3001);
 // Load .env into process.env so api/_utils.js can build the Supabase admin client.
 Object.assign(process.env, loadEnv());
 
+// Fail loudly at startup when the Supabase backend would be unusable, instead
+// of every handler failing at request time with a confusing 500.
+if (!process.env.VITE_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
+  console.warn('[serve-api] WARNING: VITE_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY missing in .env —');
+  console.warn('[serve-api]   authenticated routes will 500 with "Server configuration error".');
+}
+
 const API_DIR = path.join(process.cwd(), 'api');
 
 const handlers = [];
@@ -74,9 +81,16 @@ const server = http.createServer(async (req, res) => {
 
   try {
     const mod = await import(pathToFileURL(handler.file).href + `?t=${Date.now()}`);
-    await (mod.default || mod.handler)(req, resShim);
+    const fn = mod.default || mod.handler;
+    // Some files under api/ are service modules (e.g. questionSelectionService.js,
+    // selectionConfig.js), not HTTP handlers. Don't crash on them — 404 instead.
+    if (typeof fn !== 'function') {
+      res.writeHead(404, { 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ error: 'Not a handler', path: pathname }));
+    }
+    await fn(req, resShim);
   } catch (err) {
-    console.error(`[api] ${pathname} failed:`, err.stack || err.message);
+    console.error(`[api] ${req.method} ${pathname} failed:`, err.stack || err.message);
     if (!res.headersSent) res.writeHead(500, { 'Content-Type': 'application/json' });
     res.end(JSON.stringify({ error: 'Internal Server Error', detail: err.message }));
   }

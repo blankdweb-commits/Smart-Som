@@ -67,11 +67,11 @@ try {
   const fresh = await call('GET', '/api/quota/course-status', token);
   log('GET course-status 200', fresh.status === 200, `keys=${Object.keys(fresh.body?.subjects || {}).join(',') || '(none)'}`);
 
-  // 3. Free consume: allowed, clamped to 10, 1h cooldown
+  // 3. Free consume: allowed, clamped to 10, 30m cooldown (v21 spec)
   const c1 = await call('POST', '/api/quota/course-consume', token, { course_key: 'clinical-challenge:nclex', count: 25000 });
   log('free consume allowed', c1.status === 200 && c1.body.allowed === true, JSON.stringify(c1.body));
   log('free count clamped to 10 (round completed, nothing left)', c1.body.questions_remaining === 0 && c1.body.round_completed === true, `remaining=${c1.body.questions_remaining}`);
-  log('1h cooldown returned', c1.body.cooldown_remaining_seconds >= 3595 && c1.body.is_ready === false, `cooldown=${c1.body.cooldown_remaining_seconds}s`);
+  log('30m cooldown returned', c1.body.cooldown_remaining_seconds >= 1790 && c1.body.cooldown_remaining_seconds <= 1800 && c1.body.is_ready === false, `cooldown=${c1.body.cooldown_remaining_seconds}s`);
   log('premium flag false on free path', c1.body.premium === false);
 
   // 4. Second consume on the same key while cooling down → REFUSED

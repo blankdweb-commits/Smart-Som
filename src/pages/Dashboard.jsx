@@ -16,7 +16,7 @@ import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
 const Dashboard = () => {
   const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
-  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics, quizHistory, smartCoins, scLedger, claimDailySC, identity, identityUnlock, dismissIdentityUnlock, courseQuota, fetchCourseQuotaStatus, difficultyProgress, isPremium, SC_FEATURE_LOCKED, userAchievements } = useAppContext();
+  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics, quizHistory, smartCoins, scLedger, claimDailySC, identity, identityUnlock, dismissIdentityUnlock, courseQuota, fetchCourseQuotaStatus, isPremium, SC_FEATURE_LOCKED, userAchievements } = useAppContext();
   const navigate = useNavigate();
 
   // Redirect if not logged in - Only if not in DEV_MODE and NOT in Dashboard-First mode
@@ -149,7 +149,7 @@ const Dashboard = () => {
         body: 'No questions answered yet. Warm up with a quick practice set.',
         label: 'Start Quiz',
         to: '/quiz',
-        tone: 'apex'
+        tone: 'polynurse'
       };
     }
     return {
@@ -166,29 +166,29 @@ const Dashboard = () => {
   const ctaTone =
     contextualCTA.tone === 'rose'
       ? 'bg-rose-600 hover:bg-rose-700 shadow-rose-600/20'
-      : 'bg-apex-600 hover:bg-apex-700 shadow-apex-600/20';
+      : 'bg-polynurse-600 hover:bg-polynurse-700 shadow-polynurse-600/20';
 
   return (
-    <div className="relative space-y-6 sm:space-y-8 pb-32 animate-in fade-in duration-700 max-w-5xl mx-auto px-1 sm:px-0 overflow-x-hidden">
+<div className="relative space-y-6 sm:space-y-8 pb-32 animate-in fade-in duration-700 max-w-5xl mx-auto px-1 sm:px-0 overflow-x-hidden">
       <header className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6">
         <div className="w-full">
-          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-apex-600 dark:text-apex-400 mb-1 flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Nursing Exam Command Center
+          <p className="text-[10px] font-black uppercase tracking-[0.25em] text-polynurse-600 dark:text-polynurse-400 mb-1 flex items-center gap-2">
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Polynurse Exam Center
           </p>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
             {greetingForName(userProfile.fullName || session?.user?.user_metadata?.full_name, 'Scholar')}
             {' '}{identity?.emoji || '👶'}
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1 text-sm sm:text-base">Institutional Productivity Hub • {userProfile.level}</p>
+          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1 text-sm sm:text-base">Your NCLEX Success Partner • {userProfile.level}</p>
         </div>
         <div className="flex gap-3">
            <button
             onClick={() => navigate('/flashcards')}
             aria-label="Open flashcards"
-            className="p-4 bg-white dark:bg-slate-800 rounded-[1.5rem] shadow-soft border border-slate-100 dark:border-slate-700 hover:text-apex-600 transition-all"
+            className="p-4 bg-white dark:bg-slate-800 rounded-[1.5rem] shadow-soft border border-slate-100 dark:border-slate-700 hover:text-polynurse-600 transition-all"
            >
-             <Zap size={24} />
-           </button>
+            <Zap size={24} />
+          </button>
         </div>
       </header>
 
@@ -274,7 +274,6 @@ const Dashboard = () => {
 
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <CourseQuotaCard courseQuota={courseQuota} isPremium={isPremium} />
-            <DifficultyProgressCard progress={difficultyProgress} isPremium={isPremium} />
           </div>
 
           <WeaknessChallengeCard
@@ -472,7 +471,7 @@ const Dashboard = () => {
           </div>
 
           <div className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-clinical border border-slate-100 dark:border-slate-700">
-             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Apex Mindset</h4>
+             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Polynurse Mindset</h4>
              <div className="p-6 bg-slate-50 dark:bg-slate-900 rounded-[1.5rem] border border-slate-100 dark:border-slate-800 min-h-[120px] flex items-center">
                 <p className="text-slate-600 dark:text-slate-300 italic font-medium leading-relaxed tracking-tight">"{studyTips[currentTip]}"</p>
              </div>
@@ -660,8 +659,8 @@ const CourseQuotaCard = ({ courseQuota, isPremium }) => {
   };
 
   const rows = [
-    { key: 'clinical-challenge:both', label: 'Clinical Challenge' },
-    { key: 'quick-quiz:both', label: 'Quick Quiz' },
+    { key: 'clinical-challenge:nclex', label: 'NCLEX' },
+    { key: 'quick-quiz:nmcn', label: 'NMCN' },
     { key: 'uselu-test', label: 'Uselu Test Questions' },
     { key: 'weakness-challenge', label: 'Fix My Weak Areas' }
   ];
@@ -719,51 +718,6 @@ const CourseQuotaCard = ({ courseQuota, isPremium }) => {
             One 10-question round per course, then a fresh round in 1 hour. 200-Level subjects track their own rounds.
           </p>
         </>
-      )}
-    </div>
-  );
-};
-
-// ---- Difficulty unlock progress: correct answers across tiers ----
-const DifficultyProgressCard = ({ progress, isPremium }) => {
-  const tiers = [
-    { key: 'medium', label: 'Medium', need: 50 },
-    { key: 'hard', label: 'Hard', need: 80 },
-    { key: 'expert', label: 'Expert', need: 100 }
-  ];
-
-  return (
-    <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-800">
-      <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Difficulty Unlocks</h3>
-      <div className="mt-4 space-y-4">
-        {tiers.map(t => {
-          const row = Array.isArray(progress)
-            ? progress.find(p => String(p.difficulty).toLowerCase() === t.key)
-            : null;
-          const got = row?.correct_count ?? 0;
-          const pct = Math.min(100, Math.round((got / t.need) * 100));
-          const unlocked = row?.unlocked === true || got >= t.need;
-          return (
-            <div key={t.key}>
-              <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400 mb-1.5">
-                <span className="flex items-center gap-1.5">
-                  {unlocked ? <CheckCircle size={12} className="text-emerald-500" /> : <Lock size={12} className="text-slate-400" />}
-                  {t.label}
-                </span>
-                <span className={unlocked ? 'text-emerald-600' : 'text-slate-500'}>{unlocked ? 'Unlocked' : `${got}/${t.need}`}</span>
-              </div>
-              <div className="w-full h-2.5 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
-                <div
-                  className={`h-full rounded-full ${unlocked ? 'bg-emerald-500' : 'bg-apex-600'}`}
-                  style={{ width: `${pct}%` }}
-                />
-              </div>
-            </div>
-          );
-        })}
-      </div>
-      {!isPremium && (
-        <p className="text-[10px] text-slate-400 italic mt-4">Correct answers unlock higher difficulty tiers.</p>
       )}
     </div>
   );

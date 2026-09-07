@@ -1,9 +1,11 @@
-import React, { useState } from 'react';
-import { useNavigate, useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, Link } from 'react-router-dom';
+import { useAppContext } from '../context/AppContext';
 import { supabase } from '../utils/supabase';
 import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 import { Mail, Lock, User, Phone, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
 import Toast from '../components/Toast';
+import BrandLogo from '../components/BrandLogo';
 
 export default function Auth() {
   const [loading, setLoading] = useState(false);
@@ -14,6 +16,16 @@ export default function Auth() {
   const location = useLocation();
   // Route-aware initial view: /signup opens the registration form directly.
   const [view, setView] = useState(location.pathname === '/signup' ? 'signup' : 'signin'); // 'signin', 'signup', 'forgot'
+  const { session, loadingAuth } = useAppContext();
+
+  // Session recognition — a device that already has a live session (persisted
+  // in localStorage by supabase-js) is sent straight to the dashboard instead
+  // of being asked to log in again.
+  useEffect(() => {
+    if (!loadingAuth && session) {
+      navigate(location.state?.from || '/dashboard', { replace: true });
+    }
+  }, [loadingAuth, session, navigate, location.state?.from]);
 
   const [formData, setFormData] = useState({
     email: '',
@@ -113,6 +125,17 @@ export default function Auth() {
     }
   };
 
+  // While the persisted session is being rehydrated (or a signed-in user on a
+  // returning device is being redirected), don't flash the login form.
+  if (loadingAuth) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-950">
+        <div className="w-12 h-12 border-4 border-apex-600 border-t-transparent rounded-full animate-spin"></div>
+      </div>
+    );
+  }
+  if (session) return null;
+
   return (
     <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4 relative overflow-hidden">
       {/* Background decoration */}
@@ -128,14 +151,15 @@ export default function Auth() {
       >
         <div className="bg-slate-900/50 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
           <div className="text-center mb-8">
-            <div className="w-16 h-16 bg-gradient-to-tr from-medical-500 to-blue-600 rounded-2xl mx-auto mb-4 flex items-center justify-center text-white text-2xl font-bold shadow-lg shadow-medical-500/20">
-              A
+            <div className="flex items-center justify-center gap-2 mb-4">
+              <BrandLogo variant="mark" size="xl" />
+              <BrandLogo variant="short" size="lg" />
             </div>
             <h1 className="text-3xl font-bold text-white mb-2">
-              {view === 'signin' ? 'Welcome Back' : view === 'signup' ? 'Join Apex Scholars' : 'Reset Password'}
+              {view === 'signin' ? 'Welcome Back' : view === 'signup' ? 'Join Polynurse Exam Center' : 'Reset Password'}
             </h1>
             <p className="text-slate-400">
-              {view === 'signin' ? 'Enter your credentials to continue' : view === 'signup' ? 'Start your journey to excellence today' : 'We will send you a link to reset it'}
+              {view === 'signin' ? 'Enter your credentials to continue' : view === 'signup' ? 'Your NCLEX success starts here' : 'We will send you a link to reset it'}
             </p>
           </div>
 
@@ -273,7 +297,24 @@ export default function Auth() {
             </button>
           </div>
 
-          <div className="mt-6 pt-6 border-t border-white/5 flex items-center justify-center gap-2 text-slate-500 text-sm">
+          {view === 'signup' && (
+            <p className="text-slate-500 text-xs leading-relaxed">
+              By creating an account, you agree to our{' '}
+              <Link to="/legal/terms" className="text-medical-400 underline">Terms of Service</Link>,
+              {' '}<Link to="/legal/privacy" className="text-medical-400 underline">Privacy Policy</Link>{' '}
+              and{' '}<Link to="/legal/cookies" className="text-medical-400 underline">Cookie Policy</Link>.
+            </p>
+          )}
+
+          <div className="flex items-center justify-center gap-3 text-slate-500 text-xs pt-4">
+            <Link to="/legal/terms" className="hover:text-slate-300 transition-colors">Terms</Link>
+            <span className="text-slate-700">•</span>
+            <Link to="/legal/privacy" className="hover:text-slate-300 transition-colors">Privacy</Link>
+            <span className="text-slate-700">•</span>
+            <Link to="/legal/cookies" className="hover:text-slate-300 transition-colors">Cookies</Link>
+          </div>
+
+          <div className="mt-4 pt-6 border-t border-white/5 flex items-center justify-center gap-2 text-slate-500 text-sm">
             <ShieldCheck className="w-4 h-4" />
             Secure Authentication via Supabase
           </div>

@@ -1,5 +1,6 @@
 import { Navigate, useLocation } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
+import RobotsMeta from './RobotsMeta';
 
 // Wraps protected routes. Redirects to /login when unauthenticated.
 export default function RequireAuth({ children }) {
@@ -11,7 +12,7 @@ export default function RequireAuth({ children }) {
       <div className="min-h-screen flex items-center justify-center bg-[#f8fafc]">
         <div className="flex flex-col items-center gap-3 animate-pulse">
           <div className="w-10 h-10 rounded-full border-4 border-teal-500 border-t-transparent animate-spin" />
-          <p className="text-sm text-slate-500">Loading Apex Scholars…</p>
+          <p className="text-sm text-slate-500">Loading Polynurse…</p>
         </div>
       </div>
     );
@@ -21,5 +22,10 @@ export default function RequireAuth({ children }) {
     return <Navigate to="/login" replace state={{ from: location }} />;
   }
 
-  return children;
+  return (
+    <>
+      <RobotsMeta />
+      {children}
+    </>
+  );
 }

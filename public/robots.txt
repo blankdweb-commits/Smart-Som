@@ -1,0 +1,21 @@
+User-agent: *
+Allow: /
+Disallow: /quiz
+Disallow: /dashboard
+Disallow: /flashcards
+Disallow: /weakness-drill
+Disallow: /achievements
+Disallow: /exams
+Disallow: /marketplace
+Disallow: /voting
+Disallow: /reviews
+Disallow: /payments
+Disallow: /settings
+Disallow: /community
+Disallow: /study-groups
+Disallow: /pronunciation
+Disallow: /xp-hall
+Disallow: /activate
+Disallow: /admin
+
+Sitemap: https://www.polynurse.com.ng/sitemap.xml

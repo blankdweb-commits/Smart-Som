@@ -67,7 +67,7 @@ const todayKey = () => {
 const doneMarker = () => `apex:dailyChallengeDone:${todayKey()}`;
 
 const DailyChallengeWidget = () => {
-  const { flashcards, userProfile, session, markDailyChallengeDone, isPremium, consumeCourseQuota } = useAppContext();
+  const { flashcards, userProfile, session, markDailyChallengeDone, isPremium, consumeCourseQuota, callApexApi } = useAppContext();
   const navigate = useNavigate();
   const [challengeStarted, setChallengeStarted] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -126,8 +126,8 @@ const DailyChallengeWidget = () => {
       let servedTotal = CHALLENGE_SIZE;
       if (session?.access_token) {
         try {
-          const res = await fetch('/api/daily-challenge', { headers: authHeaders(session) });
-          const body = await res.json();
+          const res = await callApexApi('/api/daily-challenge', { headers: authHeaders(session) });
+          const body = res?.data;
           if (body?.completed) {
             servedCompleted = true;
             servedScore = body.score || 0;
@@ -197,7 +197,7 @@ const DailyChallengeWidget = () => {
     };
     load();
     return () => { active = false; };
-  }, [flashcards, userProfile, session, dailyQuestions.length, markDailyChallengeDone]);
+  }, [flashcards, userProfile, session, dailyQuestions.length, markDailyChallengeDone, callApexApi]);
 
   // Report completion to the server for persistence/stats.
   const reportComplete = useMemo(() => async (score, total, ids) => {
@@ -205,7 +205,7 @@ const DailyChallengeWidget = () => {
     markDailyChallengeDone?.();
     if (!session?.access_token) return;
     try {
-      await fetch('/api/daily-challenge/complete', {
+      await callApexApi('/api/daily-challenge/complete', {
         method: 'POST',
         headers: authHeaders(session, { json: true }),
         body: JSON.stringify({ score, total, question_ids: ids })
@@ -213,7 +213,7 @@ const DailyChallengeWidget = () => {
     } catch (err) {
       console.warn('Daily challenge complete skipped:', err.message);
     }
-  }, [session, markDailyChallengeDone]);
+  }, [session, markDailyChallengeDone, callApexApi]);
 
   const handleAnswer = (option) => {
     if (selectedOption || dailyQuestions.length === 0) return;
