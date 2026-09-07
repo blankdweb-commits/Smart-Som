@@ -17,6 +17,7 @@ import { motion } from 'framer-motion';
 import QuizSetupFlow, { QUIZ_CONFIGS, LEVEL_SUBJECTS } from '../components/QuizSetupFlow';
 import QuizPlayer from '../components/QuizPlayer';
 import { useQuizBatch } from '../hooks/useQuizBatch';
+import { generateUuid } from '../utils/safeStorage';
 
 // Maps setup-flow quiz ids to engine mode ids.
 const SETUP_TO_MODE = {
@@ -172,6 +173,14 @@ const Quiz = () => {
   const [cooldownNotice, setCooldownNotice] = useState(null); // { courseKey, label, seconds, engineMode, cfg }
   const pendingLaunchRef = React.useRef(null); // keeps the original engineMode/cfg for the "Start now" retry
 
+  // In-flight guard: prevents a double-click / rapid retry from firing a second
+  // batch-create while the first is still in flight. The server's idempotency
+  // key is the second line of defense (same roundId -> no double charge).
+  const launchInFlightRef = React.useRef(false);
+  // Per-round idempotency key, stable for the lifetime of one quiz session so a
+  // refresh / retry / replay of the SAME start cannot register as a new charge.
+  const attemptIdRef = React.useRef(null);
+
   // ----- Difficulty progression -----
   const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchSCRank, studyStats, levelCompletions, session, fetchQuestionHistory, isPremium, fetchCourseQuotaStatus } = useAppContext();
   const [selectedDifficulty, setSelectedDifficulty] = useState(null);
@@ -312,6 +321,7 @@ const Quiz = () => {
     setSetupType(null);
     setPresetDifficulty(null);
     setPresetSubject(null);
+    attemptIdRef.current = null;
   };
 
   // Normalizes a card into a quiz question with shuffled (or synthesized) options.
@@ -335,6 +345,17 @@ const Quiz = () => {
   // Launch player using server-authoritative batch selection.
   // The batch API handles: quota enforcement, question selection, and exposure tracking.
   const launchPlayer = async (engineMode, cfg) => {
+    // Guard: ignore a second Start while one is still in flight (double-click).
+    if (launchInFlightRef.current) return;
+    launchInFlightRef.current = true;
+    try {
+      await doLaunch(engineMode, cfg);
+    } finally {
+      launchInFlightRef.current = false;
+    }
+  };
+
+  const doLaunch = async (engineMode, cfg) => {
     // Build the courseKey for the batch API
     const courseKey = cfg.courseKey || (cfg.subject ? `${SETUP_TO_MODE[setupType] || 'clinical'}:${cfg.subject}` : SETUP_TO_MODE[setupType] || 'clinical');
 
@@ -347,6 +368,11 @@ const Quiz = () => {
     const examFramework = engineMode === 'nclex' ? 'NCLEX' :
                           engineMode === 'nmcn' ? 'NMCN' : null;
 
+    // Idempotency key for this quiz session. Stable across refresh/retry of the
+    // SAME round so a replayed start cannot double-charge the course round.
+    if (!attemptIdRef.current) attemptIdRef.current = generateUuid();
+    const attemptId = attemptIdRef.current;
+
     // Create the batch via server API (handles quota, selection, exposure)
     const result = await createBatch({
       mode: batchMode,
@@ -355,6 +381,7 @@ const Quiz = () => {
       batchSize: cfg.questionCount || 10,
       difficultyDistribution: cfg.difficulty ? { [cfg.difficulty]: cfg.questionCount || 10 } : undefined,
       subjectFilter: cfg.subject,
+      attemptId,
     });
 
     if (!result?.success || !result?.batch) {
@@ -456,6 +483,9 @@ const Quiz = () => {
     setPlayerResult(result);
     // A finished session allows the next Start to replay the intro sound once.
     introHandledRef.current = false;
+    // The round is over — the next Start mints a NEW idempotency key so a
+    // legitimate new round is not mistaken for a replay of this one.
+    attemptIdRef.current = null;
 
     const pct = result.total > 0 ? Math.round((result.score / result.total) * 100) : 0;
 
@@ -521,6 +551,9 @@ const Quiz = () => {
     setPresetSubject(null);
     document.body.classList.remove('quiz-active');
     introHandledRef.current = false;
+    // Leaving the player (abandon) = the round is over: the next Start is a NEW
+    // round, so mint a fresh idempotency key (never reuse an old reservation id).
+    attemptIdRef.current = null;
   };
 
   const retrySameSession = () => {

@@ -41,18 +41,33 @@ const HTTP_ERRORS = {
 // Refund a reserved round that never produced a batch. A failed start must
 // never burn a free user's round — otherwise the very next start would 403
 // QUOTA_EXHAUSTED while the first one was only a selection/validation error.
-async function refundRound(supabase, userId, courseKey) {
+//
+// Race-safe: the refund targets ONLY the round THIS request reserved (by
+// matching last_round_id), so a failing request B can never delete a
+// legitimate cooldown/reservation opened by a concurrent request A.
+async function refundRound(supabase, userId, courseKey, roundId) {
   if (!supabase || !userId || !courseKey) return;
   try {
-    await supabase
+    let q = supabase
       .from('user_course_quota')
       .delete()
       .eq('user_id', userId)
       .eq('course_key', courseKey);
+    if (roundId) q = q.eq('last_round_id', roundId);
+    await q;
   } catch (e) {
     console.warn('[batch-create] Quota refund failed:', e?.message);
   }
 }
+
+// Server-authoritative attempt id for this start request. Used as the atomic
+// idempotency key in consume_course_quota (replay/double-click/refresh cannot
+// charge twice) and as the refund target above.
+const makeAttemptId = (clientProvided) =>
+  typeof clientProvided === 'string' &&
+  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(clientProvided)
+    ? clientProvided
+    : crypto.randomUUID();
 
 export default async function handler(req, res) {
   // CORS headers
@@ -75,6 +90,8 @@ export default async function handler(req, res) {
   }
 
   let supabase = null;
+  let shouldRefund = true;
+  let roundId = null;
 
   try {
     const {
@@ -85,6 +102,7 @@ export default async function handler(req, res) {
       difficultyDistribution,
       subjectFilter,
       topicFilter,
+      attemptId,
     } = req.body || {};
 
     // Validate required fields
@@ -118,6 +136,12 @@ export default async function handler(req, res) {
       ? Math.min(30, Math.max(10, batchSize || 10))
       : 10;
 
+    // ---- Idempotent round reservation ----
+    // This id is the atomic quota key: the SAME attemptId replayed (refresh,
+    // double-click, retry, concurrent tab) returns the same result without
+    // charging twice. Missing/invalid id -> fresh UUID on the server.
+    roundId = makeAttemptId(attemptId);
+
     // ---- Defense-in-depth: consume the per-course round quota NOW ----
     // This is the authoritative charge. Free users reserve exactly 10
     // questions + a 30-min cooldown; premium users reserve 10-30 with no
@@ -127,6 +151,7 @@ export default async function handler(req, res) {
       p_course_key: courseKey,
       p_count: finalBatchSize,
       p_is_premium: isPremium,
+      p_request_id: roundId,
     });
 
     if (quota && quota.error) {
@@ -144,6 +169,11 @@ export default async function handler(req, res) {
       });
     }
 
+    // A replayed request id is NOT a fresh reservation — if the batch build
+    // fails here we must NOT refund, because the reservation belongs to the
+    // ORIGINAL request (which owns its own refund path).
+    shouldRefund = quotaBody.replayed !== true;
+
     // Create selection service
     const service = new QuestionSelectionService(supabase);
 
@@ -160,11 +190,11 @@ export default async function handler(req, res) {
     });
 
     if (result.error) {
-      await refundRound(supabase, user.id, courseKey);
+      if (shouldRefund) await refundRound(supabase, user.id, courseKey, roundId);
       return res.status(400).json({
         error: result.error,
         message: result.message,
-        quota_refunded: true,
+        quota_refunded: shouldRefund,
       });
     }
 
@@ -184,8 +214,9 @@ export default async function handler(req, res) {
     const httpStatus = HTTP_ERRORS[code] || HTTP_ERRORS[msg] || 500;
     // No batch was produced -> refund the reserved round so a failed start
     // (DIFFICULTY_LOCKED, FRAMEWORK_MISMATCH, UNKNOWN_COURSE, INVALID_COURSE_KEY,
-    // or internal errors) never charges the user.
-    await refundRound(supabase, user.id, req.body?.courseKey);
+    // or internal errors) never charges the user. Replays skip refund (the
+    // original request owns the reservation).
+    if (shouldRefund) await refundRound(supabase, user.id, req.body?.courseKey, roundId);
     return res.status(httpStatus).json(
       httpStatus < 500
         ? {

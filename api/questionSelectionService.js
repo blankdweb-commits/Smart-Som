@@ -498,7 +498,7 @@ export class QuestionSelectionService {
   // --------------------------------------------------------
   // Record an answer
   // --------------------------------------------------------
-  async recordAnswer({ batchId, userId, questionId, selectedAnswer, correct, elapsedMs }) {
+  async recordAnswer({ batchId, userId, questionId, selectedAnswer, elapsedMs }) {
     // Verify batch ownership
     const { data: batch, error: bError } = await this.supabase
       .from('quiz_batches')
@@ -520,6 +520,21 @@ export class QuestionSelectionService {
       return { error: 'BATCH_EXPIRED' };
     }
 
+    // The question must actually belong to this batch. Rejects injection of a
+    // foreign questionId into an owned batch.
+    if (!Array.isArray(batch.question_ids) || !batch.question_ids.includes(questionId)) {
+      return { error: 'QUESTION_NOT_IN_BATCH' };
+    }
+
+    // ============================================================
+    // SERVER-AUTHORITATIVE GRADING
+    // The client-supplied `correct` flag is IGNORED. Correctness is derived
+    // here by comparing the submitted answer against the stored canonical
+    // answer for the question. A malicious client can no longer POST
+    // all-true answers to fabricate scores or unlock difficulty tiers.
+    // ============================================================
+    const serverCorrect = await this._gradeAnswer(questionId, selectedAnswer);
+
     // Upsert answer in quiz_batch_questions
     const { error: upsertError } = await this.supabase
       .from('quiz_batch_questions')
@@ -529,7 +544,7 @@ export class QuestionSelectionService {
         sequence: batch.question_ids.indexOf(questionId) + 1,
         answered: true,
         selected_answer: selectedAnswer,
-        correct,
+        correct: serverCorrect,
         answered_at: new Date().toISOString(),
         elapsed_ms: elapsedMs,
       }, { onConflict: 'batch_id,question_id' });
@@ -544,19 +559,15 @@ export class QuestionSelectionService {
       questionId,
       batchId,
       selectedAnswer,
-      correct,
+      correct: serverCorrect,
       mode: batch.mode,
       difficulty: null, // will be resolved from question
       examFramework: batch.exam_framework,
     });
 
     // Authoritative per-course difficulty-progression credit. Only genuinely
-    // correct answers advance the difficulty unlock counts (spec: incorrect
-    // answers do not contribute). Credited against the batch's own course_key
-    // so concrete courses unlock per-course; aggregate modes (weakness/daily)
-    // use SHARED progression on read (min across per-course rows), so writing
-    // to their own row correctly feeds that min.
-    if (correct && batch.course_key && batch.course_key !== 'global') {
+    // correct answers (server-graded) advance the difficulty unlock counts.
+    if (serverCorrect && batch.course_key && batch.course_key !== 'global') {
       try {
         const { data: q } = await this.supabase
           .from('questions')
@@ -576,7 +587,44 @@ export class QuestionSelectionService {
       }
     }
 
-    return { success: true };
+    return { success: true, correct: serverCorrect };
+  }
+
+  // --------------------------------------------------------
+  // PRIVATE: Grade a submitted answer against the stored canonical answer.
+  // Returns true only when the stored correct_answer matches the submission
+  // (trimmed, case-insensitive; also handles numeric/letter indices).
+  // --------------------------------------------------------
+  async _gradeAnswer(questionId, selectedAnswer) {
+    if (selectedAnswer === null || selectedAnswer === undefined || selectedAnswer === '') {
+      return false;
+    }
+    try {
+      const { data: q, error } = await this.supabase
+        .from('questions')
+        .select('correct_answer, options')
+        .eq('id', questionId)
+        .maybeSingle();
+      if (error || !q) return false;
+
+      const normalize = (v) => String(v ?? '').trim().toLowerCase();
+      const submitted = normalize(selectedAnswer);
+      const canonical = normalize(q.correct_answer);
+
+      if (submitted === canonical) return true;
+
+      // Fallback: the client may submit the option INDEX instead of the text.
+      // If `selectedAnswer` is an integer index into q.options, compare the
+      // indexed option against the canonical answer.
+      const asIndex = Number(selectedAnswer);
+      if (Array.isArray(q.options) && Number.isInteger(asIndex) && asIndex >= 0 && asIndex < q.options.length) {
+        if (normalize(q.options[asIndex]) === canonical) return true;
+      }
+
+      return false;
+    } catch {
+      return false;
+    }
   }
 
   // --------------------------------------------------------
@@ -594,6 +642,24 @@ export class QuestionSelectionService {
       return { error: 'BATCH_NOT_FOUND' };
     }
 
+    // Duplicate-completion guard: a batch is finalized exactly once. A replayed
+    // completion request returns the already-recorded result WITHOUT touching
+    // the DB again, so replays can't re-record or double-credit anything.
+    if (batch.status === 'completed') {
+      const { data: prevAnswers } = await this.supabase
+        .from('quiz_batch_questions')
+        .select('*')
+        .eq('batch_id', batchId);
+      const prev = (prevAnswers || []).filter(a => a.answered);
+      return {
+        success: true,
+        alreadyCompleted: true,
+        score: prev.filter(a => a.correct).length,
+        total: prev.length,
+        answers: prev,
+      };
+    }
+
     // Fetch answers for scoring
     const { data: answers } = await this.supabase
       .from('quiz_batch_questions')
@@ -603,16 +669,24 @@ export class QuestionSelectionService {
     const correct = (answers || []).filter(a => a.correct).length;
     const total = (answers || []).filter(a => a.answered).length;
 
-    await this.supabase
+    // Guard the status transition with a conditional update so two concurrent
+    // completions cannot double-fire (only the first flips the status).
+    const { error: upErr } = await this.supabase
       .from('quiz_batches')
       .update({
         status: 'completed',
         completed_at: new Date().toISOString(),
       })
-      .eq('id', batchId);
+      .eq('id', batchId)
+      .in('status', ['reserved', 'started']);
+
+    if (upErr) {
+      return { error: 'COMPLETE_FAILED', message: upErr.message };
+    }
 
     return {
       success: true,
+      alreadyCompleted: false,
       score: correct,
       total,
       answers: answers || [],

@@ -54,6 +54,7 @@ export function useQuizBatch() {
     difficultyDistribution,
     subjectFilter,
     topicFilter,
+    attemptId,
   }) => {
     setLoading(true);
     setError(null);
@@ -72,6 +73,7 @@ export function useQuizBatch() {
         ...(difficultyDistribution && { difficultyDistribution }),
         ...(subjectFilter && { subjectFilter }),
         ...(topicFilter && { topicFilter }),
+        ...(attemptId && { attemptId }),
       };
 
       const result = await callApexApi('/api/quiz/batch-create', {

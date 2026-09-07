@@ -8,11 +8,15 @@
 //   batchId: string,
 //   questionId: string,
 //   selectedAnswer: string,
-//   correct: boolean,
 //   elapsedMs?: number,
 // }
 //
-// Returns: { success }
+// NOTE: `correct` is NOT accepted as authoritative. The server grades the
+// answer itself by comparing selectedAnswer to the stored correct_answer,
+// writes the server-derived correctness, and returns it as { success, correct }.
+// A client cannot fabricate a score or difficulty-progression credit.
+//
+// Returns: { success, correct }
 // ============================================================
 
 import { authorizeRequest } from '../_utils.js';
@@ -38,22 +42,22 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { batchId, questionId, selectedAnswer, correct, elapsedMs } = req.body || {};
+    const { batchId, questionId, selectedAnswer, elapsedMs } = req.body || {};
 
-    if (!batchId || !questionId || selectedAnswer === undefined || correct === undefined) {
+    if (!batchId || !questionId || selectedAnswer === undefined) {
       return res.status(400).json({
         error: 'Missing required fields',
-        message: 'batchId, questionId, selectedAnswer, and correct are required.',
+        message: 'batchId, questionId, and selectedAnswer are required.',
       });
     }
 
+    // `correct` from the client is deliberately ignored — the server grades.
     const service = new QuestionSelectionService(getSupabaseAdmin());
     const result = await service.recordAnswer({
       batchId,
       userId: user.id,
       questionId,
       selectedAnswer,
-      correct,
       elapsedMs,
     });
 
