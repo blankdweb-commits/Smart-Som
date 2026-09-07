@@ -181,8 +181,8 @@ export default function Activate() {
              >
                <div>
                  <p className="font-black text-slate-900 dark:text-white">Continue as Free</p>
-                 <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
-                   50 questions / 12 hours — upgrade anytime
+                  <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
+                    10 questions per round · new round every 30 minutes
                  </p>
                </div>
                <div className="w-10 h-10 bg-slate-200 dark:bg-slate-700 rounded-xl flex items-center justify-center text-slate-600 dark:text-slate-300 group-hover:bg-apex-600 group-hover:text-white transition-all shrink-0">

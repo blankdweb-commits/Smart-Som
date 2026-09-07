@@ -2,6 +2,7 @@ import React, { useState } from 'react';
   // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase } from '../utils/supabase';
+import BrandLogo from './BrandLogo';
 import {
   X,
   Users,
@@ -236,7 +237,7 @@ const CommunityAuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                 Join the Community
               </h2>
               <p className="text-slate-500 dark:text-slate-400 font-medium mb-8 leading-relaxed">
-                Sign in or create your free account to participate in the Apex Scholars community.
+                Sign in or create your free account to participate in the Polynurse Exam Center community.
               </p>
               <div className="space-y-3">
                 <button
@@ -270,11 +271,12 @@ const CommunityAuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
               </button>
 
               <div className="text-center mb-6">
-                <div className="w-14 h-14 bg-gradient-to-tr from-medical-500 to-blue-600 rounded-xl mx-auto mb-4 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-medical-500/20">
-                  A
+                <div className="flex items-center justify-center gap-1 mb-4">
+                  <BrandLogo variant="mark" size="xl" />
+                  <BrandLogo variant="short" size="md" />
                 </div>
                 <h2 className="text-xl font-black text-slate-900 dark:text-white">Welcome Back</h2>
-                <p className="text-sm text-slate-400 mt-1">Sign in to your Apex Scholars account</p>
+                <p className="text-sm text-slate-400 mt-1">Sign in to your Polynurse Exam Center account</p>
               </div>
 
               {successMessage && (
@@ -362,11 +364,12 @@ const CommunityAuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
               </button>
 
               <div className="text-center mb-6">
-                <div className="w-14 h-14 bg-gradient-to-tr from-medical-500 to-blue-600 rounded-xl mx-auto mb-4 flex items-center justify-center text-white text-xl font-bold shadow-lg shadow-medical-500/20">
-                  A
+                <div className="flex items-center justify-center gap-1 mb-4">
+                  <BrandLogo variant="mark" size="xl" />
+                  <BrandLogo variant="short" size="md" />
                 </div>
                 <h2 className="text-xl font-black text-slate-900 dark:text-white">Create Account</h2>
-                <p className="text-sm text-slate-400 mt-1">Join the Apex Scholars community</p>
+                <p className="text-sm text-slate-400 mt-1">Join the Polynurse Exam Center community</p>
               </div>
 
               <form onSubmit={handleSignUp} className="space-y-3">

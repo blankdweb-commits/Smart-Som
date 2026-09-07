@@ -1,0 +1,17 @@
+{
+  "name": "Polynurse Exam Center",
+  "short_name": "Polynurse",
+  "description": "NCLEX and NMCN exam preparation for nursing and midwifery students.",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#ffffff",
+  "theme_color": "#800080",
+  "icons": [
+    {
+      "src": "/polynurse-mark.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

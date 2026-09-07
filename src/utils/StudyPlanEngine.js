@@ -14,9 +14,9 @@
 // ============================================================
 
 // Difficulty tiers, lowest first, matching the unlock chain
-// (Easy → Medium(50) → Hard(80) → Expert(100)). Level completions are keyed
+// (Easy → Moderate(50) → Hard(80) → Expert(100)). Level completions are keyed
 // by tier id in user_quiz_progress.
-const TIER_ORDER = ['Easy', 'Medium', 'Hard', 'Expert', 'Master', 'Extreme'];
+const TIER_ORDER = ['Easy', 'Moderate', 'Hard', 'Expert', 'Master', 'Extreme'];
 
 const avgQuizAccuracy = (quizHistory = []) => {
   const rows = quizHistory.filter(r => (r.total || 0) > 0);

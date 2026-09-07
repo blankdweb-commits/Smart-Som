@@ -117,22 +117,36 @@ try {
     log('exam deleted from database', (after || []).length === 0);
   }
 
-  // ---------- QUIZ DIFFICULTY PROGRESSION ----------
+  // ---------- QUIZ DIFFICULTY PROGRESSION (per-course, server-authoritative) ----------
   await page.goto(`${BASE}/quiz`, { waitUntil: 'networkidle' });
-  // wait for the difficulty section specifically
+  // A brand-new user has ONLY Easy unlocked (progressive per-course difficulty:
+  // Moderate=50 Easy correct, Hard=80 Moderate, Expert=100 Hard).
+  await page.locator('button', { hasText: 'Quick Quiz' }).first().click();
+  await page.waitForTimeout(600);
   await page.locator('text=Choose Difficulty').waitFor({ timeout: 20000 });
   bodyText = await page.textContent('body');
-  log('difficulty screen renders', true);
-  log('Expert locked for new user', (bodyText || '').includes('Complete 3 Hard levels to unlock'));
-  log('Master locked for new user', (bodyText || '').includes('Complete 10 Expert levels to unlock'));
-  log('Extreme locked for new user', (bodyText || '').includes('Complete 14 Master levels to unlock'));
+  log('difficulty screen renders', bodyText.includes('Choose Difficulty'), true ? '' : '');
 
-  const expertDisabled = await page.locator('button:has-text("Expert")').first().isDisabled();
-  log('Expert button disabled', expertDisabled === true);
+  const lockCheck = await page.evaluate(() => {
+    const state = (label) => {
+      const b = [...document.querySelectorAll('button')].find(x => x.textContent.trim().includes(label));
+      return b ? b.disabled : null;
+    };
+    return { easy: state('Easy'), moderate: state('Moderate'), hard: state('Hard'), expert: state('Expert') };
+  });
+  log('Easy unlocked for new user', lockCheck.easy === false, JSON.stringify(lockCheck));
+  log('Moderate locked for new user', lockCheck.moderate === true, JSON.stringify(lockCheck));
+  log('Hard locked for new user', lockCheck.hard === true, JSON.stringify(lockCheck));
+  log('Expert locked for new user', lockCheck.expert === true, JSON.stringify(lockCheck));
 
   await page.locator('button:has-text("Easy")').first().click();
   await page.waitForTimeout(400);
-  await page.locator('button', { hasText: 'Quick Quiz' }).first().click();
+  await page.locator('button', { hasText: 'Continue' }).first().click();
+  await page.waitForTimeout(600);
+  await page.locator('button', { hasText: 'Continue' }).first().click();
+  await page.waitForTimeout(600);
+  await page.locator('button', { hasText: 'Start Quiz' }).first().click();
+  await page.waitForTimeout(1200);
 
   // Answer loop: option -> FINAL ANSWER? -> rationale -> Next Challenge / Complete Quiz
   let actionsTaken = 0;
@@ -174,8 +188,10 @@ try {
     const qr = await dbRest('quiz_results', `select=id,difficulty,score,total,passed&user_id=eq.${sess}`);
     log('quiz_results row saved', (qr || []).length > 0, JSON.stringify((qr || [])[0] || {}));
 
-    const qp = await dbRest('user_quiz_progress', `select=level_key,difficulty,passed&user_id=eq.${sess}`);
-    log('user_quiz_progress row saved', (qp || []).length > 0, JSON.stringify((qp || [])[0] || {}));
+    const dp = await dbRest('difficulty_progress', `select=course_key,difficulty,correct_count&user_id=eq.${sess}`);
+    log('difficulty_progress row saved (per-course progressive unlock)',
+      (dp || []).some(r => r.course_key && r.difficulty === 'Easy' && r.correct_count > 0),
+      JSON.stringify((dp || []).slice(0, 4)));
 
     const la = await dbRest('learning_analytics', `select=weak_topics&user_id=eq.${sess}`);
     log('learning_analytics row exists', !!la?.[0], `${((la?.[0]?.weak_topics) || []).length} weak topics`);

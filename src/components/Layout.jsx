@@ -4,16 +4,16 @@ import Sidebar from './Sidebar';
 import BottomNav from './BottomNav';
 import FeeBanner from './FeeBanner';
 import ErrorBoundary from './ErrorBoundary';
-import SearchOverlay from './SearchOverlay';
+
 import NotificationBell from './NotificationBell';
 import AchievementToast from './AchievementToast';
-import { Sun, Moon, Calendar, Menu, Settings, Search } from './Icons';
+import BrandLogo from './BrandLogo';
+import { Sun, Moon, Calendar, Menu, Settings } from './Icons';
 import { useAppContext } from '../context/AppContext';
 
 const Layout = ({ children }) => {
   const location = useLocation();
   const { darkMode, toggleDarkMode, achievementToast, dismissAchievementToast } = useAppContext();
-  const [searchOpen, setSearchOpen] = React.useState(false);
   const DEV_MODE =  (import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true');
 
   return (
@@ -25,20 +25,12 @@ const Layout = ({ children }) => {
         <header className="sticky top-0 z-40 bg-white/80 dark:bg-slate-900/80 backdrop-blur-md border-b border-slate-100 dark:border-slate-800 px-4 py-3 flex justify-between items-center">
           <div className="flex items-center gap-3">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-apex-600 rounded-lg flex items-center justify-center text-white font-black text-lg shrink-0">A</div>
-              <span className="font-black text-slate-900 dark:text-white truncate tracking-tight">Apex Scholars</span>
+              <BrandLogo variant="mark" size="lg" />
+              <BrandLogo variant="short" size="md" />
             </div>
           </div>
 
           <div className="flex items-center gap-1 sm:gap-2">
-            <button
-              onClick={() => setSearchOpen(true)}
-              aria-label="Search"
-              className="p-2 rounded-lg text-slate-500 hover:bg-slate-50 dark:hover:bg-slate-800"
-            >
-              <Search size={20} />
-            </button>
-
             <NotificationBell />
 
             <Link
@@ -71,7 +63,6 @@ const Layout = ({ children }) => {
         </div>
       </main>
       <BottomNav />
-      <SearchOverlay open={searchOpen} onClose={() => setSearchOpen(false)} />
       <AchievementToast toast={achievementToast} onDismiss={dismissAchievementToast} />
     </div>
   );

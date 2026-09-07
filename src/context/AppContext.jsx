@@ -29,6 +29,98 @@ const ANONYMOUS_PROFILE = {
   graceUntil: null
 };
 
+// ---- Stale-token recovery ----
+// supabase-js rotates the access token, but a burst of parallel API calls can
+// all observe a just-expired token at once, and the app can reload with a token
+// that expired while it was closed. A 401 that our server returns while we DID
+// send a bearer token usually means exactly that. We refresh once (deduped so a
+// simultaneous burst never fires N concurrent refreshSession() calls against the
+// same single-use refresh token) and replay the request with the fresh token.
+let refreshInFlight = null;
+let lastSuccessfulRefreshAt = 0;
+
+const ensureFreshSessionToken = async () => {
+  if (!supabase) return null;
+  if (lastSuccessfulRefreshAt && Date.now() - lastSuccessfulRefreshAt < 5000) return null;
+  if (!refreshInFlight) {
+    refreshInFlight = supabase.auth
+      .refreshSession()
+      .catch((err) => ({ error: err }))
+      .finally(() => { refreshInFlight = null; });
+  }
+  const result = await refreshInFlight;
+  const session = result?.data?.session;
+  if (session?.access_token) lastSuccessfulRefreshAt = Date.now();
+  return session || null;
+};
+
+// Fetch an Apex /api endpoint and guarantee a JSON result. If the server ever
+// returns HTML (e.g. a broken deploy routing /api/* to the SPA), we surface a
+// clear diagnostic instead of letting `response.json()` throw a confusing
+// "Unexpected token '<'" deep inside a caller. Never dumps auth tokens.
+const callApexApi = async (url, { method = 'GET', headers = {}, body } = {}) => {
+  const doFetch = async (requestHeaders) => {
+    const opts = { method, headers: requestHeaders };
+    if (body !== undefined) {
+      opts.headers = { ...requestHeaders, 'Content-Type': 'application/json' };
+      opts.body = JSON.stringify(body);
+    }
+    let res;
+    try {
+      res = await fetch(url, opts);
+    } catch (err) {
+      return { ok: false, networkError: true, status: 0, error: err.message };
+    }
+    const contentType = (res.headers.get('content-type') || '').toLowerCase();
+    const isJson = contentType.includes('application/json') || contentType.includes('+json');
+    if (!isJson) {
+      let snippet = '';
+      try {
+        const text = await res.text();
+        snippet = text.slice(0, 160).replace(/\s+/g, ' ').trim();
+      } catch {
+        // body unreadable; keep snippet empty
+      }
+      console.error(
+        `API returned non-JSON (expected JSON):\n` +
+        `  ${method} ${url}\n  Status: ${res.status}\n  Content-Type: ${contentType}\n  Body: ${snippet || '(empty)'}`
+      );
+      return { ok: false, status: res.status, contentType, error: 'Non-JSON response', body: snippet };
+    }
+    let data;
+    try {
+      data = await res.json();
+    } catch (err) {
+      console.error(`API returned invalid JSON body: ${method} ${url} Status: ${res.status}`, err.message);
+      return { ok: false, status: res.status, contentType, error: 'Invalid JSON body' };
+    }
+    return { ok: res.ok, status: res.status, data };
+  };
+
+  let result = await doFetch(headers);
+
+  const hadBearer = /^Bearer\s+\S+/.test(headers.Authorization || '');
+  if (result.status === 401 && hadBearer && !result.networkError) {
+    const freshSession = await ensureFreshSessionToken();
+    if (freshSession?.access_token) {
+      result = await doFetch({ ...headers, Authorization: `Bearer ${freshSession.access_token}` });
+    } else {
+      // Refresh failed — the session is beyond repair. Sign out so the app
+      // lands on the login screen instead of showing 401s everywhere.
+      try { await supabase?.auth.signOut(); } catch { /* best effort */ }
+      return {
+        ok: false,
+        status: 401,
+        authExpired: true,
+        data: result.data,
+        error: result.data?.error || 'Session expired',
+      };
+    }
+  }
+
+  return result;
+};
+
 // ---------- Curriculum Subject Index ----------
 // Every official course across all years/semesters merged with every subject
 // present in the bundled card banks. Powers autocomplete everywhere.
@@ -95,7 +187,7 @@ export function AppProvider({ children }) {
   const [subscriptionPlans, setSubscriptionPlans] = useState([]);
   const [transactions, setTransactions] = useState([]);
   const [auditLogs] = useState([]);
-  // Passed-level completions per difficulty: { Easy: n, Medium: n, Hard: n, ... }
+  // Passed-level completions per difficulty: { Easy: n, Moderate: n, Hard: n, ... }
   const [levelCompletions, setLevelCompletions] = useState({});
 
   const [learningAnalytics, setLearningAnalytics] = useState({
@@ -112,7 +204,7 @@ export function AppProvider({ children }) {
   // Per-course round quota (v13): { [courseKey]: { questions_used, rounds_completed,
   //   last_round_completed_at, window_expires_at, cooldown_remaining_seconds, is_ready } }
   const [courseQuota, setCourseQuota] = useState({});
-  const [difficultyProgress, setDifficultyProgress] = useState(null); // { Easy:{...}, ... }
+  const [difficultyProgress, setDifficultyProgress] = useState(null); // { [courseKey]: [...], __aggregate: [...] }
   const [userAchievements, setUserAchievements] = useState([]);
   // Today's daily goal state — driven by the Daily Challenge widget. Powers the
   // 'daily-goal' achievement and is reset with the rest on sign-out.
@@ -123,6 +215,10 @@ export function AppProvider({ children }) {
   const dismissAchievementToast = useCallback(() => setAchievementToast(null), []);
   // Flashcards are ADMIN-GRANTED (not premium). Server-authoritative flag.
   const [flashcardAccess, setFlashcardAccess] = useState(false);
+  // Session / device mapping (v14): 'soft' (default) or 'strict'. Always tracks
+  // the current device and records active devices for remote per-device revoke.
+  const [sessionMode, setSessionMode] = useState('soft');
+  const [activeDevices, setActiveDevices] = useState([]);
   // Smart Coins are LOCKED until 1v1 launches (per product spec): every new
   // user starts at 0 and the faucet/spend stays dormant.
   const SC_FEATURE_LOCKED = true;
@@ -178,6 +274,7 @@ export function AppProvider({ children }) {
         const role = profile.role || 'student';
         setUserProfile({
           fullName: profile.full_name || '',
+          identityName: profile.identity_name || '',
           email: profile.email || '',
           phone: profile.phone || '',
           department: profile.department || '',
@@ -588,7 +685,7 @@ export function AppProvider({ children }) {
   // ---------- Quiz results & progression ----------
   const recordQuizResult = async ({ mode = 'standard', difficulty = 'Easy', subject = '', score = 0, total = 0, durationSeconds = 0, groupId = null }) => {
     const pct = total > 0 ? Math.round((score / total) * 100) : 0;
-    const thresholds = { Easy: 50, Medium: 60, Hard: 70, Expert: 75, Master: 80, Extreme: 85 };
+    const thresholds = { Easy: 50, Moderate: 60, Hard: 70, Expert: 75, Master: 80, Extreme: 85 };
     const passed = pct >= (thresholds[difficulty] ?? 60);
 
     // Local stats/milestone feedback
@@ -995,6 +1092,10 @@ export function AppProvider({ children }) {
         setUserAchievements([]);
         setDailyChallengeDone(false);
         setAchievementToast(null);
+      } else if (event === 'TOKEN_REFRESHED') {
+        // Access token rotated (background refresh or our 401 recovery path).
+        // Keep context in sync so subsequent calls use the fresh token.
+        if (currentSession) setSession(currentSession);
       }
       setLoadingAuth(false);
     });
@@ -1006,6 +1107,95 @@ export function AppProvider({ children }) {
 
   // Builds the shared auth headers for Apex API routes.
   const apexHeaders = useCallback((sess) => authHeaders(sess), []);
+
+  // ---- Session / device mapping (v14) ----
+  // Registers the current device with the server (soft: records only; strict:
+  // enforces single-active-device with a grace window). Non-blocking: failures
+  // never interrupt the app, they only log a warning.
+  const registerDeviceSession = useCallback(async (sess = session) => {
+    if (!sess?.access_token) return null;
+    try {
+      const res = await callApexApi('/api/session/register', {
+        method: 'POST',
+        headers: apexHeaders(sess),
+        body: { device_identifier: `web-${typeof navigator !== 'undefined' && navigator.platform ? navigator.platform : 'device'}` }
+      });
+      const body = res?.data;
+      if (res?.ok && body) {
+        if (body.sessionMode) setSessionMode(body.sessionMode);
+        return body;
+      }
+      return null;
+    } catch (err) {
+      console.warn('Session register skipped:', err.message);
+      return null;
+    }
+  }, [session?.access_token, apexHeaders, callApexApi]);
+
+  // Refresh the active-device list (used by the revoke UI).
+  const fetchActiveDevices = useCallback(async (sess = session) => {
+    if (!sess?.access_token) return [];
+    try {
+      const res = await callApexApi('/api/session/devices', { method: 'GET', headers: apexHeaders(sess) });
+      const body = res?.data;
+      if (res?.ok && body?.devices) {
+        if (body.sessionMode) setSessionMode(body.sessionMode);
+        setActiveDevices(body.devices);
+        return body.devices;
+      }
+      return [];
+    } catch (err) {
+      console.warn('Session devices fetch skipped:', err.message);
+      return [];
+    }
+  }, [session?.access_token, apexHeaders, callApexApi]);
+
+  // Revoke a specific device (by session_id or device id). Never revokes the
+  // current device.
+  const revokeDevice = useCallback(async (sessionId, sess = session) => {
+    if (!sess?.access_token || !sessionId) return null;
+    try {
+      const res = await callApexApi('/api/session/revoke', {
+        method: 'POST',
+        headers: apexHeaders(sess),
+        body: { session_id: sessionId }
+      });
+      if (res?.ok) fetchActiveDevices(sess);
+      return res?.data ?? null;
+    } catch (err) {
+      console.warn('Session revoke skipped:', err.message);
+      return null;
+    }
+  }, [session?.access_token, apexHeaders, fetchActiveDevices, callApexApi]);
+
+  // Heartbeat: keep this device's last_seen fresh while the user is active.
+  const touchDeviceSession = useCallback(async (sess = session) => {
+    if (!sess?.access_token) return;
+    try {
+      await callApexApi('/api/session/touch', {
+        method: 'POST',
+        headers: apexHeaders(sess),
+        body: {}
+      });
+    } catch {
+      // Silent — heartbeat is best-effort and never blocks the app.
+    }
+  }, [session?.access_token, apexHeaders, callApexApi]);
+
+  // On sign-in / reload: register the device, record heartbeat, and keep the
+  // device listed. Strict mode is surfaced via the server status, never by a
+  // local lockout.
+  useEffect(() => {
+    if (!session?.access_token) {
+      setActiveDevices([]);
+      return;
+    }
+    registerDeviceSession(session);
+    fetchActiveDevices(session);
+    const touch = setInterval(() => touchDeviceSession(session), 60_000);
+    return () => clearInterval(touch);
+  }, [session?.access_token, registerDeviceSession, fetchActiveDevices, touchDeviceSession]);
+
 
   // Server-verified premium: derived from the fetched subscription status
   // (single source of truth from subscriptions table, not a client flag).
@@ -1019,18 +1209,11 @@ export function AppProvider({ children }) {
   // arithmetic, no optimistic updates, nothing a manipulated client could fake.
   const fetchCourseQuotaStatus = useCallback(async (sess = session) => {
     if (!sess?.access_token) return;
-    try {
-      const res = await fetch('/api/quota/course-status', {
-        method: 'GET',
-        headers: apexHeaders(sess)
-      });
-      const body = await res.json();
-      if (res.ok) {
-        setCourseQuota(body.subjects || {});
-      }
-    } catch (err) {
-      console.warn('Course quota fetch skipped:', err.message);
-    }
+    const { ok, data } = await callApexApi('/api/quota/course-status', {
+      method: 'GET',
+      headers: apexHeaders(sess)
+    });
+    if (ok && data) setCourseQuota(data.subjects || {});
   }, [session?.access_token, apexHeaders]);
 
   // Reserve a round for a course. FREE users are charged exactly 10 questions +
@@ -1038,68 +1221,56 @@ export function AppProvider({ children }) {
   // Returns the authoritative server state, or null if the call failed.
   const consumeCourseQuota = useCallback(async (courseKey, count = 10, sess = session) => {
     if (!sess?.access_token || !courseKey) return null;
-    try {
-      const headers = apexHeaders(sess);
-      headers['Content-Type'] = 'application/json';
-      const res = await fetch('/api/quota/course-consume', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ course_key: courseKey, count })
-      });
-      const body = await res.json();
-      if (res.ok) {
-        setCourseQuota(prev => ({
-          ...prev,
-          [courseKey]: {
-            questions_used: body.questions_used,
-            rounds_completed: body.rounds_completed,
-            last_round_completed_at: body.last_round_completed_at,
-            window_expires_at: body.window_expires_at,
-            cooldown_remaining_seconds: body.cooldown_remaining_seconds ?? 0,
-            is_ready: !!body.is_ready
-          }
-        }));
-        return body;
-      }
-      return null;
-    } catch (err) {
-      console.warn('Course quota consume skipped:', err.message);
-      return null;
+    const { ok, data: body } = await callApexApi('/api/quota/course-consume', {
+      method: 'POST',
+      headers: apexHeaders(sess),
+      body: { course_key: courseKey, count }
+    });
+    if (ok && body) {
+      setCourseQuota(prev => ({
+        ...prev,
+        [courseKey]: {
+          questions_used: body.questions_used,
+          rounds_completed: body.rounds_completed,
+          last_round_completed_at: body.last_round_completed_at,
+          window_expires_at: body.window_expires_at,
+          cooldown_remaining_seconds: body.cooldown_remaining_seconds ?? 0,
+          is_ready: !!body.is_ready
+        }
+      }));
+      return body;
     }
+    return null;
   }, [session?.access_token, apexHeaders]);
 
-  // ---- Difficulty unlocks (server-side) ----
-  const fetchDifficultyStatus = useCallback(async (sess = session) => {
+  // ---- Difficulty unlocks (server-side, per-course) ----
+  // courseKey omitted -> aggregate progress across all courses (dashboard).
+  // courseKey provided -> that course's progress (course-level locking).
+  const fetchDifficultyStatus = useCallback(async (sess = session, courseKey = null) => {
     if (!sess?.access_token) return;
-    try {
-      const res = await fetch('/api/progress/difficulty', {
-        method: 'GET',
-        headers: apexHeaders(sess)
-      });
-      const body = await res.json();
-      if (res.ok && body?.progress) {
-        setDifficultyProgress(body.progress);
+    const qs = courseKey ? `?course_key=${encodeURIComponent(courseKey)}` : '';
+    const { ok, data } = await callApexApi(`/api/progress/difficulty${qs}`, {
+      method: 'GET',
+      headers: apexHeaders(sess)
+    });
+    if (ok && data?.progress) {
+      if (courseKey) {
+        setDifficultyProgress(prev => ({ ...(prev || {}), [courseKey]: data.progress }));
+      } else {
+        setDifficultyProgress(prev => ({ ...(prev || {}), __aggregate: data.progress }));
       }
-    } catch (err) {
-      console.warn('Difficulty fetch skipped:', err.message);
     }
   }, [session?.access_token, apexHeaders]);
 
   // Record a batch of answered questions for difficulty + history on server.
-  const recordAnsweredBatch = useCallback(async ({ difficulty, answers }, sess = session) => {
+  const recordAnsweredBatch = useCallback(async ({ difficulty, answers, courseKey }, sess = session) => {
     if (!sess?.access_token) return;
-    try {
-      const headers = apexHeaders(sess);
-      headers['Content-Type'] = 'application/json';
-      await fetch('/api/progress/difficulty', {
-        method: 'POST',
-        headers,
-        body: JSON.stringify({ difficulty, answers })
-      });
-      fetchDifficultyStatus(sess);
-    } catch (err) {
-      console.warn('Progress record skipped:', err.message);
-    }
+    await callApexApi('/api/progress/difficulty', {
+      method: 'POST',
+      headers: apexHeaders(sess),
+      body: { difficulty, answers, course_key: courseKey || 'global' }
+    });
+    fetchDifficultyStatus(sess, courseKey || null);
   }, [session, fetchDifficultyStatus, apexHeaders]);
 
   // ---- Identity engine: derive current tier from real learning stats ----
@@ -1479,13 +1650,14 @@ fetchCourseQuotaStatus();
       streakFreezeActive, setStreakFreezeActive,
       identity, identityProgress, identityUnlock, dismissIdentityUnlock, refreshIdentityUnlock,
       // ---- Command Center exports ----
-      SC_FEATURE_LOCKED, isPremium,
+      callApexApi, SC_FEATURE_LOCKED, isPremium,
       courseQuota, fetchCourseQuotaStatus, consumeCourseQuota,
       difficultyProgress, fetchDifficultyStatus, recordAnsweredBatch,
       userAchievements, fetchAchievements, syncAchievements,
       dailyChallengeDone, markDailyChallengeDone,
       achievementToast, dismissAchievementToast,
       flashcardAccess, fetchFlashcardAccess,
+      sessionMode, activeDevices, registerDeviceSession, fetchActiveDevices, revokeDevice,
       signOut
     }}>
       {children}

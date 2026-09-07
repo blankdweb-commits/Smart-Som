@@ -1,5 +1,5 @@
 // src/utils/audio.js
-// Reusable, local-only audio manager for the Apex Scholars quiz.
+// Reusable, local-only audio manager for the Polynurse quiz.
 //
 // - Bundles assets from /audio/** (see Part 20) — NO remote/hotlinked URLs.
 // - Never crashes the quiz: every call is guarded and failures are logged once

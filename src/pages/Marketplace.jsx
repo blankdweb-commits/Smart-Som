@@ -34,7 +34,7 @@ export default function Marketplace() {
             <div className="w-11 h-11 rounded-2xl bg-white/15 flex items-center justify-center mb-4">
               <ShoppingBag className="w-6 h-6" />
             </div>
-            <h1 className="text-2xl font-bold mb-1">Apex Marketplace</h1>
+            <h1 className="text-2xl font-bold mb-1">Polynurse Marketplace</h1>
             <p className="text-white/85 text-sm leading-relaxed">
               Quality revision materials from verified tutors — coming soon.
             </p>

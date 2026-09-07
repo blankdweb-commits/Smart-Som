@@ -1,12 +1,29 @@
 import { chromium } from 'playwright';
 
 // Verifies the Pharmacology bank is merged into the live non-Uselu quiz pools
-// by sampling subject badges across several real sessions (clinical + quick).
+// by sampling subject badges across real sessions (clinical + quick).
 // Uselu sessions must contain ZERO pharmacology (excluded by design).
+//
+// NOTE: Batch-create is now server-authoritative (auth + per-course quota +
+// 30-min cooldown + progressive difficulty locks). A fresh FREE user can run
+// exactly one round per course within the 30-min cooldown and only at the
+// Easy difficulty, so this runs ONE clinical + ONE uselu round of 10. For
+// more rounds / higher difficulty, provision a premium or quota-reset account.
 const BASE = 'http://localhost:5173';
 const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 page.on('pageerror', err => console.log('PAGEERROR:', err.message));
+
+// Fresh signup so the user is authenticated (batch-create 401s otherwise).
+const stamp = Date.now().toString().slice(-8);
+const u = { name: `Pharm ${stamp}`, email: `pharm${stamp}@apextest.local`, password: 'testpass123' };
+await page.goto(`${BASE}/signup`, { waitUntil: 'networkidle' });
+await page.fill('input[placeholder="Full Name"]', u.name);
+await page.fill('input[placeholder="Email Address"]', u.email);
+await page.fill('input[placeholder="Password"]', u.password);
+await page.fill('input[placeholder="Confirm Password"]', u.password);
+await page.click('button[type="submit"]');
+await page.waitForTimeout(3500);
 
 const subjectsSeen = new Set();
 let useluPharmCount = 0;
@@ -62,8 +79,8 @@ const runSession = async (cardText, questionsToSample) => {
 };
 
 try {
-  for (let i = 0; i < 4; i++) await runSession('Clinical Challenge', 5);
-  for (let i = 0; i < 2; i++) await runSession('Uselu Test Questions', 4);
+  await runSession('Clinical Challenge', 10);
+  await runSession('Uselu Test Questions', 10);
 
   console.log('Subjects observed in Clinical pool sessions:', [...subjectsSeen].join(', '));
   const richardBanksSeen = {

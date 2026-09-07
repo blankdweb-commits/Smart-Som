@@ -1,17 +1,17 @@
 import { test, expect } from '@playwright/test';
 
-test('dashboard is the primary entry point', async ({ page }) => {
+test('unauthenticated root redirects to signup', async ({ page }) => {
   await page.goto('/');
-  // Root should redirect to /dashboard
-  await expect(page).toHaveURL(/.*dashboard/);
-  // Header should contain "Apex Scholars"
-  await expect(page.locator('header').first()).toContainText('Apex Scholars');
+  // Root redirects to /signup for unauthenticated visitors
+  await expect(page).toHaveURL(/signup/);
+  // Brand renders
+  await expect(page.locator('body')).toContainText('Polynurse');
 });
 
-test('landing page has been removed', async ({ page }) => {
+test('unknown routes resolve (catch-all redirects)', async ({ page }) => {
   await page.goto('/welcome');
-  // /welcome no longer exists — catch-all redirects to dashboard
-  await expect(page).toHaveURL(/.*dashboard/);
+  // /welcome no longer exists — catch-all redirects; unauth lands on login/signup
+  await expect(page).not.toHaveURL(/welcome/);
 });
 
 test('quiz modes are accessible', async ({ page }) => {

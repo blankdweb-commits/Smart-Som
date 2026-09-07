@@ -24,7 +24,7 @@ const pad = (n) => String(n).padStart(2, '0');
  * Handles: question presentation, answer locking, one-look review with
  * Conceptual Misalignment, per-question timer, exam vs instant feedback.
  */
-const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit, onExitSoundStart, onExitSoundStop }) => {
+const QuizPlayer = ({ questions, config, modeLabel, onSound, onAnswer, onComplete, onQuit, onExitSoundStart, onExitSoundStop }) => {
   const { smartCoins, spendSC, streakFreezeActive, setStreakFreezeActive, submitQuestionFeedback } = useAppContext();
   const total = questions.length;
   const [idx, setIdx] = useState(0);
@@ -84,7 +84,7 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit,
   const hasTimer = config.timePerQuestion != null;
 
   const recordAnswer = (opt, correct, wasTimeout) => {
-    answersRef.current.push({
+    const answerData = {
       question: typeof q.question === 'object' ? JSON.stringify(q.question) : q.question,
       questionId: q.id || '',
       subject: q.subject || 'General',
@@ -101,7 +101,17 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onComplete, onQuit,
         q.rationale ||
         'Nurses must apply critical thinking and clinical protocols to ensure patient safety and prioritize airway, breathing, and circulation.',
       hint: q.hint || ''
+    };
+    answersRef.current.push(answerData);
+
+    // Record answer to server batch (non-blocking)
+    onAnswer?.({
+      questionId: q.id,
+      selectedAnswer: opt ?? null,
+      correct,
+      elapsedMs: hasTimer ? ((config.timePerQuestion || 30) * 1000 - timeLeft * 1000) : 0
     });
+
     if (correct) {
       setScore((s) => s + 1);
       onSound?.('correct');

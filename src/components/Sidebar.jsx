@@ -2,6 +2,7 @@ import React from 'react';
 import { NavLink } from 'react-router-dom';
 import { LayoutDashboard, BookOpen, Calendar, Volume2, Settings, Award, Users, Search, Brain, FileUp, Shield, Coins, Target } from './Icons';
 import { useAppContext } from '../context/AppContext';
+import BrandLogo from './BrandLogo';
 
 const Sidebar = () => {
   const { userProfile, smartCoins } = useAppContext();
@@ -34,8 +35,11 @@ const Sidebar = () => {
       <div className="hidden lg:block w-64 bg-white dark:bg-slate-800 border-r border-slate-100 dark:border-slate-800 transition-all duration-300">
         <div className="flex flex-col h-full sticky top-0">
           <div className="p-6">
-            <h1 className="text-2xl font-black text-apex-600 dark:text-apex-400 tracking-tighter">Apex Scholars</h1>
-            <p className="text-[10px] text-slate-400 dark:text-slate-500 mt-1 font-black uppercase tracking-widest">Rise to Excellence</p>
+            <div className="flex items-center gap-2 mb-2">
+              <BrandLogo variant="mark" size="xl" />
+              <BrandLogo variant="short" size="lg" />
+            </div>
+            <p className="text-[10px] text-polynurse-600 dark:text-polynurse-400 mt-1 font-black uppercase tracking-widest">Your NCLEX Success Partner</p>
           </div>
 
           <nav className="flex-1 px-4 space-y-1 mt-4 overflow-y-auto">
@@ -46,13 +50,13 @@ const Sidebar = () => {
                 className={({ isActive }) => `
                   flex items-center px-4 py-3 rounded-xl transition-all duration-200
                   ${isActive
-                    ? 'bg-medical-50 text-medical-700 dark:bg-medical-900/30 dark:text-medical-400 font-bold'
+                    ? 'bg-polynurse-50 text-polynurse-700 dark:bg-polynurse-900/30 dark:text-polynurse-400 font-bold'
                     : 'text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700/50'}
                 `}
               >
                 {({ isActive }) => (
                   <>
-                    <item.icon className={`mr-3 ${isActive ? 'text-medical-600' : 'text-slate-400'}`} size={20} />
+                    <item.icon className={`mr-3 ${isActive ? 'text-polynurse-600' : 'text-slate-400'}`} size={20} />
                     <span>{item.name}</span>
                   </>
                 )}

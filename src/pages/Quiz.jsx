@@ -9,48 +9,48 @@ import {
   Trophy,
   Shield,
   BookOpen,
-  Heart
+  Heart,
+  Lock
 } from '../components/Icons';
-import {
-  USELU_POOL,
-  NMCN_POOL,
-  NCLEX_POOL,
-  ALL_EXAM_POOL,
-  NURSING200_POOL,
-  MIDWIFERY_POOL
-} from '../data/flashcardPools';
-import { selectQuestions } from '../utils/questionSelection';
-import CourseList from '../components/CourseList';
-
-  // eslint-disable-next-line no-unused-vars
+// eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import QuizSetupFlow, { QUIZ_CONFIGS, LEVEL_SUBJECTS } from '../components/QuizSetupFlow';
 import QuizPlayer from '../components/QuizPlayer';
+import { useQuizBatch } from '../hooks/useQuizBatch';
 
 // Maps setup-flow quiz ids to engine mode ids.
 const SETUP_TO_MODE = {
-  'clinical-challenge': 'clinical',
-  'quick-quiz': 'quick',
+  'clinical-challenge': 'nclex',
+  'quick-quiz': 'nmcn',
   'uselu-test': 'uselu',
   'nursing-200': 'nursing200',
   'midwifery-200': 'midwifery',
+  'nursing-300': 'nursing300',
+  'midwifery-300': 'midwifery300',
+  'midwifery-200-s2': 'midwifery200s2',
   'weakness-challenge': 'weakness'
 };
 const MODE_TO_SETUP = {
-  clinical: 'clinical-challenge',
-  quick: 'quick-quiz',
+  nclex: 'clinical-challenge',
+  nmcn: 'quick-quiz',
   uselu: 'uselu-test',
   nursing200: 'nursing-200',
   midwifery: 'midwifery-200',
+  nursing300: 'nursing-300',
+  midwifery300: 'midwifery-300',
+  midwifery200s2: 'midwifery-200-s2',
   weakness: 'weakness-challenge'
 };
 
 const PLAYER_MODE_LABELS = {
-  clinical: 'Clinical Challenge',
-  quick: 'Quick Quiz',
+  nclex: 'NCLEX',
+  nmcn: 'NMCN',
   uselu: 'Uselu Test Questions',
   nursing200: 'Nursing 200-Level',
   midwifery: 'Midwifery 200-Level',
+  nursing300: 'Nursing 300-Level',
+  midwifery300: 'Midwifery 300-Level',
+  midwifery200s2: 'Midwifery 200-Level · 2nd Semester',
   weakness: 'Fix My Weak Areas'
 };
 
@@ -93,12 +93,60 @@ const exitFullscreen = async () => {
 // for the readiness computation and deep-link handling.
 const DIFFICULTY_TIERS = [
   { id: 'Easy', dot: 'bg-emerald-500', ring: 'border-emerald-500/30', label: 'Build your foundation', passMark: 50, unlock: null },
-  { id: 'Medium', dot: 'bg-blue-500', ring: 'border-blue-500/30', label: 'Test your understanding', passMark: 60, unlock: null },
+  { id: 'Moderate', dot: 'bg-blue-500', ring: 'border-blue-500/30', label: 'Test your understanding', passMark: 60, unlock: null },
   { id: 'Hard', dot: 'bg-orange-500', ring: 'border-orange-500/30', label: 'Challenge your clinical reasoning', passMark: 70, unlock: null },
   { id: 'Expert', dot: 'bg-red-500', ring: 'border-red-500/30', label: 'Deeper clinical reasoning', passMark: 75, unlock: { from: 'Hard', count: 3 } },
   { id: 'Master', dot: 'bg-purple-500', ring: 'border-purple-500/30', label: 'Advanced examination scenarios', passMark: 80, unlock: { from: 'Expert', count: 10 } },
   { id: 'Extreme', dot: 'bg-slate-900 dark:bg-white', ring: 'border-slate-500/30', label: 'The hardest questions we have', passMark: 85, unlock: { from: 'Master', count: 14 } }
 ];
+
+// ----- Course directory for the level selector -----
+// Levels are shown first (one compact row each); the remaining quiz modes sit
+// in a slim "Other Modes" group below. Course/subject picking happens INSIDE
+// the setup flow — the directory never renders individual courses on this page.
+const MODE_STYLE = {
+  'clinical-challenge': { icon: <Shield size={20} />, chip: 'bg-medical-500/10 text-medical-500' },
+  'quick-quiz': { icon: <Zap size={20} />, chip: 'bg-amber-500/10 text-amber-500' },
+  'uselu-test': { icon: <Target size={20} />, chip: 'bg-indigo-500/10 text-indigo-500' },
+  'weakness-challenge': { icon: <Target size={20} />, chip: 'bg-rose-500/10 text-rose-500' },
+  'nursing-200': { icon: <BookOpen size={20} />, chip: 'bg-emerald-500/10 text-emerald-500' },
+  'midwifery-200': { icon: <Heart size={20} />, chip: 'bg-pink-500/10 text-pink-500' },
+  'nursing-300': { icon: <BookOpen size={20} />, chip: 'bg-teal-500/10 text-teal-500' },
+  'midwifery-300': { icon: <Heart size={20} />, chip: 'bg-rose-500/10 text-rose-500' },
+  'midwifery-200-s2': { icon: <Heart size={20} />, chip: 'bg-fuchsia-500/10 text-fuchsia-500' }
+};
+
+// Display order — levels first, then the remaining quiz modes.
+const QUIZ_LEVEL_ORDER = ['nursing-200', 'midwifery-200', 'nursing-300', 'midwifery-300', 'midwifery-200-s2'];
+const OTHER_MODE_ORDER = ['clinical-challenge', 'quick-quiz', 'uselu-test', 'weakness-challenge'];
+
+const courseCount = (bankId) => (LEVEL_SUBJECTS[bankId] || []).length;
+
+const DirectoryRow = ({ bankId, onLaunch }) => {
+  const style = MODE_STYLE[bankId];
+  const title = QUIZ_CONFIGS[bankId].title;
+  const count = courseCount(bankId);
+  return (
+    <button
+      type="button"
+      onClick={() => onLaunch(bankId)}
+      className="w-full flex items-center gap-3 p-3 sm:p-4 text-left rounded-2xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors group"
+    >
+      <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 ${style.chip}`}>
+        {style.icon}
+      </div>
+      <h3 className="flex-1 min-w-0 text-sm sm:text-base font-black text-slate-900 dark:text-white tracking-tight truncate group-hover:translate-x-1 transition-transform">
+        {title}
+      </h3>
+      {count > 0 && (
+        <span className="shrink-0 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-300 tabular-nums">
+          {count} courses
+        </span>
+      )}
+      <span className="shrink-0 text-slate-400 text-sm font-black group-hover:text-medical-500 transition-colors">›</span>
+    </button>
+  );
+};
 
 const Quiz = () => {
   const { flashcards, updateQuizStats } = useAppContext();
@@ -106,6 +154,9 @@ const Quiz = () => {
   const introHandledRef = React.useRef(false);
   const navigate = useNavigate();
   const [secretTaps, setSecretTaps] = useState(0);
+
+  // Server-authoritative batch system
+  const { createBatch, recordAnswer, completeBatch } = useQuizBatch();
 
   // ----- Guided setup flow + immersive player (Clinical / Quick / Uselu) -----
   const [setupType, setSetupType] = useState(null);        // 'clinical-challenge' | 'quick-quiz' | 'uselu-test'
@@ -122,7 +173,7 @@ const Quiz = () => {
   const pendingLaunchRef = React.useRef(null); // keeps the original engineMode/cfg for the "Start now" retry
 
   // ----- Difficulty progression -----
-  const { recordQuizResult, recordWrongAnswers, recordAttempts, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchSCRank, studyStats, levelCompletions, session, fetchQuestionHistory, consumeCourseQuota, isPremium, fetchCourseQuotaStatus, recordAnsweredBatch, courseQuota } = useAppContext();
+  const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchSCRank, studyStats, levelCompletions, session, fetchQuestionHistory, isPremium, fetchCourseQuotaStatus } = useAppContext();
   const [selectedDifficulty, setSelectedDifficulty] = useState(null);
   const [globalRank, setGlobalRank] = useState(null);
 
@@ -192,7 +243,7 @@ const Quiz = () => {
 
   // Deep-link support: /quiz?difficulty=Hard (e.g. from a completed flashcard session)
   const [, setSearchParams] = useSearchParams();
-  const SUBJECT_FILTERS = ['Pharmacology', 'Musculoskeletal', 'Neurological Nursing', 'Medical Surgical', 'Chemistry', 'Mental Health', 'Principles of Management and Teaching', 'Medical-Surgical Nursing II', 'Child Health', 'Home Health Care Nursing', 'Entrepreneurship in Midwifery', 'Community Health Nursing I', 'Fundamentals of Nursing', 'Medical-Surgical Nursing', 'Unit I: Introduction to Nutrition', 'Unit II: Nutritional Needs', 'Unit III: Food Planning, Preparation, and Safety', 'Pharmacology III', 'Concept of Politics and Government', 'Political Interaction', 'Political Activities', 'Reproductive Health', 'Research Methodology'];
+  const SUBJECT_FILTERS = ['Pharmacology', 'Musculoskeletal', 'Neurological Nursing', 'Medical Surgical', 'Chemistry', 'Mental Health', 'Principles of Management and Teaching', 'Medical-Surgical Nursing II', 'Child Health', 'Home Health Care Nursing', 'Entrepreneurship in Midwifery', 'Community Health Nursing I', 'Fundamentals of Nursing', 'Medical-Surgical Nursing', 'Unit I: Introduction to Nutrition', 'Unit II: Nutritional Needs', 'Unit III: Food Planning, Preparation, and Safety', 'Pharmacology III', 'Concept of Politics and Government', 'Political Interaction', 'Political Activities', 'Reproductive Health', 'Research Methodology', 'Nutrition & Dietetics', 'Politics and Governance in Nursing'];
   React.useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     const d = params.get('difficulty');
@@ -210,9 +261,9 @@ const Quiz = () => {
     // the learner only presses Start. Falls back to Clinical Challenge.
     const ps = params.get('practiceSubject');
     if (ps) {
-      if (LEVEL_SUBJECTS['nursing-200'].includes(ps)) setSetupType('nursing-200');
-      else if (LEVEL_SUBJECTS['midwifery-200'].includes(ps)) setSetupType('midwifery-200');
-      else setSetupType('clinical-challenge');
+      const levelMatch = ['nursing-200', 'midwifery-200', 'nursing-300', 'midwifery-300', 'midwifery-200-s2']
+        .find((key) => LEVEL_SUBJECTS[key].includes(ps));
+      setSetupType(levelMatch || 'clinical-challenge');
       setPresetSubject(ps);
       setSelectedDifficulty(null);
     }
@@ -281,75 +332,96 @@ const Quiz = () => {
     return { ...card, options, correctAnswer: targetAnswer };
   };
 
-  // Builds a question set for the immersive player via the configurable
-  // no-repetition selection engine (see utils/questionSelection.js + the
-  // SELECTION_CONFIG tunables in utils/selectionConfig.js).
-  const buildQuestionSet = (engineMode, difficulty, count, order, subject, examSource) => {
-    let pool;
-    if (engineMode === 'uselu') pool = USELU_POOL;
-    else if (engineMode === 'nursing200') pool = NURSING200_POOL;
-    else if (engineMode === 'midwifery') pool = MIDWIFERY_POOL;
-    else {
-      // Clinical / Quick: honor the exam-source toggle. NCLEX / NMCN are ONLY
-      // available here — never in Uselu / 200-level modes (Weakness uses the
-      // full merged pool below). Fluid-electrolytes is NCLEX-category.
-      if (examSource === 'nclex') pool = NCLEX_POOL;
-      else if (examSource === 'nmcn') pool = NMCN_POOL;
-      else pool = ALL_EXAM_POOL;
-    }
+  // Launch player using server-authoritative batch selection.
+  // The batch API handles: quota enforcement, question selection, and exposure tracking.
+  const launchPlayer = async (engineMode, cfg) => {
+    // Build the courseKey for the batch API
+    const courseKey = cfg.courseKey || (cfg.subject ? `${SETUP_TO_MODE[setupType] || 'clinical'}:${cfg.subject}` : SETUP_TO_MODE[setupType] || 'clinical');
 
-    const intended = selectQuestions(pool, {
-      questionCount: count,
-      order,
-      subject,
-      difficulty,
-      prioritizeWeakness: engineMode === 'weakness'
-    }, selectionStateRef.current);
+    // Determine mode for the batch API
+    const batchMode = engineMode === 'weakness' ? 'weakness' :
+                      engineMode === 'nclex' || engineMode === 'nmcn' ? engineMode :
+                      'practice';
 
-    return intended.map(card => boxCard(card));
-  };
+    // Determine exam framework from the dedicated mode (NCLEX/NMCN only).
+    const examFramework = engineMode === 'nclex' ? 'NCLEX' :
+                          engineMode === 'nmcn' ? 'NMCN' : null;
 
-  const launchPlayer = async (engineMode, cfg, opts = {}) => {
-    const questions = buildQuestionSet(engineMode, cfg.difficulty, cfg.questionCount, cfg.order, cfg.subject, cfg.examSource);
-    if (questions.length === 0) return;
+    // Create the batch via server API (handles quota, selection, exposure)
+    const result = await createBatch({
+      mode: batchMode,
+      courseKey,
+      examFramework,
+      batchSize: cfg.questionCount || 10,
+      difficultyDistribution: cfg.difficulty ? { [cfg.difficulty]: cfg.questionCount || 10 } : undefined,
+      subjectFilter: cfg.subject,
+    });
 
-    // FREE-USER PER-COURSE ROUND GATE (v13): one 10-question round per course,
-    // then a 1h cooldown on THAT course only. The charge happens here — the
-    // round is reserved SERVER-SIDE (consumeCourseQuota → RPC) before any
-    // question renders, so quitting early still consumes the round and a
-    // manipulated client can never bypass the cooldown.
-    // Retrying the SAME already-reserved set skips consumption (no double charge).
-    if (!opts.skipQuota && !isPremium && session) {
-      try {
-        const courseKey = (cfg.courseKey || '').trim();
-        const res = await consumeCourseQuota(courseKey, questions.length, session);
-        pendingLaunchRef.current = { engineMode, cfg };
-        if (!res) {
-          setCooldownNotice({ courseKey, label: courseLabel(engineMode, cfg), seconds: 0, engineMode, cfg, unavailable: true });
-          return;
-        }
-        if (res.allowed === false) {
-          const seconds = Number(res.cooldown_remaining_seconds) || 0;
-          setCooldownNotice({
-            courseKey,
-            label: courseLabel(engineMode, cfg),
-            seconds,
-            expiresAt: res.window_expires_at || new Date(Date.now() + seconds * 1000).toISOString(),
-            engineMode,
-            cfg,
-            unavailable: false
-          });
-          fetchCourseQuotaStatus();
-          return;
-        }
-      } catch (err) {
-        console.warn('Course quota gate skipped (fallback allow):', err.message);
+    if (!result?.success || !result?.batch) {
+      // Batch creation failed — the server rejected the request. Read the typed
+      // error directly from the createBatch result instead of state: React state
+      // has not re-rendered yet at this point, so a state read here is stale.
+      const info = result?.errorInfo || null;
+      if (info?.code === 'DIFFICULTY_LOCKED') {
+        setCooldownNotice({
+          courseKey,
+          label: courseLabel(engineMode, cfg),
+          seconds: 0,
+          engineMode,
+          cfg,
+          unavailable: true,
+          type: 'locked',
+          lockedDifficulty: info.lockedDifficulty,
+          message: info.message,
+        });
+      } else if (info?.code === 'QUOTA_EXHAUSTED' || info?.status === 403) {
+        // Quota/cooldown (or any 403): show the cooldown modal with live timer.
+        const remSecs = Number(info.cooldown_remaining_seconds) || 0;
+        const expiresAt = info.window_expires_at
+          ? new Date(info.window_expires_at).getTime()
+          : Date.now() + remSecs * 1000;
+        setCooldownNotice({
+          courseKey,
+          label: courseLabel(engineMode, cfg),
+          seconds: remSecs,
+          expiresAt,
+          engineMode,
+          cfg,
+          unavailable: false,
+          type: 'cooldown',
+        });
+      } else {
+        // Unexpected failure (network error, gateway problem, server 500, ...).
+        // Show a calm generic message; log the technical diagnosis to the dev
+        // console only — never dump response bodies or auth material to the UI.
+        console.error('[Quiz] Batch create failed', {
+          status: info?.status ?? null,
+          code: info?.code ?? null,
+          message: info?.message ?? null,
+          courseKey,
+          batchMode,
+        });
+        setCooldownNotice({
+          courseKey,
+          label: courseLabel(engineMode, cfg),
+          seconds: 0,
+          engineMode,
+          cfg,
+          unavailable: true,
+          type: 'error',
+          message: "We couldn't start this quiz right now. Please try again.",
+        });
       }
+      return;
     }
+
+    // Process questions through boxCard for option shuffling
+    const questions = (result.questions || []).map(q => boxCard(q));
+    if (questions.length === 0) return;
 
     setCooldownNotice(null);
     pendingLaunchRef.current = null;
-    setActiveConfig({ ...cfg, engineMode });
+    setActiveConfig({ ...cfg, engineMode, batchId: result.batch.id });
     setActiveQuestions(questions);
     setPlayerResult(null);
     setPassInfo(null);
@@ -387,6 +459,16 @@ const Quiz = () => {
 
     const pct = result.total > 0 ? Math.round((result.score / result.total) * 100) : 0;
 
+    // Complete the batch on the server (records final score, updates history)
+    if (activeConfig?.batchId) {
+      try {
+        await completeBatch();
+      } catch (err) {
+        console.warn('Batch completion error:', err);
+      }
+    }
+
+    // Record quiz result for progress tracking
     if (activeConfig?.difficulty) {
       recordQuizResult({
         mode: activeConfig.engineMode,
@@ -413,26 +495,6 @@ const Quiz = () => {
       updateQuizStats({});
     }
 
-    // Weakness Challenge data source — log every answered question.
-    if (result.answers && result.answers.length > 0) {
-      await recordAttempts(result.answers);
-
-      // Full exposure history — record EVERY answered question id (hits and
-      // misses) so user_question_history reflects the true review store. The
-      // server only credits difficulty-unlock counters for genuinely correct
-      // answers (record_difficulty_correct is gated internally on a.correct).
-      const byDifficulty = {};
-      (result.answers || []).forEach(a => {
-        const d = (a.difficulty || activeConfig?.difficulty || 'Easy');
-        (byDifficulty[d] = byDifficulty[d] || []).push({
-          question_id: String(a.questionId ?? a.id ?? '').trim(),
-          correct: !!a.correct
-        });
-      });
-      for (const [diff, ans] of Object.entries(byDifficulty)) {
-        if (ans.length > 0) await recordAnsweredBatch({ difficulty: diff, answers: ans });
-      }
-    }
     // Refresh the selection state so the next session starts fresh.
     await refreshSelectionState();
     await fetchCourseQuotaStatus();
@@ -498,38 +560,42 @@ const Quiz = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cooldownNotice && cooldownNotice.expiresAt, cooldownNotice && cooldownNotice.unavailable]);
   if (cooldownNotice && !playerActive) {
-    const remaining = cooldownNotice.unavailable
-      ? 0
-      : Math.max(0, Math.ceil((new Date(cooldownNotice.expiresAt).getTime() - tickNow) / 1000));
-    const ready = !cooldownNotice.unavailable && remaining <= 0;
+    const notifType = cooldownNotice.type || (cooldownNotice.unavailable ? 'error' : 'cooldown');
+    const isLocked = notifType === 'locked';
+    const isError = notifType === 'error';
+    const isCooldown = !isLocked && !isError;
+    const remaining = isCooldown
+      ? Math.max(0, Math.ceil((new Date(cooldownNotice.expiresAt).getTime() - tickNow) / 1000))
+      : 0;
+    const ready = isCooldown && remaining <= 0;
+    const iconBg = isLocked ? 'bg-red-100 dark:bg-red-900/40' : isError ? 'bg-slate-100 dark:bg-slate-800' : ready ? 'bg-emerald-100 dark:bg-emerald-900/40' : 'bg-amber-100 dark:bg-amber-900/40';
+    const iconColor = isLocked ? 'text-red-600 dark:text-red-400' : isError ? 'text-slate-500 dark:text-slate-300' : ready ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400';
     return (
       <div className="min-h-[70vh] max-w-md mx-auto px-4 pt-10 flex items-center justify-center animate-in fade-in">
         <div className="w-full text-center bg-white dark:bg-slate-800 rounded-3xl shadow-clinical border border-slate-100 dark:border-slate-700 p-6 sm:p-8">
-          <div className={`w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-5 ${ready ? 'bg-emerald-100 dark:bg-emerald-900/40' : 'bg-amber-100 dark:bg-amber-900/40'}`}>
-            <Timer className={`w-8 h-8 ${ready ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400'}`} />
+          <div className={`w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-5 ${iconBg}`}>
+            {isLocked ? <Lock className={`w-8 h-8 ${iconColor}`} /> : <Timer className={`w-8 h-8 ${iconColor}`} />}
           </div>
           <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
-            {ready ? 'Your next round is ready' : 'Next round not ready yet'}
+            {isLocked ? 'Difficulty locked' : isError ? 'Could not start quiz' : ready ? 'Your next round is ready' : 'Next round not ready yet'}
           </h2>
           <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-4">
-            {cooldownNotice.unavailable ? (
-              <>We couldn't reach the quota service. Please check your connection and try again.</>
+            {isLocked ? (
+              <>This difficulty isn't unlocked yet for <span className="font-semibold text-slate-700 dark:text-slate-200">{cooldownNotice.label}</span>. Progress through the earlier level to unlock it.</>
+            ) : isError ? (
+              <>{cooldownNotice.message || 'Something went wrong starting this quiz. Please try again.'}</>
             ) : ready ? (
               <>Fresh round for <span className="font-semibold text-slate-700 dark:text-slate-200">{cooldownNotice.label}</span> is available.</>
             ) : (
-              <>Free plan: one <span className="font-semibold">10-question round per course</span>, then a 1-hour cooldown. Come back in{' '}
+              <>Free plan: one <span className="font-semibold">10-question round per course</span>, then a 30-minute cooldown. Come back in{' '}
                 <span className="font-semibold text-amber-600 dark:text-amber-400 tabular-nums">
                   {fmtClock(remaining)}
                 </span> to restart <span className="font-semibold text-slate-700 dark:text-slate-200">{cooldownNotice.label}</span> — or go Premium for unlimited rounds.</>
             )}
           </p>
 
-          {cooldownNotice.unavailable && (
-            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">Quota service unreachable</p>
-          )}
-
           <div className="grid gap-2.5 mt-5">
-            {ready && !cooldownNotice.unavailable && (
+            {ready && (
               <button
                 onClick={() => {
                   const pending = pendingLaunchRef.current;
@@ -553,12 +619,14 @@ const Quiz = () => {
               🔄 Try another course
             </button>
           </div>
-          <button
-            onClick={() => navigate('/activate')}
-            className="mt-2 w-full flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-widest text-teal-600 dark:text-teal-400 py-2 hover:underline"
-          >
-            ⭐ Go Premium — unlimited rounds
-          </button>
+          {!isLocked && !isError && (
+            <button
+              onClick={() => navigate('/activate')}
+              className="mt-2 w-full flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-widest text-teal-600 dark:text-teal-400 py-2 hover:underline"
+            >
+              ⭐ Go Premium — unlimited rounds
+            </button>
+          )}
         </div>
       </div>
     );
@@ -582,6 +650,7 @@ const Quiz = () => {
     return (
       <QuizPlayer
         questions={activeQuestions}
+        batchId={activeConfig.batchId}
         config={{
           difficulty: activeConfig.difficulty,
           timePerQuestion: activeConfig.timePerQuestion,
@@ -589,6 +658,7 @@ const Quiz = () => {
         }}
         modeLabel={PLAYER_MODE_LABELS[activeConfig.engineMode] || ''}
         onSound={playQuizSound}
+        onAnswer={recordAnswer}
         onComplete={handlePlayerComplete}
         onQuit={quitPlayer}
         onExitSoundStart={() => audioRef.playExitForDialog()}
@@ -683,6 +753,14 @@ const Quiz = () => {
     );
   }
 
+  const handleCourseLaunch = (setupType, preselectSubject) => {
+    if (preselectSubject) {
+      setPresetSubject(preselectSubject);
+      setSelectedDifficulty(null);
+    }
+    openSetup(setupType);
+  };
+
   // Mode selection
   return (
     <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-700 max-w-6xl mx-auto pb-20 px-4">
@@ -723,68 +801,39 @@ const Quiz = () => {
           </div>
         </header>
 
-        <p className="text-center text-[10px] font-bold uppercase tracking-widest text-slate-400 -mt-2">
-          Select a course below to configure your session
-        </p>
+        {/* Plan banner (compact) */}
+          <div className={`rounded-2xl sm:rounded-3xl border p-3 sm:p-4 flex items-center gap-3 ${isPremium ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-amber-500/5 border-amber-500/30'}`}>
+            <span className="text-base font-black">{isPremium ? '🟢' : '🕒'}</span>
+            <p className="text-[10px] sm:text-xs font-black text-slate-900 dark:text-white">
+              {isPremium ? 'Premium · Unlimited practice — no cooldowns' : 'Free plan · 10 questions per round · new round every 30 minutes (per course)'}
+            </p>
+          </div>
 
-        <CourseList
-          courses={[
-            {
-              id: 'clinical-challenge',
-              title: 'Clinical Challenge',
-              desc: QUIZ_CONFIGS['clinical-challenge'].identity,
-              icon: <Shield size={24} className="sm:w-7 sm:h-7" />,
-              color: { icon: 'bg-medical-500/10 text-medical-500' }
-            },
-            {
-              id: 'quick-quiz',
-              title: 'Quick Quiz',
-              desc: QUIZ_CONFIGS['quick-quiz'].identity,
-              icon: <Zap size={24} className="sm:w-7 sm:h-7" />,
-              color: { icon: 'bg-amber-500/10 text-amber-500' }
-            },
-            {
-              id: 'uselu-test',
-              title: 'Uselu Test Questions',
-              desc: QUIZ_CONFIGS['uselu-test'].identity,
-              icon: <Target size={24} className="sm:w-7 sm:h-7" />,
-              color: { icon: 'bg-indigo-500/10 text-indigo-500' }
-            },
-            {
-              id: 'nursing-200',
-              title: 'Nursing 200-Level',
-              desc: QUIZ_CONFIGS['nursing-200'].identity,
-              icon: <BookOpen size={24} className="sm:w-7 sm:h-7" />,
-              color: { icon: 'bg-emerald-500/10 text-emerald-500' },
-              subjects: LEVEL_SUBJECTS['nursing-200']
-            },
-            {
-              id: 'midwifery-200',
-              title: 'Midwifery 200-Level',
-              desc: QUIZ_CONFIGS['midwifery-200'].identity,
-              icon: <Heart size={24} className="sm:w-7 sm:h-7" />,
-              color: { icon: 'bg-pink-500/10 text-pink-500' },
-              subjects: LEVEL_SUBJECTS['midwifery-200']
-            },
-            {
-              id: 'weakness-challenge',
-              title: 'Fix My Weak Areas',
-              desc: QUIZ_CONFIGS['weakness-challenge'].identity,
-              icon: <Timer size={24} className="sm:w-7 sm:h-7" />,
-              color: { icon: 'bg-rose-500/10 text-rose-500' }
-            }
-          ]}
-          onLaunch={(setupType, preselectSubject) => {
-            if (preselectSubject) {
-              setPresetSubject(preselectSubject);
-              setSelectedDifficulty(null);
-            }
-            openSetup(setupType);
-          }}
-          premium={isPremium}
-          courseQuota={courseQuota}
-        />
-      </div>
+          {/* Quiz Levels — collapsed directory; courses are picked in setup */}
+          <section className="space-y-4">
+            <div className="flex items-baseline justify-between px-1">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Quiz Levels</p>
+              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Tap a level to start</p>
+            </div>
+            <div className="space-y-2.5">
+              {QUIZ_LEVEL_ORDER.map((bankId) => (
+                <DirectoryRow key={bankId} bankId={bankId} onLaunch={handleCourseLaunch} />
+              ))}
+            </div>
+          </section>
+
+          {/* Other Modes */}
+          <section className="space-y-4">
+            <div className="flex items-baseline justify-between px-1">
+              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Other Modes</p>
+            </div>
+            <div className="space-y-2.5">
+              {OTHER_MODE_ORDER.map((bankId) => (
+                <DirectoryRow key={bankId} bankId={bankId} onLaunch={handleCourseLaunch} />
+              ))}
+            </div>
+          </section>
+        </div>
   );
 };
 

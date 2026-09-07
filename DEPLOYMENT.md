@@ -1,6 +1,6 @@
-# Apex Scholars - Deployment Guide
+# Polynurse Exam Center - Deployment Guide
 
-This guide provides instructions for deploying the Apex Scholars platform to production using **Vercel**, **Supabase**, and **Paystack**.
+This guide provides instructions for deploying the Polynurse Exam Center platform to production using **Vercel**, **Supabase**, and **Paystack**.
 
 ## Prerequisites
 
@@ -55,6 +55,18 @@ This guide provides instructions for deploying the Apex Scholars platform to pro
 | `APP_URL` | Your production URL (e.g., `https://myapexlaprat.vercel.app`) |
 
 3.  Deploy the project.
+
+### `/api/*` routing requirement
+
+This app is a **Vite SPA + Vercel Serverless Functions** project (not Next.js).
+Vercel only serves `api/<name>.js` at its exact mount path, so sub-paths the
+frontend calls (`/api/quota/course-status`, `/api/session/register`,
+`/api/progress/difficulty`, ...) must be routed to their function base via
+`vercel.json` rewrites. The committed `vercel.json` already includes these
+rules **before** the `/:path*` SPA fallback. Keep them in this order or the
+APIs will return HTML (SPA page) / 405 instead of JSON. Do **not** rely on
+`[...path].js` catch-all files in `api/` — multi-segment catch-alls are a
+Next.js feature and are not supported by Vercel filesystem functions.
 
 ---
 

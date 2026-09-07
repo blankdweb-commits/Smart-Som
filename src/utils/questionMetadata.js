@@ -32,13 +32,13 @@ export const niche = (card) => {
 export const isSameNiche = (a, b) => niche(a) === niche(b);
 
 // Normalizes a card difficulty to the app's tier scale for reward math.
-// Returns 'Easy' | 'Medium' | 'Hard' | 'Expert'.
+// Returns 'Easy' | 'Moderate' | 'Hard' | 'Expert'.
 export const tierOf = (card) => {
   const d = String(card && card.difficulty ? card.difficulty : '').toLowerCase();
   if (/easy/i.test(d)) return 'Easy';
   if (/expert/i.test(d)) return 'Expert';
   if (/hard|difficult/i.test(d)) return 'Hard';
-  return 'Medium';
+  return 'Moderate';
 };
 
 // Flat SC payout per correct answer: hard/expert tiers pay more, everything

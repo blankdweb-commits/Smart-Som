@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
 import { supabase } from "../utils/supabase";
+import { useQuizBatch } from "../hooks/useQuizBatch";
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 import { Brain, Zap, Star, ChevronLeft, ArrowRight, Users, AlertCircle, RefreshCw, Trophy, Award, Shield, User } from "../components/Icons";
@@ -17,6 +18,7 @@ const WAIT_FOR_HUMAN_MS = 3000;
 const XpHall = () => {
   const navigate = useNavigate();
   const { flashcards, smartCoins, earnSC, spendSC } = useAppContext();
+  const { createBatch, recordAnswer } = useQuizBatch();
   const [phase, setPhase] = useState("lobby");
   const [mode, setMode] = useState(null);
   const [stake, setStake] = useState(2);
@@ -31,8 +33,10 @@ const XpHall = () => {
   const [opponentId, setOpponentId] = useState(null);
   const [txState, setTxState] = useState(null); // null | 'pending' | 'done'
   const [confirmHighWager, setConfirmHighWager] = useState(false); // confirm modal for stakes >= 10
+  const [battleQuestions, setBattleQuestions] = useState([]); // questions from batch API
   const ownWaitingKeyRef = useRef(null); // id of my duel_waiting row (to clean up)
   const askedRef = useRef(new Set()); // card ids asked this arena session (variety)
+  const battleBatchIdRef = useRef(null); // batch ID for the current battle
 
   const fetchHistory = useCallback(async () => {
     if (!supabase) return;
@@ -106,17 +110,18 @@ const XpHall = () => {
       if (data && data[0]) opponent = data[0];
     } catch { /* ignore */ }
     if (opponent) {
-      // Fetch opponent display name
+      // Fetch opponent display name via the public identity view (profiles
+      // SELECT is RLS-scoped to self/admin, so direct reads always fail here).
       let name = "Rival Scholar";
       try {
-        const { data: prof } = await supabase.from('profiles').select('full_name').eq('id', opponent.user_id).single();
-        if (prof && prof.full_name) name = prof.full_name;
+        const { data: prof } = await supabase.from('community_profiles').select('display_name').eq('id', opponent.user_id).single();
+        if (prof && prof.display_name) name = prof.display_name;
       } catch { /* ignore */ }
       await clearWaiting();
       setOpponent(name);
       setOpponentId(opponent.user_id);
       setFinding('human');
-      startCountdownPhase();
+      await startCountdownPhaseWithBatch();
       return;
     }
     // No waiting human — play The House after a short grace window so a challenger can jump in.
@@ -125,18 +130,55 @@ const XpHall = () => {
         // still alone
         setOpponent("The House");
         setOpponentId(null);
-        startCountdownPhase();
+        startCountdownPhaseWithBatch();
       }
     }, WAIT_FOR_HUMAN_MS);
   }, [mode, stake]);
 
-  const finishVsHouse = () => {
+  const finishVsHouse = async () => {
     setOpponent("The House");
     setOpponentId(null);
-    startCountdownPhase();
+    await startCountdownPhaseWithBatch();
   };
 
-  const startCountdownPhase = () => {
+  // Create a batch of questions for the battle via server API
+  const startCountdownPhaseWithBatch = async () => {
+    try {
+      // Create a match batch via the server API
+      const matchResult = await createBatch({
+        mode: 'match',
+        courseKey: 'xp-hall',
+        batchSize: mode?.players === 3 ? 1 : 1, // Sudden death: 1 question
+        difficultyDistribution: { Hard: 1, Expert: 1 }, // Prefer hard/expert for battles
+      });
+
+      if (matchResult && matchResult.batch && matchResult.questions?.length > 0) {
+        battleBatchIdRef.current = matchResult.batch.id;
+        setBattleQuestions(matchResult.questions);
+        setCurrentQuestion(matchResult.questions[0]);
+      } else {
+        // Fallback: use client-side pickQuestion if batch fails
+        const fallbackQuestion = pickQuestion();
+        if (fallbackQuestion) {
+          setBattleQuestions([fallbackQuestion]);
+          setCurrentQuestion(fallbackQuestion);
+        } else {
+          // No questions available at all
+          setPhase("lobby");
+          return;
+        }
+      }
+    } catch (err) {
+      console.warn('Batch creation failed, using fallback:', err);
+      const fallbackQuestion = pickQuestion();
+      if (fallbackQuestion) {
+        setBattleQuestions([fallbackQuestion]);
+        setCurrentQuestion(fallbackQuestion);
+      } else {
+        setPhase("lobby");
+        return;
+      }
+    }
     setPhase("countdown");
     setCountdown(3);
   };
@@ -145,7 +187,11 @@ const XpHall = () => {
   useEffect(() => {
     if (phase !== "countdown") return;
     if (countdown <= 0) {
-      setCurrentQuestion(pickQuestion());
+      // Batch question is already set from startCountdownPhaseWithBatch
+      // Just transition to question phase
+      if (!currentQuestion && battleQuestions.length > 0) {
+        setCurrentQuestion(battleQuestions[0]);
+      }
       setPhase("question");
       setQuestionTimeLeft(QUESTION_SECONDS);
       setUserAnswerState(null);
@@ -226,6 +272,16 @@ const XpHall = () => {
     const outcome = won ? 'win' : 'loss';
     const delta = won ? stake * (players - 1) : -stake;
 
+    // Record answer to batch API (non-blocking)
+    if (battleBatchIdRef.current) {
+      recordAnswer({
+        questionId: currentQuestion?.id,
+        selectedAnswer: option ?? null,
+        correct,
+        elapsedMs: QUESTION_SECONDS * 1000 - questionTimeLeft * 1000
+      }).catch(err => console.warn('Batch answer recording failed:', err));
+    }
+
     setTimeout(async () => {
       try {
         if (won) {
@@ -265,7 +321,7 @@ const XpHall = () => {
       fetchHistory();
       clearWaiting();
     }, 900);
-  }, [userAnswerState, currentQuestion, mode, stake, opponent, opponentId, earnSC, spendSC, fetchHistory]);
+  }, [userAnswerState, currentQuestion, mode, stake, opponent, opponentId, earnSC, spendSC, fetchHistory, questionTimeLeft]);
 
   const resetToLobby = () => {
     setPhase("lobby");
@@ -273,6 +329,8 @@ const XpHall = () => {
     setCountdown(3);
     setMode(null);
     setCurrentQuestion(null);
+    setBattleQuestions([]);
+    battleBatchIdRef.current = null;
     setOpponent("The House");
     setOpponentId(null);
     setTxState(null);
@@ -285,6 +343,8 @@ const XpHall = () => {
     setResult(null);
     setCountdown(3);
     setCurrentQuestion(null);
+    setBattleQuestions([]);
+    battleBatchIdRef.current = null;
     setTxState(null);
     setFinding(null);
     clearWaiting();

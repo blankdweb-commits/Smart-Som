@@ -6,8 +6,9 @@
 //                         window_expires_at, cooldown_remaining_seconds, is_ready } }
 // POST /api/quota/course-consume → reserve a round for a course.
 //      Body: { course_key, count? }
-//      FREE users are charged exactly 10 questions + a 1h cooldown, regardless
-//      of `count`. PREMIUM users get 10-30 (server-clamped) with no cooldown.
+//      FREE users are charged exactly 10 questions + a 30-min cooldown,
+//      regardless of `count`. PREMIUM users get 10-30 (server-clamped) with no
+//      cooldown.
 //      The count is validated SERVER-SIDE only — never trusted from the client.
 //      Returns { allowed, premium, questions_remaining, round_completed,
 //                rounds_completed, window_expires_at, cooldown_remaining_seconds,
