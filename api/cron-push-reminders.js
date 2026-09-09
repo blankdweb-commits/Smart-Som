@@ -6,7 +6,9 @@
 // by (user, kind, day) via push_log so nobody is pinged twice for the same
 // alert.
 //
-// Auth: Authorization: Bearer <CRON_SECRET>. Requests without it get 403.
+// Auth: Authorization: Bearer <CRON_SECRET>, or ?token=<CRON_SECRET> (Vercel Cron
+// can't send custom headers, so the schedule embeds the secret in the query via
+// the $CRON_SECRET macro). Requests without a valid token get 403.
 //
 // Alert matrix (all gated on "has a subscription" + "not already sent today"):
 //   MORNING slot (05–12 UTC):
@@ -31,9 +33,11 @@ const fmt = () => new Date().toISOString().slice(0, 10);
 
 export default async function handler(req, res) {
   const expected = process.env.CRON_SECRET;
+  const url = new URL(req.url || '', 'http://internal');
+  const queryToken = (req.query && req.query.token) || url.searchParams.get('token');
   const got = String(req.headers.authorization || '');
-  const authed = expected && got === `Bearer ${expected}`;
-  if (!authed) return res.status(403).json({ error: 'FORBIDDEN', message: 'Cron endpoint requires the CRON_SECRET bearer token.' });
+  const authed = expected && (got === `Bearer ${expected}` || queryToken === expected);
+  if (!authed) return res.status(403).json({ error: 'FORBIDDEN', message: 'Cron endpoint requires the CRON_SECRET token.' });
 
   const supabase = getSupabaseAdmin();
   if (!supabase) return res.status(500).json({ error: 'Server configuration error' });

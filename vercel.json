@@ -2,18 +2,12 @@
   "version": 2,
   "crons": [
     {
-      "path": "/api/cron-push-reminders",
-      "schedule": "0 9 * * *",
-      "headers": {
-        "authorization": "Bearer $CRON_SECRET"
-      }
+      "path": "/api/cron-push-reminders?token=$CRON_SECRET",
+      "schedule": "0 9 * * *"
     },
     {
-      "path": "/api/cron-push-reminders",
-      "schedule": "0 19 * * *",
-      "headers": {
-        "authorization": "Bearer $CRON_SECRET"
-      }
+      "path": "/api/cron-push-reminders?token=$CRON_SECRET",
+      "schedule": "0 19 * * *"
     }
   ],
   "rewrites": [
