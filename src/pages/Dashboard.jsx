@@ -715,7 +715,7 @@ const CourseQuotaCard = ({ courseQuota, isPremium }) => {
             })}
           </div>
           <p className="text-[10px] text-slate-400 italic mt-4">
-            One 10-question round per course, then a fresh round in 1 hour. 200-Level subjects track their own rounds.
+            One 10-question round per course, then a fresh round in 30 minutes. 200-Level subjects track their own rounds.
           </p>
         </>
       )}

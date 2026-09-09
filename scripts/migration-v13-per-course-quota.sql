@@ -60,7 +60,7 @@ create policy "course_quota_all_own"
 -- FREE_ROUND_SIZE          = 10
 -- FREE_TIMER_SECONDS       = {10, 15}  (enforced client-side in setup; server
 --                              cannot police wall-clock per question honestly)
--- COOLDOWN                 = 1 hour
+-- COOLDOWN                 = 30 minutes
 -- PREMIUM_MIN/MAX          = 10 / 30
 -- These are referenced inline in the RPC below; no separate config table is
 -- needed because the migration is the single source of truth.
@@ -97,66 +97,66 @@ begin
   select * into rec from public.user_course_quota
    where user_id = p_user_id and course_key = p_course_key;
 
-  -- In cooldown? (free users only; premium never has a window)
-  if not p_is_premium and rec is not null
-     and rec.window_expires_at is not null
-     and now() < rec.window_expires_at then
-    return jsonb_build_object(
-      'allowed', false,
-      'premium', false,
-      'questions_remaining', 0,
-      'round_completed', false,
-      'rounds_completed', rec.rounds_completed,
-      'window_expires_at', rec.window_expires_at,
-      'cooldown_remaining_seconds', greatest(0, floor(extract(epoch from (rec.window_expires_at - now())))),
-      'is_ready', false
-    );
-  end if;
+-- In cooldown? (free users only; premium never has a window)
+   if not p_is_premium and rec is not null
+      and rec.window_expires_at is not null
+      and now() < rec.window_expires_at then
+     return jsonb_build_object(
+       'allowed', false,
+       'premium', false,
+       'questions_remaining', 0,
+       'round_completed', false,
+       'rounds_completed', rec.rounds_completed,
+       'window_expires_at', rec.window_expires_at,
+       'cooldown_remaining_seconds', greatest(0, floor(extract(epoch from (rec.window_expires_at - now())))),
+       'is_ready', false
+     );
+   end if;
 
-  new_rounds := coalesce(rec.rounds_completed, 0) + 1;
+   new_rounds := coalesce(rec.rounds_completed, 0) + 1;
 
-  -- Premium: track rounds but never cooldown.
-  if p_is_premium then
-    insert into public.user_course_quota (user_id, course_key, questions_used, rounds_completed, last_round_completed_at, window_expires_at)
-    values (p_user_id, p_course_key, clamped, new_rounds, now(), null)
-    on conflict (user_id, course_key) do update set
-      questions_used = public.user_course_quota.questions_used + clamped,
-      rounds_completed = public.user_course_quota.rounds_completed + 1,
-      last_round_completed_at = now(),
-      window_expires_at = null,
-      updated_at = now();
-    return jsonb_build_object(
-      'allowed', true,
-      'premium', true,
-      'questions_remaining', null,
-      'round_completed', true,
-      'rounds_completed', new_rounds,
-      'window_expires_at', null,
-      'cooldown_remaining_seconds', 0,
-      'is_ready', true
-    );
-  end if;
+   -- Premium: track rounds but never cooldown.
+   if p_is_premium then
+     insert into public.user_course_quota (user_id, course_key, questions_used, rounds_completed, last_round_completed_at, window_expires_at)
+     values (p_user_id, p_course_key, clamped, new_rounds, now(), null)
+     on conflict (user_id, course_key) do update set
+       questions_used = public.user_course_quota.questions_used + clamped,
+       rounds_completed = public.user_course_quota.rounds_completed + 1,
+       last_round_completed_at = now(),
+       window_expires_at = null,
+       updated_at = now();
+     return jsonb_build_object(
+       'allowed', true,
+       'premium', true,
+       'questions_remaining', null,
+       'round_completed', true,
+       'rounds_completed', new_rounds,
+       'window_expires_at', null,
+       'cooldown_remaining_seconds', 0,
+       'is_ready', true
+     );
+   end if;
 
-  -- FREE: reserve the 10-question round + start the 1h cooldown.
-  insert into public.user_course_quota (user_id, course_key, questions_used, rounds_completed, last_round_completed_at, window_expires_at)
-  values (p_user_id, p_course_key, clamped, new_rounds, now(), now() + interval '1 hour')
-  on conflict (user_id, course_key) do update set
-    questions_used = clamped,
-    rounds_completed = public.user_course_quota.rounds_completed + 1,
-    last_round_completed_at = now(),
-    window_expires_at = now() + interval '1 hour',
-    updated_at = now();
+   -- FREE: reserve the 10-question round + start the 30-minute cooldown.
+   insert into public.user_course_quota (user_id, course_key, questions_used, rounds_completed, last_round_completed_at, window_expires_at)
+   values (p_user_id, p_course_key, clamped, new_rounds, now(), now() + interval '30 minutes')
+   on conflict (user_id, course_key) do update set
+     questions_used = clamped,
+     rounds_completed = public.user_course_quota.rounds_completed + 1,
+     last_round_completed_at = now(),
+     window_expires_at = now() + interval '30 minutes',
+     updated_at = now();
 
-  return jsonb_build_object(
-    'allowed', true,
-    'premium', false,
-    'questions_remaining', 0,
-    'round_completed', true,
-    'rounds_completed', new_rounds,
-    'window_expires_at', (now() + interval '1 hour'),
-    'cooldown_remaining_seconds', 3600,
-    'is_ready', false
-  );
+   return jsonb_build_object(
+     'allowed', true,
+     'premium', false,
+     'questions_remaining', 0,
+     'round_completed', true,
+     'rounds_completed', new_rounds,
+     'window_expires_at', (now() + interval '30 minutes'),
+     'cooldown_remaining_seconds', 1800,
+     'is_ready', false
+   );
 end;
 $$;
 

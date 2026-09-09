@@ -1,4 +1,4 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
   // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
@@ -15,7 +15,8 @@ import {
   Lock,
   Sparkles,
   BookOpen,
-  Heart
+  Heart,
+  Timer
 } from './Icons';
 
 // Per-quiz-type configuration — drives what Step 2 shows.
@@ -188,19 +189,11 @@ const QUIZ_CONFIGS = {
     accentBg: 'bg-rose-500/20 border-rose-500/30',
     subjects: [
       'Neonatal Nursing',
-      'Quality Improvement in Healthcare and Patient Safety',
-      'Complications of Puerperium',
-      'Obstetric Emergencies and Life-Saving Skills',
-      'Complications in Pregnancy and Childbirth',
-      'Midwifery Procedures',
-      'Preventive Strategies of Risk Conditions',
-      'Introduction to Fertility',
-      'Introduction to Family Planning',
-      'Data Collection',
-      'Family Planning Methods',
-      'Reproductive Health Conditions',
-      'Clinic Management',
-      'Research and Statistics'
+      'Research & Statistics',
+      'Quality Improvement, Patient Safety & Management',
+      'Complicated Midwifery & Obstetric Emergencies',
+      'Reproductive Health & Fertility',
+      'Family Planning'
     ],
     questionCounts: [10, 20, 30],
     timerOptions: [
@@ -213,7 +206,7 @@ const QUIZ_CONFIGS = {
     allowOrderChoice: true,
     allowExamMode: true,
     defaultOrder: 'randomized',
-    bankNote: '2,764 questions available in this bank'
+    bankNote: '2,764 questions available across 6 courses'
   },
   'midwifery-200-s2': {
     title: 'Midwifery 200-Level · 2nd Semester',
@@ -222,22 +215,13 @@ const QUIZ_CONFIGS = {
     accentText: 'text-fuchsia-400',
     accentBg: 'bg-fuchsia-500/20 border-fuchsia-500/30',
     subjects: [
-      'Introduction to Midwifery Practice',
-      'Ethics in Midwifery Practice',
-      'The Law and the Midwife',
-      'Contemporary Legal Issues',
-      'Theories and Concepts',
-      'Quality Improvement in Midwifery Practice',
-      'Newborn Assessment & Resuscitation',
-      'Subsequent Care of the Newborn',
-      'The Newborn',
-      'Newborn Feeding',
-      'Discharge and Follow-up Care',
+      'Normal Midwifery',
+      'Community Midwifery',
       'Pharmacology in Midwifery',
-      'Midwifery',
-      'Complicated midwifery',
-      'Applied Anatomy and Physiology',
-      'Community Midwifery'
+      'Anatomy & Physiology',
+      'Infant & Newborn Care',
+      'Ethics, Law & Professional Issues',
+      'Foundations of Midwifery Practice'
     ],
     questionCounts: [10, 20, 30],
     timerOptions: [
@@ -250,7 +234,7 @@ const QUIZ_CONFIGS = {
     allowOrderChoice: true,
     allowExamMode: true,
     defaultOrder: 'randomized',
-    bankNote: '2,245 questions available in this bank'
+    bankNote: '2,245 questions available across 7 courses'
   }
 };
 
@@ -265,6 +249,57 @@ export const LEVEL_SUBJECTS = {
   'nursing-300': QUIZ_CONFIGS['nursing-300'].subjects,
   'midwifery-300': QUIZ_CONFIGS['midwifery-300'].subjects,
   'midwifery-200-s2': QUIZ_CONFIGS['midwifery-200-s2'].subjects
+};
+
+// ----- Free-user per-subject cooldown display (subject picker step) -----
+// Composite server-side course keys mirror the quota RPC: 200/300-Level banks
+// are per-subject (<quizType>:<subject>), framework modes are dedicated, and
+// the rest use the bare quiz type.
+const statusKey = (courseId, subject) => {
+  if (subject) return `${courseId}:${subject}`;
+  if (courseId === 'clinical-challenge') return `${courseId}:nclex`;
+  if (courseId === 'quick-quiz') return `${courseId}:nmcn`;
+  return courseId;
+};
+
+// Ticking countdown re-renders every second until `untilIso` passes. Mounted
+// only while a cooldown is actually active (see SubjectCooldownChip).
+const useCountdown = (untilIso) => {
+  const [now, setNow] = useState(Date.now());
+  useEffect(() => {
+    if (!untilIso) return undefined;
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, [untilIso]);
+  return useMemo(() => {
+    if (!untilIso) return 0;
+    return Math.max(0, Math.ceil((new Date(untilIso).getTime() - now) / 1000));
+  }, [untilIso, now]);
+};
+
+const formatRemaining = (seconds) => {
+  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 3600) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return s > 0 ? `${m}m ${s}s` : `${m}m`;
+  }
+  const h = Math.floor(seconds / 3600);
+  const m = Math.round((seconds % 3600) / 60);
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+};
+
+// Rendered ONLY during an active cooldown, so the ticking hook always runs in
+// the same order for the chips that exist. Shows how long until this FREE
+// user's next round for the subject is ready.
+const SubjectCooldownChip = ({ untilIso, premium }) => {
+  const remaining = useCountdown(untilIso);
+  if (premium || remaining <= 0) return null; // premium never cools down
+  return (
+    <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[9px] font-black uppercase tracking-widest tabular-nums">
+      <Timer size={11} /> {formatRemaining(remaining)}
+    </span>
+  );
 };
 
 const DIFFICULTIES = [
@@ -335,7 +370,13 @@ const ChoiceButton = ({ selected, onClick, children, disabled, colorClass = 'bg-
 
 const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete, onCancel }) => {
   const config = QUIZ_CONFIGS[quizType] || QUIZ_CONFIGS['clinical-challenge'];
-  const { isPremium, difficultyProgress, fetchDifficultyStatus, session } = useAppContext();
+  const { isPremium, difficultyProgress, fetchDifficultyStatus, session, courseQuota, fetchCourseQuotaStatus } = useAppContext();
+
+  // Keep the per-subject cooldown chips fresh whenever the subject picker is on
+  // screen (free users). Runs on mount + whenever the flow is re-entered.
+  React.useEffect(() => {
+    if (session?.access_token) fetchCourseQuotaStatus();
+  }, [session?.access_token, fetchCourseQuotaStatus, quizType]);
 
   // Free users: locked to exactly 10 questions and a 10s/15s per-question timer.
   // Premium users: 10-30 questions, any timer (incl. no limit).
@@ -457,6 +498,8 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
               <div className="grid grid-cols-1 gap-3">
                 {config.subjects.map((s) => {
                   const active = subject === s;
+                  const row = (courseQuota || {})[statusKey(quizType, s)] || null;
+                  const cooling = !isPremium && row && row.is_ready === false && row.window_expires_at;
                   return (
                     <button
                       key={s}
@@ -471,12 +514,32 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
                       <BookOpen size={18} className={`shrink-0 ${active ? 'text-emerald-500' : 'text-slate-400'}`} />
                       <span className="flex-1 min-w-0">
                         <span className={`block font-black text-sm tracking-tight ${active ? '' : 'text-slate-900 dark:text-white'}`}>{s}</span>
+                        {cooling && (
+                          <span className="block text-[9px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 mt-0.5">
+                            Next round ready when the timer ends
+                          </span>
+                        )}
                       </span>
-                      {active && <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />}
+                      {cooling ? (
+                        <SubjectCooldownChip untilIso={row.window_expires_at} premium={isPremium} />
+                      ) : (
+                        active && <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
+                      )}
                     </button>
                   );
                 })}
               </div>
+
+              {!isPremium && (
+                <div className="mt-4 p-3 rounded-2xl bg-amber-500/5 border border-amber-500/30 flex items-start gap-2.5">
+                  <Clock size={15} className="text-amber-500 shrink-0 mt-0.5" />
+                  <p className="text-[10px] font-bold text-slate-600 dark:text-slate-300 leading-snug">
+                    Free plan: a <span className="font-black">10-question round per course</span> starts a{' '}
+                    <span className="font-black">30-minute cooldown</span> as soon as you begin — it counts even if you
+                    leave before finishing. The timer above shows when the next round is ready.
+                  </p>
+                </div>
+              )}
 
               <button
                 type="button"

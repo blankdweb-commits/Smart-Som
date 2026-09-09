@@ -388,7 +388,7 @@ const DailyCooldownOverlay = ({ expiresAt, now, onDismiss, onStart, onPremium })
           {ready ? (
             <>A fresh Daily Challenge round is available now.</>
           ) : (
-            <>Each round reserves a <span className="font-semibold">1-hour cooldown</span> (free plan). Next round in{' '}
+            <>Each round reserves a <span className="font-semibold">30-minute cooldown</span> (free plan). Next round in{' '}
               <span className="font-black text-amber-600 dark:text-amber-400 tabular-nums">{fmtClock(remaining)}</span>.</>
           )}
         </p>

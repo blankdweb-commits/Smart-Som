@@ -34,7 +34,7 @@ try {
   log('fresh user has no rows (ready by default)', !fresh.error, `rows=${JSON.stringify(fresh.data || {})}`);
 
   // 4. Consume a free round on clinical-challenge:nclex
-  const c1 = await admin.rpc('consume_course_quota', { p_user_id: userId, p_course_key: 'clinical-challenge:nclex', p_count: 10, p_is_premium: false });
+  const c1 = await admin.rpc('consume_course_quota', { p_user_id: userId, p_course_key: 'clinical-challenge:nclex', p_count: 10, p_is_premium: false, p_request_id: crypto.randomUUID() });
   log('free consume allowed', !!c1.data && c1.data.allowed === true, JSON.stringify(c1.data));
   log('free consume forces 10 questions + completes round', !!c1.data && c1.data.round_completed === true && c1.data.premium === false, `remaining=${c1.data?.questions_remaining}`);
 
@@ -42,16 +42,16 @@ try {
   log('30m cooldown set (is_ready=false, ~1800s)', !!c1.data && c1.data.is_ready === false && c1.data.cooldown_remaining_seconds >= 1790 && c1.data.cooldown_remaining_seconds <= 1800, `cooldown=${c1.data?.cooldown_remaining_seconds}s`);
 
   // 6. Second consume while cooling down = REFUSED
-  const c2 = await admin.rpc('consume_course_quota', { p_user_id: userId, p_course_key: 'clinical-challenge:nclex', p_count: 10, p_is_premium: false });
+  const c2 = await admin.rpc('consume_course_quota', { p_user_id: userId, p_course_key: 'clinical-challenge:nclex', p_count: 10, p_is_premium: false, p_request_id: crypto.randomUUID() });
   log('cooldown consume refused', !!c2.data && c2.data.allowed === false && c2.data.is_ready === false, JSON.stringify(c2.data));
 
   // 7. Different course key unaffected (per-course isolation)
-  const c3 = await admin.rpc('consume_course_quota', { p_user_id: userId, p_course_key: 'nursing-200:Pharmacology', p_count: 99, p_is_premium: false });
+  const c3 = await admin.rpc('consume_course_quota', { p_user_id: userId, p_course_key: 'nursing-200:Pharmacology', p_count: 99, p_is_premium: false, p_request_id: crypto.randomUUID() });
   log('separate course allowed (per-course isolation)', !!c3.data && c3.data.allowed === true, `key=nursing-200:Pharmacology`);
   log('count clamped to 10 for free', !!c3.data && c3.data.questions_remaining === 0 && c3.data.premium === false);
 
   // 8. Premium user: count respected up to 30, no cooldown, is_ready always true
-  const c4 = await admin.rpc('consume_course_quota', { p_user_id: userId, p_course_key: 'quick-quiz:both', p_count: 25, p_is_premium: true });
+  const c4 = await admin.rpc('consume_course_quota', { p_user_id: userId, p_course_key: 'quick-quiz:both', p_count: 25, p_is_premium: true, p_request_id: crypto.randomUUID() });
   log('premium consumes 25, no cooldown, ready', !!c4.data && c4.data.allowed === true && c4.data.premium === true && c4.data.is_ready === true, JSON.stringify(c4.data));
 
   // 9. Status map reflects all courses

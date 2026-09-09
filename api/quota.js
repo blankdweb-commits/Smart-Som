@@ -49,12 +49,18 @@ const consume = async (req, res) => {
   const premium = await isPremium(user.id, supabase);
   const requested = Number(req.body?.count) || 10;
 
+  // Client-supplied idempotency key (replay-safe) — defaults to a fresh server
+  // UUID so a replayed/burst request never double-charges. Also disambiguates
+  // the v26 5-arg overload (p_request_id uuid default null) for PostgREST.
+  const requestId = String(req.body?.request_id || globalThis.crypto.randomUUID());
+
   try {
     const { data, error } = await supabase.rpc('consume_course_quota', {
       p_user_id: user.id,
       p_course_key: courseKey,
       p_count: requested,
-      p_is_premium: premium
+      p_is_premium: premium,
+      p_request_id: requestId
     });
     if (error) throw error;
     return res.status(200).json({

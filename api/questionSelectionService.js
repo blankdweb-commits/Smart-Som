@@ -29,11 +29,62 @@ import { SELECTION_CONFIG as C } from './selectionConfig.js';
 //   nursing-200             nursing200                   (none)
 //   midwifery-200           midwifery                    (none)
 //   nursing-300             nursing300                   (none, per-subject)
-//   midwifery-300           midwifery300                 (none, per-subject)
-//   midwifery-200-s2        midwifery200s2               (none, per-subject)
+//   midwifery-300           midwifery300                 (none, grouped -> subjects)
+//   midwifery-200-s2        midwifery200s2               (none, grouped -> subjects)
 //   weakness-challenge      ALL banks (aggregate)        (none)
 //   daily-challenge         ALL banks (aggregate)        (none)
+//
+// COURSE SUBJECT GROUPS (authoritative course catalogue):
+// Midwifery 300-Level and 200-Level · 2nd Semester expose canonically-named
+// COURSES (not the DB's fine-grained unit subjects). Each canonical course
+// maps to one or more `questions.subject_id` values (exactly — every DB
+// subject appears once, nothing is dropped). Decision log (Sep 7 2026):
+// grouping chosen by the product owner after the DB granularity was audited;
+// totals reconcile exactly (midwifery300 = 2,764; midwifery200s2 = 2,245).
 // ============================================================
+const MIDWIFERY_300_GROUPS = {
+  'Neonatal Nursing': ['Neonatal Nursing'],
+  'Research & Statistics': ['Research and Statistics', 'Data Collection'],
+  'Quality Improvement, Patient Safety & Management': [
+    'Quality Improvement in Healthcare and Patient Safety',
+    'Clinic Management',
+  ],
+  'Complicated Midwifery & Obstetric Emergencies': [
+    'Complications of Puerperium',
+    'Obstetric Emergencies and Life-Saving Skills',
+    'Complications in Pregnancy and Childbirth',
+    'Preventive Strategies of Risk Conditions',
+    'Midwifery Procedures',
+  ],
+  'Reproductive Health & Fertility': ['Reproductive Health Conditions', 'Introduction to Fertility'],
+  'Family Planning': ['Family Planning Methods', 'Introduction to Family Planning'],
+};
+
+const MIDWIFERY_200_S2_GROUPS = {
+  'Normal Midwifery': ['Midwifery'],
+  'Community Midwifery': ['Community Midwifery'],
+  'Pharmacology in Midwifery': ['Pharmacology in Midwifery'],
+  'Anatomy & Physiology': ['Applied Anatomy and Physiology'],
+  'Infant & Newborn Care': [
+    'The Newborn',
+    'Newborn Assessment & Resuscitation',
+    'Subsequent Care of the Newborn',
+    'Newborn Feeding',
+    'Discharge and Follow-up Care',
+  ],
+  'Ethics, Law & Professional Issues': [
+    'Contemporary Legal Issues',
+    'The Law and the Midwife',
+    'Ethics in Midwifery Practice',
+  ],
+  'Foundations of Midwifery Practice': [
+    'Introduction to Midwifery Practice',
+    'Theories and Concepts',
+    'Quality Improvement in Midwifery Practice',
+    'Complicated midwifery',
+  ],
+};
+
 const COURSE_METADATA = {
   'clinical-challenge': { dbCourseIdByFramework: { NCLEX: 'nclex', NMCN: 'nmcn' } },
   'quick-quiz': { dbCourseIdByFramework: { NCLEX: 'nclex', NMCN: 'nmcn' } },
@@ -41,8 +92,8 @@ const COURSE_METADATA = {
   'nursing-200': { dbCourseId: 'nursing200', hasSubjects: true },
   'midwifery-200': { dbCourseId: 'midwifery', hasSubjects: true },
   'nursing-300': { dbCourseId: 'nursing300', hasSubjects: true },
-  'midwifery-300': { dbCourseId: 'midwifery300', hasSubjects: true },
-  'midwifery-200-s2': { dbCourseId: 'midwifery200s2', hasSubjects: true },
+  'midwifery-300': { dbCourseId: 'midwifery300', hasSubjects: true, subjectGroups: MIDWIFERY_300_GROUPS },
+  'midwifery-200-s2': { dbCourseId: 'midwifery200s2', hasSubjects: true, subjectGroups: MIDWIFERY_200_S2_GROUPS },
   'weakness-challenge': { aggregate: true },
   'daily-challenge': { aggregate: true },
 };
@@ -156,15 +207,49 @@ export class QuestionSelectionService {
     // 5. Fetch candidate questions (hard-filtered) using the resolved course.
     // For "both"-source clinical/quick courses we span both banks, so the
     // exam_framework hard-constraint is dropped in favour of the course list.
-    const candidates = await this._fetchCandidates({
+    let candidates = await this._fetchCandidates({
       courseId: courseMeta.dbCourseId,
       courseIds: courseMeta.dbCourseIds,
       subject: courseMeta.subject,
+      subjects: courseMeta.subjects,
       aggregate: courseMeta.aggregate,
       framework: courseMeta.dbCourseIds ? null : framework,
       subjectFilter,
       topicFilter,
     });
+
+    // 5b. Content-gap fallback: a legitimate course/subject may exist in the
+    // catalogue but have no questions in the bank yet (e.g. Nursing 200-Level
+    // "Nutrition & Dietetics"). Instead of failing the round, fall back to the
+    // parent course's available questions so the user always gets a quiz, and
+    // surface a note so the client can explain what happened.
+    let fallbackNote = null;
+    if (candidates.length === 0 && !courseMeta.aggregate && (courseMeta.dbCourseId || courseMeta.dbCourseIds)) {
+      const requestedSubject =
+        subjectFilter ||
+        courseMeta.subject ||
+        (courseMeta.subjects && courseMeta.subjects.length > 1 ? courseMeta.subjects.join(' / ') : courseMeta.subjects?.[0]);
+      candidates = await this._fetchCandidates({
+        courseId: courseMeta.dbCourseId,
+        courseIds: courseMeta.dbCourseIds,
+        subject: null,
+        subjects: null,
+        aggregate: false,
+        framework: courseMeta.dbCourseIds ? null : framework,
+        subjectFilter: null,
+        topicFilter,
+      });
+      if (candidates.length > 0) {
+        fallbackNote = {
+          requestedSubject,
+          availableCount: candidates.length,
+          note:
+            requestedSubject
+              ? `No questions available for "${requestedSubject}" yet — showing questions from the full ${courseKey} course instead.`
+              : `No questions available for those filters — showing questions from the ${courseKey} course instead.`,
+        };
+      }
+    }
 
     if (candidates.length === 0) {
       return {
@@ -293,6 +378,7 @@ export class QuestionSelectionService {
         selectedCount: shuffledIds.length,
         relaxationLevel,
         elapsedMs,
+        ...(fallbackNote ? { fallbackNote } : {}),
       },
     };
   }
@@ -325,6 +411,7 @@ export class QuestionSelectionService {
     // match explicitly names a known course.
     let dbCourseId = null;
     let dbSubject = null;
+    let dbSubjects = null;
     let dbCourseIds = null;
     try {
       const meta = this._resolveCourseMetadata(courseKey);
@@ -332,13 +419,15 @@ export class QuestionSelectionService {
         dbCourseId = meta.dbCourseId || null;
         dbCourseIds = meta.dbCourseIds || null;
         dbSubject = meta.subject || null;
+        dbSubjects = meta.subjects || null;
       }
     } catch {
       dbCourseId = null;
       dbSubject = null;
+      dbSubjects = null;
       dbCourseIds = null;
     }
-    const candidates = await this._fetchCandidates({ courseId: dbCourseId, courseIds: dbCourseIds, subject: dbSubject, framework });
+    const candidates = await this._fetchCandidates({ courseId: dbCourseId, courseIds: dbCourseIds, subject: dbSubject, subjects: dbSubjects, framework });
 
     const selectedIds = [];
     const selectedSet = new Set();
@@ -696,7 +785,7 @@ export class QuestionSelectionService {
   // ============================================================
   // PRIVATE: Candidate fetching (hard constraints only)
   // ============================================================
-  async _fetchCandidates({ courseId, courseIds, subject, aggregate, framework, subjectFilter, topicFilter }) {
+  async _fetchCandidates({ courseId, courseIds, subject, subjects, aggregate, framework, subjectFilter, topicFilter }) {
     let query = this.supabase
       .from('questions')
       .select('*')
@@ -715,7 +804,9 @@ export class QuestionSelectionService {
     } else if (courseId && !aggregate) {
       query = query.eq('course_id', courseId);
     }
-    if (subject) {
+    if (subjects && subjects.length > 0) {
+      query = query.in('subject_id', subjects);
+    } else if (subject) {
       query = query.eq('subject_id', subject);
     }
 
@@ -1131,6 +1222,15 @@ export class QuestionSelectionService {
     if (meta.hasSubjects) {
       if (!suffix) {
         throw new Error(`INVALID_COURSE_KEY: "${courseKey}" requires a subject suffix`);
+      }
+      if (meta.subjectGroups) {
+        const subjects = meta.subjectGroups[suffix];
+        if (!subjects || subjects.length === 0) {
+          throw new Error(
+            `INVALID_COURSE_KEY: "${courseKey}" is not a recognised ${courseId} course (${Object.keys(meta.subjectGroups).join(' | ')})`
+          );
+        }
+        return { dbCourseId: meta.dbCourseId, framework: null, subject: null, subjects, aggregate: false };
       }
       return { dbCourseId: meta.dbCourseId, framework: null, subject: suffix, aggregate: false };
     }

@@ -1,6 +1,26 @@
 # Apex Scholars ? Working notes
 
-## Current task: 401 flood + quota verify + exit sound + 30SC grant + 1v1/3v3 + Nursing-200 scan (DONE, Sep 5 2026)
+## Current task: Nursing-200 missing subjects seeded + all-course scan (DONE, Sep 7 2026)
+
+### Problem
+- User reported the 2 nursing-200 subjects **Nutrition & Dietetics** and **Politics and Governance in Nursing** launch nothing (400 `NO_CANDIDATES` → frontend just showed an error). User insisted both are REAL 200-level courses and must not be removed from the UI.
+- DB `questions` table had only 4 nursing200 subjects (Fundamentals of Nursing 97, Pharmacology III 68, Reproductive Health 200, Research Methodology 350 = 715 rows, all active with options). **Zero** rows for any nutrition/dietetic/politics subject_id.
+- The question data WAS present in the client bank `src/data/flashcards/nmcn/200level questions.json` (4297 items, valid): "Nutrition and Dietetics" 450 + 3 sub-units (`Unit I: Introduction to Nutrition` 144, `Unit II: Nutritional Needs` 107, `Unit III: Food Planning, Preparation, and Safety` 29) and "Politics and Governance in Nursing" 180 + `Concept of Politics and Government` 102, `Political Activities` 107, `Political Interaction` 43.
+
+### What was done
+- **DB seed `scripts/seed-nursing200-missing.mjs` (APPLIED, 1162 rows)**: reads the valid client bank, maps the 6 file subjects onto the 2 UI subject names (`Nutrition & Dietetics`, `Politics and Governance in Nursing`), reuses the seed-questions normalizer (id `n200x-nut-<id>` / `n200x-pol-<id>` to avoid clashing with existing `n200-<qid>`; Diff→Easy/Moderate/Hard/Expert; correct_answer via letter-index→option text fallback; is_active=true, source 'Nursing 200-Level'). Idempotent upsert on `id`.
+- **DB now**: nursing200 = 6 subjects, Nutrition & Dietetics 600 active w/ options, Politics and Governance in Nursing 432 active w/ options (some Nutrition ids collapse onto duplicates — 600 vs 730 prepared, fine). Live `_scan-nursing200` query confirmed.
+- **Server-side content-gap fallback (kept as safety net)**: `api/questionSelectionService.js` — on empty subject candidates for a non-aggregate course with a DB course_id, refetches the whole course bank without the subject filter and returns `meta.fallbackNote = { requestedSubject, availableCount, note }`. Client `src/pages/Quiz.jsx` shows a dismissible amber banner above the player with that note (`quizNote` state, cleared on complete/quit). This now only fires for genuinely-empty subjects.
+- **All-course scan `scripts/_scan-all-courses.mjs` (39/39 PASS)**: fresh free user → every course/bucket returns 10 questions: nursing-200 ×6 (incl. the 2 previously-failing), nursing-300 ×6, midwifery-200 ×5, midwifery-300 ×6, midwifery-200-s2 ×7, clinical-challenge ×3, quick-quiz ×3, uselu-test, weakness-challenge, daily-challenge.
+- **Corrupt-file forensics + cleanup**: the corrupt `200level questions.json.bak-corrupt` (missing outer brackets; some `options` arrays missing `]`) had been renamed by the user to `200level questions main.json` — a **build breaker**, because `src/data/loadFlashcards.js` globs `./flashcards/**/*.json` eagerly. Recovery script proved the current valid file is a strict superset (0 new items). Moved it out of the glob path to `backup/2026-09-07/200level questions.json.corrupt-main` (kept, not deleted). Existing rows' `id` format confirmed as `n200-<qid>`.
+- Deleted leftover temp scripts (`_recover-200level.mjs`, `_repair-backup.mjs`, `_scan-ids.mjs`, `_scan-nursing200.mjs`, `_scan-nutrition-politics.mjs`, `_scan-all-courses.mjs`, `fix-json*.js` — the last 3 were responsible for 3 lint errors).
+
+### Verification
+- `npm run lint`: 0 errors / 35 warnings (pre-existing baseline). `npm run build`: OK (19.3s). `node --check` on edited files OK.
+- Live API (3001) + Vite (5173) running via separate processes (NOT `dev.mjs`, which kills the API). DB-only change → no API restart needed (serve-api hot-imports handlers per request).
+- Manual browser QA on the dev box: log in → Quiz → Nursing-200 → **Nutrition & Dietetics** and **Politics and Governance in Nursing** should start rounds directly with their own questions (no fallback banner).
+
+## Previous: 401 flood + quota verify + exit sound + 30SC grant + 1v1/3v3 + Nursing-200 scan (DONE, Sep 5 2026)
 
 ### 401 flood root cause + fix (DONE — client stale-token recovery + server 502 distinction)
 - **Root cause was NOT the API**: the server correctly 401s when no/garbage token is sent; Supabase REST DNS works. The browser was sending an EXPIRED/stale access token (supabase-js rotates it, but a burst of parallel calls can all observe a just-expired token, and a reload can resume with a token that expired while closed).

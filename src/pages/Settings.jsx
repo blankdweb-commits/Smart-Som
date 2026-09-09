@@ -12,8 +12,7 @@ import {
   Save,
   Lock,
   GraduationCap,
-  Building2,
-  Sparkles
+  Building2
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import Toast from '../components/Toast';
@@ -33,13 +32,30 @@ export default function Settings() {
 
   const [profileForm, setProfileForm] = useState({
     fullName: userProfile.fullName || '',
-    identityName: userProfile.identityName || '',
     phone: userProfile.phone || '',
     department: userProfile.department || '',
     level: userProfile.level || ''
   });
   const [savingProfile, setSavingProfile] = useState(false);
   const [profileMsg, setProfileMsg] = useState(null);
+
+  // The server profile loads ASYNCHRONOUSLY after auth init, so userProfile is
+  // still anonymous when this form first mounts — the fields would render blank
+  // even though the DB already has the saved values. Sync the form from the real
+  // profile exactly once, then leave it to the user (their edits are never
+  // clobbered by a later context update).
+  const profileSyncedRef = React.useRef(false);
+  React.useEffect(() => {
+    if (profileSyncedRef.current) return;
+    if (userProfile.matricNumber === undefined) return; // not loaded yet
+    profileSyncedRef.current = true;
+    setProfileForm({
+      fullName: userProfile.fullName || '',
+      phone: userProfile.phone || '',
+      department: userProfile.department || '',
+      level: userProfile.level || ''
+    });
+  }, [userProfile]);
 
   const [passwordForm, setPasswordForm] = useState({ next: '', confirm: '' });
   const [savingPassword, setSavingPassword] = useState(false);
@@ -60,7 +76,6 @@ export default function Settings() {
         .from('profiles')
         .update({
           full_name: profileForm.fullName.trim(),
-          identity_name: profileForm.identityName.trim(),
           phone: profileForm.phone.trim(),
           department: profileForm.department,
           level: profileForm.level
@@ -189,22 +204,6 @@ export default function Settings() {
         <h2 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-6">Profile Details</h2>
 
         <form onSubmit={handleProfileSave} className="space-y-4">
-          <div className="relative">
-            <Sparkles className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-medical-500" />
-            <input
-              type="text"
-              placeholder="Identity Name (what others see)"
-              className={inputCls}
-              value={profileForm.identityName}
-              maxLength={24}
-              onChange={(e) => setProfileForm({ ...profileForm, identityName: e.target.value })}
-            />
-          </div>
-          <p className="text-[11px] font-medium text-slate-400 -mt-1">
-            This is the name shown to other Scholars in Community, 1v1 and 3v3 — your real name
-            stays private. Leave blank to show as "Scholar".
-          </p>
-
           <div className="relative">
             <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
             <input

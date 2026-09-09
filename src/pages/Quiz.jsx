@@ -68,6 +68,26 @@ const fmtClock = (s) => {
   return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
 };
 
+// Composite server-side course keys (mirrors CourseList.jsx):
+//   - NCLEX / NMCN are framework-dedicated (Clinical->nclex, Quick Quiz->nmcn).
+//   - 200/300-Level banks are per SUBJECT (<courseId>:<subject>).
+//   - Uselu / Weakness / Daily Challenge use the bare course id.
+const statusKey = (courseId, subject) => {
+  if (subject) return `${courseId}:${subject}`;
+  if (courseId === 'clinical-challenge') return `${courseId}:nclex`;
+  if (courseId === 'quick-quiz') return `${courseId}:nmcn`;
+  return courseId;
+};
+
+// Returns { premium, ready, untilIso } for a row. Server-authoritative: we only
+// render what the RPC returned; absence = never used = ready.
+const rowStatus = (courseId, subject, courseQuota) => {
+  const row = (courseQuota || {})[statusKey(courseId, subject)] || null;
+  if (!row) return { ready: true, untilIso: null };
+  if (row.is_ready === true) return { ready: true, untilIso: null };
+  return { ready: false, untilIso: row.window_expires_at || null };
+};
+
 // ----- Bundled local audio manager (Part 20) -----
 // Replaces the old Supabase-hosted / remote-dependent sound system. All clips
 // ship in /public/audio and are played through the shared AudioManager, which
@@ -123,10 +143,77 @@ const OTHER_MODE_ORDER = ['clinical-challenge', 'quick-quiz', 'uselu-test', 'wea
 
 const courseCount = (bankId) => (LEVEL_SUBJECTS[bankId] || []).length;
 
-const DirectoryRow = ({ bankId, onLaunch }) => {
+// Live ticking clock so cooldown chips count down in real time. Re-renders the
+// host once a second for as long as it stays mounted.
+const useNow = () => {
+  const [now, setNow] = React.useState(Date.now());
+  React.useEffect(() => {
+    const id = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(id);
+  }, []);
+  return now;
+};
+
+const formatRemaining = (seconds) => {
+  if (seconds < 60) return `${seconds}s`;
+  if (seconds < 3600) {
+    const m = Math.floor(seconds / 60);
+    const s = seconds % 60;
+    return s > 0 ? `${m}m ${s}s` : `${m}m`;
+  }
+  const h = Math.floor(seconds / 3600);
+  const m = Math.round((seconds % 3600) / 60);
+  return m > 0 ? `${h}h ${m}m` : `${h}h`;
+};
+
+// Status chip for DirectoryRow — ticking cooldown for free users.
+const StatusChip = ({ premium, ready, untilIso }) => {
+  const now = useNow();
+  if (premium) {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[9px] font-black uppercase tracking-widest">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Unlimited
+      </span>
+    );
+  }
+  if (ready || !untilIso || new Date(untilIso).getTime() - now <= 0) {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[9px] font-black uppercase tracking-widest">
+        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Ready
+      </span>
+    );
+  }
+  const remainingSec = Math.ceil((new Date(untilIso).getTime() - now) / 1000);
+  return (
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[9px] font-black uppercase tracking-widest tabular-nums">
+      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> {formatRemaining(remainingSec)}
+    </span>
+  );
+};
+
+const DirectoryRow = ({ bankId, onLaunch, courseQuota, isPremium }) => {
   const style = MODE_STYLE[bankId];
   const title = QUIZ_CONFIGS[bankId].title;
   const count = courseCount(bankId);
+  const subjects = LEVEL_SUBJECTS[bankId] || [];
+
+  // For parent rows (200/300 levels with subjects): aggregate status
+  // Ready if ANY subject is ready, else soonest expiring cooldown (ticking).
+  let parentReady = true;
+  let parentUntilIso = null;
+  if (subjects.length > 0) {
+    const subjectRows = subjects.map(s => rowStatus(bankId, s, courseQuota));
+    parentReady = subjectRows.some(r => r.ready);
+    if (!parentReady) {
+      parentUntilIso = subjectRows.filter(r => r.untilIso)
+        .sort((a, b) => new Date(a.untilIso) - new Date(b.untilIso))[0]?.untilIso || null;
+    }
+  } else {
+    const st = rowStatus(bankId, null, courseQuota);
+    parentReady = st.ready;
+    if (!parentReady) parentUntilIso = st.untilIso || null;
+  }
+
   return (
     <button
       type="button"
@@ -144,7 +231,7 @@ const DirectoryRow = ({ bankId, onLaunch }) => {
           {count} courses
         </span>
       )}
-      <span className="shrink-0 text-slate-400 text-sm font-black group-hover:text-medical-500 transition-colors">›</span>
+      <StatusChip premium={isPremium} ready={parentReady} untilIso={parentUntilIso} />
     </button>
   );
 };
@@ -171,6 +258,7 @@ const Quiz = () => {
   // Per-course round gate: shown when a free user's round for this course is
   // still cooling down (server-authoritative result from consumeCourseQuota).
   const [cooldownNotice, setCooldownNotice] = useState(null); // { courseKey, label, seconds, engineMode, cfg }
+  const [quizNote, setQuizNote] = useState(null); // content-gap fallback notice (subject has no questions yet)
   const pendingLaunchRef = React.useRef(null); // keeps the original engineMode/cfg for the "Start now" retry
 
   // In-flight guard: prevents a double-click / rapid retry from firing a second
@@ -182,7 +270,7 @@ const Quiz = () => {
   const attemptIdRef = React.useRef(null);
 
   // ----- Difficulty progression -----
-  const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchSCRank, studyStats, levelCompletions, session, fetchQuestionHistory, isPremium, fetchCourseQuotaStatus } = useAppContext();
+  const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchSCRank, studyStats, levelCompletions, session, fetchQuestionHistory, isPremium, fetchCourseQuotaStatus, courseQuota } = useAppContext();
   const [selectedDifficulty, setSelectedDifficulty] = useState(null);
   const [globalRank, setGlobalRank] = useState(null);
 
@@ -448,6 +536,7 @@ const Quiz = () => {
 
     setCooldownNotice(null);
     pendingLaunchRef.current = null;
+    setQuizNote(result.meta?.fallbackNote?.note || null);
     setActiveConfig({ ...cfg, engineMode, batchId: result.batch.id });
     setActiveQuestions(questions);
     setPlayerResult(null);
@@ -481,6 +570,7 @@ const Quiz = () => {
     setPlayerActive(false);
     document.body.classList.remove('quiz-active');
     setPlayerResult(result);
+    setQuizNote(null);
     // A finished session allows the next Start to replay the intro sound once.
     introHandledRef.current = false;
     // The round is over — the next Start mints a NEW idempotency key so a
@@ -534,12 +624,15 @@ const Quiz = () => {
     setPlayerActive(false);
     setActiveConfig(null);
     setActiveQuestions([]);
+    setQuizNote(null);
     document.body.classList.remove('quiz-active');
     // Exit music already started when the Quit dialog opened (in QuizPlayer).
     // On a real exit let it ring out ~2s longer before stopping.
     audioRef.scheduleExitStop(2000);
     // Allow intro to replay on the next Start gesture.
     introHandledRef.current = false;
+    // Refresh quota since the round was consumed
+    fetchCourseQuotaStatus();
   };
 
   const backToModes = () => {
@@ -554,12 +647,15 @@ const Quiz = () => {
     // Leaving the player (abandon) = the round is over: the next Start is a NEW
     // round, so mint a fresh idempotency key (never reuse an old reservation id).
     attemptIdRef.current = null;
+    // Refresh quota since the round was consumed
+    fetchCourseQuotaStatus();
   };
 
   const retrySameSession = () => {
     if (!activeConfig) return;
     const { engineMode, ...cfg } = activeConfig;
     launchPlayer(engineMode, cfg, { skipQuota: true });
+    // No quota refresh here - retry uses skipQuota, same round
   };
 
   const editSessionSetup = () => {
@@ -681,22 +777,36 @@ const Quiz = () => {
   // Immersive player for Clinical / Quick / Uselu
   if (playerActive && activeConfig) {
     return (
-      <QuizPlayer
-        questions={activeQuestions}
-        batchId={activeConfig.batchId}
-        config={{
-          difficulty: activeConfig.difficulty,
-          timePerQuestion: activeConfig.timePerQuestion,
-          answerMode: activeConfig.answerMode
-        }}
-        modeLabel={PLAYER_MODE_LABELS[activeConfig.engineMode] || ''}
-        onSound={playQuizSound}
-        onAnswer={recordAnswer}
-        onComplete={handlePlayerComplete}
-        onQuit={quitPlayer}
-        onExitSoundStart={() => audioRef.playExitForDialog()}
-        onExitSoundStop={() => audioRef.stopExit()}
-      />
+      <>
+        {quizNote && (
+          <div className="sticky top-0 z-40 px-4 py-2.5 bg-amber-500/10 border-b border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs font-semibold flex items-center gap-2">
+            <span className="flex-1 leading-snug">💡 {quizNote}</span>
+            <button
+              onClick={() => setQuizNote(null)}
+              aria-label="Dismiss"
+              className="shrink-0 px-1.5 py-0.5 rounded-lg hover:bg-amber-500/20 text-amber-600 dark:text-amber-300"
+            >
+              ✕
+            </button>
+          </div>
+        )}
+        <QuizPlayer
+          questions={activeQuestions}
+          batchId={activeConfig.batchId}
+          config={{
+            difficulty: activeConfig.difficulty,
+            timePerQuestion: activeConfig.timePerQuestion,
+            answerMode: activeConfig.answerMode
+          }}
+          modeLabel={PLAYER_MODE_LABELS[activeConfig.engineMode] || ''}
+          onSound={playQuizSound}
+          onAnswer={recordAnswer}
+          onComplete={handlePlayerComplete}
+          onQuit={quitPlayer}
+          onExitSoundStart={() => audioRef.playExitForDialog()}
+          onExitSoundStop={() => audioRef.stopExit()}
+        />
+      </>
     );
   }
 
@@ -850,7 +960,7 @@ const Quiz = () => {
             </div>
             <div className="space-y-2.5">
               {QUIZ_LEVEL_ORDER.map((bankId) => (
-                <DirectoryRow key={bankId} bankId={bankId} onLaunch={handleCourseLaunch} />
+                <DirectoryRow key={bankId} bankId={bankId} onLaunch={handleCourseLaunch} courseQuota={courseQuota} isPremium={isPremium} />
               ))}
             </div>
           </section>
@@ -862,7 +972,7 @@ const Quiz = () => {
             </div>
             <div className="space-y-2.5">
               {OTHER_MODE_ORDER.map((bankId) => (
-                <DirectoryRow key={bankId} bankId={bankId} onLaunch={handleCourseLaunch} />
+                <DirectoryRow key={bankId} bankId={bankId} onLaunch={handleCourseLaunch} courseQuota={courseQuota} isPremium={isPremium} />
               ))}
             </div>
           </section>
