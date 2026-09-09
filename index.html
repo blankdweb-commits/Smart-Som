@@ -24,15 +24,79 @@
     <title>Polynurse Exam Center | Your NCLEX Success Partner</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
+    <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap" rel="stylesheet"></noscript>
     <style>
-      body {
-        font-family: 'Inter', system-ui, -apple-system, sans-serif !important;
+      /* Critical first-paint CSS: mirrors src/index.css base tokens so the
+         branded shell paints before the (larger, consolidated) stylesheet and
+         JS finish loading. Kept deliberately small; everything else ships in
+         the single built index-*.css. */
+      :root { color-scheme: light dark; }
+      html, body {
+        margin: 0;
+        width: 100%;
+        min-height: 100vh;
+        min-height: -webkit-fill-available;
       }
+      body {
+        font-family: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+        background-color: #f8fafc;         /* slate-50 */
+        color: #0f172a;                    /* slate-900 */
+        -webkit-font-smoothing: antialiased;
+        text-rendering: optimizeLegibility;
+      }
+      html.dark body {
+        background-color: #0f172a;         /* slate-900 */
+        color: #f1f5f9;                    /* slate-100 */
+      }
+      #root { width: 100%; }
+      /* Static splash — a themed skeleton so the first paint is instant while
+         React boots (Skeleton.jsx-style pulse, no media dependency). */
+      .apex-splash {
+        position: fixed; inset: 0;
+        display: flex; flex-direction: column; align-items: center; justify-content: center;
+        gap: 16px; background: inherit; z-index: 2147483000;
+      }
+      .apex-splash-logo {
+        width: 72px; height: 72px; border-radius: 20px;
+        background: #800080;
+        box-shadow: 0 10px 30px -6px rgba(128, 0, 128, 0.45);
+        display: flex; align-items: center; justify-content: center;
+        animation: apex-pulse 1.6s ease-in-out infinite;
+      }
+      .apex-splash-mark {
+        width: 40px; height: 40px; fill: none; stroke: #fff; stroke-width: 3;
+        stroke-linecap: round; stroke-linejoin: round;
+      }
+      .apex-splash-name {
+        font-size: 15px; font-weight: 600; letter-spacing: 0.28em; text-transform: uppercase;
+        opacity: 0.8;
+      }
+      .apex-splash-bar {
+        width: 128px; height: 4px; border-radius: 9999px; overflow: hidden;
+        background: rgba(128, 0, 128, 0.18);
+      }
+      .apex-splash-bar span {
+        display: block; height: 100%; width: 40%;
+        background: #800080; border-radius: 9999px;
+        animation: apex-slide 1.2s ease-in-out infinite;
+      }
+      @keyframes apex-pulse { 0%, 100% { transform: scale(0.96); opacity: 0.92; } 50% { transform: scale(1); opacity: 1; } }
+      @keyframes apex-slide { 0% { transform: translateX(-110%); } 100% { transform: translateX(260%); } }
     </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div class="apex-splash" aria-hidden="true">
+        <div class="apex-splash-logo">
+          <svg class="apex-splash-mark" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+            <path d="M3 12h4l2-6 4 12 2-6h6" />
+          </svg>
+        </div>
+        <div class="apex-splash-name">Polynurse</div>
+        <div class="apex-splash-bar"><span></span></div>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>

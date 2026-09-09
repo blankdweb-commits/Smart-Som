@@ -35,7 +35,7 @@ export default defineConfig([
   },
   {
     // Vercel serverless functions + config files run in Node, not the browser.
-    files: ['api/**/*.js', 'vite.config.js'],
+    files: ['api/**/*.js', 'vite.config.js', 'postcss.config.js'],
     languageOptions: {
       globals: {
         ...globals.node,
