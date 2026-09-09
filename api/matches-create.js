@@ -16,9 +16,9 @@
 // Returns: { matchId, questionIds, batches }
 // ============================================================
 
-import { authorizeRequest } from '../_utils.js';
-import { QuestionSelectionService } from '../questionSelectionService.js';
-import { getSupabaseAdmin } from '../_utils.js';
+import { authorizeRequest } from './_utils.js';
+import { QuestionSelectionService } from './questionSelectionService.js';
+import { getSupabaseAdmin } from './_utils.js';
 
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');

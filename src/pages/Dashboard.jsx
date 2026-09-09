@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { BookOpen, TrendingUp, Award, Zap, ArrowRight, Star, Clock, AlertCircle, Target, CheckCircle, ChevronRight, Lock, Sparkles, Coins } from '../components/Icons';
+import { BookOpen, TrendingUp, Award, Zap, ArrowRight, Clock, AlertCircle, Target, CheckCircle, ChevronRight, Lock, Sparkles, Coins } from '../components/Icons';
 import { differenceInDays } from 'date-fns';
 
 import DailyChallengeWidget from '../components/DailyChallengeWidget';
@@ -16,7 +16,7 @@ import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
 const Dashboard = () => {
   const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
-  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics, quizHistory, smartCoins, scLedger, claimDailySC, identity, identityUnlock, dismissIdentityUnlock, courseQuota, fetchCourseQuotaStatus, isPremium, SC_FEATURE_LOCKED, userAchievements } = useAppContext();
+  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics, quizHistory, smartCoins, scLedger, claimDailySC, identity, identityUnlock, dismissIdentityUnlock, SC_FEATURE_LOCKED, userAchievements } = useAppContext();
   const navigate = useNavigate();
 
   // Redirect if not logged in - Only if not in DEV_MODE and NOT in Dashboard-First mode
@@ -26,24 +26,6 @@ const Dashboard = () => {
       // navigate('/'); // Disabled to prevent redirect loops in Dashboard-First mode
     }
   }, [session, loadingAuth, navigate, DEV_MODE]);
-
-  const subjectProgress = React.useMemo(() => {
-    const stats = {};
-    flashcards.forEach(card => {
-      const sub = card.subject || 'General';
-      if (!stats[sub]) {
-        stats[sub] = { total: 0, learned: 0 };
-      }
-      stats[sub].total += 1;
-      if (card.srs?.reps > 0) {
-        stats[sub].learned += 1;
-      }
-    });
-    return Object.entries(stats)
-      .map(([name, data]) => ({ name, ...data, percent: Math.round((data.learned / data.total) * 100) }))
-      .sort((a, b) => b.total - a.total)
-      .slice(0, 5);
-  }, [flashcards]);
 
   const todayStats = React.useMemo(() => {
     const today = new Date();
@@ -88,11 +70,6 @@ const Dashboard = () => {
   ];
 
   const [currentTip, setCurrentTip] = React.useState(0);
-
-  // Load the per-course round-quota map for the Command Center on mount.
-  React.useEffect(() => {
-    if (session?.user) fetchCourseQuotaStatus();
-  }, [session?.user, fetchCourseQuotaStatus]);
 
   const quickReference = [
     { label: "Normal BP", value: "120/80 mmHg" },
@@ -272,10 +249,6 @@ const Dashboard = () => {
             <TodayProgressWidget streak={studyStats.streak} stats={todayStats} />
           </div>
 
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <CourseQuotaCard courseQuota={courseQuota} isPremium={isPremium} />
-          </div>
-
           <WeaknessChallengeCard
   totalAttempts={learningAnalytics.totalAttempts || 0}
   weakConcepts={learningAnalytics.weakConcepts || []}
@@ -330,34 +303,7 @@ const Dashboard = () => {
             <StatsCard title="Due" value={dueFlashcards.length} icon={<Clock className="text-red-500" />} color="bg-white dark:bg-slate-800" />
           </div>
 
-          <div className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-clinical border border-slate-100 dark:border-slate-700">
-            <h3 className="text-xl font-black mb-8 flex items-center text-slate-900 dark:text-white uppercase tracking-tight">
-              <Star className="mr-3 text-apex-600" size={20} />
-              Subject Mastery
-            </h3>
-            <div className="space-y-6">
-              {subjectProgress.length > 0 ? (
-                subjectProgress.map(sub => (
-                  <div key={sub.name}>
-                    <div className="flex justify-between text-[10px] font-black mb-2 uppercase tracking-[0.2em] text-slate-400">
-                      <span className="truncate max-w-[200px]">{sub.name}</span>
-                      <span>{sub.percent}% learned</span>
-                    </div>
-                    <div className="w-full h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden p-0.5 border border-slate-50 dark:border-slate-800">
-                      <motion.div
-                        initial={{ width: 0 }}
-                        animate={{ width: `${sub.percent}%` }}
-                        className="h-full bg-apex-600 rounded-full"
-                      />
-                    </div>
-                  </div>
-                ))
-              ) : (
-                <p className="text-sm text-slate-500 italic">Activate learning mode to track subject progress.</p>
-              )}
-            </div>
           </div>
-        </div>
 
         <div className="space-y-8">
            <IdentityCard stats={{
@@ -636,89 +582,6 @@ const WeaknessChallengeCard = ({ totalAttempts, weakConcepts, isActivated, onFix
           </div>
         )}
       </div>
-    </div>
-  );
-};
-
-// ---- Per-course round quota card (v13): free = 10 Q / 1h cooldown per course ----
-// Server-authoritative rows mirrored straight from the RPC status map. Premium
-// learners always see "Unlimited".
-const CourseQuotaCard = ({ courseQuota, isPremium }) => {
-  const [now, setNow] = React.useState(0);
-  React.useEffect(() => {
-    if (!courseQuota) return undefined;
-    setNow(Date.now());
-    const id = setInterval(() => setNow(Date.now()), 1000);
-    return () => clearInterval(id);
-  }, [courseQuota]);
-
-  const onCooldown = (key) => {
-    const row = (courseQuota || {})[key];
-    if (isPremium || !row || row.is_ready === true) return false;
-    return true;
-  };
-
-  const rows = [
-    { key: 'clinical-challenge:nclex', label: 'NCLEX' },
-    { key: 'quick-quiz:nmcn', label: 'NMCN' },
-    { key: 'uselu-test', label: 'Uselu Test Questions' },
-    { key: 'weakness-challenge', label: 'Fix My Weak Areas' }
-  ];
-
-  const fmtClock = (s) => {
-    const m = Math.floor(s / 60);
-    const sec = Math.floor(s % 60);
-    return `${String(m).padStart(2, '0')}:${String(sec).padStart(2, '0')}`;
-  };
-
-  return (
-    <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-800">
-      <div className="flex items-center justify-between mb-3">
-        <h3 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">Course Rounds</h3>
-        {isPremium ? (
-          <span className="text-[9px] font-black uppercase tracking-widest text-emerald-600 bg-emerald-50 dark:bg-emerald-900/30 px-2.5 py-1 rounded-full">Unlimited</span>
-        ) : (
-          <span className="text-[9px] font-black uppercase tracking-widest text-amber-600 bg-amber-50 dark:bg-amber-900/30 px-2.5 py-1 rounded-full">10 / hour</span>
-        )}
-      </div>
-
-      {isPremium ? (
-        <div className="flex items-center gap-3 mt-3">
-          <div className="w-10 h-10 rounded-xl bg-emerald-100 dark:bg-emerald-900/30 flex items-center justify-center">
-            <CheckCircle size={18} className="text-emerald-600" />
-          </div>
-          <p className="text-sm font-semibold text-slate-700 dark:text-slate-200">Unlimited rounds on every course. Keep the momentum going.</p>
-        </div>
-      ) : (
-        <>
-          <div className="space-y-2.5">
-            {rows.map(r => {
-              const row = (courseQuota || {})[r.key] || null;
-              const cooling = onCooldown(r.key);
-              const remaining = cooling
-                ? Math.max(0, Math.ceil((new Date(row.window_expires_at).getTime() - now) / 1000))
-                : 0;
-              return (
-                <div key={r.key} className="flex items-center justify-between gap-2 px-3 py-2.5 rounded-xl bg-slate-50 dark:bg-slate-900/40 border border-slate-100 dark:border-slate-700/60">
-                  <span className="text-xs font-bold text-slate-700 dark:text-slate-200 tracking-tight truncate">{r.label}</span>
-                  {cooling ? (
-                    <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[9px] font-black uppercase tracking-widest tabular-nums">
-                      <Clock size={10} /> {fmtClock(remaining)}
-                    </span>
-                  ) : (
-                    <span className="shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[9px] font-black uppercase tracking-widest">
-                      <CheckCircle size={10} /> Ready
-                    </span>
-                  )}
-                </div>
-              );
-            })}
-          </div>
-          <p className="text-[10px] text-slate-400 italic mt-4">
-            One 10-question round per course, then a fresh round in 30 minutes. 200-Level subjects track their own rounds.
-          </p>
-        </>
-      )}
     </div>
   );
 };

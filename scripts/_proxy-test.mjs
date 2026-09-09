@@ -57,11 +57,11 @@ const tests = [
   ['POST', '/api/session/touch'],
   ['GET',  '/api/quota/course-status'],
   ['POST', '/api/quota/course-consume'],
-  ['POST', '/api/quiz/batch-create'],
+  ['POST', '/api/quiz-batch-create'],
 ];
 console.log('\n=== Via VITE PROXY :5173/api/*  (proves /api is usable from the browser origin) ===');
 for (const [method, p] of tests) {
-  const r = await request(`http://localhost:5173${p}`, method, p === '/api/quota/course-consume' ? { course_key: 'clinical-challenge:nclex' } : p === '/api/quiz/batch-create' ? {} : null);
+  const r = await request(`http://localhost:5173${p}`, method, p === '/api/quota/course-consume' ? { course_key: 'clinical-challenge:nclex' } : p === '/api/quiz-batch-create' ? {} : null);
   const okJson = r.status !== 0 && (r.ct.includes('json'));
   const notRefused = r.status !== 0;
   console.log(`${notRefused && okJson ? 'PASS' : 'FAIL'}  ${method} :5173${p} -> status=${r.status} ct=${r.ct.split(';')[0]} body=${r.body.slice(0, 70)}`);

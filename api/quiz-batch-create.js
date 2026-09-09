@@ -26,8 +26,8 @@
 // Returns: { batch, questions, meta } or a typed error.
 // ============================================================
 
-import { authorizeRequest, getSupabaseAdmin } from '../_utils.js';
-import { QuestionSelectionService } from '../questionSelectionService.js';
+import { authorizeRequest, getSupabaseAdmin } from './_utils.js';
+import { QuestionSelectionService } from './questionSelectionService.js';
 
 const HTTP_ERRORS = {
   DIFFICULTY_LOCKED: 403,

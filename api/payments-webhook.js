@@ -1,6 +1,6 @@
-// api/payments/webhook.js
+// api/payments-webhook.js (webhook URL: /api/payments/webhook via vercel.json rewrite)
 import crypto from 'crypto';
-import { getSupabaseAdmin } from '../_utils';
+import { getSupabaseAdmin } from './_utils.js';
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {

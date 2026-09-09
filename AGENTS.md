@@ -1,6 +1,31 @@
 # Apex Scholars ? Working notes
 
-## Current task: Nursing-200 missing subjects seeded + all-course scan (DONE, Sep 7 2026)
+## Current task: dashboard cleanup + Vercel API deploy fix (DONE, Sep 9 2026)
+
+### Dashboard cleanup (Course Rounds + Subject Mastery removed)
+- `src/pages/Dashboard.jsx`: removed the **Course Rounds / 10-per-hour** card (`CourseQuotaCard` usage + its whole definition) and the **Subject Mastery** section. Also deleted the now-unused `subjectProgress` memo, the on-mount `fetchCourseQuotaStatus()` effect, the `courseQuota`/`isPremium`/`fetchCourseQuotaStatus` context destructures, and the now-unused `Star` icon import. Quiz setup/`CourseList.jsx` cooldown chips are untouched — this only affects the home dashboard. Dashboard chunk 49.2 kB → 44.7 kB.
+
+### Vercel API routes — nested api/ dirs were NOT deployed (root cause of "app doesn't run")
+- **Symptom**: after the new batch-quiz implementations, the deployed app broke. Runtime probe against https://www.polynurse.com.ng showed top-level `api/*.js` functions reply correctly (quota/session/progress/feedback/daily-challenge all return JSON 401/405/410), but **every nested-file route returned the SPA `index.html`** (200 text/html): `/api/quiz/batch-get|create|answer|complete` → HTML, `/api/matches/create` → HTML. `/api/payments/webhook` returned **500** — its `vercel.json` rewrite targeted the non-existent `/api/payments` file AND the module used an **extensionless import** (`from '../_utils'`) which blows up under Node ESM.
+- Vercel only exposed TOP-LEVEL api files as functions for this repo; nested `api/quiz/*`, `api/matches/*` were never deployed. The batch-quiz flow (useQuizBatch) and 1v1 matchmaking therefore fetched HTML and crashed → "app doesn't run".
+- **Fix (flatten to top-level single-route functions)**:
+  - `api/quiz/batch-get.js` → `api/quiz-batch-get.js`
+  - `api/quiz/batch-create.js` → `api/quiz-batch-create.js`
+  - `api/quiz/batch-answer.js` → `api/quiz-batch-answer.js`
+  - `api/quiz/batch-complete.js` → `api/quiz-batch-complete.js`
+  - `api/matches/create.js` → `api/matches-create.js`
+  - `api/payments/webhook.js` → `api/payments-webhook.js` (also fixed `../_utils` → `./_utils.js`)
+  - Relative imports updated `../` → `./` in all five moved files.
+- **Client**: `src/hooks/useQuizBatch.js` now calls `/api/quiz-batch-create|get|answer|complete` (flat). Matches serve-api.mjs's route→file mapping so local dev works with zero config.
+- **vercel.json**: dropped the broken `/api/payments/:path* → /api/payments` rewrite; added legacy rewrites so the old paths still work: `/api/quiz/batch-create|get|answer|complete → /api/quiz-batch-*`, `/api/matches/create → /api/matches-create`, `/api/payments/webhook → /api/payments-webhook` (Paystack's configured webhook URL is preserved without a dashboard change). Vercel preserves `req.url` across rewrites (proven: quota sub-path dispatch works).
+- **Scripts updated** to the flat paths: `scripts/verify-runtime.mjs`, `scripts/audit-api-routes.mjs`, `scripts/_proxy-test.mjs`, `scripts/_probe-api.mjs`, `scripts/_repro-batch-403.mjs` (import now `../api/quiz-batch-create.js`).
+
+### Verification
+- `npm run lint`: 0 errors / 35 warnings (pre-existing baseline). `npm run build`: OK (20.4s). `node --check` on all six moved api files OK.
+- Local `serve-api.mjs` smoke test on :3101: `GET /api/quiz-batch-get?id=abc` → 401 JSON, `POST /api/quiz-batch-create` → 401 JSON (functions load + auth-gate). `POST /api/payments-webhook` → 500 with `createHmac` "key undefined" because **`PAYSTACK_SECRET_KEY` is EMPTY in `.env`** — must be configured in Vercel env for the webhook to verify Paystack signatures.
+- **Remaining deploy config (user action)**: ensure Vercel env has `VITE_SUPABASE_URL`, `SUPABASE_SERVICE_ROLE_KEY`, `PAYSTACK_SECRET_KEY`, `VITE_PAYSTACK_PUBLIC_KEY`, `APP_URL`. Then push and re-deploy; re-probe `https://www.polynurse.com.ng/api/quiz-batch-get?id=x` → expect 401 JSON (not HTML).
+
+## Previous: Nursing-200 missing subjects seeded + all-course scan (DONE, Sep 7 2026)
 
 ### Problem
 - User reported the 2 nursing-200 subjects **Nutrition & Dietetics** and **Politics and Governance in Nursing** launch nothing (400 `NO_CANDIDATES` → frontend just showed an error). User insisted both are REAL 200-level courses and must not be removed from the UI.

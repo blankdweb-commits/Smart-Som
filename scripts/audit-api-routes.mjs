@@ -22,11 +22,11 @@ const ROUTES = [
   ['GET', '/api/daily-challenge', false],
   ['POST', '/api/feedback', true],
   ['POST', '/api/initiate-payment', true],
-  ['GET', '/api/quiz/batch-get', false],
-  ['POST', '/api/quiz/batch-create', true],
-  ['POST', '/api/quiz/batch-answer', true],
-  ['POST', '/api/quiz/batch-complete', true],
-  ['POST', '/api/matches/create', true],
+  ['GET', '/api/quiz-batch-get', false],
+  ['POST', '/api/quiz-batch-create', true],
+  ['POST', '/api/quiz-batch-answer', true],
+  ['POST', '/api/quiz-batch-complete', true],
+  ['POST', '/api/matches-create', true],
 ];
 
 const call = (method, path, sendBody) => new Promise((resolve) => {

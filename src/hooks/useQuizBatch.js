@@ -2,10 +2,10 @@
 // useQuizBatch — Client-side hook for the server-authoritative quiz batch system
 //
 // Manages the lifecycle of a quiz batch:
-//   1. Create batch (calls /api/quiz/batch-create)
-//   2. Get batch questions (calls /api/quiz/batch-get)
-//   3. Record answers (calls /api/quiz/batch-answer per answer)
-//   4. Complete batch (calls /api/quiz/batch-complete)
+//   1. Create batch (calls /api/quiz-batch-create)
+//   2. Get batch questions (calls /api/quiz-batch-get)
+//   3. Record answers (calls /api/quiz-batch-answer per answer)
+//   4. Complete batch (calls /api/quiz-batch-complete)
 //
 // Replaces the old client-side buildQuestionSet() + selectQuestions() flow.
 // ============================================================
@@ -76,7 +76,7 @@ export function useQuizBatch() {
         ...(attemptId && { attemptId }),
       };
 
-      const result = await callApexApi('/api/quiz/batch-create', {
+      const result = await callApexApi('/api/quiz-batch-create', {
         method: 'POST',
         headers,
         body,
@@ -123,7 +123,7 @@ export function useQuizBatch() {
 
     try {
       const headers = authHeaders(session);
-      const result = await callApexApi(`/api/quiz/batch-get?id=${batchId}`, {
+      const result = await callApexApi(`/api/quiz-batch-get?id=${batchId}`, {
         method: 'GET',
         headers,
       });
@@ -158,7 +158,7 @@ export function useQuizBatch() {
 
     try {
       const headers = authHeaders(session, { json: true });
-      const result = await callApexApi('/api/quiz/batch-answer', {
+      const result = await callApexApi('/api/quiz-batch-answer', {
         method: 'POST',
         headers,
         body: {
@@ -193,7 +193,7 @@ export function useQuizBatch() {
 
     try {
       const headers = authHeaders(session, { json: true });
-      const result = await callApexApi('/api/quiz/batch-complete', {
+      const result = await callApexApi('/api/quiz-batch-complete', {
         method: 'POST',
         headers,
         body: { batchId: batch.id },

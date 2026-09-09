@@ -69,8 +69,8 @@ if (!webReady) { console.log('\nABORT: Vite did not start'); cleanup(children); 
 const apiRoutes = [
   ['POST', '/api/session/register'], ['GET', '/api/quota/course-status'],
   ['GET', '/api/progress/difficulty'], ['GET', '/api/progress/history'],
-  ['GET', '/api/quiz/batch-get'], ['POST', '/api/quiz/batch-create'],
-  ['POST', '/api/matches/create'], ['GET', '/api/daily-challenge'],
+  ['GET', '/api/quiz-batch-get'], ['POST', '/api/quiz-batch-create'],
+  ['POST', '/api/matches-create'], ['GET', '/api/daily-challenge'],
 ];
 for (const [method, p] of apiRoutes) {
   const { status, ct } = await httpGet(`http://localhost:${API_PORT}${p}`);

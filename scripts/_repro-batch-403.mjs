@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js';
-import handler from '../api/quiz/batch-create.js';
+import handler from '../api/quiz-batch-create.js';
 import { loadEnv } from './e2e-utils.mjs';
 
 const env = loadEnv();

@@ -2,6 +2,30 @@
   "version": 2,
   "rewrites": [
     {
+      "source": "/api/quiz/batch-create",
+      "destination": "/api/quiz-batch-create"
+    },
+    {
+      "source": "/api/quiz/batch-get",
+      "destination": "/api/quiz-batch-get"
+    },
+    {
+      "source": "/api/quiz/batch-answer",
+      "destination": "/api/quiz-batch-answer"
+    },
+    {
+      "source": "/api/quiz/batch-complete",
+      "destination": "/api/quiz-batch-complete"
+    },
+    {
+      "source": "/api/matches/create",
+      "destination": "/api/matches-create"
+    },
+    {
+      "source": "/api/payments/webhook",
+      "destination": "/api/payments-webhook"
+    },
+    {
       "source": "/api/session/:path*",
       "destination": "/api/session"
     },
@@ -28,10 +52,6 @@
     {
       "source": "/api/verify-payment/:path*",
       "destination": "/api/verify-payment"
-    },
-    {
-      "source": "/api/payments/:path*",
-      "destination": "/api/payments"
     },
     {
       "source": "/api/:path*",

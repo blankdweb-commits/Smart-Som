@@ -60,7 +60,7 @@ const routes = [
   ['POST', '/api/session/register', { device_identifier: 'probe' }],
   ['GET', '/api/quota/course-status', null],
   ['POST', '/api/quota/course-consume', { course_key: 'clinical-challenge:nclex' }],
-  ['POST', '/api/quiz/batch-create', {}],
+  ['POST', '/api/quiz-batch-create', {}],
   ['GET', '/api/progress/difficulty', null],
 ];
 
