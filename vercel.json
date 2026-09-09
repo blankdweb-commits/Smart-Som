@@ -1,5 +1,21 @@
 {
   "version": 2,
+  "crons": [
+    {
+      "path": "/api/cron-push-reminders",
+      "schedule": "0 9 * * *",
+      "headers": {
+        "authorization": "Bearer $CRON_SECRET"
+      }
+    },
+    {
+      "path": "/api/cron-push-reminders",
+      "schedule": "0 19 * * *",
+      "headers": {
+        "authorization": "Bearer $CRON_SECRET"
+      }
+    }
+  ],
   "rewrites": [
     {
       "source": "/api/quiz/batch-create",

@@ -12,10 +12,22 @@ import {
   Save,
   Lock,
   GraduationCap,
-  Building2
+  Building2,
+  BellRing,
+  BellOff,
+  Smartphone
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import Toast from '../components/Toast';
+import {
+  isPushSupported,
+  isIosWebPush,
+  isStandalonePwa,
+  subscribeToPush,
+  unsubscribeFromPush,
+  getPushSubscription,
+  getVapidPublicKey,
+} from '../utils/notifications';
 
 const NURSING_YEARS = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'];
 const DEPARTMENTS = [
@@ -62,6 +74,27 @@ export default function Settings() {
   const [passwordError, setPasswordError] = useState(null);
 
   const [toast, setToast] = useState(null);
+
+  // Web Push opt-in state.
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushSubscribed, setPushSubscribed] = useState(false);
+  const [pushStatus, setPushStatus] = useState('');
+  const [pushChecked, setPushChecked] = useState(false);
+
+  const pushSupported = isPushSupported();
+  const pushConfigured = Boolean(getVapidPublicKey());
+  const iosNeedsInstall = isIosWebPush() && !isStandalonePwa();
+
+  React.useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      if (!pushSupported || !session) { setPushChecked(true); return; }
+      const sub = await getPushSubscription();
+      if (sub && !cancelled) setPushSubscribed(true);
+      if (!cancelled) setPushChecked(true);
+    })();
+    return () => { cancelled = true; };
+  }, [session, pushSupported]);
 
   const handleProfileSave = async (e) => {
     e.preventDefault();
@@ -191,6 +224,107 @@ export default function Settings() {
           >
             Activate Full Access
           </button>
+        )}
+      </motion.div>
+
+      {/* Push Notifications */}
+      <motion.div
+        initial={{ y: 10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.05 }}
+        className="bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-100 dark:border-slate-700 p-6 sm:p-8 shadow-clinical"
+      >
+        <h2 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-6">Push Notifications</h2>
+
+        {!pushSupported || !pushConfigured ? (
+          <div className="flex items-start gap-4">
+            <div className="w-11 h-11 rounded-2xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
+              <BellOff size={20} className="text-slate-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-black text-slate-900 dark:text-white">Not supported on this browser/device</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 leading-snug">
+                Push requires a Chromium/Firefox browser (Android) or Safari with the app added to your Home Screen.
+              </p>
+            </div>
+          </div>
+        ) : iosNeedsInstall ? (
+          <div className="flex items-start gap-4">
+            <div className="w-11 h-11 rounded-2xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
+              <Smartphone size={20} className="text-slate-400" />
+            </div>
+            <div className="min-w-0">
+              <p className="font-black text-slate-900 dark:text-white">Add Polynurse to your Home Screen</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 leading-snug">
+                On iPhone/iPad, tap Share → “Add to Home Screen”, then open the app icon. Notifications become available once it runs as a standalone app.
+              </p>
+            </div>
+          </div>
+        ) : (
+          <>
+            <div className="flex items-start gap-4">
+              <div className={`w-11 h-11 rounded-2xl flex items-center justify-center shrink-0 ${pushSubscribed ? 'bg-emerald-100 dark:bg-emerald-900/30' : 'bg-slate-100 dark:bg-slate-700'}`}>
+                <BellRing size={20} className={pushSubscribed ? 'text-emerald-600 dark:text-emerald-400' : 'text-slate-400'} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <p className="font-black text-slate-900 dark:text-white">
+                  {pushChecked ? (pushSubscribed ? 'Push notifications enabled' : 'Push notifications off') : 'Checking this device…'}
+                </p>
+                <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-1 leading-snug">
+                  Streak alerts, exam countdowns, daily challenges, duel matches and achievement unlocks — delivered even when the app is closed.
+                </p>
+              </div>
+            </div>
+
+            {pushStatus && (
+              <p className={`mt-3 text-xs font-bold ${pushStatus.startsWith('✓') ? 'text-emerald-500' : 'text-red-500'}`}>{pushStatus}</p>
+            )}
+
+            <div className="mt-4 flex gap-3">
+              {!pushSubscribed && (
+                <button
+                  onClick={async () => {
+                    setPushBusy(true);
+                    setPushStatus('');
+                    const result = await subscribeToPush(session);
+                    setPushBusy(false);
+                    if (result.state === 'subscribed') {
+                      setPushSubscribed(true);
+                      setPushStatus('✓ Notifications enabled on this device.');
+                    } else if (result.state === 'blocked') {
+                      setPushStatus('Notifications are blocked in your browser. Allow them in the site settings, then retry.');
+                    } else if (result.state === 'skipped') {
+                      setPushStatus('Permission request was dismissed.');
+                    } else {
+                      setPushStatus(result.error || 'Could not enable notifications.');
+                    }
+                  }}
+                  disabled={pushBusy}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 bg-apex-600 hover:bg-apex-700 text-white rounded-xl font-black uppercase tracking-widest text-[10px] shadow-lg shadow-apex-600/20 transition-all active:scale-95 disabled:opacity-50"
+                >
+                  {pushBusy ? <Loader2 size={14} className="animate-spin" /> : <BellRing size={14} />} Enable
+                </button>
+              )}
+              {pushSubscribed && (
+                <button
+                  onClick={async () => {
+                    setPushBusy(true);
+                    setPushStatus('');
+                    const result = await unsubscribeFromPush(session);
+                    setPushBusy(false);
+                    if (result.state === 'unsubscribed' || result.state === 'error') {
+                      setPushSubscribed(false);
+                      setPushStatus('Push notifications disabled for this device.');
+                    }
+                  }}
+                  disabled={pushBusy}
+                  className="inline-flex items-center gap-2 px-5 py-2.5 border border-slate-200 dark:border-slate-600 text-slate-600 dark:text-slate-300 rounded-xl font-black uppercase tracking-widest text-[10px] transition-all active:scale-95 disabled:opacity-50"
+                >
+                  {pushBusy ? <Loader2 size={14} className="animate-spin" /> : <BellOff size={14} />} Disable
+                </button>
+              )}
+            </div>
+          </>
         )}
       </motion.div>
 

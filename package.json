@@ -39,7 +39,8 @@
     "react-router-dom": "^7.13.0",
     "tailwind-merge": "^3.5.0",
     "tesseract.js": "^7.0.0",
-    "three": "^0.184.0"
+    "three": "^0.184.0",
+    "web-push": "^3.6.7"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",
