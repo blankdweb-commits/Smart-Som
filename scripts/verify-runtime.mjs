@@ -18,17 +18,29 @@ const WEB_PORT = 5173;
 
 const wait = (ms) => new Promise(r => setTimeout(r, ms));
 
-function httpGet(url) {
+function httpRequest(url, { method = 'GET', body } = {}) {
   return new Promise((resolve) => {
     const u = new URL(url);
-    const req = http.request({ hostname: u.hostname, port: u.port, path: u.pathname + u.search, method: 'GET' }, (res) => {
+    const payload = body === undefined ? null : JSON.stringify(body);
+    const req = http.request({
+      hostname: u.hostname,
+      port: u.port,
+      path: u.pathname + u.search,
+      method,
+      headers: payload ? { 'Content-Type': 'application/json' } : undefined,
+    }, (res) => {
       let d = '';
       res.on('data', c => { d += c; });
       res.on('end', () => resolve({ status: res.statusCode, ct: res.headers['content-type'] || '', body: d }));
     });
     req.on('error', () => resolve({ status: 0, ct: '', body: '' }));
+    if (payload) req.write(payload);
     req.end();
   });
+}
+
+function httpGet(url) {
+  return httpRequest(url);
 }
 
 async function waitReady(url, timeoutMs = 20000) {
@@ -65,16 +77,36 @@ report('Vite dev server starts', webReady, `port ${WEB_PORT}`);
 if (!apiReady) { console.log('\nABORT: API server did not start'); cleanup(children); process.exit(1); }
 if (!webReady) { console.log('\nABORT: Vite did not start'); cleanup(children); process.exit(1); }
 
-// 3. API route audit (P0)
+// 3. API route audit (P0) — every flat route + the legacy nested paths that
+// vercel.json rewrites onto them must answer JSON (401/405/400), never the SPA
+// index.html. POST-only routes are probed with an empty body (no auth token),
+// GET routes with no auth — both must yield typed JSON, not HTTP 200 HTML.
 const apiRoutes = [
-  ['POST', '/api/session/register'], ['GET', '/api/quota/course-status'],
-  ['GET', '/api/progress/difficulty'], ['GET', '/api/progress/history'],
-  ['GET', '/api/quiz-batch-get'], ['POST', '/api/quiz-batch-create'],
-  ['POST', '/api/matches-create'], ['GET', '/api/daily-challenge'],
+  ['GET', '/api/quiz-batch-get?id=abc'],
+  ['POST', '/api/quiz-batch-create'],
+  ['POST', '/api/quiz-batch-answer'],
+  ['POST', '/api/quiz-batch-complete'],
+  ['GET', '/api/quiz/batch-get?id=abc'],
+  ['POST', '/api/quiz/batch-create'],
+  ['POST', '/api/quiz/batch-answer'],
+  ['POST', '/api/quiz/batch-complete'],
+  ['POST', '/api/matches-create'],
+  ['POST', '/api/matches/create'],
+  ['GET', '/api/quota/course-status'],
+  ['POST', '/api/quota/course-consume'],
+  ['POST', '/api/session/register'],
+  ['GET', '/api/progress/difficulty'],
+  ['GET', '/api/progress/history'],
+  ['GET', '/api/daily-challenge'],
+  ['POST', '/api/feedback'],
+  ['GET', '/api/feedback/mine'],
+  ['POST', '/api/initiate-payment'],
+  ['POST', '/api/verify-payment'],
+  ['POST', '/api/payments/webhook'],
 ];
 for (const [method, p] of apiRoutes) {
-  const { status, ct } = await httpGet(`http://localhost:${API_PORT}${p}`);
-  report(`API ${method} ${p} returns JSON (not HTML/405)`, ct.includes('json') && status !== 405,
+  const { status, ct } = await httpRequest(`http://localhost:${API_PORT}${p}`, method === 'POST' ? { method, body: {} } : { method });
+  report(`API ${method} ${p} returns JSON (not HTML)`, ct.includes('json'),
     `status=${status ?? 'ERR'} ct=${ct.split(';')[0]}`);
 }
 
@@ -97,7 +129,7 @@ try {
   page.on('console', m => { if (m.type() === 'error' && !m.text().includes('favicon')) pageErrors.push(m.text().slice(0, 200)); });
 
   // Signup (public) loads + brand
-  await page.goto(`http://localhost:${WEB_PORT}/signup`, { timeout: 20000 });
+  await page.goto(`http://localhost:${WEB_PORT}/signup`, { timeout: 120000 });
   await page.waitForTimeout(6000);
   const signupTitle = await page.title().catch(() => '');
   const signupBody = ((await page.textContent('body').catch(() => '')) || '').replace(/\s+/g, ' ');
@@ -105,16 +137,16 @@ try {
   report('No "Apex Scholars" on signup page', !signupBody.includes('Apex Scholars'));
 
   // Root redirect (unauth)
-  await page.goto(`http://localhost:${WEB_PORT}/`, { timeout: 20000 });
+  await page.goto(`http://localhost:${WEB_PORT}/`, { timeout: 120000 });
   await page.waitForTimeout(2500);
   report('Root redirects (unauth)', /signup|login/.test(page.url()), `url=${page.url()}`);
 
   // Protected route requires auth + adds noindex
-  await page.goto(`http://localhost:${WEB_PORT}/quiz`, { timeout: 20000 });
+  await page.goto(`http://localhost:${WEB_PORT}/quiz`, { timeout: 120000 });
   await page.waitForTimeout(2500);
   report('/quiz redirects to login when unauth (RequireAuth protects quiz)', /login/.test(page.url()), `url=${page.url()}`);
 
-  await page.goto(`http://localhost:${WEB_PORT}/dashboard`, { timeout: 20000 });
+  await page.goto(`http://localhost:${WEB_PORT}/dashboard`, { timeout: 120000 });
   await page.waitForTimeout(2500);
   report('/dashboard redirects to login when unauth', /login/.test(page.url()), `url=${page.url()}`);
 

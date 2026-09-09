@@ -22,6 +22,19 @@ if (!process.env.VITE_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
 
 const API_DIR = path.join(process.cwd(), 'api');
 
+// Mirrors the `rewrites` table in vercel.json so the legacy nested paths behave
+// identically on the local API server and on Vercel. Vercel only exposes
+// TOP-LEVEL api/*.js files as functions, so /api/quiz/batch-* etc. are rewritten
+// onto the flat route names here too.
+const REWRITES = [
+  { source: '/api/quiz/batch-create', destination: '/api/quiz-batch-create' },
+  { source: '/api/quiz/batch-get', destination: '/api/quiz-batch-get' },
+  { source: '/api/quiz/batch-answer', destination: '/api/quiz-batch-answer' },
+  { source: '/api/quiz/batch-complete', destination: '/api/quiz-batch-complete' },
+  { source: '/api/matches/create', destination: '/api/matches-create' },
+  { source: '/api/payments/webhook', destination: '/api/payments-webhook' },
+];
+
 const handlers = [];
 const walk = (dir) => {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
@@ -39,7 +52,11 @@ handlers.sort((a, b) => b.route.length - a.route.length);
 const server = http.createServer(async (req, res) => {
   const url = new URL(req.url, 'http://localhost');
   const pathname = url.pathname;
-  const handler = handlers.find(h => pathname === h.route || pathname.startsWith(h.route + '/'));
+  // Rewrite legacy nested paths onto their flat routes (same as Vercel). Only
+  // the path is remapped; query strings and req.url are preserved for dispatch.
+  const rewrite = REWRITES.find(r => pathname === r.source);
+  const effectivePath = rewrite ? rewrite.destination : pathname;
+  const handler = handlers.find(h => effectivePath === h.route || effectivePath.startsWith(h.route + '/'));
   if (!handler) {
     res.writeHead(404, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ error: 'Not found', path: pathname }));

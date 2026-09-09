@@ -1,5 +1,41 @@
 import { createClient } from '@supabase/supabase-js';
 
+// CORS / origin locking for the browser-facing API. The backend lives on the
+// same origin as the app in production (www.polynurse.com.ng), so cross-origin
+// calls are never legitimate from end users — block them instead of echoing
+// '*'. Server-to-server callers (scripts, the Paystack webhook, health checks)
+// send no Origin header and are always allowed; the webhook is additionally
+// authenticated by its x-paystack-signature.
+export const APP_ORIGINS = [
+  'https://www.polynurse.com.ng',
+  'https://polynurse.com.ng',
+  'http://localhost:5173',
+  'http://localhost:3001',
+];
+
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true; // non-browser caller (webhook, scripts, CURL)
+  if (APP_ORIGINS.includes(origin)) return true;
+  // Vercel preview deployments (feature branches) are served from *.vercel.app.
+  if (/^https:\/\/[a-z0-9-]+\.vercel\.app$/i.test(origin)) return true;
+  return false;
+};
+
+// Sets reflected CORS headers when the request is allowed. Returns false (and
+// sends no headers) when a browser origin is NOT on the allowlist, so the
+// handler can respond 403 before doing any work.
+export const applyCors = (req, res) => {
+  const origin = req.headers?.origin || req.headers?.Origin;
+  if (!isAllowedOrigin(origin)) return false;
+  if (origin) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Vary', 'Origin');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Session-Id');
+  }
+  return true;
+};
+
 // Service-role client for administrative server-side tasks.
 export const getSupabaseAdmin = () => {
   const url = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;

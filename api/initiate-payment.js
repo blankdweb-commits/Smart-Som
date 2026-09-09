@@ -4,11 +4,14 @@
 // authorization_url. On iOS/mobile Safari the injected inline popup iframe
 // is unreliable, so the client redirects to this URL, pays on Paystack's
 // hosted page, and Paystack redirects back to the callback (verify) URL.
-import { getSupabaseAdmin, getUserFromRequest } from './_utils.js';
+import { applyCors, getSupabaseAdmin, getUserFromRequest } from './_utils.js';
 
 const KOBOS = 100;
 
 export default async function handler(req, res) {
+  if (!applyCors(req, res)) {
+    return res.status(403).json({ error: 'FORBIDDEN_ORIGIN', message: 'This API is locked to the app domain.' });
+  }
   if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   const supabase = getSupabaseAdmin();

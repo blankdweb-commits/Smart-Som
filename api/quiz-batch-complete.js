@@ -1,5 +1,5 @@
 // ============================================================
-// POST /api/quiz/batch-complete
+// POST /api/quiz-batch-complete
 //
 // Marks a batch as completed and returns the final score.
 //
@@ -10,15 +10,14 @@
 // Returns: { success, score, total, answers }
 // ============================================================
 
-import { authorizeRequest } from './_utils.js';
+import { applyCors, authorizeRequest } from './_utils.js';
 import { QuestionSelectionService } from './questionSelectionService.js';
 import { getSupabaseAdmin } from './_utils.js';
 
 export default async function handler(req, res) {
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Session-Id');
-
+  if (!applyCors(req, res)) {
+    return res.status(403).json({ error: 'FORBIDDEN_ORIGIN', message: 'This API is locked to the app domain.' });
+  }
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }

@@ -14,7 +14,7 @@
 //                rounds_completed, window_expires_at, cooldown_remaining_seconds,
 //                is_ready }.
 // ============================================================
-import { getSupabaseAdmin, authorizeRequest } from './_utils.js';
+import { applyCors, getSupabaseAdmin, authorizeRequest } from './_utils.js';
 
 const courseStatus = async (req, res) => {
   const { user, status, body } = await authorizeRequest(req);
@@ -95,6 +95,9 @@ async function isPremium(userId, supabase) {
 }
 
 export default async function handler(req, res) {
+  if (!applyCors(req, res)) {
+    return res.status(403).json({ error: 'FORBIDDEN_ORIGIN', message: 'This API is locked to the app domain.' });
+  }
   const path = (req.url || '/').split('?')[0];
   if (req.method === 'GET' && path.endsWith('/course-status')) return courseStatus(req, res);
   if (req.method === 'POST' && path.endsWith('/course-consume')) return consume(req, res);

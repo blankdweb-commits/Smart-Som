@@ -11,28 +11,28 @@ The Controlled-Random Question Selection Engine is a **server-authoritative** sy
 │                    CLIENT (React SPA)                    │
 │                                                         │
 │  useQuizBatch hook                                      │
-│    ├─ createBatch()  → POST /api/quiz/batch-create      │
-│    ├─ fetchBatch()   → GET  /api/quiz/batch-get?id=     │
-│    ├─ recordAnswer() → POST /api/quiz/batch-answer      │
-│    └─ completeBatch()→ POST /api/quiz/batch-complete    │
+│    ├─ createBatch()  → POST /api/quiz-batch-create      │
+│    ├─ fetchBatch()   → GET  /api/quiz-batch-get?id=     │
+│    ├─ recordAnswer() → POST /api/quiz-batch-answer      │
+│    └─ completeBatch()→ POST /api/quiz-batch-complete    │
 └─────────────────────────┬───────────────────────────────┘
                           │ HTTPS (Bearer token auth)
 ┌─────────────────────────▼───────────────────────────────┐
 │                  API LAYER (Vercel Serverless)           │
 │                                                         │
-│  api/quiz/batch-create.js                               │
+│  api/quiz-batch-create.js                               │
 │    └─ QuestionSelectionService.createQuizBatch()        │
 │                                                         │
-│  api/quiz/batch-get.js                                  │
+│  api/quiz-batch-get.js                                  │
 │    └─ QuestionSelectionService.getBatch()               │
 │                                                         │
-│  api/quiz/batch-answer.js                               │
+│  api/quiz-batch-answer.js                               │
 │    └─ QuestionSelectionService.recordAnswer()           │
 │                                                         │
-│  api/quiz/batch-complete.js                             │
+│  api/quiz-batch-complete.js                             │
 │    └─ QuestionSelectionService.completeBatch()          │
 │                                                         │
-│  api/matches/create.js                                  │
+│  api/matches-create.js                                  │
 │    └─ QuestionSelectionService.createMatchBatch()       │
 └─────────────────────────┬───────────────────────────────┘
                           │ Service-role client

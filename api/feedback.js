@@ -9,7 +9,7 @@
 // GET /api/feedback/mine     → the caller's submissions.
 // (Admin review happens client-side against feedback_submissions + is_admin.)
 // ============================================================
-import { getSupabaseAdmin, authorizeRequest } from './_utils.js';
+import { applyCors, getSupabaseAdmin, authorizeRequest } from './_utils.js';
 
 const VALID_TYPES = new Set([
   'app_review',
@@ -69,6 +69,9 @@ const mine = async (req, res) => {
 };
 
 export default async function handler(req, res) {
+  if (!applyCors(req, res)) {
+    return res.status(403).json({ error: 'FORBIDDEN_ORIGIN', message: 'This API is locked to the app domain.' });
+  }
   const path = (req.url || '/').split('?')[0];
   if (req.method === 'POST' && path.endsWith('/feedback')) return submit(req, res);
   if (req.method === 'GET' && path.endsWith('/mine')) return mine(req, res);

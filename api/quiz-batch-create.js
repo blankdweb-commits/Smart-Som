@@ -1,5 +1,5 @@
 // ============================================================
-// POST /api/quiz/batch-create
+// POST /api/quiz-batch-create
 //
 // Creates a new quiz batch with server-authoritative question selection.
 // Transactional: reserves questions and records exposure atomically.
@@ -26,7 +26,7 @@
 // Returns: { batch, questions, meta } or a typed error.
 // ============================================================
 
-import { authorizeRequest, getSupabaseAdmin } from './_utils.js';
+import { applyCors, authorizeRequest, getSupabaseAdmin } from './_utils.js';
 import { QuestionSelectionService } from './questionSelectionService.js';
 
 const HTTP_ERRORS = {
@@ -70,11 +70,9 @@ const makeAttemptId = (clientProvided) =>
     : crypto.randomUUID();
 
 export default async function handler(req, res) {
-  // CORS headers
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
-  res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Session-Id');
-
+  if (!applyCors(req, res)) {
+    return res.status(403).json({ error: 'FORBIDDEN_ORIGIN', message: 'This API is locked to the app domain.' });
+  }
   if (req.method === 'OPTIONS') {
     return res.status(200).end();
   }

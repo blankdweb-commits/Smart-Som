@@ -9,7 +9,7 @@
 // POST /api/daily-challenge/complete
 //   Body: { score, total, question_ids }
 // ============================================================
-import { getSupabaseAdmin, authorizeRequest } from './_utils.js';
+import { applyCors, getSupabaseAdmin, authorizeRequest } from './_utils.js';
 
 const CHALLENGE_SIZE = 5;
 const HARDCODED_POOL = null; // resolved client-side; server returns ids only
@@ -150,6 +150,9 @@ const completeChallenge = async (req, res) => {
 };
 
 export default async function handler(req, res) {
+  if (!applyCors(req, res)) {
+    return res.status(403).json({ error: 'FORBIDDEN_ORIGIN', message: 'This API is locked to the app domain.' });
+  }
   const path = (req.url || '/').split('?')[0];
   if (req.method === 'GET' && path.endsWith('/daily-challenge')) return getChallenge(req, res);
   if (req.method === 'POST' && path.endsWith('/complete')) return completeChallenge(req, res);

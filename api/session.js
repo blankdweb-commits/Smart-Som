@@ -14,7 +14,7 @@
 //   GET  /api/session/devices  -> active device rows (masked)
 //   POST /api/session/revoke   -> body { session_id? , device_identifier? }
 // ============================================================
-import { getSupabaseAdmin, getUserFromRequest, getTokenFromRequest } from './_utils.js';
+import { applyCors, getSupabaseAdmin, getUserFromRequest, getTokenFromRequest } from './_utils.js';
 
 // Server-side session mode, cached briefly to avoid a DB hit every request.
 let modeCache = { value: null, at: 0 };
@@ -165,6 +165,9 @@ const revoke = async (req, res) => {
 };
 
 export default async function handler(req, res) {
+  if (!applyCors(req, res)) {
+    return res.status(403).json({ error: 'FORBIDDEN_ORIGIN', message: 'This API is locked to the app domain.' });
+  }
   const path = (req.url || '/').split('?')[0];
 
   if (req.method === 'POST' && path.endsWith('/register')) return register(req, res);

@@ -14,7 +14,7 @@
 // GET /api/progress/history
 //      Returns the user's seen question ids (for non-repetition).
 // ============================================================
-import { getSupabaseAdmin, authorizeRequest } from './_utils.js';
+import { applyCors, getSupabaseAdmin, authorizeRequest } from './_utils.js';
 
 const DIFFICULTY_ORDER = ['Easy', 'Moderate', 'Hard', 'Expert'];
 // Unlock thresholds (correct answers only) per the spec.
@@ -136,6 +136,9 @@ const getHistory = async (req, res) => {
 };
 
 export default async function handler(req, res) {
+  if (!applyCors(req, res)) {
+    return res.status(403).json({ error: 'FORBIDDEN_ORIGIN', message: 'This API is locked to the app domain.' });
+  }
   const path = (req.url || '/').split('?')[0];
   if (path.endsWith('/difficulty')) {
     if (req.method === 'GET') return getDifficulty(req, res);

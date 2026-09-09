@@ -27,9 +27,11 @@ This guide provides instructions for deploying the Polynurse Exam Center platfor
 3.  Note down your **Public Key** and **Secret Key**.
 4.  Set your **Webhook URL** to:
     `https://<your-live-domain>/api/payments/webhook`
-    (e.g. `https://myapexlaprat.vercel.app/api/payments/webhook`). This receives
-    real-time `charge.success` events so the subscription is activated even if
-    the user closes the page during checkout.
+    (e.g. `https://myapexlaprat.vercel.app/api/payments/webhook`). This URL is
+    preserved by a `vercel.json` rewrite and handled by the top-level
+    `api/payments-webhook.js` function. It receives real-time `charge.success`
+    events so the subscription is activated even if the user closes the page
+    during checkout.
 5.  Set your **Callback URL** to:
     `https://<your-live-domain>/payments/verify`
     (e.g. `https://myapexlaprat.vercel.app/payments/verify`). Users are
@@ -81,4 +83,4 @@ Next.js feature and are not supported by Vercel filesystem functions.
 
 *   Ensure **Row Level Security (RLS)** is enabled in Supabase (the setup script does this).
 *   Never expose `SUPABASE_SERVICE_ROLE_KEY` or `PAYSTACK_SECRET_KEY` to the frontend (prefixed with `VITE_`).
-*   Always verify `x-paystack-signature` in webhooks (handled in `api/payments/webhook.js`).
+*   Always verify `x-paystack-signature` in webhooks (handled in `api/payments-webhook.js`).

@@ -349,7 +349,7 @@ export class QuestionSelectionService {
 
     // The batch was reserved above; also return the full question rows so a
     // client that launches straight from batch-create has everything it needs
-    // (parity with getBatch). Keeps /api/quiz/batch-create authoritative for
+    // (parity with getBatch). Keeps /api/quiz-batch-create authoritative for
     // quiz launch without an extra round-trip.
     const questions = shuffledIds
       .map(id => candidates.find(q => q.id === id))
