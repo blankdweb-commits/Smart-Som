@@ -26,6 +26,7 @@
 // Returns: { batch, questions, meta } or a typed error.
 // ============================================================
 
+import crypto from 'crypto';
 import { applyCors, authorizeRequest, getSupabaseAdmin } from './_utils.js';
 import { QuestionSelectionService } from './questionSelectionService.js';
 

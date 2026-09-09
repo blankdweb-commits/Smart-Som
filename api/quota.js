@@ -14,6 +14,7 @@
 //                rounds_completed, window_expires_at, cooldown_remaining_seconds,
 //                is_ready }.
 // ============================================================
+import crypto from 'crypto';
 import { applyCors, getSupabaseAdmin, authorizeRequest } from './_utils.js';
 
 const courseStatus = async (req, res) => {
@@ -52,7 +53,7 @@ const consume = async (req, res) => {
   // Client-supplied idempotency key (replay-safe) — defaults to a fresh server
   // UUID so a replayed/burst request never double-charges. Also disambiguates
   // the v26 5-arg overload (p_request_id uuid default null) for PostgREST.
-  const requestId = String(req.body?.request_id || globalThis.crypto.randomUUID());
+  const requestId = String(req.body?.request_id || crypto.randomUUID());
 
   try {
     const { data, error } = await supabase.rpc('consume_course_quota', {

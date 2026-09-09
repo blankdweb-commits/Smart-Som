@@ -14,6 +14,7 @@
 // Each mode provides its own configuration via SELECTION_CONFIG.MODE_CONFIGS.
 // ============================================================
 
+import crypto from 'crypto';
 import { SELECTION_CONFIG as C } from './selectionConfig.js';
 
 // ============================================================
