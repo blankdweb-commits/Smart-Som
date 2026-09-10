@@ -29,7 +29,12 @@ export default defineConfig({
     allowedHosts: true
   },
   build: {
-    sourcemap: true,
+    // Production bundles must stay lean for Vercel upload/deploy. Source maps
+    // for the huge bundled question banks are not served in production (the
+    // deployed JS is public regardless), and they added ~7 MB of upload
+    // payload per deploy. Dev/type errors are still reported against source
+    // via Vite's own sourcemaps during `vite dev`.
+    sourcemap: false,
     rollupOptions: {
       output: {
         manualChunks(id) {
@@ -37,7 +42,13 @@ export default defineConfig({
             if (id.includes('pdfjs-dist') || id.includes('tesseract.js') || id.includes('mammoth')) return 'vendor-parsing';
             return 'vendor';
           }
-          if (id.includes('src/data/flashcards') || id.includes('src/data/loadFlashcards.js')) {
+          // Only the raw bank JSON lands in `flashcard-data`. loadFlashcards.js
+          // MUST stay in the default/entry chunk: AppContext imports it in the
+          // main graph, so grouping it here would drag the whole lazy bank chunk
+          // (≈16 MB) back onto the initial page load. Its glob uses dynamic
+          // import()s, so the JSON chunk is fetched on demand (after auth) and
+          // never by anonymous visitors.
+          if (id.includes('src/data/flashcards/')) {
             return 'flashcard-data';
           }
         }

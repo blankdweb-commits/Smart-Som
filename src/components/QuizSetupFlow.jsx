@@ -94,7 +94,8 @@ const QUIZ_CONFIGS = {
       'Reproductive Health',
       'Research Methodology',
       'Nutrition & Dietetics',
-      'Politics and Governance in Nursing'
+      'Politics and Governance in Nursing',
+      'Professional Writing and Seminar'
     ],
     questionCounts: [10, 20, 30],
     timerOptions: [
@@ -107,7 +108,7 @@ const QUIZ_CONFIGS = {
     allowOrderChoice: true,
     allowExamMode: true,
     defaultOrder: 'randomized',
-    bankNote: 'Questions available across 6 core subjects'
+    bankNote: 'Questions available across 7 core subjects'
   },
   'weakness-challenge': {
     title: 'Fix My Weak Areas',
@@ -135,8 +136,8 @@ const QUIZ_CONFIGS = {
     accentText: 'text-pink-400',
     accentBg: 'bg-pink-500/20 border-pink-500/30',
     subjects: [
-      'Principles of Management and Teaching',
       'Medical-Surgical Nursing II',
+      'Principles of Management & Teaching',
       'Child Health',
       'Home Health Care Nursing',
       'Entrepreneurship in Midwifery'
@@ -162,10 +163,10 @@ const QUIZ_CONFIGS = {
     accentBg: 'bg-teal-500/20 border-teal-500/30',
     subjects: [
       'Community Health II',
-      'Emergency and Disaster Nursing',
+      'Emergency & Disaster Nursing',
       'Medical-Surgical Nursing IV',
-      'Mental Health/Psychiatric Nursing',
-      'Quality Improvement in Healthcare and Patient Safety',
+      'Mental Health / Psychiatric Nursing',
+      'Quality Improvement, Healthcare & Patient Safety',
       'Reproductive Health III'
     ],
     questionCounts: [10, 20, 30],
@@ -188,12 +189,12 @@ const QUIZ_CONFIGS = {
     accentText: 'text-rose-400',
     accentBg: 'bg-rose-500/20 border-rose-500/30',
     subjects: [
-      'Neonatal Nursing',
+      'Quality Improvement, Healthcare & Patient Safety',
+      'Reproductive Health',
       'Research & Statistics',
-      'Quality Improvement, Patient Safety & Management',
-      'Complicated Midwifery & Obstetric Emergencies',
-      'Reproductive Health & Fertility',
-      'Family Planning'
+      'Neonatal Nursing / Infant II',
+      'Family Planning',
+      'Complicated Midwifery'
     ],
     questionCounts: [10, 20, 30],
     timerOptions: [
@@ -218,10 +219,10 @@ const QUIZ_CONFIGS = {
       'Normal Midwifery',
       'Community Midwifery',
       'Pharmacology in Midwifery',
-      'Anatomy & Physiology',
-      'Infant & Newborn Care',
-      'Ethics, Law & Professional Issues',
-      'Foundations of Midwifery Practice'
+      'Applied Anatomy & Physiology',
+      'Infant / Newborn Care',
+      'Fundamentals of Midwifery',
+      'Complicated Midwifery I'
     ],
     questionCounts: [10, 20, 30],
     timerOptions: [

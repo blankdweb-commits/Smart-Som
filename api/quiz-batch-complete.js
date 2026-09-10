@@ -11,7 +11,7 @@
 // ============================================================
 
 import { applyCors, authorizeRequest } from './_utils.js';
-import { QuestionSelectionService } from './questionSelectionService.js';
+import { QuestionSelectionService } from './_questionSelectionService.js';
 import { getSupabaseAdmin } from './_utils.js';
 
 export default async function handler(req, res) {

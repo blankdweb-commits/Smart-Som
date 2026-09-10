@@ -15,7 +15,7 @@
 // ============================================================
 
 import crypto from 'crypto';
-import { SELECTION_CONFIG as C } from './selectionConfig.js';
+import { SELECTION_CONFIG as C } from './_selectionConfig.js';
 
 // ============================================================
 // Canonical course metadata: maps client-facing courseKey prefixes to the
@@ -43,21 +43,42 @@ import { SELECTION_CONFIG as C } from './selectionConfig.js';
 // grouping chosen by the product owner after the DB granularity was audited;
 // totals reconcile exactly (midwifery300 = 2,764; midwifery200s2 = 2,245).
 // ============================================================
+// Spec-aligned canonical COURSE names (Phase 13/14 authoritative allowlist).
+// The DB keeps its fine-grained unit subject_ids; each canonical course maps to
+// exactly the subject_id values that belong to it. Every DB subject appears in
+// exactly one group — nothing is dropped.
+const NURSING_300_GROUPS = {
+  'Reproductive Health III': ['Reproductive Health III'],
+  'Quality Improvement, Healthcare & Patient Safety': ['Quality Improvement in Healthcare and Patient Safety'],
+  'Mental Health / Psychiatric Nursing': ['Mental Health/Psychiatric Nursing'],
+  'Medical-Surgical Nursing IV': ['Medical-Surgical Nursing IV'],
+  'Community Health II': ['Community Health II'],
+  'Emergency & Disaster Nursing': ['Emergency and Disaster Nursing'],
+};
+
+const MIDWIFERY_200_GROUPS = {
+  'Medical-Surgical Nursing II': ['Medical-Surgical Nursing II'],
+  'Principles of Management & Teaching': ['Principles of Management and Teaching'],
+  'Child Health': ['Child Health'],
+  'Home Health Care Nursing': ['Home Health Care Nursing'],
+  'Entrepreneurship in Midwifery': ['Entrepreneurship in Midwifery'],
+};
+
 const MIDWIFERY_300_GROUPS = {
-  'Neonatal Nursing': ['Neonatal Nursing'],
+  'Neonatal Nursing / Infant II': ['Neonatal Nursing'],
   'Research & Statistics': ['Research and Statistics', 'Data Collection'],
-  'Quality Improvement, Patient Safety & Management': [
+  'Quality Improvement, Healthcare & Patient Safety': [
     'Quality Improvement in Healthcare and Patient Safety',
     'Clinic Management',
   ],
-  'Complicated Midwifery & Obstetric Emergencies': [
+  'Complicated Midwifery': [
     'Complications of Puerperium',
     'Obstetric Emergencies and Life-Saving Skills',
     'Complications in Pregnancy and Childbirth',
     'Preventive Strategies of Risk Conditions',
     'Midwifery Procedures',
   ],
-  'Reproductive Health & Fertility': ['Reproductive Health Conditions', 'Introduction to Fertility'],
+  'Reproductive Health': ['Reproductive Health Conditions', 'Introduction to Fertility'],
   'Family Planning': ['Family Planning Methods', 'Introduction to Family Planning'],
 };
 
@@ -65,25 +86,23 @@ const MIDWIFERY_200_S2_GROUPS = {
   'Normal Midwifery': ['Midwifery'],
   'Community Midwifery': ['Community Midwifery'],
   'Pharmacology in Midwifery': ['Pharmacology in Midwifery'],
-  'Anatomy & Physiology': ['Applied Anatomy and Physiology'],
-  'Infant & Newborn Care': [
+  'Applied Anatomy & Physiology': ['Applied Anatomy and Physiology'],
+  'Infant / Newborn Care': [
     'The Newborn',
     'Newborn Assessment & Resuscitation',
     'Subsequent Care of the Newborn',
     'Newborn Feeding',
     'Discharge and Follow-up Care',
   ],
-  'Ethics, Law & Professional Issues': [
+  'Fundamentals of Midwifery': [
+    'Introduction to Midwifery Practice',
+    'Theories and Concepts',
+    'Quality Improvement in Midwifery Practice',
     'Contemporary Legal Issues',
     'The Law and the Midwife',
     'Ethics in Midwifery Practice',
   ],
-  'Foundations of Midwifery Practice': [
-    'Introduction to Midwifery Practice',
-    'Theories and Concepts',
-    'Quality Improvement in Midwifery Practice',
-    'Complicated midwifery',
-  ],
+  'Complicated Midwifery I': ['Complicated midwifery'],
 };
 
 const COURSE_METADATA = {
@@ -91,8 +110,8 @@ const COURSE_METADATA = {
   'quick-quiz': { dbCourseIdByFramework: { NCLEX: 'nclex', NMCN: 'nmcn' } },
   'uselu-test': { dbCourseId: 'uselu' },
   'nursing-200': { dbCourseId: 'nursing200', hasSubjects: true },
-  'midwifery-200': { dbCourseId: 'midwifery', hasSubjects: true },
-  'nursing-300': { dbCourseId: 'nursing300', hasSubjects: true },
+  'midwifery-200': { dbCourseId: 'midwifery', hasSubjects: true, subjectGroups: MIDWIFERY_200_GROUPS },
+  'nursing-300': { dbCourseId: 'nursing300', hasSubjects: true, subjectGroups: NURSING_300_GROUPS },
   'midwifery-300': { dbCourseId: 'midwifery300', hasSubjects: true, subjectGroups: MIDWIFERY_300_GROUPS },
   'midwifery-200-s2': { dbCourseId: 'midwifery200s2', hasSubjects: true, subjectGroups: MIDWIFERY_200_S2_GROUPS },
   'weakness-challenge': { aggregate: true },

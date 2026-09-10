@@ -40,7 +40,9 @@ const walk = (dir) => {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) walk(full);
-    else if (entry.name.endsWith('.js') && entry.name !== '_utils.js') {
+    // Skip support modules: Vercel ignores files starting with `_` in api/, so
+    // they are never HTTP handlers (mirrored here for faithful local parity).
+    else if (entry.name.endsWith('.js') && !entry.name.startsWith('_')) {
       const rel = path.relative(API_DIR, full).replace(/\\/g, '/').replace(/\.js$/, '');
       handlers.push({ route: `/api/${rel}`, file: full });
     }
@@ -58,6 +60,27 @@ const server = http.createServer(async (req, res) => {
   const effectivePath = rewrite ? rewrite.destination : pathname;
   const handler = handlers.find(h => effectivePath === h.route || effectivePath.startsWith(h.route + '/'));
   if (!handler) {
+    // Delegate unmatched /api/* to the SAME not-found.js handler Vercel routes
+    // to via its `/api/:path* -> /api/not-found` rewrite, so local and prod
+    // reply with an identical JSON 404 (never the SPA HTML).
+    try {
+      const mod = await import(pathToFileURL(path.join(API_DIR, 'not-found.js')).href + `?t=${Date.now()}`);
+      const fn = mod.default || mod.handler;
+      if (typeof fn === 'function') {
+        const fallbackRes = {
+          _status: 404,
+          status(code) { this._status = code; return this; },
+          json(payload) {
+            if (!res.headersSent) res.writeHead(this._status || 404, { 'Content-Type': 'application/json' });
+            res.end(JSON.stringify(payload));
+          },
+          setHeader: (k, v) => res.setHeader(k, v),
+          end: (s) => res.end(s)
+        };
+        await fn(req, fallbackRes);
+        return;
+      }
+    } catch { /* fall through to the lean fallback below */ }
     res.writeHead(404, { 'Content-Type': 'application/json' });
     return res.end(JSON.stringify({ error: 'Not found', path: pathname }));
   }

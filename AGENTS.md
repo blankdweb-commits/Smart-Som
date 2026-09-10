@@ -1,6 +1,40 @@
 # Apex Scholars ? Working notes
 
-## Current task: dashboard cleanup + Vercel API deploy fix (DONE, Sep 9 2026)
+## Current task: Vercel deploy hardening + bundle/payload + course-seed + test/doc (DONE in-code, Sep 10 2026; deploy itself PENDING)
+
+### Deployment root-cause fixes (the "built OK → failed at Deploying outputs" session)
+- **HTML-as-JSON for /api**: unmatched `/api/*` fell through to the SPA fallback. Added `api/not-found.js` (JSON 404: `{ok:false,error:{code:'NOT_FOUND',...},path}`) + rewrite `/api/:path* → /api/not-found` BEFORE `/:path* → /index.html` (now last). Removed the old self-loop `/api/:path* → /api/:path*` from `vercel.json`.
+- **Non-handler modules deployed as fake functions**: renamed `api/questionSelectionService.js` → `api/_questionSelectionService.js` and `api/selectionConfig.js` → `api/_selectionConfig.js` (git mv). All imports updated (`./_questionSelectionService.js` in matches-create + 4 quiz-batch handlers; `./_selectionConfig.js` inside the service). `scripts/serve-api.mjs` now skips ALL `_`-prefixed api files (was only `_utils.js`) and delegates unmatched `/api/*` to the same `api/not-found.js` so local == prod 404 body. Verified: unmatched route → same JSON contract; quota/batch|create|get → 401 JSON.
+- **vercel.json hardened**: explicit `buildCommand/npm run build`, `installCommand/npm install`, `outputDirectory/dist`, `functions: {"api/*.js": {runtime:"nodejs20.x"}}`. Legacy flat rewrites kept.
+- **Payload**: `vite.config.js` `sourcemap:false` (was 7 MB of maps). `src/data/loadFlashcards.js` glob → **lazy** (`import.meta.glob('./flashcards/**/*.json')` no eager) + memoized `loadAllBuiltInFlashcards()`; `allBuiltInFlashcards` now `[]` compat-only. `AppContext.jsx` initializes `flashcards` from custom + hydrates built-ins **only after auth** (gated on `session?.access_token`, `builtInHydratedRef`, dedupe merge). **KEY: manualChunks `/flashcard-data` now matches only `src/data/flashcards/` — `loadFlashcards.js` must NOT join that chunk (AppContext statically imports it in the entry; grouping it dragged the whole 15.6 MB chunk back into `index.html`).** After the fix `dist/index.html` = index + vendor only (~1.6 MB refs); anonymous visitors never download the banks. Built OK (39.9s), lint 0 err/36 warn.
+- **`npm run verify:deploy` (`scripts/verify-deploy-config.mjs`, NEW)**: 41/41 PASS — rewrite backing/SPA-order/no-self-loop/runtime, api handler-exports + `_`-prefix + nested-dirs removed, serve-api parity, lazy glob + sourcemap + manualChunk + dist-HTML assertions, error-code set. Run `node scripts/verify-deploy-config.mjs`.
+
+### Course catalogue (Phase 13/14) — allowlist verified + Professional Writing seeded
+- Verified live per-subject active counts for every allowlist course (documented in `docs/COURSE_CATALOGUE.md`). All groups resolve via `subjectGroups` (DB holds granular ids for 300/s2) or direct suffix (nursing-200).
+- **`scripts/seed-nursing200-professional-writing.mjs` (APPLIED, 150/150)**: `200level questions.json` `Professional Writing and Seminar in Nursing` → DB `subject_id 'Professional Writing and Seminar'`, `course_id 'nursing200'`, id `n200x-pws-<id>`, obeys seed-questions normalizer. nursing200 now has all 7 UI subjects (97/68/200/350/600/432/150).
+- **Caveat**: `Complicated Midwifery I` (midwifery200s2) has only 2 source rows in DB → rounds launch with 2 questions, cannot fill 10/20/30. Data limitation, not engine bug; do NOT map 300-level complications into the s2 pool (fail-closed).
+- `nclex`→`exam_framework='NCLEX'`, `nmcn`→`'NMCN'` pinned; `:both` spans both banks (framework constraint dropped).
+
+### Phase 18 error contract
+- `src/hooks/useQuizBatch.js` `classifyBatchError()` → stable codes (NETWORK_ERROR/API_MISROUTED/SERVER_ERROR/UNAUTHORIZED/QUOTA_EXHAUSTED/DIFFICULTY_LOCKED/INVALID_REQUEST); createBatch failure now always returns a non-null message (fixes "no error details null"). `Quiz.jsx` renders code-specific messages.
+
+### SECURITY FINDING — RPC surface OPEN (high priority, needs user action)
+- Live anon(publishable)-key probe: `get_course_quota_status(user_id)` **returns data**, `get_difficulty_status(user_id,course_key)` **EXPOSED**, `consume_course_quota(...)` **resolvable by anon** (failed only on malformed `request_id` uuid = type error, not permission). So clients can forge rounds/read others' quota until locked.
+- **`scripts/migration-v28-server-only-rpcs.sql` READY but NOT applied** — `.env` `SUPABASE_ACCESS_TOKEN` 401'd this session (Management API PAT stale, per prior DDL note). User must refresh the `sbp_` token, then `node scripts/run-migration.mjs scripts/migration-v28-server-only-rpcs.sql`, then re-probe: the 3 RPCs must reply insufficient_privilege while serverless flow still works (service_role unaffected).
+
+### Env audit
+- `GEMINI_API_KEY`/`VITE_GEMINI_API_KEY` referenced by **no code** (generate-question deleted in Phase 6). `.env.example` updated: added `SUPABASE_ACCESS_TOKEN` placeholder + warning to remove stale `VITE_GEMINI_API_KEY` from `.env` and Vercel env.
+
+### Docs added (docs/)
+- `VERCEL_DEPLOYMENT_ARCHITECTURE.md` (root-cause, routing, bundle strategy, redeploy checklist), `QUIZ_SECURITY_AUDIT.md` (authority matrix + v28 finding + remediation), `COURSE_CATALOGUE.md` (allowlist tables + live counts + caveat), `QUOTA_SYSTEM.md` (atomicity/idempotency/refund + exposure warning), `QUIZ_TEST_PLAN.md` (automated/smoke/DB/e2e/post-deploy matrix + status).
+
+### Remaining (user/manual)
+1. Refresh `SUPABASE_ACCESS_TOKEN` and apply v28 (see above).
+2. Set Vercel env (VITE_SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, PAYSTACK_SECRET_KEY, VITE_PAYSTACK_PUBLIC_KEY, APP_URL; remove VITE_GEMINI_API_KEY), commit+push, redeploy.
+3. Post-deploy probe (`/api/quiz-batch-get?id=x` → 401 JSON, `/api/nonexistent` → 404 JSON). The "Deploying outputs..." failure could NOT be reproduced locally (no vercel CLI auth) — do not close that item until a green deploy is observed.
+4. Browser e2e suites on the dev box (scripts/e2e-*.mjs / npm run e2e:*).
+
+## Previous: dashboard cleanup + Vercel API deploy fix (DONE, Sep 9 2026)
 
 ### Dashboard cleanup (Course Rounds + Subject Mastery removed)
 - `src/pages/Dashboard.jsx`: removed the **Course Rounds / 10-per-hour** card (`CourseQuotaCard` usage + its whole definition) and the **Subject Mastery** section. Also deleted the now-unused `subjectProgress` memo, the on-mount `fetchCourseQuotaStatus()` effect, the `courseQuota`/`isPremium`/`fetchCourseQuotaStatus` context destructures, and the now-unused `Star` icon import. Quiz setup/`CourseList.jsx` cooldown chips are untouched — this only affects the home dashboard. Dashboard chunk 49.2 kB → 44.7 kB.

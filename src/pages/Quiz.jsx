@@ -524,7 +524,13 @@ const Quiz = () => {
           cfg,
           unavailable: true,
           type: 'error',
-          message: "We couldn't start this quiz right now. Please try again.",
+          message: info?.code === 'NETWORK_ERROR'
+            ? 'Network connection failed. Check your connection and try again.'
+            : info?.code === 'API_MISROUTED'
+              ? 'The API is not responding on this deployment yet. Please try again shortly.'
+              : info?.code === 'UNAUTHORIZED'
+                ? 'Your session expired. Please sign in again.'
+                : "We couldn't start this quiz right now. Please try again.",
         });
       }
       return;

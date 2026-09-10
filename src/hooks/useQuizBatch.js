@@ -36,6 +36,55 @@ const toPlayerQuestion = (q) => {
 
 const normalizeQuestions = (list) => (list || []).map(toPlayerQuestion);
 
+// Classify a failed /api/quiz-batch-create response into a stable, user-facing
+// error code + message. The server error body is authoritative when present;
+// transport problems (network down, gateway, misrouted HTML) are detected here
+// so the UI never shows "no error details".
+const classifyBatchError = (result, fallbackCourseKey) => {
+  const isNetwork = result.networkError === true || result.status === 0;
+  const isHtml = !isNetwork && !!result.contentType && result.contentType.includes('html');
+  const status = result.status;
+
+  let code = result.data?.error || result.body?.error || null;
+  let message = result.data?.message || result.data?.error || null;
+
+  if (isNetwork) {
+    code = 'NETWORK_ERROR';
+    message = message || 'Network connection failed. Check your connection and try again.';
+  } else if (isHtml) {
+    // Almost always a misrouted deploy: /api/* fell through to the SPA shell.
+    code = 'API_MISROUTED';
+    message = 'The API is not responding as expected on this deployment. Please try again shortly.';
+  } else if (status >= 500) {
+    code = 'SERVER_ERROR';
+    message = message || 'The server hit an unexpected error. Please try again.';
+  } else if (status === 401) {
+    code = 'UNAUTHORIZED';
+    message = message || 'Your session is no longer valid. Please sign in again.';
+  } else if (status === 403 && (result.data?.code === 'DIFFICULTY_LOCKED')) {
+    message = message || 'This difficulty is still locked for this course.';
+  } else if (status === 403) {
+    code = result.data?.code || 'QUOTA_EXHAUSTED';
+    message = message || 'This course is currently on cooldown or out of rounds.';
+  } else if (status === 400) {
+    code = result.data?.code || 'INVALID_REQUEST';
+    message = message || 'This request could not be validated by the server.';
+  } else {
+    code = code || 'SERVER_ERROR';
+    message = message || 'Could not start this quiz right now.';
+  }
+
+  return {
+    status: status ?? null,
+    code,
+    message,
+    cooldown_remaining_seconds: result.data?.cooldown_remaining_seconds ?? null,
+    window_expires_at: result.data?.window_expires_at ?? null,
+    lockedDifficulty: result.data?.lockedDifficulty ?? null,
+    courseKey: result.data?.courseKey ?? fallbackCourseKey,
+  };
+};
+
 export function useQuizBatch() {
   const { session, callApexApi } = useAppContext();
   const [loading, setLoading] = useState(false);
@@ -83,23 +132,13 @@ export function useQuizBatch() {
       });
 
       if (!result.ok) {
-        const d = result.data || {};
-        const errMsg = d.message || d.error || 'Failed to create quiz batch';
-        const info = {
-          status: result.status,
-          code: d.error || null,
-          message: errMsg,
-          cooldown_remaining_seconds: d.cooldown_remaining_seconds ?? null,
-          window_expires_at: d.window_expires_at ?? null,
-          lockedDifficulty: d.lockedDifficulty ?? null,
-          courseKey: d.courseKey ?? courseKey,
-        };
-        setError(errMsg);
+        const info = classifyBatchError(result, courseKey);
+        setError(info.message);
         setErrorInfo(info);
         setLoading(false);
         // Return the failure inline so callers never read the (still stale)
         // state snapshot from the same render.
-        return { success: false, error: errMsg, errorInfo: info };
+        return { success: false, error: info.message, errorInfo: info };
       }
 
       const data = result.data;

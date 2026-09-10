@@ -1,4 +1,22 @@
-const modules = import.meta.glob('./flashcards/**/*.json', { eager: true });
+// Lazily-loaded built-in SRS flashcards.
+//
+// THE PROBLEM (bundle bloat / data-protection): previously this module used
+// `import.meta.glob('./flashcards/**/*.json', { eager: true })`, which forced
+// every bundled question bank (≈15–16 MB of JSON) into a single eagerly-loaded
+// chunk that every page — including the anonymous login screen — had to
+// download and parse at startup. That is also why protected bank content shipped
+// to the browser before a user ever authenticated.
+//
+// THE FIX: the glob is now lazy. The data only loads when the app is
+// authenticated (see AppContext hydration effect) and requests it, so:
+//   * anonymous visitors never download the protected banks at all, and
+//   * the bundle is moved out of the initial JS graph into a fetch-on-demand
+//     chunk that the browser can cache.
+//
+// NOTE: this is a *shipping/performance* fix. Client-bundled question banks are
+// still technically inspectable once loaded by an authenticated client — server
+// RLS/RPC + feature gating remain the real authority for access control.
+const modules = import.meta.glob('./flashcards/**/*.json');
 
 const processModule = (path, module) => {
   const parts = path.split('/');
@@ -77,10 +95,31 @@ const processModule = (path, module) => {
   });
 };
 
-export const allBuiltInFlashcards = Object.entries(modules).flatMap(([path, module]) => {
-  return processModule(path, module);
-}).filter((card, index, self) =>
-  index === self.findIndex((t) => (
-    t.question === card.question && t.answer === card.answer
-  ))
-);
+const dedupe = (cards) =>
+  cards.filter((card, index, self) =>
+    index === self.findIndex((t) => (
+      t.question === card.question && t.answer === card.answer
+    ))
+  );
+
+let builtInCardsPromise = null;
+
+// Loads ALL bundled flashcards exactly once (memoized). Returns the full
+// deduplicated array. The lazy glob means the JSON is fetched as a separate
+// chunk on first authenticated need instead of blocking the initial route.
+export const loadAllBuiltInFlashcards = () => {
+  if (!builtInCardsPromise) {
+    builtInCardsPromise = Promise.all(
+      Object.entries(modules).map(async ([path, load]) => {
+        const module = await load();
+        return processModule(path, module);
+      })
+    ).then((all) => dedupe(all.flat()));
+  }
+  return builtInCardsPromise;
+};
+
+// Backwards-compatible sync export. DO NOT import this from the main route
+// graph — it stays empty until the async loader above resolves. Use
+// loadAllBuiltInFlashcards() instead.
+export const allBuiltInFlashcards = [];

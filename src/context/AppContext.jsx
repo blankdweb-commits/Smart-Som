@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { initialFlashcards } from '../data/initialData';
-import { allBuiltInFlashcards } from '../data/loadFlashcards';
+import { loadAllBuiltInFlashcards } from '../data/loadFlashcards';
 import { CURRICULUM_MASTER } from '../data/curriculumMaster';
 import { supabase } from '../utils/supabase';
 import { authHeaders } from '../utils/apiHeaders';
@@ -153,7 +153,7 @@ export function AppProvider({ children }) {
   const [session, setSession] = useState(null);
   const [loadingAuth, setLoadingAuth] = useState(true);
 
-  const [flashcards, setFlashcards] = useState([...initialFlashcards, ...allBuiltInFlashcards]);
+  const [flashcards, setFlashcards] = useState([...initialFlashcards]);
   const [exams, setExams] = useState([]);
   const [soundEnabled, setSoundEnabled] = useState(() => {
     const saved = safeGet('soundEnabled', { parsed: true });
@@ -1102,6 +1102,34 @@ export function AppProvider({ children }) {
 
     return () => { if (subscription) subscription.unsubscribe(); };
   }, []);
+
+  // ---- Built-in flashcard hydration (on-demand) ----
+  // The bundled question banks (~15–16 MB) are loaded lazily and ONLY for
+  // authenticated users, never for anonymous visitors on the login screen. The
+  // card array starts with the small `initialFlashcards` seed and is merged in
+  // asynchronously once a session exists. All consumers read the same context
+  // state, so nothing else needs to change.
+  const builtInHydratedRef = React.useRef(false);
+  useEffect(() => {
+    if (!session?.access_token) return;
+    if (builtInHydratedRef.current) return;
+    builtInHydratedRef.current = true;
+    let cancelled = false;
+    loadAllBuiltInFlashcards()
+      .then((cards) => {
+        if (cancelled || !cards?.length) return;
+        // Merge once; never re-add on re-auth of the same mount.
+        setFlashcards(prev => {
+          const existing = new Set(prev.map(c => `${c.question}|${c.answer}`));
+          const missing = cards.filter(c => !existing.has(`${c.question}|${c.answer}`));
+          return missing.length ? [...prev, ...missing] : prev;
+        });
+      })
+      .catch((err) => {
+        console.warn('Built-in flashcards failed to load:', err?.message || err);
+      });
+    return () => { cancelled = true; };
+  }, [session?.access_token]);
 
   // ---------------- Command Center helpers ----------------
 
