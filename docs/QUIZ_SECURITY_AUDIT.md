@@ -74,6 +74,34 @@ codes surfaced by `Quiz.jsx`:
 returns a non-null user-facing message (fixes the old
 `create failed with no error details null`).
 
+## Cooldown-bypass investigation (Sep 10 2026) — no server bypass; client fail-open gaps closed
+
+Reported: "users can open a course on cooldown." Audit result: **no
+client-side active-quiz bypass exists in the current source** — the player
+opens at exactly one `setPlayerActive(true)` call, immediately after a
+successful server batch-create, and the server rejects during cooldown (403
+`QUOTA_EXHAUSTED`, re-proven live). The remaining fail-open edges were all
+display/preflight and were hardened:
+
+1. **Status chips could claim "Ready" when the quota fetch failed** — absence
+   of a quota map read as `ready:true`. AppContext now exposes
+   `courseQuotaAvailable` (false until a successful `GET /api/quota/course-status`),
+   and chips render a "Couldn't verify" error state instead.
+2. **Cooldown modal Start trusted `Date.now()`** — at countdown zero the
+   frontend re-fetches course status and enables Start only on server
+   `is_ready === true`; a failed re-fetch fails closed with a retry button.
+3. **Dead retry landmine** — `retrySameSession` passed `{ skipQuota: true }`;
+   removed; retry re-runs the full authorized batch-create under the same
+   idempotency key.
+4. **DailyChallengeWidget over-block** — a successful free consume returns
+   `is_ready:false`, so the old `allowed||is_ready` gate locked the FIRST round;
+   gates on `allowed` only and surfaces a visible fail-closed message on
+   network failure.
+
+Net effect: entry still requires a fresh server batch-create; the UI can no
+longer make cooldown state appear "ready" or a device clock appear authoritative,
+and nothing suggests a quota-skip path.
+
 ## Key takeaways
 
 - Never put the service-role key or Paystack secret behind a `VITE_` prefix

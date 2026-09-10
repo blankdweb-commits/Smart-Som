@@ -204,6 +204,10 @@ export function AppProvider({ children }) {
   // Per-course round quota (v13): { [courseKey]: { questions_used, rounds_completed,
   //   last_round_completed_at, window_expires_at, cooldown_remaining_seconds, is_ready } }
   const [courseQuota, setCourseQuota] = useState({});
+  // True once a quota-status fetch has SUCCEEDED for the current session. While
+  // false (first load or a network/API failure) the course rows must not claim a
+  // course is "Ready" — availability is unknown, so surface a retry instead.
+  const [courseQuotaAvailable, setCourseQuotaAvailable] = useState(false);
   const [difficultyProgress, setDifficultyProgress] = useState(null); // { [courseKey]: [...], __aggregate: [...] }
   const [userAchievements, setUserAchievements] = useState([]);
   // Today's daily goal state — driven by the Daily Challenge widget. Powers the
@@ -1088,6 +1092,7 @@ export function AppProvider({ children }) {
         setLevelCompletions({});
         setQuizHistory([]);
         setCourseQuota({});
+        setCourseQuotaAvailable(false);
         setDifficultyProgress(null);
         setUserAchievements([]);
         setDailyChallengeDone(false);
@@ -1232,16 +1237,27 @@ export function AppProvider({ children }) {
     [userProfile.subscriptionStatus]
   );
 
-  // ---- Per-course round quota (v13): free = 10 Q / 1h cooldown per course ----
+  // ---- Per-course round quota (v13): free = 10 Q / 30-min cooldown per course ----
   // Server-authoritative: we only mirror what the server RPCs return. No local
   // arithmetic, no optimistic updates, nothing a manipulated client could fake.
+  // FAIL-CLOSED: `courseQuotaAvailable` is true ONLY after a successful fetch, so
+  // course rows can never claim availability on a stale/empty quota map.
   const fetchCourseQuotaStatus = useCallback(async (sess = session) => {
-    if (!sess?.access_token) return;
+    if (!sess?.access_token) {
+      setCourseQuotaAvailable(false);
+      return;
+    }
     const { ok, data } = await callApexApi('/api/quota/course-status', {
       method: 'GET',
       headers: apexHeaders(sess)
     });
-    if (ok && data) setCourseQuota(data.subjects || {});
+    if (ok && data) {
+      setCourseQuota(data.subjects || {});
+      setCourseQuotaAvailable(true);
+      return data.subjects || {};
+    }
+    setCourseQuotaAvailable(false);
+    return null;
   }, [session?.access_token, apexHeaders]);
 
   // Reserve a round for a course. FREE users are charged exactly 10 questions +
@@ -1609,6 +1625,7 @@ fetchCourseQuotaStatus();
     setQuizHistory([]);
     setLearningAnalytics({ weakTopics: [], weakConcepts: [], totalAttempts: 0, recommendedRevision: [], dailyChallenge: { id: null, question: '', answer: '', completed: false, lastDate: null } });
     setCourseQuota({});
+    setCourseQuotaAvailable(false);
     setDifficultyProgress(null);
     setUserAchievements([]);
     setDailyChallengeDone(false);
@@ -1679,7 +1696,7 @@ fetchCourseQuotaStatus();
       identity, identityProgress, identityUnlock, dismissIdentityUnlock, refreshIdentityUnlock,
       // ---- Command Center exports ----
       callApexApi, SC_FEATURE_LOCKED, isPremium,
-      courseQuota, fetchCourseQuotaStatus, consumeCourseQuota,
+      courseQuota, courseQuotaAvailable, fetchCourseQuotaStatus, consumeCourseQuota,
       difficultyProgress, fetchDifficultyStatus, recordAnsweredBatch,
       userAchievements, fetchAchievements, syncAchievements,
       dailyChallengeDone, markDailyChallengeDone,

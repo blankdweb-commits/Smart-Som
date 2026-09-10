@@ -82,6 +82,9 @@ const DailyChallengeWidget = () => {
   // (`daily-challenge` key). Blocked starts render a centered notification.
   const [cooldown, setCooldown] = useState(null); // { seconds, expiresAt }
   const [tickNow, setTickNow] = useState(Date.now());
+  // FAIL-CLOSED: shown when the server could not confirm availability (network
+  // hiccup, API 5xx) so the CTA never silently reads as startable.
+  const [startBlockedMsg, setStartBlockedMsg] = useState(null);
 
   useEffect(() => {
     if (!cooldown) return undefined;
@@ -92,10 +95,19 @@ const DailyChallengeWidget = () => {
   // Server-authoritative start: reserve the daily-challenge round FIRST, then
   // unlock the questions. A blocked round shows the centered cooldown notice.
   const startChallenge = async () => {
+    setStartBlockedMsg(null);
     if (!isPremium && session?.access_token) {
       const res = await consumeCourseQuota('daily-challenge', CHALLENGE_SIZE, session);
-      if (!res) return; // network hiccup — stay on the CTA, nothing charged
-      if (res.allowed === false || res.is_ready === false) {
+      if (!res) {
+        // Network/API/Supabase failure: FAIL CLOSED — nothing charged, but the
+        // CTA must not pretend the round is ready.
+        setStartBlockedMsg("We couldn't verify availability right now. Please try again.");
+        return;
+      }
+      // Gate on `allowed === false` ONLY. A successful free consume returns
+      // `is_ready:false` (the normal post-round state), so a `is_ready` gate
+      // would lock the FIRST ever round — this mirrors the Quiz.jsx fix.
+      if (res.allowed === false) {
         const seconds = Number(res.cooldown_remaining_seconds) || 0;
         setCooldown({
           seconds,
@@ -302,9 +314,14 @@ const DailyChallengeWidget = () => {
                 Start Challenge <ChevronRight size={14} />
               </button>
               {!isPremium && (
-                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Free: 1 round / hour</span>
+                <span className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Free: 1 round every 30 minutes</span>
               )}
             </div>
+            {startBlockedMsg && (
+              <div className="mt-3 rounded-xl bg-amber-500/10 border border-amber-500/30 text-amber-700 dark:text-amber-300 text-xs font-semibold px-3 py-2.5">
+                {startBlockedMsg}
+              </div>
+            )}
           </div>
         </div>
       </>

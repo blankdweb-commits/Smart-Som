@@ -267,6 +267,63 @@ let passed = 0;
 }
 
 // ---------------------------------------------------------------------------
+// 6. FAIL-CLOSED quiz authorization invariants (static source assertions).
+// ---------------------------------------------------------------------------
+{
+  const qz = read(resolve(ROOT, 'src/pages/Quiz.jsx'));
+  const app = read(resolve(ROOT, 'src/context/AppContext.jsx'));
+  const dcw = read(resolve(ROOT, 'src/components/DailyChallengeWidget.jsx'));
+
+  // Single authoritative entry: the active player may only be switched on ONCE
+  // (immediately after a successful server batch-create replies).
+  checks.push(
+    (qz.match(/setPlayerActive\(true\)/g) || []).length === 1
+      ? ok('Quiz.jsx opens the player at exactly ONE place (server-batch-gated)')
+      : fail('Quiz.jsx setPlayerActive(true) count !== 1 — a second entry path exists'),
+  );
+  checks.push(
+    /const ready\s*=\s*isCooldown\s*&&\s*!!\(cooldownVerified/.test(qz)
+      ? ok('Quiz.jsx cooldown Start is enabled only after server re-verification')
+      : fail('Quiz.jsx cooldown Start still relies on the client countdown'),
+  );
+  checks.push(
+    /rowStatus\s*=\s*\(courseId,\s*subject,\s*courseQuota,\s*quotaAvailable\)/.test(qz)
+      ? ok('Quiz.jsx rowStatus is quota-availability aware (fail-closed chips)')
+      : fail('Quiz.jsx rowStatus still treats absence as ready'),
+  );
+  checks.push(
+    /const StatusChip\s*=\s*\(\{\s*premium,\s*ready,\s*untilIso,\s*unavailable\s*\}\)/.test(qz)
+      ? ok('Quiz.jsx StatusChip renders the unavailable (could-not-verify) state')
+      : fail('Quiz.jsx StatusChip has no unavailable branch'),
+  );
+  checks.push(
+    !/skipQuota/.test(qz)
+      ? ok('no legacy skipQuota launch path remains in Quiz.jsx')
+      : fail('Quiz.jsx still contains a skipQuota path'),
+  );
+  checks.push(
+    /retrySameSession/.test(qz) && /launchPlayer\(engineMode,\s*cfg\);/m.test(qz)
+      ? ok('Quiz.jsx retry re-runs the full server batch-create (idempotent attemptId)')
+      : fail('Quiz.jsx retry path bypasses server authorization'),
+  );
+  checks.push(
+    /courseQuotaAvailable/.test(app)
+      ? ok('AppContext exposes courseQuotaAvailable (true only after a successful fetch)')
+      : fail('AppContext missing courseQuotaAvailable'),
+  );
+  checks.push(
+    /const serverReady\s*=\s*row\s*\?\s*row\.is_ready\s*===\s*true\s*:\s*true/.test(qz)
+      ? ok('Quiz.jsx fail-closed check: server time gates the cooldown expiry')
+      : fail('Quiz.jsx missing server-side cooldown re-verification branch'),
+  );
+  checks.push(
+    dcw.includes('res.allowed === false') && !dcw.includes('res.is_ready === false')
+      ? ok('DailyChallengeWidget gates on allowed===false only (never over-blocks first round)')
+      : fail('DailyChallengeWidget cooldown gate regression (is_ready gate would lock first round)'),
+  );
+}
+
+// ---------------------------------------------------------------------------
 console.log('\n----');
 const failed = checks.filter((c) => c === false).length;
 passed = checks.filter((c) => c === true).length;

@@ -62,3 +62,24 @@ stale `SUPABASE_ACCESS_TOKEN`. Details + verification steps in
   legacy client `recordAnsweredBatch` path is orphaned (no caller), so there is
   no double-credit.
 - Cooldown text renders as “Next round · 1h” then a live `mm:ss`.
+
+## Client display/preflight hardening (Sep 10 2026)
+
+The server is the only quota authority; the client shows status. To keep the
+client display fail-closed (never imply "Ready" without a verified server
+answer):
+
+- `AppContext.courseQuotaAvailable` is `true` only after a successful
+  `GET /api/quota/course-status`; on any fetch failure (or sign-out) it is
+  `false`, and course chips render a "Couldn't verify" state instead of a green
+  "Ready" chip.
+- The cooldown modal's "Start round now" button appears only after the client
+  countdown hits zero AND a fresh server `course-status` fetch returns
+  `is_ready === true`; if that fetch fails the modal fails closed with a
+  retryable error ("We couldn't verify this course's availability…").
+- `retrySameSession` no longer passes a `skipQuota` flag (there is no such
+  server bypass); it re-runs batch-create with the same idempotency
+  `request_id`, so it re-authorizes without double-charging.
+- DailyChallengeWidget starts a round only while `consume_course_quota`
+  returns `allowed === true`; a failed/`null` response shows an error and
+  charges nothing.

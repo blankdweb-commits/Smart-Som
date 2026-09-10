@@ -5,7 +5,7 @@ everything below runs without the Vercel CLI.
 
 ## Automated (run locally, no network)
 
-### `node scripts/verify-deploy-config.mjs` — 42/42 PASS
+### `node scripts/verify-deploy-config.mjs` — 51/51 PASS
 Deployment-safety assertions:
 - vercel.json: SPA fallback last, no `/api/* → index.html`, every rewrite
   destination has a backing top-level `api/*.js`, `/api/:path* → /api/not-found`
@@ -20,6 +20,14 @@ Deployment-safety assertions:
   the `flashcard-data` manualChunk; `dist/index.html` does not statically load
   `flashcard-data`.
 - `useQuizBatch` exposes the full stable error-code set.
+- **Fail-closed statics (Section 6, +9)**: exactly ONE `setPlayerActive(true)`
+  call site; modal "Start round now" gated on a server re-verify
+  (`is_ready === true` via `GET /api/quota/course-status`); `rowStatus` is
+  `courseQuotaAvailable`-aware; `StatusChip` has an `unavailable`/"Couldn't
+  verify" branch; no `skipQuota` anywhere; retry re-runs full batch-create with
+  the same idempotency key; `courseQuotaAvailable` wired in AppContext; quiz
+  cooldown effect has a server re-check branch; DailyChallengeWidget gates on
+  `allowed === false` only.
 
 ## Manual / smoke (local, no Vercel CLI)
 
@@ -45,6 +53,26 @@ Deployment-safety assertions:
   `get_difficulty_status` currently return data → migration v28 NOT applied yet
   (see security audit); after `run-migration` they must reply
   `insufficient_privilege` while the API still works.
+
+### Cooldown / quota enforcement (live, re-run 2026-09-10 — all green)
+
+These prove the SERVER rejects the exact quiz-entry endpoints during a course's
+30-minute cooldown (fresh free test user each run; cleanup included):
+
+- `node scripts/e2e-course-quota.mjs` → **13/13 PASS**: free consume=10,
+  round completes with 0 remaining, 1800s cooldown set from server clock,
+  second consume refused (`allowed:false`), separate course still allowed
+  (per-course isolation), premium 25/30 no cooldown, status map correct.
+- `node scripts/e2e-quota-api.mjs` → **17/17 PASS**: real `api/quota.js`
+  handler — unauthenticated consume = 401, free clamp + cooldown +
+  refusal + premium no-cooldown + status map + cleanup.
+- `node scripts/_repro-batch-403.mjs` → the LIVE quiz-entry router
+  (`api/quiz.js` `/api/quiz/batch-create`):
+  `nursing-200:Pharmacology` Easy → **200** (10 Qs, quota consumed), second
+  batch-create on the same course during cooldown → **403
+  `QUOTA_EXHAUSTED`** `cooldown_remaining_seconds` present (the active quiz
+  does NOT open), `clinical-challenge:nclex` / `quick-quiz:both` still → 200
+  (isolation), invalid course → 400 `INVALID_COURSE_KEY`.
 
 ## E2E (playwright; needs a live dev server + real signup — run on dev box)
 
@@ -75,11 +103,25 @@ After commit + redeploy:
 | --- | --- |
 | Lint | 0 errors / 36 pre-existing warnings |
 | `npm run build` | OK (~40 s) |
-| verify-deploy-config.mjs | 42/42 PASS |
+| verify-deploy-config.mjs | **51/51 PASS** |
 | Vercel Hobby function count | 11 ≤ 12 PASS (4 quiz-batch → 1 api/quiz) |
 | Local API smoke incl. JSON 404 | PASS |
 | DB pool/framework mapping | PASS (documented counts) |
 | Professional Writing seed | 150/150 upserted |
+| Live cooldown enforcement (e2e RPC 13/13, API 17/17, batch-repro 403) | **PASS (2026-09-10)** |
+| Fail-closed preflight/display hardening (courseQuotaAvailable, server-verified Start, no skipQuota, DailyChallenge gate) | PASS (in-code + statics) |
 | Migration v28 (RPC lockdown) | **BLOCKED** — stale Management PAT |
 | Vercel live deploy probe | **PENDING** — needs dashboard redeploy |
 | E2E browser suites on dev box | PENDING |
+
+## Post-fix browser QA checklist (dev box, after redeploy)
+
+1. Free signup → Quiz → course chip must say "Couldn't verify" only while the
+   quota fetch is actually failing (once loaded, "Ready"/"Next round · 30m").
+2. Start a free round → completes → same-course second start → cooldown modal
+   with countdown; when the client countdown reaches zero the Start button must
+   stay disabled ("Checking availability…") until the server confirms
+   `is_ready === true`, then start; if the server fetch fails, the modal shows
+   the retryable "We couldn't verify this course's availability." error.
+3. Daily Challenge on a brand-new free account starts the FIRST round (no
+   permanent lock) and shows the 30-minute copy.

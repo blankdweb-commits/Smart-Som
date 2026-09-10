@@ -79,9 +79,12 @@ const statusKey = (courseId, subject) => {
   return courseId;
 };
 
-// Returns { premium, ready, untilIso } for a row. Server-authoritative: we only
-// render what the RPC returned; absence = never used = ready.
-const rowStatus = (courseId, subject, courseQuota) => {
+// Returns { premium, ready, unavailable, untilIso } for a row. Server-authoritative:
+// we only render what the RPC returned; absence = never used = ready. FAIL-CLOSED:
+// when `quotaAvailable` is false (first load or a failed status fetch) nothing is
+// claimed to be ready — the row shows "Couldn't verify availability" instead.
+const rowStatus = (courseId, subject, courseQuota, quotaAvailable) => {
+  if (quotaAvailable === false) return { ready: false, unavailable: true, untilIso: null };
   const row = (courseQuota || {})[statusKey(courseId, subject)] || null;
   if (!row) return { ready: true, untilIso: null };
   if (row.is_ready === true) return { ready: true, untilIso: null };
@@ -167,12 +170,21 @@ const formatRemaining = (seconds) => {
 };
 
 // Status chip for DirectoryRow — ticking cooldown for free users.
-const StatusChip = ({ premium, ready, untilIso }) => {
+const StatusChip = ({ premium, ready, untilIso, unavailable }) => {
   const now = useNow();
   if (premium) {
     return (
       <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[9px] font-black uppercase tracking-widest">
         <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Unlimited
+      </span>
+    );
+  }
+  // FAIL-CLOSED display: quota status could not be verified, so this row must
+  // NOT look startable. The server still re-checks at Start (batch-create).
+  if (unavailable) {
+    return (
+      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 border border-slate-500/30 text-slate-500 dark:text-slate-400 text-[9px] font-black uppercase tracking-widest">
+        <span className="w-1.5 h-1.5 rounded-full bg-slate-400" /> Couldn't verify
       </span>
     );
   }
@@ -191,7 +203,7 @@ const StatusChip = ({ premium, ready, untilIso }) => {
   );
 };
 
-const DirectoryRow = ({ bankId, onLaunch, courseQuota, isPremium }) => {
+const DirectoryRow = ({ bankId, onLaunch, courseQuota, quotaAvailable, isPremium }) => {
   const style = MODE_STYLE[bankId];
   const title = QUIZ_CONFIGS[bankId].title;
   const count = courseCount(bankId);
@@ -200,16 +212,21 @@ const DirectoryRow = ({ bankId, onLaunch, courseQuota, isPremium }) => {
   // For parent rows (200/300 levels with subjects): aggregate status
   // Ready if ANY subject is ready, else soonest expiring cooldown (ticking).
   let parentReady = true;
+  let parentUnavailable = false;
   let parentUntilIso = null;
-  if (subjects.length > 0) {
-    const subjectRows = subjects.map(s => rowStatus(bankId, s, courseQuota));
+  if (quotaAvailable === false) {
+    // FAIL-CLOSED: no authoritative quota map -> no row may claim ready.
+    parentReady = false;
+    parentUnavailable = true;
+  } else if (subjects.length > 0) {
+    const subjectRows = subjects.map(s => rowStatus(bankId, s, courseQuota, quotaAvailable));
     parentReady = subjectRows.some(r => r.ready);
     if (!parentReady) {
       parentUntilIso = subjectRows.filter(r => r.untilIso)
         .sort((a, b) => new Date(a.untilIso) - new Date(b.untilIso))[0]?.untilIso || null;
     }
   } else {
-    const st = rowStatus(bankId, null, courseQuota);
+    const st = rowStatus(bankId, null, courseQuota, quotaAvailable);
     parentReady = st.ready;
     if (!parentReady) parentUntilIso = st.untilIso || null;
   }
@@ -231,7 +248,7 @@ const DirectoryRow = ({ bankId, onLaunch, courseQuota, isPremium }) => {
           {count} courses
         </span>
       )}
-      <StatusChip premium={isPremium} ready={parentReady} untilIso={parentUntilIso} />
+      <StatusChip premium={isPremium} ready={parentReady} untilIso={parentUntilIso} unavailable={parentUnavailable} />
     </button>
   );
 };
@@ -260,6 +277,11 @@ const Quiz = () => {
   const [cooldownNotice, setCooldownNotice] = useState(null); // { courseKey, label, seconds, engineMode, cfg }
   const [quizNote, setQuizNote] = useState(null); // content-gap fallback notice (subject has no questions yet)
   const pendingLaunchRef = React.useRef(null); // keeps the original engineMode/cfg for the "Start now" retry
+  // Server re-verification of the cooldown expiry. The client countdown is
+  // DISPLAY ONLY — when it reaches zero the frontend refetches authoritative
+  // quota status and only then enables "Start round now".
+  const [cooldownVerifying, setCooldownVerifying] = useState(false); // re-check in flight
+  const [cooldownVerified, setCooldownVerified] = useState(null); // { forExpiresAt, ready } — server answer for one window
 
   // In-flight guard: prevents a double-click / rapid retry from firing a second
   // batch-create while the first is still in flight. The server's idempotency
@@ -270,7 +292,7 @@ const Quiz = () => {
   const attemptIdRef = React.useRef(null);
 
   // ----- Difficulty progression -----
-  const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchSCRank, studyStats, levelCompletions, session, fetchQuestionHistory, isPremium, fetchCourseQuotaStatus, courseQuota } = useAppContext();
+  const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchSCRank, studyStats, levelCompletions, session, fetchQuestionHistory, isPremium, fetchCourseQuotaStatus, courseQuota, courseQuotaAvailable } = useAppContext();
   const [selectedDifficulty, setSelectedDifficulty] = useState(null);
   const [globalRank, setGlobalRank] = useState(null);
 
@@ -436,6 +458,10 @@ const Quiz = () => {
     // Guard: ignore a second Start while one is still in flight (double-click).
     if (launchInFlightRef.current) return;
     launchInFlightRef.current = true;
+    // Remember exactly what was launched so the cooldown modal's retries
+    // ("Start round now" / "Try again") re-run the SAME server authorization —
+    // never a client-side shortcut.
+    pendingLaunchRef.current = { engineMode, cfg };
     try {
       await doLaunch(engineMode, cfg);
     } finally {
@@ -541,6 +567,8 @@ const Quiz = () => {
     if (questions.length === 0) return;
 
     setCooldownNotice(null);
+    setCooldownVerified(null);
+    setCooldownVerifying(false);
     pendingLaunchRef.current = null;
     setQuizNote(result.meta?.fallbackNote?.note || null);
     setActiveConfig({ ...cfg, engineMode, batchId: result.batch.id });
@@ -660,8 +688,10 @@ const Quiz = () => {
   const retrySameSession = () => {
     if (!activeConfig) return;
     const { engineMode, ...cfg } = activeConfig;
-    launchPlayer(engineMode, cfg, { skipQuota: true });
-    // No quota refresh here - retry uses skipQuota, same round
+    // FAIL-CLOSED retry: this re-runs the full server batch-create with the
+    // SAME idempotency key (attemptIdRef), so the server re-authorizes quota/
+    // cooldown and cannot double-charge the round. There is NO skip-quota path.
+    launchPlayer(engineMode, cfg);
   };
 
   const editSessionSetup = () => {
@@ -694,6 +724,73 @@ const Quiz = () => {
     return () => clearInterval(id);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cooldownNotice && cooldownNotice.expiresAt, cooldownNotice && cooldownNotice.unavailable]);
+
+  // Cooldown expiry MUST be confirmed by the server, never by the device clock.
+  // Once the client-side countdown reaches zero we refetch GET /api/quota/course-status
+  // and only surface "Start round now" when the server says the course is ready.
+  // If the refetch fails or returns an unknown state, we FAIL CLOSED and show a
+  // retryable error instead of enabling the start.
+  React.useEffect(() => {
+    if (!cooldownNotice || cooldownNotice.type !== 'cooldown' || cooldownNotice.unavailable) return undefined;
+    if (cooldownVerifying) return undefined;
+    // Server already answered for the current countdown window — never re-fire.
+    if (cooldownVerified && cooldownVerified.forExpiresAt === cooldownNotice.expiresAt) return undefined;
+    if (new Date(cooldownNotice.expiresAt).getTime() - tickNow > 0) return undefined;
+    let active = true;
+    setCooldownVerifying(true);
+    fetchCourseQuotaStatus()
+      .then((subjects) => {
+        if (!active) return;
+        if (subjects === null) {
+          // Authoritative status unavailable (network/API/Supabase) — FAIL CLOSED.
+          setCooldownNotice((prev) => ({
+            ...prev,
+            unavailable: true,
+            type: 'error',
+            message: "We couldn't verify this course's availability. Please try again.",
+          }));
+          return;
+        }
+        const row = subjects[cooldownNotice.courseKey] || null;
+        const serverReady = row ? row.is_ready === true : true; // no row = never used = ready
+        if (serverReady) {
+          setCooldownVerified({ forExpiresAt: cooldownNotice.expiresAt, ready: true });
+          return;
+        }
+        if (row.window_expires_at) {
+          // Still on cooldown server-side: reset the countdown from the server
+          // window and resume waiting (display stays server-time based).
+          setCooldownNotice((prev) => ({
+            ...prev,
+            expiresAt: new Date(row.window_expires_at).getTime(),
+          }));
+          return;
+        }
+        // Row exists but no authoritative window (unknown state) — FAIL CLOSED.
+        setCooldownNotice((prev) => ({
+          ...prev,
+          unavailable: true,
+          type: 'error',
+          message: "We couldn't verify this course's availability. Please try again.",
+        }));
+      })
+      .catch(() => {
+        if (!active) return;
+        setCooldownNotice((prev) => ({
+          ...prev,
+          unavailable: true,
+          type: 'error',
+          message: "We couldn't verify this course's availability. Please try again.",
+        }));
+      })
+      .finally(() => {
+        // Reset unconditionally so an interrupted fetch never wedges a later start.
+        setCooldownVerifying(false);
+      });
+    return () => { active = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [cooldownNotice && cooldownNotice.expiresAt, cooldownNotice && cooldownNotice.type, cooldownNotice && cooldownNotice.unavailable, tickNow, cooldownVerifying, cooldownVerified]);
+
   if (cooldownNotice && !playerActive) {
     const notifType = cooldownNotice.type || (cooldownNotice.unavailable ? 'error' : 'cooldown');
     const isLocked = notifType === 'locked';
@@ -702,9 +799,19 @@ const Quiz = () => {
     const remaining = isCooldown
       ? Math.max(0, Math.ceil((new Date(cooldownNotice.expiresAt).getTime() - tickNow) / 1000))
       : 0;
-    const ready = isCooldown && remaining <= 0;
+    // Start is enabled ONLY after the server re-confirms readiness (see the
+    // re-verify effect above). Until then, a zero-crossing shows a verifying
+    // state and a failure shows a retryable error — never a start button.
+    const ready = isCooldown && !!(cooldownVerified && cooldownVerified.forExpiresAt === cooldownNotice.expiresAt && cooldownVerified.ready);
+    const isVerifying = isCooldown && remaining <= 0 && !ready;
+    const statusTitle = isLocked ? 'Difficulty locked' : isError ? 'Could not start quiz' : ready ? 'Your next round is ready' : isVerifying ? 'Verifying availability…' : 'Next round not ready yet';
     const iconBg = isLocked ? 'bg-red-100 dark:bg-red-900/40' : isError ? 'bg-slate-100 dark:bg-slate-800' : ready ? 'bg-emerald-100 dark:bg-emerald-900/40' : 'bg-amber-100 dark:bg-amber-900/40';
     const iconColor = isLocked ? 'text-red-600 dark:text-red-400' : isError ? 'text-slate-500 dark:text-slate-300' : ready ? 'text-emerald-600 dark:text-emerald-400' : 'text-amber-600 dark:text-amber-400';
+    const clearCooldownNotice = () => {
+      setCooldownNotice(null);
+      setCooldownVerified(null);
+      setCooldownVerifying(false);
+    };
     return (
       <div className="min-h-[70vh] max-w-md mx-auto px-4 pt-10 flex items-center justify-center animate-in fade-in">
         <div className="w-full text-center bg-white dark:bg-slate-800 rounded-3xl shadow-clinical border border-slate-100 dark:border-slate-700 p-6 sm:p-8">
@@ -712,7 +819,7 @@ const Quiz = () => {
             {isLocked ? <Lock className={`w-8 h-8 ${iconColor}`} /> : <Timer className={`w-8 h-8 ${iconColor}`} />}
           </div>
           <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">
-            {isLocked ? 'Difficulty locked' : isError ? 'Could not start quiz' : ready ? 'Your next round is ready' : 'Next round not ready yet'}
+            {statusTitle}
           </h2>
           <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-4">
             {isLocked ? (
@@ -721,6 +828,8 @@ const Quiz = () => {
               <>{cooldownNotice.message || 'Something went wrong starting this quiz. Please try again.'}</>
             ) : ready ? (
               <>Fresh round for <span className="font-semibold text-slate-700 dark:text-slate-200">{cooldownNotice.label}</span> is available.</>
+            ) : isVerifying ? (
+              <>We're checking with the server whether a fresh round for <span className="font-semibold text-slate-700 dark:text-slate-200">{cooldownNotice.label}</span> is ready yet. Please stand by…</>
             ) : (
               <>Free plan: one <span className="font-semibold">10-question round per course</span>, then a 30-minute cooldown. Come back in{' '}
                 <span className="font-semibold text-amber-600 dark:text-amber-400 tabular-nums">
@@ -734,7 +843,7 @@ const Quiz = () => {
               <button
                 onClick={() => {
                   const pending = pendingLaunchRef.current;
-                  setCooldownNotice(null);
+                  clearCooldownNotice();
                   if (pending) launchPlayer(pending.engineMode, pending.cfg);
                 }}
                 className="w-full bg-teal-600 hover:bg-teal-500 text-white font-semibold py-3.5 rounded-xl transition-colors"
@@ -742,14 +851,35 @@ const Quiz = () => {
                 Start round now
               </button>
             )}
+            {isVerifying && (
+              <button
+                type="button"
+                disabled
+                className="w-full bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300 font-semibold py-3.5 rounded-xl cursor-wait"
+              >
+                Checking availability…
+              </button>
+            )}
+            {isError && (
+              <button
+                onClick={() => {
+                  const pending = pendingLaunchRef.current;
+                  clearCooldownNotice();
+                  if (pending) launchPlayer(pending.engineMode, pending.cfg);
+                }}
+                className="w-full bg-teal-600 hover:bg-teal-500 text-white font-semibold py-3.5 rounded-xl transition-colors"
+              >
+                🔄 Try again
+              </button>
+            )}
             <button
               onClick={() => {
                 // "Try another course" -> leave the setup for the current
                 // course behind and show the course grid (chips + Ready state).
-                setCooldownNotice(null);
+                clearCooldownNotice();
                 cancelSetup();
               }}
-              className={ready ? "w-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold py-3.5 rounded-xl transition-colors" : "w-full bg-teal-600 hover:bg-teal-500 text-white font-semibold py-3.5 rounded-xl transition-colors"}
+              className={ready || isError ? "w-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold py-3.5 rounded-xl transition-colors" : "w-full bg-teal-600 hover:bg-teal-500 text-white font-semibold py-3.5 rounded-xl transition-colors"}
             >
               🔄 Try another course
             </button>
@@ -966,7 +1096,7 @@ const Quiz = () => {
             </div>
             <div className="space-y-2.5">
               {QUIZ_LEVEL_ORDER.map((bankId) => (
-                <DirectoryRow key={bankId} bankId={bankId} onLaunch={handleCourseLaunch} courseQuota={courseQuota} isPremium={isPremium} />
+                <DirectoryRow key={bankId} bankId={bankId} onLaunch={handleCourseLaunch} courseQuota={courseQuota} quotaAvailable={courseQuotaAvailable} isPremium={isPremium} />
               ))}
             </div>
           </section>
@@ -978,7 +1108,7 @@ const Quiz = () => {
             </div>
             <div className="space-y-2.5">
               {OTHER_MODE_ORDER.map((bankId) => (
-                <DirectoryRow key={bankId} bankId={bankId} onLaunch={handleCourseLaunch} courseQuota={courseQuota} isPremium={isPremium} />
+                <DirectoryRow key={bankId} bankId={bankId} onLaunch={handleCourseLaunch} courseQuota={courseQuota} quotaAvailable={courseQuotaAvailable} isPremium={isPremium} />
               ))}
             </div>
           </section>
