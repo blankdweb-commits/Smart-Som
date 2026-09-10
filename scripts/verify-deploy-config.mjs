@@ -103,10 +103,24 @@ let passed = 0;
       ? ok('outputDirectory = dist')
       : fail('outputDirectory', String(vercel.outputDirectory)),
   );
+  // `functions[].runtime` must be an npm-package runtime name (e.g.
+  // `now-php@1.0.0`) — a bare Node version like `nodejs20.x` here makes Vercel
+  // fail config validation with "Function Runtimes must have a valid version".
+  // Simplest valid setup: no functions block at all; Vercel auto-detects
+  // `api/*.js` as Node.js Functions and takes the Node version from project
+  // settings / package.json engines.
+  const invalidRuntime =
+    vercel.functions &&
+    Object.values(vercel.functions).some((cfg) => cfg && typeof cfg.runtime === 'string');
   checks.push(
-    vercel.functions?.['api/*.js']?.runtime === 'nodejs20.x'
-      ? ok('api/*.js runtime pinned to nodejs20.x')
-      : fail('functions.api["api/*.js"].runtime', JSON.stringify(vercel.functions)),
+    !invalidRuntime
+      ? ok('vercel.json declares no functions.runtime (valid runtime names are npm packages, not nodejs20.x)')
+      : fail('vercel.json functions[].runtime must be removed', JSON.stringify(vercel.functions)),
+  );
+  checks.push(
+    !vercel.builds
+      ? ok('no legacy `builds`/`use` config present')
+      : fail('legacy builds config present', JSON.stringify(vercel.builds)),
   );
 
   // The legacy self-loop `/api/:path* -> /api/:path*` must never return.

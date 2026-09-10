@@ -5,9 +5,27 @@
 
 ## Why the deployment was failing (analysis)
 
-The Vercel build step itself always succeeded (`✓ built in 20.29s … Build
-Completed in /vercel/output [33s]`); the failure occurred after that during
-`Deploying outputs...`. Contributing causes addressed by this session:
+### Failure A — config validation: `Function Runtimes must have a valid version`
+
+A second deploy attempt aborted at "Running vercel build" (before the app build
+ran) with:
+
+```
+Error: Function Runtimes must have a valid version, for example `now-php@1.0.0`.
+```
+
+Root cause: `vercel.json` pinned `"functions": { "api/*.js": { "runtime":
+"nodejs20.x" } }`. In the `functions` map, `runtime` must be an **npm package
+name including a version** (`now-php@1.0.0`, `@vercel/node@3.x`, …). `nodejs20.x`
+is a Node *runtime identifier* that is only legal inside a function file's
+`export const config = { runtime: 'nodejs20.x' }`, never in `vercel.json`.
+Vercel rejects the value outright → the error above, which fails before Build.
+
+Fix: removed the `functions` block entirely. Vercel auto-detects top-level
+`api/*.js` as Node.js Functions with no configuration; the Node version is taken
+from project settings / `package.json` `engines` (`>=20.0.0` → current LTS).
+
+### Failure B — post-build `Deploying outputs...` failure
 
 1. **Non-handler modules treated as serverless functions.** Vercel exposes
    *every* top-level `api/*.js` as a route — except files whose name starts
@@ -51,7 +69,6 @@ Completed in /vercel/output [33s]`); the failure occurred after that during
   "buildCommand": "npm run build",
   "installCommand": "npm install",
   "outputDirectory": "dist",
-  "functions": { "api/*.js": { "runtime": "nodejs20.x" } },
   "headers": [ /* X-Content-Type-Options / X-Frame-Options / X-XSS-Protection */ ],
   "rewrites": [
     // legacy flat-path rewrites…
@@ -64,6 +81,10 @@ Completed in /vercel/output [33s]`); the failure occurred after that during
   ]
 }
 ```
+
+> No `functions` block: the `runtime: "nodejs20.x"` key there is invalid (see
+> Failure A) and was removed. Function Node version comes from project
+> settings / `package.json` `engines`.
 
 ## Bundle strategy (client payload)
 
@@ -86,9 +107,9 @@ Completed in /vercel/output [33s]`); the failure occurred after that during
 
 - `npm run build` — OK (~40 s). `npm run lint` — 0 errors / 36 warnings
   (pre-existing baseline).
-- `node scripts/verify-deploy-config.mjs` — **41/41 PASS** (rewrite/functions
-  backing, `_`-prefix rule, no SPA swallows, no self-loop, payload shape,
-  `api/not-found.js`, serve-api parity).
+- `node scripts/verify-deploy-config.mjs` — **42/42 PASS** (rewrite/function
+  backing, `_`-prefix rule, no invalid runtime / legacy builds, no SPA
+  swallows, no self-loop, payload shape, `api/not-found.js`, serve-api parity).
 - Local API smoke (`node scripts/serve-api.mjs`): `/api/quota/course-status`,
   `/api/quiz/batch-create`, `/api/quiz/batch-get` → 401 JSON; unmatched
   `/api/does-not-exist` → `{"ok":false,"error":{"code":"NOT_FOUND",…}}` from the

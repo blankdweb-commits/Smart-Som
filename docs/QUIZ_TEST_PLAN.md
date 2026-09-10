@@ -5,12 +5,12 @@ everything below runs without the Vercel CLI.
 
 ## Automated (run locally, no network)
 
-### `node scripts/verify-deploy-config.mjs` — 41/41 PASS
+### `node scripts/verify-deploy-config.mjs` — 42/42 PASS
 Deployment-safety assertions:
 - vercel.json: SPA fallback last, no `/api/* → index.html`, every rewrite
   destination has a backing top-level `api/*.js`, `/api/:path* → /api/not-found`
-  present and before the fallback, `buildCommand`/`outputDirectory`/`nodejs20.x`
-  runtime, no self-loop.
+  present and before the fallback, `buildCommand`/`outputDirectory` matched,
+  no invalid `functions.runtime` / legacy `builds`, no self-loop.
 - api/ layout: every non-`_` file has a default handler export; support modules
   are `_`-prefixed; legacy nested `api/quiz`, `api/matches`, `api/payments`
   removed.
@@ -75,7 +75,7 @@ After commit + redeploy:
 | --- | --- |
 | Lint | 0 errors / 36 pre-existing warnings |
 | `npm run build` | OK (~40 s) |
-| verify-deploy-config.mjs | 41/41 PASS |
+| verify-deploy-config.mjs | 42/42 PASS |
 | Local API smoke incl. JSON 404 | PASS |
 | DB pool/framework mapping | PASS (documented counts) |
 | Professional Writing seed | 150/150 upserted |
