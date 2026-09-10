@@ -12,7 +12,6 @@ import {
   acknowledgeUnlock
 } from '../utils/identityEngine';
 import { evaluateAchievements, ACHIEVEMENT_CATALOG } from '../utils/achievementEngine';
-import { sendPushNotification } from '../utils/notifications';
 
 const AppContext = createContext();
 
@@ -1360,15 +1359,6 @@ export function AppProvider({ children }) {
           title: newly[0].name || 'Achievement Unlocked',
           subtitle: newly.length > 1 ? `Plus ${newly.length - 1} more unlocked!` : 'New milestone reached.',
           tone: newly[0].tone || 'bg-apex-600'
-        });
-        // OS push for this device (fire-and-forget; no-op if not subscribed).
-        sendPushNotification(sess, {
-          title: `🏆 ${newly[0].name || 'Achievement Unlocked'}`,
-          body: newly.length > 1
-            ? `You unlocked ${newly.length} new achievements. Tap to see your wall!`
-            : 'New milestone reached — tap to see your achievement wall.',
-          url: '/achievements',
-          kind: 'achievement',
         });
       }
       return newly;

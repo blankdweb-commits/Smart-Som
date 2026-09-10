@@ -19,7 +19,6 @@
 import { applyCors, authorizeRequest } from './_utils.js';
 import { QuestionSelectionService } from './questionSelectionService.js';
 import { getSupabaseAdmin } from './_utils.js';
-import { notifyUser } from './_push.js';
 
 export default async function handler(req, res) {
   if (!applyCors(req, res)) {
@@ -82,20 +81,6 @@ export default async function handler(req, res) {
       difficultyDistribution,
       batchSize,
     });
-
-    // Wake up the opponent: they queued for a 1v1 and might have the app closed
-    // or backgrounded. Server-driven cross-user push (safe here — matchmaking
-    // already validated the requesting user is one of the two players).
-    const opponent = playerIds.find(id => id !== user.id);
-    if (opponent) {
-      notifyUser(getSupabaseAdmin(), opponent, {
-        title: 'Your 1v1 match is live',
-        body: 'A challenger just matched you — jump in before the streak cools.',
-        url: '/xp-hall',
-        tag: 'duel-match',
-        data: { kind: 'duel-match' },
-      }).catch(err => console.error('[matches/create] opponent push failed:', err.message));
-    }
 
     return res.status(200).json({
       success: true,

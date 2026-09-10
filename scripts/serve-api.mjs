@@ -40,7 +40,7 @@ const walk = (dir) => {
   for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
     const full = path.join(dir, entry.name);
     if (entry.isDirectory()) walk(full);
-    else if (entry.name.endsWith('.js') && entry.name !== '_utils.js' && entry.name !== '_push.js') {
+    else if (entry.name.endsWith('.js') && entry.name !== '_utils.js') {
       const rel = path.relative(API_DIR, full).replace(/\\/g, '/').replace(/\.js$/, '');
       handlers.push({ route: `/api/${rel}`, file: full });
     }

@@ -10,7 +10,6 @@ import IdentityUnlockModal from '../components/IdentityUnlockModal';
 import Recommendations from '../components/Recommendations';
 import StudyPlanCard from '../components/StudyPlanCard';
 import AdBanner from '../components/AdBanner';
-import PushOptInBanner from '../components/PushOptInBanner';
 import { ACHIEVEMENT_CATALOG } from '../utils/achievementEngine';
 import { greetingForName } from '../utils/getGreeting';
 import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
@@ -171,8 +170,6 @@ const Dashboard = () => {
       </header>
 
       <IdentityUnlockModal identity={identityUnlock} onClose={dismissIdentityUnlock} />
-
-      <PushOptInBanner />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">
