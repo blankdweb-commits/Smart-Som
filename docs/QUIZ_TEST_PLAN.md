@@ -5,7 +5,7 @@ everything below runs without the Vercel CLI.
 
 ## Automated (run locally, no network)
 
-### `node scripts/verify-deploy-config.mjs` — 51/51 PASS
+### `node scripts/verify-deploy-config.mjs` — 60/60 PASS
 Deployment-safety assertions:
 - vercel.json: SPA fallback last, no `/api/* → index.html`, every rewrite
   destination has a backing top-level `api/*.js`, `/api/:path* → /api/not-found`
@@ -28,6 +28,15 @@ Deployment-safety assertions:
   the same idempotency key; `courseQuotaAvailable` wired in AppContext; quiz
   cooldown effect has a server re-check branch; DailyChallengeWidget gates on
   `allowed === false` only.
+- **Course-level cooldown lock statics (Section 7, +9)**: directory rows derive
+  from the server quota map via `ROW_STATE`/`rowState()` (never local clock);
+  `quotaFetchStatus` tri-state fail-closed (status-error rows stay locked with
+  Retry); unlock requires `is_ready === true` from a server refetch; StatusChip
+  shows ready only when a row is actually ready; locked cards are
+  `tabIndex={-1}` + `aria-disabled` (keyboard/touch cannot open setup); tapping
+  a locked card shows `CourseLockOverlay` instead of opening setup; no code
+  unlocks on `Date.now()` alone; backend + client both ship `COOLDOWN_ACTIVE`;
+  `QuizSetupFlow` subject tiles disabled while cooling/on quota-status error.
 
 ## Manual / smoke (local, no Vercel CLI)
 
@@ -70,9 +79,11 @@ These prove the SERVER rejects the exact quiz-entry endpoints during a course's
   (`api/quiz.js` `/api/quiz/batch-create`):
   `nursing-200:Pharmacology` Easy → **200** (10 Qs, quota consumed), second
   batch-create on the same course during cooldown → **403
-  `QUOTA_EXHAUSTED`** `cooldown_remaining_seconds` present (the active quiz
-  does NOT open), `clinical-challenge:nclex` / `quick-quiz:both` still → 200
-  (isolation), invalid course → 400 `INVALID_COURSE_KEY`.
+  `COOLDOWN_ACTIVE`** with `cooldown_remaining_seconds`, `cooldown_started_at`,
+  and `window_expires_at` (the active quiz does NOT open), another course
+  (`clinical-challenge:nclex`, `quick-quiz:both`) still → 200 (isolation),
+  Easy replay of the cooling course → **403 `COOLDOWN_ACTIVE`**, invalid course
+  → 400 `UNKNOWN_COURSE`. Script asserts all cases and exits 1 on failure.
 
 ## E2E (playwright; needs a live dev server + real signup — run on dev box)
 
@@ -102,13 +113,14 @@ After commit + redeploy:
 | Item | Status |
 | --- | --- |
 | Lint | 0 errors / 36 pre-existing warnings |
-| `npm run build` | OK (~40 s) |
-| verify-deploy-config.mjs | **51/51 PASS** |
+| `npm run build` | OK (~48 s) |
+| verify-deploy-config.mjs | **60/60 PASS** |
 | Vercel Hobby function count | 11 ≤ 12 PASS (4 quiz-batch → 1 api/quiz) |
 | Local API smoke incl. JSON 404 | PASS |
 | DB pool/framework mapping | PASS (documented counts) |
 | Professional Writing seed | 150/150 upserted |
-| Live cooldown enforcement (e2e RPC 13/13, API 17/17, batch-repro 403) | **PASS (2026-09-10)** |
+| Live cooldown enforcement (e2e RPC 13/13, API 17/17, batch-repro 403 `COOLDOWN_ACTIVE`) | **PASS (2026-09-10)** |
+| Course-level cooldown LOCK (rowState, overlay, refetch-on-expiry, deep-link resolver, setup tiles) | PASS (in-code + 9 statics) |
 | Fail-closed preflight/display hardening (courseQuotaAvailable, server-verified Start, no skipQuota, DailyChallenge gate) | PASS (in-code + statics) |
 | Migration v28 (RPC lockdown) | **BLOCKED** — stale Management PAT |
 | Vercel live deploy probe | **PENDING** — needs dashboard redeploy |
@@ -125,3 +137,16 @@ After commit + redeploy:
    the retryable "We couldn't verify this course's availability." error.
 3. Daily Challenge on a brand-new free account starts the FIRST round (no
    permanent lock) and shows the 30-minute copy.
+4. Course-level LOCK: after a free round completes, the same course's
+   directory card must read **On cooldown** with a ticking "Available in mm:ss";
+   tapping it must NOT open setup — it shows the lock overlay; while the
+   overlay is on cooldown both its buttons are "Go Premium" / "Try another
+   course" (no Start).
+5. At zero-cross the overlay must switch to "Checking availability…" (disabled)
+   and only flip to **Open this course** once the server refetch returns
+   `is_ready === true` (block the API to instead see the fail-closed retryable
+   error); on a reload the raw `?subject=` / `?groupId=` deep link on a cooling
+   course must also stay locked, not open setup.
+6. With the network dead on first load, every course card shows the
+   "Couldn't verify" lock state and a tap opens the retryable overlay — never a
+   Start. Premium accounts stay unaffected (always selectable).

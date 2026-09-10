@@ -257,7 +257,7 @@ let passed = 0;
 // ---------------------------------------------------------------------------
 {
   const qz = read(resolve(ROOT, 'src/hooks/useQuizBatch.js'));
-  const codes = ['NETWORK_ERROR', 'API_MISROUTED', 'SERVER_ERROR', 'UNAUTHORIZED', 'QUOTA_EXHAUSTED', 'DIFFICULTY_LOCKED'];
+  const codes = ['NETWORK_ERROR', 'API_MISROUTED', 'SERVER_ERROR', 'UNAUTHORIZED', 'QUOTA_EXHAUSTED', 'COOLDOWN_ACTIVE', 'DIFFICULTY_LOCKED'];
   const missing = codes.filter((c) => !qz.includes(c));
   checks.push(
     missing.length === 0
@@ -287,14 +287,39 @@ let passed = 0;
       : fail('Quiz.jsx cooldown Start still relies on the client countdown'),
   );
   checks.push(
-    /rowStatus\s*=\s*\(courseId,\s*subject,\s*courseQuota,\s*quotaAvailable\)/.test(qz)
-      ? ok('Quiz.jsx rowStatus is quota-availability aware (fail-closed chips)')
-      : fail('Quiz.jsx rowStatus still treats absence as ready'),
+    /const rowState\s*=\s*\(courseId,\s*subject,\s*courseQuota,\s*quotaStatus,\s*isPremium\)/.test(qz)
+      ? ok('Quiz.jsx rowState decides selectability ONLY from the server quota map')
+      : fail('Quiz.jsx rowState missing/not quota-server-authoritative'),
   );
   checks.push(
-    /const StatusChip\s*=\s*\(\{\s*premium,\s*ready,\s*untilIso,\s*unavailable\s*\}\)/.test(qz)
-      ? ok('Quiz.jsx StatusChip renders the unavailable (could-not-verify) state')
-      : fail('Quiz.jsx StatusChip has no unavailable branch'),
+    /if \(quotaStatus === 'error'\) return \{ state: ROW_STATE\.ERROR, expiresAt: null \}/.test(qz)
+      ? ok('Quiz.jsx rowState fails closed on a failed status fetch (ERROR=not selectable)')
+      : fail('Quiz.jsx rowState does not fail closed on quota status ERROR'),
+  );
+  checks.push(
+    qz.includes('ROW_STATE.COOLDOWN') && /\.is_ready === true\) return \{ state: ROW_STATE\.AVAILABLE/.test(qz)
+      ? ok('Quiz.jsx a locked course stays locked until the map says is_ready')
+      : fail('Quiz.jsx cooldown rows can look selectable without server readiness'),
+  );
+  checks.push(
+    /const StatusChip\s*=\s*\(\{\s*premium\s*\}\)/.test(qz)
+      ? ok('Quiz.jsx StatusChip is now ready-only (locked rows render the lock badge, never a ready pill)')
+      : fail('Quiz.jsx StatusChip regression'),
+  );
+  checks.push(
+    /tabIndex=\{-1\}/.test(qz) && /aria-disabled="true"/.test(qz)
+      ? ok('Quiz.jsx locked course cards are not keyboard-activatable (tabIndex -1 + aria-disabled)')
+      : fail('Quiz.jsx locked course cards remain keyboard-selectable'),
+  );
+  checks.push(
+    /handleCourseBlocked/.test(qz) && /setSelectionLock\(\{ setupId: bankId, subject: null \}\)/.test(qz)
+      ? ok('Quiz.jsx tapping a locked course shows the lock overlay — never opens setup')
+      : fail('Quiz.jsx locked-course tap path can open setup'),
+  );
+  checks.push(
+    /directoryCooldownExpiry/.test(qz) && /fetchCourseQuotaStatus\(\)/.test(qz)
+      ? ok('Quiz.jsx refetch-on-expiry pings the server; local clock never unlocks')
+      : fail('Quiz.jsx cooldown expiry can unlock from the device clock'),
   );
   checks.push(
     !/skipQuota/.test(qz)
@@ -307,9 +332,9 @@ let passed = 0;
       : fail('Quiz.jsx retry path bypasses server authorization'),
   );
   checks.push(
-    /courseQuotaAvailable/.test(app)
-      ? ok('AppContext exposes courseQuotaAvailable (true only after a successful fetch)')
-      : fail('AppContext missing courseQuotaAvailable'),
+    /quotaFetchStatus/.test(app) && /courseQuotaAvailable: quotaFetchStatus === 'ok'/.test(app)
+      ? ok('AppContext exposes quotaFetchStatus tri-state; courseQuotaAvailable only on ok')
+      : fail('AppContext quotaFetchStatus tri-state missing'),
   );
   checks.push(
     /const serverReady\s*=\s*row\s*\?\s*row\.is_ready\s*===\s*true\s*:\s*true/.test(qz)
@@ -320,6 +345,38 @@ let passed = 0;
     dcw.includes('res.allowed === false') && !dcw.includes('res.is_ready === false')
       ? ok('DailyChallengeWidget gates on allowed===false only (never over-blocks first round)')
       : fail('DailyChallengeWidget cooldown gate regression (is_ready gate would lock first round)'),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 7. COURSE-LEVEL COOLDOWN LOCK invariants (backend + setup-flow defense).
+//    The server must answer a direct batch-create during cooldown with the
+//    distinct COOLDOWN_ACTIVE code; the setup-flow tiles must refuse selection.
+// ---------------------------------------------------------------------------
+{
+  const qb = read(resolve(ROOT, 'api/_quiz-batches.js'));
+  const uqb = read(resolve(ROOT, 'src/hooks/useQuizBatch.js'));
+  const ssf = read(resolve(ROOT, 'src/components/QuizSetupFlow.jsx'));
+
+  checks.push(
+    /error: cooling \? 'COOLDOWN_ACTIVE' : 'QUOTA_EXHAUSTED'/.test(qb)
+      ? ok('api/_quiz-batches.js returns COOLDOWN_ACTIVE (not generic QUOTA_EXHAUSTED) while a cooldown is active')
+      : fail('api/_quiz-batches.js does not emit the COOLDOWN_ACTIVE code'),
+  );
+  checks.push(
+    qb.includes('Number(quotaBody.cooldown_remaining_seconds)') && /cooldown_remaining_seconds: quotaBody\.cooldown_remaining_seconds/.test(qb)
+      ? ok('api/_quiz-batches.js derives the cooldown verdict from server seconds, not client input')
+      : fail('api/_quiz-batches.js COOLDOWN_ACTIVE not driven by server cooldown seconds'),
+  );
+  checks.push(
+    /['QUOTA_EXHAUSTED', 'COOLDOWN_ACTIVE']/.test(uqb)
+      ? ok('useQuizBatch.classifyBatchError passes the COOLDOWN_ACTIVE code through')
+      : fail('useQuizBatch missing COOLDOWN_ACTIVE in the 403 code set'),
+  );
+  checks.push(
+    /const tileLocked\s*=\s*cooling\s*\|\|\s*\(!isPremium && quotaFetchStatus === 'error'\)/.test(ssf)
+      ? ok('QuizSetupFlow cooling/error subject tiles are NOT selectable (defense-in-depth)')
+      : fail('QuizSetupFlow subject tiles are still selectable during cooldown'),
   );
 }
 

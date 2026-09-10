@@ -161,10 +161,17 @@ export async function handleCreate(req, res) {
 
     const quotaBody = quota?.data || {};
     if (quotaBody.allowed === false) {
+      // Distinguish an ACTIVE per-course cooldown (the POLYNURSE contract the
+      // client gates the whole course on) from any other quota refusal, so
+      // callers can fail closed on the right code.
+      const cooling = (Number(quotaBody.cooldown_remaining_seconds) || 0) > 0;
       return res.status(403).json({
-        error: 'QUOTA_EXHAUSTED',
-        message: 'This course round is still cooling down.',
+        error: cooling ? 'COOLDOWN_ACTIVE' : 'QUOTA_EXHAUSTED',
+        message: cooling
+          ? 'This course is on cooldown. It will become available after the cooldown ends.'
+          : 'This course round is not available yet.',
         cooldown_remaining_seconds: quotaBody.cooldown_remaining_seconds ?? 0,
+        cooldown_started_at: quotaBody.cooldown_started_at ?? null,
         window_expires_at: quotaBody.window_expires_at ?? null,
       });
     }

@@ -12,6 +12,7 @@ display-only.
 | Quota reservation | `consume_course_quota` RPC (atomic, server-only call) | Passes session token only — **never** `p_is_premium` |
 | Difficulty unlock | `record_difficulty_correct` RPC on genuinely-correct answers (server-side, per-question difficulty fetched from DB) | Sends answer; server decides correctness |
 | Course/subject allowlist | `api/_selectionConfig.js` + `_resolveCourseMetadata` (fail-closed) | Selects from the same allowlist |
+| Course entry during cooldown (LOCK) | `rowState()` in `Quiz.jsx` reads the server map (`GET /api/quota/course-status`) — a course is selectable ONLY when `is_ready:true`; backend returns distinct 403 **`COOLDOWN_ACTIVE`** from `consume_course_quota` | Display-only: renders `AVAILABLE|COOLDOWN|LOADING|ERROR`; locks cards (tabIndex −1, aria-disabled), shows `CourseLockOverlay`; the client clock NEVER unlocks — expiry only triggers a server refetch |
 | Question content | DB rows returned by server; client bundles are a render fallback only | Resolves server ids against cached banks |
 
 ## Fail-closed paths
@@ -19,9 +20,17 @@ display-only.
 - Unknown/ambiguous `course_key` → `UNKNOWN_COURSE` / `INVALID_COURSE_KEY` (400).
 - Framework pinned per course (`:nclex` → NCLEX, `:nmcn` → NMCN, `:both` →
   `['nclex','nmcn']`, framework constraint dropped for `:both`).
-- `FRAMEWORK_MISMATCH`, `DIFFICULTY_LOCKED`, `QUOTA_EXHAUSTED` returned as
+- `FRAMEWORK_MISMATCH`, `DIFFICULTY_LOCKED`, `QUOTA_EXHAUSTED`,
+  `COOLDOWN_ACTIVE` returned as
   typed errors; `refundRound()` deletes exactly that round's
   `user_course_quota` row when a failed start consumed it.
+- A course on cooldown is **non-selectable**: directory rows are blocked at
+  `rowState()` (server map only), deep links are deferred to a resolver that
+  opens setup only for `AVAILABLE` rows, subject tiles in setup are disabled
+  while cooling / on quota-status error, and a direct `POST /api/quiz/batch-create`
+  is rejected with 403 `COOLDOWN_ACTIVE` (with `cooldown_started_at` +
+  `window_expires_at`). Unknown quota state (fetch failed) stays locked with a
+  Retry — it can never unlock a course.
 - Missing difficulty profile defaults to `{ Easy: batchSize }` (always
   unlocked) so a fresh user never spuriously locks.
 

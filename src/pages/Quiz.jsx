@@ -79,16 +79,31 @@ const statusKey = (courseId, subject) => {
   return courseId;
 };
 
-// Returns { premium, ready, unavailable, untilIso } for a row. Server-authoritative:
-// we only render what the RPC returned; absence = never used = ready. FAIL-CLOSED:
-// when `quotaAvailable` is false (first load or a failed status fetch) nothing is
-// claimed to be ready — the row shows "Couldn't verify availability" instead.
-const rowStatus = (courseId, subject, courseQuota, quotaAvailable) => {
-  if (quotaAvailable === false) return { ready: false, unavailable: true, untilIso: null };
+// Course-row selection state. Server-authoritative ONLY: what the quota RPC
+// returned decides everything; the local clock is never allowed to unlock a
+// locked course (unlock requires a refetch where the server says is_ready).
+// FAIL-CLOSED: 'idle' (no fetch yet) and 'loading' stay NON-selectable, and a
+// failed status fetch ('error') keeps the row NON-selectable with a retry —
+// unknown availability must never look startable.
+const ROW_STATE = { AVAILABLE: 'AVAILABLE', COOLDOWN: 'COOLDOWN', LOADING: 'LOADING', ERROR: 'ERROR' };
+
+const rowState = (courseId, subject, courseQuota, quotaStatus, isPremium) => {
+  if (isPremium) return { state: ROW_STATE.AVAILABLE, expiresAt: null };
+  if (quotaStatus === 'idle' || quotaStatus === 'loading') {
+    // No authoritative map yet (or re-fetch in flight): not selectable. If we
+    // already hold last-known data AND a fetch is in flight we still trust the
+    // last map below — but with NO map there is nothing safe to unlock on.
+    if (!courseQuota || Object.keys(courseQuota).length === 0) {
+      return { state: ROW_STATE.LOADING, expiresAt: null };
+    }
+  }
+  if (quotaStatus === 'error') return { state: ROW_STATE.ERROR, expiresAt: null };
   const row = (courseQuota || {})[statusKey(courseId, subject)] || null;
-  if (!row) return { ready: true, untilIso: null };
-  if (row.is_ready === true) return { ready: true, untilIso: null };
-  return { ready: false, untilIso: row.window_expires_at || null };
+  if (!row) return { state: ROW_STATE.AVAILABLE, expiresAt: null };
+  if (row.is_ready === true) return { state: ROW_STATE.AVAILABLE, expiresAt: null };
+  // Window in the past with is_ready still false = stale map; stays locked until
+  // the refetch-on-expiry effect refreshes it (local clock never unlocks).
+  return { state: ROW_STATE.COOLDOWN, expiresAt: row.window_expires_at || null };
 };
 
 // ----- Bundled local audio manager (Part 20) -----
@@ -169,66 +184,177 @@ const formatRemaining = (seconds) => {
   return m > 0 ? `${h}h ${m}m` : `${h}h`;
 };
 
-// Status chip for DirectoryRow — ticking cooldown for free users.
-const StatusChip = ({ premium, ready, untilIso, unavailable }) => {
+// Status chip — rendered ONLY on AVAILABLE rows (premium "Unlimited" / free
+// "Ready"). Locked rows render the LockBadge instead, never a ready-looking pill.
+const StatusChip = ({ premium }) => (
+  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[9px] font-black uppercase tracking-widest">
+    <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> {premium ? 'Unlimited' : 'Ready'}
+  </span>
+);
+
+// Ticking cooldown pill on a NON-selectable course card. Display-only: the card
+// stays locked and unlocking is driven by a server refetch, never this clock.
+const CooldownPill = ({ expiresAt }) => {
   const now = useNow();
-  if (premium) {
-    return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[9px] font-black uppercase tracking-widest">
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Unlimited
-      </span>
-    );
-  }
-  // FAIL-CLOSED display: quota status could not be verified, so this row must
-  // NOT look startable. The server still re-checks at Start (batch-create).
-  if (unavailable) {
-    return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 border border-slate-500/30 text-slate-500 dark:text-slate-400 text-[9px] font-black uppercase tracking-widest">
-        <span className="w-1.5 h-1.5 rounded-full bg-slate-400" /> Couldn't verify
-      </span>
-    );
-  }
-  if (ready || !untilIso || new Date(untilIso).getTime() - now <= 0) {
-    return (
-      <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[9px] font-black uppercase tracking-widest">
-        <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> Ready
-      </span>
-    );
-  }
-  const remainingSec = Math.ceil((new Date(untilIso).getTime() - now) / 1000);
+  const remainingSec = Math.max(0, Math.ceil((new Date(expiresAt).getTime() - now) / 1000));
   return (
     <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[9px] font-black uppercase tracking-widest tabular-nums">
-      <span className="w-1.5 h-1.5 rounded-full bg-amber-500" /> {formatRemaining(remainingSec)}
+      <Lock size={10} /> On cooldown · {formatRemaining(remainingSec)}
     </span>
   );
 };
 
-const DirectoryRow = ({ bankId, onLaunch, courseQuota, quotaAvailable, isPremium }) => {
+// Full-view overlay shown INSTEAD of the directory when a free user taps a
+// cooling course (or a deep link resolves to one). Nothing here can open setup:
+// the ONLY "Open this course" path requires rowState() === AVAILABLE, which is
+// decided purely by the server's quota map, never the local clock.
+const CourseLockOverlay = ({ lock, courseQuota, quotaStatus, isPremium, onOpen, onRetry, onClose, onGoPremium }) => {
+  const now = useNow();
+  const st = rowState(lock.setupId, lock.subject, courseQuota, quotaStatus, isPremium);
+  const title = lock.setupId && QUIZ_CONFIGS[lock.setupId] ? QUIZ_CONFIGS[lock.setupId].title : 'this course';
+  const label = lock.subject || title;
+  const expiresAt = st.state === ROW_STATE.COOLDOWN && st.expiresAt ? new Date(st.expiresAt).getTime() : null;
+  const remainingSec = expiresAt ? Math.max(0, Math.ceil((expiresAt - now) / 1000)) : 0;
+  const isError = st.state === ROW_STATE.ERROR;
+  const isCooling = st.state === ROW_STATE.COOLDOWN && remainingSec > 0;
+  const isVerifying = st.state === ROW_STATE.LOADING || (st.state === ROW_STATE.COOLDOWN && remainingSec <= 0);
+  const isReady = st.state === ROW_STATE.AVAILABLE;
+  const statusTitle = isReady ? 'Your next round is ready' : isError ? "We couldn't verify this course's availability" : isVerifying ? 'Checking availability…' : 'Course on cooldown';
+  const iconBg = isReady ? 'bg-emerald-100 dark:bg-emerald-900/40' : isError ? 'bg-slate-100 dark:bg-slate-800' : isVerifying ? 'bg-slate-100 dark:bg-slate-800' : 'bg-amber-100 dark:bg-amber-900/40';
+  const iconColor = isReady ? 'text-emerald-600 dark:text-emerald-400' : isError ? 'text-slate-500 dark:text-slate-300' : isVerifying ? 'text-slate-500 dark:text-slate-300' : 'text-amber-600 dark:text-amber-400';
+
+  return (
+    <div className="min-h-[70vh] max-w-md mx-auto px-4 pt-10 flex items-center justify-center animate-in fade-in">
+      <div className="w-full text-center bg-white dark:bg-slate-800 rounded-3xl shadow-clinical border border-slate-100 dark:border-slate-700 p-6 sm:p-8">
+        <div className={`w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-5 ${iconBg}`}>
+          {isReady ? <Zap className={`w-8 h-8 ${iconColor}`} /> : <Lock className={`w-8 h-8 ${iconColor}`} />}
+        </div>
+        <h2 className="text-2xl font-bold text-slate-800 dark:text-slate-100 mb-2">{statusTitle}</h2>
+        <p className="text-slate-500 dark:text-slate-400 text-sm leading-relaxed mb-4">
+          {isReady ? (
+            <>Fresh round for <span className="font-semibold text-slate-700 dark:text-slate-200">{label}</span> is available.</>
+          ) : isError ? (
+            <>We couldn't verify this course's availability. Please try again. We never unlock a course we cannot verify.</>
+          ) : isVerifying ? (
+            <>We're checking with the server whether <span className="font-semibold text-slate-700 dark:text-slate-200">{label}</span> is ready yet. Please stand by…</>
+          ) : (
+            <>This course is on cooldown. It will become available in{' '}
+              <span className="font-semibold text-amber-600 dark:text-amber-400 tabular-nums">{fmtClock(remainingSec)}</span>.
+              Free plan: one 10-question round per course, then a 30-minute cooldown.</>
+          )}
+        </p>
+        <div className="grid gap-2.5 mt-5">
+          {isReady && (
+            <button type="button" onClick={onOpen} className="w-full bg-teal-600 hover:bg-teal-500 text-white font-semibold py-3.5 rounded-xl transition-colors">
+              Open this course
+            </button>
+          )}
+          {isVerifying && (
+            <button type="button" disabled className="w-full bg-slate-200 dark:bg-slate-700 text-slate-500 dark:text-slate-300 font-semibold py-3.5 rounded-xl cursor-wait">
+              Checking availability…
+            </button>
+          )}
+          {isError && (
+            <button type="button" onClick={onRetry} className="w-full bg-teal-600 hover:bg-teal-500 text-white font-semibold py-3.5 rounded-xl transition-colors">
+              🔄 Retry
+            </button>
+          )}
+          <button
+            type="button"
+            onClick={onClose}
+            className={isCooling ? "w-full bg-teal-600 hover:bg-teal-500 text-white font-semibold py-3.5 rounded-xl transition-colors" : "w-full bg-slate-100 dark:bg-slate-700 text-slate-700 dark:text-slate-200 font-semibold py-3.5 rounded-xl transition-colors"}
+          >
+            🔄 Try another course
+          </button>
+        </div>
+        {!isReady && !isError && (
+          <button type="button" onClick={onGoPremium} className="mt-2 w-full flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-widest text-teal-600 dark:text-teal-400 py-2 hover:underline">
+            ⭐ Go Premium — unlimited rounds
+          </button>
+        )}
+      </div>
+    </div>
+  );
+};
+
+const DirectoryRow = ({ bankId, onLaunch, onBlocked, courseQuota, quotaStatus, isPremium }) => {
   const style = MODE_STYLE[bankId];
   const title = QUIZ_CONFIGS[bankId].title;
   const count = courseCount(bankId);
   const subjects = LEVEL_SUBJECTS[bankId] || [];
 
-  // For parent rows (200/300 levels with subjects): aggregate status
-  // Ready if ANY subject is ready, else soonest expiring cooldown (ticking).
-  let parentReady = true;
-  let parentUnavailable = false;
-  let parentUntilIso = null;
-  if (quotaAvailable === false) {
-    // FAIL-CLOSED: no authoritative quota map -> no row may claim ready.
-    parentReady = false;
-    parentUnavailable = true;
-  } else if (subjects.length > 0) {
-    const subjectRows = subjects.map(s => rowStatus(bankId, s, courseQuota, quotaAvailable));
-    parentReady = subjectRows.some(r => r.ready);
-    if (!parentReady) {
-      parentUntilIso = subjectRows.filter(r => r.untilIso)
-        .sort((a, b) => new Date(a.untilIso) - new Date(b.untilIso))[0]?.untilIso || null;
+  // Aggregate row state. Any ready subject keeps the PARENT selectable
+  // (per-course isolation); otherwise the soonest cooldown expiry wins.
+  const states = subjects.length > 0
+    ? subjects.map(s => rowState(bankId, s, courseQuota, quotaStatus, isPremium))
+    : [rowState(bankId, null, courseQuota, quotaStatus, isPremium)];
+  const parentState = states.some(st => st.state === ROW_STATE.AVAILABLE)
+    ? ROW_STATE.AVAILABLE
+    : states.some(st => st.state === ROW_STATE.COOLDOWN)
+      ? ROW_STATE.COOLDOWN
+      : states.some(st => st.state === ROW_STATE.ERROR)
+        ? ROW_STATE.ERROR
+        : ROW_STATE.LOADING;
+  const cooldownExpiry = states
+    .filter(st => st.state === ROW_STATE.COOLDOWN && st.expiresAt)
+    .sort((a, b) => new Date(a.expiresAt) - new Date(b.expiresAt))[0]?.expiresAt || null;
+
+  const lockMeta = {
+    [ROW_STATE.COOLDOWN]: {
+      icon: <Lock size={20} />,
+      pill: cooldownExpiry ? <CooldownPill expiresAt={cooldownExpiry} /> : null,
+      overlayTitle: 'Course on cooldown',
+      overlayBody: isPremium
+        ? null
+        : 'This course is on cooldown. It will become available when the cooldown ends. Free plan: one 10-question round per course, then a 30-minute cooldown.'
+    },
+    [ROW_STATE.LOADING]: {
+      icon: <Timer size={20} />,
+      pill: <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 border border-slate-500/30 text-slate-500 dark:text-slate-400 text-[9px] font-black uppercase tracking-widest">
+        <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-pulse" /> Checking availability…
+      </span>,
+      overlayTitle: 'Checking availability…',
+      overlayBody: 'We are confirming this course’s availability from the server before letting you in.'
+    },
+    [ROW_STATE.ERROR]: {
+      icon: <Lock size={20} />,
+      pill: <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 border border-slate-500/30 text-slate-500 dark:text-slate-400 text-[9px] font-black uppercase tracking-widest">
+        <span className="w-1.5 h-1.5 rounded-full bg-slate-400" /> Couldn't verify
+      </span>,
+      overlayTitle: "We couldn't verify this course's availability",
+      overlayBody: 'Please try again. We never unlock a course we cannot verify.'
     }
-  } else {
-    const st = rowStatus(bankId, null, courseQuota, quotaAvailable);
-    parentReady = st.ready;
-    if (!parentReady) parentUntilIso = st.untilIso || null;
+  }[parentState] || {
+    icon: style.icon,
+    pill: null,
+    overlayTitle: null,
+    overlayBody: null
+  };
+
+  if (parentState !== ROW_STATE.AVAILABLE) {
+    return (
+      <button
+        type="button"
+        aria-disabled="true"
+        tabIndex={-1}
+        onClick={() => onBlocked(bankId)}
+        title={lockMeta.overlayTitle}
+        className="w-full flex items-center gap-3 p-3 sm:p-4 text-left rounded-2xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm opacity-70 cursor-not-allowed group select-none"
+      >
+        <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 ${style.chip}`}>
+          {lockMeta.icon}
+        </div>
+        <h3 className="flex-1 min-w-0 text-sm sm:text-base font-black text-slate-900 dark:text-white tracking-tight truncate">
+          {title}
+        </h3>
+        {count > 0 && (
+          <span className="shrink-0 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-300 tabular-nums">
+            {count} courses
+          </span>
+        )}
+        {lockMeta.pill}
+      </button>
+    );
   }
 
   return (
@@ -248,7 +374,7 @@ const DirectoryRow = ({ bankId, onLaunch, courseQuota, quotaAvailable, isPremium
           {count} courses
         </span>
       )}
-      <StatusChip premium={isPremium} ready={parentReady} untilIso={parentUntilIso} unavailable={parentUnavailable} />
+      <StatusChip premium={isPremium} />
     </button>
   );
 };
@@ -283,6 +409,16 @@ const Quiz = () => {
   const [cooldownVerifying, setCooldownVerifying] = useState(false); // re-check in flight
   const [cooldownVerified, setCooldownVerified] = useState(null); // { forExpiresAt, ready } — server answer for one window
 
+  // COURSE-LEVEL COOLDOWN LOCK: a free user must NOT open Quiz Setup for a
+  // course while it is cooling. Replace the directory with an explanatory
+  // overlay instead. Also set by deep links that resolve to a locked course.
+  // { setupId, subject, difficulty }
+  const [selectionLock, setSelectionLock] = useState(null);
+  // Deferred deep-link intent — a URL may NEVER open setup around a cooldown;
+  // resolution waits for the authoritative quota map, then opens or locks.
+  const [deepLinkIntent, setDeepLinkIntent] = useState(null);
+  const deepLinkResolvedRef = React.useRef(false);
+
   // In-flight guard: prevents a double-click / rapid retry from firing a second
   // batch-create while the first is still in flight. The server's idempotency
   // key is the second line of defense (same roundId -> no double charge).
@@ -292,7 +428,7 @@ const Quiz = () => {
   const attemptIdRef = React.useRef(null);
 
   // ----- Difficulty progression -----
-  const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchSCRank, studyStats, levelCompletions, session, fetchQuestionHistory, isPremium, fetchCourseQuotaStatus, courseQuota, courseQuotaAvailable } = useAppContext();
+  const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchSCRank, studyStats, levelCompletions, session, fetchQuestionHistory, isPremium, fetchCourseQuotaStatus, courseQuota, quotaFetchStatus } = useAppContext();
   const [selectedDifficulty, setSelectedDifficulty] = useState(null);
   const [globalRank, setGlobalRank] = useState(null);
 
@@ -337,6 +473,29 @@ const Quiz = () => {
   React.useEffect(() => {
     if (session?.user) fetchCourseQuotaStatus();
   }, [session?.user, fetchCourseQuotaStatus]);
+
+  // Soonest cooldown expiry across all directory/level rows. LOCAL CLOCK IS
+  // DISPLAY-ONLY: crossing it merely triggers a server refetch (below) and the
+  // course unlocks only when the fresh map says is_ready.
+  const directoryCooldownExpiry = React.useMemo(() => {
+    if (isPremium) return null;
+    const times = [];
+    (courseQuota && typeof courseQuota === 'object' ? Object.entries(courseQuota) : []).forEach(([, row]) => {
+      if (row && row.is_ready === false && row.window_expires_at) times.push(new Date(row.window_expires_at).getTime());
+    });
+    return times.length ? Math.min(...times) : null;
+  }, [courseQuota, isPremium]);
+
+  // Refetch-on-expiry: when the displayed countdown hits zero the frontend asks
+  // the SERVER for fresh status. 'ok' maps + a future/absent expiry = waiting;
+  // a crossed expiry = refetch. Failure leaves the row(s) in ERROR (locked).
+  React.useEffect(() => {
+    if (!session?.user || quotaFetchStatus !== 'ok') return;
+    if (directoryCooldownExpiry === null) return;
+    if (Date.now() >= directoryCooldownExpiry) {
+      fetchCourseQuotaStatus();
+    }
+  }, [directoryCooldownExpiry, quotaFetchStatus, session?.user, fetchCourseQuotaStatus]);
   const [passInfo, setPassInfo] = useState(null); // { passed, pct }
   const wrongAnswersRef = React.useRef([]);
   const quizStartRef = React.useRef(null);
@@ -360,7 +519,10 @@ const Quiz = () => {
     return Math.max(0, Math.min(100, Math.round(score)));
   }, [levelCompletions, learningAnalytics, studyStats]);
 
-  // Deep-link support: /quiz?difficulty=Hard (e.g. from a completed flashcard session)
+  // Deep-link support: /quiz?difficulty=Hard | ?subject= | ?practiceSubject=
+  // | ?groupId= | ?weakness=1. URLs pre-load state and queue an INTENT — setup
+  // is opened by the resolver below only after the authoritative quota map has
+  // settled, so a cooldown can never be auto-bypassed through a URL.
   const [, setSearchParams] = useSearchParams();
   const SUBJECT_FILTERS = ['Pharmacology', 'Musculoskeletal', 'Neurological Nursing', 'Medical Surgical', 'Chemistry', 'Mental Health', 'Principles of Management and Teaching', 'Medical-Surgical Nursing II', 'Child Health', 'Home Health Care Nursing', 'Entrepreneurship in Midwifery', 'Community Health Nursing I', 'Fundamentals of Nursing', 'Medical-Surgical Nursing', 'Unit I: Introduction to Nutrition', 'Unit II: Nutritional Needs', 'Unit III: Food Planning, Preparation, and Safety', 'Pharmacology III', 'Concept of Politics and Government', 'Political Interaction', 'Political Activities', 'Reproductive Health', 'Research Methodology', 'Nutrition & Dietetics', 'Politics and Governance in Nursing'];
   React.useEffect(() => {
@@ -370,49 +532,69 @@ const Quiz = () => {
       setSelectedDifficulty(d);
       setPresetDifficulty(d);
     }
+    let intent = null;
     const s = params.get('subject');
     if (s && SUBJECT_FILTERS.includes(s)) {
+      intent = { setupId: 'clinical-challenge', subject: s };
       setPresetSubject(s);
-      setSetupType('clinical-challenge');
     }
-    // Deep-link from the Study Plan "Practice <weakest subject>" CTA: open the
-    // setup flow for the course that contains the subject, preselecting it so
-    // the learner only presses Start. Falls back to Clinical Challenge.
+    // Deep-link from the Study Plan "Practice <weakest subject>" CTA: the course
+    // that contains the subject, subject preselected. Falls back to Clinical.
     const ps = params.get('practiceSubject');
     if (ps) {
       const levelMatch = ['nursing-200', 'midwifery-200', 'nursing-300', 'midwifery-300', 'midwifery-200-s2']
-        .find((key) => LEVEL_SUBJECTS[key].includes(ps));
-      setSetupType(levelMatch || 'clinical-challenge');
+        .find((key) => (LEVEL_SUBJECTS[key] || []).includes(ps));
+      intent = { setupId: levelMatch || 'clinical-challenge', subject: ps };
       setPresetSubject(ps);
       setSelectedDifficulty(null);
     }
-    // Deep-link from a study group: stamp results with the group_id so the
-    // per-group quiz streak can advance. Opens the Midwifery 200-Level setup.
+    // Deep-link from a study group: stamp results with the group_id for the
+    // per-group quiz streak. Defaults to the Midwifery 200-Level setup.
     const g = params.get('groupId');
     if (g && /^\d+$/.test(g)) {
       setGroupQuizId(Number(g));
-      if (!s) setSetupType('midwifery-200');
+      if (!s && !ps) intent = intent || { setupId: 'midwifery-200', subject: null };
     }
-    if (d && s) {
+    // Deep-link: /quiz?weakness=1 → Fix My Weak Areas (PAID — gated server-side).
+    if (params.get('weakness')) {
+      intent = { setupId: 'weakness-challenge', subject: null, requireActivated: true };
+    }
+    if (intent) {
+      if (d) intent.difficulty = d;
+      setDeepLinkIntent(intent);
       setSearchParams({}, { replace: true });
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
-  // Deep-link: /quiz?weakness=1 → Fix My Weak Areas (PAID — gated by is_activated).
+  // Resolve a deep-link intent once quota status is authoritative. Waits (fails
+  // closed) while the map is loading; a cooling target shows the SAME selection
+  // lock overlay instead of opening setup.
   React.useEffect(() => {
-    const params = new URLSearchParams(window.location.search);
-    if (!params.get('weakness') || weaknessIntentHandled) return;
+    if (!deepLinkIntent || deepLinkResolvedRef.current) return;
     if (loadingAuth) return;
-    setWeaknessIntentHandled(true);
-    setSearchParams({}, { replace: true });
-    if (!userProfile.isActivated) {
+    if (deepLinkIntent.requireActivated && !userProfile.isActivated && !weaknessIntentHandled) {
+      deepLinkResolvedRef.current = true;
+      setWeaknessIntentHandled(true);
       navigate('/activate');
       return;
     }
-    setSetupType('weakness-challenge');
-    window.scrollTo({ top: 0 });
+    if (quotaFetchStatus !== 'ok') return; // wait for the server's map
+    deepLinkResolvedRef.current = true;
+    const target = rowState(deepLinkIntent.setupId, deepLinkIntent.subject, courseQuota, quotaFetchStatus, isPremium);
+    if (target.state === ROW_STATE.AVAILABLE) {
+      openSetup(deepLinkIntent.setupId);
+      if (deepLinkIntent.subject) setPresetSubject(deepLinkIntent.subject);
+      if (deepLinkIntent.difficulty) {
+        setSelectedDifficulty(deepLinkIntent.difficulty);
+        setPresetDifficulty(deepLinkIntent.difficulty);
+      }
+    } else {
+      setSelectionLock(deepLinkIntent);
+    }
+    if (deepLinkIntent.requireActivated) setWeaknessIntentHandled(true);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [loadingAuth, userProfile.isActivated, weaknessIntentHandled, navigate]);
+  }, [deepLinkIntent, quotaFetchStatus, loadingAuth, isPremium, userProfile.isActivated, navigate]);
 
   useEffect(() => {
     return () => {
@@ -423,6 +605,7 @@ const Quiz = () => {
   // ----- Guided Setup Flow handlers (Clinical / Quick / Uselu entry) -----
 
   const openSetup = (setupId) => {
+    setSelectionLock(null);
     setSetupType(setupId);
     window.scrollTo({ top: 0 });
   };
@@ -433,6 +616,10 @@ const Quiz = () => {
     setPresetSubject(null);
     attemptIdRef.current = null;
   };
+
+  // A lock on the course is only lifted by the server map; clicking a locked
+  // row just explains why (countdown/verify/error) instead of opening setup.
+  const handleCourseBlocked = (bankId) => setSelectionLock({ setupId: bankId, subject: null });
 
   // Normalizes a card into a quiz question with shuffled (or synthesized) options.
   const boxCard = (card) => {
@@ -515,7 +702,7 @@ const Quiz = () => {
           lockedDifficulty: info.lockedDifficulty,
           message: info.message,
         });
-      } else if (info?.code === 'QUOTA_EXHAUSTED' || info?.status === 403) {
+      } else if (info?.code === 'QUOTA_EXHAUSTED' || info?.code === 'COOLDOWN_ACTIVE' || info?.status === 403) {
         // Quota/cooldown (or any 403): show the cooldown modal with live timer.
         const remSecs = Number(info.cooldown_remaining_seconds) || 0;
         const expiresAt = info.window_expires_at
@@ -790,6 +977,31 @@ const Quiz = () => {
     return () => { active = false; };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [cooldownNotice && cooldownNotice.expiresAt, cooldownNotice && cooldownNotice.type, cooldownNotice && cooldownNotice.unavailable, tickNow, cooldownVerifying, cooldownVerified]);
+
+  // COURSE-LEVEL COOLDOWN LOCK — free user selecting a cooling course never
+  // reaches Quiz Setup; this overlay replaces the directory until a server
+  // refetch confirms the cooldown ended (rowState === AVAILABLE).
+  if (selectionLock && !playerActive) {
+    return (
+      <CourseLockOverlay
+        lock={selectionLock}
+        courseQuota={courseQuota}
+        quotaStatus={quotaFetchStatus}
+        isPremium={isPremium}
+        onOpen={() => {
+          if (selectionLock.subject) setPresetSubject(selectionLock.subject);
+          if (selectionLock.difficulty) {
+            setSelectedDifficulty(selectionLock.difficulty);
+            setPresetDifficulty(selectionLock.difficulty);
+          }
+          openSetup(selectionLock.setupId);
+        }}
+        onRetry={fetchCourseQuotaStatus}
+        onClose={() => setSelectionLock(null)}
+        onGoPremium={() => navigate('/activate')}
+      />
+    );
+  }
 
   if (cooldownNotice && !playerActive) {
     const notifType = cooldownNotice.type || (cooldownNotice.unavailable ? 'error' : 'cooldown');
@@ -1096,7 +1308,7 @@ const Quiz = () => {
             </div>
             <div className="space-y-2.5">
               {QUIZ_LEVEL_ORDER.map((bankId) => (
-                <DirectoryRow key={bankId} bankId={bankId} onLaunch={handleCourseLaunch} courseQuota={courseQuota} quotaAvailable={courseQuotaAvailable} isPremium={isPremium} />
+                <DirectoryRow key={bankId} bankId={bankId} onLaunch={handleCourseLaunch} onBlocked={handleCourseBlocked} courseQuota={courseQuota} quotaStatus={quotaFetchStatus} isPremium={isPremium} />
               ))}
             </div>
           </section>
@@ -1108,7 +1320,7 @@ const Quiz = () => {
             </div>
             <div className="space-y-2.5">
               {OTHER_MODE_ORDER.map((bankId) => (
-                <DirectoryRow key={bankId} bankId={bankId} onLaunch={handleCourseLaunch} courseQuota={courseQuota} quotaAvailable={courseQuotaAvailable} isPremium={isPremium} />
+                <DirectoryRow key={bankId} bankId={bankId} onLaunch={handleCourseLaunch} onBlocked={handleCourseBlocked} courseQuota={courseQuota} quotaStatus={quotaFetchStatus} isPremium={isPremium} />
               ))}
             </div>
           </section>

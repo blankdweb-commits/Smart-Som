@@ -204,10 +204,14 @@ export function AppProvider({ children }) {
   // Per-course round quota (v13): { [courseKey]: { questions_used, rounds_completed,
   //   last_round_completed_at, window_expires_at, cooldown_remaining_seconds, is_ready } }
   const [courseQuota, setCourseQuota] = useState({});
-  // True once a quota-status fetch has SUCCEEDED for the current session. While
-  // false (first load or a network/API failure) the course rows must not claim a
-  // course is "Ready" — availability is unknown, so surface a retry instead.
-  const [courseQuotaAvailable, setCourseQuotaAvailable] = useState(false);
+  // FAIL-CLOSED availability tri-state for the course selector:
+  //   'idle'    — no session/no fetch yet (rows not ready)
+  //   'loading' — initial fetch in flight (rows transiently NOT selectable)
+  //   'ok'      — an authoritative status map is loaded (selectability is decided
+  //               ONLY from the server map, never from local state/clock)
+  //   'error'   — the status fetch failed (rows stay NOT selectable + retry)
+  // `courseQuotaAvailable` (derived, kept for consumers) is true ONLY in 'ok'.
+  const [quotaFetchStatus, setQuotaFetchStatus] = useState('idle');
   const [difficultyProgress, setDifficultyProgress] = useState(null); // { [courseKey]: [...], __aggregate: [...] }
   const [userAchievements, setUserAchievements] = useState([]);
   // Today's daily goal state — driven by the Daily Challenge widget. Powers the
@@ -1092,7 +1096,7 @@ export function AppProvider({ children }) {
         setLevelCompletions({});
         setQuizHistory([]);
         setCourseQuota({});
-        setCourseQuotaAvailable(false);
+        setQuotaFetchStatus('idle');
         setDifficultyProgress(null);
         setUserAchievements([]);
         setDailyChallengeDone(false);
@@ -1240,23 +1244,25 @@ export function AppProvider({ children }) {
   // ---- Per-course round quota (v13): free = 10 Q / 30-min cooldown per course ----
   // Server-authoritative: we only mirror what the server RPCs return. No local
   // arithmetic, no optimistic updates, nothing a manipulated client could fake.
-  // FAIL-CLOSED: `courseQuotaAvailable` is true ONLY after a successful fetch, so
-  // course rows can never claim availability on a stale/empty quota map.
+  // FAIL-CLOSED: `quotaFetchStatus` is 'ok' ONLY after a successful fetch, so
+  // course rows can never claim availability on a stale/empty quota map. A failed
+  // fetch is 'error' (rows locked + retry available), never treated as selectable.
   const fetchCourseQuotaStatus = useCallback(async (sess = session) => {
     if (!sess?.access_token) {
-      setCourseQuotaAvailable(false);
-      return;
+      setQuotaFetchStatus('idle');
+      return null;
     }
+    setQuotaFetchStatus('loading');
     const { ok, data } = await callApexApi('/api/quota/course-status', {
       method: 'GET',
       headers: apexHeaders(sess)
     });
     if (ok && data) {
       setCourseQuota(data.subjects || {});
-      setCourseQuotaAvailable(true);
+      setQuotaFetchStatus('ok');
       return data.subjects || {};
     }
-    setCourseQuotaAvailable(false);
+    setQuotaFetchStatus('error');
     return null;
   }, [session?.access_token, apexHeaders]);
 
@@ -1625,7 +1631,7 @@ fetchCourseQuotaStatus();
     setQuizHistory([]);
     setLearningAnalytics({ weakTopics: [], weakConcepts: [], totalAttempts: 0, recommendedRevision: [], dailyChallenge: { id: null, question: '', answer: '', completed: false, lastDate: null } });
     setCourseQuota({});
-    setCourseQuotaAvailable(false);
+    setQuotaFetchStatus('idle');
     setDifficultyProgress(null);
     setUserAchievements([]);
     setDailyChallengeDone(false);
@@ -1696,7 +1702,7 @@ fetchCourseQuotaStatus();
       identity, identityProgress, identityUnlock, dismissIdentityUnlock, refreshIdentityUnlock,
       // ---- Command Center exports ----
       callApexApi, SC_FEATURE_LOCKED, isPremium,
-      courseQuota, courseQuotaAvailable, fetchCourseQuotaStatus, consumeCourseQuota,
+      courseQuota, quotaFetchStatus, courseQuotaAvailable: quotaFetchStatus === 'ok', fetchCourseQuotaStatus, consumeCourseQuota,
       difficultyProgress, fetchDifficultyStatus, recordAnsweredBatch,
       userAchievements, fetchAchievements, syncAchievements,
       dailyChallengeDone, markDailyChallengeDone,

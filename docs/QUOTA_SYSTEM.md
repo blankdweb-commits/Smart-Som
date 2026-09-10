@@ -33,11 +33,34 @@ Quiz.jsx / CourseList / DailyChallengeWidget
       -> consume_course_quota(...)   (server, service-role)
       -> selection (difficulty access check -> candidates -> batch row)
       -> on error: refundRound()
-  403 { code: 'QUOTA_EXHAUSTED' }  |  403 { code: 'DIFFICULTY_LOCKED' }  |  400 ...
+   403 { code: 'COOLDOWN_ACTIVE' } (allowed=false, cooldown_remaining_seconds>0)
+   |  403 { code: 'QUOTA_EXHAUSTED' }            |  403 { code: 'DIFFICULTY_LOCKED' }  |  400 ...
 ```
 
 The client never decides quota; it only renders server `cooldown_remaining_seconds`
 status and countdown chips in `CourseList` / cooldown overlay in `Quiz.jsx`.
+
+## Course-level cooldown LOCK (POLYNURSE)
+
+- A free course on its 30-minute cooldown is **non-selectable**: `Quiz.jsx`
+  `rowState()` maps the server `course-status` map to
+  `AVAILABLE | COOLDOWN | LOADING | ERROR`; the course card is locked
+  (`On cooldown`, ticking `Available in mm:ss`, `tabIndex={-1}` +
+  `aria-disabled`) and tapping it opens `CourseLockOverlay` ("This course is on
+  cooldown. It will become available in mm:ss."), NOT quiz setup.
+- The client clock is **display-only** — at zero-cross the `directoryCooldownExpiry`
+  effect refetches `GET /api/quota/course-status` and unlocks ONLY when the
+  server reports `is_ready:true`; refetch failure keeps the row locked with a
+  Retry (fail-closed). Deep links (`?subject=`, `?groupId=`, `?weakness=1`)
+  resolve only for `AVAILABLE` rows; any cooldown/unknown row shows the same
+  overlay. `QuizSetupFlow` subject tiles are additionally disabled while the
+  course/tile is cooling or when quota status is `error`.
+- The backend enforces independently: `api/_quiz-batches.js` distinguishes
+  **`COOLDOWN_ACTIVE`** (403, `cooldown_remaining_seconds` > 0) from
+  `QUOTA_EXHAUSTED`, and returns `cooldown_started_at` + `window_expires_at`.
+  `useQuizBatch.classifyBatchError` passes both codes through.
+- Per-course isolation is preserved: a parent course row is selectable if ANY
+  of its subjects is ready.
 Quota can also be read via `GET /api/quota/course-status` →
 `{ subjects: { <course_key>: { is_ready, cooldown_remaining_seconds, ... } } }`.
 

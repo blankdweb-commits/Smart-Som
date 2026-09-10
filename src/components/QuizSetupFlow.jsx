@@ -371,7 +371,7 @@ const ChoiceButton = ({ selected, onClick, children, disabled, colorClass = 'bg-
 
 const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete, onCancel }) => {
   const config = QUIZ_CONFIGS[quizType] || QUIZ_CONFIGS['clinical-challenge'];
-  const { isPremium, difficultyProgress, fetchDifficultyStatus, session, courseQuota, fetchCourseQuotaStatus } = useAppContext();
+  const { isPremium, difficultyProgress, fetchDifficultyStatus, session, courseQuota, quotaFetchStatus, fetchCourseQuotaStatus } = useAppContext();
 
   // Keep the per-subject cooldown chips fresh whenever the subject picker is on
   // screen (free users). Runs on mount + whenever the flow is re-entered.
@@ -501,28 +501,35 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
                   const active = subject === s;
                   const row = (courseQuota || {})[statusKey(quizType, s)] || null;
                   const cooling = !isPremium && row && row.is_ready === false && row.window_expires_at;
+                  // FAIL-CLOSED defense-in-depth: a cooling subject (or an
+                  // unverifiable quota state) is NOT selectable here either.
+                  const tileLocked = cooling || (!isPremium && quotaFetchStatus === 'error');
                   return (
                     <button
                       key={s}
                       type="button"
-                      onClick={() => setSubject(s)}
+                      disabled={tileLocked}
+                      aria-disabled={tileLocked}
+                      onClick={() => { if (!tileLocked) setSubject(s); }}
                       className={`flex items-center gap-3 p-4 rounded-2xl border-2 text-left transition-all ${
-                        active
-                          ? 'border-emerald-500 bg-emerald-500/10 text-slate-900 dark:text-white shadow-lg scale-[1.01]'
-                          : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/40 hover:border-emerald-400'
+                        tileLocked
+                          ? 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/40 opacity-60 cursor-not-allowed'
+                          : active
+                            ? 'border-emerald-500 bg-emerald-500/10 text-slate-900 dark:text-white shadow-lg scale-[1.01]'
+                            : 'border-slate-200 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-900/40 hover:border-emerald-400'
                       }`}
                     >
-                      <BookOpen size={18} className={`shrink-0 ${active ? 'text-emerald-500' : 'text-slate-400'}`} />
+                      <Lock size={18} className={`shrink-0 ${tileLocked ? 'text-amber-500' : active ? 'text-emerald-500' : 'text-slate-400'}`} />
                       <span className="flex-1 min-w-0">
-                        <span className={`block font-black text-sm tracking-tight ${active ? '' : 'text-slate-900 dark:text-white'}`}>{s}</span>
-                        {cooling && (
+                        <span className={`block font-black text-sm tracking-tight ${tileLocked ? 'text-slate-400' : active ? '' : 'text-slate-900 dark:text-white'}`}>{s}</span>
+                        {tileLocked && (
                           <span className="block text-[9px] font-bold uppercase tracking-widest text-amber-600 dark:text-amber-400 mt-0.5">
-                            Next round ready when the timer ends
+                            {cooling ? 'On cooldown — selectable when the timer ends' : "We couldn't verify this subject's availability"}
                           </span>
                         )}
                       </span>
-                      {cooling ? (
-                        <SubjectCooldownChip untilIso={row.window_expires_at} premium={isPremium} />
+                      {tileLocked ? (
+                        <SubjectCooldownChip untilIso={row && row.window_expires_at} locked={!cooling} premium={isPremium} />
                       ) : (
                         active && <CheckCircle2 size={18} className="text-emerald-500 shrink-0" />
                       )}

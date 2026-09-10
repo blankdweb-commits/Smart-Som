@@ -64,7 +64,9 @@ const classifyBatchError = (result, fallbackCourseKey) => {
   } else if (status === 403 && (result.data?.code === 'DIFFICULTY_LOCKED')) {
     message = message || 'This difficulty is still locked for this course.';
   } else if (status === 403) {
-    code = result.data?.code || 'QUOTA_EXHAUSTED';
+    code = ['QUOTA_EXHAUSTED', 'COOLDOWN_ACTIVE'].includes(result.data?.code)
+      ? result.data.code
+      : result.data?.code || 'QUOTA_EXHAUSTED';
     message = message || 'This course is currently on cooldown or out of rounds.';
   } else if (status === 400) {
     code = result.data?.code || 'INVALID_REQUEST';
@@ -79,6 +81,7 @@ const classifyBatchError = (result, fallbackCourseKey) => {
     code,
     message,
     cooldown_remaining_seconds: result.data?.cooldown_remaining_seconds ?? null,
+    cooldown_started_at: result.data?.cooldown_started_at ?? null,
     window_expires_at: result.data?.window_expires_at ?? null,
     lockedDifficulty: result.data?.lockedDifficulty ?? null,
     courseKey: result.data?.courseKey ?? fallbackCourseKey,
