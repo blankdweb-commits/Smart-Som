@@ -20,17 +20,11 @@ The Controlled-Random Question Selection Engine is a **server-authoritative** sy
 ┌─────────────────────────▼───────────────────────────────┐
 │                  API LAYER (Vercel Serverless)           │
 │                                                         │
-│  api/quiz-batch-create.js                               │
-│    └─ QuestionSelectionService.createQuizBatch()        │
-│                                                         │
-│  api/quiz-batch-get.js                                  │
-│    └─ QuestionSelectionService.getBatch()               │
-│                                                         │
-│  api/quiz-batch-answer.js                               │
-│    └─ QuestionSelectionService.recordAnswer()           │
-│                                                         │
-│  api/quiz-batch-complete.js                             │
-│    └─ QuestionSelectionService.completeBatch()          │
+│  api/quiz.js  (single consolidated function)           │
+│    ├─ batch-create  → QuestionSelectionService.createQuizBatch()
+│    ├─ batch-get     → QuestionSelectionService.getBatch()
+│    ├─ batch-answer  → QuestionSelectionService.recordAnswer()
+│    └─ batch-complete→ QuestionSelectionService.completeBatch()
 │                                                         │
 │  api/matches-create.js                                  │
 │    └─ QuestionSelectionService.createMatchBatch()       │

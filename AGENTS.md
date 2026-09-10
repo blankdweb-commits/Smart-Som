@@ -1,6 +1,12 @@
 # Apex Scholars ? Working notes
 
-## Current task: Vercel deploy hardening + bundle/payload + course-seed + test/doc (DONE in-code, Sep 10 2026; deploy itself PENDING)
+## Current: Vercel Hobby consolidation (≤12 Serverless Functions) — DONE in-code, deploy PENDING (Sep 10 2026)
+
+- **Error fixed**: `No more than 12 Serverless Functions can be added to a Deployment on the Hobby plan.` — deploy was rejected after Build, at "Deploying outputs...".
+- **Before: 14 functions → After: 11.** Consolidated the four quiz-batch handlers into ONE `api/quiz.js` router that dispatches on the original `req.url` (Vercel preserves it across rewrites). Handler logic (create/get/answer/complete, incl. `refundRound`/`makeAttemptId`) moved verbatim to `api/_quiz-batches.js` (underscore → NOT deployed). Public contract unchanged: client still calls `/api/quiz-batch-*`; legacy `/api/quiz/batch-*` still works. `vercel.json` now rewrites all 8 quiz paths → `/api/quiz`; `scripts/serve-api.mjs` REWRITES mirrors that exactly. Deleted the 4 old files.
+- **`verify-deploy-config.mjs` updated**: added `_quiz-batches.js` to support modules, serve-api quiz→`/api/quiz` mapping check, and a **Hobby function-count gate (`<= 12`)** — still 42/42 PASS, count 11.
+- `_repro-batch-403.mjs` now imports `../api/quiz.js` (its URL `/api/quiz/batch-create` dispatches to create).
+- **Remaining (user)**: commit+push, redeploy; expect Build ✓ → Deploying outputs ✓ → **Ready**. Post-deploy probe: `/api/quiz-batch-get?id=x` → 401 JSON, `/api/nonexistent` → 404 JSON, and a live batch-create round on the dev box. Do NOT close until Vercel reaches Ready.
 
 ### Deployment root-cause fixes (the "built OK → failed at Deploying outputs" session)
 - **HTML-as-JSON for /api**: unmatched `/api/*` fell through to the SPA fallback. Added `api/not-found.js` (JSON 404: `{ok:false,error:{code:'NOT_FOUND',...},path}`) + rewrite `/api/:path* → /api/not-found` BEFORE `/:path* → /index.html` (now last). Removed the old self-loop `/api/:path* → /api/:path*` from `vercel.json`.

@@ -146,13 +146,22 @@ let passed = 0;
       checks.push(ok(`api/${f} exports a default handler`));
     }
   }
-  for (const f of ['_utils.js', '_questionSelectionService.js', '_selectionConfig.js']) {
+  for (const f of ['_utils.js', '_questionSelectionService.js', '_selectionConfig.js', '_quiz-batches.js']) {
     checks.push(
       existsSync(resolve(ROOT, 'api', f))
         ? ok(`api/${f} present (underscore-prefixed, ignored by Vercel as functions)`)
         : fail(`api/${f} missing`),
     );
   }
+  // Vercel Hobby allows at most 12 Serverless Functions per deployment. Every
+  // top-level api/*.js (non-underscore) is deployed as a function, so gate on
+  // that count here to stop a deployment before Vercel rejects it.
+  const functionCount = readdirApi(ROOT).filter((f) => f.endsWith('.js') && !f.startsWith('_')).length;
+  checks.push(
+    functionCount <= 12
+      ? ok(`api/ serverless function count ${functionCount} <= 12 (Vercel Hobby limit)`)
+      : fail('Vercel Hobby function limit exceeded', `${functionCount} top-level api functions > 12`),
+  );
   // No leftover legacy nested api/quiz or api/matches files.
   for (const f of ['api/quiz', 'api/matches', 'api/payments']) {
     checks.push(
@@ -168,12 +177,17 @@ let passed = 0;
 // ---------------------------------------------------------------------------
 {
   const saSrc = read(resolve(ROOT, 'scripts/serve-api.mjs'));
-  const requiredRewrite = ['/api/quiz/batch-create', '/api/quiz/batch-get', '/api/quiz/batch-answer', '/api/quiz/batch-complete', '/api/matches/create', '/api/payments/webhook'];
+  const requiredRewrite = ['/api/quiz/batch-create', '/api/quiz/batch-get', '/api/quiz/batch-answer', '/api/quiz/batch-complete', '/api/quiz-batch-create', '/api/quiz-batch-get', '/api/quiz-batch-answer', '/api/quiz-batch-complete', '/api/matches/create', '/api/payments/webhook'];
   const missing = requiredRewrite.filter((r) => !saSrc.includes(`'${r}'`) && !saSrc.includes(`"${r}"`));
   checks.push(
     missing.length === 0
-      ? ok('serve-api.mjs mirrors all legacy rewrite paths')
+      ? ok('serve-api.mjs mirrors all legacy + flat quiz rewrite paths')
       : fail('serve-api.mjs missing rewrites', missing.join(', ')),
+  );
+  checks.push(
+    /destination:\s*'\/api\/quiz'/.test(saSrc)
+      ? ok('serve-api.mjs routes quiz batch paths to the consolidated api/quiz.js')
+      : fail('serve-api.mjs does not map quiz batch paths to /api/quiz'),
   );
   checks.push(
     /entry\.name\.startsWith\('_'\)/.test(saSrc)

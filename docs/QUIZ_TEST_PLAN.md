@@ -76,6 +76,7 @@ After commit + redeploy:
 | Lint | 0 errors / 36 pre-existing warnings |
 | `npm run build` | OK (~40 s) |
 | verify-deploy-config.mjs | 42/42 PASS |
+| Vercel Hobby function count | 11 ≤ 12 PASS (4 quiz-batch → 1 api/quiz) |
 | Local API smoke incl. JSON 404 | PASS |
 | DB pool/framework mapping | PASS (documented counts) |
 | Professional Writing seed | 150/150 upserted |

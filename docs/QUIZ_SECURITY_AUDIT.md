@@ -8,7 +8,7 @@ display-only.
 
 | Concern | Authority | Client role |
 | --- | --- | --- |
-| Round creation / question selection | `api/quiz-batch-create.js` → `QuestionSelectionService.createQuizBatch` (server) | POSTs `course_key`/count; renders returned ids |
+| Round creation / question selection | `api/quiz.js` (batch-create) → `QuestionSelectionService.createQuizBatch` (server) | POSTs `course_key`/count; renders returned ids |
 | Quota reservation | `consume_course_quota` RPC (atomic, server-only call) | Passes session token only — **never** `p_is_premium` |
 | Difficulty unlock | `record_difficulty_correct` RPC on genuinely-correct answers (server-side, per-question difficulty fetched from DB) | Sends answer; server decides correctness |
 | Course/subject allowlist | `api/_selectionConfig.js` + `_resolveCourseMetadata` (fail-closed) | Selects from the same allowlist |

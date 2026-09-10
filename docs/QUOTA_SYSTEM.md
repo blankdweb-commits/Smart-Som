@@ -22,7 +22,7 @@
 - clamps `p_count` server-side (free → 10, premium → 10–30);
 - refunds are round-scoped: a failed start (`NO_CANDIDATES`,
   `DIFFICULTY_LOCKED`, etc.) deletes **exactly** that round's
-  `user_course_quota` row (see `api/quiz-batch-create.js: refundRound()`).
+  `user_course_quota` row (see `api/_quiz-batches.js: refundRound()`).
 - v27 dropped the legacy overloads so only the v26 signature survives.
 
 ## Call path

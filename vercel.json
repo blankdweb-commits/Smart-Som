@@ -6,19 +6,35 @@
   "rewrites": [
     {
       "source": "/api/quiz/batch-create",
-      "destination": "/api/quiz-batch-create"
+      "destination": "/api/quiz"
     },
     {
       "source": "/api/quiz/batch-get",
-      "destination": "/api/quiz-batch-get"
+      "destination": "/api/quiz"
     },
     {
       "source": "/api/quiz/batch-answer",
-      "destination": "/api/quiz-batch-answer"
+      "destination": "/api/quiz"
     },
     {
       "source": "/api/quiz/batch-complete",
-      "destination": "/api/quiz-batch-complete"
+      "destination": "/api/quiz"
+    },
+    {
+      "source": "/api/quiz-batch-create",
+      "destination": "/api/quiz"
+    },
+    {
+      "source": "/api/quiz-batch-get",
+      "destination": "/api/quiz"
+    },
+    {
+      "source": "/api/quiz-batch-answer",
+      "destination": "/api/quiz"
+    },
+    {
+      "source": "/api/quiz-batch-complete",
+      "destination": "/api/quiz"
     },
     {
       "source": "/api/matches/create",

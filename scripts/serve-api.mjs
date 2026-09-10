@@ -23,14 +23,19 @@ if (!process.env.VITE_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
 const API_DIR = path.join(process.cwd(), 'api');
 
 // Mirrors the `rewrites` table in vercel.json so the legacy nested paths behave
-// identically on the local API server and on Vercel. Vercel only exposes
-// TOP-LEVEL api/*.js files as functions, so /api/quiz/batch-* etc. are rewritten
-// onto the flat route names here too.
+// identically on the local API server and on Vercel. The four quiz actions are
+// consolidated onto the single api/quiz.js function; both the flat client paths
+// (/api/quiz-batch-*) and the legacy nested paths (/api/quiz/batch-*) are
+// rewritten onto it here, exactly like Vercel.
 const REWRITES = [
-  { source: '/api/quiz/batch-create', destination: '/api/quiz-batch-create' },
-  { source: '/api/quiz/batch-get', destination: '/api/quiz-batch-get' },
-  { source: '/api/quiz/batch-answer', destination: '/api/quiz-batch-answer' },
-  { source: '/api/quiz/batch-complete', destination: '/api/quiz-batch-complete' },
+  { source: '/api/quiz/batch-create', destination: '/api/quiz' },
+  { source: '/api/quiz/batch-get', destination: '/api/quiz' },
+  { source: '/api/quiz/batch-answer', destination: '/api/quiz' },
+  { source: '/api/quiz/batch-complete', destination: '/api/quiz' },
+  { source: '/api/quiz-batch-create', destination: '/api/quiz' },
+  { source: '/api/quiz-batch-get', destination: '/api/quiz' },
+  { source: '/api/quiz-batch-answer', destination: '/api/quiz' },
+  { source: '/api/quiz-batch-complete', destination: '/api/quiz' },
   { source: '/api/matches/create', destination: '/api/matches-create' },
   { source: '/api/payments/webhook', destination: '/api/payments-webhook' },
 ];

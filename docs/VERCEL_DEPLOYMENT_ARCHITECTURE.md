@@ -53,14 +53,22 @@ from project settings / `package.json` `engines` (`>=20.0.0` → current LTS).
 
 - Vercel exposes **only top-level** `api/*.js` as request handlers. Files
   starting with `_` are ignored (shared support modules).
-- All handlers are flat single-route functions under `api/` and use the
-  `@vercel/node` shape: `export default async function handler(req, res)`.
+- Handlers use the `@vercel/node` shape: `export default async function
+  handler(req, res)`.
+- **Consolidation for the Hobby plan (≤ 12 functions)**: the four quiz batch
+  actions previously deployed as `api/quiz-batch-{create,get,answer,complete}.js`
+  are now served by a **single `api/quiz.js`** function that dispatches on the
+  original `req.url`. Logic moved to `api/_quiz-batches.js` (underscore → not
+  deployed). Both the flat client paths (`/api/quiz-batch-*`) and the legacy
+  nested paths (`/api/quiz/batch-*`) are rewritten onto `/api/quiz`. Total:
+  **11 functions**.
 - Legacy client/paystack URLs are preserved by rewrites in `vercel.json`:
-  `/api/quiz/batch-create|get|answer|complete → /api/quiz-batch-*`,
+  `/api/quiz/batch-create|get|answer|complete → /api/quiz`,
+  `/api/quiz-batch-create|get|answer|complete → /api/quiz`,
   `/api/matches/create → /api/matches-create`,
   `/api/payments/webhook → /api/payments-webhook`.
-- `req.url` is preserved across rewrites, so handlers still dispatch on the
-  original path where they need to.
+- `req.url` is preserved across rewrites, so `api/quiz.js` dispatches on the
+  original path.
 
 ## vercel.json (current)
 
@@ -71,9 +79,10 @@ from project settings / `package.json` `engines` (`>=20.0.0` → current LTS).
   "outputDirectory": "dist",
   "headers": [ /* X-Content-Type-Options / X-Frame-Options / X-XSS-Protection */ ],
   "rewrites": [
-    // legacy flat-path rewrites…
-    { "source": "/api/quiz/batch-create", "destination": "/api/quiz-batch-create" },
-    // …
+    // quiz batch actions — flat + legacy, all onto the single /api/quiz function
+    { "source": "/api/quiz/batch-create",       "destination": "/api/quiz" },
+    { "source": "/api/quiz-batch-create",       "destination": "/api/quiz" },
+    // … also get / answer / complete …
     // JSON 404 catch-all — MUST precede the SPA fallback
     { "source": "/api/:path*", "destination": "/api/not-found" },
     // SPA fallback — MUST be last
@@ -84,7 +93,8 @@ from project settings / `package.json` `engines` (`>=20.0.0` → current LTS).
 
 > No `functions` block: the `runtime: "nodejs20.x"` key there is invalid (see
 > Failure A) and was removed. Function Node version comes from project
-> settings / `package.json` `engines`.
+> settings / `package.json` `engines`. **Hobby limit**: deployments allow at
+> most 12 Serverless Functions; this config deploys exactly **11**.
 
 ## Bundle strategy (client payload)
 
