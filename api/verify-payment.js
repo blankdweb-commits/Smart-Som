@@ -1,5 +1,92 @@
 // api/verify-payment.js
+// Server-side Paystack callback verifier.
+// Handles TWO products:
+//   - premium subscription (legacy): creates/extends a subscriptions row.
+//   - anonymous_spectate: one-time ₦599 spectator pass for the Anonymous
+//     group — inserts an `active` anonymous_spectators row (NO subscription).
+// Both verify the transaction with Paystack, validate the amount against a
+// server-resolved price, and are idempotent on the reference.
 import { applyCors, getSupabaseAdmin, getUserFromRequest } from './_utils.js';
+
+const KOBOS = 100;
+
+// Shared: record the canonical payment + transactions log. Returns true if
+// the reference was already processed (idempotency guard).
+async function recordPayment(supabase, user, paidAmount, reference, metadata) {
+  const { error: paymentInsertError } = await supabase.from('payments').insert({
+    user_id: user.id,
+    email: user.email,
+    amount: paidAmount,
+    reference,
+    status: 'success',
+  });
+  if (paymentInsertError) {
+    const { data: recheck } = await supabase
+      .from('payments')
+      .select('id')
+      .eq('reference', reference)
+      .maybeSingle();
+    if (!recheck) throw paymentInsertError;
+    return true; // already processed by a concurrent webhook
+  }
+  await supabase.from('transactions').upsert({
+    user_id: user.id,
+    reference,
+    amount: paidAmount,
+    status: 'success',
+    paid_at: new Date().toISOString(),
+    metadata: metadata || null,
+  }, { onConflict: 'reference' });
+  return false;
+}
+
+// One-time spectator pass: grant `active` anonymous_spectators (service role).
+async function grantSpectator(supabase, user, paidAmount, metadata) {
+  const groupId = Number(metadata?.group_id);
+  if (!Number.isFinite(groupId)) {
+    return { status: 400, body: { error: 'Invalid group id', message: 'Payment metadata is missing the group.' } };
+  }
+
+  // Server-side price/state resolution — never trust payment metadata alone.
+  const { data: group } = await supabase
+    .from('study_groups')
+    .select('id, type, group_state, spectator_price')
+    .eq('id', groupId)
+    .maybeSingle();
+  if (!group || group.type !== 'anonymous' || group.group_state !== 'active') {
+    return { status: 400, body: { error: 'GROUP_NOT_ACTIVE', message: 'This group is not accepting spectators right now.' } };
+  }
+  const expected = Number(group.spectator_price);
+  if (expected > 0 && Math.abs(paidAmount - expected) > 1) {
+    console.error(`Spectator amount mismatch for ref ${metadata?.reference || '(unknown)'}: paid ${paidAmount}, expected ${expected}`);
+    return { status: 400, body: { error: 'Payment amount does not match the spectator pass' } };
+  }
+
+  const { error: spectatorsInsertError } = await supabase.from('anonymous_spectators').insert({
+    group_id: groupId,
+    user_id: user.id,
+    reference: metadata?.reference,
+    amount: paidAmount,
+    status: 'active',
+  });
+  if (spectatorsInsertError) {
+    if (spectatorsInsertError.code === '23505') {
+      return { status: 200, body: { success: true, message: 'Already processed', spectate: true } };
+    }
+    // If the unique reference lost the race, someone else already granted it.
+    const { data: existing } = await supabase
+      .from('anonymous_spectators')
+      .select('id')
+      .eq('reference', metadata?.reference)
+      .maybeSingle();
+    if (existing) {
+      return { status: 200, body: { success: true, message: 'Already processed', spectate: true } };
+    }
+    throw spectatorsInsertError;
+  }
+
+  return { status: 200, body: { success: true, spectate: true, reference: metadata?.reference } };
+}
 
 export default async function handler(req, res) {
   if (!applyCors(req, res)) {
@@ -32,8 +119,21 @@ export default async function handler(req, res) {
       return res.status(400).json({ error: 'Payment verification failed' });
     }
 
-    const paidAmount = result.data.amount / 100;
-    const planId = result.data.metadata?.plan_id;
+    const paidAmount = result.data.amount / KOBOS;
+    const metadata = result.data.metadata || {};
+    const spectatorProduct = metadata.product === 'anonymous_spectate';
+
+    // Spectator product branches early — no subscription is created.
+    if (spectatorProduct) {
+      const processed = await recordPayment(supabase, user, paidAmount, reference, metadata);
+      if (processed) {
+        return res.status(200).json({ success: true, message: 'Already processed' });
+      }
+      return grantSpectator(supabase, user, paidAmount, { ...metadata, reference });
+    }
+
+    // Legacy subscription product.
+    const planId = metadata.plan_id;
 
     // 2. Resolve the plan SERVER-SIDE and validate the amount actually paid.
     let durationDays = 30;
@@ -82,34 +182,10 @@ export default async function handler(req, res) {
     }
 
     // 4. Record Payment (payments table = canonical payment log)
-    const { error: paymentInsertError } = await supabase.from('payments').insert({
-      user_id: user.id,
-      email: user.email,
-      amount: paidAmount,
-      reference,
-      status: 'success'
-    });
-    if (paymentInsertError) {
-      // A concurrent webhook may have won the race — re-check before failing.
-      const { data: recheck } = await supabase
-        .from('payments')
-        .select('id')
-        .eq('reference', reference)
-        .maybeSingle();
-      if (!recheck) throw paymentInsertError;
+    const processed = await recordPayment(supabase, user, paidAmount, reference, metadata);
+    if (processed) {
       return res.status(200).json({ success: true, message: 'Already processed' });
     }
-
-    // 4b. Mirror into the transactions table so the admin finance dashboard
-    // sees callback-verified payments too (webhook previously wrote only here).
-    await supabase.from('transactions').upsert({
-      user_id: user.id,
-      reference,
-      amount: paidAmount,
-      status: 'success',
-      paid_at: new Date().toISOString(),
-      metadata: result.data.metadata || { plan_id: planId }
-    }, { onConflict: 'reference' });
 
     // 5. Activate Subscription. Renewals extend on top of any existing active
     // subscription (starting from the later of now / current expiry) so a

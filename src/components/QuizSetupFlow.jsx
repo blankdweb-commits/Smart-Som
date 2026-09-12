@@ -93,6 +93,7 @@ const QUIZ_CONFIGS = {
       'Pharmacology III',
       'Reproductive Health',
       'Research Methodology',
+      'Medical-Surgical Nursing',
       'Nutrition & Dietetics',
       'Politics and Governance in Nursing',
       'Professional Writing and Seminar'
@@ -108,7 +109,7 @@ const QUIZ_CONFIGS = {
     allowOrderChoice: true,
     allowExamMode: true,
     defaultOrder: 'randomized',
-    bankNote: 'Questions available across 7 core subjects'
+    bankNote: 'Questions available across 8 core subjects'
   },
   'weakness-challenge': {
     title: 'Fix My Weak Areas',
@@ -570,7 +571,7 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
               {subject && (
                 <div className="mb-5 p-4 rounded-2xl bg-apex-600/10 border border-apex-500/30 flex items-center gap-3">
                   <Target size={18} className="text-apex-600 shrink-0" />
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="text-[9px] font-black text-apex-600 uppercase tracking-widest">Targeted Practice</p>
                     <p className="text-sm font-black text-slate-900 dark:text-white">All questions from {subject}</p>
                   </div>
@@ -610,7 +611,7 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
                           {d.id}
                           {locked && <Lock size={13} className="shrink-0" />}
                         </span>
-                        <span className={`block text-[9px] font-bold uppercase tracking-widest truncate ${locked ? 'text-slate-400' : active ? 'text-white/60 dark:text-slate-900/60' : 'text-slate-400'}`}>
+                        <span className={`block text-[9px] font-bold uppercase tracking-widest leading-snug mt-0.5 ${locked ? 'text-slate-400' : active ? 'text-white/60 dark:text-slate-900/60' : 'text-slate-400'}`}>
                           {locked && gate
                             ? `${UNLOCK_THRESHOLDS[d.id] - gateCount} more ${gate} correct`
                             : d.desc}
@@ -662,14 +663,18 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
                 {/* Number of Questions — free locked to 10, premium 10-30 */}
                 <div>
                   <SectionLabel>Number of Questions</SectionLabel>
-                  <div className={`grid gap-2 ${visibleCounts.length > 4 ? 'grid-cols-5' : `grid-cols-${Math.min(Math.max(visibleCounts.length, 1), 4)}`}`}>
-                    {visibleCounts.map((val) => (
-                      <ChoiceButton key={val} selected={questionCount === val} onClick={() => setQuestionCount(val)}>
-                        {val}
-                        {visibleCounts.length === 1 && <Lock size={10} className="inline ml-1 -mt-0.5" />}
-                      </ChoiceButton>
-                    ))}
-                  </div>
+                  {(() => {
+                    const n = visibleCounts.length;
+                    const grid = n > 4 ? 'grid-cols-5' : { 1: 'grid-cols-1', 2: 'grid-cols-2', 3: 'grid-cols-3', 4: 'grid-cols-2 sm:grid-cols-4' }[n] || 'grid-cols-3';
+                    return <div className={`grid gap-2 ${grid}`}>
+                      {visibleCounts.map((val) => (
+                        <ChoiceButton key={val} selected={questionCount === val} onClick={() => setQuestionCount(val)}>
+                          {val}
+                          {visibleCounts.length === 1 && <Lock size={10} className="inline ml-1 -mt-0.5" />}
+                        </ChoiceButton>
+                      ))}
+                    </div>;
+                  })()}
                   {freeTimerLocked && (
                     <p className="mt-2 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
                       <Lock size={10} className="inline mr-1 -mt-0.5" /> Free plan: 10 questions per round
@@ -680,7 +685,7 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
                 {/* Time Limit */}
                 <div>
                   <SectionLabel>Time Limit</SectionLabel>
-                  <div className={`grid gap-2 ${timerOptions.length > 4 ? 'grid-cols-2 sm:grid-cols-5' : 'grid-cols-3'}`}>
+                  <div className={`grid gap-2 ${timerOptions.length > 4 ? 'grid-cols-2 sm:grid-cols-5' : timerOptions.length === 4 ? 'grid-cols-2 sm:grid-cols-4' : 'grid-cols-3'}`}>
                     {timerOptions.map((t) => (
                       <ChoiceButton
                         key={t.label}
@@ -823,7 +828,7 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
               {subject && (
                 <div className="mb-5 p-4 rounded-2xl bg-apex-600/10 border border-apex-500/30 flex items-center gap-3">
                   <Target size={18} className="text-apex-600 shrink-0" />
-                  <div>
+                  <div className="min-w-0 flex-1">
                     <p className="text-[9px] font-black text-apex-600 uppercase tracking-widest">Targeted Practice</p>
                     <p className="text-sm font-black text-slate-900 dark:text-white">All questions from {subject}</p>
                   </div>
@@ -845,12 +850,12 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
                 ].map((row, i) => (
                   <div
                     key={row.label}
-                    className={`flex justify-between items-center px-4 py-3.5 ${
+                    className={`flex items-center gap-3 px-4 py-3.5 ${
                       i % 2 === 0 ? 'bg-slate-50 dark:bg-slate-900/50' : 'bg-white dark:bg-slate-800'
                     }`}
                   >
-                    <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">{row.label}</span>
-                    <span className="font-black text-sm text-slate-900 dark:text-white text-right">{row.value}</span>
+                    <span className="shrink-0 text-[10px] font-black uppercase tracking-widest text-slate-400">{row.label}</span>
+                    <span className="flex-1 min-w-0 break-words text-right font-black text-sm leading-snug text-slate-900 dark:text-white">{row.value}</span>
                   </div>
                 ))}
               </div>

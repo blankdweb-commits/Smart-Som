@@ -14,15 +14,18 @@ test('unknown routes resolve (catch-all redirects)', async ({ page }) => {
   await expect(page).not.toHaveURL(/welcome/);
 });
 
-test('quiz modes are accessible', async ({ page }) => {
+test('quiz routes are auth-gated (anonymous redirects to login)', async ({ page }) => {
   await page.goto('/quiz');
-  await expect(page.getByRole('heading', { name: /Quiz Modes/i })).toBeVisible();
+  // /quiz sits behind RequireAuth; anonymous visitors land on /login
+  await expect(page).toHaveURL(/login/);
+  await expect(page.locator('body')).toContainText('Polynurse');
 });
 
-test('settings shows the account center', async ({ page }) => {
+test('settings shows the account center behind auth', async ({ page }) => {
+  // Unauthenticated /settings redirects to the auth page (RequireAuth).
   await page.goto('/settings');
-  await expect(page.getByRole('heading', { name: 'Settings', exact: true })).toBeVisible();
-  await expect(page.getByText('Account Center')).toBeVisible();
+  await expect(page).toHaveURL(/login/);
+  await expect(page.locator('body')).toContainText('Polynurse');
 });
 
 test('admin nav links are hidden for non-admin users (desktop)', async ({ page }) => {

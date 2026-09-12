@@ -2,6 +2,7 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { supabase } from '../utils/supabase';
+import { getCacheFirst, cacheTtl } from '../utils/cache';
 import { ArrowLeft, Award, Lock, Loader2 } from '../components/Icons';
 
 const Achievements = () => {
@@ -17,10 +18,19 @@ const Achievements = () => {
         setLoading(false);
         return;
       }
-      const { data, error } = await supabase.from('achievements').select('id, key, name, description, emoji').order('id');
-      if (active) {
-        if (!error) setCatalog(data || []);
-        setLoading(false);
+      // Whole-of-app public metadata (definitions) — cache-first with a long TTL.
+      // Never user-scoped: unlocked state still comes from userAchievements above.
+      try {
+        const catalog = await getCacheFirst('static:achievements', async () => {
+          const { data, error } = await supabase.from('achievements').select('id, key, name, description, emoji').order('id');
+          if (error) throw error;
+          return data || [];
+        }, { ttlMs: cacheTtl.STATIC });
+        if (active) setCatalog(catalog || []);
+      } catch (err) {
+        console.warn('Achievements catalog fetch skipped:', err.message);
+      } finally {
+        if (active) setLoading(false);
       }
     })();
     return () => { active = false; };

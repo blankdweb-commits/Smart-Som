@@ -20,7 +20,9 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useNavigate } from 'react-router-dom';
 import { supabase } from '../utils/supabase';
+import { communityApi } from '../utils/communityApi';
 import { useAppContext } from '../context/AppContext';
+import { dedupe } from '../utils/cache';
 import { formatDistanceToNow } from 'date-fns';
 import CommunityAuthModal from './CommunityAuthModal';
 import AdBanner from './AdBanner';
@@ -80,15 +82,41 @@ const StudyGroups = () => {
       return;
     }
     try {
+      // Plain select (no PostgREST embed). STUDY_GROUP_MEMBERS counts are
+      // fetched separately — embedded joins against tables/views here have
+      // caused PostgREST 400s, and the anonymous counts are overridden below
+      // via the SECURITY DEFINER community_member_count RPC.
       const { data } = await supabase
         .from('study_groups')
-        .select('*, members:study_group_members(count)')
+        .select('*')
         .eq('is_active', true)
         .order('created_at', { ascending: false });
-      const rows = (data || []).map(g => ({
-        ...g,
-        member_count: g.members?.[0]?.count ?? 0
-      }));
+      let rows = (data || []).map(g => ({ ...g, member_count: 0 }));
+      if (rows.length > 0) {
+        const gids = rows.map(g => g.id);
+        const { data: memRows, error: memError } = await supabase
+          .from('study_group_members')
+          .select('group_id')
+          .in('group_id', gids);
+        if (!memError) {
+          const counts = {};
+          (memRows || []).forEach(m => { counts[m.group_id] = (counts[m.group_id] || 0) + 1; });
+          rows = rows.map(g => ({ ...g, member_count: counts[g.id] || 0 }));
+        }
+      }
+      const anonIds = rows.filter(g => g.type === 'anonymous').map(g => g.id);
+      if (anonIds.length) {
+        const counts = await Promise.all(anonIds.map(gid =>
+          // In-flight-only coalescing: the anonymous count is read through the
+          // SECURITY DEFINER RPC on every fetch; simultaneous loaders share one
+          // read instead of fanning out duplicate RPC bursts.
+          dedupe(`community:member-count:${gid}`, () =>
+            supabase.rpc('community_member_count', { p_group: gid }).then(r => ({ gid, n: r.data ?? 0 }))
+          )
+        ));
+        const countMap = Object.fromEntries(counts.map(c => [c.gid, c.n]));
+        rows = rows.map(g => g.type === 'anonymous' ? { ...g, member_count: countMap[g.id] ?? g.member_count } : g);
+      }
       setGroups(rows);
       setActiveGroup(prev => {
         if (!prev) return prev;
@@ -170,7 +198,13 @@ const StudyGroups = () => {
     if (!supabase) return;
     const isMember = joinedIds.includes(group.id);
     try {
-      if (isMember) {
+      if (group.type === 'anonymous') {
+        if (isMember) {
+          await communityApi(session, '/groups/leave', { group_id: group.id });
+        } else {
+          await communityApi(session, '/groups/join', { group_id: group.id });
+        }
+      } else if (isMember) {
         if (memberships[group.id] === 'owner') return;
         await supabase.from('study_group_members').delete().match({ group_id: group.id, user_id: currentUserId });
       } else {
@@ -179,6 +213,11 @@ const StudyGroups = () => {
       await Promise.all([loadGroups(), loadMemberships()]);
     } catch (err) {
       console.error('Error updating membership:', err);
+      if (err.code === 'GROUP_ACTIVE') {
+        alert('That room already activated — membership is closed.');
+      } else if (err.message) {
+        alert(err.message);
+      }
     }
   };
 
@@ -206,13 +245,20 @@ const StudyGroups = () => {
     if (!supabase) return;
     setLoadingPosts(true);
     try {
-      const { data } = await supabase
-        .from('community_feed')
-        .select('*')
-        .eq('group_id', gid)
-        .order('created_at', { ascending: false })
-        .limit(50);
-      setGroupPosts(data || []);
+      const { data: grp } = await supabase.from('study_groups').select('type').eq('id', gid).single();
+      if (grp?.type === 'anonymous') {
+        if (!session?.access_token) { setGroupPosts([]); return; }
+        const feed = await communityApi(session, '/groups/feed', { group_id: gid, limit: 50 });
+        setGroupPosts(feed.posts || []);
+      } else {
+        const { data: posts } = await supabase
+          .from('community_feed')
+          .select('*')
+          .eq('group_id', gid)
+          .order('created_at', { ascending: false })
+          .limit(50);
+        setGroupPosts(posts || []);
+      }
     } catch (err) {
       console.error('Error loading group posts:', err);
     } finally {
@@ -221,6 +267,10 @@ const StudyGroups = () => {
   };
 
   const openGroup = async (group) => {
+    if (group.type === 'anonymous') {
+      navigate(`/study-groups/${group.id}`);
+      return;
+    }
     setActiveGroup(group);
     await loadGroupPosts(group.id);
   };
@@ -230,23 +280,15 @@ const StudyGroups = () => {
     if (!groupPostContent.trim() || !supabase || !activeGroup) return;
     setPosting(true);
     try {
-      const { error } = await supabase
-        .from('community_posts')
-        .insert({
-          author_id: currentUserId,
-          content: groupPostContent.trim(),
-          section: 'general',
-          group_id: activeGroup.id
-        });
-      if (error) throw error;
+      await communityApi(session, '/posts', { content: groupPostContent.trim(), group_id: activeGroup.id });
       setGroupPostContent('');
       await loadGroupPosts(activeGroup.id);
     } catch (err) {
       console.error('Error posting to group:', err);
-      if (err.message?.includes('row-level security') || err.code === '42501') {
+      if (err.status === 401) {
         setShowAuthModal(true);
       } else {
-        alert('Failed to post in this group.');
+        alert(err.message || 'Failed to post in this group.');
       }
     } finally {
       setPosting(false);
@@ -255,20 +297,18 @@ const StudyGroups = () => {
 
   const handleGroupLike = async (post) => {
     if (!requireAuth()) return;
-    if (!supabase) return;
+    if (!supabase || !session?.access_token) return;
     const liked = post.liked_by_current_user;
+    const previous = groupPosts;
     const optimistic = groupPosts.map(p => p.id === post.id
       ? { ...p, liked_by_current_user: !liked, like_count: Math.max(0, (p.like_count || 0) + (liked ? -1 : 1)) }
       : p);
     setGroupPosts(optimistic);
     try {
-      if (!liked) {
-        await supabase.from('community_post_likes').insert({ post_id: post.id, user_id: currentUserId });
-      } else {
-        await supabase.from('community_post_likes').delete().match({ post_id: post.id, user_id: currentUserId });
-      }
+      await communityApi(session, '/posts/like', { post_id: post.id, liked: !liked });
     } catch (err) {
       console.error('Error toggling like:', err);
+      setGroupPosts(previous);
     }
   };
 
@@ -291,20 +331,23 @@ const StudyGroups = () => {
 
   const handleComment = async (postId) => {
     if (!commentText.trim() || !supabase) return;
+    if (!requireAuth()) return;
     setPostingComment(true);
     try {
-      const { data } = await supabase
-        .from('community_comments')
-        .insert({ post_id: postId, author_id: currentUserId, content: commentText.trim() })
-        .select('id, author_id, content, created_at')
-        .single();
-      if (data) {
-        setComments(prev => [...prev, data]);
+      const data = await communityApi(session, '/posts/reply', { post_id: postId, content: commentText.trim() });
+      const comment = data.comment;
+      if (comment) {
+        setComments(prev => [...prev, comment]);
         setGroupPosts(prev => prev.map(p => p.id === postId ? { ...p, reply_count: (p.reply_count || 0) + 1 } : p));
         setCommentText('');
       }
     } catch (err) {
       console.error('Error commenting:', err);
+      if (err.status === 401) {
+        setShowAuthModal(true);
+      } else {
+        alert(err.message || 'Failed to reply.');
+      }
     } finally {
       setPostingComment(false);
     }
@@ -422,8 +465,13 @@ const StudyGroups = () => {
                     <button
                       onClick={async () => {
                         if (!confirm('Delete this post?')) return;
-                        await supabase.from('community_posts').update({ is_deleted: true }).eq('id', post.id);
-                        setGroupPosts(prev => prev.filter(p => p.id !== post.id));
+                        try {
+                          await communityApi(session, '/posts/delete', { post_id: post.id });
+                          setGroupPosts(prev => prev.filter(p => p.id !== post.id));
+                        } catch (err) {
+                          console.error('Error deleting post:', err);
+                          alert(err.message || 'Failed to delete the post.');
+                        }
                       }}
                       className="ml-auto text-slate-400 hover:text-red-500 transition-colors"
                       aria-label="Delete post"
@@ -449,8 +497,13 @@ const StudyGroups = () => {
                   {post.author_id === currentUserId && (
                     <button
                       onClick={async () => {
-                        await supabase.from('community_posts').update({ is_deleted: true }).eq('id', post.id);
-                        setGroupPosts(prev => prev.filter(p => p.id !== post.id));
+                        try {
+                          await communityApi(session, '/posts/delete', { post_id: post.id });
+                          setGroupPosts(prev => prev.filter(p => p.id !== post.id));
+                        } catch (err) {
+                          console.error('Error deleting post:', err);
+                          alert(err.message || 'Failed to delete the post.');
+                        }
                       }}
                       className="ml-auto flex items-center gap-1.5 text-xs font-semibold hover:text-red-500 transition-colors"
                     >
@@ -487,7 +540,8 @@ const StudyGroups = () => {
                       <button
                         onClick={() => handleComment(post.id)}
                         disabled={!commentText.trim() || postingComment}
-                        className="w-9 h-9 flex items-center justify-center bg-emerald-600 text-white rounded-full hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                        className="w-10 h-10 flex items-center justify-center bg-emerald-600 text-white rounded-full hover:bg-emerald-700 disabled:opacity-50 transition-colors"
+                        aria-label="Send reply"
                       >
                         {postingComment ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                       </button>
@@ -552,6 +606,18 @@ const StudyGroups = () => {
                   <GroupBadge verified={group.is_verified} />
                 </div>
                 <h3 className="text-lg font-black text-slate-900 dark:text-white tracking-tight leading-snug">{group.name}</h3>
+                {group.type === 'anonymous' && (
+                  <span className={`mt-1.5 inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[8px] font-black uppercase tracking-widest border self-start ${
+                    group.group_state === 'active'
+                      ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400 border-emerald-500/30'
+                      : group.group_state === 'wiped'
+                        ? 'bg-slate-500/15 text-slate-500 dark:text-slate-400 border-slate-500/30'
+                        : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
+                  }`}>
+                    {group.group_state === 'active' ? '🔥 Active · closed' : group.group_state === 'wiped' ? '💀 Wiped' : '⏳ Waiting · open'}
+                    <Lock size={9} />
+                  </span>
+                )}
                 {group.focus && (
                   <p className="text-[10px] font-black uppercase tracking-widest text-apex-600 dark:text-apex-400 mt-1">{group.focus}</p>
                 )}
@@ -562,30 +628,31 @@ const StudyGroups = () => {
                   <span className="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded-lg flex items-center gap-1"><Users size={10} /> {group.member_count}</span>
                 </div>
 
-                <div className="flex items-center gap-2 mt-5 pt-5 border-t border-slate-100 dark:border-slate-700">
+                <div className="flex flex-wrap items-center gap-2 mt-5 pt-5 border-t border-slate-100 dark:border-slate-700">
                   <button
                     onClick={() => openGroup(group)}
-                    className="flex-1 px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-black uppercase tracking-widest text-[9px] hover:opacity-90 transition-all active:scale-95"
+                    className="flex-1 min-w-[6rem] px-4 py-2.5 bg-slate-900 dark:bg-white text-white dark:text-slate-900 rounded-xl font-black uppercase tracking-wide text-[10px] hover:opacity-90 transition-all active:scale-95"
                   >
                     Open
                   </button>
                   <button
                     onClick={() => navigate(`/study-groups/${group.id}`)}
-                    className="px-4 py-2.5 bg-apex-600 text-white rounded-xl font-black uppercase tracking-widest text-[9px] flex items-center gap-1.5 hover:bg-apex-700 transition-all active:scale-95"
+                    className="px-4 py-2.5 bg-apex-600 text-white rounded-xl font-black uppercase tracking-wide text-[10px] flex items-center gap-1.5 whitespace-nowrap hover:bg-apex-700 transition-all active:scale-95"
                   >
                     <Users size={12} /> Group Page
                   </button>
                   {isOwner ? (
                     <button
                       onClick={() => handleDeleteGroup(group)}
-                      className="px-4 py-2.5 bg-red-600 text-white rounded-xl font-black uppercase tracking-widest text-[9px]"
+                      aria-label={`Delete ${group.name}`}
+                      className="px-4 py-2.5 bg-red-600 text-white rounded-xl font-black uppercase tracking-wide text-[10px]"
                     >
                       <Trash2 size={12} />
                     </button>
                   ) : (
                     <button
                       onClick={() => handleJoinLeave(group)}
-                      className={`px-4 py-2.5 rounded-xl font-black uppercase tracking-widest text-[9px] transition-all active:scale-95 flex items-center gap-1.5 ${isMember ? 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300' : 'bg-apex-600 text-white'}`}
+                      className={`px-4 py-2.5 rounded-xl font-black uppercase tracking-wide text-[10px] whitespace-nowrap transition-all active:scale-95 flex items-center gap-1.5 ${isMember ? 'bg-slate-100 dark:bg-slate-900 text-slate-600 dark:text-slate-300' : 'bg-apex-600 text-white'}`}
                     >
                       {isMember ? <><X size={11} /> Leave</> : <><Check size={11} /> Join</>}
                     </button>

@@ -23,27 +23,44 @@ import {
   // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import { supabase, uploadFile, getPublicUrl } from '../utils/supabase';
+import { communityApi } from '../utils/communityApi';
+import { dedupe } from '../utils/cache';
 import { useAppContext } from '../context/AppContext';
 import { formatDistanceToNow } from 'date-fns';
-import { useParams, useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import CommunityAuthModal from '../components/CommunityAuthModal';
 import AdBanner from '../components/AdBanner';
-import { COMMUNITY_SECTIONS, getSection, SECTION_ORDER } from '../data/communitySections';
+import { getSection } from '../data/communitySections';
 
 const POSTS_PER_PAGE = 15;
+// Ephemeral feed: re-check for posts that hit their grace/life cut-off (the
+// view + RLS drop them server-side) and flip ACTIVE/COLD state badges.
+const EPHEMERAL_POLL_MS = 15000;
+
+// DISPLAY-ONLY expiry filter (defense-in-depth). The community_feed view
+// already excludes expired rows server-side; this keeps an expired post from
+// lingering in state between polls or after a realtime insert. Never cached.
+const isPostExpired = (p) => {
+  if (!p || !p.lives_until) return false;
+  try {
+    return new Date(p.lives_until).getTime() <= Date.now();
+  } catch {
+    return false;
+  }
+};
+const stripExpired = (rows) =>
+  Array.isArray(rows) ? rows.filter((p) => !isPostExpired(p)) : rows;
 
 const Community = () => {
   const { session } = useAppContext();
-  const { section } = useParams();
   const navigate = useNavigate();
   const [posts, setPosts] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
-  // Section is URL-driven now: /community (=> 'all') or /community/:section.
-  const activeSection = section || 'all';
-  const [newPostSection, setNewPostSection] = useState('general');
+  // One unified feed after the community reset: every post lives in 'general'.
+  const activeSection = 'all';
 
   const [newPostContent, setNewPostContent] = useState('');
   const [posting, setPosting] = useState(false);
@@ -97,10 +114,9 @@ const Community = () => {
     activeCommentPostIdRef.current = activeCommentPostId;
   }, [activeCommentPostId]);
 
-  const activeSectionRef = useRef('all');
-  useEffect(() => {
-    activeSectionRef.current = activeSection;
-  }, [activeSection]);
+  // Server-authoritative community write helper. All post/comment/like/report
+  // writes go through the api/community router (migration-v29 removes client
+  // write RLS); only public reads use Supabase directly.
 
   // Menu states
   const [activeMenuPostId, setActiveMenuPostId] = useState(null);
@@ -171,21 +187,24 @@ const Community = () => {
         .order('created_at', { ascending: false })
         .range(from, to);
 
-      if (activeSection !== 'all') {
-        query = query.eq('section', activeSection);
-      }
-
-      const { data, error: fetchError } = await query;
+      // Page 0 is polled every 15s and re-fetched on focus; coalesce any
+      // overlapping reads so they share one network round-trip. The ephemeral
+      // feed is NEVER cached — this is pure in-flight dedupe.
+      const result = await (pageIndex === 0 ? dedupe('community:feed:p0', () => query) : query);
+      const { data, error: fetchError } = result;
 
       if (fetchError) throw fetchError;
 
-      if (data) {
+      const visible = stripExpired(data);
+      if (visible) {
         if (append) {
-          setPosts(prev => [...prev, ...data]);
+          setPosts(prev => [...prev, ...visible]);
         } else {
-          setPosts(data);
+          setPosts(visible);
         }
-        setHasMore(data.length === POSTS_PER_PAGE);
+        // Pagination is driven by the SERVER row count, not the display filter,
+        // so expired rows never prematurely disable "Load more".
+        setHasMore(Array.isArray(data) && data.length === POSTS_PER_PAGE);
       }
     } catch (err) {
       console.error('Error fetching community posts:', err);
@@ -193,16 +212,32 @@ const Community = () => {
       setLoading(false);
       setLoadingMore(false);
     }
-  }, [activeSection]);
+  }, []);
 
   const switchSection = (key) => {
-    if (key !== 'all') setNewPostSection(key);
     navigate(key === 'all' ? '/community' : `/community/${key}`);
   };
 
   useEffect(() => {
     fetchPosts(0, false);
     setPage(0);
+  }, [fetchPosts]);
+
+  // Ephemeral lifecycle: refresh the visible feed so posts that hit their
+  // grace/life cut-off drop away and the ACTIVE/COLD badges stay truthful.
+  useEffect(() => {
+    const tick = () => {
+      if (document.visibilityState !== 'hidden') {
+        fetchPosts(0, false).catch(() => {});
+      }
+    };
+    const onFocus = () => tick();
+    const id = setInterval(tick, EPHEMERAL_POLL_MS);
+    window.addEventListener('focus', onFocus);
+    return () => {
+      clearInterval(id);
+      window.removeEventListener('focus', onFocus);
+    };
   }, [fetchPosts]);
 
   // Realtime Subscriptions
@@ -215,7 +250,6 @@ const Community = () => {
           fetchSinglePost(payload.new.id).then(newPost => {
             if (!newPost) return;
             if (newPost.group_id) return; // group feed only
-            if (activeSectionRef.current !== 'all' && (newPost.section || 'general') !== activeSectionRef.current) return;
             setPosts(prev => {
               if (prev.some(p => p.id === newPost.id)) return prev;
               return [newPost, ...prev];
@@ -263,7 +297,7 @@ const Community = () => {
 
   const fetchSinglePost = async (id) => {
     const { data } = await supabase.from('community_feed').select('*').eq('id', id).single();
-    return data;
+    return data && !isPostExpired(data) ? data : null;
   };
 
   const handleLoadMore = () => {
@@ -287,7 +321,7 @@ const Community = () => {
     const newLikedStatus = !currentLikedStatus;
     
     // Optimistic UI update
-    setPosts(posts.map(p => {
+    setPosts(prev => prev.map(p => {
       if (p.id === postId) {
         return { 
           ...p, 
@@ -299,15 +333,11 @@ const Community = () => {
     }));
 
     try {
-      if (newLikedStatus) {
-        await supabase.from('community_post_likes').insert({ post_id: postId, user_id: currentUserId });
-      } else {
-        await supabase.from('community_post_likes').delete().match({ post_id: postId, user_id: currentUserId });
-      }
+      await communityApi(session, '/posts/like', { post_id: postId, liked: newLikedStatus });
     } catch (err) {
       console.error('Error toggling like:', err);
       // Revert optimistic update
-      setPosts(posts.map(p => {
+      setPosts(prev => prev.map(p => {
         if (p.id === postId) {
           return { 
             ...p, 
@@ -331,7 +361,7 @@ const Community = () => {
       setPosting(true);
       setError('');
 
-      // Upload image first (if attached), then insert the post with its URL.
+      // Upload image first (if attached), then publish through the API router.
       let imageUrl = null;
       if (selectedImage) {
         const ext = (selectedImage.name.split('.').pop() || 'jpg').toLowerCase();
@@ -341,24 +371,20 @@ const Community = () => {
         imageUrl = getPublicUrl('uploads', imagePath);
       }
 
-      const { error: insertError } = await supabase
-        .from('community_posts')
-        .insert({
-           author_id: currentUserId,
-           content: newPostContent.trim() || '',
-           section: newPostSection,
-           ...(imageUrl ? { image_url: imageUrl } : {})
-        });
-
-      if (insertError) throw insertError;
+      await communityApi(session, '/posts', {
+        content: newPostContent.trim() || '',
+        ...(imageUrl ? { image_url: imageUrl } : {}),
+      });
 
       setNewPostContent('');
       clearSelectedImage();
     } catch (err) {
       console.error('Error creating post:', err);
-      if (err.message?.includes('row-level security') || err.code === '42501') {
+      if (err.status === 401) {
         setShowAuthModal(true);
-        setError('You must be signed in to post.');
+        setError('Your session expired. Please sign in again.');
+      } else if (err.code === 'BANNED') {
+        setError('Your community access is currently restricted.');
       } else if (/bucket|storage/i.test(err.message || '')) {
         setError('Could not upload the image. Please try again.');
       } else {
@@ -377,14 +403,8 @@ const Community = () => {
     if (!verified) return;
 
     try {
-      const { error } = await supabase
-        .from('community_posts')
-        .update({ is_deleted: true })
-        .eq('id', postId)
-        .eq('author_id', currentUserId); // Extra safety
-      
-      if (error) throw error;
-      setPosts(posts.filter(p => p.id !== postId));
+      await communityApi(session, '/posts/delete', { post_id: postId });
+      setPosts(prev => prev.filter(p => p.id !== postId));
       setActiveMenuPostId(null);
     } catch (err) {
       console.error('Error deleting post', err);
@@ -400,21 +420,15 @@ const Community = () => {
     if (!verified) return;
 
     try {
-       const { error } = await supabase
-         .from('community_posts')
-         .update({ content: editContent.trim() })
-         .eq('id', editingPostId)
-         .eq('author_id', currentUserId);
+      await communityApi(session, '/posts/edit', { post_id: editingPostId, content: editContent.trim() });
 
-       if (error) throw error;
-       
-       setPosts(posts.map(p => p.id === editingPostId ? { ...p, content: editContent.trim() } : p));
-       setEditingPostId(null);
-       setEditContent('');
-       setActiveMenuPostId(null);
+      setPosts(prev => prev.map(p => p.id === editingPostId ? { ...p, content: editContent.trim() } : p));
+      setEditingPostId(null);
+      setEditContent('');
+      setActiveMenuPostId(null);
     } catch (err) {
-       console.error('Error editing post', err);
-       alert('Failed to edit post.');
+      console.error('Error editing post', err);
+      alert('Failed to edit post.');
     }
   };
 
@@ -434,11 +448,7 @@ const Community = () => {
 
     try {
       setReporting(true);
-      const { error } = await supabase
-        .from('community_reports')
-        .insert({ reporter_id: currentUserId, post_id: reportPostId, reason: reportReason });
-      
-      if (error) throw error;
+      await communityApi(session, '/posts/report', { post_id: reportPostId, reason: reportReason });
       alert('Post reported successfully. Thank you.');
       setReportPostId(null);
       setReportReason('');
@@ -569,38 +579,34 @@ const Community = () => {
 
      try {
        setPostingComment(true);
-       // Plain insert — no embedded select. community_profiles is a VIEW so
-       // PostgREST embedded joins fail against it; profile data is fetched
-       // separately below.
-       const { data, error } = await supabase
-         .from('community_comments')
-         .insert({
-           post_id: postId,
-           author_id: currentUserId,
-           content: newCommentContent.trim()
-         })
-         .select('id, content, created_at, author_id')
-         .single();
+       // Server-authoritative reply; the API returns the inserted comment.
+       const { comment } = await communityApi(session, '/posts/reply', {
+         post_id: postId,
+         content: newCommentContent.trim(),
+       });
 
-       if (error) throw error;
-
-       const profileMap = data.author_id ? await fetchProfiles([data.author_id]) : {};
+       const profileMap = comment.author_id ? await fetchProfiles([comment.author_id]) : {};
        const newComment = {
-         ...data,
-         display_name: profileMap[data.author_id]?.display_name || 'You',
-         avatar_url: profileMap[data.author_id]?.avatar_url,
-         year: profileMap[data.author_id]?.year
+         ...comment,
+         display_name: profileMap[comment.author_id]?.display_name || 'You',
+         avatar_url: profileMap[comment.author_id]?.avatar_url,
+         year: profileMap[comment.author_id]?.year
        };
 
        setComments(prev => prev.some(c => c.id === newComment.id) ? prev : [...prev, newComment]);
        setNewCommentContent('');
 
        // Optimistically update comment count
-       setPosts(posts.map(p => p.id === postId ? { ...p, reply_count: Number(p.reply_count) + 1 } : p));
+       setPosts(prev => prev.map(p => p.id === postId ? { ...p, reply_count: Number(p.reply_count) + 1 } : p));
      } catch (err) {
        console.error("Error posting comment", err);
-       if (err.message?.includes('row-level security') || err.code === '42501') {
+       if (err.status === 401) {
          setShowAuthModal(true);
+       } else if (err.code === 'BANNED') {
+         alert('Your community access is currently restricted.');
+       } else if (err.code === 'POST_NOT_FOUND') {
+         setPosts(prev => prev.filter(p => p.id !== postId));
+         alert('This post is no longer visible.');
        } else {
          alert("Failed to post reply.");
        }
@@ -623,13 +629,7 @@ const Community = () => {
     if (!verified) return;
 
     try {
-      const { error } = await supabase
-        .from('community_comments')
-        .update({ content: editCommentContent.trim() })
-        .eq('id', editingCommentId)
-        .eq('author_id', currentUserId);
-
-      if (error) throw error;
+      await communityApi(session, '/posts/edit-comment', { comment_id: editingCommentId, content: editCommentContent.trim() });
 
       setComments(prev => prev.map(c => c.id === editingCommentId ? { ...c, content: editCommentContent.trim() } : c));
       setEditingCommentId(null);
@@ -649,17 +649,11 @@ const Community = () => {
     if (!verified) return;
 
     try {
-      const { error } = await supabase
-        .from('community_comments')
-        .update({ is_deleted: true })
-        .eq('id', commentId)
-        .eq('author_id', currentUserId);
-
-      if (error) throw error;
+      await communityApi(session, '/posts/delete-comment', { comment_id: commentId });
 
       setComments(prev => prev.filter(c => c.id !== commentId));
       if (activeCommentPostId) {
-        setPosts(posts.map(p => p.id === activeCommentPostId
+        setPosts(prev => prev.map(p => p.id === activeCommentPostId
           ? { ...p, reply_count: Math.max(0, Number(p.reply_count) - 1) }
           : p));
       }
@@ -710,21 +704,6 @@ const Community = () => {
             >
               <Sparkles size={13} /> All & General
             </button>
-            {SECTION_ORDER.map(key => {
-              const s = COMMUNITY_SECTIONS[key];
-              const active = activeSection === key;
-              return (
-                <button
-                  key={key}
-                  onClick={() => switchSection(key)}
-                  className={`shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 ${
-                    active ? 'bg-slate-900 dark:bg-white text-white dark:text-slate-900 shadow' : 'text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-900'
-                  }`}
-                >
-                  <span>{s.emoji}</span> {s.label}
-                </button>
-              );
-            })}
             <Link
               to="/study-groups"
               className="shrink-0 flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-[10px] font-black uppercase tracking-widest transition-all active:scale-95 text-emerald-600 hover:bg-emerald-50 dark:hover:bg-emerald-900/20"
@@ -794,29 +773,6 @@ const Community = () => {
                 </div>
               )}
 
-              {/* Section picker */}
-              <div className="flex flex-wrap items-center gap-1.5 mt-3">
-                <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 mr-1">Post in:</span>
-                {['general', ...SECTION_ORDER.filter(k => k !== 'general')].map(key => {
-                  const s = COMMUNITY_SECTIONS[key];
-                  const activePick = newPostSection === key;
-                  return (
-                    <button
-                      key={key}
-                      type="button"
-                      onClick={() => setNewPostSection(key)}
-                      className={`flex items-center gap-1 px-2.5 py-1.5 rounded-full text-[9px] font-black uppercase tracking-widest border transition-all active:scale-95 ${
-                        activePick
-                          ? `text-white ${s.chip} border-transparent shadow`
-                          : 'text-slate-500 border-slate-200 dark:border-slate-700 hover:border-medical-400'
-                      }`}
-                    >
-                      <span>{s.emoji}</span> {s.label}
-                    </button>
-                  );
-                })}
-              </div>
-
               <div className="flex justify-between items-center mt-3 pt-3 border-t border-slate-100 dark:border-slate-700">
                 <div className="flex items-center gap-3">
                   <input
@@ -844,9 +800,9 @@ const Community = () => {
                 <button
                   onClick={handleNewPost}
                   disabled={(!newPostContent.trim() && !selectedImage) || posting}
-                  className="px-5 py-2 bg-medical-600 text-white rounded-xl font-black text-[10px] uppercase tracking-widest hover:bg-medical-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2"
+                  className="min-h-11 px-5 bg-medical-600 text-white rounded-xl font-black text-xs sm:text-xs uppercase tracking-widest hover:bg-medical-700 disabled:opacity-40 disabled:cursor-not-allowed transition-all flex items-center gap-2"
                 >
-                  {posting ? <Loader2 size={12} className="animate-spin" /> : <Send size={12} />}
+                  {posting ? <Loader2 size={16} className="animate-spin" /> : <Send size={16} />}
                   {posting ? 'Posting...' : 'Post'}
                 </button>
               </div>
@@ -890,6 +846,16 @@ const Community = () => {
                                 YEAR {post.year}
                               </span>
                             )}
+                            {post.post_state === 'active' && (
+                              <span className="px-2 py-0.5 bg-emerald-100 dark:bg-emerald-900/30 text-emerald-600 dark:text-emerald-400 text-[8px] font-black uppercase rounded-md flex items-center gap-1">
+                                <Clock size={9} /> Live
+                              </span>
+                            )}
+                            {post.post_state === 'cold' && (
+                              <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[8px] font-black uppercase rounded-md flex items-center gap-1">
+                                <Clock size={9} /> Expiring soon
+                              </span>
+                            )}
                             {post.section && post.section !== 'general' && (
                               (() => {
                                 const sec = getSection(post.section);
@@ -903,6 +869,11 @@ const Community = () => {
                           </div>
                           <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mt-0.5">
                             {formatDistanceToNow(new Date(post.created_at), { addSuffix: true })}
+                            {post.post_state === 'cold' && post.lives_until && (
+                              <span className="ml-1 normal-case text-amber-500">
+                                · gone {formatDistanceToNow(new Date(post.lives_until), { addSuffix: true })}
+                              </span>
+                            )}
                           </p>
                         </div>
                       </div>
@@ -991,27 +962,27 @@ const Community = () => {
                        </div>
                      )}
 
-                    <div className="flex items-center gap-5 text-slate-400 pl-[52px]">
+                    <div className="flex items-center gap-2 pl-[52px]">
                       <button
                         onClick={() => handleLike(post.id, post.liked_by_current_user)}
-                        className={`flex items-center gap-1.5 text-xs font-semibold transition-colors group ${post.liked_by_current_user ? 'text-red-500' : 'hover:text-red-500'}`}
+                        className={`min-h-10 px-3 flex items-center gap-1.5 text-xs font-bold transition-colors group rounded-xl ${post.liked_by_current_user ? 'text-red-500' : 'text-slate-500 dark:text-slate-400 hover:text-red-500'}`}
                         aria-label={post.liked_by_current_user ? "Unlike post" : "Like post"}
                       >
-                        <Heart size={15} className={`transition-colors ${post.liked_by_current_user ? 'fill-red-500 text-red-500' : 'group-hover:fill-red-500 group-hover:text-red-500'}`} /> {post.like_count || 0}
+                        <Heart size={16} className={`transition-colors ${post.liked_by_current_user ? 'fill-red-500 text-red-500' : 'group-hover:fill-red-500 group-hover:text-red-500'}`} /> {post.like_count || 0}
                       </button>
                       <button 
                          onClick={() => toggleComments(post.id)}
-                         className={`flex items-center gap-1.5 text-xs font-semibold hover:text-blue-500 transition-colors ${activeCommentPostId === post.id ? 'text-blue-500' : ''}`}
+                         className={`min-h-10 px-3 flex items-center gap-1.5 text-xs font-bold rounded-xl transition-colors hover:text-blue-500 ${activeCommentPostId === post.id ? 'text-blue-500' : 'text-slate-500 dark:text-slate-400'}`}
                          aria-label="Reply to post"
                       >
-                        <MessageCircle size={15} className={activeCommentPostId === post.id ? 'fill-blue-500/20' : ''} /> {post.reply_count || 0} {Number(post.reply_count) === 1 ? 'Reply' : 'Replies'}
+                        <MessageCircle size={16} className={activeCommentPostId === post.id ? 'fill-blue-500/20' : ''} /> {post.reply_count || 0} {Number(post.reply_count) === 1 ? 'Reply' : 'Replies'}
                       </button>
                       <button 
                          onClick={() => handleShare(post)}
-                         className="flex items-center gap-1.5 text-xs font-semibold hover:text-medical-500 transition-colors"
+                         className="min-h-10 px-3 flex items-center gap-1.5 text-xs font-bold rounded-xl text-slate-500 dark:text-slate-400 hover:text-medical-500 transition-colors"
                          aria-label="Share post"
                       >
-                        <Share2 size={15} /> {post.share_count > 0 ? post.share_count : ''} Share
+                        <Share2 size={16} /> {post.share_count > 0 ? post.share_count : ''} Share
                       </button>
                     </div>
 
@@ -1139,7 +1110,8 @@ const Community = () => {
                                         <button
                                            onClick={() => handleNewComment(post.id)}
                                            disabled={!newCommentContent.trim() || postingComment}
-                                           className="w-9 h-9 flex items-center justify-center bg-medical-600 text-white rounded-full hover:bg-medical-700 disabled:opacity-50 shrink-0 transition-colors"
+                                           className="w-10 h-10 flex items-center justify-center bg-medical-600 text-white rounded-full hover:bg-medical-700 disabled:opacity-50 shrink-0 transition-colors"
+                                           aria-label="Send reply"
                                         >
                                            {postingComment ? <Loader2 size={14} className="animate-spin" /> : <Send size={14} />}
                                         </button>

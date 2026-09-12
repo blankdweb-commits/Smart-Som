@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { useNavigate } from 'react-router-dom';
 import { authHeaders } from '../utils/apiHeaders';
@@ -7,50 +7,52 @@ import { Sparkles, ChevronRight, CheckCircle2, XCircle, Trophy, Loader2, Clock }
   // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 
-import useluData from '../data/flashcards/nmcn/uselu-posting-tests.json';
-import respirationData from '../data/flashcards/nmcn/Respiration-richard.json';
-import fluidData from '../data/flashcards/nmcn/fluid-electrolytes.json';
-import rawNclex from '../data/flashcards/nclex/nclex-rn-ngn.json';
-import {
-  pharmacologyData,
-  musculoskeletalData,
-  neurologicalData,
-  nursing200Data,
-  midwiferyData
-} from '../data/richardBank';
-
-// Combined id -> card lookup across every question pool (mirrors Quiz.jsx),
-// used to turn the server-issued question_ids into renderable questions.
-const BUILD_LOOKUP = () => {
-  const normalizeAlpha = (q, prefix, i) => ({
-    id: String(q.id !== undefined ? q.id : q.question_id !== undefined ? q.question_id : i),
-    key: prefix ? `${prefix}-${q.id !== undefined ? q.id : q.question_id}` : undefined,
-    question: q.question,
-    options: Array.isArray(q.options) ? [...q.options] : [],
-    correctAnswer: q.correctAnswer || q.correct_answer_text || q.correct_answer || undefined,
-    rationale: q.rationale || q.clinical_application || undefined,
-    subject: q.subject,
-    category: q.category,
-    difficulty: q.difficulty
-  });
-  const addCard = (map, c) => {
-    if (!c) return;
-    if (c.id != null) map.set(String(c.id), c);
-    if (c.key != null) map.set(String(c.key), c);
-  };
-  const map = new Map();
-  (respirationData || []).forEach((c, i) => addCard(map, normalizeAlpha(c, 'resp', i)));
-  (fluidData || []).forEach((c, i) => addCard(map, normalizeAlpha(c, 'fluid', i)));
-  pharmacologyData.forEach((c) => addCard(map, c));
-  musculoskeletalData.forEach((c) => addCard(map, c));
-  neurologicalData.forEach((c) => addCard(map, c));
-  nursing200Data.forEach((c) => addCard(map, c));
-  midwiferyData.forEach((c) => addCard(map, c));
-  (useluData || []).forEach((c, i) => addCard(map, normalizeAlpha(c, 'uselu', i)));
-  (Array.isArray(rawNclex) ? rawNclex : []).forEach((c, i) => addCard(map, normalizeAlpha(c, 'nclex', i)));
-  return map;
+// The question banks (~15.6 MB) are intentionally NOT imported at module load —
+// this widget renders on the Dashboard, and static imports would drag the whole
+// flashcard-data chunk into the initial authenticated load. Instead the lookup
+// is built lazily through a single memoized dynamic import the first time a
+// challenge actually needs question content (i.e. when the user starts it).
+const normalizeAlpha = (q, prefix, i) => ({
+  id: String(q.id !== undefined ? q.id : q.question_id !== undefined ? q.question_id : i),
+  key: prefix ? `${prefix}-${q.id !== undefined ? q.id : q.question_id}` : undefined,
+  question: q.question,
+  options: Array.isArray(q.options) ? [...q.options] : [],
+  correctAnswer: q.correctAnswer || q.correct_answer_text || q.correct_answer || undefined,
+  rationale: q.rationale || q.clinical_application || undefined,
+  subject: q.subject,
+  category: q.category,
+  difficulty: q.difficulty
+});
+const addLookupCard = (map, c, prefix, i) => {
+  if (!c) return;
+  const card = prefix ? normalizeAlpha(c, prefix, i) : c;
+  if (card.id != null) map.set(String(card.id), card);
+  if (card.key != null) map.set(String(card.key), card);
 };
-const CHALLENGE_LOOKUP = BUILD_LOOKUP();
+
+let challengeLookupPromise = null;
+const getChallengeLookup = () => {
+  if (!challengeLookupPromise) {
+    challengeLookupPromise = (async () => {
+      const [useluData, respirationData, fluidData, rawNclex, richardBank] = await Promise.all([
+        import('../data/flashcards/nmcn/uselu-posting-tests.json').then(m => m.default || m),
+        import('../data/flashcards/nmcn/Respiration-richard.json').then(m => m.default || m),
+        import('../data/flashcards/nmcn/fluid-electrolytes.json').then(m => m.default || m),
+        import('../data/flashcards/nclex/nclex-rn-ngn.json').then(m => m.default || m),
+        import('../data/richardBank'),
+      ]);
+      const { pharmacologyData, musculoskeletalData, neurologicalData, nursing200Data, midwiferyData } = richardBank;
+      const map = new Map();
+      (respirationData || []).forEach((c, i) => addLookupCard(map, c, 'resp', i));
+      (fluidData || []).forEach((c, i) => addLookupCard(map, c, 'fluid', i));
+      [pharmacologyData, musculoskeletalData, neurologicalData, nursing200Data, midwiferyData].forEach((arr) => (arr || []).forEach(c => addLookupCard(map, c)));
+      (useluData || []).forEach((c, i) => addLookupCard(map, c, 'uselu', i));
+      (Array.isArray(rawNclex) ? rawNclex : []).forEach((c, i) => addLookupCard(map, c, 'nclex', i));
+      return map;
+    })();
+  }
+  return challengeLookupPromise;
+};
 
 const CHALLENGE_SIZE = 5;
 
@@ -67,7 +69,7 @@ const todayKey = () => {
 const doneMarker = () => `apex:dailyChallengeDone:${todayKey()}`;
 
 const DailyChallengeWidget = () => {
-  const { flashcards, userProfile, session, markDailyChallengeDone, isPremium, consumeCourseQuota, callApexApi } = useAppContext();
+  const { userProfile, session, markDailyChallengeDone, isPremium, consumeCourseQuota, callApexApi } = useAppContext();
   const navigate = useNavigate();
   const [challengeStarted, setChallengeStarted] = useState(false);
   const [currentIdx, setCurrentIdx] = useState(0);
@@ -91,6 +93,57 @@ const DailyChallengeWidget = () => {
     const id = setInterval(() => setTickNow(Date.now()), 1000);
     return () => clearInterval(id);
   }, [cooldown]);
+
+  // Question ids the server issued for today's challenge. Content is NOT
+  // materialized until the user actually starts the round (see bindQuestions),
+  // because doing so loads the ~15.6 MB question bank over the network.
+  const pendingCountRef = useRef(0);
+  const pendingIdsRef = useRef([]);
+
+  // Materializes the challenge questions. Called only from startChallenge so
+  // the bank chunks load on demand (never during the Dashboard's initial load).
+  const bindQuestions = async () => {
+    const lookup = await getChallengeLookup();
+    const ids = pendingIdsRef.current || [];
+    const resolved = [];
+    for (const id of ids) {
+      const card = lookup.get(String(id));
+      if (card) resolved.push(card);
+    }
+    if (resolved.length > 0) {
+      // Build MCQ options for any card without them (bank cards may be
+      // flashcard-shaped with a single answer).
+      const pool = [...lookup.values()];
+      return resolved.slice(0, CHALLENGE_SIZE).map(card => {
+        const target = card.correctAnswer || card.answer;
+        const distractors = pool
+          .filter(c => (c.answer || c.correctAnswer) !== target)
+          .sort(() => 0.5 - Math.random())
+          .slice(0, 3)
+          .map(c => c.answer || c.correctAnswer);
+        const options = Array.isArray(card.options) && card.options.length >= 2
+          ? card.options
+          : [target, ...distractors].sort(() => 0.5 - Math.random());
+        return { ...card, options, correctAnswer: target, question: card.question };
+      });
+    }
+    // Fallback: personalized client-side selection from the bank.
+    const userLevel = userProfile.level || 'Year 1';
+    const allCards = [...lookup.values()];
+    const levelAppropriate = allCards.filter(c => c.level === userLevel);
+    const pool = levelAppropriate.length >= CHALLENGE_SIZE ? levelAppropriate : allCards;
+    const shuffled = [...pool].sort(() => 0.5 - Math.random());
+    return shuffled.slice(0, CHALLENGE_SIZE).map(card => {
+      const target = card.answer || card.correctAnswer;
+      const distractors = allCards
+        .filter(c => (c.answer || c.correctAnswer) !== target)
+        .sort(() => 0.5 - Math.random())
+        .slice(0, 3)
+        .map(c => c.answer || c.correctAnswer);
+      const options = [target, ...distractors].sort(() => 0.5 - Math.random());
+      return { ...card, options, correctAnswer: target };
+    });
+  };
 
   // Server-authoritative start: reserve the daily-challenge round FIRST, then
   // unlock the questions. A blocked round shows the centered cooldown notice.
@@ -116,15 +169,27 @@ const DailyChallengeWidget = () => {
         return;
       }
     }
-    setChallengeStarted(true);
+    // Reserve the round succeeded — now load the question content on demand.
+    try {
+      setLoading(true);
+      const questions = await bindQuestions();
+      setDailyQuestions(questions);
+      setChallengeStarted(true);
+    } catch (err) {
+      console.warn('Challenge setup failed:', err?.message || err);
+      setStartBlockedMsg("We couldn't prepare today's challenge. Please try again.");
+    } finally {
+      setLoading(false);
+    }
   };
 
-  // Load today's challenge from the serverless API (authHeaders = Bearer +
-  // X-Session-Id). Falls back to client-side generation when unavailable.
+  // Light server call only: checks today's completion state and captures the
+  // issued question ids. Content resolution (and with it the question banks)
+  // is deferred to startChallenge — this never blocks or slows the Dashboard.
   useEffect(() => {
     let active = true;
     const load = async () => {
-      if (flashcards.length === 0 || dailyQuestions.length > 0) return;
+      if (dailyQuestions.length > 0) return;
       // Already wrapped up today (server row completed or local marker) —
       // surface the completed state instead of re-running the same set.
       if (safeGet(doneMarker())) {
@@ -132,7 +197,6 @@ const DailyChallengeWidget = () => {
         return;
       }
       setLoading(true);
-      let resolved = [];
       let servedCompleted = false;
       let servedScore = 0;
       let servedTotal = CHALLENGE_SIZE;
@@ -146,12 +210,9 @@ const DailyChallengeWidget = () => {
             servedTotal = body.total || CHALLENGE_SIZE;
           }
           const ids = Array.isArray(body?.question_ids) ? body.question_ids : [];
-          if (ids.length > 0) {
-            for (const id of ids) {
-              const card = CHALLENGE_LOOKUP.get(String(id));
-              if (card) resolved.push(card);
-            }
-          }
+          pendingIdsRef.current = ids;
+          pendingCountRef.current = ids.length;
+          if (ids.length > 0) setGotQuestionIds(true);
         } catch (err) {
           console.warn('Daily challenge fetch skipped:', err.message);
         }
@@ -164,52 +225,13 @@ const DailyChallengeWidget = () => {
         markDailyChallengeDone?.();
         setChallengeScore(servedScore);
         setDailyQuestions(Array(Math.max(1, servedTotal)));
-        setGotQuestionIds(true);
         setIsCompleted(true);
-        setLoading(false);
-        return;
-      }
-
-      if (resolved.length > 0) {
-        // Build MCQ options for any card without them (bank cards may be
-        // flashcard-shaped with a single answer).
-        const withOpts = resolved.slice(0, CHALLENGE_SIZE).map(card => {
-          const target = card.correctAnswer;
-          const distractors = flashcards
-            .filter(c => (c.answer || c.correctAnswer) !== target)
-            .sort(() => 0.5 - Math.random())
-            .slice(0, 3)
-            .map(c => c.answer || c.correctAnswer);
-          const options = Array.isArray(card.options) && card.options.length >= 2
-            ? card.options
-            : [target, ...distractors].sort(() => 0.5 - Math.random());
-          return { ...card, options, correctAnswer: target, question: card.question };
-        });
-        setDailyQuestions(withOpts);
-        setGotQuestionIds(true);
-      } else {
-        // Fallback: personalized client-side selection from the flashcard pool.
-        const userLevel = userProfile.level || 'Year 1';
-        const levelAppropriate = flashcards.filter(c => c.level === userLevel);
-        const pool = levelAppropriate.length >= 5 ? levelAppropriate : flashcards;
-        const shuffled = [...pool].sort(() => 0.5 - Math.random());
-        const selected = shuffled.slice(0, CHALLENGE_SIZE).map(card => {
-          const target = card.answer || card.correctAnswer;
-          const distractors = flashcards
-            .filter(c => (c.answer || c.correctAnswer) !== target)
-            .sort(() => 0.5 - Math.random())
-            .slice(0, 3)
-            .map(c => c.answer || c.correctAnswer);
-          const options = [target, ...distractors].sort(() => 0.5 - Math.random());
-          return { ...card, options, correctAnswer: target };
-        });
-        setDailyQuestions(selected);
       }
       setLoading(false);
     };
     load();
     return () => { active = false; };
-  }, [flashcards, userProfile, session, dailyQuestions.length, markDailyChallengeDone, callApexApi]);
+  }, [session, markDailyChallengeDone, callApexApi, dailyQuestions.length]);
 
   // Report completion to the server for persistence/stats.
   const reportComplete = useMemo(() => async (score, total, ids) => {
@@ -303,7 +325,7 @@ const DailyChallengeWidget = () => {
             <h3 className="text-2xl font-black text-slate-900 dark:text-white mb-2 tracking-tight">Today's Clinical Challenge</h3>
             <p className="text-slate-500 dark:text-slate-400 font-medium text-sm mb-8 max-w-[240px]">
               {gotQuestionIds
-                ? `${dailyQuestions.length} questions from your recent misses — targeted review.`
+                ? `${Math.max(1, pendingCountRef.current)} questions from your recent misses — targeted review.`
                 : `5 randomized concepts tailored for ${userProfile.level || 'Year 1'}.`}
             </p>
             <div className="flex items-center gap-3 flex-wrap">

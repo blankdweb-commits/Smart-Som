@@ -32,6 +32,22 @@ export default {
           800: '#580058',
           900: '#420042',
         },
+        // Legacy brand alias (the Apex Scholars purple). GroupPage/StudyGroups
+        // and the rest of the app still reference apex-* classes; without this
+        // palette Tailwind generated NO css for them, so `bg-apex-600 text-white`
+        // buttons rendered as transparent backgrounds with invisible white labels.
+        apex: {
+          50: '#f6eef6',
+          100: '#e9d4e9',
+          200: '#d4a8d4',
+          300: '#bf7dbf',
+          400: '#a84ea8',
+          500: '#8f1a8f',
+          600: '#800080', // Polynurse Purple (brand)
+          700: '#6b006b',
+          800: '#580058',
+          900: '#420042',
+        },
         gold: {
           50: '#fffbeb',
           100: '#fef3c7',

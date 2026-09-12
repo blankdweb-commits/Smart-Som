@@ -38,7 +38,16 @@ const REWRITES = [
   { source: '/api/quiz-batch-complete', destination: '/api/quiz' },
   { source: '/api/matches/create', destination: '/api/matches-create' },
   { source: '/api/payments/webhook', destination: '/api/payments-webhook' },
+  // /api/community/* -> /api/community (sub-path router like api/quiz.js)
+  { source: '/api/community/:path*', destination: '/api/community', prefix: true },
 ];
+
+// Vercel-style match: exact route, or prefix match for `:path*` rewrites.
+const matchRewrite = (pathname, rewrite) => {
+  if (!rewrite.prefix) return pathname === rewrite.source;
+  const prefix = rewrite.source.replace(/:\w+\*$/, '');
+  return pathname === prefix.slice(0, -1) || pathname.startsWith(prefix);
+};
 
 const handlers = [];
 const walk = (dir) => {
@@ -61,7 +70,7 @@ const server = http.createServer(async (req, res) => {
   const pathname = url.pathname;
   // Rewrite legacy nested paths onto their flat routes (same as Vercel). Only
   // the path is remapped; query strings and req.url are preserved for dispatch.
-  const rewrite = REWRITES.find(r => pathname === r.source);
+  const rewrite = REWRITES.find(r => matchRewrite(pathname, r));
   const effectivePath = rewrite ? rewrite.destination : pathname;
   const handler = handlers.find(h => effectivePath === h.route || effectivePath.startsWith(h.route + '/'));
   if (!handler) {

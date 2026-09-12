@@ -12,19 +12,15 @@
     "preview": "vite preview",
     "start": "vite preview --host 0.0.0.0 --port $PORT",
     "e2e:weakness": "node scripts/e2e-weakness.mjs",
-    "e2e:community-sections": "node scripts/e2e-community-sections.mjs",
     "e2e:study-groups": "node scripts/e2e-study-groups.mjs",
-    "e2e:group-quiz-sc": "node scripts/e2e-group-quiz-sc.mjs"
+    "e2e:group-quiz-sc": "node scripts/e2e-group-quiz-sc.mjs",
+    "e2e:community-ephemeral": "node scripts/e2e-community-ephemeral.mjs",
+    "e2e:anonymous-lifecycle": "node scripts/e2e-anonymous-lifecycle.mjs"
   },
   "dependencies": {
     "@daformat/react-swipeable-cards": "^1.0.4",
-    "@react-three/drei": "^10.7.7",
-    "@react-three/fiber": "^9.6.1",
-    "@react-three/postprocessing": "^3.0.4",
     "@supabase/supabase-js": "^2.98.0",
-    "axios": "^1.15.2",
     "clsx": "^2.1.1",
-    "crypto-js": "^4.2.0",
     "date-fns": "^4.1.0",
     "framer-motion": "^12.34.3",
     "html2canvas": "^1.4.1",
@@ -32,14 +28,12 @@
     "lucide-react": "^0.575.0",
     "mammoth": "^1.12.0",
     "pdfjs-dist": "^5.6.205",
-    "postprocessing": "^6.39.1",
     "react": "^19.2.0",
     "react-calendar": "^6.0.0",
     "react-dom": "^19.2.0",
     "react-router-dom": "^7.13.0",
     "tailwind-merge": "^3.5.0",
-    "tesseract.js": "^7.0.0",
-    "three": "^0.184.0"
+    "tesseract.js": "^7.0.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

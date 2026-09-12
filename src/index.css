@@ -249,6 +249,35 @@ button, a {
     outline-offset: 2px;
     border-radius: 6px;
   }
+
+  /* Subtle, actually-visible entrance for quiz directory rows. The Tailwind
+     `animate-in`/`fade-in` utilities are NOT generated (no animation plugin),
+     so these utilities give the card grid a perceivable staggered entrance. */
+  .quiz-card-entrance {
+    animation: quiz-card-entrance 0.5s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  @keyframes quiz-card-entrance {
+    from {
+      opacity: 0;
+      transform: translateY(10px) scale(0.985);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+
+  /* Respect reduced-motion preferences: kill the staggered entrance and the
+     tap-scale so nothing pulses/zooms for users who asked for less motion. */
+  @media (prefers-reduced-motion: reduce) {
+    .quiz-card-entrance {
+      animation: none;
+    }
+    .tap-active:active {
+      transform: none;
+    }
+  }
 }
 
 /* Legal policy pages (Terms / Privacy / Cookies) — readable prose without

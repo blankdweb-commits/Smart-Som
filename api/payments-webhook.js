@@ -1,6 +1,88 @@
 // api/payments-webhook.js (webhook URL: /api/payments/webhook via vercel.json rewrite)
+//
+// Handles charge.success for BOTH products:
+//   - premium subscription (legacy): creates a subscriptions row + activates profile.
+//   - anonymous_spectate: one-time ₦599 spectator pass — inserts an `active`
+//     anonymous_spectators row (NO subscription, NO profile activation).
+// Signature-verified, idempotent on the reference.
 import crypto from 'crypto';
 import { getSupabaseAdmin } from './_utils.js';
+
+// One-time spectator pass from the webhook. The reference's UNIQUE constraint
+// makes this safe against the callback verifier racing the webhook.
+async function grantSpectator(supabase, paidAmount, metadata) {
+  const groupId = Number(metadata?.group_id);
+  const userId = metadata?.user_id;
+  if (!Number.isFinite(groupId) || !userId) {
+    return { status: 200, body: { status: 'ignored' } };
+  }
+
+  // Server-side price/state resolution — never trust payment metadata alone.
+  const { data: group } = await supabase
+    .from('study_groups')
+    .select('id, type, group_state, spectator_price')
+    .eq('id', groupId)
+    .maybeSingle();
+  if (!group || group.type !== 'anonymous' || group.group_state !== 'active') {
+    return { status: 200, body: { status: 'ignored' } };
+  }
+
+  // Idempotency — the callback verifier may have already granted this.
+  const { data: existing } = await supabase
+    .from('anonymous_spectators')
+    .select('id')
+    .eq('reference', metadata.reference)
+    .maybeSingle();
+  if (existing) {
+    return { status: 200, body: { status: 'already_processed' } };
+  }
+
+  const expected = Number(group.spectator_price);
+  if (expected > 0 && Math.abs(paidAmount - expected) > 1) {
+    console.error(`Webhook spectator amount mismatch, ref ${metadata.reference}: paid ${paidAmount}, expected ${expected}`);
+    return { status: 200, body: { status: 'amount_mismatch' } };
+  }
+
+  const { error: txnError } = await supabase
+    .from('transactions')
+    .insert({
+      user_id: userId,
+      reference: metadata.reference,
+      amount: paidAmount,
+      status: 'success',
+      paid_at: new Date().toISOString(),
+      metadata: metadata,
+    });
+  // Unique on transactions.reference catches races with the verifier.
+  if (txnError && txnError.code === '23505') {
+    const { data: existingTxn } = await supabase
+      .from('transactions')
+      .select('id')
+      .eq('reference', metadata.reference)
+      .maybeSingle();
+    if (existingTxn) return { status: 200, body: { status: 'already_processed' } };
+  }
+  if (txnError) throw txnError;
+
+  const { data: grant, error: grantError } = await supabase
+    .from('anonymous_spectators')
+    .insert({
+      group_id: groupId,
+      user_id: userId,
+      reference: metadata.reference,
+      amount: paidAmount,
+      status: 'active',
+    })
+    .select('id')
+    .maybeSingle();
+  // Unique on anonymous_spectators.reference — the verifier may have won.
+  if (grantError && grantError.code === '23505') {
+    return { status: 200, body: { status: 'already_processed' } };
+  }
+  if (grantError) throw grantError;
+
+  return { status: 200, body: { status: 'spectator_granted', spectator_id: grant?.id } };
+}
 
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
@@ -22,8 +104,16 @@ export default async function handler(req, res) {
   if (event.event === 'charge.success') {
     const { reference, amount, metadata } = event.data;
     const supabase = getSupabaseAdmin();
+    const paidAmount = amount / 100; // kobo -> naira
 
     try {
+      // Spectator product branches before any subscription logic.
+      if (metadata?.product === 'anonymous_spectate') {
+        const r = await grantSpectator(supabase, paidAmount, { ...(metadata || {}), reference });
+        return res.status(r.status).json(r.body);
+      }
+
+      // Legacy subscription path.
       // 0. Idempotency — the callback verifier may have already processed this
       // reference. Never create a duplicate subscription.
       const { data: existingSub } = await supabase
@@ -52,7 +142,7 @@ export default async function handler(req, res) {
         .insert({
           user_id: metadata?.user_id,
           reference,
-          amount: amount / 100, // Convert from kobo
+          amount: paidAmount,
           status: 'success',
           paid_at: new Date().toISOString(),
           metadata: metadata
@@ -87,7 +177,7 @@ export default async function handler(req, res) {
         status: 'active',
         expires_at: expiresAt.toISOString(),
         grace_until: graceUntil.toISOString(),
-        amount: amount / 100,
+        amount: paidAmount,
         reference
       });
 

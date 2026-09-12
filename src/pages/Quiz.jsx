@@ -187,7 +187,7 @@ const formatRemaining = (seconds) => {
 // Status chip — rendered ONLY on AVAILABLE rows (premium "Unlimited" / free
 // "Ready"). Locked rows render the LockBadge instead, never a ready-looking pill.
 const StatusChip = ({ premium }) => (
-  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[9px] font-black uppercase tracking-widest">
+  <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-emerald-500/10 border border-emerald-500/30 text-emerald-600 dark:text-emerald-400 text-[10px] font-black uppercase tracking-widest">
     <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" /> {premium ? 'Unlimited' : 'Ready'}
   </span>
 );
@@ -198,7 +198,7 @@ const CooldownPill = ({ expiresAt }) => {
   const now = useNow();
   const remainingSec = Math.max(0, Math.ceil((new Date(expiresAt).getTime() - now) / 1000));
   return (
-    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[9px] font-black uppercase tracking-widest tabular-nums">
+    <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/10 border border-amber-500/30 text-amber-600 dark:text-amber-400 text-[10px] font-black uppercase tracking-widest tabular-nums">
       <Lock size={10} /> On cooldown · {formatRemaining(remainingSec)}
     </span>
   );
@@ -277,7 +277,7 @@ const CourseLockOverlay = ({ lock, courseQuota, quotaStatus, isPremium, onOpen, 
   );
 };
 
-const DirectoryRow = ({ bankId, onLaunch, onBlocked, courseQuota, quotaStatus, isPremium }) => {
+const DirectoryRow = ({ bankId, index = 0, onLaunch, onBlocked, courseQuota, quotaStatus, isPremium }) => {
   const style = MODE_STYLE[bankId];
   const title = QUIZ_CONFIGS[bankId].title;
   const count = courseCount(bankId);
@@ -310,7 +310,7 @@ const DirectoryRow = ({ bankId, onLaunch, onBlocked, courseQuota, quotaStatus, i
     },
     [ROW_STATE.LOADING]: {
       icon: <Timer size={20} />,
-      pill: <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 border border-slate-500/30 text-slate-500 dark:text-slate-400 text-[9px] font-black uppercase tracking-widest">
+      pill: <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 border border-slate-500/30 text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest">
         <span className="w-1.5 h-1.5 rounded-full bg-slate-400 animate-pulse" /> Checking availability…
       </span>,
       overlayTitle: 'Checking availability…',
@@ -318,7 +318,7 @@ const DirectoryRow = ({ bankId, onLaunch, onBlocked, courseQuota, quotaStatus, i
     },
     [ROW_STATE.ERROR]: {
       icon: <Lock size={20} />,
-      pill: <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 border border-slate-500/30 text-slate-500 dark:text-slate-400 text-[9px] font-black uppercase tracking-widest">
+      pill: <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-slate-500/10 border border-slate-500/30 text-slate-500 dark:text-slate-400 text-[10px] font-black uppercase tracking-widest">
         <span className="w-1.5 h-1.5 rounded-full bg-slate-400" /> Couldn't verify
       </span>,
       overlayTitle: "We couldn't verify this course's availability",
@@ -339,20 +339,26 @@ const DirectoryRow = ({ bankId, onLaunch, onBlocked, courseQuota, quotaStatus, i
         tabIndex={-1}
         onClick={() => onBlocked(bankId)}
         title={lockMeta.overlayTitle}
-        className="w-full flex items-center gap-3 p-3 sm:p-4 text-left rounded-2xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm opacity-70 cursor-not-allowed group select-none"
+        className="w-full flex items-center gap-3 p-3 sm:p-4 text-left rounded-2xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm opacity-70 cursor-not-allowed select-none"
       >
         <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 ${style.chip}`}>
           {lockMeta.icon}
         </div>
-        <h3 className="flex-1 min-w-0 text-sm sm:text-base font-black text-slate-900 dark:text-white tracking-tight truncate">
-          {title}
-        </h3>
-        {count > 0 && (
-          <span className="shrink-0 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-300 tabular-nums">
-            {count} courses
-          </span>
-        )}
-        {lockMeta.pill}
+        <div className="flex-1 min-w-0">
+          <h3 className="text-[15px] sm:text-base font-black text-slate-900 dark:text-white tracking-tight leading-snug break-words">
+            {title}
+          </h3>
+          {(count > 0 || lockMeta.pill) && (
+            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5">
+              {count > 0 && (
+                <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-300 tabular-nums">
+                  {count} courses
+                </span>
+              )}
+              {lockMeta.pill}
+            </div>
+          )}
+        </div>
       </button>
     );
   }
@@ -361,20 +367,25 @@ const DirectoryRow = ({ bankId, onLaunch, onBlocked, courseQuota, quotaStatus, i
     <button
       type="button"
       onClick={() => onLaunch(bankId)}
-      className="w-full flex items-center gap-3 p-3 sm:p-4 text-left rounded-2xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700/40 transition-colors group"
+      className="quiz-card-entrance w-full flex items-center gap-3 p-3 sm:p-4 text-left rounded-2xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm hover:bg-slate-50 dark:hover:bg-slate-700/40 active:scale-[0.98] transition-all"
+      style={{ animationDelay: `${Math.min(index, 8) * 55}ms` }}
     >
       <div className={`w-10 h-10 sm:w-12 sm:h-12 rounded-xl sm:rounded-2xl flex items-center justify-center shrink-0 ${style.chip}`}>
         {style.icon}
       </div>
-      <h3 className="flex-1 min-w-0 text-sm sm:text-base font-black text-slate-900 dark:text-white tracking-tight truncate group-hover:translate-x-1 transition-transform">
-        {title}
-      </h3>
-      {count > 0 && (
-        <span className="shrink-0 px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-[9px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-300 tabular-nums">
-          {count} courses
-        </span>
-      )}
-      <StatusChip premium={isPremium} />
+      <div className="flex-1 min-w-0">
+        <h3 className="text-[15px] sm:text-base font-black text-slate-900 dark:text-white tracking-tight leading-snug break-words">
+          {title}
+        </h3>
+        <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1.5">
+          {count > 0 && (
+            <span className="inline-flex items-center px-2.5 py-1 rounded-full bg-slate-100 dark:bg-slate-700 text-[10px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-300 tabular-nums">
+              {count} courses
+            </span>
+          )}
+          <StatusChip premium={isPremium} />
+        </div>
+      </div>
     </button>
   );
 };
@@ -1253,62 +1264,62 @@ const Quiz = () => {
   };
 
   // Mode selection
+  const statCells = [
+    { label: 'Global Rank', value: globalRank ? `#${globalRank}` : '—', className: 'text-indigo-600' },
+    { label: 'Smart Coins', value: Number(smartCoins || 0).toLocaleString(undefined, { maximumFractionDigits: 1 }), className: 'text-emerald-500' },
+    { label: 'Quiz Streak', value: `${studyStats?.quizStreak || 0}`, className: 'text-amber-500' },
+    { label: 'Exam Readiness', value: `${readiness}%`, className: readiness >= 70 ? 'text-medical-500' : readiness >= 40 ? 'text-amber-500' : 'text-red-500' }
+  ];
   return (
-    <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-700 max-w-6xl mx-auto pb-20 px-4">
-      <header className="flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
-          <div className="flex items-center gap-3">
+    <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-700 max-w-6xl mx-auto px-1 sm:px-0 pb-[calc(env(safe-area-inset-bottom,0px)+6.5rem)] lg:pb-16">
+      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
+          <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
             <button
               onClick={() => {
                 const next = secretTaps + 1;
                 setSecretTaps(next);
                 if (next >= 5) { navigate('/xp-hall'); setSecretTaps(0); }
               }}
-              className="p-2 text-slate-200 dark:text-slate-700 hover:text-medical-500 dark:hover:text-medical-400 transition-colors rounded-xl active:scale-90"
+              aria-label="Apex Scholars"
+              className="p-2 text-slate-200 dark:text-slate-700 hover:text-medical-500 dark:hover:text-medical-400 transition-colors rounded-xl active:scale-90 shrink-0 order-2 sm:order-1"
             >
               <Brain size={22} />
             </button>
-            <div>
+            <div className="min-w-0 flex-1 order-1 sm:order-2">
               <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight uppercase">Quiz Modes</h1>
               <p className="text-slate-500 dark:text-slate-400 font-medium mt-1 uppercase tracking-[0.2em] text-[9px] sm:text-[10px]">Select your training intensity</p>
             </div>
           </div>
-          <div className="flex items-center gap-3 sm:gap-4 bg-white dark:bg-slate-800 p-3 sm:p-4 rounded-2xl sm:rounded-3xl shadow-clinical border border-slate-100 dark:border-slate-700 w-full sm:w-auto justify-between sm:justify-start">
-            <div className="text-center px-2 sm:px-4 border-r border-slate-100 dark:border-slate-700 flex-1 sm:flex-none">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Global Rank</p>
-              <p className="text-lg sm:text-xl font-black text-indigo-600">{globalRank ? `#${globalRank}` : '—'}</p>
-            </div>
-            <div className="text-center px-2 sm:px-4 border-r border-slate-100 dark:border-slate-700 flex-1 sm:flex-none">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Smart Coins</p>
-              <p className="text-lg sm:text-xl font-black text-emerald-500">{Number(smartCoins || 0).toLocaleString(undefined, { maximumFractionDigits: 1 })}</p>
-            </div>
-            <div className="text-center px-2 sm:px-4 border-r border-slate-100 dark:border-slate-700 flex-1 sm:flex-none">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Quiz Streak</p>
-              <p className="text-lg sm:text-xl font-black text-amber-500">{studyStats?.quizStreak || 0}</p>
-            </div>
-            <div className="text-center px-2 sm:px-4 flex-1 sm:flex-none">
-              <p className="text-[9px] font-black text-slate-400 uppercase tracking-widest">Exam Readiness</p>
-              <p className={`text-lg sm:text-xl font-black ${readiness >= 70 ? 'text-medical-500' : readiness >= 40 ? 'text-amber-500' : 'text-red-500'}`}>{readiness}%</p>
-            </div>
+          <div className="grid grid-cols-2 sm:flex items-center justify-between bg-white dark:bg-slate-800 p-3 sm:p-4 rounded-2xl sm:rounded-3xl shadow-clinical border border-slate-100 dark:border-slate-700 w-full">
+            {statCells.map((cell, idx) => (
+              <div
+                key={cell.label}
+                className={`text-center px-2 sm:px-4 py-1.5 sm:py-0 sm:flex-1 ${idx < statCells.length - 1 ? 'sm:border-r border-slate-100 dark:border-slate-700' : ''}`}
+              >
+                <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">{cell.label}</p>
+                <p className={`text-lg sm:text-xl font-black ${cell.className}`}>{cell.value}</p>
+              </div>
+            ))}
           </div>
         </header>
 
         {/* Plan banner (compact) */}
-          <div className={`rounded-2xl sm:rounded-3xl border p-3 sm:p-4 flex items-center gap-3 ${isPremium ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-amber-500/5 border-amber-500/30'}`}>
-            <span className="text-base font-black">{isPremium ? '🟢' : '🕒'}</span>
-            <p className="text-[10px] sm:text-xs font-black text-slate-900 dark:text-white">
+          <div className={`rounded-2xl sm:rounded-3xl border p-3 sm:p-4 flex items-start gap-3 ${isPremium ? 'bg-emerald-500/10 border-emerald-500/30' : 'bg-amber-500/5 border-amber-500/30'}`}>
+            <span className="text-base font-black shrink-0 mt-0.5">{isPremium ? '🟢' : '🕒'}</span>
+            <p className="min-w-0 flex-1 text-[10px] sm:text-xs font-black text-slate-900 dark:text-white leading-relaxed">
               {isPremium ? 'Premium · Unlimited practice — no cooldowns' : 'Free plan · 10 questions per round · new round every 30 minutes (per course)'}
             </p>
           </div>
 
           {/* Quiz Levels — collapsed directory; courses are picked in setup */}
           <section className="space-y-4">
-            <div className="flex items-baseline justify-between px-1">
+            <div className="flex flex-col sm:flex-row sm:items-baseline sm:justify-between gap-1.5 px-1">
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Quiz Levels</p>
-              <p className="text-[9px] font-bold text-slate-400 uppercase tracking-widest">Tap a level to start</p>
+              <p className="text-[11px] font-semibold text-slate-400">Tap a level to start</p>
             </div>
             <div className="space-y-2.5">
-              {QUIZ_LEVEL_ORDER.map((bankId) => (
-                <DirectoryRow key={bankId} bankId={bankId} onLaunch={handleCourseLaunch} onBlocked={handleCourseBlocked} courseQuota={courseQuota} quotaStatus={quotaFetchStatus} isPremium={isPremium} />
+              {QUIZ_LEVEL_ORDER.map((bankId, idx) => (
+                <DirectoryRow key={bankId} index={idx} bankId={bankId} onLaunch={handleCourseLaunch} onBlocked={handleCourseBlocked} courseQuota={courseQuota} quotaStatus={quotaFetchStatus} isPremium={isPremium} />
               ))}
             </div>
           </section>
@@ -1319,8 +1330,8 @@ const Quiz = () => {
               <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Other Modes</p>
             </div>
             <div className="space-y-2.5">
-              {OTHER_MODE_ORDER.map((bankId) => (
-                <DirectoryRow key={bankId} bankId={bankId} onLaunch={handleCourseLaunch} onBlocked={handleCourseBlocked} courseQuota={courseQuota} quotaStatus={quotaFetchStatus} isPremium={isPremium} />
+              {OTHER_MODE_ORDER.map((bankId, idx) => (
+                <DirectoryRow key={bankId} index={idx + QUIZ_LEVEL_ORDER.length} bankId={bankId} onLaunch={handleCourseLaunch} onBlocked={handleCourseBlocked} courseQuota={courseQuota} quotaStatus={quotaFetchStatus} isPremium={isPremium} />
               ))}
             </div>
           </section>

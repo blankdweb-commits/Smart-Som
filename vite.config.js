@@ -38,7 +38,21 @@ export default defineConfig({
     rollupOptions: {
       output: {
         manualChunks(id) {
+          // Vite's shared __vitePreload bootstrap is statically imported by
+          // EVERY chunk (including the entry). Rollup must NOT park it inside
+          // a heavy manual chunk, or that chunk gets a static edge from the
+          // entry and is modulepreloaded eagerly. Give it its own micro-chunk
+          // (~300 B) so it alone is eager while vendor-exams stays lazy.
+          if (id.includes('preload-helper')) return 'preload-helper';
           if (id.includes('node_modules')) {
+            // Heavy document/RFC-heavy libs used ONLY by the lazy ExamTimetable
+            // route (and its receipt export). Keeping them in the shared 'vendor'
+            // chunk dragged ~1.4 MB of eager JS into every initial page load even
+            // for visitors who never open /exams. Carving them into their own
+            // chunk makes Vite emit them as an on-demand sibling of the lazy
+            // ExamTimetable chunk.
+            if (id.includes('jspdf') || id.includes('html2canvas')) return 'vendor-exams';
+            if (id.includes('react-calendar')) return 'vendor-exams';
             if (id.includes('pdfjs-dist') || id.includes('tesseract.js') || id.includes('mammoth')) return 'vendor-parsing';
             return 'vendor';
           }

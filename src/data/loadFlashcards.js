@@ -1,22 +1,14 @@
-// Lazily-loaded built-in SRS flashcards.
+// Built-in flashcard data layer — DISABLED.
 //
-// THE PROBLEM (bundle bloat / data-protection): previously this module used
-// `import.meta.glob('./flashcards/**/*.json', { eager: true })`, which forced
-// every bundled question bank (≈15–16 MB of JSON) into a single eagerly-loaded
-// chunk that every page — including the anonymous login screen — had to
-// download and parse at startup. That is also why protected bank content shipped
-// to the browser before a user ever authenticated.
+// The bundled SRS flashcard datasets (~15–16 MB of JSON) are intentionally NOT
+// shipped to the browser any more. The CARDS tab is permanently locked to the
+// admin-granted gated screen, so there is zero flashcard dataset loading: no
+// bundle, no lazy chunk, no dynamic import for flashcard cards.
 //
-// THE FIX: the glob is now lazy. The data only loads when the app is
-// authenticated (see AppContext hydration effect) and requests it, so:
-//   * anonymous visitors never download the protected banks at all, and
-//   * the bundle is moved out of the initial JS graph into a fetch-on-demand
-//     chunk that the browser can cache.
-//
-// NOTE: this is a *shipping/performance* fix. Client-bundled question banks are
-// still technically inspectable once loaded by an authenticated client — server
-// RLS/RPC + feature gating remain the real authority for access control.
-const modules = import.meta.glob('./flashcards/**/*.json');
+// The processing/memoisation functions below are kept purely for source
+// compatibility; with an empty module map they always resolve to an empty
+// array and never fetch a single JSON file.
+const modules = {};
 
 const processModule = (path, module) => {
   const parts = path.split('/');

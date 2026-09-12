@@ -1,10 +1,10 @@
 import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
 import { initialFlashcards } from '../data/initialData';
-import { loadAllBuiltInFlashcards } from '../data/loadFlashcards';
 import { CURRICULUM_MASTER } from '../data/curriculumMaster';
 import { supabase } from '../utils/supabase';
 import { authHeaders } from '../utils/apiHeaders';
 import { safeGet, safeSet } from '../utils/safeStorage';
+import { dedupe, getCacheFirst, cacheClearAll, cacheTtl } from '../utils/cache';
 import {
   computeCurrentIdentity,
   computeProgressToNext,
@@ -38,20 +38,64 @@ const ANONYMOUS_PROFILE = {
 // same single-use refresh token) and replay the request with the fresh token.
 let refreshInFlight = null;
 let lastSuccessfulRefreshAt = 0;
+let cachedFreshSession = null;
+// Coalesce concurrent auth-initialization passes (React StrictMode double-mount
+// in dev, or a dual Provider mount) into ONE getSession/refresh sequence so the
+// initial auth burst never fans out into parallel token reads.
+let authInitInFlight = null;
+
+// Whether a refresh/GetUser failure looks like a transient network problem
+// (vs. a hard auth rejection). Transient failures must NOT tear the session
+// down — the app should keep the user signed in and let the caller degrade.
+const isNetworkyError = (msg) =>
+  /fetch|network|timeout|timed out|load failed|ERR_|abort|socket|DNS|ECONN|Failed to fetch/i.test(String(msg || ''));
+
+const isTokenExpiringSoon = (sess, withinSec = 90) => {
+  if (!sess?.access_token || !sess.refresh_token) return false;
+  const exp = sess.expires_at;
+  if (!exp) return false;
+  return Date.now() / 1000 > Number(exp) - withinSec;
+};
 
 const ensureFreshSessionToken = async () => {
-  if (!supabase) return null;
-  if (lastSuccessfulRefreshAt && Date.now() - lastSuccessfulRefreshAt < 5000) return null;
+  if (!supabase) return { session: null, recoverable: true };
+  // A refresh that succeeded moments ago already produced the current token —
+  // reuse it instead of forcing another rotation (single-use refresh tokens).
+  if (lastSuccessfulRefreshAt && Date.now() - lastSuccessfulRefreshAt < 5000 && cachedFreshSession?.access_token) {
+    return { session: cachedFreshSession, recoverable: true };
+  }
   if (!refreshInFlight) {
     refreshInFlight = supabase.auth
       .refreshSession()
+      .then((r) => {
+        if (r?.data?.session?.access_token) cachedFreshSession = r.data.session;
+        return r;
+      })
       .catch((err) => ({ error: err }))
       .finally(() => { refreshInFlight = null; });
   }
   const result = await refreshInFlight;
   const session = result?.data?.session;
-  if (session?.access_token) lastSuccessfulRefreshAt = Date.now();
-  return session || null;
+  if (session?.access_token) {
+    lastSuccessfulRefreshAt = Date.now();
+    cachedFreshSession = session;
+    return { session, recoverable: true };
+  }
+  return { session: null, recoverable: isNetworkyError(result?.error?.message || result?.error?.status) };
+};
+
+// Defer non-critical work until the browser is idle (or a fixed budget passes)
+// so optional fetches never block the primary shell render.
+const scheduleIdle = (fn) => {
+  if (typeof window !== 'undefined' && 'requestIdleCallback' in window) {
+    return window.requestIdleCallback(fn, { timeout: 3000 });
+  }
+  return setTimeout(fn, 600);
+};
+const cancelIdle = (handle) => {
+  if (handle == null) return;
+  if (typeof window !== 'undefined' && 'cancelIdleCallback' in window) window.cancelIdleCallback(handle);
+  else clearTimeout(handle);
 };
 
 // Fetch an Apex /api endpoint and guarantee a JSON result. If the server ever
@@ -101,12 +145,24 @@ const callApexApi = async (url, { method = 'GET', headers = {}, body } = {}) => 
 
   const hadBearer = /^Bearer\s+\S+/.test(headers.Authorization || '');
   if (result.status === 401 && hadBearer && !result.networkError) {
-    const freshSession = await ensureFreshSessionToken();
+    const { session: freshSession, recoverable } = await ensureFreshSessionToken();
     if (freshSession?.access_token) {
       result = await doFetch({ ...headers, Authorization: `Bearer ${freshSession.access_token}` });
+    } else if (recoverable) {
+      // The refresh hit a transient network problem (DNS/timeout/offline). Keep
+      // the user signed in and degrade this one call instead of tearing the
+      // session down — a slow network must never log the user out.
+      return {
+        ok: false,
+        status: 0,
+        networkError: true,
+        authExpired: false,
+        error: 'Session refresh failed',
+        data: result.data
+      };
     } else {
-      // Refresh failed — the session is beyond repair. Sign out so the app
-      // lands on the login screen instead of showing 401s everywhere.
+      // Refresh failed definitively — the session is beyond repair. Sign out so
+      // the app lands on the login screen instead of showing 401s everywhere.
       try { await supabase?.auth.signOut(); } catch { /* best effort */ }
       return {
         ok: false,
@@ -338,20 +394,24 @@ export function AppProvider({ children }) {
       }
       computeWeakConcepts(userId);
 
-      // SRS progress for bundled cards
-      const { data: userCards } = await supabase.from('user_flashcards').select('*').eq('user_id', userId);
-      if (userCards && userCards.length > 0) {
-         setFlashcards(prev => {
-             const userCardMap = new Map(userCards.map(c => [c.flashcard_id, c]));
-             return prev.map(c => {
-                 if (userCardMap.has(c.id)) {
-                     const uc = userCardMap.get(c.id);
-                     return { ...c, srs: { reps: uc.reps, interval: uc.interval, efactor: uc.efactor, nextReview: uc.next_review }};
-                 }
-                 return c;
-             });
-         });
-      }
+      // SRS progress for bundled cards — deferred to idle. The Flashcards
+      // feature is admin-gated (HIGHLY CLASSIFIED) and its dataset is never
+      // needed at shell load, so this query must not block first render.
+      scheduleIdle(async () => {
+        const { data: userCards } = await supabase.from('user_flashcards').select('*').eq('user_id', userId);
+        if (userCards && userCards.length > 0) {
+          setFlashcards(prev => {
+            const userCardMap = new Map(userCards.map(c => [c.flashcard_id, c]));
+            return prev.map(c => {
+              if (userCardMap.has(c.id)) {
+                const uc = userCardMap.get(c.id);
+                return { ...c, srs: { reps: uc.reps, interval: uc.interval, efactor: uc.efactor, nextReview: uc.next_review }};
+              }
+              return c;
+            });
+          });
+        }
+      });
 
       // Exams
       const { data: userExams } = await supabase.from('exams').select('*').eq('user_id', userId);
@@ -399,11 +459,13 @@ export function AppProvider({ children }) {
   };
 
   // Load custom flashcards: global (admin) cards visible to everyone,
-  // personal cards only for their owner.
+  // personal cards only for their owner. DEFERRED to idle — the Flashcards
+  // feature is admin-gated (HIGHLY CLASSIFIED) so this dataset is never needed
+  // for the primary shell render and must not compete with first paint.
   useEffect(() => {
     if (!supabase) return;
     let cancelled = false;
-    (async () => {
+    const handle = scheduleIdle(async () => {
       let query = supabase.from('custom_flashcards').select('*');
       if (session?.user?.id) {
         query = query.or(`user_id.is.null,user_id.eq.${session.user.id}`);
@@ -417,8 +479,8 @@ export function AppProvider({ children }) {
         const withoutCustom = prev.filter(c => !String(c.id).startsWith('db_'));
         return [...withoutCustom, ...mapped];
       });
-    })();
-    return () => { cancelled = true; };
+    });
+    return () => { cancelled = true; cancelIdle(handle); };
   }, [session]);
 
   // ---------- Exam CRUD (write-through) ----------
@@ -1023,27 +1085,32 @@ export function AppProvider({ children }) {
       setSubscriptionPlans(FALLBACK_PLANS);
       return;
     }
-    supabase
-      .from('subscription_plans')
-      .select('*')
-      .eq('is_active', true)
-      .order('price', { ascending: true })
-      .then(({ data, error }) => {
-        if (!error && data && data.length > 0) {
-          setSubscriptionPlans(data);
-        } else {
-          setSubscriptionPlans(FALLBACK_PLANS);
-        }
+    // Whole-of-app public metadata: cache-first with a long TTL so unauthenticated
+    // visitors and every reload reuse the same safe read. Never user-scoped, so
+    // logout can't leak anything (we still clearAll on SIGNED_OUT).
+    getCacheFirst('static:subscription-plans', async () => {
+      const { data, error } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .eq('is_active', true)
+        .order('price', { ascending: true });
+      if (error) throw error;
+      return data || [];
+    }, { ttlMs: cacheTtl.STATIC })
+      .then((plans) => {
+        if (Array.isArray(plans) && plans.length > 0) setSubscriptionPlans(plans);
+        else setSubscriptionPlans(FALLBACK_PLANS);
       })
       .catch(() => setSubscriptionPlans(FALLBACK_PLANS));
   }, []);
 
   useEffect(() => {
-    if (!supabase || !session) return;
+    const uid = session?.user?.id;
+    if (!supabase || !uid) return;
     supabase
       .from('transactions')
       .select('*')
-      .eq('user_id', session.user.id)
+      .eq('user_id', uid)
       .order('created_at', { ascending: false })
       .limit(20)
       .then(({ data, error }) => {
@@ -1057,7 +1124,7 @@ export function AppProvider({ children }) {
           })));
         }
       });
-  }, [session]);
+  }, [session?.user?.id]);
 
   useEffect(() => {
     if (!supabase) {
@@ -1070,11 +1137,15 @@ export function AppProvider({ children }) {
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         if (currentSession) {
           setSession(currentSession);
-          // Refresh the stored session so the access token is fresh on reload
-          // (covers near-expiry tokens without waiting for an API 401).
-          const refreshed = await supabase.auth.refreshSession();
-          if (refreshed?.error) console.warn('Session refresh skipped:', refreshed.error.message);
-          else if (refreshed?.data?.session) setSession(refreshed.data.session);
+          // Only rotate a token that is actually near expiry. Refreshing a
+          // still-valid token here was causing an unconditional refresh on
+          // EVERY reload/remount — combined with onAuthStateChange and the
+          // 401-recovery path that is the auth lock-contention storm.
+          if (isTokenExpiringSoon(currentSession)) {
+            const refreshed = await supabase.auth.refreshSession();
+            if (refreshed?.error) console.warn('Session refresh skipped:', refreshed.error.message);
+            else if (refreshed?.data?.session) setSession(refreshed.data.session);
+          }
         }
       } catch (err) {
         console.error('Auth init error:', err);
@@ -1083,12 +1154,18 @@ export function AppProvider({ children }) {
       }
     };
 
-    initAuth();
+    if (!authInitInFlight) {
+      authInitInFlight = initAuth().finally(() => { authInitInFlight = null; });
+    }
 
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, currentSession) => {
       if (event === 'SIGNED_IN') {
         setSession(currentSession);
+        // A new identity (or a shared-tab retry after sign-out) must never
+        // inherit cached display data from a previous account.
+        cacheClearAll();
       } else if (event === 'SIGNED_OUT') {
+        cacheClearAll();
         setSession(null);
         setUserProfile(ANONYMOUS_PROFILE);
         setExams([]);
@@ -1112,33 +1189,15 @@ export function AppProvider({ children }) {
     return () => { if (subscription) subscription.unsubscribe(); };
   }, []);
 
-  // ---- Built-in flashcard hydration (on-demand) ----
-  // The bundled question banks (~15–16 MB) are loaded lazily and ONLY for
-  // authenticated users, never for anonymous visitors on the login screen. The
-  // card array starts with the small `initialFlashcards` seed and is merged in
-  // asynchronously once a session exists. All consumers read the same context
-  // state, so nothing else needs to change.
-  const builtInHydratedRef = React.useRef(false);
-  useEffect(() => {
-    if (!session?.access_token) return;
-    if (builtInHydratedRef.current) return;
-    builtInHydratedRef.current = true;
-    let cancelled = false;
-    loadAllBuiltInFlashcards()
-      .then((cards) => {
-        if (cancelled || !cards?.length) return;
-        // Merge once; never re-add on re-auth of the same mount.
-        setFlashcards(prev => {
-          const existing = new Set(prev.map(c => `${c.question}|${c.answer}`));
-          const missing = cards.filter(c => !existing.has(`${c.question}|${c.answer}`));
-          return missing.length ? [...prev, ...missing] : prev;
-        });
-      })
-      .catch((err) => {
-        console.warn('Built-in flashcards failed to load:', err?.message || err);
-      });
-    return () => { cancelled = true; };
-  }, [session?.access_token]);
+  // ---- Built-in flashcard hydration (DISABLED) ----
+  // The flashcards study feature is permanently locked, so no bundled flashcard
+  // bank is ever loaded. Kept as a resolving stub so existing callers
+  // (FlashcardLibrary) can still call it with zero cost — no dynamic import,
+  // no ~15.6 MB lazy chunk.
+  const builtInHydratedRef = React.useRef(null);
+  const hydrateBuiltInFlashcards = useCallback(async () => {
+    builtInHydratedRef.current = 'done';
+  }, []);
 
   // ---------------- Command Center helpers ----------------
 
@@ -1253,10 +1312,13 @@ export function AppProvider({ children }) {
       return null;
     }
     setQuotaFetchStatus('loading');
-    const { ok, data } = await callApexApi('/api/quota/course-status', {
-      method: 'GET',
-      headers: apexHeaders(sess)
-    });
+    const uid = sess?.user?.id || 'anon';
+    const { ok, data } = await dedupe(`api:quota:course-status:${uid}`, () =>
+      callApexApi('/api/quota/course-status', {
+        method: 'GET',
+        headers: apexHeaders(sess)
+      })
+    );
     if (ok && data) {
       setCourseQuota(data.subjects || {});
       setQuotaFetchStatus('ok');
@@ -1299,10 +1361,13 @@ export function AppProvider({ children }) {
   const fetchDifficultyStatus = useCallback(async (sess = session, courseKey = null) => {
     if (!sess?.access_token) return;
     const qs = courseKey ? `?course_key=${encodeURIComponent(courseKey)}` : '';
-    const { ok, data } = await callApexApi(`/api/progress/difficulty${qs}`, {
-      method: 'GET',
-      headers: apexHeaders(sess)
-    });
+    const uid = sess?.user?.id || 'anon';
+    const { ok, data } = await dedupe(`api:difficulty:${uid}:${qs}`, () =>
+      callApexApi(`/api/progress/difficulty${qs}`, {
+        method: 'GET',
+        headers: apexHeaders(sess)
+      })
+    );
     if (ok && data?.progress) {
       if (courseKey) {
         setDifficultyProgress(prev => ({ ...(prev || {}), [courseKey]: data.progress }));
@@ -1449,20 +1514,30 @@ export function AppProvider({ children }) {
     if (!supabase) setLoadingAuth(false);
   }, [supabase]);
 
+  // Load the user's core data ONCE PER IDENTITY (not per token rotation). The
+  // old effect depended on the whole `session` object, so every SIGNED_IN /
+  // TOKEN_REFRESHED / refreshSession setSession() re-ran the entire ~10-query
+  // profile burst — the duplicate-request / retry-storm root cause.
+  const sessionUserId = session?.user?.id;
   useEffect(() => {
-    if (session) fetchUserData();
-  }, [session, fetchUserData]);
-
-  // Load Command Center state once a session is established (quota, difficulty,
-  // achievements, flashcard access).
-  useEffect(() => {
-    if (!session?.access_token) return;
-fetchCourseQuotaStatus();
-  fetchDifficultyStatus();
-    fetchAchievements();
-    fetchFlashcardAccess();
+    if (!sessionUserId) return;
+    fetchUserData();
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [session?.access_token]);
+  }, [sessionUserId]);
+
+  // Load Command Center state once a session identity is established (quota,
+  // difficulty, achievements, flashcard access). These are OPTIONAL enrichments
+  // — deferred to idle time so they never block the primary shell render.
+  useEffect(() => {
+    if (!sessionUserId) return;
+    const handle = scheduleIdle(() => {
+      fetchCourseQuotaStatus();
+      fetchDifficultyStatus();
+      fetchAchievements();
+    });
+    return () => cancelIdle(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionUserId]);
 
   const updateProfile = (data) => setUserProfile(prev => ({ ...prev, ...data }));
   const toggleSound = () => {
@@ -1623,6 +1698,7 @@ fetchCourseQuotaStatus();
     if (supabase) {
       await supabase.auth.signOut();
     }
+    cacheClearAll();
     setSession(null);
     setUserProfile(ANONYMOUS_PROFILE);
     setExams([]);
@@ -1707,7 +1783,7 @@ fetchCourseQuotaStatus();
       userAchievements, fetchAchievements, syncAchievements,
       dailyChallengeDone, markDailyChallengeDone,
       achievementToast, dismissAchievementToast,
-      flashcardAccess, fetchFlashcardAccess,
+      flashcardAccess, fetchFlashcardAccess, hydrateBuiltInFlashcards,
       sessionMode, activeDevices, registerDeviceSession, fetchActiveDevices, revokeDevice,
       signOut
     }}>

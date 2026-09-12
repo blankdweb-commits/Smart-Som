@@ -146,7 +146,7 @@ let passed = 0;
       checks.push(ok(`api/${f} exports a default handler`));
     }
   }
-  for (const f of ['_utils.js', '_questionSelectionService.js', '_selectionConfig.js', '_quiz-batches.js']) {
+  for (const f of ['_utils.js', '_questionSelectionService.js', '_selectionConfig.js', '_quiz-batches.js', '_community.js']) {
     checks.push(
       existsSync(resolve(ROOT, 'api', f))
         ? ok(`api/${f} present (underscore-prefixed, ignored by Vercel as functions)`)
@@ -177,7 +177,7 @@ let passed = 0;
 // ---------------------------------------------------------------------------
 {
   const saSrc = read(resolve(ROOT, 'scripts/serve-api.mjs'));
-  const requiredRewrite = ['/api/quiz/batch-create', '/api/quiz/batch-get', '/api/quiz/batch-answer', '/api/quiz/batch-complete', '/api/quiz-batch-create', '/api/quiz-batch-get', '/api/quiz-batch-answer', '/api/quiz-batch-complete', '/api/matches/create', '/api/payments/webhook'];
+  const requiredRewrite = ['/api/quiz/batch-create', '/api/quiz/batch-get', '/api/quiz/batch-answer', '/api/quiz/batch-complete', '/api/quiz-batch-create', '/api/quiz-batch-get', '/api/quiz-batch-answer', '/api/quiz-batch-complete', '/api/matches/create', '/api/payments/webhook', '/api/community/:path*'];
   const missing = requiredRewrite.filter((r) => !saSrc.includes(`'${r}'`) && !saSrc.includes(`"${r}"`));
   checks.push(
     missing.length === 0
@@ -202,9 +202,9 @@ let passed = 0;
 {
   const loadSrc = read(resolve(ROOT, 'src/data/loadFlashcards.js'));
   checks.push(
-    /import\.meta\.glob\(\s*['"]\.\/flashcards\/\*\*\/\*\.json['"]\s*\)/.test(loadSrc)
-      ? ok('loadFlashcards.js glob is lazy (no eager options object)')
-      : fail('loadFlashcards.js glob missing/lazy-ness regression'),
+    !/import\.meta\.glob/.test(loadSrc) && /\bmodules\s*=\s*\{\}/.test(loadSrc)
+      ? ok('loadFlashcards.js ships NO flashcard data (modules = {} — feature disabled)')
+      : fail('loadFlashcards.js still bundles flashcard JSON (glob/eager regression)'),
   );
   checks.push(
     /export\s+const\s+loadAllBuiltInFlashcards\s*=/.test(loadSrc)
@@ -219,9 +219,27 @@ let passed = 0;
       : fail('AppContext still references allBuiltInFlashcards'),
   );
   checks.push(
-    /loadAllBuiltInFlashcards/.test(appSrc) && /builtInHydratedRef|flashcards/.test(appSrc)
-      ? ok('AppContext hydrates built-in flashcards lazily after auth')
-      : fail('AppContext hydration wired oddly'),
+    /hydrateBuiltInFlashcards/.test(appSrc)
+      && !/from\s+['"]\.\.\/data\/loadFlashcards/.test(appSrc)
+      && !/import\(.+data\/loadFlashcards/.test(appSrc)
+      ? ok('AppContext flashcard hydration is a stub — no static OR dynamic bank import (feature disabled)')
+      : fail('AppContext still imports the built-in flashcard bank'),
+  );
+
+  const dcwSrc = read(resolve(ROOT, 'src/components/DailyChallengeWidget.jsx'));
+  checks.push(
+    !/from\s+['"]\.\.\/data\/flashcards\//.test(dcwSrc) && !/from\s+['"]\.\.\/data\/richardBank['"]/.test(dcwSrc)
+      ? ok('DailyChallengeWidget has NO static bank imports (loads banks on demand only)')
+      : fail('DailyChallengeWidget still statically imports the 15.6MB bank'),
+  );
+
+  const libSrc = read(resolve(ROOT, 'src/components/FlashcardLibrary.jsx'));
+  checks.push(
+    /HIGHLY CLASSIFIED/.test(libSrc)
+      && !/hydrateBuiltInFlashcards/.test(libSrc)
+      && !/flashcardAccess/.test(libSrc)
+      ? ok('FlashcardLibrary ALWAYS renders the locked gate — no bank hydration/access check')
+      : fail('FlashcardLibrary still hydrates the flashcard bank (feature should be disabled)'),
   );
 
   const viteSrc = read(resolve(ROOT, 'vite.config.js'));
@@ -377,6 +395,281 @@ let passed = 0;
     /const tileLocked\s*=\s*cooling\s*\|\|\s*\(!isPremium && quotaFetchStatus === 'error'\)/.test(ssf)
       ? ok('QuizSetupFlow cooling/error subject tiles are NOT selectable (defense-in-depth)')
       : fail('QuizSetupFlow subject tiles are still selectable during cooldown'),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 8. COMMUNITY RESET + EPHEMERAL POSTS + ANONYMOUS GROUP invariants.
+//    Ser record — client never writes community tables directly (migration v29
+//    removed the RLS write grants); every write flows through /api/community.
+// ---------------------------------------------------------------------------
+{
+  const mig = read(resolve(ROOT, 'scripts/migration-v29-community-ephemeral-anonymous.sql'));
+  const apiC = read(resolve(ROOT, 'api/community.js'));
+  const apiCm = read(resolve(ROOT, 'api/_community.js'));
+  const com = read(resolve(ROOT, 'src/pages/Community.jsx'));
+  const grp = read(resolve(ROOT, 'src/pages/GroupPage.jsx'));
+  const sg = read(resolve(ROOT, 'src/components/StudyGroups.jsx'));
+  const hub = read(resolve(ROOT, 'src/components/CommunityHubWidget.jsx'));
+
+  // Migration: ephemeral expiry math + anonymous group lifecycle.
+  checks.push(
+    /grace_until\s*=\s*now\(\) \+ interval '24 hours'/.test(mig) && /interval '1 hour'/.test(mig)
+      ? ok('v29 migration: legacy 24h grace + 1h ephemeral life live in community_post_lives_until')
+      : fail('v29 migration missing the legacy-grace / 1h ephemeral window'),
+  );
+  checks.push(
+    /\+\s*interval '110 seconds'/.test(mig)
+      ? ok('v29 migration: 110s cold marker (active|cold) is server-computed')
+      : fail('v29 migration missing the 110-second cold marker'),
+  );
+  checks.push(
+    /anonymous_spectators/.test(mig) && /spectator_price/.test(mig) && /minimum_members_to_activate/.test(mig) && /minimum_members_to_remain_active/.test(mig)
+      ? ok('v29 migration: anonymous group lifecycle columns + spectator ledger present')
+      : fail('v29 migration anonymous lifecycle DDL missing'),
+  );
+  checks.push(
+    /group_state in \('normal', 'waiting', 'active', 'wiped'\)/.test(mig)
+      ? ok('v29 migration: study_groups state check spans normal/waiting/active/wiped')
+      : fail('v29 migration study_groups state check missing wiped'),
+  );
+  // Server-side identity masking for anonymous rooms (community_profiles is
+  // globally readable by authenticated users, so the feed must mask it).
+  checks.push(
+    /case when v_anon then 'Anonymous Member' else cp\.display_name end/.test(mig) && /case when v_anon then null else cp\.avatar_url end/.test(mig)
+      ? ok('community_group_feed masks display_name/avatar_url/year for anonymous rooms')
+      : fail('community_group_feed does not mask anonymous identities'),
+  );
+  // The waitlist counter is public during the OPEN waiting round only.
+  checks.push(
+    /v_gr\.type = 'anonymous' and v_gr\.group_state = 'waiting'/.test(mig)
+      ? ok('community_panel exposes member_count while an anonymous room is waiting')
+      : fail('community_panel does not expose the public waitlist count'),
+  );
+
+  // API router: all write endpoints + comment edit/delete wired.
+  for (const route of ['/posts/edit-comment$', '/posts/delete-comment$', '/posts/reply$', '/groups/feed$', '/groups/panel$']) {
+    // Handlers are declared as `re: /\/posts\/edit-comment$/` — the source text
+    // carries escaped slashes (`\/`), so match the escaped literal form.
+    const escaped = route.replace(/\//g, '\\/');
+    checks.push(
+      apiC.includes(escaped)
+        ? ok(`api/community.js routes ${route}`)
+        : fail(`api/community.js missing route ${route}`),
+    );
+  }
+  // Rate-limited interaction bump: a repeat interaction within 15s must NOT
+  // extend a post's lifetime (a single user cannot keep a post alive forever).
+  checks.push(
+    /bumpInteraction/.test(apiCm) && /INTERACTION_COOLDOWN_MS/.test(apiCm) && /last_interaction_at\.lt\.\$\{cutoff\}/.test(apiCm)
+      ? ok('api/_community.js bumpInteraction is rate-limited (INTERACTION_COOLDOWN_MS guard)')
+      : fail('api/_community.js bumpInteraction lacks the 15s interaction rate limit'),
+  );
+
+  // Client: Community.jsx is a single unified feed driven entirely by the API.
+  checks.push(
+    /EPHEMERAL_POLL_MS\s*=\s*15000/.test(com) && /activeSection\s*=\s*'all'/.test(com)
+      ? ok('Community.jsx is a 15s-polled single general feed (no section tabs)')
+      : fail('Community.jsx still has section tabs / missing ephemeral poll'),
+  );
+  checks.push(
+    com.includes("communityApi(session, '/posts/edit-comment'") && com.includes("communityApi(session, '/posts/delete-comment'")
+      ? ok('Community.jsx comment edit/delete go through the router')
+      : fail('Community.jsx comment edit/delete not via communityApi'),
+  );
+  checks.push(
+    /post\.post_state === 'cold'/.test(com) && /Expiring soon/.test(com) && /lives_until/.test(com)
+      ? ok('Community.jsx renders the ephemeral cold/expiring badge from server post_state')
+      : fail('Community.jsx ephemeral badges missing'),
+  );
+  checks.push(
+    !com.includes("from('community_posts').insert") && !com.includes("from('community_post_likes').insert") && !com.includes("from('community_comments').insert")
+      ? ok('Community.jsx has no direct community table writes')
+      : fail('Community.jsx still writes community tables directly'),
+  );
+
+  // GroupPage.jsx: anonymous mode via /groups/* API + hosted spectator checkout.
+  checks.push(
+    grp.includes("communityApi(session, '/groups/panel'") && grp.includes("communityApi(session, '/groups/feed'") && grp.includes("communityApi(session, '/groups/join'") && grp.includes("communityApi(session, '/groups/leave'")
+      ? ok('GroupPage.jsx anonymous panel/feed/join/leave all use the router')
+      : fail('GroupPage.jsx anonymous group actions not via /api/community'),
+  );
+  checks.push(
+    /product: 'anonymous_spectate'/.test(grp) && /authorization_url/.test(grp)
+      ? ok('GroupPage.jsx spectator pass uses hosted checkout (product anonymous_spectate)')
+      : fail('GroupPage.jsx spectator purchase not wired to the hosted checkout'),
+  );
+  checks.push(
+    /group_state === 'wiped'/.test(grp) && /isAnonymousGroup && !anonViewer/.test(grp)
+      ? ok('GroupPage.jsx renders wiped/closed states and hides the board for non-viewers')
+      : fail('GroupPage.jsx anonymous states/board masking missing'),
+  );
+
+  // StudyGroups.jsx: anonymous join/leave + posts all routed, counts via RPC.
+  checks.push(
+    sg.includes("communityApi(session, '/groups/join'") && sg.includes("communityApi(session, '/groups/leave'")
+      ? ok('StudyGroups.jsx anonymous join/leave uses the router')
+      : fail('StudyGroups.jsx anonymous membership actions not via router'),
+  );
+  checks.push(
+    /community_member_count/.test(sg) && /type === 'anonymous'/.test(sg)
+      ? ok('StudyGroups.jsx surfaces anonymous waitlist/active counts via community_member_count')
+      : fail('StudyGroups.jsx anonymous card count not RPC-backed'),
+  );
+  checks.push(
+    sg.includes("communityApi(session, '/posts'") && sg.includes("communityApi(session, '/posts/like'") && sg.includes("communityApi(session, '/posts/reply'")
+      ? ok('StudyGroups.jsx group posts/likes/replies all through the router')
+      : fail('StudyGroups.jsx still writes group posts client-side'),
+  );
+
+  // CommunityHubWidget: like toggle centralized through the router.
+  checks.push(
+    /communityApi\(session, '\/posts\/like'/.test(hub)
+      ? ok('CommunityHubWidget like toggle → /api/community/posts/like')
+      : fail('CommunityHubWidget still toggles likes client-side'),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// 9. CACHING + PERFORMANCE LAYER invariants (in-memory cache + CDN headers).
+//    The cache must be in-memory-only, only public metadata may be TTL-cached,
+//    and server-authoritative reads (quota/difficulty/feed) stay uncached.
+// ---------------------------------------------------------------------------
+{
+  const vercel = JSON.parse(read(resolve(ROOT, 'vercel.json')));
+  const { headers = [] } = vercel;
+  const findHeader = (source) => {
+    const rule = headers.find((h) => h.source === source);
+    return rule ? Object.fromEntries(rule.headers.map((h) => [h.key, h.value])) : null;
+  };
+
+  const assetH = findHeader('/assets/(.*)');
+  checks.push(
+    assetH?.['Cache-Control']?.includes('31536000') && assetH?.['Cache-Control']?.includes('immutable')
+      ? ok('vercel.json: /assets/* hashed assets -> Cache-Control public,max-age=31536000,immutable')
+      : fail('vercel.json: /assets/* immutable cache header missing', JSON.stringify(assetH)),
+  );
+  const idxH = findHeader('/index.html');
+  checks.push(
+    idxH?.['Cache-Control'] && /max-age=0.*must-revalidate/.test(idxH['Cache-Control'])
+      ? ok('vercel.json: /index.html shell -> Cache-Control no-cache + must-revalidate (always revalidates)')
+      : fail('vercel.json: /index.html must-revalidate header missing', JSON.stringify(idxH)),
+  );
+  const apiH = findHeader('/api/(.*)');
+  checks.push(
+    apiH?.['Cache-Control']?.includes('no-store') && apiH?.['Cache-Control']?.includes('private')
+      ? ok('vercel.json: /api/* always private,no-store (never cached — server-authoritative)')
+      : fail('vercel.json: /api/* no-store header missing', JSON.stringify(apiH)),
+  );
+
+  // ---- src/utils/cache.js: in-memory only + right API ----
+  const cacheSrc = read(resolve(ROOT, 'src/utils/cache.js'));
+  checks.push(
+    /localStorage|sessionStorage|indexedDB/.test(cacheSrc)
+      ? fail('cache.js must be in-memory only (no localStorage/sessionStorage/indexedDB)')
+      : ok('cache.js is purely in-memory (no persistent storage surface)'),
+  );
+  checks.push(
+    ['cacheGet', 'cacheSet', 'cacheClearAll', 'dedupe', 'getCacheFirst'].every((f) => new RegExp(`export function ${f}|export const ${f}|export async function ${f}`).test(cacheSrc))
+      ? ok('cache.js exports cacheGet/cacheSet/cacheClearAll/dedupe/getCacheFirst')
+      : fail('cache.js missing a required export'),
+  );
+  const neverCachedKeys = ['quota', 'difficulty', 'payment', 'verify-payment', 'cooldown', 'session', 'membership', 'spectator'];
+  const badTtl = neverCachedKeys.filter((k) => cacheSrc.includes(`'${k}:`) || cacheSrc.includes(`"${k}:`) || cacheSrc.toLowerCase().includes(`${k}:`));
+  checks.push(
+    badTtl.length === 0
+      ? ok('cache.js opens NO TTL keys under any security-sensitive name (quota/difficulty/payment/session/…)')
+      : fail('cache.js declares sensitive cache keys', badTtl.join(', ')),
+  );
+
+  // ---- AppContext.jsx: safe wiring ----
+  const app = read(resolve(ROOT, 'src/context/AppContext.jsx'));
+  checks.push(
+    /from '\.\.\/utils\/cache'/.test(app)
+      ? ok('AppContext imports the cache utilities')
+      : fail('AppContext does not import the cache utilities'),
+  );
+  checks.push(
+    /getCacheFirst\('static:subscription-plans'/.test(app) && /cacheTtl\.STATIC/.test(app)
+      ? ok('subscription_plans reads cache-first via static:subscription-plans (24h, public metadata)')
+      : fail('subscription_plans not cached through the safe static key'),
+  );
+  checks.push(
+    /dedupe\(`api:quota:course-status/.test(app)
+      ? ok('quota status GET is in-flight-deduped ONLY (never TTL-cached / never cross-user)')
+      : fail('quota status fetch must use dedupe, not getCacheFirst'),
+  );
+  checks.push(
+    /dedupe\(`api:difficulty:\$\{uid\}:/.test(app)
+      ? ok('difficulty GET is in-flight-deduped per user/course (never cached)')
+      : fail('difficulty fetch must use dedupe, not getCacheFirst'),
+  );
+  checks.push(
+    /authInitInFlight/.test(app) && /initAuth\(\)\.finally/.test(app)
+      ? ok('initAuth has a canonical in-flight guard (no parallel getSession/refresh bursts)')
+      : fail('initAuth in-flight guard missing'),
+  );
+  checks.push(
+    /scheduleIdle\(async \(\) => \{\s*const \{ data: userCards \}/.test(app)
+      ? ok('user_flashcards SRS read is deferred to idle (never blocks shell render)')
+      : fail('user_flashcards read still blocks the shell load'),
+  );
+  checks.push(
+    /const handle = scheduleIdle\(async \(\) => \{\s*let query = supabase\.from\('custom_flashcards'\)/.test(app) && /cancelIdle\(handle\)/.test(app)
+      ? ok('custom_flashcards read is deferred to idle + cancelled on unmount')
+      : fail('custom_flashcards read not deferred/cancellable'),
+  );
+  checks.push(
+    app.includes('cacheClearAll()')
+      ? ok('AppContext invalidates the whole cache on sign-out/SIGNED_OUT')
+      : fail('AppContext missing cacheClearAll on identity change'),
+  );
+
+  // ---- Achievements.jsx: only the public definition catalog is cached ----
+  const ach = read(resolve(ROOT, 'src/pages/Achievements.jsx'));
+  checks.push(
+    /getCacheFirst\('static:achievements'/.test(ach) && /cacheTtl\.STATIC/.test(ach)
+      ? ok('Achievements catalogs definitions via static:achievements (24h, public metadata)')
+      : fail('Achievements catalog not cached through the safe static key'),
+  );
+  checks.push(
+    /unlockedByKey/.test(ach) && /userAchievements/.test(ach)
+      ? ok('Achievements unlocked state still comes live from userAchievements (never cached)')
+      : fail('Achievements unlocked-state sourcing regression'),
+  );
+
+  // ---- Community.jsx: ephemeral feed stays UNCACHED (dedupe only) ----
+  const com = read(resolve(ROOT, 'src/pages/Community.jsx'));
+  checks.push(
+    /dedupe\('community:feed:p0'/.test(com)
+      ? ok('community feed page-0 reads are in-flight-deduped (never TTL-cached)')
+      : fail('community feed must use dedupe, not a TTL cache'),
+  );
+  checks.push(
+    !/getCacheFirst\([^)]*community/.test(com)
+      ? ok('no TTL-cached community content in Community.jsx (ephemeral posts stay live)')
+      : fail('Community.jsx caches ephemeral community content'),
+  );
+  checks.push(
+    /const stripExpired =/.test(com) && /lives_until/.test(com) && /Date\.now\(\)/.test(com)
+      ? ok('Community.jsx display-filters expired posts by lives_until (defense-in-depth)')
+      : fail('Community.jsx missing the client-side lives_until expiry filter'),
+  );
+
+  // ---- StudyGroups.jsx: anonymous counts deduped, not cached ----
+  const sg = read(resolve(ROOT, 'src/components/StudyGroups.jsx'));
+  checks.push(
+    /dedupe\(`community:member-count:\$\{gid\}`/.test(sg)
+      ? ok('anonymous member_count RPC bursts are in-flight-deduped per group (never cached)')
+      : fail('StudyGroups member_count not in-flight-deduped'),
+  );
+
+  // ---- Flashcards stay disabled AND uncached ----
+  const lib = read(resolve(ROOT, 'src/components/FlashcardLibrary.jsx'));
+  checks.push(
+    /HIGHLY CLASSIFIED/.test(lib) && !/cache|dedupe|getCacheFirst/.test(lib)
+      ? ok('FlashcardLibrary still renders the HIGHLY CLASSIFIED gate with no cache involvement')
+      : fail('FlashcardLibrary cache/feature regression'),
   );
 }
 

@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { Users, Heart, MessageCircle, Share2, MoreHorizontal, User, CheckCircle2, Loader2 } from './Icons';
 import { supabase } from '../utils/supabase';
+import { communityApi } from '../utils/communityApi';
 import { useAppContext } from '../context/AppContext';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigate } from 'react-router-dom';
@@ -62,11 +63,7 @@ const CommunityHubWidget = () => {
     }));
 
     try {
-      if (newLikedStatus) {
-        await supabase.from('community_post_likes').insert({ post_id: postId, user_id: currentUserId });
-      } else {
-        await supabase.from('community_post_likes').delete().match({ post_id: postId, user_id: currentUserId });
-      }
+      await communityApi(session, '/posts/like', { post_id: postId, liked: newLikedStatus });
     } catch (err) {
       console.error('Error toggling like:', err);
       // Revert optimistic update
@@ -131,7 +128,7 @@ const CommunityHubWidget = () => {
                     </p>
                   </div>
                 </div>
-                <button className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" onClick={(e) => e.stopPropagation()}>
+                <button aria-label="More options" className="text-slate-400 hover:text-slate-600 dark:hover:text-slate-300" onClick={(e) => e.stopPropagation()}>
                   <MoreHorizontal size={14} />
                 </button>
               </div>
