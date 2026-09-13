@@ -1,0 +1,4902 @@
+[
+  {
+    "question_id": 1,
+    "question": "Which statement best defines a research design?",
+    "options": [
+      "A list of references used in a study",
+      "A structured plan that guides how a research study will be conducted",
+      "A summary of research findings",
+      "A method for writing the discussion section"
+    ],
+    "correct_answer": "A structured plan that guides how a research study will be conducted",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 2,
+    "question": "Which characteristic distinguishes quantitative research from qualitative research?",
+    "options": [
+      "Quantitative research primarily uses numerical data",
+      "Quantitative research never uses samples",
+      "Qualitative research always uses experiments",
+      "Qualitative research cannot involve interviews"
+    ],
+    "correct_answer": "Quantitative research primarily uses numerical data",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 3,
+    "question": "A researcher randomly assigns patients to receive either a new nursing intervention or standard care. Which design is most appropriate?",
+    "options": [
+      "Cross-sectional design",
+      "Correlational design",
+      "Experimental design",
+      "Retrospective design"
+    ],
+    "correct_answer": "Experimental design",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 4,
+    "question": "Which feature is most characteristic of an experimental research design?",
+    "options": [
+      "Manipulation of an independent variable",
+      "Collection of historical records only",
+      "Observation without any planned comparison",
+      "Measurement of variables at one point only"
+    ],
+    "correct_answer": "Manipulation of an independent variable",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 5,
+    "question": "A study describes the prevalence of hypertension among nurses in a hospital at one particular time. Which design is being used?",
+    "options": [
+      "Longitudinal",
+      "Experimental",
+      "Retrospective",
+      "Cross-sectional"
+    ],
+    "correct_answer": "Cross-sectional",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 6,
+    "question": "Which research design involves following the same population or subjects over an extended period?",
+    "options": [
+      "Longitudinal design",
+      "Cross-sectional design",
+      "Descriptive design",
+      "Retrospective design"
+    ],
+    "correct_answer": "Longitudinal design",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 7,
+    "question": "A researcher examines whether stress scores are associated with nurses' sleep duration without manipulating either variable. Which design is most suitable?",
+    "options": [
+      "Experimental",
+      "Correlational",
+      "Retrospective",
+      "Cross-sectional experimental"
+    ],
+    "correct_answer": "Correlational",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 8,
+    "question": "What is the primary purpose of a descriptive research design?",
+    "options": [
+      "To manipulate an intervention",
+      "To establish definite cause-and-effect relationships",
+      "To describe characteristics or conditions as they exist",
+      "To eliminate the need for data collection"
+    ],
+    "correct_answer": "To describe characteristics or conditions as they exist",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 9,
+    "question": "Which research design is particularly appropriate when the researcher wants to investigate possible explanations for observed relationships?",
+    "options": [
+      "Explanatory design",
+      "Descriptive design",
+      "Cross-sectional design",
+      "Checklist design"
+    ],
+    "correct_answer": "Explanatory design",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 10,
+    "question": "A researcher reviews hospital records from the previous five years to determine factors associated with pressure injuries. This is an example of a:",
+    "options": [
+      "Prospective study",
+      "Experimental study",
+      "Retrospective study",
+      "Cross-sectional survey"
+    ],
+    "correct_answer": "Retrospective study",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 11,
+    "question": "In a prospective study, researchers generally:",
+    "options": [
+      "Begin with existing historical records only",
+      "Follow participants forward from a defined starting point",
+      "Avoid collecting primary data",
+      "Study only previously completed events"
+    ],
+    "correct_answer": "Follow participants forward from a defined starting point",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 12,
+    "question": "Which of the following is a non-experimental research design?",
+    "options": [
+      "Randomized controlled trial",
+      "Clinical trial",
+      "Correlational study",
+      "Laboratory experiment"
+    ],
+    "correct_answer": "Correlational study",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 13,
+    "question": "What is meant by the population in research?",
+    "options": [
+      "The researchers involved in the study",
+      "The entire group to which the researcher intends the findings to apply",
+      "The people who refuse to participate",
+      "The instruments used for data collection"
+    ],
+    "correct_answer": "The entire group to which the researcher intends the findings to apply",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 14,
+    "question": "What is a sample in research?",
+    "options": [
+      "The complete population under investigation",
+      "A statistical software package",
+      "A subset of the population selected for study",
+      "The final research report"
+    ],
+    "correct_answer": "A subset of the population selected for study",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 15,
+    "question": "Which sampling technique gives every eligible member of a population an equal known chance of being selected?",
+    "options": [
+      "Convenience sampling",
+      "Purposive sampling",
+      "Snowball sampling",
+      "Simple random sampling"
+    ],
+    "correct_answer": "Simple random sampling",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 16,
+    "question": "A researcher selects every fifth name from a properly ordered sampling frame. Which sampling technique is being used?",
+    "options": [
+      "Systematic sampling",
+      "Stratified sampling",
+      "Purposive sampling",
+      "Cluster sampling"
+    ],
+    "correct_answer": "Systematic sampling",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 17,
+    "question": "A researcher divides nurses into male and female groups and randomly selects participants from each group. This is:",
+    "options": [
+      "Convenience sampling",
+      "Stratified sampling",
+      "Snowball sampling",
+      "Cluster sampling"
+    ],
+    "correct_answer": "Stratified sampling",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 18,
+    "question": "Which sampling method involves selecting naturally occurring groups rather than individual members?",
+    "options": [
+      "Simple random sampling",
+      "Systematic sampling",
+      "Cluster sampling",
+      "Purposive sampling"
+    ],
+    "correct_answer": "Cluster sampling",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 19,
+    "question": "A researcher deliberately selects experienced community health nurses because they possess specific knowledge relevant to the study. Which technique is this?",
+    "options": [
+      "Purposive sampling",
+      "Simple random sampling",
+      "Systematic sampling",
+      "Cluster sampling"
+    ],
+    "correct_answer": "Purposive sampling",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 20,
+    "question": "Which sampling method is commonly used when participants are difficult to identify and existing participants help recruit others?",
+    "options": [
+      "Stratified sampling",
+      "Snowball sampling",
+      "Simple random sampling",
+      "Systematic sampling"
+    ],
+    "correct_answer": "Snowball sampling",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 21,
+    "question": "Which ethical principle emphasizes that participants should make a voluntary decision about participation after receiving adequate information?",
+    "options": [
+      "Justice",
+      "Confidentiality",
+      "Informed consent",
+      "Data analysis"
+    ],
+    "correct_answer": "Informed consent",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 22,
+    "question": "A participant decides to leave a research study after initially agreeing to participate. What should the researcher do?",
+    "options": [
+      "Prevent withdrawal until data collection ends",
+      "Allow the participant to withdraw according to the study's ethical procedures",
+      "Delete all participants' data automatically",
+      "Require another participant to replace them immediately"
+    ],
+    "correct_answer": "Allow the participant to withdraw according to the study's ethical procedures",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 23,
+    "question": "Which ethical principle requires researchers to treat participants fairly and distribute the benefits and burdens of research equitably?",
+    "options": [
+      "Justice",
+      "Reliability",
+      "Validity",
+      "Replication"
+    ],
+    "correct_answer": "Justice",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 24,
+    "question": "Protecting participants' personal information from unauthorized disclosure primarily relates to:",
+    "options": [
+      "Sampling",
+      "Confidentiality",
+      "Correlation",
+      "Generalizability"
+    ],
+    "correct_answer": "Confidentiality",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 25,
+    "question": "Before collecting data from human participants, a researcher should normally ensure that:",
+    "options": [
+      "Ethical approval requirements have been addressed",
+      "All participants know the expected results",
+      "The results have already been analyzed",
+      "The discussion section has been completed"
+    ],
+    "correct_answer": "Ethical approval requirements have been addressed",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 26,
+    "question": "Which data collection method involves obtaining information directly through verbal interaction with participants?",
+    "options": [
+      "Checklist",
+      "Interview",
+      "Observation",
+      "Document review"
+    ],
+    "correct_answer": "Interview",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 27,
+    "question": "A researcher uses a prepared list of questions that participants complete themselves. Which instrument is being used?",
+    "options": [
+      "Questionnaire",
+      "Observation schedule",
+      "Interview guide",
+      "Laboratory register"
+    ],
+    "correct_answer": "Questionnaire",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 28,
+    "question": "Which is a major advantage of a questionnaire in a large quantitative study?",
+    "options": [
+      "It always produces completely accurate answers",
+      "It can facilitate standardized collection of information from many participants",
+      "It eliminates response bias entirely",
+      "It does not require clear questions"
+    ],
+    "correct_answer": "It can facilitate standardized collection of information from many participants",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 29,
+    "question": "Which feature is most important when constructing questions for a research questionnaire?",
+    "options": [
+      "Use of ambiguous terminology",
+      "Use of unnecessarily complex sentences",
+      "Clarity and relevance to the research objectives",
+      "Inclusion of several ideas in every question"
+    ],
+    "correct_answer": "Clarity and relevance to the research objectives",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 30,
+    "question": "A question asks, \"Don't you agree that nurses should always provide excellent care?\" What is the major problem with this question?",
+    "options": [
+      "It is open-ended",
+      "It is leading",
+      "It is too short",
+      "It is demographic"
+    ],
+    "correct_answer": "It is leading",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 31,
+    "question": "Which data collection method allows a researcher to obtain information by directly watching and recording behaviours or events?",
+    "options": [
+      "Questionnaire",
+      "Interview",
+      "Observation",
+      "Literature review"
+    ],
+    "correct_answer": "Observation",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 32,
+    "question": "A checklist is particularly useful when the researcher wants to:",
+    "options": [
+      "Record whether specified behaviours or characteristics are present",
+      "Allow participants to write unrestricted essays",
+      "Analyze only secondary literature",
+      "Replace the research design"
+    ],
+    "correct_answer": "Record whether specified behaviours or characteristics are present",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 33,
+    "question": "Which method is most appropriate when the researcher needs to explore participants' personal experiences in considerable depth?",
+    "options": [
+      "Structured questionnaire only",
+      "In-depth interview",
+      "Numerical checklist only",
+      "Random sampling"
+    ],
+    "correct_answer": "In-depth interview",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 34,
+    "question": "What is validity of a research instrument primarily concerned with?",
+    "options": [
+      "Whether the instrument measures what it is intended to measure",
+      "Whether the instrument is inexpensive",
+      "Whether participants like the instrument",
+      "Whether data are collected quickly"
+    ],
+    "correct_answer": "Whether the instrument measures what it is intended to measure",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 35,
+    "question": "Reliability of a research instrument refers mainly to its:",
+    "options": [
+      "Ability to produce consistent measurements",
+      "Ability to measure every variable",
+      "Cost of administration",
+      "Number of participants recruited"
+    ],
+    "correct_answer": "Ability to produce consistent measurements",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 36,
+    "question": "A questionnaire produces similar results when administered repeatedly under similar conditions. This demonstrates:",
+    "options": [
+      "Validity",
+      "Reliability",
+      "Sampling bias",
+      "External validity only"
+    ],
+    "correct_answer": "Reliability",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 37,
+    "question": "Which statement best describes the relationship between validity and reliability?",
+    "options": [
+      "An instrument cannot be valid unless it demonstrates adequate reliability",
+      "Reliability and validity mean exactly the same thing",
+      "A reliable instrument must always be valid",
+      "Validity is concerned only with sample size"
+    ],
+    "correct_answer": "An instrument cannot be valid unless it demonstrates adequate reliability",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 38,
+    "question": "A researcher asks experts in nursing research to assess whether questionnaire items adequately cover the content of a construct. This primarily assesses:",
+    "options": [
+      "Content validity",
+      "Sampling reliability",
+      "External reliability",
+      "Response rate"
+    ],
+    "correct_answer": "Content validity",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 39,
+    "question": "Which action can improve the quality of a newly developed questionnaire before the main study?",
+    "options": [
+      "Conducting a pretest or pilot test",
+      "Removing all instructions",
+      "Avoiding expert review",
+      "Increasing ambiguity in the questions"
+    ],
+    "correct_answer": "Conducting a pretest or pilot test",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 40,
+    "question": "Which of the following is an important consideration when selecting a data collection instrument?",
+    "options": [
+      "Its alignment with the research objectives and variables",
+      "Its physical appearance only",
+      "Its length regardless of purpose",
+      "Whether it produces the desired conclusion"
+    ],
+    "correct_answer": "Its alignment with the research objectives and variables",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 41,
+    "question": "Data in research are best described as:",
+    "options": [
+      "The conclusions drawn from a study",
+      "Information collected for the purpose of answering research questions",
+      "The researcher's personal opinions",
+      "The reference list of a study"
+    ],
+    "correct_answer": "Information collected for the purpose of answering research questions",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 42,
+    "question": "What is the main purpose of organizing collected data before analysis?",
+    "options": [
+      "To make the data easier to analyze and interpret",
+      "To change participants' responses",
+      "To eliminate all unexpected findings",
+      "To guarantee statistical significance"
+    ],
+    "correct_answer": "To make the data easier to analyze and interpret",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 43,
+    "question": "Which of the following is an appropriate way to organize quantitative data?",
+    "options": [
+      "Coding responses into meaningful categories",
+      "Deleting responses that disagree with the hypothesis",
+      "Changing values to produce desired results",
+      "Ignoring missing observations without documentation"
+    ],
+    "correct_answer": "Coding responses into meaningful categories",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 44,
+    "question": "A frequency distribution primarily shows:",
+    "options": [
+      "The number of times values or categories occur",
+      "The ethical approval status of a study",
+      "The researcher's qualifications",
+      "The names of all participants"
+    ],
+    "correct_answer": "The number of times values or categories occur",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 45,
+    "question": "Which presentation method is particularly suitable for displaying numerical information in an organized form using rows and columns?",
+    "options": [
+      "Table",
+      "Interview",
+      "Proposal",
+      "Checklist"
+    ],
+    "correct_answer": "Table",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 46,
+    "question": "Which graphical presentation is generally useful for displaying changes or trends across time?",
+    "options": [
+      "Pie chart",
+      "Line graph",
+      "Flowchart",
+      "Questionnaire"
+    ],
+    "correct_answer": "Line graph",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 47,
+    "question": "A researcher wants to display the proportions of participants belonging to different categories as parts of a whole. Which presentation may be appropriate?",
+    "options": [
+      "Pie chart",
+      "Scatter plot",
+      "Line graph",
+      "Interview schedule"
+    ],
+    "correct_answer": "Pie chart",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 48,
+    "question": "Which graph is particularly appropriate for comparing frequencies among separate categories?",
+    "options": [
+      "Bar chart",
+      "Line graph",
+      "Scatter plot",
+      "Research proposal"
+    ],
+    "correct_answer": "Bar chart",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 49,
+    "question": "The interpretation of research findings involves:",
+    "options": [
+      "Giving meaning to the analyzed results in relation to the research questions",
+      "Changing the original data",
+      "Removing inconvenient findings",
+      "Replacing the methodology section"
+    ],
+    "correct_answer": "Giving meaning to the analyzed results in relation to the research questions",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 50,
+    "question": "When interpreting research findings, the researcher should primarily:",
+    "options": [
+      "Base conclusions on the evidence obtained from the study",
+      "Ignore findings that contradict expectations",
+      "Select only statistically attractive results",
+      "Introduce data that were not collected"
+    ],
+    "correct_answer": "Base conclusions on the evidence obtained from the study",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 51,
+    "question": "What is the main purpose of the discussion section of a research report?",
+    "options": [
+      "To list participants' names",
+      "To interpret findings and relate them to existing knowledge",
+      "To reproduce the questionnaire",
+      "To describe the sampling frame only"
+    ],
+    "correct_answer": "To interpret findings and relate them to existing knowledge",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 52,
+    "question": "A researcher finds that the study results differ from those reported in previous studies. The most appropriate response is to:",
+    "options": [
+      "Delete the findings",
+      "Discuss possible reasons for the difference",
+      "Change the data to agree with previous studies",
+      "Ignore previous research"
+    ],
+    "correct_answer": "Discuss possible reasons for the difference",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 53,
+    "question": "Which section of a research report normally describes how participants were selected and how data were collected?",
+    "options": [
+      "Methodology",
+      "Discussion",
+      "Conclusion",
+      "Abstract only"
+    ],
+    "correct_answer": "Methodology",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 54,
+    "question": "Which section primarily presents the actual findings of the research without extensive interpretation?",
+    "options": [
+      "Results",
+      "Introduction",
+      "Literature review",
+      "References"
+    ],
+    "correct_answer": "Results",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 55,
+    "question": "Which statement best describes a research proposal?",
+    "options": [
+      "A document describing what the researcher plans to investigate and how the study will be conducted",
+      "A document containing only the final findings",
+      "A list of research participants",
+      "A completed statistical analysis"
+    ],
+    "correct_answer": "A document describing what the researcher plans to investigate and how the study will be conducted",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 56,
+    "question": "What is usually one of the earliest steps in research proposal writing?",
+    "options": [
+      "Identifying and defining the research problem",
+      "Writing the conclusion before collecting data",
+      "Presenting final results",
+      "Publishing the completed study"
+    ],
+    "correct_answer": "Identifying and defining the research problem",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 57,
+    "question": "A well-formulated research problem should primarily:",
+    "options": [
+      "Be relevant, researchable, and clearly stated",
+      "Contain the final answer to the study",
+      "Be unrelated to the research objectives",
+      "Avoid defining the population"
+    ],
+    "correct_answer": "Be relevant, researchable, and clearly stated",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 58,
+    "question": "Which component of a research proposal states what the researcher intends to achieve?",
+    "options": [
+      "Research objectives",
+      "References",
+      "Appendices",
+      "Acknowledgements"
+    ],
+    "correct_answer": "Research objectives",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 59,
+    "question": "Which proposal component identifies the specific questions the study intends to answer?",
+    "options": [
+      "Research questions",
+      "Budget",
+      "Title page",
+      "Reference list"
+    ],
+    "correct_answer": "Research questions",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 60,
+    "question": "What is the major purpose of a literature review in a research proposal?",
+    "options": [
+      "To identify what is already known and establish the context for the proposed study",
+      "To replace data collection",
+      "To guarantee a positive result",
+      "To provide participants' informed consent"
+    ],
+    "correct_answer": "To identify what is already known and establish the context for the proposed study",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 61,
+    "question": "Which characteristic is most desirable in a research proposal?",
+    "options": [
+      "Vagueness",
+      "Feasibility",
+      "Excessive repetition",
+      "Unsupported claims"
+    ],
+    "correct_answer": "Feasibility",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 62,
+    "question": "A research proposal should include a methodology that:",
+    "options": [
+      "Clearly explains how the research questions will be investigated",
+      "Guarantees that the hypothesis will be supported",
+      "Omits sampling procedures",
+      "Avoids identifying data collection methods"
+    ],
+    "correct_answer": "Clearly explains how the research questions will be investigated",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 63,
+    "question": "Which of the following should be considered when developing a research proposal involving human participants?",
+    "options": [
+      "Ethical issues",
+      "Only the expected findings",
+      "Only the researcher's personal preferences",
+      "The exclusion of consent procedures"
+    ],
+    "correct_answer": "Ethical issues",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 64,
+    "question": "Why should research objectives be clearly stated in a proposal?",
+    "options": [
+      "They provide direction for the study and help guide methodology and data collection",
+      "They replace the research problem",
+      "They eliminate the need for literature review",
+      "They guarantee statistically significant findings"
+    ],
+    "correct_answer": "They provide direction for the study and help guide methodology and data collection",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 65,
+    "question": "Which of the following is most important when choosing a research topic?",
+    "options": [
+      "Its relevance and researchability",
+      "Its popularity alone",
+      "Its length",
+      "Its ability to produce a predetermined result"
+    ],
+    "correct_answer": "Its relevance and researchability",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 66,
+    "question": "A researcher develops a proposal but realizes that the planned study requires resources unavailable to the researcher. Which characteristic of the proposal is lacking?",
+    "options": [
+      "Feasibility",
+      "Confidentiality",
+      "Reliability",
+      "Validity"
+    ],
+    "correct_answer": "Feasibility",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 67,
+    "question": "Which proposal component provides information about the anticipated costs of conducting the study?",
+    "options": [
+      "Budget",
+      "Abstract",
+      "Literature review",
+      "Research question"
+    ],
+    "correct_answer": "Budget",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 68,
+    "question": "Which section of a research report usually provides a concise overview of the study?",
+    "options": [
+      "Abstract",
+      "Methodology",
+      "References",
+      "Appendix"
+    ],
+    "correct_answer": "Abstract",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 69,
+    "question": "A good research report should present information in a manner that is:",
+    "options": [
+      "Clear, logical, and systematic",
+      "Deliberately ambiguous",
+      "Highly repetitive",
+      "Based mainly on personal opinion"
+    ],
+    "correct_answer": "Clear, logical, and systematic",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 70,
+    "question": "Which practice improves the credibility of a research report?",
+    "options": [
+      "Accurate reporting of methods and findings",
+      "Omitting limitations",
+      "Changing results to fit expectations",
+      "Reporting only favourable findings"
+    ],
+    "correct_answer": "Accurate reporting of methods and findings",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 71,
+    "question": "Why should limitations of a study be acknowledged in a research report?",
+    "options": [
+      "To identify factors that may affect interpretation or generalization of findings",
+      "To invalidate every finding",
+      "To replace the discussion",
+      "To avoid reporting results"
+    ],
+    "correct_answer": "To identify factors that may affect interpretation or generalization of findings",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 72,
+    "question": "Which statement about conclusions in a research report is most appropriate?",
+    "options": [
+      "Conclusions should be supported by the study findings",
+      "Conclusions should introduce completely new data",
+      "Conclusions should contradict the results",
+      "Conclusions should contain unrelated information"
+    ],
+    "correct_answer": "Conclusions should be supported by the study findings",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 73,
+    "question": "73.Which of the following is an important guideline for effective research report writing?",
+    "options": [
+      "Use clear and precise language",
+      "Avoid logical organization",
+      "Hide methodological weaknesses",
+      "Use unsupported assertions"
+    ],
+    "correct_answer": "Use clear and precise language",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 74,
+    "question": "What is the primary purpose of references in a research report?",
+    "options": [
+      "To acknowledge and identify sources used in the research",
+      "To increase the number of pages",
+      "To replace the results section",
+      "To list participants"
+    ],
+    "correct_answer": "To acknowledge and identify sources used in the research",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 75,
+    "question": "Research dissemination refers to:",
+    "options": [
+      "Communicating research findings to relevant audiences",
+      "Destroying research records",
+      "Collecting participants' information",
+      "Selecting a sample"
+    ],
+    "correct_answer": "Communicating research findings to relevant audiences",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 76,
+    "question": "Which of the following is a recognized channel for disseminating research findings?",
+    "options": [
+      "Scientific conference",
+      "Sampling frame",
+      "Questionnaire coding sheet",
+      "Consent form only"
+    ],
+    "correct_answer": "Scientific conference",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 77,
+    "question": "Publishing findings in a peer-reviewed academic journal is an example of:",
+    "options": [
+      "Research dissemination",
+      "Data collection",
+      "Sampling",
+      "Instrument reliability testing"
+    ],
+    "correct_answer": "Research dissemination",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 78,
+    "question": "Why is dissemination of nursing research findings important?",
+    "options": [
+      "It can facilitate the use of evidence to improve nursing practice",
+      "It guarantees that every study will be accepted",
+      "It eliminates the need for further research",
+      "It prevents other researchers from evaluating the findings"
+    ],
+    "correct_answer": "It can facilitate the use of evidence to improve nursing practice",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 79,
+    "question": "Research utilization refers primarily to:",
+    "options": [
+      "Applying research evidence to inform practice or decision-making",
+      "Collecting data without analyzing it",
+      "Writing a research title",
+      "Selecting participants"
+    ],
+    "correct_answer": "Applying research evidence to inform practice or decision-making",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 80,
+    "question": "A nurse changes a patient-education approach after reviewing strong research evidence showing that another approach is more effective. This is an example of:",
+    "options": [
+      "Research utilization",
+      "Sampling error",
+      "Data coding",
+      "Retrospective sampling"
+    ],
+    "correct_answer": "Research utilization",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 81,
+    "question": "Which factor is particularly important before applying research findings to clinical practice?",
+    "options": [
+      "Relevance and quality of the evidence",
+      "Whether the findings are popular",
+      "Whether the study has a long title",
+      "Whether the researcher is personally known"
+    ],
+    "correct_answer": "Relevance and quality of the evidence",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 82,
+    "question": "Which audience may be an important target for dissemination of nursing research?",
+    "options": [
+      "Healthcare professionals",
+      "Only the original participants",
+      "Only statisticians",
+      "Only research supervisors"
+    ],
+    "correct_answer": "Healthcare professionals",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 83,
+    "question": "What is the main purpose of introducing research critique to nursing students?",
+    "options": [
+      "To enable them to evaluate the quality and usefulness of research evidence",
+      "To prevent them from reading research",
+      "To replace research methodology",
+      "To ensure every published study is accepted as correct"
+    ],
+    "correct_answer": "To enable them to evaluate the quality and usefulness of research evidence",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 84,
+    "question": "Research critique involves:",
+    "options": [
+      "Systematically examining the strengths, weaknesses, and credibility of a research study",
+      "Rejecting every research article",
+      "Rewriting another researcher's entire study",
+      "Collecting new data from every published study"
+    ],
+    "correct_answer": "Systematically examining the strengths, weaknesses, and credibility of a research study",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 85,
+    "question": "A student reviewing a research article asks whether the sample adequately represents the target population. Which aspect of the study is being critically examined?",
+    "options": [
+      "Sampling",
+      "Dissemination",
+      "Budgeting",
+      "Report formatting"
+    ],
+    "correct_answer": "Sampling",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 86,
+    "question": "During research critique, examining whether the chosen research design appropriately addresses the research question is important because:",
+    "options": [
+      "The design affects the credibility of the conclusions",
+      "Design has no relationship to study quality",
+      "It determines the number of references automatically",
+      "It replaces ethical approval"
+    ],
+    "correct_answer": "The design affects the credibility of the conclusions",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 87,
+    "question": "A researcher uses an instrument that does not accurately measure the intended variable. Which quality of the instrument is primarily deficient?",
+    "options": [
+      "Validity",
+      "Reliability",
+      "Feasibility",
+      "Dissemination"
+    ],
+    "correct_answer": "Validity",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 88,
+    "question": "An instrument gives highly inconsistent measurements when used repeatedly under similar conditions. Which property is primarily affected?",
+    "options": [
+      "Validity",
+      "Reliability",
+      "Confidentiality",
+      "Generalizability"
+    ],
+    "correct_answer": "Reliability",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 89,
+    "question": "A researcher wants to determine whether two variables are related but does not intend to manipulate either variable. Which design should be considered first?",
+    "options": [
+      "Correlational",
+      "Experimental",
+      "Randomized trial",
+      "Laboratory experimental"
+    ],
+    "correct_answer": "Correlational",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 90,
+    "question": "A researcher measures the same group of pregnant women at several stages of pregnancy to observe changes over time. Which design best describes this approach?",
+    "options": [
+      "Longitudinal",
+      "Cross-sectional",
+      "Retrospective",
+      "Descriptive snapshot"
+    ],
+    "correct_answer": "Longitudinal",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 91,
+    "question": "A researcher wants to determine the current level of knowledge about infection prevention among student nurses during one academic period. Which design is most appropriate?",
+    "options": [
+      "Cross-sectional",
+      "Retrospective",
+      "Experimental",
+      "Longitudinal cohort"
+    ],
+    "correct_answer": "Cross-sectional",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 92,
+    "question": "Which situation best represents a retrospective research approach?",
+    "options": [
+      "Following newly recruited participants for three years",
+      "Reviewing existing records to investigate events that have already occurred",
+      "Randomly assigning participants to treatment groups",
+      "Interviewing participants before an event occurs"
+    ],
+    "correct_answer": "Reviewing existing records to investigate events that have already occurred",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 93,
+    "question": "A researcher plans to investigate the effectiveness of a new wound-care protocol by assigning eligible nurses to intervention and comparison groups. Which design provides the strongest basis for evaluating the effect of the intervention when appropriately implemented?",
+    "options": [
+      "Experimental design",
+      "Cross-sectional design",
+      "Descriptive design",
+      "Retrospective design"
+    ],
+    "correct_answer": "Experimental design",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 94,
+    "question": "Which action is most appropriate when a researcher discovers missing data during data preparation?",
+    "options": [
+      "Handle the missing data according to a predefined and appropriate analysis procedure",
+      "Automatically replace all missing values with the highest value",
+      "Delete the entire dataset",
+      "Invent responses based on the researcher's expectations"
+    ],
+    "correct_answer": "Handle the missing data according to a predefined and appropriate analysis procedure",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 95,
+    "question": "Which statement best describes a good research proposal?",
+    "options": [
+      "It clearly links the research problem, objectives, methodology, and expected contribution",
+      "It guarantees a particular outcome",
+      "It excludes ethical considerations",
+      "It avoids identifying the study population"
+    ],
+    "correct_answer": "It clearly links the research problem, objectives, methodology, and expected contribution",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 96,
+    "question": "A researcher is preparing to present study findings to hospital administrators who have limited time. Which approach would best support effective dissemination?",
+    "options": [
+      "Presenting the key findings and their practical implications clearly and concisely",
+      "Reading the entire research report word-for-word",
+      "Presenting only raw data without interpretation",
+      "Omitting the major findings"
+    ],
+    "correct_answer": "Presenting the key findings and their practical implications clearly and concisely",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 97,
+    "question": "Which action would represent inappropriate research practice during data analysis?",
+    "options": [
+      "Removing data solely because they contradict the researcher's hypothesis",
+      "Coding data consistently",
+      "Checking data for errors",
+      "Using appropriate methods of analysis"
+    ],
+    "correct_answer": "Removing data solely because they contradict the researcher's hypothesis",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 98,
+    "question": "A researcher compares study findings with those of previous studies and considers differences in populations and methods. This activity is most appropriately part of the:",
+    "options": [
+      "Discussion of findings",
+      "Sampling frame",
+      "Data collection instrument",
+      "Consent procedure"
+    ],
+    "correct_answer": "Discussion of findings",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 99,
+    "question": "Which sequence best represents the general progression of a research study from identifying the problem to communicating findings?",
+    "options": [
+      "Research problem → proposal/methodology → data collection → analysis → interpretation/reporting",
+      "Data analysis → research problem → sampling → proposal → dissemination",
+      "Dissemination → data collection → research problem → analysis → proposal",
+      "Results → sampling → research problem → data collection → proposal"
+    ],
+    "correct_answer": "Research problem → proposal/methodology → data collection → analysis → interpretation/reporting",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 100,
+    "question": "A nurse researcher completes a study and wants the findings to contribute to improved patient care. Which action best demonstrates the full purpose of research?",
+    "options": [
+      "Keeping the findings private after completing the report",
+      "Disseminating credible findings and supporting appropriate use of the evidence in practice",
+      "Changing the findings to match existing practice",
+      "Discarding the data after publication"
+    ],
+    "correct_answer": "Disseminating credible findings and supporting appropriate use of the evidence in practice",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 101,
+    "question": "Which research design is most appropriate when the researcher wants to describe the characteristics of a population without manipulating any variables?",
+    "options": [
+      "Experimental",
+      "Descriptive",
+      "Correlational experimental",
+      "Randomized controlled"
+    ],
+    "correct_answer": "Descriptive",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 102,
+    "question": "A researcher measures the prevalence of anemia among pregnant women attending an antenatal clinic during one month. Which design is most appropriate?",
+    "options": [
+      "Cross-sectional",
+      "Longitudinal",
+      "Prospective",
+      "Experimental"
+    ],
+    "correct_answer": "Cross-sectional",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 103,
+    "question": "Which research design is best suited to determining whether two variables are statistically related?",
+    "options": [
+      "Descriptive",
+      "Experimental",
+      "Correlational",
+      "Historical"
+    ],
+    "correct_answer": "Correlational",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 104,
+    "question": "A researcher follows a group of student nurses from their first year until graduation to examine changes in research knowledge. Which design is being used?",
+    "options": [
+      "Cross-sectional",
+      "Longitudinal",
+      "Retrospective",
+      "Descriptive"
+    ],
+    "correct_answer": "Longitudinal",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 105,
+    "question": "A researcher examines old patient records to identify factors associated with maternal complications that occurred five years earlier. Which design is most appropriate?",
+    "options": [
+      "Prospective",
+      "Experimental",
+      "Retrospective",
+      "Cross-sectional"
+    ],
+    "correct_answer": "Retrospective",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 106,
+    "question": "Which feature distinguishes a prospective study from a retrospective study?",
+    "options": [
+      "Prospective studies generally follow events forward from the study starting point",
+      "Prospective studies use only historical records",
+      "Retrospective studies always involve random assignment",
+      "Retrospective studies cannot involve patient records"
+    ],
+    "correct_answer": "Prospective studies generally follow events forward from the study starting point",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 107,
+    "question": "A researcher wants to determine whether a newly developed teaching intervention improves breastfeeding knowledge. Participants are assigned to intervention and comparison groups. Which design is most appropriate?",
+    "options": [
+      "Correlational",
+      "Experimental",
+      "Descriptive",
+      "Retrospective"
+    ],
+    "correct_answer": "Experimental",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 108,
+    "question": "What is the independent variable in an experimental study?",
+    "options": [
+      "The outcome being measured",
+      "The variable that is manipulated or considered the presumed cause",
+      "The population being studied",
+      "The sampling technique"
+    ],
+    "correct_answer": "The variable that is manipulated or considered the presumed cause",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 109,
+    "question": "In a study investigating whether a health-education programme improves medication adherence, medication adherence is the:",
+    "options": [
+      "Independent variable",
+      "Sampling variable",
+      "Dependent variable",
+      "Control variable"
+    ],
+    "correct_answer": "Dependent variable",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 110,
+    "question": "Why is a control or comparison group useful in an experimental study?",
+    "options": [
+      "It provides a basis for evaluating the effect of the intervention",
+      "It guarantees that participants will respond positively",
+      "It eliminates the need for ethical approval",
+      "It replaces randomization in every study"
+    ],
+    "correct_answer": "It provides a basis for evaluating the effect of the intervention",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 111,
+    "question": "What is randomization primarily intended to accomplish in experimental research?",
+    "options": [
+      "Increase the number of variables",
+      "Help distribute participant characteristics between study groups",
+      "Guarantee a statistically significant result",
+      "Eliminate the need for a research question"
+    ],
+    "correct_answer": "Help distribute participant characteristics between study groups",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 112,
+    "question": "Which design generally provides stronger evidence for a causal relationship than a correlational design?",
+    "options": [
+      "Experimental design",
+      "Descriptive design",
+      "Cross-sectional design",
+      "Retrospective descriptive design"
+    ],
+    "correct_answer": "Experimental design",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 113,
+    "question": "A researcher observes that nurses who work longer hours report greater fatigue. What can a correlational study directly establish?",
+    "options": [
+      "That long working hours definitely cause fatigue",
+      "That an association exists between the variables",
+      "That fatigue causes long working hours",
+      "That an intervention will eliminate fatigue"
+    ],
+    "correct_answer": "That an association exists between the variables",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 114,
+    "question": "Which statement about non-experimental research is correct?",
+    "options": [
+      "The researcher does not deliberately manipulate an independent variable",
+      "It always requires random assignment",
+      "It cannot involve quantitative data",
+      "It cannot examine relationships between variables"
+    ],
+    "correct_answer": "The researcher does not deliberately manipulate an independent variable",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 115,
+    "question": "Which design would be most appropriate for determining the current proportion of nurses who use evidence-based practice?",
+    "options": [
+      "Cross-sectional",
+      "Longitudinal experimental",
+      "Retrospective cohort",
+      "Clinical trial"
+    ],
+    "correct_answer": "Cross-sectional",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 116,
+    "question": "What is the primary purpose of defining the study population?",
+    "options": [
+      "To specify the group to which the research is relevant",
+      "To determine the statistical test automatically",
+      "To guarantee a high response rate",
+      "To eliminate sampling error"
+    ],
+    "correct_answer": "To specify the group to which the research is relevant",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 117,
+    "question": "A researcher intends to study all registered nurses working in government hospitals in a state. This group represents the:",
+    "options": [
+      "Sample",
+      "Target population",
+      "Control group",
+      "Sampling error"
+    ],
+    "correct_answer": "Target population",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 118,
+    "question": "A researcher selects 150 nurses from a population of 2,000 nurses for a study. The 150 nurses constitute the:",
+    "options": [
+      "Target population",
+      "Sampling frame",
+      "Sample",
+      "Study variable"
+    ],
+    "correct_answer": "Sample",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 119,
+    "question": "Which factor should be considered when determining an appropriate sample size?",
+    "options": [
+      "Study objectives and design",
+      "Researcher's preferred answer",
+      "Number of pages in the proposal",
+      "Length of the questionnaire only"
+    ],
+    "correct_answer": "Study objectives and design",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 120,
+    "question": "What is sampling error?",
+    "options": [
+      "The difference between a sample estimate and the corresponding population value arising from studying a sample",
+      "Any mistake made while writing a proposal",
+      "An error caused only by poor handwriting",
+      "A deliberate alteration of results"
+    ],
+    "correct_answer": "The difference between a sample estimate and the corresponding population value arising from studying a sample",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 121,
+    "question": "Which probability sampling method involves dividing the population into subgroups and sampling from each subgroup?",
+    "options": [
+      "Convenience sampling",
+      "Snowball sampling",
+      "Stratified sampling",
+      "Purposive sampling"
+    ],
+    "correct_answer": "Stratified sampling",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 122,
+    "question": "A researcher wants nurses from different departments to be represented in the sample according to their population proportions. Which technique is particularly suitable?",
+    "options": [
+      "Stratified sampling",
+      "Snowball sampling",
+      "Convenience sampling",
+      "Purposive sampling"
+    ],
+    "correct_answer": "Stratified sampling",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 123,
+    "question": "Which sampling technique is most vulnerable to selection bias because participants are chosen based on ease of access?",
+    "options": [
+      "Simple random sampling",
+      "Convenience sampling",
+      "Stratified sampling",
+      "Systematic sampling"
+    ],
+    "correct_answer": "Convenience sampling",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 124,
+    "question": "A researcher selects participants because they meet specific characteristics considered important to the study. This is:",
+    "options": [
+      "Purposive sampling",
+      "Simple random sampling",
+      "Systematic sampling",
+      "Cluster sampling"
+    ],
+    "correct_answer": "Purposive sampling",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 125,
+    "question": "Which sampling method may be particularly useful for studying populations that are difficult to identify through conventional sampling frames?",
+    "options": [
+      "Snowball sampling",
+      "Simple random sampling",
+      "Systematic sampling",
+      "Stratified random sampling"
+    ],
+    "correct_answer": "Snowball sampling",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 126,
+    "question": "A researcher randomly selects three hospitals and then studies nurses within those hospitals. Which sampling technique is illustrated?",
+    "options": [
+      "Cluster sampling",
+      "Purposive sampling",
+      "Convenience sampling",
+      "Systematic sampling"
+    ],
+    "correct_answer": "Cluster sampling",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 127,
+    "question": "Which sampling technique involves selecting participants at a fixed interval from an ordered list?",
+    "options": [
+      "Cluster sampling",
+      "Systematic sampling",
+      "Purposive sampling",
+      "Snowball sampling"
+    ],
+    "correct_answer": "Systematic sampling",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 128,
+    "question": "Which is an important advantage of probability sampling?",
+    "options": [
+      "It gives known chances of selection and can improve representativeness",
+      "It eliminates the need for a population definition",
+      "It guarantees complete participation",
+      "It requires no sampling procedure"
+    ],
+    "correct_answer": "It gives known chances of selection and can improve representativeness",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 129,
+    "question": "Which ethical principle emphasizes the right of participants to make voluntary decisions about research participation?",
+    "options": [
+      "Autonomy",
+      "Reliability",
+      "Validity",
+      "Sampling"
+    ],
+    "correct_answer": "Autonomy",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 130,
+    "question": "Which information should normally be provided before a participant gives informed consent?",
+    "options": [
+      "Relevant procedures, potential risks, benefits, and voluntary nature of participation",
+      "Only the researcher's name",
+      "The expected final statistical results",
+      "The identities of all other participants"
+    ],
+    "correct_answer": "Relevant procedures, potential risks, benefits, and voluntary nature of participation",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 131,
+    "question": "A participant asks whether refusing to join a study will affect the healthcare they receive. The researcher should explain that:",
+    "options": [
+      "Participation is voluntary and refusal should not result in inappropriate penalties",
+      "Participation is compulsory",
+      "Refusal automatically results in loss of care",
+      "Participants cannot withdraw once approached"
+    ],
+    "correct_answer": "Participation is voluntary and refusal should not result in inappropriate penalties",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 132,
+    "question": "Which practice best protects confidentiality?",
+    "options": [
+      "Restricting access to identifiable research information",
+      "Posting participant names with their responses",
+      "Sharing raw data publicly without safeguards",
+      "Allowing anyone to access participant records"
+    ],
+    "correct_answer": "Restricting access to identifiable research information",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 133,
+    "question": "Which ethical principle requires researchers to maximize potential benefits while minimizing avoidable harm?",
+    "options": [
+      "Beneficence",
+      "Sampling",
+      "Reliability",
+      "Generalizability"
+    ],
+    "correct_answer": "Beneficence",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 134,
+    "question": "Which situation represents a breach of research confidentiality?",
+    "options": [
+      "Discussing a participant's identifiable research responses with unauthorized persons",
+      "Storing coded data securely",
+      "Limiting access to the research team",
+      "Removing identifying information from reports"
+    ],
+    "correct_answer": "Discussing a participant's identifiable research responses with unauthorized persons",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 135,
+    "question": "What should a researcher do if a participant becomes distressed because of study procedures?",
+    "options": [
+      "Follow the approved safety procedure and take appropriate steps to protect the participant",
+      "Continue the procedure regardless of the distress",
+      "Hide the event from the research team",
+      "Force the participant to complete the study"
+    ],
+    "correct_answer": "Follow the approved safety procedure and take appropriate steps to protect the participant",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 136,
+    "question": "Which instrument is most appropriate when a researcher wants participants to provide standardized responses to the same set of questions?",
+    "options": [
+      "Questionnaire",
+      "Observation",
+      "Informal conversation",
+      "Case note"
+    ],
+    "correct_answer": "Questionnaire",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 137,
+    "question": "Which characteristic is essential for an effective questionnaire?",
+    "options": [
+      "Questions should be clear and directly related to the study objectives",
+      "Questions should contain several unrelated issues",
+      "Questions should encourage socially desirable answers",
+      "Questions should use complex terminology whenever possible"
+    ],
+    "correct_answer": "Questions should be clear and directly related to the study objectives",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 138,
+    "question": "Which question is double-barrelled?",
+    "options": [
+      "\"How satisfied are you with the cleanliness and staff attitude of this clinic?\"",
+      "\"How often do you attend the clinic?\"",
+      "\"What is your age?\"",
+      "\"Have you received health education?\""
+    ],
+    "correct_answer": "\"How satisfied are you with the cleanliness and staff attitude of this clinic?\"",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 139,
+    "question": "Why is a double-barrelled question problematic?",
+    "options": [
+      "It asks about more than one issue, making the response difficult to interpret",
+      "It always produces numerical data",
+      "It cannot be included in a questionnaire",
+      "It guarantees low response rates"
+    ],
+    "correct_answer": "It asks about more than one issue, making the response difficult to interpret",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 140,
+    "question": "Which question is most clearly open-ended?",
+    "options": [
+      "\"What challenges do you experience when providing health education?\"",
+      "\"Are you married?\"",
+      "\"Do you work night shifts?\"",
+      "\"Have you attended training?\""
+    ],
+    "correct_answer": "\"What challenges do you experience when providing health education?\"",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 141,
+    "question": "Which is a major disadvantage of open-ended questionnaire questions?",
+    "options": [
+      "Responses may require more time and effort to categorize and analyze",
+      "They cannot provide useful information",
+      "They always produce biased responses",
+      "They prevent participants from expressing opinions"
+    ],
+    "correct_answer": "Responses may require more time and effort to categorize and analyze",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 142,
+    "question": "Which type of interview provides the researcher with a predetermined set of questions while allowing some flexibility for follow-up?",
+    "options": [
+      "Semi-structured interview",
+      "Completely unstructured interview",
+      "Closed observation",
+      "Self-administered questionnaire"
+    ],
+    "correct_answer": "Semi-structured interview",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 143,
+    "question": "Which behaviour by an interviewer is most likely to introduce bias?",
+    "options": [
+      "Suggesting the answer the participant should give",
+      "Asking questions consistently",
+      "Maintaining a neutral tone",
+      "Clarifying questions when necessary"
+    ],
+    "correct_answer": "Suggesting the answer the participant should give",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 144,
+    "question": "During an interview, a participant gives an unclear answer. What is the best response?",
+    "options": [
+      "Use a neutral follow-up question to clarify the response",
+      "Assume what the participant meant",
+      "Record an answer the researcher prefers",
+      "End the interview immediately"
+    ],
+    "correct_answer": "Use a neutral follow-up question to clarify the response",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 145,
+    "question": "What is a major strength of observation as a data collection method?",
+    "options": [
+      "It allows researchers to record behaviours as they occur",
+      "It guarantees participants cannot change their behaviour",
+      "It eliminates observer bias completely",
+      "It does not require defined criteria"
+    ],
+    "correct_answer": "It allows researchers to record behaviours as they occur",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 146,
+    "question": "A researcher wants to assess whether nurses correctly perform each step of urinary catheter care. Which instrument is particularly suitable?",
+    "options": [
+      "Checklist",
+      "Open-ended questionnaire",
+      "Unstructured interview",
+      "Literature review"
+    ],
+    "correct_answer": "Checklist",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 147,
+    "question": "Which factor can improve consistency among observers using an observation checklist?",
+    "options": [
+      "Standardized training and clearly defined criteria",
+      "Allowing each observer to use personal definitions",
+      "Changing the checklist during every observation",
+      "Avoiding observer training"
+    ],
+    "correct_answer": "Standardized training and clearly defined criteria",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 148,
+    "question": "What does validity primarily assess in relation to a research instrument?",
+    "options": [
+      "Whether it measures the intended concept accurately",
+      "Whether it is inexpensive",
+      "Whether it is long",
+      "Whether it is easy to print"
+    ],
+    "correct_answer": "Whether it measures the intended concept accurately",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 149,
+    "question": "What does reliability primarily refer to?",
+    "options": [
+      "Consistency of measurement",
+      "Importance of the research topic",
+      "Number of study participants",
+      "Ethical approval"
+    ],
+    "correct_answer": "Consistency of measurement",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 150,
+    "question": "A researcher administers the same instrument to the same group on two occasions and compares the results. Which form of reliability is being assessed?",
+    "options": [
+      "Test-retest reliability",
+      "Content validity",
+      "Face validity",
+      "Sampling validity"
+    ],
+    "correct_answer": "Test-retest reliability",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 151,
+    "question": "Which situation provides evidence of inter-rater reliability?",
+    "options": [
+      "Two observers independently record similar ratings for the same behaviours",
+      "One researcher administers a questionnaire twice",
+      "Experts review questionnaire content",
+      "Participants review their consent forms"
+    ],
+    "correct_answer": "Two observers independently record similar ratings for the same behaviours",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 152,
+    "question": "A researcher asks experts to evaluate whether all important aspects of patient satisfaction are represented in a questionnaire. This is primarily an assessment of:",
+    "options": [
+      "Content validity",
+      "Test-retest reliability",
+      "Sampling error",
+      "Response rate"
+    ],
+    "correct_answer": "Content validity",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 153,
+    "question": "Why should an instrument be pretested before the main study?",
+    "options": [
+      "To identify unclear items and practical problems in administration",
+      "To guarantee the hypothesis is supported",
+      "To eliminate the need for analysis",
+      "To determine the final research findings"
+    ],
+    "correct_answer": "To identify unclear items and practical problems in administration",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 154,
+    "question": "Which statement best describes a pilot study?",
+    "options": [
+      "A small preliminary study used to test aspects of the planned research",
+      "The final analysis of the completed research",
+      "A method for disseminating research findings",
+      "A replacement for informed consent"
+    ],
+    "correct_answer": "A small preliminary study used to test aspects of the planned research",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 155,
+    "question": "What is the primary purpose of coding quantitative data?",
+    "options": [
+      "To convert responses into a form suitable for systematic analysis",
+      "To alter participants' answers",
+      "To remove inconvenient findings",
+      "To replace data collection"
+    ],
+    "correct_answer": "To convert responses into a form suitable for systematic analysis",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 156,
+    "question": "A researcher discovers that some questionnaire responses contain impossible values, such as an age of 250 years. What should the researcher first do?",
+    "options": [
+      "Check the original data and correct or appropriately handle the error",
+      "Automatically replace every such value with the mean",
+      "Delete the entire dataset",
+      "Treat the value as accurate"
+    ],
+    "correct_answer": "Check the original data and correct or appropriately handle the error",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 157,
+    "question": "What is the purpose of a frequency table?",
+    "options": [
+      "To show how often different values or categories occur",
+      "To explain ethical principles",
+      "To describe the research proposal",
+      "To establish causation"
+    ],
+    "correct_answer": "To show how often different values or categories occur",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 158,
+    "question": "A researcher presents the number of patients in each age group using vertical bars. Which presentation is being used?",
+    "options": [
+      "Bar chart",
+      "Scatter plot",
+      "Line graph",
+      "Pie chart"
+    ],
+    "correct_answer": "Bar chart",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 159,
+    "question": "Which graph is most appropriate for showing the monthly trend in hospital admissions over one year?",
+    "options": [
+      "Line graph",
+      "Pie chart",
+      "Bar chart only",
+      "Flowchart"
+    ],
+    "correct_answer": "Line graph",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 160,
+    "question": "Which graphical presentation is useful for showing the relationship between two quantitative variables?",
+    "options": [
+      "Scatter plot",
+      "Pie chart",
+      "Bar chart",
+      "Frequency polygon only"
+    ],
+    "correct_answer": "Scatter plot",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 161,
+    "question": "A pie chart shows that 60% of respondents prefer one method of health education. What does the 60% represent?",
+    "options": [
+      "The proportion of respondents in that category",
+      "The mean of the entire population",
+      "The sampling error",
+      "The research hypothesis"
+    ],
+    "correct_answer": "The proportion of respondents in that category",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 162,
+    "question": "What is the major purpose of tables in research reports?",
+    "options": [
+      "To organize and summarize data clearly",
+      "To replace the methodology",
+      "To conceal unexpected results",
+      "To provide participant consent"
+    ],
+    "correct_answer": "To organize and summarize data clearly",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 163,
+    "question": "Which practice would make a research results table difficult to understand?",
+    "options": [
+      "Providing unclear headings and unexplained abbreviations",
+      "Giving a descriptive title",
+      "Clearly labeling rows and columns",
+      "Reporting appropriate units"
+    ],
+    "correct_answer": "Providing unclear headings and unexplained abbreviations",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 164,
+    "question": "What should a researcher do with findings that contradict the original hypothesis?",
+    "options": [
+      "Report and interpret them honestly",
+      "Remove them from the dataset",
+      "Change them to support the hypothesis",
+      "Exclude the participants who produced them"
+    ],
+    "correct_answer": "Report and interpret them honestly",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 165,
+    "question": "Which section of a research report should primarily present the findings obtained from data analysis?",
+    "options": [
+      "Results",
+      "Introduction",
+      "Literature review",
+      "References"
+    ],
+    "correct_answer": "Results",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 166,
+    "question": "What is the primary purpose of the discussion section?",
+    "options": [
+      "To explain and interpret the significance of the findings",
+      "To introduce unrelated research questions",
+      "To reproduce every raw response",
+      "To list participant names"
+    ],
+    "correct_answer": "To explain and interpret the significance of the findings",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 167,
+    "question": "When discussing findings, comparison with previous studies helps the researcher to:",
+    "options": [
+      "Explain similarities, differences, and possible reasons for the findings",
+      "Guarantee that results are identical",
+      "Avoid interpreting the current study",
+      "Eliminate the need to acknowledge limitations"
+    ],
+    "correct_answer": "Explain similarities, differences, and possible reasons for the findings",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 168,
+    "question": "A study finds a result that differs substantially from previous research. Which approach is most appropriate?",
+    "options": [
+      "Consider differences in methodology, population, context, or other possible explanations",
+      "Assume the current study must be wrong",
+      "Change the current data to match previous findings",
+      "Ignore the previous studies"
+    ],
+    "correct_answer": "Consider differences in methodology, population, context, or other possible explanations",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 169,
+    "question": "What is a research proposal primarily intended to communicate?",
+    "options": [
+      "What will be studied and how the proposed study will be conducted",
+      "Only the final results",
+      "Only the researcher's biography",
+      "Only the reference list"
+    ],
+    "correct_answer": "What will be studied and how the proposed study will be conducted",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 170,
+    "question": "Which should generally be established before selecting the detailed research methodology?",
+    "options": [
+      "The research problem and objectives",
+      "The final results",
+      "The discussion of findings",
+      "The dissemination strategy only"
+    ],
+    "correct_answer": "The research problem and objectives",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 171,
+    "question": "Which characteristic makes a research problem suitable for investigation?",
+    "options": [
+      "It is clearly defined and can be investigated using appropriate methods",
+      "It is impossible to measure",
+      "It has no relevance to nursing",
+      "It has already been completely answered"
+    ],
+    "correct_answer": "It is clearly defined and can be investigated using appropriate methods",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 172,
+    "question": "Which proposal component explains the reason the study should be conducted?",
+    "options": [
+      "Background and justification",
+      "Data table",
+      "Results",
+      "Reference numbering only"
+    ],
+    "correct_answer": "Background and justification",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 173,
+    "question": "What is the purpose of a conceptual or theoretical framework when one is appropriate to a study?",
+    "options": [
+      "To provide an organized basis for understanding relationships among relevant concepts",
+      "To replace data collection",
+      "To guarantee the results",
+      "To list participants"
+    ],
+    "correct_answer": "To provide an organized basis for understanding relationships among relevant concepts",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 174,
+    "question": "Which proposal component describes the specific group from which participants will be selected?",
+    "options": [
+      "Study population",
+      "Research title",
+      "Discussion",
+      "Dissemination plan"
+    ],
+    "correct_answer": "Study population",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 175,
+    "question": "Which statement about research objectives is most appropriate?",
+    "options": [
+      "Objectives should be clear, specific, and achievable",
+      "Objectives should be deliberately vague",
+      "Objectives should contain the expected results",
+      "Objectives should contradict the research problem"
+    ],
+    "correct_answer": "Objectives should be clear, specific, and achievable",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 176,
+    "question": "Which objective is most specific?",
+    "options": [
+      "To study hypertension",
+      "To investigate health",
+      "To determine the prevalence of hypertension among adults attending a specified clinic",
+      "To know about patients"
+    ],
+    "correct_answer": "To determine the prevalence of hypertension among adults attending a specified clinic",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 177,
+    "question": "Which component of a proposal explains how collected data will be analyzed?",
+    "options": [
+      "Data analysis plan",
+      "Title page",
+      "Background only",
+      "Acknowledgements"
+    ],
+    "correct_answer": "Data analysis plan",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 178,
+    "question": "Why should the proposed data analysis method correspond to the research objectives?",
+    "options": [
+      "The analysis must be capable of answering the questions posed by the study",
+      "It guarantees that results will be significant",
+      "It eliminates sampling error",
+      "It makes ethical approval unnecessary"
+    ],
+    "correct_answer": "The analysis must be capable of answering the questions posed by the study",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 179,
+    "question": "Which characteristic is essential for a strong research proposal?",
+    "options": [
+      "Logical coherence among its major components",
+      "Excessive length regardless of content",
+      "Unsupported conclusions",
+      "Absence of methodological details"
+    ],
+    "correct_answer": "Logical coherence among its major components",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 180,
+    "question": "A research proposal contains objectives that cannot be completed within the available time, personnel, or funds. Which quality is most clearly lacking?",
+    "options": [
+      "Feasibility",
+      "Reliability",
+      "Confidentiality",
+      "Validity"
+    ],
+    "correct_answer": "Feasibility",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 181,
+    "question": "Which section of a research report generally describes the procedures actually used to conduct the study?",
+    "options": [
+      "Methodology",
+      "Discussion",
+      "Conclusion",
+      "Abstract"
+    ],
+    "correct_answer": "Methodology",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 182,
+    "question": "Which section of a research report summarizes the major implications of the findings?",
+    "options": [
+      "Conclusion",
+      "Sampling frame",
+      "Data collection instrument",
+      "Literature search strategy"
+    ],
+    "correct_answer": "Conclusion",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 183,
+    "question": "Which is a good guideline for research report writing?",
+    "options": [
+      "Present information in a logical sequence using clear and precise language",
+      "Use unexplained abbreviations throughout",
+      "Present findings selectively",
+      "Avoid describing limitations"
+    ],
+    "correct_answer": "Present information in a logical sequence using clear and precise language",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 184,
+    "question": "Why should the methodology section be described clearly enough for readers to understand?",
+    "options": [
+      "It allows readers to assess how the study was conducted",
+      "It guarantees the findings are correct",
+      "It eliminates the need for references",
+      "It prevents replication"
+    ],
+    "correct_answer": "It allows readers to assess how the study was conducted",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 185,
+    "question": "Which practice threatens the integrity of a research report?",
+    "options": [
+      "Fabricating or altering research findings",
+      "Reporting unexpected findings",
+      "Describing study limitations",
+      "Acknowledging sources"
+    ],
+    "correct_answer": "Fabricating or altering research findings",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 186,
+    "question": "What is plagiarism in research writing?",
+    "options": [
+      "Presenting another person's ideas or words as one's own without appropriate acknowledgement",
+      "Reporting results that contradict the hypothesis",
+      "Using tables to present results",
+      "Conducting a literature review"
+    ],
+    "correct_answer": "Presenting another person's ideas or words as one's own without appropriate acknowledgement",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 187,
+    "question": "What is the main purpose of research dissemination?",
+    "options": [
+      "To communicate findings to people who may use, evaluate, or build on them",
+      "To keep findings restricted to the researcher",
+      "To replace data analysis",
+      "To prevent further research"
+    ],
+    "correct_answer": "To communicate findings to people who may use, evaluate, or build on them",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 188,
+    "question": "Which dissemination channel is particularly appropriate for reaching healthcare professionals interested in a specialized research topic?",
+    "options": [
+      "Professional or scientific journal",
+      "Participant consent form",
+      "Sampling frame",
+      "Raw questionnaire"
+    ],
+    "correct_answer": "Professional or scientific journal",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 189,
+    "question": "Which method may allow researchers to communicate findings directly to practitioners within a healthcare institution?",
+    "options": [
+      "In-service presentation",
+      "Sampling register",
+      "Data coding sheet",
+      "Consent document"
+    ],
+    "correct_answer": "In-service presentation",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 190,
+    "question": "Which factor should influence the choice of dissemination channel?",
+    "options": [
+      "The intended audience and purpose of communication",
+      "The researcher's favourite format only",
+      "The number of questionnaire items",
+      "The sample's age alone"
+    ],
+    "correct_answer": "The intended audience and purpose of communication",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 191,
+    "question": "Which statement best describes research utilization?",
+    "options": [
+      "The application of credible research evidence to inform practice or decision-making",
+      "The process of collecting research data",
+      "The process of recruiting participants",
+      "The preparation of a sampling frame"
+    ],
+    "correct_answer": "The application of credible research evidence to inform practice or decision-making",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 192,
+    "question": "A nurse reviews evidence showing that a particular intervention reduces falls and incorporates the evidence into a falls-prevention protocol. This demonstrates:",
+    "options": [
+      "Research utilization",
+      "Sampling",
+      "Data coding",
+      "Retrospective design"
+    ],
+    "correct_answer": "Research utilization",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 193,
+    "question": "Which consideration is important before implementing research findings in a clinical setting?",
+    "options": [
+      "Whether the evidence is applicable to the clinical population and context",
+      "Whether the findings are personally convenient",
+      "Whether the study has the longest title",
+      "Whether the findings agree with every previous study"
+    ],
+    "correct_answer": "Whether the evidence is applicable to the clinical population and context",
+    "subject": "Research Methodology",
+    "difficulty": "Moderate",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 194,
+    "question": "What is the main purpose of research critique?",
+    "options": [
+      "To evaluate the quality, credibility, strengths, weaknesses, and usefulness of a study",
+      "To reject every published study",
+      "To rewrite the researcher's work",
+      "To prevent evidence from influencing practice"
+    ],
+    "correct_answer": "To evaluate the quality, credibility, strengths, weaknesses, and usefulness of a study",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 195,
+    "question": "When critiquing a research article, which question is most important regarding its research design?",
+    "options": [
+      "Does the design appropriately address the research question?",
+      "Is the article unusually long?",
+      "Does the title contain technical words?",
+      "Is the reference list the longest possible?"
+    ],
+    "correct_answer": "Does the design appropriately address the research question?",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 196,
+    "question": "During a critique, a student finds that the research instrument has poor evidence of validity and reliability. What concern should be raised?",
+    "options": [
+      "The accuracy and consistency of the measurements may be questionable",
+      "The study automatically has a large sample",
+      "The research design must be experimental",
+      "The findings must be statistically significant"
+    ],
+    "correct_answer": "The accuracy and consistency of the measurements may be questionable",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 197,
+    "question": "A study reports that its findings apply to all nurses nationwide, although participants were recruited from one small hospital using convenience sampling. What should the reviewer question?",
+    "options": [
+      "The generalizability of the findings",
+      "The spelling of the title only",
+      "The length of the questionnaire only",
+      "The number of tables"
+    ],
+    "correct_answer": "The generalizability of the findings",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 198,
+    "question": "Which finding during a research critique would most strongly raise concern about ethical conduct?",
+    "options": [
+      "Participants were enrolled without adequate informed consent",
+      "The study used a table to present results",
+      "The authors reported limitations",
+      "The study included a literature review"
+    ],
+    "correct_answer": "Participants were enrolled without adequate informed consent",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 199,
+    "question": "A researcher wants the conclusions of a study to be trustworthy. Which combination is most important?",
+    "options": [
+      "Appropriate design, sound data collection, suitable analysis, and evidence-based interpretation",
+      "Large font, lengthy introduction, and many references",
+      "Complex terminology and numerous tables",
+      "A predetermined conclusion and selective reporting"
+    ],
+    "correct_answer": "Appropriate design, sound data collection, suitable analysis, and evidence-based interpretation",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 200,
+    "question": "Which sequence best reflects the overall research process covered in Research Methodology II?",
+    "options": [
+      "Identify problem → develop proposal → select design and sample → collect data → analyze and interpret → report → disseminate and utilize findings",
+      "Collect data → disseminate findings → identify problem → select sample → write proposal",
+      "Analyze data → select topic → obtain consent → write proposal → disseminate findings",
+      "Write conclusion → select sample → identify problem → collect data → develop research question"
+    ],
+    "correct_answer": "Identify problem → develop proposal → select design and sample → collect data → analyze and interpret → report → disseminate and utilize findings",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 201,
+    "question": "The primary purpose of research methodology is to:",
+    "options": [
+      "Provide a systematic approach for conducting research",
+      "Guarantee that every research hypothesis will be supported",
+      "Eliminate the need for data analysis",
+      "Replace the researcher's judgment entirely"
+    ],
+    "correct_answer": "Provide a systematic approach for conducting research",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 202,
+    "question": "Which statement best distinguishes quantitative research from qualitative research?",
+    "options": [
+      "Quantitative research never involves human participants",
+      "Quantitative research primarily uses numerical data, whereas qualitative research explores meanings and experiences",
+      "Qualitative research always requires a larger sample than quantitative research",
+      "Quantitative research cannot investigate health-related problems"
+    ],
+    "correct_answer": "Quantitative research primarily uses numerical data, whereas qualitative research explores meanings and experiences",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 203,
+    "question": "A researcher wants to determine whether a structured educational intervention improves nurses' knowledge of infection prevention. Which design would be most appropriate?",
+    "options": [
+      "Experimental design",
+      "Descriptive design",
+      "Historical design",
+      "Correlational design"
+    ],
+    "correct_answer": "Experimental design",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 204,
+    "question": "A researcher observes a group of nursing students without introducing any intervention and describes their study habits. This is most consistent with:",
+    "options": [
+      "Experimental research",
+      "Non-experimental research",
+      "Randomized controlled research",
+      "Laboratory research"
+    ],
+    "correct_answer": "Non-experimental research",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 205,
+    "question": "A researcher surveys 500 nursing students once to determine their current level of knowledge about hand hygiene. This is an example of:",
+    "options": [
+      "Longitudinal design",
+      "Retrospective design",
+      "Cross-sectional design",
+      "Experimental design"
+    ],
+    "correct_answer": "Cross-sectional design",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 206,
+    "question": "A researcher follows the same group of nursing students from Year 1 to Year 4 to observe changes in their research skills. This is a:",
+    "options": [
+      "Longitudinal study",
+      "Cross-sectional study",
+      "Retrospective study",
+      "Descriptive case study"
+    ],
+    "correct_answer": "Longitudinal study",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 207,
+    "question": "A researcher wants to determine whether academic performance is related to students' study hours without manipulating either variable. Which design is most suitable?",
+    "options": [
+      "Experimental",
+      "Correlational",
+      "Ethnographic",
+      "Case-control"
+    ],
+    "correct_answer": "Correlational",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 208,
+    "question": "Which statement about correlation is correct?",
+    "options": [
+      "Correlation automatically proves that one variable causes another",
+      "Correlation examines the relationship between variables",
+      "Correlation can only be used with qualitative data",
+      "Correlation requires the researcher to manipulate the independent variable"
+    ],
+    "correct_answer": "Correlation examines the relationship between variables",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 209,
+    "question": "A researcher uses existing hospital records from the previous five years to investigate factors associated with medication errors. This is best described as:",
+    "options": [
+      "Prospective research",
+      "Experimental research",
+      "Retrospective research",
+      "Cross-sectional experimental research"
+    ],
+    "correct_answer": "Retrospective research",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 210,
+    "question": "A researcher recruits participants today and follows them for three years to determine which participants develop hypertension. This is a:",
+    "options": [
+      "Retrospective study",
+      "Prospective study",
+      "Cross-sectional study",
+      "Historical study"
+    ],
+    "correct_answer": "Prospective study",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 211,
+    "question": "The major characteristic of an experimental research design is that the researcher:",
+    "options": [
+      "Manipulates an intervention or independent variable",
+      "Only describes existing characteristics",
+      "Uses previously collected records exclusively",
+      "Avoids comparison between groups"
+    ],
+    "correct_answer": "Manipulates an intervention or independent variable",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 212,
+    "question": "A researcher wants to describe the prevalence of stress among student nurses without investigating its causes. Which design is most appropriate?",
+    "options": [
+      "Experimental",
+      "Descriptive",
+      "Correlational",
+      "Prospective cohort"
+    ],
+    "correct_answer": "Descriptive",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 213,
+    "question": "Which design is particularly appropriate when the researcher wants to examine a phenomenon at a single point in time?",
+    "options": [
+      "Longitudinal",
+      "Prospective",
+      "Cross-sectional",
+      "Experimental"
+    ],
+    "correct_answer": "Cross-sectional",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 214,
+    "question": "A major limitation of a cross-sectional study is that it:",
+    "options": [
+      "Cannot collect numerical data",
+      "Usually cannot establish a temporal sequence between cause and effect",
+      "Cannot study more than one variable",
+      "Always requires years to complete"
+    ],
+    "correct_answer": "Usually cannot establish a temporal sequence between cause and effect",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 215,
+    "question": "In research, the population refers to:",
+    "options": [
+      "The entire group of individuals or elements to which the researcher is interested in applying the findings",
+      "Only participants who complete the questionnaire",
+      "The number of variables in the study",
+      "The researchers conducting the study"
+    ],
+    "correct_answer": "The entire group of individuals or elements to which the researcher is interested in applying the findings",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 216,
+    "question": "A researcher wants to study all registered nurses working in a particular state. The group of all such nurses constitutes the:",
+    "options": [
+      "Sample",
+      "Population",
+      "Sampling error",
+      "Sampling frame only"
+    ],
+    "correct_answer": "Population",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 217,
+    "question": "A researcher selects 150 nurses from a population of 2,000 nurses to participate in a study. The 150 nurses constitute the:",
+    "options": [
+      "Population",
+      "Sampling frame",
+      "Sample",
+      "Research setting"
+    ],
+    "correct_answer": "Sample",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 218,
+    "question": "The primary reason for selecting a sample rather than studying an entire population is often to:",
+    "options": [
+      "Make research more feasible in terms of time, cost, and resources",
+      "Guarantee that the findings will be error-free",
+      "Eliminate the need for ethical approval",
+      "Avoid defining the study population"
+    ],
+    "correct_answer": "Make research more feasible in terms of time, cost, and resources",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 219,
+    "question": "A researcher writes the names of all eligible nursing students on slips of paper and randomly selects 50 names. This is:",
+    "options": [
+      "Convenience sampling",
+      "Purposive sampling",
+      "Simple random sampling",
+      "Snowball sampling"
+    ],
+    "correct_answer": "Simple random sampling",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 220,
+    "question": "In simple random sampling, each eligible member of the population should have:",
+    "options": [
+      "An equal or known chance of selection",
+      "A guaranteed chance of selection",
+      "A chance of selection based solely on convenience",
+      "A chance of selection determined by the researcher's preference"
+    ],
+    "correct_answer": "An equal or known chance of selection",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 221,
+    "question": "A researcher divides nursing students into groups according to year of study and randomly selects participants from each group. This is:",
+    "options": [
+      "Systematic sampling",
+      "Stratified sampling",
+      "Convenience sampling",
+      "Snowball sampling"
+    ],
+    "correct_answer": "Stratified sampling",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 222,
+    "question": "A researcher selects every 10th name from an ordered list after choosing a random starting point. This is:",
+    "options": [
+      "Systematic sampling",
+      "Purposive sampling",
+      "Simple random sampling",
+      "Cluster sampling"
+    ],
+    "correct_answer": "Systematic sampling",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 223,
+    "question": "A researcher recruits participants who are easiest to reach at a particular hospital. This is:",
+    "options": [
+      "Stratified sampling",
+      "Convenience sampling",
+      "Simple random sampling",
+      "Systematic sampling"
+    ],
+    "correct_answer": "Convenience sampling",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 224,
+    "question": "Purposive sampling is particularly useful when the researcher:",
+    "options": [
+      "Wants participants with specific characteristics relevant to the study",
+      "Wants every population member to have an equal chance of selection",
+      "Must select every fifth participant",
+      "Wants to eliminate researcher judgment completely"
+    ],
+    "correct_answer": "Wants participants with specific characteristics relevant to the study",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 225,
+    "question": "The principle of informed consent requires that research participants:",
+    "options": [
+      "Participate after receiving adequate information about the study and agreeing voluntarily",
+      "Participate because the researcher believes the study is beneficial",
+      "Sign a form without being told what the study involves",
+      "Be informed only after data collection"
+    ],
+    "correct_answer": "Participate after receiving adequate information about the study and agreeing voluntarily",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 226,
+    "question": "A participant decides to leave a research study after initially consenting. The researcher should:",
+    "options": [
+      "Force the participant to remain because consent was already given",
+      "Respect the participant's decision to withdraw",
+      "Delete all other participants from the study",
+      "Report the participant for non-compliance"
+    ],
+    "correct_answer": "Respect the participant's decision to withdraw",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 227,
+    "question": "Confidentiality in research primarily means:",
+    "options": [
+      "Preventing unauthorized disclosure of participants' information",
+      "Preventing participants from knowing the purpose of the research",
+      "Keeping the research findings secret from everyone",
+      "Allowing only the researcher to interpret the data"
+    ],
+    "correct_answer": "Preventing unauthorized disclosure of participants' information",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 228,
+    "question": "Which ethical principle is most directly concerned with protecting participants from unnecessary harm?",
+    "options": [
+      "Justice",
+      "Non-maleficence",
+      "Fidelity",
+      "Veracity"
+    ],
+    "correct_answer": "Non-maleficence",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 229,
+    "question": "The ethical principle of justice in research is primarily concerned with:",
+    "options": [
+      "Fairness in the selection and treatment of research participants",
+      "Keeping every research finding confidential",
+      "Ensuring that the researcher receives financial compensation",
+      "Preventing participants from withdrawing"
+    ],
+    "correct_answer": "Fairness in the selection and treatment of research participants",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 230,
+    "question": "Before beginning a study involving human participants, ethical approval is important because it:",
+    "options": [
+      "Helps ensure that the study meets accepted ethical standards",
+      "Guarantees statistically significant findings",
+      "Eliminates the need for informed consent",
+      "Allows the researcher to manipulate participants"
+    ],
+    "correct_answer": "Helps ensure that the study meets accepted ethical standards",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 231,
+    "question": "Which of the following is a data-collection instrument?",
+    "options": [
+      "Questionnaire",
+      "Research hypothesis",
+      "Literature review",
+      "Research title"
+    ],
+    "correct_answer": "Questionnaire",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 232,
+    "question": "A questionnaire is best described as:",
+    "options": [
+      "A structured set of questions used to obtain information from respondents",
+      "A statistical test used to analyze data",
+      "A research design involving randomization",
+      "A document used only after research is completed"
+    ],
+    "correct_answer": "A structured set of questions used to obtain information from respondents",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 233,
+    "question": "A researcher wants to collect information from 1,000 students about their attitudes toward vaccination using a standardized set of written questions. The most practical instrument is likely a:",
+    "options": [
+      "Questionnaire",
+      "Laboratory test",
+      "Case report",
+      "Research diary"
+    ],
+    "correct_answer": "Questionnaire",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 234,
+    "question": "One important advantage of a well-designed questionnaire is that it:",
+    "options": [
+      "Can allow information to be collected from many respondents in a standardized manner",
+      "Guarantees that every respondent will answer honestly",
+      "Eliminates all sampling errors",
+      "Requires the researcher to interview every participant personally"
+    ],
+    "correct_answer": "Can allow information to be collected from many respondents in a standardized manner",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 235,
+    "question": "An interview differs from a self-administered questionnaire primarily because an interview:",
+    "options": [
+      "Involves direct interaction between the researcher/interviewer and participant",
+      "Cannot collect qualitative information",
+      "Never uses predetermined questions",
+      "Does not require ethical considerations"
+    ],
+    "correct_answer": "Involves direct interaction between the researcher/interviewer and participant",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 236,
+    "question": "A researcher uses an interview guide containing predetermined questions but allows participants to elaborate on their answers. This approach is most consistent with a:",
+    "options": [
+      "Structured observation",
+      "Semi-structured interview",
+      "Completely unstructured questionnaire",
+      "Laboratory experiment"
+    ],
+    "correct_answer": "Semi-structured interview",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 237,
+    "question": "Which data-collection method is particularly useful when the researcher wants to record what participants actually do rather than what they report doing?",
+    "options": [
+      "Observation",
+      "Questionnaire",
+      "Literature review",
+      "Telephone directory"
+    ],
+    "correct_answer": "Observation",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 238,
+    "question": "A checklist is particularly useful when the researcher wants to:",
+    "options": [
+      "Record whether specific behaviours, characteristics, or items are present",
+      "Conduct statistical hypothesis testing",
+      "Randomize participants",
+      "Establish causation automatically"
+    ],
+    "correct_answer": "Record whether specific behaviours, characteristics, or items are present",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 239,
+    "question": "A nurse researcher observes whether nurses perform each step of hand hygiene correctly and records each step on a prepared list. The most appropriate instrument is a:",
+    "options": [
+      "Checklist",
+      "Questionnaire",
+      "Research proposal",
+      "Sampling frame"
+    ],
+    "correct_answer": "Checklist",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 240,
+    "question": "Validity of a research instrument refers primarily to its ability to:",
+    "options": [
+      "Produce the same result every time",
+      "Measure what it is intended to measure",
+      "Produce numerical data",
+      "Eliminate the need for sampling"
+    ],
+    "correct_answer": "Measure what it is intended to measure",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 241,
+    "question": "Reliability refers to the:",
+    "options": [
+      "Accuracy of the research hypothesis",
+      "Consistency or stability of measurement",
+      "Ethical acceptability of the study",
+      "Generalizability of every research finding"
+    ],
+    "correct_answer": "Consistency or stability of measurement",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 242,
+    "question": "A blood pressure instrument consistently gives a reading 10 mmHg higher than the actual pressure. The instrument may be:",
+    "options": [
+      "Reliable but not valid",
+      "Valid but completely unreliable",
+      "Neither measurable nor observable",
+      "Both perfectly valid and reliable"
+    ],
+    "correct_answer": "Reliable but not valid",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 243,
+    "question": "A researcher develops a questionnaire to measure anxiety and asks experts in mental health nursing to assess whether the items adequately cover the concept. This process primarily supports:",
+    "options": [
+      "Content validity",
+      "Sampling reliability",
+      "External reliability",
+      "Statistical significance"
+    ],
+    "correct_answer": "Content validity",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 244,
+    "question": "If an instrument produces very different results when administered repeatedly to the same stable group under similar conditions, the instrument has poor:",
+    "options": [
+      "Reliability",
+      "Validity",
+      "Confidentiality",
+      "Representativeness"
+    ],
+    "correct_answer": "Reliability",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 245,
+    "question": "After data have been collected, the researcher organizes and interprets the information primarily during:",
+    "options": [
+      "Data analysis",
+      "Sampling",
+      "Proposal formulation",
+      "Ethical approval"
+    ],
+    "correct_answer": "Data analysis",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 246,
+    "question": "A researcher converts raw questionnaire responses into organized tables before interpreting them. This is part of:",
+    "options": [
+      "Data organization and presentation",
+      "Participant recruitment",
+      "Literature searching",
+      "Informed consent"
+    ],
+    "correct_answer": "Data organization and presentation",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 247,
+    "question": "The main purpose of presenting research results is to:",
+    "options": [
+      "Communicate the findings clearly to the intended audience",
+      "Hide findings that contradict the hypothesis",
+      "Replace the discussion section",
+      "Prevent other researchers from evaluating the study"
+    ],
+    "correct_answer": "Communicate the findings clearly to the intended audience",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 248,
+    "question": "In the discussion section of a research report, the researcher should primarily:",
+    "options": [
+      "Interpret the findings and relate them to the research question and existing knowledge",
+      "Introduce participants for the first time",
+      "Repeat the questionnaire word for word",
+      "Present raw data without interpretation"
+    ],
+    "correct_answer": "Interpret the findings and relate them to the research question and existing knowledge",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 249,
+    "question": "A researcher obtains a result that does not support the original hypothesis. The most appropriate action is to:",
+    "options": [
+      "Remove the result from the report",
+      "Alter the data until the hypothesis is supported",
+      "Report and interpret the finding honestly",
+      "Repeat the analysis until the desired result appears"
+    ],
+    "correct_answer": "Report and interpret the finding honestly",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 250,
+    "question": "Which statement best describes the relationship between data analysis and interpretation?",
+    "options": [
+      "Analysis organizes and examines the data, while interpretation explains the meaning of the findings",
+      "Analysis and interpretation are unrelated processes",
+      "Interpretation must always occur before data collection",
+      "Analysis is only required in qualitative research"
+    ],
+    "correct_answer": "Analysis organizes and examines the data, while interpretation explains the meaning of the findings",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 251,
+    "question": "The main purpose of a research proposal is to:",
+    "options": [
+      "Present the findings of a completed study",
+      "Describe what the researcher intends to investigate and how the study will be conducted",
+      "Replace the final research report",
+      "Provide only the references used in the study"
+    ],
+    "correct_answer": "Describe what the researcher intends to investigate and how the study will be conducted",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 252,
+    "question": "Which of the following is an essential component of a research proposal?",
+    "options": [
+      "Research methodology",
+      "Final statistical findings",
+      "Discussion of results",
+      "Conclusion based on completed data"
+    ],
+    "correct_answer": "Research methodology",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 253,
+    "question": "A good research topic should primarily be:",
+    "options": [
+      "Broad enough to include every aspect of the subject",
+      "Clear, focused, and researchable",
+      "Based entirely on the researcher's personal opinion",
+      "Difficult enough to require extensive data collection"
+    ],
+    "correct_answer": "Clear, focused, and researchable",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 254,
+    "question": "Which feature of a research problem makes it suitable for investigation?",
+    "options": [
+      "It can be clearly stated and investigated systematically",
+      "It has no identifiable variables",
+      "It cannot be measured or explored",
+      "It has already been completely resolved"
+    ],
+    "correct_answer": "It can be clearly stated and investigated systematically",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 255,
+    "question": "The background of a research study is primarily used to:",
+    "options": [
+      "Explain the context and rationale for the study",
+      "Present the final statistical analysis",
+      "List all participants by name",
+      "Replace the research objectives"
+    ],
+    "correct_answer": "Explain the context and rationale for the study",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 256,
+    "question": "A research problem statement should primarily:",
+    "options": [
+      "Clearly identify the problem or gap that the study intends to address",
+      "Present all findings before the study begins",
+      "Describe every possible research method",
+      "Contain only statistical calculations"
+    ],
+    "correct_answer": "Clearly identify the problem or gap that the study intends to address",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 257,
+    "question": "Which question should a well-written research problem help answer?",
+    "options": [
+      "Why is the problem important enough to investigate?",
+      "Which participant will provide the highest score?",
+      "Which statistical software is most expensive?",
+      "Which researcher has published the most papers?"
+    ],
+    "correct_answer": "Why is the problem important enough to investigate?",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 258,
+    "question": "The purpose of stating research objectives is to:",
+    "options": [
+      "Specify what the study intends to accomplish",
+      "Present the completed findings",
+      "Replace the research methodology",
+      "Eliminate the need for data collection"
+    ],
+    "correct_answer": "Specify what the study intends to accomplish",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 259,
+    "question": "Which objective is most appropriately written for a study investigating nurses' knowledge of infection prevention?",
+    "options": [
+      "To know infection prevention",
+      "To investigate nurses' knowledge of infection prevention",
+      "Infection prevention among nurses",
+      "Nurses and infection prevention are important"
+    ],
+    "correct_answer": "To investigate nurses' knowledge of infection prevention",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 260,
+    "question": "A specific objective should ideally be:",
+    "options": [
+      "Clear and directly related to the research problem",
+      "Unrelated to the general objective",
+      "Written as a conclusion",
+      "Based on results that have not yet been collected"
+    ],
+    "correct_answer": "Clear and directly related to the research problem",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 261,
+    "question": "A research question primarily states:",
+    "options": [
+      "What the researcher wants the study to investigate",
+      "The final answer obtained from the study",
+      "The statistical test that must be used",
+      "The names of the study participants"
+    ],
+    "correct_answer": "What the researcher wants the study to investigate",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 262,
+    "question": "Which research question is most appropriate for a study on nurses' knowledge of pressure-ulcer prevention?",
+    "options": [
+      "Are pressure ulcers bad?",
+      "What is the level of knowledge of pressure-ulcer prevention among nurses in the selected hospital?",
+      "Nurses should prevent pressure ulcers, shouldn't they?",
+      "Pressure ulcers are common in hospitals."
+    ],
+    "correct_answer": "What is the level of knowledge of pressure-ulcer prevention among nurses in the selected hospital?",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 263,
+    "question": "A hypothesis is best described as:",
+    "options": [
+      "A tentative statement about a relationship or difference that can be tested",
+      "A summary of completed research findings",
+      "A list of references",
+      "A description of the study population"
+    ],
+    "correct_answer": "A tentative statement about a relationship or difference that can be tested",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 264,
+    "question": "A researcher proposes that students who study for more hours will have higher examination scores. This is an example of:",
+    "options": [
+      "A research hypothesis",
+      "A sampling frame",
+      "A research instrument",
+      "A literature review"
+    ],
+    "correct_answer": "A research hypothesis",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 265,
+    "question": "Which hypothesis states that there is no statistically significant relationship between two variables?",
+    "options": [
+      "Directional hypothesis",
+      "Null hypothesis",
+      "Alternative hypothesis",
+      "Working hypothesis"
+    ],
+    "correct_answer": "Null hypothesis",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 266,
+    "question": "A researcher hypothesizes that nurses who receive a training program will have higher knowledge scores than nurses who do not receive the training. This is a:",
+    "options": [
+      "Directional hypothesis",
+      "Null hypothesis",
+      "Non-testable assumption",
+      "Research limitation"
+    ],
+    "correct_answer": "Directional hypothesis",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 267,
+    "question": "The variables being investigated should be clearly identified because they:",
+    "options": [
+      "Help define what relationships or effects the study will examine",
+      "Eliminate the need for a research design",
+      "Automatically determine the sample size",
+      "Replace the research objectives"
+    ],
+    "correct_answer": "Help define what relationships or effects the study will examine",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 268,
+    "question": "The primary purpose of a literature review is to:",
+    "options": [
+      "Examine existing knowledge relevant to the research problem",
+      "Collect primary data from participants",
+      "Replace ethical approval",
+      "Present the researcher's personal opinions"
+    ],
+    "correct_answer": "Examine existing knowledge relevant to the research problem",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 269,
+    "question": "A thorough literature review can help the researcher:",
+    "options": [
+      "Identify gaps in existing knowledge",
+      "Guarantee the research hypothesis is correct",
+      "Avoid defining the research problem",
+      "Eliminate the need for data analysis"
+    ],
+    "correct_answer": "Identify gaps in existing knowledge",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 270,
+    "question": "Which source would generally provide the most direct evidence of findings from an original research study?",
+    "options": [
+      "Primary research article",
+      "Newspaper advertisement",
+      "Personal social-media post",
+      "Unreferenced blog"
+    ],
+    "correct_answer": "Primary research article",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 271,
+    "question": "A researcher discovers several studies with conflicting findings about a nursing intervention. The appropriate response in the literature review is to:",
+    "options": [
+      "Ignore the studies that disagree with the preferred conclusion",
+      "Critically examine and present the relevant evidence",
+      "Change the research topic immediately",
+      "Report only the most recent study"
+    ],
+    "correct_answer": "Critically examine and present the relevant evidence",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 272,
+    "question": "Proper citation of sources in academic research is important primarily because it:",
+    "options": [
+      "Acknowledges the original sources of ideas and evidence",
+      "Guarantees that the research findings are correct",
+      "Eliminates the need for critical analysis",
+      "Makes every source a primary study"
+    ],
+    "correct_answer": "Acknowledges the original sources of ideas and evidence",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 273,
+    "question": "A researcher wants participants to select one answer from several predetermined responses. Which type of questionnaire item is most appropriate?",
+    "options": [
+      "Open-ended question",
+      "Closed-ended question",
+      "Narrative interview",
+      "Observation checklist"
+    ],
+    "correct_answer": "Closed-ended question",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 274,
+    "question": "Which is an advantage of an open-ended question?",
+    "options": [
+      "It allows respondents to express their views in their own words",
+      "It always produces numerical data",
+      "It eliminates the need for data analysis",
+      "It guarantees identical responses"
+    ],
+    "correct_answer": "It allows respondents to express their views in their own words",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 275,
+    "question": "Which is a potential disadvantage of open-ended questions?",
+    "options": [
+      "Responses may be more difficult and time-consuming to analyze",
+      "Respondents cannot express personal opinions",
+      "They always produce invalid data",
+      "They cannot be used in qualitative research"
+    ],
+    "correct_answer": "Responses may be more difficult and time-consuming to analyze",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 276,
+    "question": "A poorly worded questionnaire item asks, \"Don't you agree that nurses should always wash their hands properly?\" The major problem is that the question is:",
+    "options": [
+      "Leading",
+      "Randomized",
+      "Objective",
+      "Stratified"
+    ],
+    "correct_answer": "Leading",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 277,
+    "question": "A questionnaire asks two things in one question: \"Are you satisfied with the hospital's cleanliness and nursing services?\" This is problematic because it is:",
+    "options": [
+      "Double-barrelled",
+      "Open-ended",
+      "Randomized",
+      "Retrospective"
+    ],
+    "correct_answer": "Double-barrelled",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 278,
+    "question": "Before administering a newly developed questionnaire to the full sample, the researcher should consider:",
+    "options": [
+      "Pretesting or pilot testing the instrument",
+      "Publishing the results immediately",
+      "Removing all demographic questions",
+      "Changing the research population"
+    ],
+    "correct_answer": "Pretesting or pilot testing the instrument",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 279,
+    "question": "The main purpose of pilot testing a research instrument is to:",
+    "options": [
+      "Identify problems with the instrument and data-collection procedure before the main study",
+      "Obtain the final research findings",
+      "Replace the main sample",
+      "Guarantee statistical significance"
+    ],
+    "correct_answer": "Identify problems with the instrument and data-collection procedure before the main study",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 280,
+    "question": "An interview guide is particularly useful because it:",
+    "options": [
+      "Helps maintain consistency in the topics or questions addressed during interviews",
+      "Prevents participants from giving detailed responses",
+      "Automatically eliminates interviewer bias",
+      "Replaces the need for informed consent"
+    ],
+    "correct_answer": "Helps maintain consistency in the topics or questions addressed during interviews",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 281,
+    "question": "The research method should be selected primarily according to:",
+    "options": [
+      "The research problem and objectives",
+      "The researcher's preferred colour",
+      "The size of the reference list",
+      "The availability of unrelated textbooks"
+    ],
+    "correct_answer": "The research problem and objectives",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 282,
+    "question": "A researcher wants to understand the lived experiences of mothers caring for children with chronic illnesses. Which approach would be particularly appropriate?",
+    "options": [
+      "Qualitative research",
+      "Experimental research",
+      "Purely laboratory-based research",
+      "Randomized sampling without data collection"
+    ],
+    "correct_answer": "Qualitative research",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 283,
+    "question": "A researcher conducts in-depth interviews to explore how student nurses experience clinical anxiety. The data collected are primarily:",
+    "options": [
+      "Qualitative",
+      "Experimental",
+      "Secondary statistical data",
+      "Physiological measurements"
+    ],
+    "correct_answer": "Qualitative",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 284,
+    "question": "A researcher measures the blood pressure of 300 participants and analyzes the numerical results statistically. This is primarily:",
+    "options": [
+      "Quantitative research",
+      "Ethnographic research",
+      "Narrative research",
+      "Phenomenological research"
+    ],
+    "correct_answer": "Quantitative research",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 285,
+    "question": "Which feature is most characteristic of qualitative research?",
+    "options": [
+      "Exploration of meanings, perceptions, experiences, or social processes",
+      "Exclusive reliance on numerical measurements",
+      "Mandatory use of experimental manipulation",
+      "Requirement for every participant to receive an intervention"
+    ],
+    "correct_answer": "Exploration of meanings, perceptions, experiences, or social processes",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 286,
+    "question": "Which feature is most characteristic of quantitative research?",
+    "options": [
+      "Numerical measurement and statistical analysis",
+      "Exclusive use of unstructured interviews",
+      "Avoidance of measurable variables",
+      "Reliance only on personal narratives"
+    ],
+    "correct_answer": "Numerical measurement and statistical analysis",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 287,
+    "question": "A sampling frame is best described as:",
+    "options": [
+      "A list or source from which the study sample may be selected",
+      "A table used to analyze data",
+      "A list of research objectives",
+      "A document containing the final discussion"
+    ],
+    "correct_answer": "A list or source from which the study sample may be selected",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 288,
+    "question": "Increasing sample size generally improves a study's ability to:",
+    "options": [
+      "Obtain more precise estimates, when other factors are appropriate",
+      "Eliminate all forms of bias",
+      "Guarantee that the hypothesis will be accepted",
+      "Remove the need for ethical approval"
+    ],
+    "correct_answer": "Obtain more precise estimates, when other factors are appropriate",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 289,
+    "question": "A sample that does not adequately represent the population may result in:",
+    "options": [
+      "Sampling bias",
+      "Research ethics",
+      "Content validity",
+      "Instrument reliability"
+    ],
+    "correct_answer": "Sampling bias",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 290,
+    "question": "A researcher selects participants solely because they are available and willing at the time of data collection. This sampling method may be vulnerable to:",
+    "options": [
+      "Selection bias",
+      "Measurement validity",
+      "Statistical independence",
+      "Randomization bias"
+    ],
+    "correct_answer": "Selection bias",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 291,
+    "question": "A research report differs from a research proposal because a research report:",
+    "options": [
+      "Presents what was actually done and found in the completed study",
+      "Describes only what the researcher intends to do",
+      "Does not require a methodology section",
+      "Is written before the research problem is identified"
+    ],
+    "correct_answer": "Presents what was actually done and found in the completed study",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 292,
+    "question": "Which section of a research report normally describes how the study was conducted?",
+    "options": [
+      "Methodology",
+      "Discussion",
+      "Conclusion",
+      "Abstract only"
+    ],
+    "correct_answer": "Methodology",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 293,
+    "question": "The results section of a research report should primarily:",
+    "options": [
+      "Present the findings obtained from data analysis",
+      "Introduce a completely new research problem",
+      "Describe unrelated literature",
+      "Hide findings that contradict expectations"
+    ],
+    "correct_answer": "Present the findings obtained from data analysis",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 294,
+    "question": "The discussion section primarily allows the researcher to:",
+    "options": [
+      "Explain and interpret the findings in relation to existing knowledge",
+      "Describe how participants were recruited for the first time",
+      "Replace the results section",
+      "List every questionnaire item"
+    ],
+    "correct_answer": "Explain and interpret the findings in relation to existing knowledge",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 295,
+    "question": "The conclusion of a research report should primarily:",
+    "options": [
+      "Summarize the major implications of the findings in relation to the research objectives",
+      "Introduce numerous new variables",
+      "Present raw questionnaire responses",
+      "Include unrelated background information"
+    ],
+    "correct_answer": "Summarize the major implications of the findings in relation to the research objectives",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 296,
+    "question": "Recommendations in a research report should ideally be:",
+    "options": [
+      "Related to the findings and practical implications of the study",
+      "Completely unrelated to the study results",
+      "Based solely on the researcher's personal preferences",
+      "Written before the research problem is identified"
+    ],
+    "correct_answer": "Related to the findings and practical implications of the study",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 297,
+    "question": "An abstract is best described as:",
+    "options": [
+      "A concise summary of the major elements of a research study",
+      "A complete reproduction of the research report",
+      "A detailed list of every questionnaire response",
+      "A replacement for the literature review"
+    ],
+    "correct_answer": "A concise summary of the major elements of a research study",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 298,
+    "question": "Which quality is most important when writing a research report?",
+    "options": [
+      "Clarity and logical organization",
+      "Use of unnecessarily complicated language",
+      "Inclusion of unrelated information",
+      "Avoidance of evidence"
+    ],
+    "correct_answer": "Clarity and logical organization",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 299,
+    "question": "A researcher discovers that a finding is inconsistent with previous studies. In the research report, the researcher should:",
+    "options": [
+      "Discuss the finding and possible explanations for the difference",
+      "Delete the finding",
+      "Change the data to agree with previous studies",
+      "Omit the study from the report"
+    ],
+    "correct_answer": "Discuss the finding and possible explanations for the difference",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 300,
+    "question": "Which practice would most improve the quality of a research report?",
+    "options": [
+      "Presenting methods and findings accurately and objectively",
+      "Exaggerating findings to make the research appear more important",
+      "Omitting limitations",
+      "Reporting only statistically significant findings"
+    ],
+    "correct_answer": "Presenting methods and findings accurately and objectively",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 301,
+    "question": "Research dissemination refers to the process of:",
+    "options": [
+      "Selecting participants for a study",
+      "Communicating research findings to relevant audiences",
+      "Developing a research instrument",
+      "Obtaining informed consent"
+    ],
+    "correct_answer": "Communicating research findings to relevant audiences",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 302,
+    "question": "Which of the following is an appropriate method of disseminating research findings?",
+    "options": [
+      "Presenting findings at a scientific conference",
+      "Destroying the research report after analysis",
+      "Withholding all findings from relevant stakeholders",
+      "Omitting the discussion section"
+    ],
+    "correct_answer": "Presenting findings at a scientific conference",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 303,
+    "question": "A nurse researcher presents the results of a study on pressure-ulcer prevention to hospital management to encourage changes in nursing practice. This demonstrates:",
+    "options": [
+      "Sampling",
+      "Research utilization",
+      "Instrument validation",
+      "Pilot testing"
+    ],
+    "correct_answer": "Research utilization",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 304,
+    "question": "The primary goal of research utilization in nursing is to:",
+    "options": [
+      "Apply relevant research findings to improve practice and patient outcomes",
+      "Replace all clinical judgment with research findings",
+      "Ensure that every research study changes hospital policy",
+      "Restrict research findings to academic institutions"
+    ],
+    "correct_answer": "Apply relevant research findings to improve practice and patient outcomes",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 305,
+    "question": "Before applying a research finding to nursing practice, the nurse should consider whether the finding is:",
+    "options": [
+      "Relevant, credible, and appropriate to the clinical setting",
+      "Popular on social media",
+      "Published by the oldest author",
+      "Consistent with personal preference only"
+    ],
+    "correct_answer": "Relevant, credible, and appropriate to the clinical setting",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 306,
+    "question": "Which factor is most likely to hinder the utilization of research findings in clinical practice?",
+    "options": [
+      "Lack of awareness or access to relevant research",
+      "Clear communication of findings",
+      "Support from nursing leadership",
+      "Availability of appropriate resources"
+    ],
+    "correct_answer": "Lack of awareness or access to relevant research",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 307,
+    "question": "A hospital introduces a new wound-care protocol based on strong research evidence. This is an example of:",
+    "options": [
+      "Research utilization in practice",
+      "Convenience sampling",
+      "Instrument reliability",
+      "Data coding"
+    ],
+    "correct_answer": "Research utilization in practice",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 308,
+    "question": "The purpose of critiquing a research study is primarily to:",
+    "options": [
+      "Identify the strengths, weaknesses, credibility, and usefulness of the study",
+      "Prove that the researcher made mistakes",
+      "Reject all research findings",
+      "Rewrite the study in a different format"
+    ],
+    "correct_answer": "Identify the strengths, weaknesses, credibility, and usefulness of the study",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 309,
+    "question": "When critically reviewing a research study, the first important consideration is whether:",
+    "options": [
+      "The research problem is clearly stated and significant",
+      "The report contains the researcher's photograph",
+      "The sample is the largest ever studied",
+      "The findings agree with the reader's opinions"
+    ],
+    "correct_answer": "The research problem is clearly stated and significant",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 310,
+    "question": "A research critique should evaluate the methodology primarily to determine whether:",
+    "options": [
+      "The methods were appropriate for answering the research question",
+      "The researcher used the most expensive equipment",
+      "Every participant gave the same answer",
+      "The hypothesis was necessarily supported"
+    ],
+    "correct_answer": "The methods were appropriate for answering the research question",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 311,
+    "question": "A researcher studies the effect of an educational programme but does not describe how participants were selected. This weakens the reader's ability to assess:",
+    "options": [
+      "Sampling adequacy and potential bias",
+      "The colour of the research report",
+      "The number of references cited",
+      "The meaning of informed consent"
+    ],
+    "correct_answer": "Sampling adequacy and potential bias",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 312,
+    "question": "When critiquing a questionnaire, a major question should be whether the instrument:",
+    "options": [
+      "Is appropriate for measuring the variables of interest",
+      "Contains the largest possible number of questions",
+      "Uses only open-ended items",
+      "Produces the desired research findings"
+    ],
+    "correct_answer": "Is appropriate for measuring the variables of interest",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 313,
+    "question": "A study reports that an instrument was valid and reliable. A critical reader should understand that this information supports:",
+    "options": [
+      "The quality of measurement",
+      "The sample size alone",
+      "The ethical approval process only",
+      "The publication date only"
+    ],
+    "correct_answer": "The quality of measurement",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 314,
+    "question": "Which question is most relevant when assessing the credibility of research findings?",
+    "options": [
+      "Are the conclusions supported by the data presented?",
+      "Is the report written in the longest possible format?",
+      "Did every participant receive the same result?",
+      "Does the title contain technical terms?"
+    ],
+    "correct_answer": "Are the conclusions supported by the data presented?",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 315,
+    "question": "Data coding involves:",
+    "options": [
+      "Assigning numbers or symbols to responses or categories for organization and analysis",
+      "Destroying incomplete questionnaires",
+      "Randomly selecting participants",
+      "Writing the research proposal"
+    ],
+    "correct_answer": "Assigning numbers or symbols to responses or categories for organization and analysis",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 316,
+    "question": "A researcher assigns \"1\" to male and \"2\" to female responses in a dataset. This is an example of:",
+    "options": [
+      "Data coding",
+      "Randomization",
+      "Stratification",
+      "Interpretation"
+    ],
+    "correct_answer": "Data coding",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 317,
+    "question": "Before statistical analysis, researchers commonly examine data for errors, missing values, and inconsistencies. This process is best described as:",
+    "options": [
+      "Data cleaning",
+      "Dissemination",
+      "Sampling",
+      "Hypothesis formulation"
+    ],
+    "correct_answer": "Data cleaning",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 318,
+    "question": "The arithmetic average of a set of numerical observations is the:",
+    "options": [
+      "Mean",
+      "Median",
+      "Mode",
+      "Range"
+    ],
+    "correct_answer": "Mean",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 319,
+    "question": "The middle value in an ordered set of observations is the:",
+    "options": [
+      "Mean",
+      "Median",
+      "Mode",
+      "Variance"
+    ],
+    "correct_answer": "Median",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 320,
+    "question": "The value that occurs most frequently in a dataset is the:",
+    "options": [
+      "Mean",
+      "Median",
+      "Mode",
+      "Standard deviation"
+    ],
+    "correct_answer": "Mode",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 321,
+    "question": "A researcher calculates the difference between the highest and lowest values in a dataset. This measure is the:",
+    "options": [
+      "Range",
+      "Median",
+      "Mode",
+      "Mean"
+    ],
+    "correct_answer": "Range",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 322,
+    "question": "A measure that describes how widely data values are spread around the mean is:",
+    "options": [
+      "Standard deviation",
+      "Mode",
+      "Frequency",
+      "Median"
+    ],
+    "correct_answer": "Standard deviation",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 323,
+    "question": "A frequency distribution is primarily used to:",
+    "options": [
+      "Show how often values or categories occur",
+      "Determine the cause of a disease automatically",
+      "Replace the sampling process",
+      "Prove a hypothesis"
+    ],
+    "correct_answer": "Show how often values or categories occur",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 324,
+    "question": "Which graphical presentation is generally most appropriate for comparing frequencies across categories?",
+    "options": [
+      "Bar chart",
+      "Line graph",
+      "Scatter plot",
+      "Flow chart"
+    ],
+    "correct_answer": "Bar chart",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 325,
+    "question": "A researcher wants to show changes in the average number of patients over a period of 12 months. Which presentation is most appropriate?",
+    "options": [
+      "Line graph",
+      "Pie chart",
+      "Frequency table only",
+      "Histogram"
+    ],
+    "correct_answer": "Line graph",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 326,
+    "question": "A pie chart is most useful for showing:",
+    "options": [
+      "Proportions of a whole",
+      "Changes over time",
+      "Relationships between two continuous variables",
+      "Detailed qualitative narratives"
+    ],
+    "correct_answer": "Proportions of a whole",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 327,
+    "question": "A table in a research report should primarily:",
+    "options": [
+      "Present data in an organized and easily understandable form",
+      "Replace all written explanation",
+      "Contain every raw response collected",
+      "Be used only for qualitative studies"
+    ],
+    "correct_answer": "Present data in an organized and easily understandable form",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 328,
+    "question": "Statistical significance generally refers to whether an observed result is:",
+    "options": [
+      "Unlikely to be explained by chance alone under a specified statistical model",
+      "Always clinically important",
+      "Guaranteed to be correct",
+      "Independent of sample size"
+    ],
+    "correct_answer": "Unlikely to be explained by chance alone under a specified statistical model",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 329,
+    "question": "A statistically significant finding does not necessarily mean that the finding is:",
+    "options": [
+      "Clinically or practically important",
+      "Based on data",
+      "Related to statistical analysis",
+      "Reportable"
+    ],
+    "correct_answer": "Clinically or practically important",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 330,
+    "question": "The p-value is commonly used to help researchers:",
+    "options": [
+      "Assess the compatibility of observed data with a null hypothesis under a statistical model",
+      "Determine the ethical acceptability of a study",
+      "Select participants randomly",
+      "Establish the validity of a questionnaire automatically"
+    ],
+    "correct_answer": "Assess the compatibility of observed data with a null hypothesis under a statistical model",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 331,
+    "question": "A researcher concludes that there is a significant association between smoking and hypertension. This conclusion should be interpreted cautiously because:",
+    "options": [
+      "Association alone does not prove causation",
+      "Significant findings are always false",
+      "Correlation can only occur in qualitative research",
+      "All associated variables must have identical values"
+    ],
+    "correct_answer": "Association alone does not prove causation",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 332,
+    "question": "A major purpose of inferential statistics is to:",
+    "options": [
+      "Draw conclusions about a population based on sample data",
+      "Describe individual participants only",
+      "Replace data collection",
+      "Eliminate uncertainty from research"
+    ],
+    "correct_answer": "Draw conclusions about a population based on sample data",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 333,
+    "question": "Descriptive statistics are primarily used to:",
+    "options": [
+      "Summarize and describe collected data",
+      "Prove causation",
+      "Randomize participants",
+      "Obtain ethical approval"
+    ],
+    "correct_answer": "Summarize and describe collected data",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 334,
+    "question": "When writing a research proposal, the methodology section should clearly describe:",
+    "options": [
+      "How the study will be conducted",
+      "The final conclusions of the study",
+      "The completed findings",
+      "The researcher's personal achievements"
+    ],
+    "correct_answer": "How the study will be conducted",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 335,
+    "question": "A proposed study aims to investigate knowledge of hypertension among student nurses. Which item should be included in the methodology?",
+    "options": [
+      "The study population and sampling method",
+      "The final conclusion",
+      "The completed statistical findings",
+      "Recommendations based on results not yet obtained"
+    ],
+    "correct_answer": "The study population and sampling method",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 336,
+    "question": "The research design selected for a proposal should be appropriate to:",
+    "options": [
+      "The nature of the research problem and objectives",
+      "The number of pages required by the institution",
+      "The researcher's favourite method",
+      "The expected findings"
+    ],
+    "correct_answer": "The nature of the research problem and objectives",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 337,
+    "question": "A proposal is considered feasible when:",
+    "options": [
+      "The proposed study can realistically be conducted with available time, resources, and access to participants",
+      "The researcher guarantees positive findings",
+      "The study requires no ethical considerations",
+      "The sample includes the entire world population"
+    ],
+    "correct_answer": "The proposed study can realistically be conducted with available time, resources, and access to participants",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 338,
+    "question": "Which characteristic is essential for a good research proposal?",
+    "options": [
+      "Logical organization and internal consistency",
+      "Inclusion of unsupported claims",
+      "Unrelated objectives and methodology",
+      "Deliberate omission of limitations"
+    ],
+    "correct_answer": "Logical organization and internal consistency",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 339,
+    "question": "A research proposal has the objective \"to determine factors associated with poor hand hygiene,\" but the methodology measures only participants' ages. The main weakness is:",
+    "options": [
+      "The methodology does not adequately address the stated objective",
+      "The proposal contains too many references",
+      "The sample is necessarily too large",
+      "The study is automatically qualitative"
+    ],
+    "correct_answer": "The methodology does not adequately address the stated objective",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 340,
+    "question": "Which sequence best represents the logical flow of a typical completed research report?",
+    "options": [
+      "Introduction → methodology → results → discussion/conclusion",
+      "Results → sampling → hypothesis → title",
+      "Conclusion → data collection → research problem → literature review",
+      "References → participants → title → results"
+    ],
+    "correct_answer": "Introduction → methodology → results → discussion/conclusion",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 341,
+    "question": "The methodology section should provide enough detail to allow readers to:",
+    "options": [
+      "Understand how the study was conducted and evaluate the methods",
+      "Predict the exact results before analysis",
+      "Identify the researcher's personal opinions",
+      "Ignore the study limitations"
+    ],
+    "correct_answer": "Understand how the study was conducted and evaluate the methods",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 342,
+    "question": "A research limitation is best described as:",
+    "options": [
+      "A factor that may affect the interpretation or generalizability of the findings",
+      "Evidence that the study has no value",
+      "A reason to fabricate additional data",
+      "A replacement for ethical approval"
+    ],
+    "correct_answer": "A factor that may affect the interpretation or generalizability of the findings",
+    "subject": "Research Methodology",
+    "difficulty": "Hard",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 343,
+    "question": "The most appropriate response to an important study limitation is to:",
+    "options": [
+      "Acknowledge it and discuss its possible effect on the findings",
+      "Conceal it from readers",
+      "Change the data to remove the limitation",
+      "Delete the methodology section"
+    ],
+    "correct_answer": "Acknowledge it and discuss its possible effect on the findings",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 344,
+    "question": "Objectivity in research reporting requires the researcher to:",
+    "options": [
+      "Present findings honestly without deliberately distorting them",
+      "Report only findings that support expectations",
+      "Exclude all unexpected results",
+      "Avoid discussing evidence"
+    ],
+    "correct_answer": "Present findings honestly without deliberately distorting them",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 345,
+    "question": "A nurse researcher wants to determine whether a new teaching programme improves knowledge of medication safety. Which element is essential for evaluating the effect of the programme?",
+    "options": [
+      "Measurement of relevant knowledge outcomes",
+      "A literature review only",
+      "A title without objectives",
+      "A questionnaire unrelated to medication safety"
+    ],
+    "correct_answer": "Measurement of relevant knowledge outcomes",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 346,
+    "question": "A researcher plans to survey all final-year nursing students but selects only those attending class on the day of data collection. The main concern is:",
+    "options": [
+      "The sample may not adequately represent the intended population",
+      "The study automatically becomes experimental",
+      "The data cannot be analyzed",
+      "The questionnaire automatically becomes invalid"
+    ],
+    "correct_answer": "The sample may not adequately represent the intended population",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 347,
+    "question": "A study finds that nurses with more years of experience have higher knowledge scores. Before concluding that experience causes better knowledge, the researcher should recognize that:",
+    "options": [
+      "Other variables may explain the observed relationship",
+      "All correlations demonstrate causation",
+      "Sample size is irrelevant",
+      "Statistical analysis is unnecessary"
+    ],
+    "correct_answer": "Other variables may explain the observed relationship",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 348,
+    "question": "A researcher wants to share a study on improving pain assessment with nurses, managers, and other researchers. Which strategy best promotes broad dissemination?",
+    "options": [
+      "Using multiple appropriate channels such as reports, presentations, and publications",
+      "Keeping the findings only in the researcher's personal notebook",
+      "Communicating the findings to no one outside the research team",
+      "Removing recommendations from the report"
+    ],
+    "correct_answer": "Using multiple appropriate channels such as reports, presentations, and publications",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 349,
+    "question": "A nurse reads a published study and wants to decide whether its findings should influence clinical practice. The nurse should critically consider the:",
+    "options": [
+      "Quality, relevance, credibility, and applicability of the evidence",
+      "Number of decorative figures in the publication",
+      "Personal popularity of the authors",
+      "Length of the study title"
+    ],
+    "correct_answer": "Quality, relevance, credibility, and applicability of the evidence",
+    "subject": "Research Methodology",
+    "difficulty": "Expert",
+    "question_type": "mcq"
+  },
+  {
+    "question_id": 350,
+    "question": "Which sequence best represents a systematic approach to nursing research?",
+    "options": [
+      "Identify a problem → review relevant literature → plan the study → collect and analyze data → interpret and disseminate findings",
+      "Collect random data → write a conclusion → identify a problem → select participants",
+      "Publish findings → formulate objectives → collect data → seek ethical approval",
+      "Select statistics → assume results → write recommendations → define the problem"
+    ],
+    "correct_answer": "Identify a problem → review relevant literature → plan the study → collect and analyze data → interpret and disseminate findings",
+    "subject": "Research Methodology",
+    "difficulty": "Easy",
+    "question_type": "mcq"
+  }
+]

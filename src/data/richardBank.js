@@ -3,6 +3,7 @@ import rawMusculoskeletal from './flashcards/nmcn/muscleskeletal-Richard.json';
 import rawNeurological from './flashcards/nmcn/Neurological-Nursing.json';
 import rawNursing200 from './flashcards/nmcn/200level questions.json';
 import rawMidwifery from './flashcards/nmcn/200-level-midwifery.json';
+import { canonicalOptionText } from '../utils/answerMatch.js';
 
 // Normalizes Richard-style question banks to the shared question shape used
 // by the quiz engine. These raw files store answers as letters ("A".."D")
@@ -49,8 +50,13 @@ const resolveCorrectAnswer = (q) => {
   if (letterIdx != null && Array.isArray(q.options)) {
     return q.correct_answer_text || String(q.options[letterIdx]);
   }
-  // Full-text convention: correct_answer IS the answer text.
-  return raw || q.correct_answer_text || undefined;
+  // Full-text convention: correct_answer IS the answer text. Resolve it to the
+  // EXACT string of one of the question's own options (see src/utils/answerMatch
+  // .js) so a leading "D. " key marker never flows into a stored option value or
+  // a later equality check. Never guesses: on no unique match the raw text is
+  // kept verbatim.
+  const resolved = canonicalOptionText(raw, Array.isArray(q.options) ? q.options : []);
+  return resolved || q.correct_answer_text || undefined;
 };
 
 // Prefer the bank's own numeric id when present. The 200-level file uses

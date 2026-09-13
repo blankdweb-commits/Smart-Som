@@ -89,6 +89,7 @@ const QUIZ_CONFIGS = {
     accentText: 'text-emerald-400',
     accentBg: 'bg-emerald-500/20 border-emerald-500/30',
     subjects: [
+      'Community Health Nursing I',
       'Fundamentals of Nursing',
       'Pharmacology III',
       'Reproductive Health',
@@ -109,7 +110,7 @@ const QUIZ_CONFIGS = {
     allowOrderChoice: true,
     allowExamMode: true,
     defaultOrder: 'randomized',
-    bankNote: 'Questions available across 8 core subjects'
+    bankNote: 'Questions available across 9 core subjects'
   },
   'weakness-challenge': {
     title: 'Fix My Weak Areas',

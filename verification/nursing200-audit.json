@@ -1,0 +1,225 @@
+{
+  "generatedAt": "2026-09-13T19:50:10.930Z",
+  "scopeDescription": "The 8 approved Nursing 200-Level source files (Polynurse 200-level question banks). Diagnostic only — no source data modified, no DB writes.",
+  "capital": "Questions audited / unique IDs / duplicate IDs / option-count errors / missing or invalid answer keys / questions whose answer key does not resolve to exactly one option / duplicate option text.",
+  "files": [
+    {
+      "file": "community_health_nursing_i_questions_fixed.json",
+      "total": 392,
+      "idField": "question_id",
+      "uniqueIds": 392,
+      "duplicateIds": 0,
+      "duplicateIdList": [],
+      "optionCounts": {
+        "4": 392
+      },
+      "keyFormats": {
+        "TEXT-EXACT": 392
+      },
+      "difficulties": {
+        "Easy": 98,
+        "Expert": 98,
+        "Hard": 98,
+        "Moderate": 98
+      },
+      "subjects": {
+        "Community Health Nursing I": 392
+      },
+      "duplicateOptionPairs": 0,
+      "flaggedCount": 0,
+      "flagged": []
+    },
+    {
+      "file": "foundation_of_nursing_iv_questions_fixed.json",
+      "total": 715,
+      "idField": "question_id",
+      "uniqueIds": 715,
+      "duplicateIds": 0,
+      "duplicateIdList": [],
+      "optionCounts": {
+        "4": 715
+      },
+      "keyFormats": {
+        "TEXT-EXACT": 715
+      },
+      "difficulties": {
+        "Easy": 178,
+        "Expert": 179,
+        "Hard": 179,
+        "Moderate": 179
+      },
+      "subjects": {
+        "Fundamentals of Nursing": 715
+      },
+      "duplicateOptionPairs": 0,
+      "flaggedCount": 0,
+      "flagged": []
+    },
+    {
+      "file": "medical_surgical_nursing_questions_fixed.json",
+      "total": 360,
+      "idField": "question_id",
+      "uniqueIds": 360,
+      "duplicateIds": 0,
+      "duplicateIdList": [],
+      "optionCounts": {
+        "4": 360
+      },
+      "keyFormats": {
+        "TEXT-EXACT": 360
+      },
+      "difficulties": {
+        "Easy": 90,
+        "Expert": 90,
+        "Hard": 90,
+        "Moderate": 90
+      },
+      "subjects": {
+        "Medical-Surgical Nursing": 360
+      },
+      "duplicateOptionPairs": 0,
+      "flaggedCount": 0,
+      "flagged": []
+    },
+    {
+      "file": "nutrition_and_dietetics_questions.json",
+      "total": 280,
+      "idField": "question_id",
+      "uniqueIds": 280,
+      "duplicateIds": 0,
+      "duplicateIdList": [],
+      "optionCounts": {
+        "4": 280
+      },
+      "keyFormats": {
+        "TEXT-PREFIXED": 280
+      },
+      "difficulties": {
+        "easy": 93,
+        "expert": 63,
+        "hard": 62,
+        "moderate": 62
+      },
+      "subjects": {
+        "Unit I: Introduction to Nutrition": 144,
+        "Unit II: Nutritional Needs": 107,
+        "Unit III: Food Planning, Preparation, and Safety": 29
+      },
+      "duplicateOptionPairs": 0,
+      "flaggedCount": 0,
+      "flagged": []
+    },
+    {
+      "file": "pharmacology_iii_final_qbank.json",
+      "total": 618,
+      "idField": "question_id",
+      "uniqueIds": 618,
+      "duplicateIds": 0,
+      "duplicateIdList": [],
+      "optionCounts": {
+        "4": 618
+      },
+      "keyFormats": {
+        "TEXT-EXACT": 618
+      },
+      "difficulties": {
+        "Easy": 154,
+        "Expert": 155,
+        "Hard": 155,
+        "Moderate": 154
+      },
+      "subjects": {
+        "Pharmacology III": 618
+      },
+      "duplicateOptionPairs": 0,
+      "flaggedCount": 0,
+      "flagged": []
+    },
+    {
+      "file": "politics_and_governance_in_nursing_questions.json",
+      "total": 252,
+      "idField": "question_id",
+      "uniqueIds": 252,
+      "duplicateIds": 0,
+      "duplicateIdList": [],
+      "optionCounts": {
+        "4": 252
+      },
+      "keyFormats": {
+        "TEXT-PREFIXED": 252
+      },
+      "difficulties": {
+        "easy": 63,
+        "expert": 63,
+        "hard": 63,
+        "moderate": 63
+      },
+      "subjects": {
+        "Concept of Politics and Government": 102,
+        "Political Activities": 107,
+        "Political Interaction": 43
+      },
+      "duplicateOptionPairs": 0,
+      "flaggedCount": 0,
+      "flagged": []
+    },
+    {
+      "file": "reproductive_health_questions_final.json",
+      "total": 550,
+      "idField": "question_id",
+      "uniqueIds": 550,
+      "duplicateIds": 0,
+      "duplicateIdList": [],
+      "optionCounts": {
+        "4": 550
+      },
+      "keyFormats": {
+        "TEXT-EXACT": 550
+      },
+      "difficulties": {
+        "Easy": 137,
+        "Expert": 137,
+        "Hard": 138,
+        "Moderate": 138
+      },
+      "subjects": {
+        "Reproductive Health": 550
+      },
+      "duplicateOptionPairs": 0,
+      "flaggedCount": 0,
+      "flagged": []
+    },
+    {
+      "file": "research_methodology_questions_fixed.json",
+      "total": 350,
+      "idField": "question_id",
+      "uniqueIds": 350,
+      "duplicateIds": 0,
+      "duplicateIdList": [],
+      "optionCounts": {
+        "4": 350
+      },
+      "keyFormats": {
+        "TEXT-EXACT": 350
+      },
+      "difficulties": {
+        "Easy": 87,
+        "Expert": 88,
+        "Hard": 88,
+        "Moderate": 87
+      },
+      "subjects": {
+        "Research Methodology": 350
+      },
+      "duplicateOptionPairs": 0,
+      "flaggedCount": 0,
+      "flagged": []
+    }
+  ],
+  "totals": {
+    "totalQuestions": 3517,
+    "duplicateIds": 0,
+    "flagged": 0,
+    "duplicateOptionPairs": 0
+  }
+}

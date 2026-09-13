@@ -17,6 +17,7 @@ import { motion } from 'framer-motion';
 import QuizSetupFlow, { QUIZ_CONFIGS, LEVEL_SUBJECTS } from '../components/QuizSetupFlow';
 import QuizPlayer from '../components/QuizPlayer';
 import { useQuizBatch } from '../hooks/useQuizBatch';
+import { canonicalOptionText } from '../utils/answerMatch.js';
 import { generateUuid } from '../utils/safeStorage';
 
 // Maps setup-flow quiz ids to engine mode ids.
@@ -1223,10 +1224,10 @@ const Quiz = () => {
                   {!a.isCorrect && (
                     <>
                       <p className="text-[10px] font-black uppercase tracking-widest text-slate-400 mt-2">Correct Answer</p>
-                      <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">â†’ {a.correctAnswer}</p>
+                      <p className="text-xs font-bold text-emerald-600 dark:text-emerald-400">â†’ {canonicalOptionText(a.correctAnswer, a.options || [])}</p>
                       <p className="text-[10px] font-black uppercase tracking-widest text-red-400 mt-2">Conceptual Misalignment</p>
                       <p className="text-xs text-slate-600 dark:text-slate-300 leading-relaxed">
-                        Your selection addresses "{a.yourAnswer}", but the priority here is "{a.correctAnswer}". {a.hint}
+                        Your selection addresses "{a.yourAnswer}", but the priority here is "{canonicalOptionText(a.correctAnswer, a.options || [])}". {a.hint}
                       </p>
                     </>
                   )}

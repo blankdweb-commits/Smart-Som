@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useRef } from 'react';
+import { optionMatchesCorrectAnswer, canonicalOptionText } from '../utils/answerMatch.js';
   // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -97,6 +98,7 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onAnswer, onComplet
       timedOut: wasTimeout,
       yourAnswer: opt ?? 'No answer submitted',
       correctAnswer: q.correctAnswer,
+      options: q.options || [],
       rationale:
         q.rationale ||
         'Nurses must apply critical thinking and clinical protocols to ensure patient safety and prioritize airway, breathing, and circulation.',
@@ -124,7 +126,7 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onAnswer, onComplet
 
   const confirmAnswer = (opt) => {
     if (isLocked || !opt) return;
-    const correct = opt === q.correctAnswer;
+    const correct = optionMatchesCorrectAnswer(opt, q.correctAnswer, q.options);
     setLockedAnswer(opt);
     setIsCorrect(correct);
     setTimedOut(false);
@@ -237,7 +239,7 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onAnswer, onComplet
   // Option card visual state
   const optionState = (option) => {
     if (!isLocked) return option === selected ? 'selected' : 'default';
-    if (option === q.correctAnswer) return 'correct';
+    if (optionMatchesCorrectAnswer(option, q.correctAnswer, q.options)) return 'correct';
     if (option === lockedAnswer) return 'wrong';
     return 'dimmed';
   };
@@ -475,7 +477,7 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onAnswer, onComplet
 
                     {!isCorrect && (
                       <ReviewCard label="Correct Answer" tone="good">
-                        → {q.correctAnswer}
+                        → {canonicalOptionText(q.correctAnswer, q.options)}
                       </ReviewCard>
                     )}
 
@@ -487,8 +489,8 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onAnswer, onComplet
                       <>
                         <ReviewCard label="Conceptual Misalignment" tone="bad" icon={<AlertCircle size={14} className="text-red-400 shrink-0 mt-0.5" />}>
                           {timedOut
-                            ? `Time expired before an answer was submitted. The priority here is "${q.correctAnswer}". ${q.hint || ''}`
-                            : `Your selection addresses "${lockedAnswer}", but the priority in this situation is "${q.correctAnswer}". ${q.hint || ''}`}
+                            ? `Time expired before an answer was submitted. The priority here is "${canonicalOptionText(q.correctAnswer, q.options)}". ${q.hint || ''}`
+                            : `Your selection addresses "${lockedAnswer}", but the priority in this situation is "${canonicalOptionText(q.correctAnswer, q.options)}". ${q.hint || ''}`}
                         </ReviewCard>
                         <ReviewCard label="Why the Correct Answer" tone="neutral" icon={<TargetIcon />}>
                           {q.rationale || 'Nurses must apply critical thinking and clinical protocols to ensure patient safety and prioritize airway, breathing, and circulation.'}
@@ -501,7 +503,7 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onAnswer, onComplet
                   <div className="rounded-2xl p-4 bg-slate-900/60 border border-white/10 text-center">
                     <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">Exam Mode</p>
                     <p className="text-sm font-bold text-slate-200 mt-1">
-                      {isCorrect ? 'Answer recorded ✓' : `Noted — the correct answer is "${q.correctAnswer}"`}
+                      {isCorrect ? 'Answer recorded ✓' : `Noted — the correct answer is "${canonicalOptionText(q.correctAnswer, q.options)}"`}
                     </p>
                     <p className="text-[9px] font-bold text-slate-500 uppercase tracking-widest mt-1">
                       Full review with rationales at the end of the session

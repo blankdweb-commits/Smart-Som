@@ -16,6 +16,7 @@
 
 import crypto from 'crypto';
 import { SELECTION_CONFIG as C } from './_selectionConfig.js';
+import { gradeAnswer } from './_answerMatch.js';
 
 // ============================================================
 // Canonical course metadata: maps client-facing courseKey prefixes to the
@@ -701,8 +702,10 @@ export class QuestionSelectionService {
 
   // --------------------------------------------------------
   // PRIVATE: Grade a submitted answer against the stored canonical answer.
-  // Returns true only when the stored correct_answer matches the submission
-  // (trimmed, case-insensitive; also handles numeric/letter indices).
+  // Correctness is derived by resolving the stored key against the question's
+  // OWN options (exact-equality-after-normalization, incl. a leading "A.".."E."
+  // marker) — see api/_answerMatch.js. There is NO positional dependency and
+  // NO fuzzy matching. The stored-answer toString is never trusted directly.
   // --------------------------------------------------------
   async _gradeAnswer(questionId, selectedAnswer) {
     if (selectedAnswer === null || selectedAnswer === undefined || selectedAnswer === '') {
@@ -715,22 +718,7 @@ export class QuestionSelectionService {
         .eq('id', questionId)
         .maybeSingle();
       if (error || !q) return false;
-
-      const normalize = (v) => String(v ?? '').trim().toLowerCase();
-      const submitted = normalize(selectedAnswer);
-      const canonical = normalize(q.correct_answer);
-
-      if (submitted === canonical) return true;
-
-      // Fallback: the client may submit the option INDEX instead of the text.
-      // If `selectedAnswer` is an integer index into q.options, compare the
-      // indexed option against the canonical answer.
-      const asIndex = Number(selectedAnswer);
-      if (Array.isArray(q.options) && Number.isInteger(asIndex) && asIndex >= 0 && asIndex < q.options.length) {
-        if (normalize(q.options[asIndex]) === canonical) return true;
-      }
-
-      return false;
+      return gradeAnswer(selectedAnswer, q.correct_answer, q.options);
     } catch {
       return false;
     }
