@@ -674,6 +674,93 @@ let passed = 0;
 }
 
 // ---------------------------------------------------------------------------
+// 10. GLOBAL PLAYER SCORE ranking invariants (migration v30 + server flow).
+//     Score is server-authoritative: RLS blocks all client writes to
+//     player_stats/quiz_batches/quiz_batch_questions/quiz_results, the award is
+//     idempotent per batch, and the rank/leaderboard read via RPCs — with NO
+//     new Vercel serverless functions (12-function Hobby ceiling preserved).
+// ---------------------------------------------------------------------------
+{
+  const mig = read(resolve(ROOT, 'scripts/migration-v30-player-score.sql'));
+  const svc = read(resolve(ROOT, 'api/_questionSelectionService.js'));
+  const qb = read(resolve(ROOT, 'api/_quiz-batches.js'));
+  const app = read(resolve(ROOT, 'src/context/AppContext.jsx'));
+
+  // No new deployable function for ranking: award flows through the existing
+  // quiz.js router path and reads run client-side via RPCs.
+  checks.push(
+    !existsSync(resolve(ROOT, 'api/player-score.js')) && !existsSync(resolve(ROOT, 'api/leaderboard.js'))
+      ? ok('no new api/*.js function added for player score/leaderboard (RPC + existing router only)')
+      : fail('a ranking api/*.js file exists — would blow the 12-function ceiling'),
+  );
+  checks.push(
+    /apply_quiz_batch_score/.test(svc) && /PGRST202|PGRST206/.test(svc)
+      ? ok('completeBatch calls the atomic award RPC and FAILS SOFT if it is not deployed yet')
+      : fail('_questionSelectionService.js award RPC missing or not fail-soft'),
+  );
+  checks.push(
+    /difficulty: labelDifficulty,\s*subject: labelSubject,\s*durationSeconds: labelDuration,\s*groupId: labelGroupId/.test(qb)
+      && !/req\.body\?\.score|req\.body\?\.total/.test(qb)
+      ? ok('batch-complete accepts LABELS ONLY — the browser never supplies score/total')
+      : fail('batch-complete still trusts a client score field'),
+  );
+  checks.push(
+    /fetchGlobalRank[\s\S]*?supabase\.rpc\('get_my_player_rank'/.test(app)
+      ? ok('AppContext.fetchGlobalRank reads the rank RPC (server-computed)')
+      : fail('AppContext.fetchGlobalRank is not RPC-backed'),
+  );
+  checks.push(
+    /authoritative = !!\s*\(serverResult && serverResult\.resultId != null\)/.test(app) && /if \(!authoritative\)\s*\{/.test(app)
+      ? ok('recordQuizResult only writes quiz_results client-side when the server did NOT (pre-migration fallback)')
+      : fail('recordQuizResult can still fabricate an authoritative result'),
+  );
+
+  // Migration tokens — every object required by the spec round-trip.
+  checks.push(
+    /create table if not exists public\.player_stats/.test(mig) && /create table if not exists public\.player_score_awards/.test(mig)
+      ? ok('v30 migration creates player_stats + player_score_awards')
+      : fail('v30 migration missing the score/award tables'),
+  );
+  checks.push(
+    /idx_player_stats_score\s+on public\.player_stats \(player_score desc, correct_answers desc, score_achieved_at asc, user_id asc\)/.test(mig)
+      ? ok('v30 migration creates the leaderboard-covering index (player_score DESC …)')
+      : fail('v30 migration index missing/misordered'),
+  );
+  checks.push(
+    /player_score_awards\s*\([\s\S]*?batch_id uuid primary key/.test(mig) && /on conflict \(batch_id\) do nothing/.test(mig)
+      ? ok('v30 migration makes the award idempotent (batch_id PK + ON CONFLICT DO NOTHING)')
+      : fail('v30 migration award idempotency missing'),
+  );
+  checks.push(
+    /if not v_replay\s+and v_award\.batch_id is not null then[\s\S]*?v_fresh := true;[\s\S]*?insert into public\.player_stats/.test(mig) && /awarded', v_fresh/.test(mig)
+      ? ok('v30 migration gates the player_stats credit on a FRESH award — a replayed completion can never double-credit')
+      : fail('v30 migration can double-credit player_score on replay'),
+  );
+  checks.push(
+    /alter table public\.quiz_results add column if not exists batch_id uuid;/ && /add constraint quiz_results_batch_id_key unique \(batch_id\)/.test(mig)
+      ? ok('v30 migration locks one authoritative quiz_results row per batch (UNIQUE batch_id constraint)')
+      : fail('v30 migration quiz_results.batch_id unique guard missing'),
+  );
+  checks.push(
+    /alter table public\.player_stats enable row level security/ && /create policy "player_stats_self_read"[\s\S]*?for select[\s\S]*?using \(auth\.uid\(\) = user_id\)/.test(mig)
+      ? ok('player_stats RLS is SELECT-own only — no client insert/update of score')
+      : fail('v30 migration player_stats RLS not select-only'),
+  );
+  checks.push(
+    /create policy "quiz_batches_own"[\s\S]*?for select/ && /create policy "batch_questions_own"[\s\S]*?for select/ && /drop policy if exists "quiz_results_all_own"/.test(mig)
+      ? ok('batch tables downgraded to SELECT-only; quiz_results for-all insert policy dropped')
+      : fail('v30 migration RLS lockdown incomplete'),
+  );
+  checks.push(
+    /revoke all on function public\.apply_quiz_batch_score\(uuid, uuid, text, text, int, bigint\) from public, anon, authenticated;[\s\S]*?grant execute on function public\.apply_quiz_batch_score\(uuid, uuid, text, text, int, bigint\) to service_role;/.test(mig)
+      && /revoke all on function public\.get_my_player_rank\(uuid\) from public, anon;[\s\S]*?grant execute on function public\.get_my_player_rank\(uuid\) to authenticated/.test(mig)
+      && /revoke all on function public\.get_player_leaderboard\(int, int\) from public, anon;[\s\S]*?grant execute on function public\.get_player_leaderboard\(int, int\) to authenticated/.test(mig)
+      ? ok('award RPC is service_role-only; rank/leaderboard RPCs are authenticated-readable')
+      : fail('v30 migration RPC grants wrong'),
+  );
+}
+
+// ---------------------------------------------------------------------------
 console.log('\n----');
 const failed = checks.filter((c) => c === false).length;
 passed = checks.filter((c) => c === true).length;

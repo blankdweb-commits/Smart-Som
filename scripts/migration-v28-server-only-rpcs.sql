@@ -23,27 +23,34 @@
 --   service_role only. Serverless functions run as the service role, so the
 --   existing API flow is unaffected; the direct client call path is closed.
 --
+-- NOTE (learned from v30 live verification): this project's DEFAULT PRIVILEGES
+-- for role postgres / schema public functions auto-grant EXECUTE to anon AND
+-- authenticated (and service_role) on every new function, so a plain
+-- `revoke ... from public` leaves those explicit grants in place and anon can
+-- still execute. ALL revokes below therefore list public, anon, authenticated
+-- explicitly.
+--
 -- Idempotent. Safe to re-run.
 -- ============================================================
 
 -- 1. consume_course_quota — v26 5-arg (the surviving overload)
-revoke execute on function public.consume_course_quota(uuid, text, integer, boolean, uuid) from public;
+revoke execute on function public.consume_course_quota(uuid, text, integer, boolean, uuid) from public, anon, authenticated;
 grant execute on function public.consume_course_quota(uuid, text, integer, boolean, uuid) to service_role;
 
 -- 2. get_course_quota_status
-revoke execute on function public.get_course_quota_status(uuid) from public;
+revoke execute on function public.get_course_quota_status(uuid) from public, anon, authenticated;
 grant execute on function public.get_course_quota_status(uuid) to service_role;
 
 -- 3. record_difficulty_correct — v20 3-arg (user_id, course_key, difficulty)
-revoke execute on function public.record_difficulty_correct(uuid, text, text) from public;
+revoke execute on function public.record_difficulty_correct(uuid, text, text) from public, anon, authenticated;
 grant execute on function public.record_difficulty_correct(uuid, text, text) to service_role;
 
 -- 4. get_difficulty_status — v20 2-arg (user_id, course_key default null)
-revoke execute on function public.get_difficulty_status(uuid, text) from public;
+revoke execute on function public.get_difficulty_status(uuid, text) from public, anon, authenticated;
 grant execute on function public.get_difficulty_status(uuid, text) to service_role;
 
 -- 5. reset_course_quota — admin/debug only
-revoke execute on function public.reset_course_quota(uuid, text) from public;
+revoke execute on function public.reset_course_quota(uuid, text) from public, anon, authenticated;
 grant execute on function public.reset_course_quota(uuid, text) to service_role;
 
 -- DONE.

@@ -727,7 +727,19 @@ export class QuestionSelectionService {
   // --------------------------------------------------------
   // Complete a batch
   // --------------------------------------------------------
-  async completeBatch({ batchId, userId }) {
+  // Global Player Score integration (SERVER-AUTHORITATIVE):
+  //   - The score is computed HERE from the persisted, server-graded answers.
+  //   - The atomic `apply_quiz_batch_score` RPC (migration v30) records the
+  //     authoritative quiz_results row AND credits player_score exactly once
+  //     per batch (player_score_awards PK = batch_id -> idempotent under
+  //     double-click / refresh / concurrent tabs / replay).
+  //   - The RPC also finalizes the batch status. If the RPC is not deployed
+  //     yet (migration pending), this method FAILS SOFT and completes the batch
+  //     with the legacy behavior so quiz completion never breaks.
+  //   - difficulty / subject / durationSeconds / groupId travel from the client
+  //     as DISPLAY LABELS ONLY — they are sanitised server-side and never
+  //     influence the computed score.
+  async completeBatch({ batchId, userId, difficulty = null, subject = null, durationSeconds = 0, groupId = null }) {
     const { data: batch, error } = await this.supabase
       .from('quiz_batches')
       .select('*')
@@ -739,6 +751,8 @@ export class QuestionSelectionService {
       return { error: 'BATCH_NOT_FOUND' };
     }
 
+    const awardCtx = { batchId, userId, difficulty, subject, durationSeconds, groupId };
+
     // Duplicate-completion guard: a batch is finalized exactly once. A replayed
     // completion request returns the already-recorded result WITHOUT touching
     // the DB again, so replays can't re-record or double-credit anything.
@@ -748,6 +762,18 @@ export class QuestionSelectionService {
         .select('*')
         .eq('batch_id', batchId);
       const prev = (prevAnswers || []).filter(a => a.answered);
+      const stored = await this._applyScoreAward(awardCtx);
+      if (stored && stored.ok !== false) {
+        return {
+          success: true,
+          alreadyCompleted: true,
+          score: stored.score,
+          total: stored.total,
+          answers: prev,
+          result: this._mapAwardResult(stored),
+        };
+      }
+      // Pre-migration fallback: recompute from persisted answers.
       return {
         success: true,
         alreadyCompleted: true,
@@ -766,19 +792,23 @@ export class QuestionSelectionService {
     const correct = (answers || []).filter(a => a.correct).length;
     const total = (answers || []).filter(a => a.answered).length;
 
-    // Guard the status transition with a conditional update so two concurrent
-    // completions cannot double-fire (only the first flips the status).
-    const { error: upErr } = await this.supabase
-      .from('quiz_batches')
-      .update({
-        status: 'completed',
-        completed_at: new Date().toISOString(),
-      })
-      .eq('id', batchId)
-      .in('status', ['reserved', 'started']);
+    // Atomic record + award (idempotent). The RPC flips the batch status too.
+    const award = await this._applyScoreAward(awardCtx);
 
-    if (upErr) {
-      return { error: 'COMPLETE_FAILED', message: upErr.message };
+    if (!award || award.ok === false) {
+      // RPC missing/failed (migration not applied yet): legacy completion only.
+      const { error: upErr } = await this.supabase
+        .from('quiz_batches')
+        .update({
+          status: 'completed',
+          completed_at: new Date().toISOString(),
+        })
+        .eq('id', batchId)
+        .in('status', ['reserved', 'started']);
+
+      if (upErr) {
+        return { error: 'COMPLETE_FAILED', message: upErr.message };
+      }
     }
 
     return {
@@ -787,6 +817,57 @@ export class QuestionSelectionService {
       score: correct,
       total,
       answers: answers || [],
+      result: award && award.ok !== false ? this._mapAwardResult(award) : null,
+    };
+  }
+
+  // --------------------------------------------------------
+  // PRIVATE: Call the atomic scoring RPC (fail-soft when the migration has not
+  // been applied yet, so quiz completion NEVER depends on the new schema).
+  // --------------------------------------------------------
+  async _applyScoreAward({ batchId, userId, difficulty, subject, durationSeconds, groupId }) {
+    try {
+      const { data, error } = await this.supabase.rpc('apply_quiz_batch_score', {
+        p_batch_id: batchId,
+        p_user_id: userId,
+        p_difficulty: difficulty ?? null,
+        p_subject: subject ?? null,
+        p_duration_seconds: Math.max(0, Math.min(Number(durationSeconds) || 0, 604800)),
+        p_group_id: groupId ?? null,
+      });
+
+      if (error) {
+        // PGRST202 = function not found -> migration v30 not applied yet.
+        console.warn('[QuestionSelection] apply_quiz_batch_score unavailable:', error.message);
+        return null;
+      }
+      if (!data) return null;
+      return data;
+    } catch (e) {
+      console.warn('[QuestionSelection] apply_quiz_batch_score error:', e?.message);
+      return null;
+    }
+  }
+
+  // --------------------------------------------------------
+  // PRIVATE: Shape the RPC payload into the client-facing `result` object.
+  // --------------------------------------------------------
+  _mapAwardResult(a) {
+    return {
+      resultId: a.resultId ?? null,
+      score: a.score ?? 0,
+      total: a.total ?? 0,
+      passed: !!a.passed,
+      correctAnswers: a.correctAnswers ?? 0,
+      totalAnswers: a.totalAnswers ?? 0,
+      playerScore: a.playerScore ?? 0,
+      correctAnswersTotal: a.correctAnswersTotal ?? 0,
+      totalAnswersTotal: a.totalAnswersTotal ?? 0,
+      awarded: !!a.awarded,
+      replay: !!a.replay,
+      difficulty: a.difficulty ?? null,
+      subject: a.subject ?? null,
+      mode: a.mode ?? null,
     };
   }
 

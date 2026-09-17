@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { BookOpen, TrendingUp, Award, Zap, ArrowRight, Clock, AlertCircle, Target, CheckCircle, ChevronRight, Lock, Sparkles, Coins } from '../components/Icons';
+import { BookOpen, TrendingUp, Award, Zap, ArrowRight, Clock, AlertCircle, Target, CheckCircle, ChevronRight, Lock, Sparkles, Coins, Trophy } from '../components/Icons';
 import { differenceInDays } from 'date-fns';
 
 import DailyChallengeWidget from '../components/DailyChallengeWidget';
@@ -16,8 +16,20 @@ import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
 const Dashboard = () => {
   const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
-  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics, quizHistory, smartCoins, scLedger, claimDailySC, identity, identityUnlock, dismissIdentityUnlock, SC_FEATURE_LOCKED, userAchievements } = useAppContext();
+  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics, quizHistory, smartCoins, scLedger, claimDailySC, identity, identityUnlock, dismissIdentityUnlock, SC_FEATURE_LOCKED, userAchievements, fetchGlobalRank } = useAppContext();
   const navigate = useNavigate();
+
+  // Server-authoritative global player score rank (migration v30). RPC-based;
+  // null until the migration is applied / the user has scored a round.
+  const [globalRankInfo, setGlobalRankInfo] = React.useState(null);
+  React.useEffect(() => {
+    let active = true;
+    setGlobalRankInfo(null);
+    if (!loadingAuth && session) {
+      fetchGlobalRank().then(res => { if (active && res) setGlobalRankInfo(res); });
+    }
+    return () => { active = false; };
+  }, [session, loadingAuth, fetchGlobalRank]);
 
   // Redirect if not logged in - Only if not in DEV_MODE and NOT in Dashboard-First mode
   // Since Dashboard-First is the primary experience, we usually don't want to redirect back to landing
@@ -333,6 +345,8 @@ const Dashboard = () => {
              <p className="text-xs text-slate-400 font-medium mt-3">{readinessHint}</p>
            </div>
 
+           <GlobalRankCard rank={globalRankInfo} />
+
            <StudyPlanCard />
 
            <button
@@ -452,6 +466,35 @@ const StatsCard = ({ title, value, icon, color }) => (
     </div>
   </div>
 );
+
+// ---- Global Rank: server-computed player score + rank (migration v30) ----
+const GlobalRankCard = ({ rank }) => {
+  const hasRank = rank && rank.globalRank != null;
+  return (
+    <div className="bg-polynurse-700 rounded-[2.5rem] p-8 text-white shadow-xl relative overflow-hidden group">
+      <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
+        <Trophy size={120} />
+      </div>
+      <h3 className="text-xl font-black mb-2 relative z-10 uppercase tracking-tight">Global Rank</h3>
+      <p className="text-[10px] uppercase font-black text-white/70 tracking-widest relative z-10 mb-4">Verified player score</p>
+      <div className="relative z-10">
+        <p className="text-5xl font-black tracking-tighter">
+          {hasRank ? `#${rank.globalRank}` : '—'}
+        </p>
+        <p className="text-xs font-bold text-white/80 mt-2 max-w-[220px]">
+          {hasRank
+            ? `${Number(rank.playerScore || 0).toLocaleString()} pts · ${Number(rank.totalAnswers || 0).toLocaleString()} verified answers`
+            : 'Complete a quiz round to claim your spot on the global leaderboard.'}
+        </p>
+        {hasRank && (
+          <p className="text-[9px] font-black text-white/50 uppercase tracking-widest mt-3">
+            vs {Number(rank.totalPlayers || 0).toLocaleString()} scholars
+          </p>
+        )}
+      </div>
+    </div>
+  );
+};
 
 // ---- Today's Progress widget: streak + questions answered today + accuracy ----
 const TodayProgressWidget = ({ streak, stats }) => (

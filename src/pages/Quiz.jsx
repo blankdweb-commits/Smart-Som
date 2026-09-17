@@ -404,6 +404,7 @@ const Quiz = () => {
   // ----- Guided setup flow + immersive player (Clinical / Quick / Uselu) -----
   const [setupType, setSetupType] = useState(null);        // 'clinical-challenge' | 'quick-quiz' | 'uselu-test'
   const [presetDifficulty, setPresetDifficulty] = useState(null); // deep-linked difficulty
+  const [selectedDifficulty, setSelectedDifficulty] = useState(null); // setup-preselected difficulty
   const [presetSubject, setPresetSubject] = useState(null); // deep-linked subject
   const [groupQuizId, setGroupQuizId] = useState(null); // deep-linked study group id
   const [playerActive, setPlayerActive] = useState(false);
@@ -440,16 +441,24 @@ const Quiz = () => {
   const attemptIdRef = React.useRef(null);
 
   // ----- Difficulty progression -----
-  const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchSCRank, studyStats, levelCompletions, session, fetchQuestionHistory, isPremium, fetchCourseQuotaStatus, courseQuota, quotaFetchStatus } = useAppContext();
-  const [selectedDifficulty, setSelectedDifficulty] = useState(null);
-  const [globalRank, setGlobalRank] = useState(null);
+const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchGlobalRank, studyStats, levelCompletions, session, fetchQuestionHistory, isPremium, fetchCourseQuotaStatus, courseQuota, quotaFetchStatus } = useAppContext();
 
-  // Load the live SC global rank once (lightweight, non-blocking).
+  const [globalRank, setGlobalRank] = useState(null);
+  const [globalScore, setGlobalScore] = useState(null);
+
+  // Load the server-authoritative player score rank once (lightweight,
+  // non-blocking). Falls back to '—' until the v30 migration is applied.
   React.useEffect(() => {
     let active = true;
-    fetchSCRank().then(rank => { if (active) setGlobalRank(rank); });
+    fetchGlobalRank().then(res => {
+      if (!active) return;
+      if (res) {
+        setGlobalRank(res.globalRank);
+        setGlobalScore(res.playerScore);
+      }
+    });
     return () => { active = false; };
-  }, [fetchSCRank]);
+  }, [fetchGlobalRank]);
 
   const weakConceptNames = React.useMemo(() => {
     const names = new Set();
@@ -812,16 +821,21 @@ const Quiz = () => {
 
     const pct = result.total > 0 ? Math.round((result.score / result.total) * 100) : 0;
 
-    // Complete the batch on the server (records final score, updates history)
+    // Complete the batch on the server (records final score, updates history,
+    // awards the authoritative player_score once per batch).
+    let completed = null;
     if (activeConfig?.batchId) {
       try {
-        await completeBatch();
+        completed = await completeBatch();
       } catch (err) {
         console.warn('Batch completion error:', err);
       }
     }
+    const serverResult = completed?.result || null;
 
-    // Record quiz result for progress tracking
+    // Record quiz result for progress tracking. When the server returned an
+    // authoritative verdict, its score/total/passed/resultId are used and the
+    // client never writes its own quiz_results row.
     if (activeConfig?.difficulty) {
       recordQuizResult({
         mode: activeConfig.engineMode,
@@ -830,7 +844,8 @@ const Quiz = () => {
         score: result.score,
         total: result.total,
         durationSeconds: result.durationSeconds,
-        groupId: groupQuizId
+        groupId: groupQuizId,
+        serverResult
       }).then(passed => setPassInfo({ passed, pct }));
     } else {
       setPassInfo({ passed: null, pct });
@@ -1266,7 +1281,7 @@ const Quiz = () => {
 
   // Mode selection
   const statCells = [
-    { label: 'Global Rank', value: globalRank ? `#${globalRank}` : '—', className: 'text-indigo-600' },
+    { label: 'Global Rank', value: globalRank ? `#${globalRank}` : '—', sub: globalScore != null ? `${globalScore} pts` : null, className: 'text-indigo-600' },
     { label: 'Smart Coins', value: Number(smartCoins || 0).toLocaleString(undefined, { maximumFractionDigits: 1 }), className: 'text-emerald-500' },
     { label: 'Quiz Streak', value: `${studyStats?.quizStreak || 0}`, className: 'text-amber-500' },
     { label: 'Exam Readiness', value: `${readiness}%`, className: readiness >= 70 ? 'text-medical-500' : readiness >= 40 ? 'text-amber-500' : 'text-red-500' }
@@ -1299,6 +1314,7 @@ const Quiz = () => {
               >
                 <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">{cell.label}</p>
                 <p className={`text-lg sm:text-xl font-black ${cell.className}`}>{cell.value}</p>
+                {cell.sub && <p className="text-[9px] font-bold text-slate-400">{cell.sub}</p>}
               </div>
             ))}
           </div>

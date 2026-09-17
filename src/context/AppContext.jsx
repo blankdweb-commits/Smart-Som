@@ -667,21 +667,34 @@ export function AppProvider({ children }) {
     }
   }, [session]);
 
-  // Global rank by Smart Coin balance: number of users with strictly more SC
-  // than the current user, plus one. Uses the idx_profiles_smart_coins index.
-  const fetchSCRank = useCallback(async () => {
-    if (!session || !supabase) return null;
+  // Global Player Score rank — SERVER-AUTHORITATIVE. Reads the cumulative
+  // player_score + deterministic global rank from the get_my_player_rank RPC
+  // (migration v30), NOT from any client-side leaderboard slice. Returns null
+  // until the migration is applied (the UI shows '—' gracefully).
+  const fetchGlobalRank = useCallback(async (sess) => {
+    const s = sess || session;
+    if (!s || !supabase) return null;
     try {
-      const { count, error } = await supabase
-        .from('profiles')
-        .select('id', { count: 'exact', head: true })
-        .gt('smart_coins', smartCoins);
-      if (error) return null;
-      return (count ?? 0) + 1;
-    } catch {
+      const { data, error } = await supabase.rpc('get_my_player_rank', {
+        p_user_id: s.user.id,
+      });
+      if (error) {
+        console.warn('[rank] get_my_player_rank:', error.message);
+        return null;
+      }
+      if (!data || data.ok === false) return null;
+      return {
+        globalRank: data.globalRank ?? null,
+        playerScore: Number(data.playerScore) || 0,
+        correctAnswers: Number(data.correctAnswers) || 0,
+        totalAnswers: Number(data.totalAnswers) || 0,
+        totalPlayers: Number(data.totalPlayers) || 0,
+      };
+    } catch (err) {
+      console.warn('[rank] fetchGlobalRank:', err.message);
       return null;
     }
-  }, [session, smartCoins]);
+  }, [session]);
 
   // ---------- Streaks & study activity ----------
   const touchActivity = useCallback(async () => {
@@ -753,10 +766,17 @@ export function AppProvider({ children }) {
   };
 
   // ---------- Quiz results & progression ----------
-  const recordQuizResult = async ({ mode = 'standard', difficulty = 'Easy', subject = '', score = 0, total = 0, durationSeconds = 0, groupId = null }) => {
-    const pct = total > 0 ? Math.round((score / total) * 100) : 0;
+  // score/total/passed are SERVER-AUTHORITATIVE when `serverResult` is present
+  // (the batch-complete RPC already recorded quiz_results + player_score). The
+  // client then only drives progress/streak/fail-penalty side effects from the
+  // server's verdict; it never inserts its own quiz_results row in that path.
+  const recordQuizResult = async ({ mode = 'standard', difficulty = 'Easy', subject = '', score = 0, total = 0, durationSeconds = 0, groupId = null, serverResult = null }) => {
+    const authoritative = !!(serverResult && serverResult.resultId != null);
+    const finalScore = authoritative ? (Number(serverResult.score) || 0) : (Number(score) || 0);
+    const finalTotal = authoritative ? (Number(serverResult.total) || 0) : (Number(total) || 0);
+    const computedPct = finalTotal > 0 ? Math.round((finalScore / finalTotal) * 100) : 0;
     const thresholds = { Easy: 50, Moderate: 60, Hard: 70, Expert: 75, Master: 80, Extreme: 85 };
-    const passed = pct >= (thresholds[difficulty] ?? 60);
+    const finalPassed = authoritative ? !!serverResult.passed : (computedPct >= (thresholds[difficulty] ?? 60));
 
     // Local stats/milestone feedback
     updateQuizStats({});
@@ -765,42 +785,50 @@ export function AppProvider({ children }) {
     // which pay 0.5 SC per correct answer. The daily 9 SC faucet and the
     // -3 SC fail penalty remain separate.
 
-    if (!supabase || !session) return passed;
+    if (!supabase || !session) return finalPassed;
 
     const levelKey = `${subject || 'Mixed Bank'}|${difficulty}`;
 
     let resultId = null;
-    const { data: resData, error: resError } = await supabase.from('quiz_results').insert({
-      user_id: session.user.id,
-      mode,
-      difficulty,
-      subject,
-      score,
-      total,
-      passed,
-      duration_seconds: durationSeconds,
-      group_id: groupId ?? null
-    }).select('id').single();
-    if (resError) console.error('Quiz result save failed:', resError.message);
-    else resultId = resData?.id;
+    if (!authoritative) {
+      // Pre-migration fallback: the server has not created the result row yet,
+      // so the client writes history with the (client-computed) figures. Once
+      // apply_quiz_batch_score exists, the server owns this row exclusively.
+      const { data: resData, error: resError } = await supabase.from('quiz_results').insert({
+        user_id: session.user.id,
+        mode,
+        difficulty,
+        subject,
+        score: finalScore,
+        total: finalTotal,
+        passed: finalPassed,
+        duration_seconds: durationSeconds,
+        group_id: groupId ?? null
+      }).select('id').single();
+      if (resError) console.error('Quiz result save failed:', resError.message);
+      else resultId = resData?.id;
+    } else {
+      resultId = serverResult.resultId;
+    }
 
     // -3 SC on failed quiz, capped at once per day.
-    if (!passed) {
+    if (!finalPassed) {
       await recordQuizFailPenalty(resultId);
     }
 
     // Auto-credit the SC performance reward for this session. Hard/Expert
     // difficulty pays 0.5 per correct answer; all other difficulties pay 0.1.
+    // (Smart Coins remain LOCKED until 1v1 launches — applySC is a no-op.)
     const lowTier = String(difficulty).toLowerCase();
     const rate = (lowTier === 'hard' || lowTier === 'expert' || lowTier === 'extreme') ? 0.5 : 0.1;
-    const payout = Math.max(0, Number(score) || 0) * rate;
+    const payout = Math.max(0, finalScore) * rate;
     if (payout > 0) {
       await applySC(payout, 'quiz_performance', resultId);
     }
 
     // Per-group "unique streak": advancing a member's streak inside a study
     // group when they pass a quiz launched from that group (reset on a gap).
-    if (passed && groupId != null) {
+    if (finalPassed && groupId != null) {
       await bumpGroupQuizStreak(groupId);
     }
 
@@ -809,12 +837,12 @@ export function AppProvider({ children }) {
       user_id: session.user.id,
       level_key: levelKey,
       difficulty,
-      score,
-      total,
-      passed,
-      best_score: pct,
+      score: finalScore,
+      total: finalTotal,
+      passed: finalPassed,
+      best_score: computedPct,
       attempts: 1,
-      completed_at: passed ? new Date().toISOString() : null
+      completed_at: finalPassed ? new Date().toISOString() : null
     }, { onConflict: 'user_id,level_key' });
     // attempts/best_score need manual merge on conflict — do a follow-up read/update
     if (progError) {
@@ -827,12 +855,12 @@ export function AppProvider({ children }) {
         .match({ user_id: session.user.id, level_key: levelKey })
         .single();
       if (existing) {
-        const shouldStayPassed = existing.passed || passed;
+        const shouldStayPassed = existing.passed || finalPassed;
         await supabase
           .from('user_quiz_progress')
           .update({
             attempts: (existing.attempts || 1),
-            best_score: Math.max(existing.best_score || 0, pct),
+            best_score: Math.max(existing.best_score || 0, computedPct),
             passed: shouldStayPassed
           })
           .match({ user_id: session.user.id, level_key: levelKey });
@@ -842,7 +870,7 @@ export function AppProvider({ children }) {
 
     fetchQuizHistory(session.user.id);
     touchActivity();
-    return passed;
+    return finalPassed;
   };
 
   // Merge wrong answers into learning_analytics.weak_topics (top 10 by count)
@@ -1773,7 +1801,7 @@ export function AppProvider({ children }) {
       submitQuestionFeedback, fetchAttemptedQuestionIds, fetchQuestionHistory, fetchFailedQuestions,
       addFlashcard, updateFlashcard, deleteFlashcard, importFlashcards,
       smartCoins, scLedger, claimDailySC, earnSC, spendSC, recordStreakBreak, recordQuizFailPenalty,
-      bumpGroupQuizStreak, fetchSCRank,
+      bumpGroupQuizStreak, fetchGlobalRank,
       streakFreezeActive, setStreakFreezeActive,
       identity, identityProgress, identityUnlock, dismissIdentityUnlock, refreshIdentityUnlock,
       // ---- Command Center exports ----

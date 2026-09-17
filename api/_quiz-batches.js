@@ -358,9 +358,20 @@ export async function handleAnswer(req, res) {
 //
 // Body: {
 //   batchId: string,
+//   difficulty?: string,   // display label only (whitelisted server-side)
+//   subject?: string,      // display label only
+//   durationSeconds?: int, // display label only
+//   groupId?: int,         // display label only (membership-validated)
 // }
 //
-// Returns: { success, score, total, answers }
+// The SCORE is never taken from the body: it is computed server-side from the
+// persisted, server-graded quiz_batch_questions, and the cumulative player_score
+// is credited atomically + idempotently via the apply_quiz_batch_score RPC.
+//
+// Returns: { success, score, total, answers, result }
+//   result = { resultId, score, total, passed, correctAnswers, totalAnswers,
+//              playerScore, correctAnswersTotal, totalAnswersTotal,
+//              awarded, replay, difficulty, subject, mode } (null pre-migration)
 // ============================================================
 export async function handleComplete(req, res) {
   if (req.method !== 'POST') {
@@ -382,10 +393,28 @@ export async function handleComplete(req, res) {
       });
     }
 
+    // Display labels only — sanitised here and re-validated inside the RPC.
+    const labelDifficulty =
+      typeof req.body?.difficulty === 'string' &&
+      ['Easy', 'Moderate', 'Hard', 'Expert', 'Master', 'Extreme'].includes(req.body.difficulty)
+        ? req.body.difficulty
+        : null;
+    const labelSubject =
+      typeof req.body?.subject === 'string' ? String(req.body.subject).slice(0, 120) : null;
+    const labelDuration = Math.max(0, Math.min(Number(req.body?.durationSeconds) || 0, 604800));
+    const labelGroupId =
+      Number.isInteger(Number(req.body?.groupId)) && Number(req.body.groupId) > 0
+        ? Number(req.body.groupId)
+        : null;
+
     const service = new QuestionSelectionService(getSupabaseAdmin());
     const result = await service.completeBatch({
       batchId,
       userId: user.id,
+      difficulty: labelDifficulty,
+      subject: labelSubject,
+      durationSeconds: labelDuration,
+      groupId: labelGroupId,
     });
 
     if (result.error) {
