@@ -116,6 +116,9 @@ import { useQuizAudio } from '../hooks/useQuizAudio';
 
 // Single-clip events played directly from the manager (intro/exit/correct/wrong).
 const playQuizSound = (type) => audioManager.play(type);
+// Correct/wrong feedback clips are HELD until the user taps a button (Next /
+// View Results / finish) — this stops them on any such transition.
+const stopAnswerSounds = () => audioManager.stopAnswerSounds();
 
 const exitFullscreen = async () => {
   try {
@@ -789,7 +792,9 @@ const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, lo
 
     // Audio (Part 20/23): the START gesture is when we unlock autoplay and
     // preload the local pool. Intro plays once per quiz start — not on every
-    // render, not on StrictMode re-runs.
+    // render, not on StrictMode re-runs. A fresh round never inherits a
+    // still-ringing feedback clip from a previous session.
+    stopAnswerSounds();
     if (!introHandledRef.current) {
       introHandledRef.current = true;
       unlockAudio();
@@ -809,6 +814,8 @@ const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, lo
   };
 
   const handlePlayerComplete = async (result) => {
+    // The session is over — stop any held answer feedback clip.
+    stopAnswerSounds();
     setPlayerActive(false);
     document.body.classList.remove('quiz-active');
     setPlayerResult(result);
@@ -869,6 +876,7 @@ const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, lo
   };
 
   const quitPlayer = () => {
+    stopAnswerSounds();
     setPlayerActive(false);
     setActiveConfig(null);
     setActiveQuestions([]);
@@ -884,6 +892,7 @@ const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, lo
   };
 
   const backToModes = () => {
+    stopAnswerSounds();
     setPlayerActive(false);
     setActiveConfig(null);
     setActiveQuestions([]);
@@ -1175,6 +1184,7 @@ const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, lo
           }}
           modeLabel={PLAYER_MODE_LABELS[activeConfig.engineMode] || ''}
           onSound={playQuizSound}
+          onSoundStop={stopAnswerSounds}
           onAnswer={recordAnswer}
           onComplete={handlePlayerComplete}
           onQuit={quitPlayer}

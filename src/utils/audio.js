@@ -47,6 +47,12 @@ AUDIO_PATHS.timeout = AUDIO_PATHS.wrong;
 const MAX_SOUND_SECONDS = 4;
 const POOL_SIZE = 3; // elements cached per URL
 
+// Answer feedback sounds (correct/wrong/timeout) are HELD: they ring until the
+// user taps "Next"/finishes/closes the quiz. The ceiling below is only a long
+// safety net against an edge-case runaway — the normal stop is the button tap.
+const HELD_SOUND_SECONDS = 12;
+const HELD_SOUND_TYPES = new Set(['correct', 'wrong', 'timeout']);
+
 // Name -> one-shot wrapper so callers can use readable methods.
 const SINGLE = ['intro', 'exit'];
 
@@ -141,13 +147,26 @@ class AudioManager {
         p.catch(() => this._log(`Play blocked: ${url}`));
       }
 
-      // Hard-stop at MAX_SOUND_SECONDS regardless of source length.
-      this.timers.set(el, setTimeout(() => this._stop(el), MAX_SOUND_SECONDS * 1000));
+      // Held answer sounds ring until the user advances (or end naturally) with
+      // only a long safety ceiling; everything else is trimmed at MAX_SOUND_SECONDS.
+      this.timers.set(el, setTimeout(() => this._stop(el), (HELD_SOUND_TYPES.has(type) ? HELD_SOUND_SECONDS : MAX_SOUND_SECONDS) * 1000));
       return true;
     } catch (e) {
       this._log(`Play failed (${type}): ${e.message}`);
       return false;
     }
+  }
+
+  // Stop every cached element for a specific clip type.
+  stop(type) {
+    this._clips(type).forEach((url) => this._getOrCreate(url).forEach((el) => this._stop(el)));
+  }
+
+  // Stop the played answer feedback sounds (correct/wrong/timeout) — invoked
+  // when the user clicks Next / finishes / closes the quiz so a clip no longer
+  // rings past the button tap.
+  stopAnswerSounds() {
+    HELD_SOUND_TYPES.forEach((t) => this.stop(t));
   }
 
   // Preload all clips into the cache (idempotent). Call after user gesture.

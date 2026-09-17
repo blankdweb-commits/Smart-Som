@@ -3,7 +3,7 @@ import { initialFlashcards } from '../data/initialData';
 import { CURRICULUM_MASTER } from '../data/curriculumMaster';
 import { supabase } from '../utils/supabase';
 import { authHeaders } from '../utils/apiHeaders';
-import { safeGet, safeSet } from '../utils/safeStorage';
+import { safeGet, safeSet, safeRemove } from '../utils/safeStorage';
 import { dedupe, getCacheFirst, cacheClearAll, cacheTtl } from '../utils/cache';
 import {
   computeCurrentIdentity,
@@ -14,6 +14,21 @@ import {
 import { evaluateAchievements, ACHIEVEMENT_CATALOG } from '../utils/achievementEngine';
 
 const AppContext = createContext();
+
+// Persisted mirror of the last-known server course-quota map (per-user).
+// DISPLAY-ONLY: it lets used courses render as LOCKED with their countdown
+// immediately and across reloads while the status API is slow/unreachable. It
+// can NEVER unlock a course — a successful server fetch overwrites it, and the
+// server batch-create gate stays the only real unlock authority.
+const COURSE_QUOTA_CACHE_KEY = 'apex:courseQuotaCache';
+const cacheCourseQuota = (uid, map) => {
+  safeSet(COURSE_QUOTA_CACHE_KEY, JSON.stringify({ uid, savedAt: Date.now(), map }));
+};
+const hydrateCourseQuotaCache = (uid) => {
+  const raw = safeGet(COURSE_QUOTA_CACHE_KEY, { parsed: true });
+  if (!raw || !raw.map || !raw.uid || raw.uid !== uid) return null;
+  return raw.map;
+};
 
 const ANONYMOUS_PROFILE = {
   fullName: '',
@@ -1201,6 +1216,7 @@ export function AppProvider({ children }) {
         setLevelCompletions({});
         setQuizHistory([]);
         setCourseQuota({});
+        safeRemove(COURSE_QUOTA_CACHE_KEY);
         setQuotaFetchStatus('idle');
         setDifficultyProgress(null);
         setUserAchievements([]);
@@ -1339,18 +1355,36 @@ export function AppProvider({ children }) {
       setQuotaFetchStatus('idle');
       return null;
     }
-    setQuotaFetchStatus('loading');
     const uid = sess?.user?.id || 'anon';
-    const { ok, data } = await dedupe(`api:quota:course-status:${uid}`, () =>
+    // Pre-seed from the last-known server map so used courses render LOCKED
+    // with their countdown immediately (and across reloads). Display-only — a
+    // successful fetch below overwrites it and nothing here can unlock a row.
+    setCourseQuota((prev) => {
+      if (prev && Object.keys(prev).length > 0) return prev;
+      const cached = hydrateCourseQuotaCache(uid);
+      return cached && Object.keys(cached).length > 0 ? cached : prev;
+    });
+    setQuotaFetchStatus('loading');
+    let result = await dedupe(`api:quota:course-status:${uid}`, () =>
       callApexApi('/api/quota/course-status', {
         method: 'GET',
         headers: apexHeaders(sess)
       })
     );
-    if (ok && data) {
-      setCourseQuota(data.subjects || {});
+    // Vercel Hobby cold-starts / flaky routes can stall the first attempt: one
+    // silent retry on a pure network failure before failing closed to 'error'.
+    if (!result?.ok && result?.networkError) {
+      result = await callApexApi('/api/quota/course-status', {
+        method: 'GET',
+        headers: apexHeaders(sess)
+      });
+    }
+    if (result?.ok && result?.data) {
+      const map = result.data.subjects || {};
+      setCourseQuota(map);
+      cacheCourseQuota(uid, map);
       setQuotaFetchStatus('ok');
-      return data.subjects || {};
+      return map;
     }
     setQuotaFetchStatus('error');
     return null;
@@ -1361,23 +1395,28 @@ export function AppProvider({ children }) {
   // Returns the authoritative server state, or null if the call failed.
   const consumeCourseQuota = useCallback(async (courseKey, count = 10, sess = session) => {
     if (!sess?.access_token || !courseKey) return null;
+    const uid = sess?.user?.id || 'anon';
     const { ok, data: body } = await callApexApi('/api/quota/course-consume', {
       method: 'POST',
       headers: apexHeaders(sess),
       body: { course_key: courseKey, count }
     });
     if (ok && body) {
-      setCourseQuota(prev => ({
-        ...prev,
-        [courseKey]: {
-          questions_used: body.questions_used,
-          rounds_completed: body.rounds_completed,
-          last_round_completed_at: body.last_round_completed_at,
-          window_expires_at: body.window_expires_at,
-          cooldown_remaining_seconds: body.cooldown_remaining_seconds ?? 0,
-          is_ready: !!body.is_ready
-        }
-      }));
+      setCourseQuota(prev => {
+        const next = {
+          ...prev,
+          [courseKey]: {
+            questions_used: body.questions_used,
+            rounds_completed: body.rounds_completed,
+            last_round_completed_at: body.last_round_completed_at,
+            window_expires_at: body.window_expires_at,
+            cooldown_remaining_seconds: body.cooldown_remaining_seconds ?? 0,
+            is_ready: !!body.is_ready
+          }
+        };
+        cacheCourseQuota(uid, next);
+        return next;
+      });
       return body;
     }
     return null;
@@ -1735,6 +1774,7 @@ export function AppProvider({ children }) {
     setQuizHistory([]);
     setLearningAnalytics({ weakTopics: [], weakConcepts: [], totalAttempts: 0, recommendedRevision: [], dailyChallenge: { id: null, question: '', answer: '', completed: false, lastDate: null } });
     setCourseQuota({});
+    safeRemove(COURSE_QUOTA_CACHE_KEY);
     setQuotaFetchStatus('idle');
     setDifficultyProgress(null);
     setUserAchievements([]);

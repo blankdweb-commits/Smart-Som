@@ -25,7 +25,7 @@ const pad = (n) => String(n).padStart(2, '0');
  * Handles: question presentation, answer locking, one-look review with
  * Conceptual Misalignment, per-question timer, exam vs instant feedback.
  */
-const QuizPlayer = ({ questions, config, modeLabel, onSound, onAnswer, onComplete, onQuit, onExitSoundStart, onExitSoundStop }) => {
+const QuizPlayer = ({ questions, config, modeLabel, onSound, onSoundStop, onAnswer, onComplete, onQuit, onExitSoundStart, onExitSoundStop }) => {
   const { smartCoins, spendSC, streakFreezeActive, setStreakFreezeActive, submitQuestionFeedback } = useAppContext();
   const total = questions.length;
   const [idx, setIdx] = useState(0);
@@ -78,6 +78,11 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onAnswer, onComplet
     startRef.current = Date.now();
   }, []);
 
+  // If the player unmounts mid-question any held feedback clip must stop first.
+  // `stopAnswerSounds` (Quiz.jsx) has a stable identity, so this runs once at
+  // mount and cleans up exactly once at unmount.
+  React.useEffect(() => () => onSoundStop?.(), [onSoundStop]);
+
   const q = questions[idx];
   const isLast = idx === total - 1;
   const isLocked = lockedAnswer !== undefined;
@@ -105,6 +110,10 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onAnswer, onComplet
       hint: q.hint || ''
     };
     answersRef.current.push(answerData);
+
+    // A new answer supersedes any still-ringing feedback clip from the previous
+    // question — stop it before starting the next one so they never overlap.
+    onSoundStop?.();
 
     // Record answer to server batch (non-blocking)
     onAnswer?.({
@@ -167,6 +176,8 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onAnswer, onComplet
   };
 
   const nextQuestion = () => {
+    // The feedback sound rings until THIS button tap — stop it now.
+    onSoundStop?.();
     if (isLast) {
       onComplete({
         score,
@@ -206,6 +217,7 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onAnswer, onComplet
     setTimedOut(false);
     setTimeLeft(hasTimer ? config.timePerQuestion : 0);
     if (isLast) {
+      onSoundStop?.();
       onComplete({
         score,
         total,
@@ -266,7 +278,7 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onAnswer, onComplet
         {/* Header */}
         <div className="flex items-center justify-between mb-5">
           <button
-            onClick={() => { setShowQuitModal(true); onExitSoundStart?.(); }}
+            onClick={() => { onSoundStop?.(); setShowQuitModal(true); onExitSoundStart?.(); }}
             className="p-2.5 rounded-xl hover:bg-white/10 transition-all"
             aria-label="Exit quiz"
           >
@@ -634,7 +646,7 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onAnswer, onComplet
                   Stay and Master
                 </button>
                 <button
-                  onClick={onQuit}
+                  onClick={() => { onSoundStop?.(); onQuit(); }}
                   className="w-full py-3 text-slate-400 hover:text-red-400 font-black uppercase tracking-widest text-[9px] transition-colors"
                 >
                   Exit for now
