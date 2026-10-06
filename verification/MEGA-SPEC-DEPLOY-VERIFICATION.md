@@ -103,6 +103,15 @@ running Vercel app. Two actors:
 All of the above pass (especially 1.3/1.4, 3.1/3.2, 5.1, 5.21, 5.24) → deploy
 is safe. Any FAIL in the forge checks = ship-blocking.
 
-## Post-cutover (Phase 9 note)
-Promo pricing migration is numbered **v36** (NOT v35 — do not reuse the number).
+## Post-cutover (Phase 9 = Student Bonus promo, migration **v36** — do not reuse the number v35)
 Re-run steps 5.22–5.24 against the new RPCs after v36.
+
+| # | Actor | Check | Expect |
+|---|-------|-------|--------|
+| 9.1 | postgres | `select id, slug, name, price, is_promo from subscription_plans order by price` | promo rows `student-bonus-30` ₦990/30d + `student-bonus-7` ₦550/7d, `is_promo=true`, `is_active=true` |
+| 9.2 | postgres | re-run v36 | clean (idempotent; `on conflict (slug)`) |
+| 9.3 | app | Activate page shows promo cards with amber "Student Offer" badge + banner | promo listed first (price asc) |
+| 9.4 | JWT A | `POST /api/initiate-payment {plan_id: <promo-30>}` | 200; Paystack `metadata.expected_amount_kobo === 99000` |
+| 9.5 | webhook | forge `charge.success` for a promo ref with amount = 9900 kobo (₦99) | 200 `{status:'amount_mismatch'}` — **NO** subscription row, **NO** activation |
+| 9.6 | webhook | forge `charge.success` amount = 55000/99000 kobo with valid plan_id | subscription granted with correct `duration_days` |
+| 9.7 | JWT A | legacy verify path amount mismatch (paid ≠ plan.price) | 400 `Payment amount does not match the selected plan` |

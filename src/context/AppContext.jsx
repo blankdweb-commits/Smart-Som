@@ -1354,12 +1354,15 @@ export function AppProvider({ children }) {
   useEffect(() => {
     // Fallback plans are always available so the payment page never renders
     // empty. IDs match the seeded subscription_plans table (Monthly=1,
-    // Weekly=2, Yearly=3) so server-side plan resolution stays consistent
-    // even if the live query fails or returns no rows.
+    // Weekly=2, Yearly=3, Student Bonus 30d=4, Student Bonus 7d=5) so
+    // server-side plan resolution stays consistent even if the live query
+    // fails or returns no rows.
     const FALLBACK_PLANS = [
       { id: 1, name: 'Monthly', price: 6999, duration_days: 30, is_active: true },
       { id: 2, name: 'Weekly', price: 1999.9, duration_days: 7, is_active: true },
-      { id: 3, name: 'Yearly', price: 49999, duration_days: 365, is_active: true }
+      { id: 3, name: 'Yearly', price: 49999, duration_days: 365, is_active: true },
+      { id: 4, name: 'Student Bonus (30 Days)', price: 990, duration_days: 30, is_active: true, is_promo: true },
+      { id: 5, name: 'Student Bonus (7 Days)', price: 550, duration_days: 7, is_active: true, is_promo: true }
     ];
     if (!supabase) {
       setSubscriptionPlans(FALLBACK_PLANS);

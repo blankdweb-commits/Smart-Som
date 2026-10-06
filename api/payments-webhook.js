@@ -150,9 +150,12 @@ export default async function handler(req, res) {
 
       if (txnError) throw txnError;
 
-      // 2. Resolve plan duration server-side — never trust client-sent durations.
+      // 2. Resolve plan + expected amount server-side — never trust client
+      // sent durations or amounts. Charge amounts below a plan's price are
+      // rejected outright (no subscription grant).
       let durationDays = 30;
       let planName = 'Monthly';
+      let expectedPrice = null;
 
       if (metadata?.plan_id) {
         const { data: plan } = await supabase
@@ -163,7 +166,19 @@ export default async function handler(req, res) {
         if (plan) {
           durationDays = plan.duration_days;
           planName = plan.name;
+          expectedPrice = Number(plan.price);
         }
+      }
+
+      // Last-resort fallback when the plan row is missing: the amount that
+      // /api/initiate-payment embedded in the charge metadata at initialize.
+      if (expectedPrice === null && metadata?.expected_amount_kobo != null) {
+        expectedPrice = Number(metadata.expected_amount_kobo) / 100;
+      }
+
+      if (expectedPrice !== null && Math.abs(paidAmount - expectedPrice) > 1) {
+        console.error(`Webhook amount mismatch, ref ${reference}: paid ${paidAmount}, expected ${expectedPrice}`);
+        return res.status(200).json({ status: 'amount_mismatch' });
       }
 
       // 3. Create the subscription directly.

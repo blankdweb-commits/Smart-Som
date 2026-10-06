@@ -82,6 +82,9 @@ async function resolveSpectatorPurchase(supabase, user, groupIdRaw) {
       group_id: groupId,
       group_name: group.name,
       user_id: user.id,
+      // Kobo amount the charge must match — authoritative server price, used
+      // by payments-webhook as a last-resort check even without a plan row.
+      expected_amount_kobo: Math.round(price * KOBOS),
     },
     reference: `APX-SPE-${Date.now()}-${Math.random().toString(36).slice(2, 10).toUpperCase()}`,
   };
@@ -131,7 +134,14 @@ export default async function handler(req, res) {
       }
       amount = Number(plan.price);
       reference = `APX-${Date.now()}-${Math.random().toString(36).slice(2, 10).toUpperCase()}`;
-      metadata = { plan_id: plan.id, plan_name: plan.name, user_id: user.id };
+      metadata = {
+        plan_id: plan.id,
+        plan_name: plan.name,
+        user_id: user.id,
+        // Kobo amount the charge must match — authoritative server price, used
+        // by payments-webhook as a last-resort check even without a plan row.
+        expected_amount_kobo: Math.round(amount * KOBOS),
+      };
     }
 
     // Live callback URL — Paystack redirects the payer back here after payment.
