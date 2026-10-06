@@ -1,5 +1,13 @@
 # Apex Scholars ? Working notes
 
+## Current: REAL GLOBAL RANKS (v37) — APPLIED live (Oct 6 2026) PROJECT urhcvdcpxhxmmnavkcvd
+
+- **`scripts/migration-v37-rank-all-users.sql` APPLIED live (201), re-run clean (idempotent)**. Two fixes, both live-verified:
+  1. **`v_competitive_base` now ranks EVERY profile** (was: only users with player_stats/competitive_stats/smart_coins>0). Every signed-in account has an ACTUAL rank (score 0 at bottom until they earn), so the Dashboard Global Rank card / Quiz header / Leaderboard "You're #N" NEVER show a placeholder dash for a registered user. Leaderboard = 52 users live.
+  2. **FIXED PLACEHOLDER-RANK BUG in `get_my_player_rank`**: it did `select row_number() over (...) into v_rank from v_competitive_base where user_id = v_user` — WHERE filters BEFORE the window function, so the window ran over a SINGLE row and **every user was reported `#1`**. Now ranks the FULL base (identical order by as `get_player_leaderboard`) then extracts the caller's row. Live parity check: 6 random users → own_rank == leaderboard rank, all PARITY (top user #1=1000pts; zero-score users #17/#37 of 52). View grants re-asserted (service_role only).
+- **Verify**: pure-SQL parity probe vs leaderboard 6/6; migration re-run 201. No client change.
+- **Remaining**: push + Vercel redeploy → post-deploy probe shows real per-user ranks on the live site.
+
 ## Current: STUDENT BONUS PROMO (v36) — APPLIED live (Oct 6 2026) PROJECT urhcvdcpxhxmmnavkcvd
 
 - **Phase 9 (pricing-only promo)**. `scripts/migration-v36-promo-pricing.sql` **APPLIED live (201), re-run clean (idempotent)**: `subscription_plans` += `is_promo boolean default false` + `slug text` + unique index `subscription_plans_slug_key`; seeded via `insert … on conflict (slug) do update`: **student-bonus-30 ₦990/30d** (id 4), **student-bonus-7 ₦550/7d** (id 5), both `is_active`+`is_promo` (live-confirmed, sorted by price → promo top). Amounts remain SERVER-authoritative (initiate/verify resolve `subscription_plans.price`).
