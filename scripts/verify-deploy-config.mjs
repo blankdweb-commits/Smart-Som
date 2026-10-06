@@ -761,6 +761,109 @@ let passed = 0;
 }
 
 // ---------------------------------------------------------------------------
+// Google AdSense — CONTROLLED placements (Dashboard / Community / Voting only).
+// ---------------------------------------------------------------------------
+{
+  const adsConfigPath = resolve(ROOT, 'src/config/ads.js');
+  const adsLoaderPath = resolve(ROOT, 'src/utils/adsense.js');
+  const adsManagerPath = resolve(ROOT, 'src/components/ads/AdSenseManager.jsx');
+  const adsSlotPath = resolve(ROOT, 'src/components/ads/AdSenseSlot.jsx');
+
+  checks.push(
+    existsSync(adsConfigPath) && existsSync(adsLoaderPath) && existsSync(adsManagerPath) && existsSync(adsSlotPath)
+      ? ok('controlled AdSense files exist (config/ads.js, utils/adsense.js, components/ads/*)')
+      : fail('controlled AdSense files missing'),
+  );
+
+  const adsConfig = existsSync(adsConfigPath) ? read(adsConfigPath) : '';
+  checks.push(
+    /ca-pub-7731141426940208/.test(adsConfig)
+      ? ok('AdSense publisher id ca-pub-7731141426940208 is configured')
+      : fail('AdSense publisher id missing from src/config/ads.js'),
+  );
+  checks.push(
+    /ADS_POLICY/.test(adsConfig) && /dashboard: true/.test(adsConfig) && /community: true/.test(adsConfig) && /voting: true/.test(adsConfig)
+      && /quiz: false/.test(adsConfig) && /activeQuiz: false/.test(adsConfig) && /other: false/.test(adsConfig)
+      ? ok('central ADS_POLICY enables only dashboard/community/voting (all else false)')
+      : fail('central ADS_POLICY does not match the three-area allowlist'),
+  );
+
+  const html = read(resolve(ROOT, 'index.html'));
+  const main = read(resolve(ROOT, 'src/main.jsx'));
+  const appJsx = read(resolve(ROOT, 'src/App.jsx'));
+  checks.push(
+    !/googlesyndication|adsbygoogle/i.test(html) && !/googlesyndication|adsbygoogle/i.test(main)
+      ? ok('AdSense loader is NEVER in index.html or main.jsx (no global injection)')
+      : fail('AdSense loader leaked into a global template'),
+  );
+  checks.push(
+    !/pagead2\.googlesyndication\.com/.test(appJsx) && /<AdSenseManager>/.test(appJsx)
+      ? ok('App.jsx mounts the controlled AdSenseManager (never the raw script)')
+      : fail('App.jsx is not using the controlled manager'),
+  );
+
+  const walk = (dir) =>
+    readdirSync(dir, { withFileTypes: true }).flatMap((e) =>
+      e.isDirectory() ? walk(resolve(dir, e.name)) : [resolve(dir, e.name)]);
+  const urlOwners = walk(resolve(ROOT, 'src'))
+    .filter((f) => /\.(js|jsx)$/.test(f))
+    .filter((f) => /pagead2\.googlesyndication\.com/.test(read(f)))
+    .map((f) => relative(ROOT, f).replace(/\\/g, '/'));
+  checks.push(
+    urlOwners.length === 1 && urlOwners[0] === 'src/utils/adsense.js'
+      ? ok('AdSense CDN URL exists in exactly one place — the singleton loader')
+      : fail('AdSense CDN URL scattered across files', urlOwners.join(', ')),
+  );
+
+  const manager = read(adsManagerPath);
+  checks.push(
+    /if \(quizActive\) return false;/.test(manager) && /if \(!area\) return false;/.test(manager) && /if \(!session\) return false;/.test(manager)
+      ? ok('ad manager requires a session, enforces the active-quiz override, and fails closed on unknown routes')
+      : fail('ad manager missing session / active-quiz / fail-closed branch'),
+  );
+  checks.push(
+    /loadAdSenseScript\(ADSENSE_CLIENT\)/.test(manager) && /if \(!adsEnabled\) return undefined;/.test(manager)
+      ? ok('ad manager lazy-loads the script only when ads are enabled')
+      : fail('ad manager is not route-gated for script loading'),
+  );
+
+  const loaderSrc = read(adsLoaderPath);
+  checks.push(
+    /document\.querySelector\(ADSENSE_SCRIPT_SELECTOR\)/.test(loaderSrc) && /if \(!loadPromise\)/.test(loaderSrc)
+      ? ok('AdSense loader guards against duplicate <script> insertion')
+      : fail('AdSense loader can insert duplicate scripts'),
+  );
+
+  const slot = read(adsSlotPath);
+  checks.push(
+    /if \(!adsEnabled \|\| !slotId\) return null;/.test(slot)
+      ? ok('AdSenseSlot renders nothing on unauthorised routes')
+      : fail('AdSenseSlot can render while ads are disabled'),
+  );
+
+  const studyGroups = read(resolve(ROOT, 'src/components/StudyGroups.jsx'));
+  checks.push(
+    !existsSync(resolve(ROOT, 'src/components/AdBanner.jsx')) && !/AdBanner|AdSenseSlot/.test(studyGroups)
+      ? ok('legacy AdBanner removed; Study Groups (a forbidden page) shows no ad')
+      : fail('legacy AdBanner or a forbidden-page placement remains'),
+  );
+
+  checks.push(
+    /AdSenseSlot placement="dashboard-content"/.test(read(resolve(ROOT, 'src/pages/Dashboard.jsx')))
+      && /AdSenseSlot placement="community-feed"/.test(read(resolve(ROOT, 'src/pages/Community.jsx')))
+      && /AdSenseSlot placement="voting-content"/.test(read(resolve(ROOT, 'src/pages/Voting.jsx')))
+      ? ok('ad placements wired: dashboard-content, community-feed, voting-content')
+      : fail('allowed page placements missing'),
+  );
+  checks.push(
+    !/AdSenseSlot/.test(read(resolve(ROOT, 'src/pages/Quiz.jsx')))
+      && !/AdSenseSlot/.test(read(resolve(ROOT, 'src/pages/Flashcards.jsx')))
+      ? ok('no ad slot mounted on Quiz or Flashcards')
+      : fail('an ad slot is mounted on a forbidden page'),
+  );
+}
+
+// ---------------------------------------------------------------------------
 console.log('\n----');
 const failed = checks.filter((c) => c === false).length;
 passed = checks.filter((c) => c === true).length;

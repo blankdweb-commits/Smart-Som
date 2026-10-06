@@ -29,7 +29,7 @@ import { useAppContext } from '../context/AppContext';
 import { formatDistanceToNow } from 'date-fns';
 import { useNavigate, Link } from 'react-router-dom';
 import CommunityAuthModal from '../components/CommunityAuthModal';
-import AdBanner from '../components/AdBanner';
+import AdSenseSlot from '../components/ads/AdSenseSlot';
 import { getSection } from '../data/communitySections';
 
 const POSTS_PER_PAGE = 15;
@@ -810,7 +810,7 @@ const Community = () => {
           </div>
         </motion.div>
 
-        <AdBanner slot={import.meta.env.VITE_ADSENSE_SLOT_COMMUNITY || ''} />
+        <AdSenseSlot placement="community-feed" />
 
         {/* Posts Feed */}
         <div className="space-y-5">

@@ -132,8 +132,8 @@ const exitFullscreen = async () => {
 };
 
 // ----- Main Quiz Component -----
-// Difficulty tiers are module constants so they stay a single stable reference
-// for the readiness computation and deep-link handling.
+// Difficulty tiers are module constants so they stay a single stable
+// reference for deep-link resolution and per-tier unlock logic.
 const DIFFICULTY_TIERS = [
   { id: 'Easy', dot: 'bg-emerald-500', ring: 'border-emerald-500/30', label: 'Build your foundation', passMark: 50, unlock: null },
   { id: 'Moderate', dot: 'bg-blue-500', ring: 'border-blue-500/30', label: 'Test your understanding', passMark: 60, unlock: null },
@@ -444,7 +444,7 @@ const Quiz = () => {
   const attemptIdRef = React.useRef(null);
 
   // ----- Difficulty progression -----
-const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchGlobalRank, studyStats, levelCompletions, session, fetchQuestionHistory, isPremium, fetchCourseQuotaStatus, courseQuota, quotaFetchStatus } = useAppContext();
+const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchGlobalRank, studyStats, session, fetchQuestionHistory, isPremium, fetchCourseQuotaStatus, courseQuota, quotaFetchStatus } = useAppContext();
 
   const [globalRank, setGlobalRank] = useState(null);
   const [globalScore, setGlobalScore] = useState(null);
@@ -525,23 +525,6 @@ const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, lo
   const quizStartRef = React.useRef(null);
   const resultRecordedRef = React.useRef(false);
   const [weaknessIntentHandled, setWeaknessIntentHandled] = useState(false);
-
-  // Exam Readiness score (0-100) derived from real learning data — display only.
-  const readiness = React.useMemo(() => {
-    const passedTiers = DIFFICULTY_TIERS.filter(t => (levelCompletions || {})[t.id]).length;
-    const totalAttempts = (learningAnalytics && learningAnalytics.totalAttempts) || 0;
-    const weakCount = ((learningAnalytics && learningAnalytics.weakConcepts) || []).length;
-    const quizStreak = (studyStats && studyStats.quizStreak) || 0;
-    const dayStreak = (studyStats && studyStats.streak) || 0;
-
-    let score = 0;
-    score += Math.min(50, (passedTiers / DIFFICULTY_TIERS.length) * 50); // up to 50 from passed tiers
-    score += Math.min(20, totalAttempts * 0.5);                          // up to 20 from volume
-    score += Math.min(15, quizStreak * 3);                               // up to 15 from quiz streak
-    score += Math.min(10, dayStreak * 1.5);                              // up to 10 from daily streak
-    score -= Math.min(20, weakCount * 2.5);                              // weak concepts reduce readiness
-    return Math.max(0, Math.min(100, Math.round(score)));
-  }, [levelCompletions, learningAnalytics, studyStats]);
 
   // Deep-link support: /quiz?difficulty=Hard | ?subject= | ?practiceSubject=
   // | ?groupId= | ?weakness=1. URLs pre-load state and queue an INTENT — setup
@@ -1293,8 +1276,7 @@ const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, lo
   const statCells = [
     { label: 'Global Rank', value: globalRank ? `#${globalRank}` : '—', sub: globalScore != null ? `${globalScore} pts` : null, className: 'text-indigo-600' },
     { label: 'Smart Coins', value: Number(smartCoins || 0).toLocaleString(undefined, { maximumFractionDigits: 1 }), className: 'text-emerald-500' },
-    { label: 'Quiz Streak', value: `${studyStats?.quizStreak || 0}`, className: 'text-amber-500' },
-    { label: 'Exam Readiness', value: `${readiness}%`, className: readiness >= 70 ? 'text-medical-500' : readiness >= 40 ? 'text-amber-500' : 'text-red-500' }
+    { label: 'Quiz Streak', value: `${studyStats?.quizStreak || 0}`, className: 'text-amber-500' }
   ];
   return (
     <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-700 max-w-6xl mx-auto px-1 sm:px-0 pb-[calc(env(safe-area-inset-bottom,0px)+6.5rem)] lg:pb-16">

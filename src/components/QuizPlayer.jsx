@@ -208,7 +208,7 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onSoundStop, onAnsw
   // ---- SC power-ups ----
   const useSkip = async () => {
     if (isLocked) return;
-    const newBalance = await spendSC(powerups.skip, 'powerup_skip');
+    const newBalance = await spendSC('powerup_skip');
     if (newBalance === smartCoins) return; // insufficient funds — no-op
     onSound?.('skip');
     setSelected(null);
@@ -231,7 +231,7 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onSoundStop, onAnsw
 
   const useHint = async () => {
     if (isLocked) return;
-    const newBalance = await spendSC(powerups.hint, 'powerup_hint');
+    const newBalance = await spendSC('powerup_hint');
     if (newBalance === smartCoins) return; // insufficient funds
     setShowHint(true);
     onSound?.('hint');
@@ -239,7 +239,7 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onSoundStop, onAnsw
 
   const toggleStreakFreeze = async () => {
     if (!streakFreezeActive) {
-      const newBalance = await spendSC(powerups.streakFreeze, 'powerup_streak_freeze');
+      const newBalance = await spendSC('powerup_streak_freeze');
       if (newBalance === smartCoins) return; // insufficient funds
       setStreakFreezeActive(true);
       onSound?.('freeze');

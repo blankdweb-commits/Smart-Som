@@ -5,7 +5,6 @@ Disallow: /dashboard
 Disallow: /flashcards
 Disallow: /weakness-drill
 Disallow: /achievements
-Disallow: /exams
 Disallow: /marketplace
 Disallow: /voting
 Disallow: /reviews

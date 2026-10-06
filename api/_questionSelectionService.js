@@ -868,6 +868,8 @@ export class QuestionSelectionService {
       difficulty: a.difficulty ?? null,
       subject: a.subject ?? null,
       mode: a.mode ?? null,
+      scAwarded: !!a.scAwarded,
+      scBalance: a.scBalance ?? null,
     };
   }
 

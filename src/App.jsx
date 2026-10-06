@@ -4,6 +4,7 @@ import { AppProvider, useAppContext } from './context/AppContext';
 import Layout from './components/Layout';
 import RequireAuth from './components/RequireAuth';
 import CookieConsentBanner from './components/CookieConsentBanner';
+import AdSenseManager from './components/ads/AdSenseManager';
 import { MotionConfig } from 'framer-motion';
 
 // Lazy load pages
@@ -11,7 +12,6 @@ const Auth = lazy(() => import('./pages/Auth'));
 const Activate = lazy(() => import('./pages/Activate'));
 const Dashboard = lazy(() => import('./pages/Dashboard'));
 const Flashcards = lazy(() => import('./pages/Flashcards'));
-const ExamTimetable = lazy(() => import('./pages/ExamTimetable'));
 const Quiz = lazy(() => import('./pages/Quiz'));
 const Payments = lazy(() => import('./pages/Payments'));
 const PaymentVerify = lazy(() => import('./pages/PaymentVerify'));
@@ -22,6 +22,10 @@ const Settings = lazy(() => import('./pages/Settings'));
 const Community = lazy(() => import('./pages/Community'));
 const PronunciationHelper = lazy(() => import('./pages/PronunciationHelper'));
 const XpHall = lazy(() => import('./pages/XpHall'));
+  const Leaderboard = lazy(() => import('./pages/Leaderboard'));
+const Challenges = lazy(() => import('./pages/Challenges'));
+const Squads = lazy(() => import('./pages/Squads'));
+const Rooms = lazy(() => import('./pages/Rooms'));
 const GroupPage = lazy(() => import('./pages/GroupPage'));
 const StudyGroups = lazy(() => import('./components/StudyGroups'));
 const Marketplace = lazy(() => import('./pages/Marketplace'));
@@ -61,7 +65,6 @@ const AppRouter = () => (
         <Route path="/quiz" element={<RequireAuth><Quiz /></RequireAuth>} />
         <Route path="/weakness-drill" element={<RequireAuth><WeaknessDrill /></RequireAuth>} />
         <Route path="/achievements" element={<RequireAuth><Achievements /></RequireAuth>} />
-        <Route path="/exams" element={<RequireAuth><ExamTimetable /></RequireAuth>} />
         <Route path="/papers" element={<Navigate to="/marketplace" replace />} />
         <Route path="/marketplace" element={<RequireAuth><Marketplace /></RequireAuth>} />
         <Route path="/voting" element={<RequireAuth><Voting /></RequireAuth>} />
@@ -82,6 +85,10 @@ const AppRouter = () => (
       <Route path="/login" element={<Auth />} />
       <Route path="/signup" element={<Auth />} />
       <Route path="/xp-hall" element={<XpHall />} />
+        <Route path="/leaderboard" element={<RequireAuth><Leaderboard /></RequireAuth>} />
+        <Route path="/challenges" element={<RequireAuth><Challenges /></RequireAuth>} />
+        <Route path="/squads" element={<RequireAuth><Squads /></RequireAuth>} />
+        <Route path="/rooms" element={<RequireAuth><Rooms /></RequireAuth>} />
 
       <Route path="/legal/terms" element={<LegalPage section="terms" />} />
       <Route path="/legal/privacy" element={<LegalPage section="privacy" />} />
@@ -97,7 +104,9 @@ function App() {
     <AppProvider>
       <MotionConfig reducedMotion="user">
         <Router>
-          <AppRouter />
+          <AdSenseManager>
+            <AppRouter />
+          </AdSenseManager>
           <CookieConsentBanner />
         </Router>
       </MotionConfig>

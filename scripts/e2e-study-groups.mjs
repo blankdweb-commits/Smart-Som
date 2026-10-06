@@ -22,6 +22,14 @@ try {
   tester.log('signup', true, urlNow);
 
   await page.goto(`${BASE}/study-groups`, { waitUntil: 'networkidle' });
+  
+  // Accept cookie consent banner if present
+  const acceptBtn = page.locator('button', { hasText: 'Accept All' }).first();
+  if (await acceptBtn.count() > 0) {
+    await acceptBtn.click();
+    await page.waitForTimeout(500);
+  }
+  
   await waitForText(page, 'Create Group').catch(() => {});
   await waitForText(page, 'Verified Study Groups').catch(() => {});
   tester.log('study groups page opens', /Verified Study Groups/i.test(await page.textContent('body')));

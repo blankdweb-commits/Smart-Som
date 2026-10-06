@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { BookOpen, TrendingUp, Award, Zap, ArrowRight, Clock, AlertCircle, Target, CheckCircle, ChevronRight, Lock, Sparkles, Coins, Trophy } from '../components/Icons';
+import { BookOpen, TrendingUp, Award, Zap, ArrowRight, Clock, AlertCircle, Target, CheckCircle, ChevronRight, Lock, Sparkles, Coins, Trophy, Users } from '../components/Icons';
 import { differenceInDays } from 'date-fns';
 
 import DailyChallengeWidget from '../components/DailyChallengeWidget';
@@ -9,7 +9,7 @@ import IdentityCard from '../components/IdentityCard';
 import IdentityUnlockModal from '../components/IdentityUnlockModal';
 import Recommendations from '../components/Recommendations';
 import StudyPlanCard from '../components/StudyPlanCard';
-import AdBanner from '../components/AdBanner';
+import AdSenseSlot from '../components/ads/AdSenseSlot';
 import { ACHIEVEMENT_CATALOG } from '../utils/achievementEngine';
 import { greetingForName } from '../utils/getGreeting';
 import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
@@ -98,27 +98,6 @@ const Dashboard = () => {
     }, 10000);
     return () => clearInterval(interval);
   }, [tipsCount]);
-
-  // ---- Exam Readiness score (weighted: accuracy, volume, streak) ----
-  const readinessScore = React.useMemo(() => {
-    const acc = todayStats.accuracy;
-    const questions = todayStats.questions;
-    const streak = studyStats.streak || 0;
-    const accScore = Math.min(50, (acc / 100) * 50);
-    const volScore = Math.min(30, Math.min(1, questions / 50) * 30);
-    const streakScore = Math.min(20, Math.min(1, streak / 7) * 20);
-    return Math.round(accScore + volScore + streakScore);
-  }, [todayStats.accuracy, todayStats.questions, studyStats.streak]);
-
-  const readinessLabel =
-    readinessScore >= 80 ? 'Combat Ready' :
-    readinessScore >= 50 ? 'Getting Sharper' :
-    readinessScore >= 20 ? 'Warming Up' : 'Just Started';
-
-  const readinessHint =
-    readinessScore >= 80 ? 'You are exam-ready. Keep the momentum through review. 🔥' :
-    readinessScore >= 50 ? 'Solid base — push accuracy above 70% to level up.' :
-    'Answer a few questions today to build your readiness score.';
 
   // ---- Contextual CTA (weak area callout + action) ----
   const weakAreas = (learningAnalytics.weakConcepts || []).slice(0, 3);
@@ -327,24 +306,6 @@ const Dashboard = () => {
              speedRuns: 0
            }} />
 
-           <div className="bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-700">
-             <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4 flex items-center gap-1.5">
-               <Target size={14} className="text-apex-600" /> Exam Readiness
-             </h4>
-             <div className="flex items-center justify-between mb-2">
-               <span className="text-sm font-black text-slate-700 dark:text-slate-200">{readinessLabel}</span>
-               <span className="text-xl font-black text-apex-600">{readinessScore}%</span>
-             </div>
-             <div className="w-full h-3 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden border border-slate-50 dark:border-slate-800">
-               <motion.div
-                 initial={{ width: 0 }}
-                 animate={{ width: `${readinessScore}%` }}
-                 className="h-full bg-gradient-to-r from-apex-500 to-apex-600 rounded-full"
-               />
-             </div>
-             <p className="text-xs text-slate-400 font-medium mt-3">{readinessHint}</p>
-           </div>
-
            <GlobalRankCard rank={globalRankInfo} />
 
            <StudyPlanCard />
@@ -367,7 +328,7 @@ const Dashboard = () => {
              <ArrowRight size={15} className="text-slate-300 dark:text-slate-600" />
            </button>
 
-           <AdBanner slot={import.meta.env.VITE_ADSENSE_SLOT_DASHBOARD || ''} />
+            <AdSenseSlot placement="dashboard-content" />
 
            <div className="bg-amber-500 rounded-[2.5rem] p-8 text-white shadow-xl relative overflow-hidden">
             <div className="absolute top-0 right-0 p-8 opacity-10">
@@ -411,6 +372,24 @@ const Dashboard = () => {
                 </div>
               </div>
             )}
+          </div>
+
+           <div className="bg-white dark:bg-slate-800 p-6 rounded-[2.5rem] shadow-clinical border border-slate-100 dark:border-slate-700">
+            <h4 className="text-[10px] font-black text-slate-400 uppercase tracking-[0.2em] mb-4">Grow Your Rewards</h4>
+            <div className="grid grid-cols-3 gap-2">
+              <button onClick={() => navigate('/challenges')} className="group flex flex-col items-center gap-1.5 p-4 rounded-2xl bg-polynurse-50 dark:bg-polynurse-900/20 hover:bg-polynurse-100 dark:hover:bg-polynurse-900/40 transition">
+                <Target size={22} className="text-polynurse-600 dark:text-polynurse-300" />
+                <span className="text-[9px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">Challenges</span>
+              </button>
+              <button onClick={() => navigate('/squads')} className="group flex flex-col items-center gap-1.5 p-4 rounded-2xl bg-polynurse-50 dark:bg-polynurse-900/20 hover:bg-polynurse-100 dark:hover:bg-polynurse-900/40 transition">
+                <Users size={22} className="text-polynurse-600 dark:text-polynurse-300" />
+                <span className="text-[9px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">Squads</span>
+              </button>
+              <button onClick={() => navigate('/rooms')} className="group flex flex-col items-center gap-1.5 p-4 rounded-2xl bg-polynurse-50 dark:bg-polynurse-900/20 hover:bg-polynurse-100 dark:hover:bg-polynurse-900/40 transition">
+                <Sparkles size={22} className="text-polynurse-600 dark:text-polynurse-300" />
+                <span className="text-[9px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">Rooms</span>
+              </button>
+            </div>
           </div>
 
            <div className="bg-apex-600 rounded-[2.5rem] p-8 text-white shadow-xl relative overflow-hidden group">
@@ -467,29 +446,57 @@ const StatsCard = ({ title, value, icon, color }) => (
   </div>
 );
 
-// ---- Global Rank: server-computed player score + rank (migration v30) ----
+// ---- Global Rank: server-computed COMPETITIVE score + rank (migration v32)
+// Pre-v32 responses (player_score-only ranks) are normalized by
+// fetchGlobalRank onto the same shape, so this card reads identically either way.
 const GlobalRankCard = ({ rank }) => {
+  const navigate = useNavigate();
   const hasRank = rank && rank.globalRank != null;
+  const b = rank?.breakdown || {};
+  const showBreakdown = hasRank && rank.isCompetitive;
   return (
     <div className="bg-polynurse-700 rounded-[2.5rem] p-8 text-white shadow-xl relative overflow-hidden group">
       <div className="absolute top-0 right-0 p-8 opacity-10 group-hover:scale-110 transition-transform">
         <Trophy size={120} />
       </div>
       <h3 className="text-xl font-black mb-2 relative z-10 uppercase tracking-tight">Global Rank</h3>
-      <p className="text-[10px] uppercase font-black text-white/70 tracking-widest relative z-10 mb-4">Verified player score</p>
+      <p className="text-[10px] uppercase font-black text-white/70 tracking-widest relative z-10 mb-4">
+        {rank?.isCompetitive ? 'Competitive power score' : 'Verified player score'}
+      </p>
       <div className="relative z-10">
         <p className="text-5xl font-black tracking-tighter">
           {hasRank ? `#${rank.globalRank}` : '—'}
         </p>
-        <p className="text-xs font-bold text-white/80 mt-2 max-w-[220px]">
+        <p className="text-xs font-bold text-white/80 mt-2 max-w-[230px]">
           {hasRank
-            ? `${Number(rank.playerScore || 0).toLocaleString()} pts · ${Number(rank.totalAnswers || 0).toLocaleString()} verified answers`
+            ? `${Number(rank.playerScore || 0).toLocaleString()} pts`
             : 'Complete a quiz round to claim your spot on the global leaderboard.'}
         </p>
+        {showBreakdown && (
+          <div className="mt-3 flex flex-wrap gap-1.5">
+            {[
+              { label: 'Coins', value: b.coin },
+              { label: 'Duels', value: b.duels },
+              { label: 'Perf', value: b.perf },
+            ].map(chip => (
+              <span key={chip.label} className="bg-white/15 text-white text-[9px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg backdrop-blur">
+                {chip.label} {Number(chip.value || 0).toLocaleString()}
+              </span>
+            ))}
+          </div>
+        )}
         {hasRank && (
           <p className="text-[9px] font-black text-white/50 uppercase tracking-widest mt-3">
             vs {Number(rank.totalPlayers || 0).toLocaleString()} scholars
           </p>
+        )}
+        {hasRank && (
+          <button
+            onClick={() => navigate('/leaderboard')}
+            className="mt-4 inline-flex items-center gap-2 bg-white text-polynurse-700 font-black text-xs uppercase tracking-wide px-4 py-2.5 rounded-xl shadow hover:bg-amber-50 transition"
+          >
+            View Leaderboard <ArrowRight size={14} />
+          </button>
         )}
       </div>
     </div>

@@ -6,9 +6,8 @@ export default defineConfig({
   plugins: [react()],
   css: {
     // Emit ONE consolidated stylesheet instead of separate per-chunk vendor/css
-    // files. The only external CSS was react-calendar's (~2.75 kB) imported by
-    // ExamTimetable; merging it removes a second render-blocking request and
-    // any duplication between index-*.css and vendor-*.css. File names keep
+    // files. Keeps a second render-blocking request and any duplication between
+    // index-*.css and vendor-*.css out of the critical path. File names keep
     // Vite's content hash, so unchanged CSS keeps the same URL (no churn on
     // redeploy) and changed CSS gets a fresh cache-busting hash.
     codeSplit: false,
@@ -42,17 +41,13 @@ export default defineConfig({
           // EVERY chunk (including the entry). Rollup must NOT park it inside
           // a heavy manual chunk, or that chunk gets a static edge from the
           // entry and is modulepreloaded eagerly. Give it its own micro-chunk
-          // (~300 B) so it alone is eager while vendor-exams stays lazy.
+          // (~300 B) so it alone is eager while the lazy vendor chunks stay lazy.
           if (id.includes('preload-helper')) return 'preload-helper';
           if (id.includes('node_modules')) {
-            // Heavy document/RFC-heavy libs used ONLY by the lazy ExamTimetable
-            // route (and its receipt export). Keeping them in the shared 'vendor'
-            // chunk dragged ~1.4 MB of eager JS into every initial page load even
-            // for visitors who never open /exams. Carving them into their own
-            // chunk makes Vite emit them as an on-demand sibling of the lazy
-            // ExamTimetable chunk.
-            if (id.includes('jspdf') || id.includes('html2canvas')) return 'vendor-exams';
-            if (id.includes('react-calendar')) return 'vendor-exams';
+            // Heavy document-rendering libs used by the shareable result-card
+            // export. Keeping them out of the shared 'vendor' chunk avoids
+            // dragging ~1.4 MB of eager JS into every initial page load.
+            if (id.includes('jspdf') || id.includes('html2canvas')) return 'vendor-export';
             if (id.includes('pdfjs-dist') || id.includes('tesseract.js') || id.includes('mammoth')) return 'vendor-parsing';
             return 'vendor';
           }

@@ -1,6 +1,6 @@
 import { chromium } from 'playwright';
 
-const ROUTES = ['/', '/dashboard', '/flashcards', '/quiz', '/exams', '/papers', '/activate', '/payments', '/settings', '/community', '/pronunciation', '/admin/finance', '/admin/questions'];
+const ROUTES = ['/', '/dashboard', '/flashcards', '/quiz', '/papers', '/activate', '/payments', '/settings', '/community', '/pronunciation', '/admin/finance', '/admin/questions'];
 
 const browser = await chromium.launch();
 const page = await browser.newPage();

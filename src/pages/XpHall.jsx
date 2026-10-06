@@ -17,7 +17,7 @@ const WAIT_FOR_HUMAN_MS = 3000;
 
 const XpHall = () => {
   const navigate = useNavigate();
-  const { flashcards, smartCoins, earnSC, spendSC } = useAppContext();
+  const { flashcards, smartCoins, finalizeDuel } = useAppContext();
   const { createBatch, recordAnswer } = useQuizBatch();
   const [phase, setPhase] = useState("lobby");
   const [mode, setMode] = useState(null);
@@ -245,7 +245,7 @@ const XpHall = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, questionTimeLeft, userAnswerState]);
 
-  const buildBreakdown = (won, players) => {
+  const buildBreakdown = (won, players, youDelta) => {
     const rows = [{ name: "You" }];
     for (let i = 1; i < players; i++) {
       rows.push({ name: opponent });
@@ -258,7 +258,7 @@ const XpHall = () => {
       status: e.name === "You"
         ? (won ? 'Answered correctly' : 'Wrong or timed out')
         : (e.name === winnerName ? 'Answered correctly' : 'Eliminated'),
-      delta: e.name === winnerName ? stake * (players - 1) : -stake,
+      delta: e.name === "You" ? youDelta : (e.name === winnerName ? stake * (players - 1) : -stake),
     }));
   };
 
@@ -270,7 +270,6 @@ const XpHall = () => {
     const players = mode?.players || 2;
     const won = correct;
     const outcome = won ? 'win' : 'loss';
-    const delta = won ? stake * (players - 1) : -stake;
 
     // Record answer to batch API (non-blocking)
     if (battleBatchIdRef.current) {
@@ -283,45 +282,45 @@ const XpHall = () => {
     }
 
     setTimeout(async () => {
-      try {
-        if (won) {
-          await earnSC(stake * players, 'duel_win');
-        } else {
-          await spendSC(stake, 'duel_loss');
-        }
-        // Record the duel for BOTH human opponents and solo runs vs The House.
-        // (Previously gated on opponentId, so House matches were never saved.)
-        if (supabase) {
-          let userId = null;
-          try {
-            userId = (await supabase.auth.getUser()).data.user?.id;
-          } catch { /* ignore */ }
-          if (userId) {
-            await supabase.from('duels').insert({
-              user_id: userId,
-              opponent,
-              opponent_id: opponentId || null,
-              mode: mode.id,
-              stake,
-              outcome,
-              delta
-            }).then(() => {});
+      // SC settlement (stake * players on win / -stake on loss) is SERVER-FINALIZED:
+      // finalize_duel (migration v33) validates stake/mode, moves coins atomically
+      // via _sc_apply, maintains competitive_stats, and writes the duels history
+      // row. The client can no longer insert into duels or move its own coins.
+      let serverDelta = 0;
+      let settled = false;
+      if (finalizeDuel) {
+        try {
+          const res = await finalizeDuel({
+            mode: mode.id,
+            opponentId,
+            stake,
+            won,
+            clientRequestId: typeof crypto !== 'undefined' && crypto.randomUUID
+              ? crypto.randomUUID()
+              : undefined,
+          });
+          if (res && res.ok) {
+            serverDelta = Number(res.delta ?? 0);
+            settled = true;
           }
+        } catch (err) {
+          console.warn('Duel settlement failed:', err?.message);
         }
-      } catch { /* ignore */ }
+      }
       setTxState('done');
       setResult({
         winner: won ? "You" : opponent,
         outcome,
-        delta,
+        delta: settled ? serverDelta : 0,
+        settled,
         players,
-        breakdown: buildBreakdown(won, players),
+        breakdown: buildBreakdown(won, players, settled ? serverDelta : 0),
       });
       setPhase("result");
       fetchHistory();
       clearWaiting();
     }, 900);
-  }, [userAnswerState, currentQuestion, mode, stake, opponent, opponentId, earnSC, spendSC, fetchHistory, questionTimeLeft]);
+  }, [userAnswerState, currentQuestion, mode, stake, opponent, opponentId, fetchHistory, questionTimeLeft, finalizeDuel]);
 
   const resetToLobby = () => {
     setPhase("lobby");
@@ -581,6 +580,11 @@ const XpHall = () => {
                 <div className={`mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-lg animate-pulse ${result.delta >= 0 ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"}`}>
                   {result.delta >= 0 ? '+' : ''}{result.delta} SC
                 </div>
+                {result.settled === false && (
+                  <p className="mt-3 text-xs text-amber-400/90 font-bold">
+                    Settlement couldn't be recorded — your Smart Coin balance was not changed. Please try again.
+                  </p>
+                )}
               </div>
               <div className="space-y-3">
                 {result.breakdown.map((p, i) => (

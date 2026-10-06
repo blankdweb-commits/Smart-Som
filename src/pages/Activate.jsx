@@ -89,7 +89,7 @@ export default function Activate() {
            <div className="space-y-4">
               {[
                 "Access 10,000+ Questions & Flashcards",
-                "Personalized Exam Readiness Tracking",
+                "Global Competitive Rankings",
                 "Clinical Reference Library",
                 "Priority Community Support"
               ].map((text, i) => (

@@ -371,7 +371,8 @@ export async function handleAnswer(req, res) {
 // Returns: { success, score, total, answers, result }
 //   result = { resultId, score, total, passed, correctAnswers, totalAnswers,
 //              playerScore, correctAnswersTotal, totalAnswersTotal,
-//              awarded, replay, difficulty, subject, mode } (null pre-migration)
+//              awarded, replay, difficulty, subject, mode,
+//              scAwarded, scBalance } (null pre-migration)
 // ============================================================
 export async function handleComplete(req, res) {
   if (req.method !== 'POST') {

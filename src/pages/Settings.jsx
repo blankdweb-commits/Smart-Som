@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useCallback, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { supabase } from '../utils/supabase';
 import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
@@ -12,7 +12,9 @@ import {
   Save,
   Lock,
   GraduationCap,
-  Building2
+  Building2,
+  Copy,
+  Sparkles
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import Toast from '../components/Toast';
@@ -27,8 +29,33 @@ const DEPARTMENTS = [
 ];
 
 export default function Settings() {
-  const { userProfile, updateProfile, session, signOut, identity } = useAppContext();
+  const { userProfile, updateProfile, session, signOut, identity, getMyReferral } = useAppContext();
   const navigate = useNavigate();
+
+  const [referral, setReferral] = useState(null);
+  const [referralToast, setReferralToast] = useState(null);
+
+  const loadReferral = useCallback(async () => {
+    if (!session || !getMyReferral) return;
+    const res = await getMyReferral();
+    if (res?.ok) setReferral(res);
+  }, [session, getMyReferral]);
+
+  useEffect(() => {
+    loadReferral();
+  }, [loadReferral]);
+
+  const copyReferralCode = async () => {
+    if (!referral?.code) return;
+    try {
+      await navigator.clipboard.writeText(`${window.location.origin}/signup?referral=${encodeURIComponent(referral.code)}`);
+      setReferralToast({ message: 'Invite link copied!', type: 'success' });
+      setTimeout(() => setReferralToast(null), 2500);
+    } catch {
+      setReferralToast({ message: 'Could not copy.', type: 'error' });
+      setTimeout(() => setReferralToast(null), 2500);
+    }
+  };
 
   const [profileForm, setProfileForm] = useState({
     fullName: userProfile.fullName || '',
@@ -347,6 +374,45 @@ export default function Settings() {
           </button>
         </motion.div>
       )}
+
+      {/* Invite & Earn */}
+      <motion.div
+        initial={{ y: 10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.16 }}
+        className="bg-gradient-to-br from-polynurse-700 to-polynurse-900 rounded-[2rem] p-6 sm:p-8 text-white shadow-clinical"
+      >
+        <div className="flex items-center gap-2 mb-1">
+          <Sparkles size={16} className="text-amber-300" />
+          <h2 className="text-sm font-black uppercase tracking-widest text-white/80">Invite &amp; Earn</h2>
+        </div>
+        <p className="text-xs font-bold text-white/70 mb-4 leading-relaxed">
+          Share your invite code — every friend who activates their account earns you
+          15 Smart Coins.
+        </p>
+        {referral ? (
+          <div className="flex items-center gap-2">
+            <button
+              onClick={copyReferralCode}
+              className="flex-1 flex items-center justify-center gap-2 bg-white/10 hover:bg-white/20 backdrop-blur border border-white/20 rounded-xl py-3 font-black text-lg tracking-[0.35em] transition"
+            >
+              {referral.code} <Copy size={16} />
+            </button>
+            {Number(referral.referredCount || 0) > 0 && (
+              <span className="shrink-0 text-[10px] font-black uppercase tracking-widest text-white/70">
+                {referral.referredCount} referred
+              </span>
+            )}
+          </div>
+        ) : (
+          <p className="text-xs font-bold text-white/50">Your invite code appears here once you're signed in.</p>
+        )}
+      {referralToast && (
+          <p className={`mt-3 text-[10px] font-black uppercase tracking-widest ${referralToast.type === 'success' ? 'text-emerald-300' : 'text-red-300'}`}>
+            {referralToast.message}
+          </p>
+        )}
+      </motion.div>
 
       {/* Legal */}
       <motion.div

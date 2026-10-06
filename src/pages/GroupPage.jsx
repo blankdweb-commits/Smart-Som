@@ -467,7 +467,7 @@ const GroupPage = () => {
           {!(isAnonymousGroup && !anonViewer) ? (
             <>
               {/* Group quiz CTA — only for identity-safe study groups. */}
-              {!isAnonymousGroup && (
+              {group && !isAnonymousGroup && (
                 <div className="mb-6 p-5 bg-gradient-to-br from-apex-600 to-indigo-600 rounded-3xl text-white flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 shadow-clinical">
                   <div>
                     <h2 className="font-black text-lg tracking-tight">Group Quiz Sprint</h2>

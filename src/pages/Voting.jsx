@@ -1,6 +1,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext';
 import { supabase } from '../utils/supabase';
+import AdSenseSlot from '../components/ads/AdSenseSlot';
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -397,6 +398,12 @@ export default function Voting() {
           })}
         </div>
       )}
+
+      {/* Content-area ad — placed at the end of the page, well away from vote
+          buttons/options and never inside the request or confirmation flows. */}
+      <div className="mt-8">
+        <AdSenseSlot placement="voting-content" />
+      </div>
     </div>
   );
 }

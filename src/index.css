@@ -1,5 +1,4 @@
 @import "tailwindcss";
-@import "react-calendar/dist/Calendar.css";
 @config "../tailwind.config.js";
 
 :root {
@@ -121,31 +120,6 @@ html {
   .flashcard-container {
     aspect-ratio: 4 / 5;
   }
-}
-
-/* React Calendar Dark Mode Overrides */
-.dark .react-calendar {
-  background: #1e293b;
-  color: white;
-  border: 1px solid #334155;
-}
-
-.dark .react-calendar__tile:enabled:hover,
-.dark .react-calendar__tile:enabled:focus {
-  background-color: #334155;
-}
-
-.dark .react-calendar__navigation button:enabled:hover,
-.dark .react-calendar__navigation button:enabled:focus {
-  background-color: #334155;
-}
-
-.dark .react-calendar__month-view__days__day--neighboringMonth {
-  color: #64748b;
-}
-
-.dark .react-calendar__tile--now {
-  background: #9333ea;
 }
 
 @keyframes bounce-in {

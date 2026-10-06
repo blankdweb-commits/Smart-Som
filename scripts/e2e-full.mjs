@@ -1,8 +1,8 @@
-import { chromium } from 'playwright';
+﻿import { chromium } from 'playwright';
 import fs from 'fs';
 import path from 'path';
 
-// Full E2E v2: signup -> exam CRUD -> quiz difficulty progression -> flashcard session.
+// Full E2E v2: signup -> quiz difficulty progression -> flashcard session.
 const env = {};
 for (const line of fs.readFileSync(path.join(process.cwd(), '.env'), 'utf8').split(/\r?\n/)) {
   const m = line.match(/^\s*([A-Za-z_][A-Za-z0-9_]*)\s*=\s*(.*)\s*$/);
@@ -18,7 +18,7 @@ const USER = { name: `Flow Tester ${stamp}`, email: `flow${stamp}@apextest.local
 const results = [];
 const log = (step, ok, detail = '') => {
   results.push({ step, ok });
-  console.log(`${ok ? 'PASS' : 'FAIL'}  ${step}${detail ? ' — ' + detail : ''}`);
+  console.log(`${ok ? 'PASS' : 'FAIL'}  ${step}${detail ? ' â€” ' + detail : ''}`);
 };
 
 async function dbRest(table, query) {
@@ -50,72 +50,6 @@ try {
     return data.session ? data.session.user.id : null;
   });
   log('signup + session', !!sess, USER.email);
-
-  // ---------- EXAM CRUD ----------
-  await page.goto(`${BASE}/exams`, { waitUntil: 'networkidle' });
-  await page.waitForTimeout(1500);
-
-  await page.locator('button', { hasText: 'Schedule' }).first().click();
-  await page.waitForTimeout(700);
-  await page.fill('input[placeholder="e.g., Medical Surgical Nursing I"]', 'Anatomy & Physiology I');
-  await page.fill('input[name="date"]', '2026-12-01');
-  await page.fill('input[name="time"]', '09:00');
-  await page.fill('input[name="venue"]', 'Clinical Lab 1');
-
-  // Type the topic directly + Enter (dropdown suggestion UX verified separately)
-  const topicInput = page.locator('input[placeholder="Add a topic to study..."]');
-  if (await topicInput.count()) {
-    await topicInput.click();
-    await topicInput.fill('Cell theory');
-    await page.waitForTimeout(400);
-    await topicInput.press('Enter');
-    await page.waitForTimeout(400);
-    // Also exercise the curriculum auto-add button if present
-    const autoBtn = page.locator('button:has-text("Auto-add all")');
-    if (await autoBtn.count()) {
-      await autoBtn.click().catch(() => {});
-      await page.waitForTimeout(500);
-    }
-  }
-  await page.locator('button', { hasText: 'Confirm & Schedule' }).first().click();
-  await page.waitForTimeout(2500);
-
-  let bodyText = await page.textContent('body');
-  log('exam appears in UI after schedule', (bodyText || '').includes('Anatomy & Physiology I'));
-
-  const examRows = await dbRest('exams', `select=id,title,user_id,topics&user_id=eq.${sess}&order=created_at.desc`);
-  const myExam = (examRows || [])[0] || null;
-  log('exam persisted in database', !!myExam && myExam.title === 'Anatomy & Physiology I', myExam ? `id=${myExam.id.slice(0, 8)}... topics=${(myExam.topics || []).length}` : 'no row');
-
-  if (myExam) {
-    // Expand the card to reveal topics checklist
-    await page.locator('h3', { hasText: 'Anatomy & Physiology I' }).first().click();
-    await page.waitForTimeout(600);
-
-    // Toggle the first topic chip (inside expanded view)
-    const topicChip = page.locator('button', { hasText: 'Cell theory' }).last();
-    if (await topicChip.count()) {
-      await topicChip.click();
-      await page.waitForTimeout(2000);
-      const updated = await dbRest('exams', `select=readiness,topics&id=eq.${myExam.id}`);
-      const topicsCount = (updated?.[0]?.topics || []).length;
-      log('topic toggle persists readiness', (updated?.[0]?.readiness || 0) > 0,
-        `readiness=${updated?.[0]?.readiness}% (${topicsCount} topics, 1 completed)`);
-    } else {
-      log('topic toggle persists readiness', false, 'topic chip not rendered');
-    }
-
-    // Delete via ⋮ (MoreVertical) menu -> Delete -> confirm dialog
-    // The ⋮ button is the FIRST button inside the exam card.
-    const examCard = page.locator('div.relative.group', { hasText: 'Anatomy & Physiology I' }).first();
-    await examCard.locator('button').first().click({ force: true });
-    await page.waitForTimeout(600);
-    page.once('dialog', d => d.accept());
-    await page.locator('button', { hasText: 'Delete' }).last().click({ force: true });
-    await page.waitForTimeout(2500);
-    const after = await dbRest('exams', `select=id&id=eq.${myExam.id}`);
-    log('exam deleted from database', (after || []).length === 0);
-  }
 
   // ---------- QUIZ DIFFICULTY PROGRESSION (per-course, server-authoritative) ----------
   await page.goto(`${BASE}/quiz`, { waitUntil: 'networkidle' });
@@ -182,7 +116,7 @@ try {
   if (quizCompleted) {
     await page.waitForTimeout(2500); // banner appears after the async result save
     bodyText = await page.textContent('body');
-    log('pass/fail banner shown', /Level — (Passed|Not passed)/.test(bodyText || ''));
+    log('pass/fail banner shown', /Level â€” (Passed|Not passed)/.test(bodyText || ''));
 
     await page.waitForTimeout(2500);
     const qr = await dbRest('quiz_results', `select=id,difficulty,score,total,passed&user_id=eq.${sess}`);
@@ -202,7 +136,7 @@ try {
   await page.waitForTimeout(1800);
   bodyText = await page.textContent('body');
 
-  // Navigate into a module first — the difficulty strip renders at subject level
+  // Navigate into a module first â€” the difficulty strip renders at subject level
   await page.locator('h3', { hasText: 'General Nursing' }).click();
   await page.waitForTimeout(900);
   const levelBtn = page.locator('h3').filter({ hasText: /^Year \d$/ }).first();

@@ -11,7 +11,7 @@ import {
   shouldCelebrate,
   acknowledgeUnlock
 } from '../utils/identityEngine';
-import { evaluateAchievements, ACHIEVEMENT_CATALOG } from '../utils/achievementEngine';
+
 
 const AppContext = createContext();
 
@@ -251,9 +251,9 @@ export function AppProvider({ children }) {
   const [scLastFailDate, setScLastFailDate] = useState(null); // YYYY-MM-DD
   const [scLedger, setScLedger] = useState([]);
   const [streakFreezeActive, setStreakFreezeActive] = useState(false);
-  const SC_DAILY_PAYOUT = 9;
-  const SC_STREAK_BREAK_PENALTY = 5;
-  const SC_QUIZ_FAIL_PENALTY = 3;
+  // SC economy constants live SERVER-SIDE (migration v31: _sc_apply + catalog):
+  // daily faucet = 9, streak-break penalty = 5, quiz-fail penalty = 3,
+  // power-ups = 8/5/12 (sc_product_catalog). The client mirrors only for display.
   const [paymentPurposes] = useState([]);
   const [subscriptionPlans, setSubscriptionPlans] = useState([]);
   const [transactions, setTransactions] = useState([]);
@@ -298,9 +298,12 @@ export function AppProvider({ children }) {
   // the current device and records active devices for remote per-device revoke.
   const [sessionMode, setSessionMode] = useState('soft');
   const [activeDevices, setActiveDevices] = useState([]);
-  // Smart Coins are LOCKED until 1v1 launches (per product spec): every new
-  // user starts at 0 and the faucet/spend stays dormant.
-  const SC_FEATURE_LOCKED = true;
+  // Smart Coins are UNLOCKED and fully server-authoritative (migration v31):
+  // every mutation goes through SECURITY DEFINER RPCs that enforce the rules
+  // (daily cap, fixed penalties, catalog-priced power-ups), never a raw
+  // profiles.update/ledger insert from the client. `SC_FEATURE_LOCKED` is kept
+  // in the provider for legacy UI branches and is always false here.
+  const SC_FEATURE_LOCKED = false;
 
   // Dark mode must be applied to <html> for Tailwind's class strategy to work.
   useEffect(() => {
@@ -587,88 +590,311 @@ export function AppProvider({ children }) {
     return scTodayStr() === `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
   }, [scTodayStr]);
 
-  // Apply an SC delta locally + persist, with audit ledger row. amount is
-  // signed (+ earn, - loss). Never lets the wallet go below 0.
-  // Smart Coins are LOCKED until 1v1 launches — all mutations are no-ops.
-  const applySC = useCallback(async (amount, reason, refId = null) => {
-    if (SC_FEATURE_LOCKED) return smartCoins;
-    if (!session) return;
-    const delta = Number(amount) || 0;
-    const next = Math.max(0, smartCoins + delta);
-    if (delta !== 0) setSmartCoins(next);
+  // All Smart Coin mutations are SERVER-AUTHORITATIVE (migration v31): the
+  // client only *asks* the server (via SECURITY DEFINER RPCs) and the server
+  // decides the amount, cadence and validity. The client NEVER writes
+  // profiles.smart_coins or smart_coin_ledger directly any more.
+  // Every RPC below fails SOFT when the migration hasn't been applied yet —
+  // it returns the current balance and nothing else changes.
 
-    if (supabase) {
-      await supabase.from('profiles')
-        .update({ smart_coins: next })
-        .eq('id', session.user.id);
-      if (delta !== 0) {
-        const { data } = await supabase.from('smart_coin_ledger')
-          .insert({ user_id: session.user.id, amount: delta, balance_after: next, reason, ref_id: refId ?? null })
-          .select('id, amount, balance_after, reason, created_at')
-          .single();
-        if (data) setScLedger(prev => [data, ...prev].slice(0, 30));
-      }
+  // Daily 9 SC faucet — activated accounts only, once per calendar day.
+  const claimDailySC = useCallback(async () => {
+    if (!session) return smartCoins;
+    if (!userProfile.isActivated) return smartCoins;
+    if (scIsToday(scLastPayout)) return smartCoins; // already granted today
+    try {
+      const { data, error } = await supabase.rpc('sc_claim_daily');
+      if (error || !data?.ok) return smartCoins;
+      const bal = Number(data.balanceAfter ?? data.balance ?? smartCoins);
+      setSmartCoins(bal);
+      setScLastPayout(new Date().toISOString());
+      return bal;
+    } catch (err) {
+      console.warn('Daily SC claim failed:', err?.message);
+      return smartCoins;
     }
-    return next;
+  }, [session, userProfile.isActivated, scIsToday, scLastPayout, smartCoins]);
+
+  // Buy a server-priced power-up by its catalog key. The server computes the
+  // amount from sc_product_catalog — the client can never pay less (or spend a
+  // negative amount). Amounts (8/5/12) are mirrored in QuizPlayer for display.
+  const spendSC = useCallback(async (productKey, refId = null) => {
+    if (!session) return smartCoins;
+    try {
+      const { data, error } = await supabase.rpc('sc_spend', {
+        p_product_key: productKey,
+        p_ref_type: refId ? 'quiz' : null,
+        p_ref_id: refId ? String(refId) : null
+      });
+      if (error || !data?.ok) {
+        console.warn('SC spend failed:', error?.message || data?.error);
+        return smartCoins;
+      }
+      const bal = Number(data.balanceAfter ?? data.balance ?? smartCoins);
+      if (!Number.isNaN(bal)) setSmartCoins(bal);
+      return bal;
+    } catch (err) {
+      console.warn('SC spend failed:', err?.message);
+      return smartCoins;
+    }
   }, [session, smartCoins]);
 
-  // Daily 9 SC for activated accounts (granted once per day, no rollover).
-  // Smart Coins are LOCKED until 1v1 launches — the faucet stays dormant.
-  const claimDailySC = useCallback(async () => {
-    if (SC_FEATURE_LOCKED) return 0;
-    if (!session) return 0;
-    const activated = userProfile.isActivated;
-    if (!activated) return smartCoins;
-
-    if (scIsToday(scLastPayout)) return smartCoins; // already granted today
-    return applySC(SC_DAILY_PAYOUT, 'daily_activated');
-  }, [session, userProfile.isActivated, scIsToday, scLastPayout, applySC, smartCoins]);
-
-  // Small capped bonus from study accomplishments (kept limited to stay rare).
-  const earnSC = useCallback(async (amount, reason, refId = null) => {
-    if (SC_FEATURE_LOCKED) return smartCoins;
-    if (!session) return smartCoins;
-    return applySC(Number(amount) || 0, reason || 'bonus', refId);
-  }, [session, applySC, smartCoins]);
-
-  // Spend SC on power-ups etc. Refuses if insufficient. Returns new balance.
-  // Smart Coins locked — spending is disabled until 1v1 launches.
-  const spendSC = useCallback(async (amount, reason, refId = null) => {
-    if (SC_FEATURE_LOCKED) return smartCoins;
-    if (!session) return smartCoins;
-    const cost = Math.abs(Number(amount) || 0);
-    if (cost > smartCoins) return smartCoins;
-    return applySC(-cost, reason || 'spend', refId);
-  }, [session, smartCoins, applySC]);
-
   // -5 SC when the daily activity streak is broken (gap of >= 1 day).
-  // An active streak-freeze consumes itself instead, waiving the penalty.
+  // An active streak-freeze consumes itself instead, waiving the penalty — and
+  // that decision is reported to the server (p_freeze_used) so the server can
+  // keep its own tally once a durable freeze ledger lands.
   const recordStreakBreak = useCallback(async () => {
-    if (SC_FEATURE_LOCKED) return;
     if (!session) return;
     if (streakFreezeActive) {
       setStreakFreezeActive(false);
       return; // freeze absorbed the break — no SC lost
     }
-    await applySC(-SC_STREAK_BREAK_PENALTY, 'streak_break');
-  }, [session, streakFreezeActive, applySC]);
+    try {
+      const { data, error } = await supabase.rpc('sc_record_streak_break', {
+        p_freeze_used: false
+      });
+      if (error) console.warn('SC streak penalty failed:', error.message);
+      else if (data?.ok && data.balanceAfter != null) setSmartCoins(Number(data.balanceAfter));
+    } catch (err) {
+      console.warn('SC streak penalty failed:', err?.message);
+    }
+  }, [session, streakFreezeActive]);
 
   // -3 SC on a failed quiz, but only once per day (fair + keeps SC rare).
   const recordQuizFailPenalty = useCallback(async (refId = null) => {
-    if (SC_FEATURE_LOCKED) return;
     if (!session) return;
     if (scIsToday(scLastFailDate)) return; // already penalized today
-    setScLastFailDate(scTodayStr());
-    if (supabase) {
-      await supabase.from('profiles')
-        .update({ sc_last_fail_date: scTodayStr() })
-        .eq('id', session.user.id);
+    try {
+      const { data, error } = await supabase.rpc('sc_record_fail_penalty', {
+        p_ref_type: refId ? 'quiz' : null,
+        p_ref_id: refId ? String(refId) : null
+      });
+      if (error) {
+        console.warn('SC fail penalty failed:', error.message);
+        return;
+      }
+      setScLastFailDate(scTodayStr());
+      if (data?.ok && data.balanceAfter != null) setSmartCoins(Number(data.balanceAfter));
+    } catch (err) {
+      console.warn('SC fail penalty failed:', err?.message);
     }
-    await applySC(-SC_QUIZ_FAIL_PENALTY, 'quiz_fail', refId);
-  }, [session, scIsToday, scLastFailDate, scTodayStr, applySC]);
+  }, [session, scIsToday, scLastFailDate, scTodayStr]);
 
   // Advance the member's per-group quiz streak via the group member RPC.
   // Only meaningful when a quiz is launched from a study group.
+  // Server-finalized duel settlement (migration v33): the client reports the
+  // duel outcome and the SERVER validates stake/mode, moves SC atomically via
+  // _sc_apply, maintains competitive_stats, and writes the duels history row —
+  // clients can no longer mint SC by self-reporting wins or editing `duels`.
+  // Idempotent on p_client_request_id. Returns the server result (delta,
+  // balanceAfter, replayed) or null on failure (client shows outcome, no coins).
+  const finalizeDuel = useCallback(async ({ mode, opponentId, stake, won, clientRequestId }) => {
+    if (!session) return null;
+    try {
+      const { data, error } = await supabase.rpc('finalize_duel', {
+        p_mode: mode,
+        p_opponent_id: opponentId || null,
+        p_stake: Number(stake) || 0,
+        p_won: !!won,
+        p_client_request_id: clientRequestId || null,
+      });
+      if (error || !data?.ok) {
+        console.warn('Duel finalize failed:', error?.message || data?.error);
+        return null;
+      }
+      const bal = Number(data.balanceAfter ?? data.balance ?? smartCoins);
+      if (!Number.isNaN(bal)) setSmartCoins(bal);
+      return data;
+    } catch (err) {
+      console.warn('Duel finalize failed:', err?.message);
+      return null;
+    }
+  }, [session, smartCoins]);
+
+  // Viral growth (migration v35): challenges / referrals / squads / party rooms
+  // are ALL server-authoritative. The client only invokes SECURITY DEFINER RPCs
+  // (no direct table writes for any of these). Every reward funnels through the
+  // server's _sc_apply; helpers below sync smartCoins from the returned balance.
+  const claimChallengeReward = useCallback(async (challengeKey) => {
+    if (!session) return null;
+    try {
+      const { data, error } = await supabase.rpc('claim_challenge_reward', {
+        p_challenge_key: challengeKey,
+        p_client_request_id: (typeof crypto !== 'undefined' && crypto.randomUUID) ? crypto.randomUUID() : null,
+      });
+      if (error) {
+        console.warn('Challenge claim failed:', error.message);
+        return null;
+      }
+      if (data?.balance != null) setSmartCoins(Number(data.balance));
+      return data; // { ok, status, reward?, balance? }
+    } catch (err) {
+      console.warn('Challenge claim failed:', err?.message);
+      return null;
+    }
+  }, [session]);
+
+  const getMyReferral = useCallback(async () => {
+    if (!session) return null;
+    try {
+      const { data, error } = await supabase.rpc('get_my_referral');
+      if (error) return null;
+      return data; // { ok, code, referrerId?, referredCount? }
+    } catch (err) {
+      console.warn('Referral fetch failed:', err?.message);
+      return null;
+    }
+  }, [session]);
+
+  const applyReferral = useCallback(async (code) => {
+    if (!session || !code) return null;
+    try {
+      const { data, error } = await supabase.rpc('apply_referral', { p_code: code });
+      if (error) {
+        console.warn('Referral apply failed:', error.message);
+        return null;
+      }
+      if (data?.ok && data.balance != null) setSmartCoins(Number(data.balance));
+      return data; // { ok, code, credited? }
+    } catch (err) {
+      console.warn('Referral apply failed:', err?.message);
+      return null;
+    }
+  }, [session]);
+
+  const createSquad = useCallback(async (name, code) => {
+    if (!session) return null;
+    try {
+      const { data, error } = await supabase.rpc('create_squad', { p_name: name, p_code: code });
+      if (error) {
+        console.warn('Squad create failed:', error.message);
+        return null;
+      }
+      return data; // { ok, squadId, squadCode?, status }
+    } catch (err) {
+      console.warn('Squad create failed:', err?.message);
+      return null;
+    }
+  }, [session]);
+
+  const joinSquad = useCallback(async (code) => {
+    if (!session) return null;
+    try {
+      const { data, error } = await supabase.rpc('join_squad', { p_code: code });
+      if (error) {
+        console.warn('Squad join failed:', error.message);
+        return null;
+      }
+      return data; // { ok, squadId, status }
+    } catch (err) {
+      console.warn('Squad join failed:', err?.message);
+      return null;
+    }
+  }, [session]);
+
+  const leaveSquad = useCallback(async () => {
+    if (!session) return null;
+    try {
+      const { data, error } = await supabase.rpc('leave_squad');
+      if (error) {
+        console.warn('Squad leave failed:', error.message);
+        return null;
+      }
+      return data; // { ok, status }
+    } catch (err) {
+      console.warn('Squad leave failed:', err?.message);
+      return null;
+    }
+  }, [session]);
+
+  const getMySquad = useCallback(async () => {
+    if (!session) return null;
+    try {
+      const { data, error } = await supabase.rpc('get_my_squad');
+      if (error) return null;
+      return data; // { ok, squad?, status }
+    } catch (err) {
+      console.warn('Squad fetch failed:', err?.message);
+      return null;
+    }
+  }, [session]);
+
+  const claimSquadReward = useCallback(async () => {
+    if (!session) return null;
+    try {
+      const { data, error } = await supabase.rpc('claim_squad_reward');
+      if (error) {
+        console.warn('Squad reward claim failed:', error.message);
+        return null;
+      }
+      if (data?.ok && data.balance != null) setSmartCoins(Number(data.balance));
+      return data; // { ok, reward?, balance? }
+    } catch (err) {
+      console.warn('Squad reward claim failed:', err?.message);
+      return null;
+    }
+  }, [session]);
+
+  const createRoom = useCallback(async (title) => {
+    if (!session) return null;
+    try {
+      const { data, error } = await supabase.rpc('create_room', { p_title: title || null });
+      if (error) return null;
+      return data; // { ok, roomId, roomCode, status }
+    } catch (err) {
+      console.warn('Room create failed:', err?.message);
+      return null;
+    }
+  }, [session]);
+
+  const joinRoom = useCallback(async (code) => {
+    if (!session) return null;
+    try {
+      const { data, error } = await supabase.rpc('join_room', { p_code: code });
+      if (error) return null;
+      return data; // { ok, roomId, status }
+    } catch (err) {
+      console.warn('Room join failed:', err?.message);
+      return null;
+    }
+  }, [session]);
+
+  const leaveRoom = useCallback(async () => {
+    if (!session) return null;
+    try {
+      const { data, error } = await supabase.rpc('leave_room');
+      if (error) return null;
+      return data; // { ok, status }
+    } catch (err) {
+      console.warn('Room leave failed:', err?.message);
+      return null;
+    }
+  }, [session]);
+
+  const getActiveRooms = useCallback(async () => {
+    if (!session) return [];
+    try {
+      const { data, error } = await supabase.rpc('get_active_rooms');
+      if (error || !data?.ok) return [];
+      return data.rooms || [];
+    } catch (err) {
+      console.warn('Rooms fetch failed:', err?.message);
+      return [];
+    }
+  }, [session]);
+
+  const getMyRoom = useCallback(async () => {
+    if (!session) return null;
+    try {
+      const { data, error } = await supabase.rpc('get_my_room');
+      if (error || !data?.ok) return null;
+      return data.room || null;
+    } catch (err) {
+      console.warn('My room fetch failed:', err?.message);
+      return null;
+    }
+  }, [session]);
+
   const bumpGroupQuizStreak = useCallback(async (groupId) => {
     if (!session || groupId == null || !supabase) return null;
     try {
@@ -682,34 +908,47 @@ export function AppProvider({ children }) {
     }
   }, [session]);
 
-  // Global Player Score rank — SERVER-AUTHORITATIVE. Reads the cumulative
-  // player_score + deterministic global rank from the get_my_player_rank RPC
-  // (migration v30), NOT from any client-side leaderboard slice. Returns null
-  // until the migration is applied (the UI shows '—' gracefully).
-  const fetchGlobalRank = useCallback(async (sess) => {
-    const s = sess || session;
-    if (!s || !supabase) return null;
-    try {
-      const { data, error } = await supabase.rpc('get_my_player_rank', {
-        p_user_id: s.user.id,
-      });
-      if (error) {
-        console.warn('[rank] get_my_player_rank:', error.message);
+  // Global COMPETITIVE rank — SERVER-AUTHORITATIVE. Reads the deterministic
+    // `competitive_rank_score` + row_number rank from get_my_player_rank
+    // (migration v32), NOT any client-side leaderboard slice. Pre-v32
+    // (player_score-only) responses are normalized onto the same shape so the
+    // UI stays correct before/after the migration. Returns null on failure.
+    const fetchGlobalRank = useCallback(async (sess) => {
+      const s = sess || session;
+      if (!s || !supabase) return null;
+      try {
+        const { data, error } = await supabase.rpc('get_my_player_rank', {
+          p_user_id: s.user.id,
+        });
+        if (error) {
+          console.warn('[rank] get_my_player_rank:', error.message);
+          return null;
+        }
+        if (!data || data.ok === false) return null;
+        const b = data.scoreBreakdown || {};
+        return {
+          // Competitive (v32) fields; legacy (v30) responses fall back so the
+          // rank/points cells never break mid-upgrade.
+          globalRank: data.competitiveRank ?? data.globalRank ?? null,
+          playerScore: Number(data.competitiveScore ?? data.playerScore ?? 0) || 0,
+          correctAnswers: Number(data.correctAnswers) || 0,
+          totalAnswers: Number(data.totalAnswers) || 0,
+          totalPlayers: Number(data.totalPlayers || data.totalDuelists) || 0,
+          isCompetitive: data.competitiveRank != null,
+          breakdown: {
+            coin: Number(b.coin) || 0,
+            duels: Number(b.duels ?? (Number(b.duels1) || 0) + (Number(b.duels3) || 0)) || 0,
+            perf: Number(b.perf) || 0,
+            wins: Number(b.wins) || 0,
+            matches: Number(b.matches) || 0,
+            achievements: Number(b.achievements) || 0,
+          },
+        };
+      } catch (err) {
+        console.warn('[rank] fetchGlobalRank:', err.message);
         return null;
       }
-      if (!data || data.ok === false) return null;
-      return {
-        globalRank: data.globalRank ?? null,
-        playerScore: Number(data.playerScore) || 0,
-        correctAnswers: Number(data.correctAnswers) || 0,
-        totalAnswers: Number(data.totalAnswers) || 0,
-        totalPlayers: Number(data.totalPlayers) || 0,
-      };
-    } catch (err) {
-      console.warn('[rank] fetchGlobalRank:', err.message);
-      return null;
-    }
-  }, [session]);
+    }, [session]);
 
   // ---------- Streaks & study activity ----------
   const touchActivity = useCallback(async () => {
@@ -795,10 +1034,10 @@ export function AppProvider({ children }) {
 
     // Local stats/milestone feedback
     updateQuizStats({});
-    // SC performance reward — flat, auto-credited to the wallet balance.
-    // Correct answers pay base (0.1 SC) except on Hard/Expert difficulty,
-    // which pay 0.5 SC per correct answer. The daily 9 SC faucet and the
-    // -3 SC fail penalty remain separate.
+    // SC performance reward is credited SERVER-SIDE inside the authoritative
+    // award RPC (migration v31, apply_quiz_batch_score) — the client never
+    // writes the wallet. The daily 9 SC faucet and the -3 SC fail penalty
+    // remain separate server-enforced RPCs.
 
     if (!supabase || !session) return finalPassed;
 
@@ -831,14 +1070,12 @@ export function AppProvider({ children }) {
       await recordQuizFailPenalty(resultId);
     }
 
-    // Auto-credit the SC performance reward for this session. Hard/Expert
-    // difficulty pays 0.5 per correct answer; all other difficulties pay 0.1.
-    // (Smart Coins remain LOCKED until 1v1 launches — applySC is a no-op.)
-    const lowTier = String(difficulty).toLowerCase();
-    const rate = (lowTier === 'hard' || lowTier === 'expert' || lowTier === 'extreme') ? 0.5 : 0.1;
-    const payout = Math.max(0, finalScore) * rate;
-    if (payout > 0) {
-      await applySC(payout, 'quiz_performance', resultId);
+    // SC performance reward is credited SERVER-SIDE inside the authoritative
+    // award (apply_quiz_batch_score, migration v31) — never by the client.
+    // The server returns the post-award wallet balance; sync it here so the
+    // UI reflects the credit without a second query.
+    if (authoritative && serverResult.scBalance != null) {
+      setSmartCoins(Number(serverResult.scBalance));
     }
 
     // Per-group "unique streak": advancing a member's streak inside a study
@@ -1489,66 +1726,45 @@ export function AppProvider({ children }) {
     }
   }, [session, supabase]);
 
-  // Persist newly-earned achievements (client-side deterministic evaluation —
-  // same engine as the wall page). Idempotent: unique (user_id, achievement_id).
-  // No server formula needed; the catalog is publicly readable.
+// Persist newly-earned achievements VENDOR-SIDE (migration v35): the server
+  // decides unlocks from real facts (player_stats, quiz_results,
+  // competitive_stats, daily_challenge, profiles.streak) via evaluate_achievements.
+  // The client no longer WRITES user_achievements (self-awarding is disabled by
+  // the select-own RLS). Returns the fresh unlocks for celebration toasts.
   const syncAchievements = useCallback(async (sess = session) => {
     if (!sess?.user?.id || !supabase) return;
     try {
-      const earned = evaluateAchievements({
-        quizHistory,
-        studyStats,
-        levelCompletions,
-        learningAnalytics,
-        identity,
-        dailyGoalDone: dailyChallengeDone
-      });
-      if (earned.length === 0) return;
-
-      const [catalogRes, ownedRes] = await Promise.all([
-        supabase.from('achievements').select('id, key'),
-        supabase.from('user_achievements').select('achievement_id')
-      ]);
-      if (catalogRes.error || ownedRes.error) return;
-
-      const keyToId = new Map((catalogRes.data || []).map(r => [r.key, r.id]));
-      const owned = new Set((ownedRes.data || []).map(r => String(r.achievement_id)));
-      const toInsert = [];
-      const newly = [];
-
-      for (const key of earned) {
-        const id = keyToId.get(key);
-        if (id == null || owned.has(String(id))) continue;
-        toInsert.push({ user_id: sess.user.id, achievement_id: id });
-        newly.push(ACHIEVEMENT_CATALOG.find(a => a.key === key) || { key, name: key, emoji: '🏆' });
-      }
-      if (toInsert.length === 0) return;
-
-      const { error } = await supabase.from('user_achievements').insert(toInsert);
-      if (error) {
-        console.warn('Achievements sync skipped:', error.message);
+      const { data, error } = await supabase.rpc('evaluate_achievements');
+      if (error || !data?.ok) {
+        console.warn('Achievements evaluate skipped:', error?.message || data?.error);
         return;
       }
-      setUserAchievements(prev => [
-        ...prev,
-        ...toInsert.map(r => ({ achievement_id: r.achievement_id, unlocked_at: new Date().toISOString() }))
-      ]);
-      if (newly.length > 0) {
-        // Queue celebration toast (one per fresh unlock — pick the newest).
+      const freshly = data.unlocked || [];
+      if (freshly.length > 0) {
+        setUserAchievements(prev => {
+          const known = new Set(prev.map(u => u.key || u.achievement_id).filter(Boolean));
+          const merged = [...prev];
+          for (const a of freshly) {
+            if (!known.has(a.key)) {
+              merged.push({ key: a.key, achievement_id: a.key, name: a.name, emoji: a.emoji, unlocked_at: new Date().toISOString() });
+            }
+          }
+          return merged;
+        });
         setAchievementToast({
           id: Date.now(),
-          emoji: newly[0].emoji || '🏆',
-          title: newly[0].name || 'Achievement Unlocked',
-          subtitle: newly.length > 1 ? `Plus ${newly.length - 1} more unlocked!` : 'New milestone reached.',
-          tone: newly[0].tone || 'bg-apex-600'
+          emoji: freshly[0].emoji || '🏆',
+          title: freshly[0].name || 'Achievement Unlocked',
+          subtitle: freshly.length > 1 ? `Plus ${freshly.length - 1} more unlocked!` : 'New milestone reached.',
+          tone: 'bg-apex-600'
         });
       }
-      return newly;
+      return freshly;
     } catch (err) {
-      console.warn('Achievements sync failed:', err.message);
+      console.warn('Achievements evaluate failed:', err?.message);
       return;
     }
-  }, [session, supabase, quizHistory, studyStats, levelCompletions, learningAnalytics, identity, dailyChallengeDone]);
+  }, [session]);
 
   // Re-evaluate achievements whenever learning signals change (after a quiz,
   // a streak bump, a difficulty unlock, or completing the daily goal).
@@ -1603,6 +1819,28 @@ export function AppProvider({ children }) {
       fetchAchievements();
     });
     return () => cancelIdle(handle);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionUserId]);
+
+  // Apply a pending referral code captured at signup (`?referral=CODE` deep
+  // link on /signup). Server-authoritative: the code is redeemed once per
+  // account via apply_referral (migration v35); we clear it immediately so a
+  // retry can never double-credit, and failures happen silently.
+  const pendingReferralClickedRef = React.useRef(null);
+  useEffect(() => {
+    if (!sessionUserId) return;
+    let code = null;
+    try {
+      code = safeGet('apex_pending_referral') || null;
+      localStorage.removeItem('apex_pending_referral');
+    } catch (err) {
+      console.warn('Pending referral read failed:', err?.message);
+      return;
+    }
+    if (!code || pendingReferralClickedRef.current === sessionUserId) return;
+    pendingReferralClickedRef.current = sessionUserId;
+    const handleId = setTimeout(() => applyReferral(code), 2500);
+    return () => clearTimeout(handleId);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionUserId]);
 
@@ -1840,7 +2078,11 @@ export function AppProvider({ children }) {
       recordQuizResult, recordWrongAnswers, recordAttempts, computeWeakConcepts, touchActivity,
       submitQuestionFeedback, fetchAttemptedQuestionIds, fetchQuestionHistory, fetchFailedQuestions,
       addFlashcard, updateFlashcard, deleteFlashcard, importFlashcards,
-      smartCoins, scLedger, claimDailySC, earnSC, spendSC, recordStreakBreak, recordQuizFailPenalty,
+      smartCoins, scLedger, claimDailySC, spendSC, recordStreakBreak, recordQuizFailPenalty,
+      finalizeDuel,
+      claimChallengeReward, getMyReferral, applyReferral,
+      createSquad, joinSquad, leaveSquad, getMySquad, claimSquadReward,
+      createRoom, joinRoom, leaveRoom, getActiveRooms, getMyRoom,
       bumpGroupQuizStreak, fetchGlobalRank,
       streakFreezeActive, setStreakFreezeActive,
       identity, identityProgress, identityUnlock, dismissIdentityUnlock, refreshIdentityUnlock,

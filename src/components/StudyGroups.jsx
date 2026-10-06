@@ -25,7 +25,6 @@ import { useAppContext } from '../context/AppContext';
 import { dedupe } from '../utils/cache';
 import { formatDistanceToNow } from 'date-fns';
 import CommunityAuthModal from './CommunityAuthModal';
-import AdBanner from './AdBanner';
 
 const GroupBadge = ({ verified }) =>
   verified ? (
@@ -581,8 +580,6 @@ const StudyGroups = () => {
           <Plus size={14} /> Create Group
         </button>
       </div>
-
-      <AdBanner slot={import.meta.env.VITE_ADSENSE_SLOT_GROUPS || ''} />
 
       {/* Grid */}
       {loading ? (
