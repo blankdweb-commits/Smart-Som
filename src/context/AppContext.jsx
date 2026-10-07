@@ -1,4 +1,4 @@
-import React, { createContext, useContext, useState, useEffect, useCallback, useMemo } from 'react';
+import React, { createContext, useContext, useState, useEffect, useCallback, useMemo, useRef } from 'react';
 import { initialFlashcards } from '../data/initialData';
 import { CURRICULUM_MASTER } from '../data/curriculumMaster';
 import { supabase } from '../utils/supabase';
@@ -58,6 +58,12 @@ let cachedFreshSession = null;
 // in dev, or a dual Provider mount) into ONE getSession/refresh sequence so the
 // initial auth burst never fans out into parallel token reads.
 let authInitInFlight = null;
+// Coalesce concurrent achievement evaluations (spec: "must not loop"): several
+// learning signals can change at once (quiz done + streak + daily goal), each
+// firing the debounced effect. If two evaluations overlap, the second awaits the
+// SAME in-flight RPC instead of starting another one — the server unlocks are
+// computed once and the toast fires once, never in a retry storm.
+let achievementEvalInFlight = null;
 
 // Whether a refresh/GetUser failure looks like a transient network problem
 // (vs. a hard auth rejection). Transient failures must NOT tear the session
@@ -710,6 +716,95 @@ export function AppProvider({ children }) {
       return null;
     }
   }, [session, smartCoins]);
+
+  // ---- Competitive matches (migration v38) — server-authoritative NMCN arena ----
+  // The client NEVER picks battle questions, never grades answers, and never
+  // declares a winner. create/get/submit/complete are SECURITY DEFINER RPCs:
+  //   - create_competitive_match  selects the question sequence SERVER-side from
+  //     questions WHERE exam_framework='NMCN' (a client cannot pass a framework
+  //     or question ids at all — there are no such parameters), pins the match
+  //     to a shared sequence for every player, and de-duplicates the racing
+  //     pair so BOTH human clients get the SAME match id and SAME questions.
+  //   - get_competitive_match     re-verifies every stored question id is still
+  //     NMCN + schema-valid at serving time and never returns correct_answer.
+  //   - submit_competitive_answer grades server-side (first answer wins).
+  //   - complete_competitive_match resolves the winner from the stored answers,
+  //     settles SC via _sc_apply with a per-player unique ref (no double pay),
+  //     writes duels history + competitive_stats, and is replay-safe.
+  // All helpers fail SOFT (return null) so a not-yet-migrated DB degrades to
+  // "match could not start" instead of crashing.
+  const createCompetitiveMatch = useCallback(async ({ mode, stake, opponentId }) => {
+    if (!session) return null;
+    try {
+      const { data, error } = await supabase.rpc('create_competitive_match', {
+        p_mode: mode,
+        p_stake: Number(stake) || 0,
+        p_opponent_id: opponentId || null,
+      });
+      if (error || !data?.ok) {
+        console.warn('Competitive match create failed:', error?.message || data?.error);
+        return null;
+      }
+      return data;
+    } catch (err) {
+      console.warn('Competitive match create failed:', err?.message);
+      return null;
+    }
+  }, [session]);
+
+  const getCompetitiveMatch = useCallback(async (matchId) => {
+    if (!session) return null;
+    try {
+      const { data, error } = await supabase.rpc('get_competitive_match', {
+        p_match_id: matchId,
+      });
+      if (error || !data?.ok) {
+        console.warn('Competitive match fetch failed:', error?.message || data?.error);
+        return null;
+      }
+      return data;
+    } catch (err) {
+      console.warn('Competitive match fetch failed:', err?.message);
+      return null;
+    }
+  }, [session]);
+
+  const submitCompetitiveAnswer = useCallback(async ({ matchId, questionIndex, selected }) => {
+    if (!session) return null;
+    try {
+      const { data, error } = await supabase.rpc('submit_competitive_answer', {
+        p_match_id: matchId,
+        p_question_index: Number(questionIndex) || 0,
+        p_selected: selected ?? null,
+      });
+      if (error || !data?.ok) {
+        console.warn('Competitive answer submit failed:', error?.message || data?.error);
+        return null;
+      }
+      return data;
+    } catch (err) {
+      console.warn('Competitive answer submit failed:', err?.message);
+      return null;
+    }
+  }, [session]);
+
+  const completeCompetitiveMatch = useCallback(async (matchId) => {
+    if (!session) return null;
+    try {
+      const { data, error } = await supabase.rpc('complete_competitive_match', {
+        p_match_id: matchId,
+      });
+      if (error || !data?.ok) {
+        console.warn('Competitive match complete failed:', error?.message || data?.error);
+        return null;
+      }
+      if (data.balance != null) setSmartCoins(Number(data.balance));
+      return data;
+    } catch (err) {
+      console.warn('Competitive match complete failed:', err?.message);
+      return null;
+    }
+  }, [session]);
 
   // Viral growth (migration v35): challenges / referrals / squads / party rooms
   // are ALL server-authoritative. The client only invokes SECURITY DEFINER RPCs
@@ -1478,7 +1573,7 @@ export function AppProvider({ children }) {
   // bank is ever loaded. Kept as a resolving stub so existing callers
   // (FlashcardLibrary) can still call it with zero cost — no dynamic import,
   // no ~15.6 MB lazy chunk.
-  const builtInHydratedRef = React.useRef(null);
+  const builtInHydratedRef = useRef(null);
   const hydrateBuiltInFlashcards = useCallback(async () => {
     builtInHydratedRef.current = 'done';
   }, []);
@@ -1736,36 +1831,44 @@ export function AppProvider({ children }) {
   // the select-own RLS). Returns the fresh unlocks for celebration toasts.
   const syncAchievements = useCallback(async (sess = session) => {
     if (!sess?.user?.id || !supabase) return;
-    try {
-      const { data, error } = await supabase.rpc('evaluate_achievements');
-      if (error || !data?.ok) {
-        console.warn('Achievements evaluate skipped:', error?.message || data?.error);
+    if (achievementEvalInFlight) return achievementEvalInFlight;
+    achievementEvalInFlight = (async () => {
+      try {
+        const { data, error } = await supabase.rpc('evaluate_achievements');
+        if (error || !data?.ok) {
+          console.warn('Achievements evaluate skipped:', error?.message || data?.error);
+          return;
+        }
+        const freshly = data.unlocked || [];
+        if (freshly.length > 0) {
+          setUserAchievements(prev => {
+            const known = new Set(prev.map(u => u.key || u.achievement_id).filter(Boolean));
+            const merged = [...prev];
+            for (const a of freshly) {
+              if (!known.has(a.key)) {
+                merged.push({ key: a.key, achievement_id: a.key, name: a.name, emoji: a.emoji, unlocked_at: new Date().toISOString() });
+              }
+            }
+            return merged;
+          });
+          setAchievementToast({
+            id: Date.now(),
+            emoji: freshly[0].emoji || '🏆',
+            title: freshly[0].name || 'Achievement Unlocked',
+            subtitle: freshly.length > 1 ? `Plus ${freshly.length - 1} more unlocked!` : 'New milestone reached.',
+            tone: 'bg-apex-600'
+          });
+        }
+        return freshly;
+      } catch (err) {
+        console.warn('Achievements evaluate failed:', err?.message);
         return;
       }
-      const freshly = data.unlocked || [];
-      if (freshly.length > 0) {
-        setUserAchievements(prev => {
-          const known = new Set(prev.map(u => u.key || u.achievement_id).filter(Boolean));
-          const merged = [...prev];
-          for (const a of freshly) {
-            if (!known.has(a.key)) {
-              merged.push({ key: a.key, achievement_id: a.key, name: a.name, emoji: a.emoji, unlocked_at: new Date().toISOString() });
-            }
-          }
-          return merged;
-        });
-        setAchievementToast({
-          id: Date.now(),
-          emoji: freshly[0].emoji || '🏆',
-          title: freshly[0].name || 'Achievement Unlocked',
-          subtitle: freshly.length > 1 ? `Plus ${freshly.length - 1} more unlocked!` : 'New milestone reached.',
-          tone: 'bg-apex-600'
-        });
-      }
-      return freshly;
-    } catch (err) {
-      console.warn('Achievements evaluate failed:', err?.message);
-      return;
+    })();
+    try {
+      return await achievementEvalInFlight;
+    } finally {
+      achievementEvalInFlight = null;
     }
   }, [session]);
 
@@ -1829,7 +1932,7 @@ export function AppProvider({ children }) {
   // link on /signup). Server-authoritative: the code is redeemed once per
   // account via apply_referral (migration v35); we clear it immediately so a
   // retry can never double-credit, and failures happen silently.
-  const pendingReferralClickedRef = React.useRef(null);
+  const pendingReferralClickedRef = useRef(null);
   useEffect(() => {
     if (!sessionUserId) return;
     let code = null;
@@ -2083,6 +2186,7 @@ export function AppProvider({ children }) {
       addFlashcard, updateFlashcard, deleteFlashcard, importFlashcards,
       smartCoins, scLedger, claimDailySC, spendSC, recordStreakBreak, recordQuizFailPenalty,
       finalizeDuel,
+      createCompetitiveMatch, getCompetitiveMatch, submitCompetitiveAnswer, completeCompetitiveMatch,
       claimChallengeReward, getMyReferral, applyReferral,
       createSquad, joinSquad, leaveSquad, getMySquad, claimSquadReward,
       createRoom, joinRoom, leaveRoom, getActiveRooms, getMyRoom,

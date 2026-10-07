@@ -2,7 +2,6 @@ import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
 import { supabase } from "../utils/supabase";
-import { useQuizBatch } from "../hooks/useQuizBatch";
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
 import { Brain, Zap, Star, ChevronLeft, ArrowRight, Users, AlertCircle, RefreshCw, Trophy, Award, Shield, User } from "../components/Icons";
@@ -17,8 +16,7 @@ const WAIT_FOR_HUMAN_MS = 3000;
 
 const XpHall = () => {
   const navigate = useNavigate();
-  const { flashcards, smartCoins, finalizeDuel } = useAppContext();
-  const { createBatch, recordAnswer } = useQuizBatch();
+  const { smartCoins, createCompetitiveMatch, submitCompetitiveAnswer, completeCompetitiveMatch } = useAppContext();
   const [phase, setPhase] = useState("lobby");
   const [mode, setMode] = useState(null);
   const [stake, setStake] = useState(2);
@@ -30,13 +28,12 @@ const XpHall = () => {
   const [questionTimeLeft, setQuestionTimeLeft] = useState(QUESTION_SECONDS);
   const [userAnswerState, setUserAnswerState] = useState(null);
   const [opponent, setOpponent] = useState("The House");
-  const [opponentId, setOpponentId] = useState(null);
   const [txState, setTxState] = useState(null); // null | 'pending' | 'done'
   const [confirmHighWager, setConfirmHighWager] = useState(false); // confirm modal for stakes >= 10
   const [battleQuestions, setBattleQuestions] = useState([]); // questions from batch API
   const ownWaitingKeyRef = useRef(null); // id of my duel_waiting row (to clean up)
-  const askedRef = useRef(new Set()); // card ids asked this arena session (variety)
-  const battleBatchIdRef = useRef(null); // batch ID for the current battle
+  const matchIdRef = useRef(null); // server match id for the current battle
+  const lastOptionRef = useRef(null); // the option I picked (post-answer highlight)
 
   const fetchHistory = useCallback(async () => {
     if (!supabase) return;
@@ -119,9 +116,8 @@ const XpHall = () => {
       } catch { /* ignore */ }
       await clearWaiting();
       setOpponent(name);
-      setOpponentId(opponent.user_id);
       setFinding('human');
-      await startCountdownPhaseWithBatch();
+      await startCountdownPhaseWithBatch(name, opponent.user_id);
       return;
     }
     // No waiting human — play The House after a short grace window so a challenger can jump in.
@@ -129,55 +125,33 @@ const XpHall = () => {
       if (ownWaitingKeyRef.current) {
         // still alone
         setOpponent("The House");
-        setOpponentId(null);
-        startCountdownPhaseWithBatch();
+        startCountdownPhaseWithBatch("The House", null);
       }
     }, WAIT_FOR_HUMAN_MS);
   }, [mode, stake]);
 
   const finishVsHouse = async () => {
     setOpponent("The House");
-    setOpponentId(null);
-    await startCountdownPhaseWithBatch();
+    await startCountdownPhaseWithBatch("The House", null);
   };
 
-  // Create a batch of questions for the battle via server API
-  const startCountdownPhaseWithBatch = async () => {
+  // Create the battle with the SERVER (migration v38): the server picks the NMCN
+  // question sequence — no client question picking, no client-declared winner —
+  // and returns the SAME match for both matched humans (DB-side dedupe).
+  const startCountdownPhaseWithBatch = async (oppName, oppId) => {
     try {
-      // Create a match batch via the server API
-      const matchResult = await createBatch({
-        mode: 'match',
-        courseKey: 'xp-hall',
-        batchSize: mode?.players === 3 ? 1 : 1, // Sudden death: 1 question
-        difficultyDistribution: { Hard: 1, Expert: 1 }, // Prefer hard/expert for battles
-      });
-
-      if (matchResult && matchResult.batch && matchResult.questions?.length > 0) {
-        battleBatchIdRef.current = matchResult.batch.id;
-        setBattleQuestions(matchResult.questions);
-        setCurrentQuestion(matchResult.questions[0]);
-      } else {
-        // Fallback: use client-side pickQuestion if batch fails
-        const fallbackQuestion = pickQuestion();
-        if (fallbackQuestion) {
-          setBattleQuestions([fallbackQuestion]);
-          setCurrentQuestion(fallbackQuestion);
-        } else {
-          // No questions available at all
-          setPhase("lobby");
-          return;
-        }
-      }
-    } catch (err) {
-      console.warn('Batch creation failed, using fallback:', err);
-      const fallbackQuestion = pickQuestion();
-      if (fallbackQuestion) {
-        setBattleQuestions([fallbackQuestion]);
-        setCurrentQuestion(fallbackQuestion);
-      } else {
+      const matchResult = await createCompetitiveMatch({ mode: mode?.id, stake, opponentId: oppId || null });
+      if (!matchResult || !matchResult.ok || !matchResult.questions?.length) {
         setPhase("lobby");
         return;
       }
+      matchIdRef.current = matchResult.matchId;
+      setBattleQuestions(matchResult.questions);
+      setCurrentQuestion(matchResult.questions[0]);
+    } catch (err) {
+      console.warn('Server match creation failed:', err?.message);
+      setPhase("lobby");
+      return;
     }
     setPhase("countdown");
     setCountdown(3);
@@ -201,43 +175,11 @@ const XpHall = () => {
     return () => clearTimeout(t);
   }, [phase, countdown]);
 
-  const shuffle = (arr) => [...arr].sort(() => 0.5 - Math.random());
-
-  const pickQuestion = useCallback(() => {
-    let hardCards = (flashcards || []).filter(c => {
-      const d = String(c.difficulty || '').toLowerCase();
-      return d === 'hard' || d === 'difficult' || d === 'expert' || d === 'extreme';
-    });
-    // Fall back to the full deck only when there is no hard pool at all.
-    if (hardCards.length === 0) hardCards = flashcards || [];
-    if (hardCards.length === 0) return null;
-
-    // Prefer a card we have not yet asked this session to maximize variety.
-    const unseen = hardCards.filter(c => !askedRef.current.has(c.id));
-    const pool = unseen.length > 0 ? unseen : hardCards;
-    const randomCard = pool[Math.floor(Math.random() * pool.length)];
-    if (randomCard) askedRef.current.add(randomCard.id);
-    if (askedRef.current.size > 40) askedRef.current.clear();
-
-    let options = [];
-    const correct = randomCard.correctAnswer || randomCard.answer;
-    if (Array.isArray(randomCard.options) && randomCard.options.length >= 2) {
-      options = shuffle(randomCard.options);
-    } else {
-      const distractors = (flashcards || [])
-        .filter(c => c.id !== randomCard.id && (c.answer || c.correctAnswer) !== correct)
-        .map(c => c.answer || c.correctAnswer);
-      const unique = [...new Set(distractors.filter(Boolean))].slice(0, 3);
-      options = shuffle([correct, ...unique]);
-    }
-    return { ...randomCard, question: randomCard.question, correctAnswer: correct, generatedOptions: options };
-  }, [flashcards]);
-
   // Question Timer
   useEffect(() => {
     if (phase !== "question" || userAnswerState !== null) return;
     if (questionTimeLeft <= 0) {
-      handleAnswer(null); // timeout = incorrect
+      handleAnswer(null); // timeout = no answer = graded by the server
       return;
     }
     const t = setTimeout(() => setQuestionTimeLeft(c => c - 1), 1000);
@@ -245,82 +187,58 @@ const XpHall = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, questionTimeLeft, userAnswerState]);
 
-  const buildBreakdown = (won, players, youDelta) => {
-    const rows = [{ name: "You" }];
-    for (let i = 1; i < players; i++) {
-      rows.push({ name: opponent });
-    }
-    const winnerName = won ? "You" : opponent;
-    return rows.map(e => ({
-      ...e,
-      result: e.name === winnerName ? 'won' : 'lost',
-      // Honest outcome label — no fabricated 10/0 scores.
-      status: e.name === "You"
-        ? (won ? 'Answered correctly' : 'Wrong or timed out')
-        : (e.name === winnerName ? 'Answered correctly' : 'Eliminated'),
-      delta: e.name === "You" ? youDelta : (e.name === winnerName ? stake * (players - 1) : -stake),
-    }));
-  };
-
-  const handleAnswer = useCallback((option) => {
+  const handleAnswer = useCallback(async (option) => {
     if (userAnswerState !== null) return;
-    const correct = option !== null && option === currentQuestion?.correctAnswer;
-    setUserAnswerState(correct ? 'correct' : 'wrong');
+    setUserAnswerState(option === null ? 'timeout' : 'answered');
+    lastOptionRef.current = option ?? null;
     setTxState('pending');
-    const players = mode?.players || 2;
-    const won = correct;
-    const outcome = won ? 'win' : 'loss';
 
-    // Record answer to batch API (non-blocking)
-    if (battleBatchIdRef.current) {
-      recordAnswer({
-        questionId: currentQuestion?.id,
-        selectedAnswer: option ?? null,
-        correct,
-        elapsedMs: QUESTION_SECONDS * 1000 - questionTimeLeft * 1000
-      }).catch(err => console.warn('Batch answer recording failed:', err));
+    // The battle is SERVER-GOVERNED (migration v38): the server grades my
+    // stored answer and resolves the winner from the facts on record. The
+    // client never sends a `won`, a score, or the correct answer.
+    let outcome = 'draw';
+    let delta = 0;
+    let youWon = false;
+    let draw = false;
+    let winner = opponent;
+    let breakdown = [];
+    let settled = false;
+    const matchId = matchIdRef.current;
+    const qIndex = currentQuestion?.index ?? 0;
+
+    try {
+      if (matchId) {
+        await submitCompetitiveAnswer({ matchId, questionIndex: qIndex, selected: option ?? null });
+      }
+      const res = matchId ? await completeCompetitiveMatch(matchId) : null;
+      if (res && res.ok) {
+        youWon = !!res.youWon;
+        draw = !!res.draw;
+        if (res.outcome) outcome = res.outcome;
+        if (res.delta != null) delta = Number(res.delta) || 0;
+        if (res.winner) winner = res.winner;
+        if (Array.isArray(res.breakdown)) breakdown = res.breakdown;
+        settled = !!res.settled;
+      }
+    } catch (err) {
+      console.warn('Competitive settlement failed:', err?.message);
     }
 
-    setTimeout(async () => {
-      // SC settlement (stake * players on win / -stake on loss) is SERVER-FINALIZED:
-      // finalize_duel (migration v33) validates stake/mode, moves coins atomically
-      // via _sc_apply, maintains competitive_stats, and writes the duels history
-      // row. The client can no longer insert into duels or move its own coins.
-      let serverDelta = 0;
-      let settled = false;
-      if (finalizeDuel) {
-        try {
-          const res = await finalizeDuel({
-            mode: mode.id,
-            opponentId,
-            stake,
-            won,
-            clientRequestId: typeof crypto !== 'undefined' && crypto.randomUUID
-              ? crypto.randomUUID()
-              : undefined,
-          });
-          if (res && res.ok) {
-            serverDelta = Number(res.delta ?? 0);
-            settled = true;
-          }
-        } catch (err) {
-          console.warn('Duel settlement failed:', err?.message);
-        }
-      }
-      setTxState('done');
-      setResult({
-        winner: won ? "You" : opponent,
-        outcome,
-        delta: settled ? serverDelta : 0,
-        settled,
-        players,
-        breakdown: buildBreakdown(won, players, settled ? serverDelta : 0),
-      });
-      setPhase("result");
-      fetchHistory();
-      clearWaiting();
-    }, 900);
-  }, [userAnswerState, currentQuestion, mode, stake, opponent, opponentId, fetchHistory, questionTimeLeft, finalizeDuel]);
+    setTxState('done');
+    setResult({
+      winner,
+      youWon,
+      draw,
+      outcome,
+      delta,
+      settled,
+      players: mode?.players || 2,
+      breakdown,
+    });
+    setPhase("result");
+    fetchHistory();
+    clearWaiting();
+  }, [userAnswerState, currentQuestion, mode, opponent, fetchHistory, submitCompetitiveAnswer, completeCompetitiveMatch]);
 
   const resetToLobby = () => {
     setPhase("lobby");
@@ -329,9 +247,9 @@ const XpHall = () => {
     setMode(null);
     setCurrentQuestion(null);
     setBattleQuestions([]);
-    battleBatchIdRef.current = null;
+    matchIdRef.current = null;
+    lastOptionRef.current = null;
     setOpponent("The House");
-    setOpponentId(null);
     setTxState(null);
     setFinding(null);
     clearWaiting();
@@ -343,7 +261,8 @@ const XpHall = () => {
     setCountdown(3);
     setCurrentQuestion(null);
     setBattleQuestions([]);
-    battleBatchIdRef.current = null;
+    matchIdRef.current = null;
+    lastOptionRef.current = null;
     setTxState(null);
     setFinding(null);
     clearWaiting();
@@ -544,11 +463,13 @@ const XpHall = () => {
                    <h2 className="text-2xl font-black leading-snug">{currentQuestion.question}</h2>
                 </div>
                 <div className="grid grid-cols-1 gap-3">
-                   {currentQuestion.generatedOptions.map((opt, idx) => {
+                   {currentQuestion.options.map((opt, idx) => {
                       let btnState = 'bg-white/5 border-white/10 hover:bg-white/10';
                       if (userAnswerState) {
-                         const isCorrectOpt = opt === currentQuestion.correctAnswer;
-                         if (isCorrectOpt) btnState = 'bg-emerald-500/20 border-emerald-500 text-emerald-400 shadow-[0_0_15px_rgba(16,185,129,0.3)]';
+                         const isPickedOpt = lastOptionRef.current === opt;
+                         // The correct answer is graded SERVER-SIDE and is never
+                         // sent to the client — only your pick is highlighted.
+                         if (isPickedOpt) btnState = 'bg-amber-500/25 border-amber-500 text-amber-300 shadow-[0_0_15px_rgba(245,158,11,0.25)]';
                          else btnState = 'bg-white/5 border-white/5 text-white/30 opacity-50';
                       }
                       return (
@@ -571,35 +492,47 @@ const XpHall = () => {
 
           {phase === "result" && result && (
             <motion.div key="result" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6">
-              <div className={`p-8 rounded-[2rem] text-center ${result.winner === "You" ? "bg-emerald-500/10 border border-emerald-500/30" : "bg-red-500/10 border border-red-500/30"}`}>
-                <div className="text-5xl mb-4">{result.winner === "You" ? "🏆" : "💀"}</div>
-                <h2 className={`text-3xl font-black uppercase tracking-tight ${result.winner === "You" ? "text-emerald-400" : "text-red-400"}`}>
-                  {result.winner === "You" ? "Victory!" : "Eliminated"}
+              <div className={`p-8 rounded-[2rem] text-center ${result.youWon && !result.draw ? "bg-emerald-500/10 border border-emerald-500/30" : result.draw ? "bg-amber-500/10 border border-amber-500/30" : "bg-red-500/10 border border-red-500/30"}`}>
+                <div className="text-5xl mb-4">{result.youWon && !result.draw ? "🏆" : result.draw ? "🤝" : "💀"}</div>
+                <h2 className={`text-3xl font-black uppercase tracking-tight ${result.youWon && !result.draw ? "text-emerald-400" : result.draw ? "text-amber-300" : "text-red-400"}`}>
+                  {result.youWon && !result.draw ? "Victory!" : result.draw ? "Draw!" : "Eliminated"}
                 </h2>
-                <p className="text-white/50 mt-2 font-medium">{result.winner === "You" ? "You dominated the hall." : `${result.winner} claimed the SC.`}</p>
-                <div className={`mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-lg animate-pulse ${result.delta >= 0 ? "bg-emerald-500/15 text-emerald-400" : "bg-red-500/15 text-red-400"}`}>
-                  {result.delta >= 0 ? '+' : ''}{result.delta} SC
+                <p className="text-white/50 mt-2 font-medium">
+                  {result.youWon && !result.draw
+                    ? "You dominated the hall."
+                    : result.draw
+                      ? "Nobody took the pot. Your wager is safe."
+                      : `${result.winner} claimed the SC.`}
+                </p>
+                <div className={`mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-lg animate-pulse ${result.delta > 0 ? "bg-emerald-500/15 text-emerald-400" : result.delta < 0 ? "bg-red-500/15 text-red-400" : "bg-white/10 text-white/60"}`}>
+                  {result.delta !== 0 ? `${result.delta > 0 ? "+" : ""}${result.delta} SC` : "0 SC"}
                 </div>
-                {result.settled === false && (
+                {(result.outcome === 'win' || result.outcome === 'loss') && result.settled === false && (
                   <p className="mt-3 text-xs text-amber-400/90 font-bold">
                     Settlement couldn't be recorded — your Smart Coin balance was not changed. Please try again.
                   </p>
                 )}
               </div>
-              <div className="space-y-3">
-                {result.breakdown.map((p, i) => (
-                  <div key={i} className={`flex items-center justify-between p-5 rounded-2xl border ${p.result === "won" ? "bg-emerald-500/10 border-emerald-500/20" : "bg-white/5 border-white/5"}`}>
-                    <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm ${p.result === "won" ? "bg-emerald-500 text-white" : "bg-white/10 text-white/40"}`}>{p.name[0]}</div>
-                      <span className="font-bold">{p.name}</span>
+              {Array.isArray(result.breakdown) && result.breakdown.length > 0 && (
+                <div className="space-y-3">
+                  {result.breakdown.map((p, i) => (
+                    <div key={i} className={`flex items-center justify-between p-5 rounded-2xl border ${p.result === "win" ? "bg-emerald-500/10 border-emerald-500/20" : "bg-white/5 border-white/5"}`}>
+                      <div className="flex items-center gap-3">
+                        <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm ${p.result === "win" ? "bg-emerald-500 text-white" : "bg-white/10 text-white/40"}`}>{String(p.name)[0]}</div>
+                        <span className="font-bold">{p.name}</span>
+                      </div>
+                      <div className="text-right">
+                        <p className="text-xs text-white/40 font-bold uppercase tracking-widest mb-0.5">
+                          {p.result === "win" ? "Won" : p.result === "draw" ? "Stalemate" : "Lost"}
+                        </p>
+                        <p className={`font-black text-lg ${p.delta > 0 ? "text-emerald-400" : p.delta < 0 ? "text-red-400" : "text-white/50"}`}>
+                          {p.delta > 0 ? "+" : ""}{p.delta} SC
+                        </p>
+                      </div>
                     </div>
-                    <div className="text-right">
-                      <p className="text-xs text-white/40 font-bold uppercase tracking-widest mb-0.5">{p.status}</p>
-                      <p className={`font-black text-lg ${p.delta > 0 ? "text-emerald-400" : "text-red-400"}`}>{p.delta > 0 ? "+" : ""}{p.delta} SC</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
+                  ))}
+                </div>
+              )}
               <div className="grid grid-cols-2 gap-4">
                 <button onClick={resetToBetting}
                   className="py-5 rounded-[2rem] bg-white/10 font-black uppercase tracking-widest text-xs active:scale-95 transition-all hover:bg-white/15 flex items-center justify-center gap-2"><RefreshCw size={14} /> Rematch</button>

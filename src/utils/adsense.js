@@ -7,6 +7,12 @@
 
 export const ADSENSE_SCRIPT_SELECTOR = 'script[src*="adsbygoogle.js"]';
 
+// The Google <ins> loader rejects unknown attributes: `data-poly-adsense` is
+// NOT a supported attribute, so Google's tag-mutation guard logs a console
+// warning and can drop the ad. Ad-placements are governed EXCLUSIVELY by the
+// route-aware manager + slot components (never by an ad-network attribute), so
+// no element-flagging is needed here — presence of the injected script is the
+// authoritative signal.
 let loadPromise = null;
 
 export const isAdSenseScriptPresent = () =>
@@ -25,7 +31,6 @@ export const loadAdSenseScript = (client) => {
       script.async = true;
       script.src = `https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=${client}`;
       script.crossOrigin = 'anonymous';
-      script.setAttribute('data-poly-adsense', 'controlled');
       script.onload = () => resolve(true);
       script.onerror = () => resolve(false);
       document.head.appendChild(script);
