@@ -10,13 +10,13 @@ import IdentityUnlockModal from '../components/IdentityUnlockModal';
 import Recommendations from '../components/Recommendations';
 import StudyPlanCard from '../components/StudyPlanCard';
 import AdSenseSlot from '../components/ads/AdSenseSlot';
-import { ACHIEVEMENT_CATALOG } from '../utils/achievementEngine';
+import { ACHIEVEMENT_CATALOG, tierForAchievement, tierStyle } from '../utils/achievementEngine';
 import { greetingForName } from '../utils/getGreeting';
 import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
 const Dashboard = () => {
   const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
-  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics, quizHistory, smartCoins, scLedger, claimDailySC, identity, identityUnlock, dismissIdentityUnlock, SC_FEATURE_LOCKED, userAchievements, fetchGlobalRank } = useAppContext();
+  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics, quizHistory, smartCoins, scLedger, claimDailySC, identity, identityUnlock, dismissIdentityUnlock, SC_FEATURE_LOCKED, userAchievements, achievementCatalog, fetchAchievementCatalog, fetchGlobalRank } = useAppContext();
   const navigate = useNavigate();
 
   // Server-authoritative global player score rank (migration v30). RPC-based;
@@ -30,6 +30,46 @@ const Dashboard = () => {
     }
     return () => { active = false; };
   }, [session, loadingAuth, fetchGlobalRank]);
+
+  // ---- Featured achievement (most recent unlock) ----
+  // Definitions (description/rarity) come from the public catalogue, unlocked
+  // rows from user_achievements (own rows only). The featured card only
+  // DISPLAYS what the server already awarded — it can never award anything.
+  React.useEffect(() => {
+    if (!achievementCatalog.length) fetchAchievementCatalog();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  const totalAchievements = achievementCatalog.length || ACHIEVEMENT_CATALOG.length;
+
+  const latestAchievement = React.useMemo(() => {
+    if (!userAchievements.length) return null;
+    const sorted = [...userAchievements].sort(
+      (a, b) => new Date(b.unlocked_at || 0).getTime() - new Date(a.unlocked_at || 0).getTime()
+    );
+    const row = sorted[0];
+    const def =
+      (row.achievement_id != null && achievementCatalog.find(c => c.id === row.achievement_id)) ||
+      achievementCatalog.find(c => c.key === row.key) ||
+      ACHIEVEMENT_CATALOG.find(c => c.key === row.key || c.key === row.achievement_id) ||
+      null;
+    return {
+      key: row.key || def?.key || null,
+      name: def?.name || row.name || 'Achievement Unlocked',
+      description: def?.description || '',
+      icon: row.emoji || def?.emoji || '🏆',
+      category: def?.category,
+      unlockedAt: row.unlocked_at
+    };
+  }, [userAchievements, achievementCatalog]);
+
+  const latestTier = latestAchievement ? tierStyle(tierForAchievement(latestAchievement)) : null;
+  const latestEarnedLabel = (() => {
+    if (!latestAchievement?.unlockedAt) return '';
+    try {
+      return new Date(latestAchievement.unlockedAt).toLocaleDateString(undefined, { month: 'short', day: 'numeric' });
+    } catch { return ''; }
+  })();
 
   // Redirect if not logged in - Only if not in DEV_MODE and NOT in Dashboard-First mode
   // Since Dashboard-First is the primary experience, we usually don't want to redirect back to landing
@@ -310,23 +350,78 @@ const Dashboard = () => {
 
            <StudyPlanCard />
 
-           <button
-             onClick={() => navigate('/achievements')}
-             className="w-full bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-700 text-left transition-all hover:border-slate-200 dark:hover:border-slate-600 flex items-center justify-between"
-           >
-             <span className="flex items-center gap-3">
-               <span className="w-10 h-10 rounded-xl bg-apex-600/10 text-apex-600 flex items-center justify-center">
-                 <Award size={18} />
-               </span>
-               <span>
-                 <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Achievements</span>
-                 <span className="block text-lg font-black text-slate-900 dark:text-white leading-tight">
-                   {userAchievements.length}<span className="text-sm text-slate-400">/{ACHIEVEMENT_CATALOG.length} unlocked</span>
-                 </span>
-               </span>
-             </span>
-             <ArrowRight size={15} className="text-slate-300 dark:text-slate-600" />
-           </button>
+            <button
+              onClick={() => navigate('/achievements')}
+              aria-label={latestAchievement
+                ? `Latest achievement ${latestAchievement.name}. View all achievements`
+                : 'View achievements'}
+              className="w-full bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-700 text-left transition-all hover:border-slate-200 dark:hover:border-slate-600 flex flex-col gap-4 relative overflow-hidden"
+              style={latestAchievement ? {
+                borderColor: `${latestTier.accent}66`,
+                boxShadow: `0 20px 46px -32px ${latestTier.glow}`
+              } : undefined}
+            >
+              {latestAchievement ? (
+                <>
+                  <span className="flex items-start justify-between gap-3 w-full min-w-0">
+                    <span className="flex items-center gap-3 min-w-0">
+                      <span
+                        className="w-11 h-11 shrink-0 rounded-xl flex items-center justify-center text-xl border"
+                        style={{ borderColor: latestTier.accent, background: `${latestTier.accent}1f` }}
+                        aria-hidden="true"
+                      >
+                        {latestAchievement.icon}
+                      </span>
+                      <span className="min-w-0">
+                        <span
+                          className="block text-[10px] font-black uppercase tracking-widest"
+                          style={{ color: latestTier.accentLight }}
+                        >
+                          Achievement Unlocked
+                        </span>
+                        <span className="block text-base font-black text-slate-900 dark:text-white leading-tight truncate">
+                          {latestAchievement.name}
+                        </span>
+                        {latestAchievement.description ? (
+                          <span className="block text-xs text-slate-500 dark:text-slate-400 truncate">
+                            {latestAchievement.description}
+                          </span>
+                        ) : null}
+                      </span>
+                    </span>
+                    <span
+                      className={`shrink-0 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full border ${latestTier.card.text} ${latestTier.card.border} ${latestTier.card.bg}`}
+                    >
+                      {latestTier.label}
+                    </span>
+                  </span>
+                  <span className="flex items-center justify-between gap-2 w-full pt-3 border-t border-slate-100 dark:border-slate-700/60">
+                    <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest truncate">
+                      {userAchievements.length}/{totalAchievements} unlocked
+                      {latestEarnedLabel ? ` · ${latestEarnedLabel}` : ''}
+                    </span>
+                    <span className="flex items-center gap-1 text-[10px] font-black text-slate-400 uppercase tracking-widest shrink-0">
+                      View all <ArrowRight size={13} />
+                    </span>
+                  </span>
+                </>
+              ) : (
+                <span className="flex items-center justify-between w-full">
+                  <span className="flex items-center gap-3">
+                    <span className="w-10 h-10 rounded-xl bg-apex-600/10 text-apex-600 flex items-center justify-center">
+                      <Award size={18} />
+                    </span>
+                    <span>
+                      <span className="block text-[10px] font-black text-slate-400 uppercase tracking-widest">Achievements</span>
+                      <span className="block text-lg font-black text-slate-900 dark:text-white leading-tight">
+                        0<span className="text-sm text-slate-400">/{totalAchievements} unlocked</span>
+                      </span>
+                    </span>
+                  </span>
+                  <ArrowRight size={15} className="text-slate-300 dark:text-slate-600" />
+                </span>
+              )}
+            </button>
 
             <AdSenseSlot placement="dashboard-content" />
 

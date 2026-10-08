@@ -7,7 +7,7 @@
 //
 // Products:
 //   { plan_id }                          -> premium subscription (legacy)
-//   { product:'anonymous_spectate', group_id } -> one-time ₦599 spectator pass
+//   { product:'anonymous_spectate', group_id } -> one-time ₦499 spectator pass
 import { applyCors, getSupabaseAdmin, getUserFromRequest } from './_utils.js';
 
 const KOBOS = 100;

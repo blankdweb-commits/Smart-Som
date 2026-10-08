@@ -11,6 +11,12 @@ import {
   shouldCelebrate,
   acknowledgeUnlock
 } from '../utils/identityEngine';
+import {
+  buildCelebrations,
+  readPresentedKeys,
+  markPresentedKeys,
+  pendingCelebrations
+} from '../utils/achievementEngine';
 
 
 const AppContext = createContext();
@@ -298,6 +304,21 @@ export function AppProvider({ children }) {
   // Celebration toast for freshly-earned achievements: { emoji, title, subtitle, tone } | null.
   const [achievementToast, setAchievementToast] = useState(null);
   const dismissAchievementToast = useCallback(() => setAchievementToast(null), []);
+  // ---- Achievement celebrations (full-screen, queued) ----
+  // Public achievement DEFINITIONS (id/key/name/description/emoji/category/
+  // narrator): read-only, cache-first, never user-scoped.
+  const [achievementCatalog, setAchievementCatalog] = useState([]);
+  // `activeCelebration` is the payload currently on screen; further items wait
+  // in celebrationQueueRef (presented ONE AT A TIME, never simultaneously).
+  // Presentation state only — the server (evaluate_achievements) is the sole
+  // authority on what was actually earned. Cleared on sign-out/user switch.
+  const [activeCelebration, setActiveCelebration] = useState(null);
+  const celebrationQueueRef = useRef([]);
+  const celebrationActiveRef = useRef(false);
+  // Keys already shown on THIS device for the current user (localStorage-
+  // backed, see achievementEngine). Belt-and-braces on top of the server's
+  // insert-once dedup: a repeated fresh payload is never celebrated twice.
+  const presentedCelebrationRef = useRef(new Set());
   // Flashcards are ADMIN-GRANTED (not premium). Server-authoritative flag.
   const [flashcardAccess, setFlashcardAccess] = useState(false);
   // Session / device mapping (v14): 'soft' (default) or 'strict'. Always tracks
@@ -310,6 +331,78 @@ export function AppProvider({ children }) {
   // profiles.update/ledger insert from the client. `SC_FEATURE_LOCKED` is kept
   // in the provider for legacy UI branches and is always false here.
   const SC_FEATURE_LOCKED = false;
+
+  // ---- Achievement celebrations (declared early: the sign-out effect below
+  // and syncAchievements further down both depend on these) ----
+  // Load the public achievement DEFINITIONS (id/key/name/description/emoji/
+  // category/narrator) cache-first. Never user-scoped: same rows for everyone,
+  // used only to enrich server-issued unlocks with description + rarity.
+  const fetchAchievementCatalog = useCallback(async () => {
+    if (!supabase) return [];
+    try {
+      const rows = await getCacheFirst('static:achievements', async () => {
+        const { data, error } = await supabase
+          .from('achievements')
+          .select('id, key, name, description, emoji, category, narrator')
+          .order('id');
+        if (error) throw error;
+        return data || [];
+      }, { ttlMs: cacheTtl.STATIC });
+      const list = rows || [];
+      setAchievementCatalog(list);
+      return list;
+    } catch (err) {
+      console.warn('Achievement definitions fetch skipped:', err.message);
+      return [];
+    }
+    // `supabase` is a module import (stable) — not a hook dependency.
+  }, []);
+
+  // ---- Celebration queue (ONE full-screen celebration at a time) ----
+  // `enqueueCelebrations` appends payloads and activates the first one if idle;
+  // `dismissCelebration` advances to the next queued item. Pure presentation —
+  // nothing here can award anything (the server already decided).
+  const enqueueCelebrations = useCallback((payloads = []) => {
+    const list = (payloads || []).filter(Boolean);
+    if (!list.length) return;
+    celebrationQueueRef.current = [...celebrationQueueRef.current, ...list];
+    if (!celebrationActiveRef.current) {
+      const [next, ...rest] = celebrationQueueRef.current;
+      celebrationQueueRef.current = rest;
+      celebrationActiveRef.current = true;
+      setActiveCelebration(next);
+    }
+  }, []);
+
+  const dismissCelebration = useCallback(() => {
+    const [next, ...rest] = celebrationQueueRef.current;
+    celebrationQueueRef.current = rest;
+    if (next) {
+      setActiveCelebration(next); // stays active — swap in place
+    } else {
+      celebrationActiveRef.current = false;
+      setActiveCelebration(null);
+    }
+  }, []);
+
+  // Drop any in-flight celebration state (sign-out / user switch) so a
+  // different account can never inherit another user's celebration.
+  const resetCelebrations = useCallback(() => {
+    celebrationQueueRef.current = [];
+    celebrationActiveRef.current = false;
+    setActiveCelebration(null);
+    presentedCelebrationRef.current = new Set();
+  }, []);
+
+  // Presented-keys store is per-user: reload whenever the identity changes.
+  const activeUserId = session?.user?.id || null;
+  useEffect(() => {
+    presentedCelebrationRef.current = activeUserId
+      ? readPresentedKeys(activeUserId)
+      : new Set();
+    if (!activeUserId) resetCelebrations();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [activeUserId]);
 
   // Dark mode must be applied to <html> for Tailwind's class strategy to work.
   useEffect(() => {
@@ -1557,6 +1650,10 @@ export function AppProvider({ children }) {
         setUserAchievements([]);
         setDailyChallengeDone(false);
         setAchievementToast(null);
+        setAchievementCatalog([]);
+        // Celebration queue itself is cleared by the activeUserId effect below
+        // (session gone → presented-store reset + queue drop), so no callback
+        // dependency is needed in this auth effect.
       } else if (event === 'TOKEN_REFRESHED') {
         // Access token rotated (background refresh or our 401 recovery path).
         // Keep context in sync so subsequent calls use the fresh token.
@@ -1828,41 +1925,92 @@ export function AppProvider({ children }) {
   // decides unlocks from real facts (player_stats, quiz_results,
   // competitive_stats, daily_challenge, profiles.streak) via evaluate_achievements.
   // The client no longer WRITES user_achievements (self-awarding is disabled by
-  // the select-own RLS). Returns the fresh unlocks for celebration toasts.
+  // the select-own RLS). Returns the celebration payloads for fresh unlocks so
+  // callers (e.g. XpHall) can surface a "WIN + ACHIEVEMENT" moment; existing
+  // callers that ignore the return keep working unchanged.
   const syncAchievements = useCallback(async (sess = session) => {
-    if (!sess?.user?.id || !supabase) return;
+    if (!sess?.user?.id || !supabase) return [];
     if (achievementEvalInFlight) return achievementEvalInFlight;
+    const userId = sess.user.id;
     achievementEvalInFlight = (async () => {
       try {
         const { data, error } = await supabase.rpc('evaluate_achievements');
         if (error || !data?.ok) {
           console.warn('Achievements evaluate skipped:', error?.message || data?.error);
-          return;
+          return [];
         }
         const freshly = data.unlocked || [];
-        if (freshly.length > 0) {
-          setUserAchievements(prev => {
-            const known = new Set(prev.map(u => u.key || u.achievement_id).filter(Boolean));
-            const merged = [...prev];
-            for (const a of freshly) {
-              if (!known.has(a.key)) {
-                merged.push({ key: a.key, achievement_id: a.key, name: a.name, emoji: a.emoji, unlocked_at: new Date().toISOString() });
-              }
+        if (freshly.length === 0) return [];
+
+        // Definitions catalogue: description + rarity for the celebration.
+        // FAIL-SOFT — an offline catalogue still celebrates (server name/emoji).
+        const catalog = await fetchAchievementCatalog();
+
+        // Real earned timestamps (user_achievements.unlocked_at, own rows only).
+        const freshKeys = new Set(freshly.map(a => a.key));
+        const freshIds = catalog.filter(c => freshKeys.has(c.key)).map(c => c.id);
+        const earnedAtByKey = {};
+        const freshRows = [];
+        if (freshIds.length) {
+          try {
+            const { data: rows } = await supabase
+              .from('user_achievements')
+              .select('achievement_id, unlocked_at')
+              .in('achievement_id', freshIds);
+            for (const row of rows || []) {
+              const def = catalog.find(c => c.id === row.achievement_id);
+              if (!def) continue;
+              earnedAtByKey[def.key] = row.unlocked_at;
+              freshRows.push({
+                achievement_id: row.achievement_id, // REAL numeric id (not the key)
+                unlocked_at: row.unlocked_at,
+                key: def.key,
+                name: def.name,
+                emoji: def.emoji
+              });
             }
-            return merged;
-          });
-          setAchievementToast({
-            id: Date.now(),
-            emoji: freshly[0].emoji || '🏆',
-            title: freshly[0].name || 'Achievement Unlocked',
-            subtitle: freshly.length > 1 ? `Plus ${freshly.length - 1} more unlocked!` : 'New milestone reached.',
-            tone: 'bg-apex-600'
-          });
+          } catch (err) {
+            console.warn('Achievement timestamps skipped:', err.message);
+          }
         }
-        return freshly;
+        // Fall back to key-only rows if the timestamp query failed entirely.
+        const knownNow = new Set(freshRows.map(r => r.key));
+        for (const a of freshly) {
+          if (!knownNow.has(a.key)) {
+            freshRows.push({
+              key: a.key, achievement_id: a.key, name: a.name, emoji: a.emoji,
+              unlocked_at: new Date().toISOString()
+            });
+          }
+        }
+
+        setUserAchievements(prev => {
+          const known = new Set(prev.map(u => u.key || u.achievement_id).filter(Boolean));
+          const merged = [...prev];
+          for (const row of freshRows) {
+            if (!known.has(row.key)) merged.push(row);
+          }
+          return merged;
+        });
+
+        // Build the full-screen celebration payloads (description, rarity,
+        // accent, earned date) and present only what THIS device hasn't shown.
+        const payloads = buildCelebrations({
+          unlocks: freshly,
+          catalog,
+          earnedAtByKey
+        });
+        const presented = presentedCelebrationRef.current;
+        const pending = pendingCelebrations(payloads, presented);
+        if (pending.length) {
+          for (const p of pending) presented.add(String(p.key));
+          markPresentedKeys(userId, pending.map(p => p.key));
+          enqueueCelebrations(pending);
+        }
+        return payloads;
       } catch (err) {
         console.warn('Achievements evaluate failed:', err?.message);
-        return;
+        return [];
       }
     })();
     try {
@@ -1870,7 +2018,7 @@ export function AppProvider({ children }) {
     } finally {
       achievementEvalInFlight = null;
     }
-  }, [session]);
+  }, [session, fetchAchievementCatalog, enqueueCelebrations]);
 
   // Re-evaluate achievements whenever learning signals change (after a quiz,
   // a streak bump, a difficulty unlock, or completing the daily goal).
@@ -2124,6 +2272,8 @@ export function AppProvider({ children }) {
     setUserAchievements([]);
     setDailyChallengeDone(false);
     setAchievementToast(null);
+    setAchievementCatalog([]);
+    resetCelebrations();
   };
 
   const amountPaid = transactions.filter(t => t.status === 'success').reduce((sum, t) => sum + (Number(t.amount) || 0), 0);
@@ -2198,6 +2348,8 @@ export function AppProvider({ children }) {
       courseQuota, quotaFetchStatus, courseQuotaAvailable: quotaFetchStatus === 'ok', fetchCourseQuotaStatus, consumeCourseQuota,
       difficultyProgress, fetchDifficultyStatus, recordAnsweredBatch,
       userAchievements, fetchAchievements, syncAchievements,
+      achievementCatalog, fetchAchievementCatalog,
+      activeCelebration, dismissCelebration,
       dailyChallengeDone, markDailyChallengeDone,
       achievementToast, dismissAchievementToast,
       flashcardAccess, fetchFlashcardAccess, hydrateBuiltInFlashcards,

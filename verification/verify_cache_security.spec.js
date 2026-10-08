@@ -22,8 +22,8 @@ test('anonymous first paint never fetches the flashcard question-bank chunk', as
   });
 
   await page.goto('/');
-  // Root redirects unauth users to signup; give the shell a beat to settle.
-  await expect(page).toHaveURL(/signup/, { timeout: 15000 });
+  // Root serves the public landing page for unauth visitors (no login wall).
+  await expect(page).toHaveURL(/\/$/, { timeout: 15000 });
   await expect(page.locator('body')).toContainText('Polynurse');
 
   // Shell renders = JS booted; wait extra frames so a stray lazy import would surface.
@@ -53,7 +53,7 @@ test('app boots with no console errors from the cache integration', async ({ pag
   page.on('pageerror', (err) => errors.push(err.message));
 
   await page.goto('/');
-  await expect(page).toHaveURL(/signup/, { timeout: 15000 });
+  await expect(page).toHaveURL(/\/$/, { timeout: 15000 });
   await page.waitForTimeout(2000);
 
   const cacheErrors = errors.filter((e) => /cache|getCacheFirst|dedupe|subscription_plans|achievements/i.test(e));

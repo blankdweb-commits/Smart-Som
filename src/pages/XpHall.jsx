@@ -16,7 +16,7 @@ const WAIT_FOR_HUMAN_MS = 3000;
 
 const XpHall = () => {
   const navigate = useNavigate();
-  const { smartCoins, createCompetitiveMatch, submitCompetitiveAnswer, completeCompetitiveMatch } = useAppContext();
+  const { smartCoins, createCompetitiveMatch, submitCompetitiveAnswer, completeCompetitiveMatch, syncAchievements } = useAppContext();
   const [phase, setPhase] = useState("lobby");
   const [mode, setMode] = useState(null);
   const [stake, setStake] = useState(2);
@@ -225,6 +225,22 @@ const XpHall = () => {
     }
 
     setTxState('done');
+
+    // A verified WIN is a learning signal: re-run the SERVER achievement
+    // evaluation (migration v35 — only evaluate_achievements can unlock) and
+    // capture any fresh unlocks so the result screen can show the
+    // "WIN + ACHIEVEMENT UNLOCKED" moment. The full-screen celebration is
+    // enqueued by the context itself; this is display-only and best-effort.
+    let achievements = [];
+    if (outcome === 'win') {
+      try {
+        const payloads = await syncAchievements();
+        achievements = Array.isArray(payloads) ? payloads : [];
+      } catch (err) {
+        console.warn('Post-win achievements skipped:', err?.message);
+      }
+    }
+
     setResult({
       winner,
       youWon,
@@ -234,11 +250,12 @@ const XpHall = () => {
       settled,
       players: mode?.players || 2,
       breakdown,
+      achievements,
     });
     setPhase("result");
     fetchHistory();
     clearWaiting();
-  }, [userAnswerState, currentQuestion, mode, opponent, fetchHistory, submitCompetitiveAnswer, completeCompetitiveMatch]);
+  }, [userAnswerState, currentQuestion, mode, opponent, fetchHistory, submitCompetitiveAnswer, completeCompetitiveMatch, syncAchievements]);
 
   const resetToLobby = () => {
     setPhase("lobby");
@@ -492,11 +509,16 @@ const XpHall = () => {
 
           {phase === "result" && result && (
             <motion.div key="result" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="space-y-6">
-              <div className={`p-8 rounded-[2rem] text-center ${result.youWon && !result.draw ? "bg-emerald-500/10 border border-emerald-500/30" : result.draw ? "bg-amber-500/10 border border-amber-500/30" : "bg-red-500/10 border border-red-500/30"}`}>
+              <div className={`p-8 rounded-[2rem] text-center relative overflow-hidden ${result.youWon && !result.draw ? "bg-emerald-500/10 border border-emerald-500/30 shadow-[0_0_70px_-24px_rgba(16,185,129,0.75)] ring-1 ring-emerald-400/40" : result.draw ? "bg-amber-500/10 border border-amber-500/30" : "bg-red-500/10 border border-red-500/30"}`}>
                 <div className="text-5xl mb-4">{result.youWon && !result.draw ? "🏆" : result.draw ? "🤝" : "💀"}</div>
                 <h2 className={`text-3xl font-black uppercase tracking-tight ${result.youWon && !result.draw ? "text-emerald-400" : result.draw ? "text-amber-300" : "text-red-400"}`}>
                   {result.youWon && !result.draw ? "Victory!" : result.draw ? "Draw!" : "Eliminated"}
                 </h2>
+                {result.youWon && !result.draw && (
+                  <span className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-emerald-400/50 bg-emerald-400/10 px-3 py-1 text-[10px] font-black uppercase tracking-[0.2em] text-emerald-300">
+                    <Trophy size={12} /> Winner
+                  </span>
+                )}
                 <p className="text-white/50 mt-2 font-medium">
                   {result.youWon && !result.draw
                     ? "You dominated the hall."
@@ -512,14 +534,46 @@ const XpHall = () => {
                     Settlement couldn't be recorded — your Smart Coin balance was not changed. Please try again.
                   </p>
                 )}
+                {Array.isArray(result.achievements) && result.achievements.length > 0 && (
+                  <div className="mt-5 rounded-2xl border border-amber-400/30 bg-amber-400/5 p-4">
+                    <p className="text-[10px] font-black uppercase tracking-[0.2em] text-amber-300">
+                      Win + Achievement Unlocked
+                    </p>
+                    <div className="mt-3 space-y-2">
+                      {result.achievements.map(a => (
+                        <div
+                          key={a.key || a.name}
+                          className="flex items-center justify-center gap-2 rounded-xl border bg-white/5 px-3 py-2"
+                          style={{ borderColor: `${a.accent}59` }}
+                        >
+                          <span className="text-lg" aria-hidden="true">{a.icon}</span>
+                          <span className="text-sm font-black text-white">{a.name}</span>
+                          <span
+                            className="rounded-full border px-2 py-0.5 text-[9px] font-black uppercase tracking-widest"
+                            style={{ color: a.accent, borderColor: `${a.accent}66`, background: `${a.accent}14` }}
+                          >
+                            {a.tierLabel}
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
               {Array.isArray(result.breakdown) && result.breakdown.length > 0 && (
                 <div className="space-y-3">
                   {result.breakdown.map((p, i) => (
-                    <div key={i} className={`flex items-center justify-between p-5 rounded-2xl border ${p.result === "win" ? "bg-emerald-500/10 border-emerald-500/20" : "bg-white/5 border-white/5"}`}>
+                    <div key={i} className={`flex items-center justify-between p-5 rounded-2xl border transition-all ${p.result === "win" ? "bg-emerald-500/10 border-emerald-400/50 ring-1 ring-emerald-400/30 shadow-[0_0_40px_-24px_rgba(16,185,129,0.9)]" : p.result === "draw" ? "bg-amber-500/5 border-amber-400/20" : "bg-white/5 border-white/5"}`}>
                       <div className="flex items-center gap-3">
                         <div className={`w-9 h-9 rounded-xl flex items-center justify-center font-black text-sm ${p.result === "win" ? "bg-emerald-500 text-white" : "bg-white/10 text-white/40"}`}>{String(p.name)[0]}</div>
-                        <span className="font-bold">{p.name}</span>
+                        <div>
+                          <span className="font-bold block">{p.name}</span>
+                          {p.result === "win" && (
+                            <span className="inline-flex items-center gap-1 rounded-full bg-emerald-500/15 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-emerald-300">
+                              <Trophy size={10} /> Winner
+                            </span>
+                          )}
+                        </div>
                       </div>
                       <div className="text-right">
                         <p className="text-xs text-white/40 font-bold uppercase tracking-widest mb-0.5">

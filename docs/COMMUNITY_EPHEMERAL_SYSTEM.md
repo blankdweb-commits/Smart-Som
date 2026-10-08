@@ -87,13 +87,13 @@ expiry-filtered) and `community_comments` (RLS read gate). The client helper is
 - `minimum_members_to_activate` = 30 — at the 30th join the group auto-activates.
 - `minimum_members_to_remain_active` = 18 — an active group drops below this and
   gets wiped.
-- `spectator_price` = ₦599 — non-members can watch ONLY while active.
+- `spectator_price` = ₦499 — non-members can watch ONLY while active.
 
 | Hook | Behavior |
 |---|---|
 | `community_panel(p_group, p_user)` | `{ok,id,name,description,type,privacy,group_state,is_active,spectator_price,minimum_members_to_activate,minimum_members_to_remain_active,can_view,my_role,member_count}`. **`member_count` is public while `waiting`** (waitlist "X/30" progress for joiners) and hidden the moment the room is active (or for blocked user types). |
-| `community_anonymous_join` | advisory-lock serialized; refusals: `NOT_FOUND`, `NOT_ANONYMOUS`, `GROUP_WIPED`, `ALREADY_SPECTATOR`, `BANNED`, `GROUP_ACTIVE` (at 30); last joined member triggers activation. |
-| `community_anonymous_leave` | owner cannot leave; a leave on an active room that drops the count under 18 performs the wipe inline. |
+| `community_anonymous_join` | advisory-lock serialized; refusals: `NOT_FOUND`, `NOT_ANONYMOUS`, `GROUP_WIPED`, `ALREADY_SPECTATOR`, `BANNED`, `GROUP_ACTIVE` (at 10); last joined member triggers activation. |
+| `community_anonymous_leave` | owner cannot leave; a leave on an active room that drops the count under 5 performs the wipe inline. |
 | `community_anonymous_wipe` | sets `wiped` + `is_active=false`, soft-hides the room's posts (`is_deleted`+`is_hidden`), revokes spectators, deletes memberships. |
 | `community_group_feed` | auth-gated by `can_view`; **identity-masked for anonymous rooms** — `display_name` = `'Anonymous Member'`, `avatar_url`/`year` = `null` (required because `community_profiles` is globally readable by authenticated users). |
 | `community_member_count` | active (non-banned) member count; granted EXECUTE to `authenticated` for the Study Groups list counter. |
@@ -106,9 +106,9 @@ price > 0, buyer not a member/active spectator. Payment lands on `/api/verify-pa
 (grants an `anonymous_spectators` row) and the webhook confirms.
 
 **Read model for anonymous UIs** (`GroupPage.jsx` / `StudyGroups.jsx`):
-- waiting → "X/30 joined", **Join as Anonymous**; members see the board, outsiders don't.
+- waiting → "X/10 joined", **Join as Anonymous**; members see the board, outsiders don't.
 - active → members/spectators see the masked board; outsiders see "Membership closed"
-  + **Watch as Spectator — ₦599**; spectators can read & react but **cannot post**.
+  + **Watch as Spectator — ₦499**; spectators can read & react but **cannot post**.
 - wiped → "This room was wiped." card; board hidden; join = `GROUP_WIPED`.
 - Members/Leadership tabs are hidden for anonymous rooms (no identity leak);
   the group quiz sprint CTA is hidden too.
@@ -116,7 +116,7 @@ price > 0, buyer not a member/active spectator. Payment lands on `/api/verify-pa
 ## 5. Seeding
 
 The seed lives inside the migration (idempotent): an admin-anchored `Anonymous`
-group (type `anonymous`, privacy `restricted`, 30/18/₦599, `group_state='waiting'`)
+group (type `anonymous`, privacy `restricted`, 10/5/₦499, `group_state='waiting'`)
 created only when no `type='anonymous'` row exists.
 
 ## 6. Deployment notes (Vercel)

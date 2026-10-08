@@ -2,7 +2,7 @@
 //
 // Handles charge.success for BOTH products:
 //   - premium subscription (legacy): creates a subscriptions row + activates profile.
-//   - anonymous_spectate: one-time ₦599 spectator pass — inserts an `active`
+//   - anonymous_spectate: one-time ₦499 spectator pass — inserts an `active`
 //     anonymous_spectators row (NO subscription, NO profile activation).
 // Signature-verified, idempotent on the reference.
 import crypto from 'crypto';

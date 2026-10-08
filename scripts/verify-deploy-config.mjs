@@ -448,7 +448,7 @@ let passed = 0;
   );
 
   // API router: all write endpoints + comment edit/delete wired.
-  for (const route of ['/posts/edit-comment$', '/posts/delete-comment$', '/posts/reply$', '/groups/feed$', '/groups/panel$']) {
+  for (const route of ['/posts/edit-comment$', '/posts/delete-comment$', '/posts/reply$', '/groups/feed$', '/groups/panel$', '/anonymous/room$', '/anonymous/feed$', '/anonymous/message$', '/anonymous/send$', '/anonymous/react$']) {
     // Handlers are declared as `re: /\/posts\/edit-comment$/` — the source text
     // carries escaped slashes (`\/`), so match the escaped literal form.
     const escaped = route.replace(/\//g, '\\/');
@@ -488,21 +488,121 @@ let passed = 0;
       : fail('Community.jsx still writes community tables directly'),
   );
 
-  // GroupPage.jsx: anonymous mode via /groups/* API + hosted spectator checkout.
+  // Anonymous ROOM (chat-first rebuild): pages/AnonymousRoom.jsx owns the room,
+  // GroupPage only redirects anonymous groups to it.
+  const anon = read(resolve(ROOT, 'src/pages/AnonymousRoom.jsx'));
   checks.push(
-    grp.includes("communityApi(session, '/groups/panel'") && grp.includes("communityApi(session, '/groups/feed'") && grp.includes("communityApi(session, '/groups/join'") && grp.includes("communityApi(session, '/groups/leave'")
-      ? ok('GroupPage.jsx anonymous panel/feed/join/leave all use the router')
-      : fail('GroupPage.jsx anonymous group actions not via /api/community'),
+    anon.includes("communityApi(session, '/anonymous/room'") && anon.includes("communityApi(session, '/anonymous/feed'") && anon.includes("communityApi(session, '/anonymous/send'") && anon.includes("communityApi(session, '/anonymous/react'")
+      ? ok('AnonymousRoom.jsx drives the room through /anonymous/* router endpoints')
+      : fail('AnonymousRoom.jsx missing /anonymous/* router calls'),
   );
   checks.push(
-    /product: 'anonymous_spectate'/.test(grp) && /authorization_url/.test(grp)
-      ? ok('GroupPage.jsx spectator pass uses hosted checkout (product anonymous_spectate)')
-      : fail('GroupPage.jsx spectator purchase not wired to the hosted checkout'),
+    anon.includes("communityApi(session, '/groups/join'") && /product: 'anonymous_spectate'/.test(anon) && /authorization_url/.test(anon)
+      ? ok('AnonymousRoom.jsx join + hosted spectator checkout (anonymous_spectate)')
+      : fail('AnonymousRoom.jsx join/spectator purchase not wired to the router/checkout'),
   );
   checks.push(
-    /group_state === 'wiped'/.test(grp) && /isAnonymousGroup && !anonViewer/.test(grp)
-      ? ok('GroupPage.jsx renders wiped/closed states and hides the board for non-viewers')
-      : fail('GroupPage.jsx anonymous states/board masking missing'),
+    /access === 'wiped'/.test(anon) && /access === 'join'/.test(anon) && /access === 'closed'/.test(anon) && /access === 'banned'/.test(anon)
+      ? ok('AnonymousRoom.jsx renders wiped/waiting/closed/banned gates from server access state')
+      : fail('AnonymousRoom.jsx server access gates missing'),
+  );
+  checks.push(
+    !/author_id/.test(anon) && !(/\?\?\s*30/.test(anon)) && /room\?\.thresholds/.test(anon)
+      ? ok('AnonymousRoom.jsx: no author_id exposure, thresholds come from the server (no ?? 30 default)')
+      : fail('AnonymousRoom.jsx hardcodes thresholds or references author_id'),
+  );
+  checks.push(
+    /room\?\.group\?\.spectator_price/.test(anon) && !/\b(499|599)\b/.test(anon) && /product: 'anonymous_spectate'/.test(anon)
+      ? ok('AnonymousRoom.jsx: spectator price is server-resolved (no hardcoded 499/599) via Paystack')
+      : fail('AnonymousRoom.jsx hardcodes the spectator price'),
+  );
+  checks.push(
+    /\/anonymous\/\$\{id\}/.test(grp) && grp.includes('<Navigate to={`/anonymous/${id}`} replace />')
+      ? ok('GroupPage.jsx redirects anonymous groups to /anonymous/:id (no anon UI left)')
+      : fail('GroupPage.jsx is missing the anonymous redirect'),
+  );
+  checks.push(
+    !/isAnonymousGroup|handleAnonJoin|anonymous_spectate|groups\/panel/.test(grp)
+      ? ok('GroupPage.jsx stripped of the old anonymous panel/join/spectator code')
+      : fail('GroupPage.jsx still contains anonymous-room code'),
+  );
+  checks.push(
+    sg.includes('/anonymous/${group.id}')
+      ? ok('StudyGroups.jsx opens the Anonymous room at /anonymous/:id')
+      : fail('StudyGroups.jsx does not route anonymous groups to /anonymous/:id'),
+  );
+  checks.push(
+    apiCm.includes('parseId') && /UUID_RE/.test(apiCm) && !/Number\(req\.body\?\.(post_id|comment_id)\)/.test(apiCm)
+      ? ok('api/_community.js accepts uuid post/comment ids (parseId) — Number(uuid) bug fixed')
+      : fail('api/_community.js still coerces uuid ids with Number()'),
+  );
+  checks.push(
+    /ROOM_REACTIONS\s*=\s*\[/.test(apiCm) && /ROOM_REACTIONS\.includes\(emoji\)/.test(apiCm)
+      ? ok('api/_community.js reaction whitelist enforced server-side (ROOM_REACTIONS)')
+      : fail('api/_community.js missing the reaction whitelist'),
+  );
+  checks.push(
+    /INVALID_MENTION/.test(apiCm) && /anonymous_room_identities/.test(apiCm)
+      ? ok('api/_community.js validates @Anonymous #NN mentions against room identities')
+      : fail('api/_community.js missing mention validation'),
+  );
+
+  // Migration v39: focused anonymous-room schema (replies, reactions, aliases,
+  // 10/5 thresholds, author_id mask).
+  const mig39 = read(resolve(ROOT, 'scripts/migration-v39-anonymous-room.sql'));
+  checks.push(
+    /reply_to_post_id uuid references public\.community_posts/.test(mig39)
+      ? ok('v39: community_posts.reply_to_post_id (direct message replies) present')
+      : fail('v39 migration missing reply_to_post_id'),
+  );
+  checks.push(
+    /community_post_reactions/.test(mig39) && /primary key \(post_id, user_id, emoji\)/.test(mig39)
+      ? ok('v39: community_post_reactions PK (post,user,emoji) keeps counts un-inflatable')
+      : fail('v39 migration missing reactions table/PK'),
+  );
+  checks.push(
+    /anonymous_room_identities/.test(mig39) && /alias integer not null check \(alias between 1 and 9999\)/.test(mig39) && /unique \(group_id, alias\)/.test(mig39)
+      ? ok('v39: anonymous_room_identities (random room-scoped Anonymous #NN, unique per room)')
+      : fail('v39 migration missing room identity table/constraints'),
+  );
+  checks.push(
+    /alter column minimum_members_to_activate set default 10/.test(mig39) && /alter column minimum_members_to_remain_active set default 5/.test(mig39) && /where type = 'anonymous'/.test(mig39)
+      ? ok('v39: 10-to-activate / 5-to-survive thresholds set server-side for anonymous rooms')
+      : fail('v39 migration missing the 10/5 room thresholds'),
+  );
+  checks.push(
+    /revoke all on public\.community_post_reactions from public, anon, authenticated/.test(mig39) && /revoke all on public\.anonymous_room_identities from public, anon, authenticated/.test(mig39)
+      ? ok('v39: new tables revoked from anon/authenticated (service-role only)')
+      : fail('v39 migration does not lock the new tables from clients'),
+  );
+  checks.push(
+    /delete from public\.anonymous_room_identities where group_id = p_group/.test(mig39)
+      ? ok('v39: community_anonymous_wipe also shreds the round identities')
+      : fail('v39 wipe function does not clean room identities'),
+  );
+  checks.push(
+    /case when v_anon then null else p\.author_id end/.test(mig39)
+      ? ok('v39: community_group_feed masks author_id to NULL for anonymous rooms')
+      : fail('v39 does not fix the community_group_feed author_id leak'),
+  );
+  checks.push(
+    /sg\.type = 'anonymous'/.test(mig39) && /create or replace function public\.community_post_viewer_allowed/.test(mig39) && /community_post_in_anonymous_room\(post_id\)/.test(mig39)
+      ? ok('v39: RLS read-gate — client SELECTs/realtime on anon-room posts/comments/likes denied (service-role only)')
+      : fail('v39 missing the anonymous-room RLS read-gate (author_id leak)'),
+  );
+
+  // Migration v40: the anonymous spectator pass is ₦499, normalized
+  // server-side (no SC ledger, no new column, room-lifecycle expiry).
+  const mig40 = read(resolve(ROOT, 'scripts/migration-v40-anonymous-spectator-price.sql'));
+  checks.push(
+    /spectator_price = 499/.test(mig40) && /where type = 'anonymous'/.test(mig40) && /is distinct from 499/.test(mig40)
+      ? ok('v40: anonymous spectator price normalized to ₦499 (idempotent, server-authoritative)')
+      : fail('v40 migration does not set the anonymous spectator price to 499'),
+  );
+  checks.push(
+    !/_sc_apply|smart_coin|smart_coins/.test(mig40)
+      ? ok('v40: no SC-ledger involvement (Paystack naira pass only)')
+      : fail('v40 unexpectedly touches the Smart Coin ledger'),
   );
 
   // StudyGroups.jsx: anonymous join/leave + posts all routed, counts via RPC.
@@ -860,6 +960,110 @@ let passed = 0;
       && !/AdSenseSlot/.test(read(resolve(ROOT, 'src/pages/Flashcards.jsx')))
       ? ok('no ad slot mounted on Quiz or Flashcards')
       : fail('an ad slot is mounted on a forbidden page'),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PART A — Google AdSense SITE VERIFICATION SURFACE (public, crawlable root).
+// These assert the files Google actually fetches: index.html (verification meta
+// tag + crawlable content), /ads.txt, /robots.txt and /sitemap.xml — plus that
+// no rewrite can serve the SPA shell for ads.txt (the production incident).
+// ---------------------------------------------------------------------------
+{
+  const indexHtml = read(resolve(ROOT, 'index.html'));
+  const adsJs = read(resolve(ROOT, 'src/config/ads.js'));
+  const publisherId = (adsJs.match(/ca-pub-\d+/) || [])[0];
+  const adsTxt = read(resolve(ROOT, 'public/ads.txt'));
+  const robotsTxt = read(resolve(ROOT, 'public/robots.txt'));
+  const sitemapXml = read(resolve(ROOT, 'public/sitemap.xml'));
+  const vercelRaw = read(resolve(ROOT, 'vercel.json'));
+
+  checks.push(
+    publisherId === 'ca-pub-7731141426940208'
+      ? ok('ads.js single source of truth publisher id is ca-pub-7731141426940208')
+      : fail('unexpected publisher id in src/config/ads.js', publisherId || 'none'),
+  );
+  checks.push(
+    publisherId && new RegExp(`<meta\\s+name="google-adsense-account"\\s+content="${publisherId}"`).test(indexHtml)
+      ? ok('index.html declares <meta name="google-adsense-account"> matching ads.js')
+      : fail('index.html missing/mismatched google-adsense-account meta tag'),
+  );
+  checks.push(
+    /<link rel="canonical" href="https:\/\/www\.polynurse\.com\.ng\/"/.test(indexHtml)
+      && /<meta name="description" content=".+"/.test(indexHtml)
+      ? ok('index.html ships canonical URL + meta description for crawlers')
+      : fail('index.html missing canonical/description'),
+  );
+  checks.push(
+    !/pagead2\.googlesyndication\.com/.test(indexHtml) && !/adsbygoogle\.push/.test(indexHtml)
+      ? ok('index.html contains no AdSense loader/snippet (controlled loader only)')
+      : fail('AdSense loader snippet leaked into index.html'),
+  );
+
+  const expectedAdsLine = `google.com, ${publisherId ? publisherId.replace(/^ca-/, '') : 'pub-??.0208'}, DIRECT, f08c47fec0942fa0`;
+  checks.push(
+    adsTxt.trim() === expectedAdsLine
+      ? ok('public/ads.txt is the exact AdSense authorization line')
+      : fail('public/ads.txt content unexpected', `expected "${expectedAdsLine}"`),
+  );
+
+  checks.push(
+    /User-agent:\s*Mediapartners-Google\s*\nAllow:\s*\//.test(robotsTxt)
+      && /User-agent:\s*Googlebot\s*\nAllow:\s*\//.test(robotsTxt)
+      && /User-agent:\s*Google-Display-Ads-Bot\s*\nAllow:\s*\//.test(robotsTxt)
+      ? ok('robots.txt explicitly allows Mediapartners-Google / Googlebot / Google-Display-Ads-Bot')
+      : fail('robots.txt does not allow the Google ad/verification crawlers'),
+  );
+  checks.push(
+    /Sitemap:\s*https:\/\/www\.polynurse\.com\.ng\/sitemap\.xml/.test(robotsTxt)
+      && /<loc>https:\/\/www\.polynurse\.com\.ng\/<\/loc>/.test(sitemapXml)
+      ? ok('robots.txt points at the sitemap and sitemap lists the public root')
+      : fail('sitemap wiring missing'),
+  );
+  // The production incident: ads.txt was served as the SPA HTML shell.
+  checks.push(
+    !/ads\.txt/.test(vercelRaw)
+      ? ok('vercel.json does not rewrite ads.txt (static file wins)')
+      : fail('vercel.json rewrites ads.txt'),
+  );
+  checks.push(
+    !/robots\.txt/.test(vercelRaw)
+      ? ok('vercel.json does not rewrite robots.txt (static file wins)')
+      : fail('vercel.json rewrites robots.txt'),
+  );
+
+  // Public crawlable shell: real content in the INITIAL HTML, revealed without
+  // JS, sitting inside #root so React replaces it on boot.
+  const shellInRoot = (() => {
+    const rootOpen = indexHtml.indexOf('<div id="root">');
+    const shellOpen = indexHtml.indexOf('class="apex-public-shell"');
+    return rootOpen !== -1 && shellOpen > rootOpen && indexHtml.indexOf('<script type="module"') > shellOpen;
+  })();
+  checks.push(
+    shellInRoot
+      ? ok('index.html ships the public crawlable shell inside #root')
+      : fail('public shell missing or not inside #root'),
+  );
+  checks.push(
+    /<noscript>[\s\S]*\.apex-public-shell \{ display: block !important; \}/.test(indexHtml)
+      && /class="apex-splash"/.test(indexHtml)
+      ? ok('noscript rules reveal the shell and hide the splash')
+      : fail('noscript reveal rules missing from index.html'),
+  );
+  checks.push(
+    /\.apex-public-shell/.test(indexHtml) && /Create a free account/.test(indexHtml) && /href="\/signup"/.test(indexHtml) && /href="\/login"/.test(indexHtml)
+      ? ok('public shell contains real PolyNurse content + signup/login entry points')
+      : fail('public shell content missing'),
+  );
+  checks.push(
+    /Boot watchdog|apex-splash/.test(indexHtml) && /setTimeout\(function/.test(indexHtml)
+      ? ok('boot watchdog drops a stuck splash and reveals the shell')
+      : fail('boot watchdog script missing from index.html'),
+  );
+  checks.push(
+    /google-adsense-account/.test(indexHtml) && !/adsbygoogle/.test(indexHtml)
+      ? ok('verification meta present with no adsbygoogle snippet (R7)')
+      : fail('R7 invariant broken'),
   );
 }
 

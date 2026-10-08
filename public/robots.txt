@@ -1,3 +1,15 @@
+# Google verification/advertising crawlers — always allowed on the public site.
+User-agent: Mediapartners-Google
+Allow: /
+
+User-agent: Googlebot
+Allow: /
+
+User-agent: Google-Display-Ads-Bot
+Allow: /
+
+# General crawlers: public marketing/content surfaces only.
+# Private, authenticated app surfaces stay out of the index.
 User-agent: *
 Allow: /
 Disallow: /quiz
@@ -16,5 +28,9 @@ Disallow: /pronunciation
 Disallow: /xp-hall
 Disallow: /activate
 Disallow: /admin
+Disallow: /leaderboard
+Disallow: /challenges
+Disallow: /squads
+Disallow: /rooms
 
 Sitemap: https://www.polynurse.com.ng/sitemap.xml

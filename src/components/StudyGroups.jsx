@@ -267,7 +267,7 @@ const StudyGroups = () => {
 
   const openGroup = async (group) => {
     if (group.type === 'anonymous') {
-      navigate(`/study-groups/${group.id}`);
+      navigate(`/anonymous/${group.id}`);
       return;
     }
     setActiveGroup(group);
@@ -633,7 +633,7 @@ const StudyGroups = () => {
                     Open
                   </button>
                   <button
-                    onClick={() => navigate(`/study-groups/${group.id}`)}
+                    onClick={() => navigate(group.type === 'anonymous' ? `/anonymous/${group.id}` : `/study-groups/${group.id}`)}
                     className="px-4 py-2.5 bg-apex-600 text-white rounded-xl font-black uppercase tracking-wide text-[10px] flex items-center gap-1.5 whitespace-nowrap hover:bg-apex-700 transition-all active:scale-95"
                   >
                     <Users size={12} /> Group Page

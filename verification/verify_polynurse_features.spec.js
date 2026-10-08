@@ -58,7 +58,29 @@ test('signup page renders the Polynurse brand and NCLEX tagline', async ({ page 
   await expect(page.locator('body')).not.toContainText('Apex Scholars');
 });
 
-test('root route redirects to signup (unauthenticated)', async ({ page }) => {
+test('root route serves the public landing (unauthenticated)', async ({ page }) => {
   await page.goto('/');
-  await expect(page).toHaveURL(/signup/);
+  // No login wall: the public landing page renders at "/" itself.
+  await expect(page).toHaveURL(/\/$/, { timeout: 15000 });
+  // Real descriptive content served by the REACT landing (the static shell is
+  // cleared from #root on boot — see the no-JS suite below for the shell).
+  await expect(page.locator('body')).toContainText('helps nursing and midwifery students prepare for the NMCN');
+  await expect(page.getByRole('link', { name: /create a free account/i }).first()).toBeVisible();
+});
+
+// The static public shell inside #root is what no-JS visitors and crawlers
+// actually see (revealed by the <noscript> rules in <head>).
+test.describe('static crawlable shell (JavaScript disabled)', () => {
+  test.use({ javaScriptEnabled: false });
+
+  test('public shell renders without JavaScript', async ({ page }) => {
+    await page.goto('/');
+    const shell = page.locator('.apex-public-shell');
+    await expect(shell).toBeVisible();
+    await expect(shell).toContainText('Nursing and midwifery exam preparation, built for Nigeria');
+    await expect(shell.getByRole('link', { name: /create a free account/i })).toBeVisible();
+    await expect(shell.getByRole('link', { name: /sign in/i })).toBeVisible();
+    // The animated splash must not cover the content without JS.
+    await expect(page.locator('.apex-splash')).toBeHidden();
+  });
 });

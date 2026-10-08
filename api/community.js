@@ -25,6 +25,11 @@
 //   /api/community/groups/leave      leave            { group_id }
 //   /api/community/groups/panel      panel info       { group_id }
 //   /api/community/groups/feed       authorized feed  { group_id, limit? }
+//   /api/community/anonymous/room    room bootstrap   { group_id? }
+//   /api/community/anonymous/feed    masked messages  { group_id?, before?, limit? }
+//   /api/community/anonymous/message one message      { message_id, group_id? }
+//   /api/community/anonymous/send    speak            { content, group_id?, reply_to_post_id? }
+//   /api/community/anonymous/react   react            { message_id, emoji, active, group_id? }
 //   /api/community/cleanup           scheduler        header X-Cleanup-Token
 // ============================================================
 
@@ -42,6 +47,11 @@ import {
   handleLeaveGroup,
   handlePanel,
   handleGroupFeed,
+  handleAnonRoom,
+  handleAnonFeed,
+  handleAnonMessage,
+  handleAnonSend,
+  handleAnonReact,
   handleCleanup,
 } from './_community.js';
 
@@ -58,6 +68,11 @@ const HANDLERS = [
   { re: /\/groups\/leave$/, fn: handleLeaveGroup },
   { re: /\/groups\/panel$/, fn: handlePanel },
   { re: /\/groups\/feed$/, fn: handleGroupFeed },
+  { re: /\/anonymous\/room$/, fn: handleAnonRoom },
+  { re: /\/anonymous\/feed$/, fn: handleAnonFeed },
+  { re: /\/anonymous\/message$/, fn: handleAnonMessage },
+  { re: /\/anonymous\/send$/, fn: handleAnonSend },
+  { re: /\/anonymous\/react$/, fn: handleAnonReact },
   { re: /\/cleanup$/, fn: handleCleanup },
 ];
 

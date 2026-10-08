@@ -27,6 +27,7 @@ const Challenges = lazy(() => import('./pages/Challenges'));
 const Squads = lazy(() => import('./pages/Squads'));
 const Rooms = lazy(() => import('./pages/Rooms'));
 const GroupPage = lazy(() => import('./pages/GroupPage'));
+const AnonymousRoom = lazy(() => import('./pages/AnonymousRoom'));
 const StudyGroups = lazy(() => import('./components/StudyGroups'));
 const Marketplace = lazy(() => import('./pages/Marketplace'));
 const Voting = lazy(() => import('./pages/Voting'));
@@ -34,6 +35,8 @@ const Reviews = lazy(() => import('./pages/Reviews'));
 const WeaknessDrill = lazy(() => import('./pages/WeaknessDrill'));
 const Achievements = lazy(() => import('./pages/Achievements'));
 const LegalPage = lazy(() => import('./pages/Legal'));
+const Landing = lazy(() => import('./pages/Landing'));
+const AchievementCelebration = lazy(() => import('./components/AchievementCelebration'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center h-screen bg-white dark:bg-slate-900">
@@ -41,13 +44,28 @@ const PageLoader = () => (
   </div>
 );
 
-// Session-aware root redirect: a device that already has a persisted session
-// (recognized by supabase-js from localStorage) lands on the dashboard; only
-// genuinely signed-out visitors are sent to the sign-up page.
+// Session-aware root route: an authenticated device lands on the dashboard;
+// everyone else gets the PUBLIC crawlable landing page (real PolyNurse content,
+// no login wall) with clear navigation into the app. AdSense crawlers therefore
+// receive a genuine HTTP 200 page with meaningful content at "/".
 const RootRedirect = () => {
   const { session, loadingAuth } = useAppContext();
   if (loadingAuth) return <PageLoader />;
-  return <Navigate to={session ? '/dashboard' : '/signup'} replace />;
+  return session ? <Navigate to="/dashboard" replace /> : <Landing />;
+};
+
+// Full-screen achievement celebration host — mounted ONCE at the app root (not
+// inside Layout) so it can present over any route, including /xp-hall results.
+// The celebration chunk is only requested the first time an achievement is
+// actually ready to present (true lazy load — nothing ships in the entry).
+const CelebrationHost = () => {
+  const { activeCelebration } = useAppContext();
+  if (!activeCelebration) return null;
+  return (
+    <Suspense fallback={null}>
+      <AchievementCelebration key={`${activeCelebration.key || 'ach'}:${activeCelebration.earnedAt || activeCelebration.queueIndex}`} />
+    </Suspense>
+  );
 };
 
 // --- MAIN ROUTER ---
@@ -85,6 +103,10 @@ const AppRouter = () => (
       <Route path="/login" element={<Auth />} />
       <Route path="/signup" element={<Auth />} />
       <Route path="/xp-hall" element={<XpHall />} />
+      {/* Anonymous room: immersive full-screen (no sidebar/bottom nav),
+          direct entry at /anonymous and deep link at /anonymous/:id. */}
+      <Route path="/anonymous" element={<RequireAuth><AnonymousRoom /></RequireAuth>} />
+      <Route path="/anonymous/:id" element={<RequireAuth><AnonymousRoom /></RequireAuth>} />
         <Route path="/leaderboard" element={<RequireAuth><Leaderboard /></RequireAuth>} />
         <Route path="/challenges" element={<RequireAuth><Challenges /></RequireAuth>} />
         <Route path="/squads" element={<RequireAuth><Squads /></RequireAuth>} />
@@ -106,6 +128,7 @@ function App() {
         <Router>
           <AdSenseManager>
             <AppRouter />
+            <CelebrationHost />
           </AdSenseManager>
           <CookieConsentBanner />
         </Router>

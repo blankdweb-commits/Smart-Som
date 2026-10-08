@@ -1,11 +1,22 @@
 import { test, expect } from '@playwright/test';
 
-test('unauthenticated root redirects to signup', async ({ page }) => {
+test('unauthenticated root renders the public crawlable landing page', async ({ page }) => {
   await page.goto('/');
-  // Root redirects to /signup for unauthenticated visitors
-  await expect(page).toHaveURL(/signup/);
-  // Brand renders
+  // Root no longer login-walls: unauthenticated visitors stay on "/" and get
+  // the public PolyNurse landing (AdSense-safe real content).
+  await expect(page).toHaveURL(/\/$/, { timeout: 15000 });
   await expect(page.locator('body')).toContainText('Polynurse');
+  // Real public content + clear navigation into the app
+  await expect(page.getByRole('link', { name: /create a free account/i }).first()).toBeVisible();
+  // Landing shows "Sign in" in BOTH the header and the hero — assert on the
+  // first match (strict mode would otherwise reject the legitimate duplicate).
+  await expect(page.getByRole('link', { name: /sign in/i }).first()).toBeVisible();
+});
+
+test('root landing link routes into the app signup flow', async ({ page }) => {
+  await page.goto('/');
+  await page.getByRole('link', { name: /create a free account/i }).first().click();
+  await expect(page).toHaveURL(/signup/);
 });
 
 test('unknown routes resolve (catch-all redirects)', async ({ page }) => {

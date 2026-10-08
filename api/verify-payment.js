@@ -2,7 +2,7 @@
 // Server-side Paystack callback verifier.
 // Handles TWO products:
 //   - premium subscription (legacy): creates/extends a subscriptions row.
-//   - anonymous_spectate: one-time ₦599 spectator pass for the Anonymous
+//   - anonymous_spectate: one-time ₦499 spectator pass for the Anonymous
 //     group — inserts an `active` anonymous_spectators row (NO subscription).
 // Both verify the transaction with Paystack, validate the amount against a
 // server-resolved price, and are idempotent on the reference.

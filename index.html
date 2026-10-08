@@ -8,6 +8,9 @@
     <meta name="description" content="Polynurse Exam Center – Nigeria's leading NCLEX and NMCN exam preparation platform for nursing and midwifery students." />
     <meta name="robots" content="index, follow" />
     <link rel="canonical" href="https://www.polynurse.com.ng/" />
+    <!-- Google AdSense site verification (official Google-supported method).
+         The publisher id MUST match src/config/ads.js (single source of truth). -->
+    <meta name="google-adsense-account" content="ca-pub-7731141426940208" />
     <link rel="manifest" href="/manifest.webmanifest" />
 
     <meta property="og:type" content="website" />
@@ -26,6 +29,14 @@
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap" rel="stylesheet" media="print" onload="this.media='all'">
     <noscript><link href="https://fonts.googleapis.com/css2?family=Inter:wght@300..700&display=swap" rel="stylesheet"></noscript>
+    <noscript>
+      <!-- No-JS crawlers/visitors: drop the animated splash and reveal the
+           static public crawlable shell below (real PolyNurse content). -->
+      <style>
+        .apex-splash { display: none !important; }
+        .apex-public-shell { display: block !important; }
+      </style>
+    </noscript>
     <style>
       /* Critical first-paint CSS: mirrors src/index.css base tokens so the
          branded shell paints before the (larger, consolidated) stylesheet and
@@ -55,8 +66,9 @@
       .apex-splash {
         position: fixed; inset: 0;
         display: flex; flex-direction: column; align-items: center; justify-content: center;
-        gap: 16px; background: inherit; z-index: 2147483000;
+        gap: 16px; background: #f8fafc; z-index: 2147483000;
       }
+      html.dark .apex-splash { background: #0f172a; }
       .apex-splash-logo {
         width: 72px; height: 72px; border-radius: 20px;
         background: #800080;
@@ -83,6 +95,46 @@
       }
       @keyframes apex-pulse { 0%, 100% { transform: scale(0.96); opacity: 0.92; } 50% { transform: scale(1); opacity: 1; } }
       @keyframes apex-slide { 0% { transform: translateX(-110%); } 100% { transform: translateX(260%); } }
+
+      /* ---------------------------------------------------------------
+         Public crawlable shell — REAL PolyNurse content that ships in the
+         initial HTML of every SPA route. Crawlers that execute JS swap this
+         for the React landing page; crawlers/visitors without JS see it via
+         the <noscript> rules above. Never contains private application data.
+      --------------------------------------------------------------- */
+      .apex-public-shell {
+        display: none;
+        max-width: 44rem; margin: 0 auto; padding: 56px 20px 72px;
+        line-height: 1.65;
+      }
+      .apex-public-brand {
+        display: flex; align-items: center; gap: 10px;
+        font-weight: 800; font-size: 13px; letter-spacing: 0.22em;
+        text-transform: uppercase; color: #800080;
+      }
+      .apex-public-brand img { display: block; }
+      .apex-public-shell h1 {
+        font-size: 30px; line-height: 1.18; font-weight: 900;
+        letter-spacing: -0.02em; margin: 30px 0 14px; color: #0f172a;
+      }
+      .apex-public-shell h2 {
+        font-size: 13px; font-weight: 900; text-transform: uppercase;
+        letter-spacing: 0.18em; margin: 30px 0 10px; color: #800080;
+      }
+      .apex-public-shell p, .apex-public-shell li { font-size: 16px; color: #334155; }
+      .apex-public-shell ul { padding-left: 20px; margin: 0; }
+      .apex-public-shell li { margin-bottom: 8px; }
+      .apex-public-nav { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 34px; }
+      .apex-public-nav a {
+        display: inline-block; padding: 13px 22px; border-radius: 14px;
+        font-weight: 800; font-size: 13px; text-transform: uppercase;
+        letter-spacing: 0.1em; text-decoration: none;
+      }
+      .apex-public-nav a.primary { background: #800080; color: #ffffff; }
+      .apex-public-nav a.secondary { color: #800080; border: 2px solid rgba(128, 0, 128, 0.35); }
+      html.dark .apex-public-shell h1 { color: #f1f5f9; }
+      html.dark .apex-public-shell p, html.dark .apex-public-shell li { color: #cbd5e1; }
+      @media (max-width: 400px) { .apex-public-shell h1 { font-size: 25px; } }
     </style>
   </head>
   <body>
@@ -96,7 +148,61 @@
         <div class="apex-splash-name">Polynurse</div>
         <div class="apex-splash-bar"><span></span></div>
       </div>
+      <!-- Static public entry content (served with the HTML, no JS required).
+           Lives INSIDE #root on purpose: React 19's createRoot clears #root's
+           children on first commit, so JS visitors get ONLY the app, while
+           no-JS crawlers/visitors keep this shell (revealed by the <noscript>
+           rules in <head>). Public publisher information only — no user data,
+           no quiz content. -->
+      <div class="apex-public-shell">
+        <p class="apex-public-brand">
+          <img src="/polynurse-mark.svg" alt="" width="34" height="34" />
+          Polynurse Exam Center
+        </p>
+        <h1>Nursing and midwifery exam preparation, built for Nigeria</h1>
+        <p>
+          Polynurse Exam Center is a learning platform for nursing and midwifery
+          students preparing for the NMCN licensing examinations in Nigeria and the
+          NCLEX-RN international exam. It turns your course subjects into structured
+          practice: server-graded quiz rounds, difficulty tiers that unlock as your
+          real accuracy improves, and weak-area drills built from the questions you
+          actually got wrong.
+        </p>
+        <h2>Study areas</h2>
+        <ul>
+          <li>Nursing 200-level subjects — Fundamentals of Nursing, Pharmacology III, Reproductive Health, Research Methodology, Nutrition &amp; Dietetics, and Politics and Governance in Nursing.</li>
+          <li>Nursing 300-level and Midwifery 200/300-level subjects, including complications of pregnancy and labour.</li>
+          <li>NCLEX-RN and NMCN exam-style question banks for clinical and quick challenge rounds.</li>
+          <li>Daily challenge, weakness drills, streaks, flashcard study, and a global leaderboard ranked by server-verified answers.</li>
+        </ul>
+        <h2>How free study works</h2>
+        <p>
+          Free learners get a fresh 10-question round every 30 minutes per course,
+          with each course on its own cooldown. Activated accounts unlock the full
+          question bank, Smart Coins, power-ups, and competitive 1v1 and 3v3 practice
+          matches — all scored on the server, never on the client.
+        </p>
+        <nav class="apex-public-nav" aria-label="Get started">
+          <a class="primary" href="/signup">Create a free account</a>
+          <a class="secondary" href="/login">Sign in</a>
+        </nav>
+      </div>
     </div>
     <script type="module" src="/src/main.jsx"></script>
+    <script>
+      // Boot watchdog: if the React bundle hasn't booted within 6s (slow or
+      // blocked script), drop the splash and reveal the static public shell so
+      // the page is never a blank screen. React clears #root on first commit —
+      // if it boots later it simply replaces whatever is here.
+      setTimeout(function () {
+        var root = document.getElementById('root');
+        if (!root) return;
+        var splash = root.querySelector('.apex-splash');
+        if (!splash) return; // React already took over
+        splash.parentNode.removeChild(splash);
+        var shell = root.querySelector('.apex-public-shell');
+        if (shell) shell.style.display = 'block';
+      }, 6000);
+    </script>
   </body>
 </html>
