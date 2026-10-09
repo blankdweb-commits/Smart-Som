@@ -43,6 +43,18 @@ export const ROOM_MAX_LIMIT = 100;
 // @Anonymous #NN — only temporary room identities may be referenced.
 export const MENTION_RE = /@Anonymous\s*#(\d{1,4})/gi;
 
+// Absolute lifetime ceiling (mirrors the v41 SQL community_post_lives_until).
+// No amount of interaction can keep a message alive beyond 6 hours.
+export const MAX_POST_LIFE_MS = 6 * 60 * 60 * 1000;
+
+// Versioned safety notice members must acknowledge before they can speak.
+export const ROOM_NOTICE = { key: 'anonymous_room_safety', version: 3 };
+
+// Reporting: fixed categories + a per-user hourly rate limit.
+export const REPORT_CATEGORIES = ['harassment', 'spam', 'self_harm', 'hate', 'sexual', 'personal_info', 'other'];
+export const REPORT_RATE_LIMIT = 12; // max reports per user per hour
+export const REPORT_RATE_WINDOW_MS = 60 * 60 * 1000;
+
 const ADMIN_ROLES = ['admin', 'super_admin'];
 
 export const err = (code, message, status = 400) => ({ code, message, status });
@@ -62,12 +74,25 @@ export const parseId = (value) => {
 // Helpers
 // ------------------------------------------------------------
 
-// lives_until for a post row pulled from the ADMIN client (RLS bypassed):
-// grace_until wins (legacy posts), else last_interaction/created + 1h.
+// lives_until for a post row pulled from the ADMIN client (RLS bypassed).
+// ABSOLUTE expiry wins: anonymous-group messages carry `expires_at`
+// (created_at + 5 min, assigned by the v43 DB trigger and never resettable),
+// so interactions cannot extend them. Everything else keeps the legacy
+// grace_until / last_interaction+1h model, clamped to created_at + 6h.
 export const computeLivesUntil = (post) => {
-  if (post?.grace_until) return new Date(post.grace_until).getTime();
-  const base = post?.last_interaction_at || post?.created_at;
-  return new Date(base).getTime() + POST_LIFE_MS;
+  if (post?.expires_at) {
+    const exp = new Date(post.expires_at).getTime();
+    if (Number.isFinite(exp)) return exp;
+  }
+  const created = new Date(post?.created_at).getTime();
+  let lives;
+  if (post?.grace_until) {
+    lives = new Date(post.grace_until).getTime();
+  } else {
+    const base = post?.last_interaction_at || post?.created_at;
+    lives = new Date(base).getTime() + POST_LIFE_MS;
+  }
+  return Math.min(lives, Number.isFinite(created) ? created + MAX_POST_LIFE_MS : lives);
 };
 
 export const computePostState = (post, now = Date.now()) => {
@@ -172,6 +197,64 @@ export const fetchAnonGroup = async (groupId) => {
     .maybeSingle();
   return data || null;
 };
+
+// ------------------------------------------------------------
+// Realtime fan-out (server-mediated). The browser client subscribes to the
+// PUBLIC broadcast channel `anon-room-<id>`; RLS blocks it from the underlying
+// tables (v39), so we push a NOTIFICATION-ONLY event over the Realtime HTTP
+// broadcast API. Payloads never carry message content or author_id — clients
+// always re-fetch through the authorized /api/community/anonymous/* endpoints.
+// Fire-and-forget: a broadcast failure must never fail the write.
+// ------------------------------------------------------------
+export const roomChannel = (groupId) => `anon-room-${groupId}`;
+
+export async function publishRoomEvent(groupId, type, extra = {}) {
+  const url = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  const id = Number(groupId);
+  if (!url || !key || !Number.isFinite(id) || id <= 0) return false;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 2500);
+  try {
+    const res = await fetch(`${url}/realtime/v1/api/broadcast`, {
+      method: 'POST',
+      headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [
+          {
+            topic: roomChannel(id),
+            event: 'room',
+            payload: { type, at: Date.now(), ...extra },
+            private: false,
+          },
+        ],
+      }),
+      signal: controller.signal,
+    });
+    return res.ok;
+  } catch (e) {
+    // Broadcast is best-effort; clients also poll + refetch on reconnect.
+    console.error('[room broadcast]', e?.message || e);
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// Has the user accepted the current safety notice (versioned)?
+export async function hasNoticeAck(userId) {
+  const supabase = getDb();
+  if (!supabase) return false;
+  const { data } = await supabase
+    .from('community_notice_acks')
+    .select('version')
+    .eq('user_id', userId)
+    .eq('notice_key', ROOM_NOTICE.key)
+    .maybeSingle();
+  return !!data && Number(data.version) >= ROOM_NOTICE.version;
+}
+
 
 // ------------------------------------------------------------
 // Handlers (each resolves req.body fields; dispatch lives in community.js)
@@ -313,6 +396,59 @@ export async function handleLike(req, res, user) {
   return res.status(200).json({ ok: true, liked });
 }
 
+// POST /api/community/posts/vote  { post_id, value: 1 | -1 | 0 }
+// Server-authoritative up/down vote. value 0 clears the caller's vote (the row
+// is deleted — "no row" == neutral), 1/-1 upserts to one vote per (post, user).
+// The returned score is computed from the votes table, never trusted from the
+// client. Rate-limited like any interaction so a single user can't keep a post
+// alive just by toggling votes.
+export async function handleVote(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+
+  const postId = parseId(req.body?.post_id);
+  if (!postId) return res.status(400).json({ error: 'Invalid post id' });
+
+  const rawValue = req.body?.value;
+  const value = rawValue === undefined ? 1 : Number(rawValue);
+  if (![1, -1, 0].includes(value)) {
+    return res.status(400).json({ error: 'INVALID_VOTE', message: 'Vote must be -1, 1, or 0 to clear.' });
+  }
+  if (await isBanned(user.id)) return res.status(403).json({ error: 'BANNED', message: 'Your community access is currently restricted.' });
+
+  const post = await fetchAlivePost(postId, user.id);
+  if (!post) return res.status(404).json({ error: 'POST_NOT_FOUND', message: 'This post is no longer visible.' });
+
+  let writeError = null;
+  if (value === 0) {
+    const { error } = await supabase
+      .from('community_post_votes')
+      .delete()
+      .eq('post_id', postId)
+      .eq('user_id', user.id);
+    writeError = error;
+  } else {
+    const { error } = await supabase
+      .from('community_post_votes')
+      .upsert({ post_id: postId, user_id: user.id, value }, { onConflict: 'post_id,user_id' });
+    writeError = error;
+  }
+  if (writeError) {
+    console.error('[community vote]', writeError);
+    return res.status(500).json({ error: 'Failed to record vote' });
+  }
+
+  await bumpInteraction(postId, user.id);
+
+  const { data: rows } = await supabase
+    .from('community_post_votes')
+    .select('user_id, value')
+    .eq('post_id', postId);
+  const score = (rows || []).reduce((sum, r) => sum + (r.value || 0), 0);
+  const myVote = (rows || []).find((r) => r.user_id === user.id)?.value ?? 0;
+  return res.status(200).json({ ok: true, score, my_vote: myVote });
+}
+
 // POST /api/community/posts/delete  { post_id }
 export async function handleDelete(req, res, user) {
   const supabase = getDb();
@@ -323,7 +459,7 @@ export async function handleDelete(req, res, user) {
 
   const { data: post } = await supabase
     .from('community_posts')
-    .select('id, author_id')
+    .select('id, author_id, group_id')
     .eq('id', postId)
     .maybeSingle();
   if (!post) return res.status(404).json({ error: 'POST_NOT_FOUND' });
@@ -340,6 +476,7 @@ export async function handleDelete(req, res, user) {
     console.error('[community delete]', error);
     return res.status(500).json({ error: 'Failed to delete post' });
   }
+  if (post.group_id) publishRoomEvent(post.group_id, 'delete', { id: postId });
   return res.status(200).json({ ok: true });
 }
 
@@ -381,6 +518,7 @@ export async function handleEdit(req, res, user) {
     console.error('[community edit]', error);
     return res.status(500).json({ error: 'Failed to update post' });
   }
+  if (post.group_id) publishRoomEvent(post.group_id, 'edit', { id: postId });
   return res.status(200).json({ ok: true });
 }
 
@@ -446,36 +584,117 @@ export async function handleDeleteComment(req, res, user) {
   return res.status(200).json({ ok: true, comment_id: commentId });
 }
 
-// POST /api/community/posts/report  { post_id, reason }
+// POST /api/community/posts/report  { post_id|comment_id, reason, category?, details? }
 export async function handleReport(req, res, user) {
   const supabase = getDb();
   if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
 
-  const postId = parseId(req.body?.post_id);
+  const postId = req.body?.post_id != null ? parseId(req.body.post_id) : null;
+  const commentId = req.body?.comment_id != null ? parseId(req.body.comment_id) : null;
   const reason = typeof req.body?.reason === 'string' ? req.body.reason.trim() : '';
-  if (!postId) return res.status(400).json({ error: 'Invalid post id' });
+  const details = typeof req.body?.details === 'string' ? req.body.details.trim() : '';
+  const category = REPORT_CATEGORIES.includes(req.body?.category) ? req.body.category : 'other';
+
+  if (!postId && !commentId) return res.status(400).json({ error: 'Invalid report target' });
   if (!reason) return res.status(400).json({ error: 'Reason is required' });
-  if (reason.length > MAX_REASON) return res.status(400).json({ error: 'Reason is too long' });
+  if (reason.length > MAX_REASON || details.length > MAX_REASON) {
+    return res.status(400).json({ error: 'Report details are too long' });
+  }
   if (await isBanned(user.id)) return res.status(403).json({ error: 'BANNED' });
 
-  const { data: post } = await supabase
-    .from('community_posts')
+  // The target must exist (service role read — RLS bypassed for moderation).
+  if (postId) {
+    const { data: post } = await supabase.from('community_posts').select('id').eq('id', postId).maybeSingle();
+    if (!post) return res.status(404).json({ error: 'POST_NOT_FOUND' });
+  } else {
+    const { data: comment } = await supabase.from('community_comments').select('id').eq('id', commentId).maybeSingle();
+    if (!comment) return res.status(404).json({ error: 'COMMENT_NOT_FOUND' });
+  }
+
+  // Per-user rate limit (server-side; cannot be bypassed by the client).
+  const since = new Date(Date.now() - REPORT_RATE_WINDOW_MS).toISOString();
+  const { count } = await supabase
+    .from('community_reports')
+    .select('id', { count: 'exact', head: true })
+    .eq('reporter_id', user.id)
+    .gte('created_at', since);
+  if ((count || 0) >= REPORT_RATE_LIMIT) {
+    return res.status(429).json({ error: 'REPORT_RATE_LIMITED', message: 'Too many reports. Please wait a little while.' });
+  }
+
+  // One open report per user per target.
+  let dupQuery = supabase
+    .from('community_reports')
     .select('id')
-    .eq('id', postId)
-    .maybeSingle();
-  if (!post) return res.status(404).json({ error: 'POST_NOT_FOUND' });
+    .eq('reporter_id', user.id)
+    .eq('status', 'pending');
+  dupQuery = postId ? dupQuery.eq('post_id', postId) : dupQuery.eq('comment_id', commentId);
+  const { data: dup } = await dupQuery.limit(1).maybeSingle();
+  if (dup) return res.status(200).json({ ok: true, duplicate: true });
 
   const { error } = await supabase.from('community_reports').insert({
     reporter_id: user.id,
     post_id: postId,
+    comment_id: postId ? null : commentId,
     reason,
-    resolved: false,
+    category,
+    details: details || null,
+    status: 'pending',
   });
   if (error) {
     console.error('[community report]', error);
     return res.status(500).json({ error: 'Failed to submit report' });
   }
   return res.status(200).json({ ok: true });
+}
+
+// POST /api/community/anonymous/room-create  { name? }
+// Opens a NEW Anonymous room with the caller as owner + first member. Service-
+// role only (clients cannot INSERT type='anonymous' study_groups — v29 RLS
+// forbids it), so thresholds/price/lock come from server defaults, never the
+// client. Returns the new room id; the client navigates to /anonymous/:id.
+export async function handleCreateAnonRoom(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+  if (await isBanned(user.id)) return res.status(403).json({ error: 'BANNED', message: 'Your community access is currently restricted.' });
+
+  const requested = typeof req.body?.name === 'string' ? req.body.name.trim().slice(0, 120) : '';
+  const name = requested || `Anonymous Nursing Room ${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
+
+  const { data: group, error } = await supabase
+    .from('study_groups')
+    .insert({
+      name,
+      description: 'Anonymous study room — membership opens when the room fills up.',
+      creator_id: user.id,
+      type: 'anonymous',
+      privacy: 'restricted',
+      group_state: 'waiting',
+      membership_locked: false,
+    })
+    .select('id, name, member_limit, minimum_members_to_activate, minimum_members_to_remain_active, spectator_price, group_state')
+    .single();
+
+  if (error) {
+    console.error('[community create-anon-room]', error);
+    return res.status(500).json({ error: 'Failed to create the room', message: 'Could not create a new Anonymous room right now.' });
+  }
+
+  // Owner is member #1: without this the room would have no one in it.
+  const { error: memberErr } = await supabase
+    .from('study_group_members')
+    .insert({ group_id: group.id, user_id: user.id, role: 'owner' });
+  if (memberErr) {
+    console.error('[community create-anon-room membership]', memberErr);
+    await supabase.from('study_groups').delete().eq('id', group.id);
+    return res.status(500).json({ error: 'Failed to create the room', message: 'Could not reserve the room seat right now.' });
+  }
+
+  publishRoomEvent(group.id, 'join', {});
+  return res.status(200).json({
+    ok: true,
+    room: { id: group.id, name: group.name },
+  });
 }
 
 // POST /api/community/groups/join  { group_id }
@@ -497,9 +716,25 @@ export async function handleJoinGroup(req, res, user) {
       return res.status(500).json({ error: 'Failed to join', message: error.message });
     }
     if (!data?.ok) {
-      return res.status(403).json({ error: data.code, message: data.message || 'Unable to join this group right now.', ...(data.spectator_price ? { spectator_price: data.spectator_price } : {}) });
+      return res.status(403).json({
+        error: data.code,
+        message: data.message || 'Unable to join this group right now.',
+        ...(data.spectator_price ? { spectator_price: data.spectator_price } : {}),
+        ...(data.member_count != null ? { member_count: data.member_count } : {}),
+        ...(data.member_limit != null ? { member_limit: data.member_limit } : {}),
+      });
     }
-    return res.status(200).json({ ok: true, member_count: data.member_count, group_state: data.group_state, already_member: !!data.already_member });
+    if (!data.already_member) {
+      const alias = await ensureRoomAlias(groupId, user.id).catch(() => null);
+      publishRoomEvent(groupId, 'join', alias ? { alias } : {});
+    }
+    return res.status(200).json({
+      ok: true,
+      member_count: data.member_count,
+      group_state: data.group_state,
+      member_limit: data.member_limit,
+      already_member: !!data.already_member,
+    });
   }
 
   // Normal group membership (client manages these directly).
@@ -518,6 +753,7 @@ export async function handleLeaveGroup(req, res, user) {
   if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND' });
 
   if (group.type === 'anonymous') {
+    const alias = await ensureRoomAlias(groupId, user.id).catch(() => null);
     const { data, error } = await supabase.rpc('community_anonymous_leave', { p_group: groupId, p_user: user.id });
     if (error) {
       console.error('[community anon leave]', error);
@@ -525,6 +761,11 @@ export async function handleLeaveGroup(req, res, user) {
     }
     if (!data?.ok) {
       return res.status(400).json({ error: data.code, message: data.message || 'Unable to leave this group.' });
+    }
+    if (data.wiped) {
+      publishRoomEvent(groupId, 'wipe');
+    } else {
+      publishRoomEvent(groupId, 'departure', alias ? { alias } : {});
     }
     return res.status(200).json({ ok: true, member_count: data.member_count, group_state: data.group_state, wiped: !!data.wiped });
   }
@@ -718,7 +959,7 @@ async function hydrateRoomMessages(group, rows, viewerId, now = Date.now()) {
   if (parentIds.length) {
     const { data } = await supabase
       .from('community_posts')
-      .select('id, author_id, content, created_at, updated_at, last_interaction_at, grace_until, is_deleted, is_hidden')
+      .select('id, author_id, content, created_at, updated_at, last_interaction_at, grace_until, is_deleted, is_hidden, expires_at')
       .in('id', parentIds);
     for (const p of data || []) parents.set(p.id, p);
   }
@@ -743,6 +984,19 @@ async function hydrateRoomMessages(group, rows, viewerId, now = Date.now()) {
     if (row.user_id === viewerId) counts[row.emoji].mine = true;
   }
 
+  // Server-authoritative votes: net score + the viewer's own vote (0|1|-1).
+  const { data: voteRows } = await supabase
+    .from('community_post_votes')
+    .select('post_id, user_id, value')
+    .in('post_id', ids);
+  const votesByPost = new Map();
+  for (const row of voteRows || []) {
+    if (!votesByPost.has(row.post_id)) votesByPost.set(row.post_id, { score: 0, mine: 0 });
+    const agg = votesByPost.get(row.post_id);
+    agg.score += row.value || 0;
+    if (row.user_id === viewerId) agg.mine = row.value || 0;
+  }
+
   return rows.map((row) => {
     let reply = null;
     if (row.reply_to_post_id) {
@@ -762,6 +1016,7 @@ async function hydrateRoomMessages(group, rows, viewerId, now = Date.now()) {
     const edited =
       !!row.updated_at &&
       new Date(row.updated_at).getTime() - new Date(row.created_at).getTime() > 1000;
+    const votes = votesByPost.get(row.id) || { score: 0, mine: 0 };
     return {
       id: row.id,
       content: row.content,
@@ -772,6 +1027,8 @@ async function hydrateRoomMessages(group, rows, viewerId, now = Date.now()) {
       is_mine: row.author_id === viewerId,
       reply,
       reactions: orderedReactions(countsByPost.get(row.id)),
+      score: votes.score,
+      my_vote: votes.mine,
       state: computePostState(row, now),
       lives_until: new Date(computeLivesUntil(row)).toISOString(),
     };
@@ -779,7 +1036,7 @@ async function hydrateRoomMessages(group, rows, viewerId, now = Date.now()) {
 }
 
 const ROOM_POST_COLUMNS =
-  'id, author_id, content, created_at, updated_at, last_interaction_at, grace_until, is_deleted, is_hidden, reply_to_post_id';
+  'id, author_id, content, created_at, updated_at, last_interaction_at, grace_until, is_deleted, is_hidden, reply_to_post_id, expires_at';
 
 // POST /api/community/anonymous/room  { group_id? }
 export async function handleAnonRoom(req, res, user) {
@@ -793,30 +1050,54 @@ export async function handleAnonRoom(req, res, user) {
   const viewable = access === 'member' || access === 'spectator';
   const memberCount = viewable || access === 'join' ? await roomMemberCount(group.id) : null;
   const myAlias = access === 'member' ? await ensureRoomAlias(group.id, user.id) : null;
+  const noticeAccepted = access === 'member' ? await hasNoticeAck(user.id) : true;
+
+  // Is this viewer the room host (owner) or an admin? Only they may lock/unlock
+  // membership while the room keeps running.
+  let isHost = role === 'admin';
+  if (!isHost && access === 'member') {
+    const { data: membership } = await supabase
+      .from('study_group_members')
+      .select('role')
+      .eq('group_id', group.id)
+      .eq('user_id', user.id)
+      .maybeSingle();
+    isHost = membership?.role === 'owner';
+  }
 
   return res.status(200).json({
     ok: true,
     access,
     my_role: role,
+    is_host: isHost,
     my_alias: myAlias,
     member_count: memberCount,
+    can_speak: access === 'member',
+    can_react: viewable,
     group: {
       id: group.id,
       name: group.name,
       group_state: group.group_state,
       is_active: group.is_active,
       spectator_price: group.spectator_price,
+      member_limit: group.member_limit,
+      membership_locked: !!group.membership_locked,
     },
     thresholds: {
       activate: group.minimum_members_to_activate,
       survive: group.minimum_members_to_remain_active,
     },
-    channel: `anon-room-${group.id}`,
+    notice: noticeAccepted ? { accepted: true } : { accepted: false, key: ROOM_NOTICE.key, version: ROOM_NOTICE.version },
+    channel: roomChannel(group.id),
     config: {
       reactions: ROOM_REACTIONS,
       page_size: ROOM_PAGE_SIZE,
       max_content: MAX_CONTENT,
       mention_pattern: '@Anonymous #NN',
+      message_lifetime_seconds: 300,
+      lifetime_hours: MAX_POST_LIFE_MS / (60 * 60 * 1000),
+      notice_key: ROOM_NOTICE.key,
+      notice_version: ROOM_NOTICE.version,
     },
   });
 }
@@ -902,6 +1183,15 @@ export async function handleAnonSend(req, res, user) {
   if (access === 'spectator') return res.status(403).json({ error: 'SPECTATOR_READ_ONLY', message: 'Spectators can watch and react, but cannot speak.' });
   if (access !== 'member') return res.status(403).json({ error: 'ANONYMOUS_MEMBERS_ONLY', message: 'Only members can speak in the Anonymous room.' });
 
+  // The safety notice must be acknowledged (server-enforced) before speaking.
+  if (!(await hasNoticeAck(user.id))) {
+    return res.status(403).json({
+      error: 'NOTICE_REQUIRED',
+      message: 'Please accept the room safety notice before speaking.',
+      notice: { key: ROOM_NOTICE.key, version: ROOM_NOTICE.version },
+    });
+  }
+
   const content = typeof req.body?.content === 'string' ? req.body.content.trim() : '';
   if (!content) return res.status(400).json({ error: 'CONTENT_REQUIRED', message: 'Message content is required.' });
   if (content.length > MAX_CONTENT) return res.status(400).json({ error: 'CONTENT_TOO_LONG', message: `Message must be under ${MAX_CONTENT} characters.` });
@@ -945,6 +1235,7 @@ export async function handleAnonSend(req, res, user) {
   }
 
   const [message] = await hydrateRoomMessages(group, [post], user.id);
+  publishRoomEvent(group.id, 'message', { id: post.id });
   return res.status(200).json({ ok: true, message });
 }
 
@@ -1014,7 +1305,159 @@ export async function handleAnonReact(req, res, user) {
     counts[row.emoji].count += 1;
     if (row.user_id === user.id) counts[row.emoji].mine = true;
   }
+  publishRoomEvent(group.id, 'react', { id: messageId });
   return res.status(200).json({ ok: true, reactions: orderedReactions(counts) });
+}
+
+// POST /api/community/anonymous/ack  { group_id?, key?, version? }
+// Records the member's acknowledgement of the safety notice. Idempotent.
+export async function handleAnonAck(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+
+  const key = typeof req.body?.key === 'string' && req.body.key ? req.body.key : ROOM_NOTICE.key;
+  if (key !== ROOM_NOTICE.key) return res.status(400).json({ error: 'UNKNOWN_NOTICE' });
+
+  const { error } = await supabase
+    .from('community_notice_acks')
+    .upsert(
+      { user_id: user.id, notice_key: key, version: ROOM_NOTICE.version, accepted_at: new Date().toISOString() },
+      { onConflict: 'user_id,notice_key' },
+    );
+  if (error) {
+    console.error('[anonymous room ack]', error);
+    return res.status(500).json({ error: 'Failed to record acknowledgement' });
+  }
+  return res.status(200).json({ ok: true, key, version: ROOM_NOTICE.version });
+}
+
+// POST /api/community/anonymous/lock  { group_id?, locked }
+// Owner or admin opens/closes membership while the room keeps running.
+export async function handleAnonSetLocked(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+
+  const group = await resolveAnonGroup(req.body?.group_id);
+  if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND', message: 'No Anonymous room found.' });
+  const locked = req.body?.locked !== false;
+
+  const admin = await isAdminUser(user.id);
+  if (!admin) {
+    const { data: membership } = await supabase
+      .from('study_group_members')
+      .select('role')
+      .eq('group_id', group.id)
+      .eq('user_id', user.id)
+      .maybeSingle();
+    if (membership?.role !== 'owner') {
+      return res.status(403).json({ error: 'NOT_AUTHORIZED', message: 'Only the room host can change membership access.' });
+    }
+  }
+
+  const { data, error } = await supabase.rpc('community_anonymous_set_locked', { p_group: group.id, p_locked: locked });
+  if (error) {
+    console.error('[anonymous room lock]', error);
+    return res.status(500).json({ error: 'Failed to update membership access', message: error.message });
+  }
+  if (!data?.ok) return res.status(400).json({ error: data.code, message: data.message });
+  publishRoomEvent(group.id, 'state', { membership_locked: !!data.membership_locked, member_count: data.member_count });
+  return res.status(200).json({ ok: true, membership_locked: !!data.membership_locked, member_count: data.member_count, member_limit: data.member_limit });
+}
+
+// POST /api/community/moderation/reports  { status?, limit? }  (admin only)
+export async function handleModerationReports(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+  if (!(await isAdminUser(user.id))) return res.status(403).json({ error: 'NOT_AUTHORIZED' });
+
+  const status = ['pending', 'resolved', 'dismissed'].includes(req.body?.status) ? req.body.status : 'pending';
+  const limit = Math.max(1, Math.min(100, Number(req.body?.limit) || 50));
+
+  const { data, error } = await supabase
+    .from('community_reports')
+    .select('id, reporter_id, post_id, comment_id, reason, category, details, status, admin_note, created_at')
+    .eq('status', status)
+    .order('created_at', { ascending: false })
+    .limit(limit);
+  if (error) {
+    console.error('[moderation reports]', error);
+    return res.status(500).json({ error: 'Failed to load reports', message: error.message });
+  }
+
+  const postIds = [...new Set((data || []).map((r) => r.post_id).filter(Boolean))];
+  const posts = new Map();
+  if (postIds.length) {
+    const { data: rows } = await supabase
+      .from('community_posts')
+      .select('id, content, group_id, created_at, is_hidden')
+      .in('id', postIds);
+    for (const p of rows || []) posts.set(p.id, p);
+  }
+
+  const reports = (data || []).map((r) => ({
+    ...r,
+    post: r.post_id && posts.get(r.post_id)
+      ? {
+        id: r.post_id,
+        content: posts.get(r.post_id).content,
+        group_id: posts.get(r.post_id).group_id,
+        created_at: posts.get(r.post_id).created_at,
+        is_hidden: posts.get(r.post_id).is_hidden,
+        anon: false,
+      }
+      : null,
+  }));
+  return res.status(200).json({ ok: true, reports, count: reports.length });
+}
+
+// POST /api/community/moderation/resolve  { report_id, action, note? }  (admin only)
+export async function handleModerationResolve(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+  if (!(await isAdminUser(user.id))) return res.status(403).json({ error: 'NOT_AUTHORIZED' });
+
+  const reportId = parseId(req.body?.report_id);
+  const action = req.body?.action === 'hide' ? 'hide' : 'dismiss';
+  const note = typeof req.body?.note === 'string' ? req.body.note.trim().slice(0, MAX_REASON) : null;
+  if (!reportId) return res.status(400).json({ error: 'Invalid report id' });
+
+  const { data: report } = await supabase
+    .from('community_reports')
+    .select('id, post_id, comment_id')
+    .eq('id', reportId)
+    .maybeSingle();
+  if (!report) return res.status(404).json({ error: 'REPORT_NOT_FOUND' });
+
+  // Moderators may hide the offending message; server-authoritative.
+  if (action === 'hide') {
+    if (report.post_id) {
+      const { data: post } = await supabase
+        .from('community_posts')
+        .select('group_id')
+        .eq('id', report.post_id)
+        .maybeSingle();
+      const { error } = await supabase
+        .from('community_posts')
+        .update({ is_hidden: true, is_deleted: true })
+        .eq('id', report.post_id);
+      if (error) return res.status(500).json({ error: 'Failed to hide post', message: error.message });
+      if (post?.group_id) publishRoomEvent(post.group_id, 'delete', { id: report.post_id });
+    } else if (report.comment_id) {
+      const { error } = await supabase
+        .from('community_comments')
+        .update({ is_hidden: true, is_deleted: true })
+        .eq('id', report.comment_id);
+      if (error) return res.status(500).json({ error: 'Failed to hide comment', message: error.message });
+    }
+  }
+
+  const { error } = await supabase
+    .from('community_reports')
+    .update({ status: action === 'hide' ? 'resolved' : 'dismissed', admin_note: note, updated_at: new Date().toISOString() })
+    .eq('id', reportId);
+  if (error) return res.status(500).json({ error: 'Failed to update report', message: error.message });
+
+  return res.status(200).json({ ok: true, report_id: reportId, action });
 }
 
 // POST /api/community/cleanup  (header X-Cleanup-Token)

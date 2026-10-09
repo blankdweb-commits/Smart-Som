@@ -72,16 +72,22 @@ const register = async (req, res) => {
 };
 
 const touch = async (req, res) => {
-  const user = await getUserFromRequest(req);
-  if (!user) return res.status(401).json({ error: 'Unauthorized' });
+  try {
+    const user = await getUserFromRequest(req);
+    if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
-  const supabase = getSupabaseAdmin();
-  const sessionId = deviceIdFrom(req) || user.id;
-  if (supabase) {
-    try { await supabase.rpc('touch_session', { p_user_id: user.id, p_session_id: sessionId }); }
-    catch (err) { console.error('Session touch error:', err.message); }
+    const supabase = getSupabaseAdmin();
+    const sessionId = deviceIdFrom(req) || user.id;
+    if (supabase) {
+      try { await supabase.rpc('touch_session', { p_user_id: user.id, p_session_id: sessionId }); }
+      catch (err) { console.error('Session touch error:', err.message); }
+    }
+    return res.status(200).json({ success: true });
+  } catch (err) {
+    console.error('Session touch error:', err?.message);
+    const status = err?.code === 'AUTH_SERVICE_UNAVAILABLE' ? 502 : 500;
+    return res.status(status).json({ error: 'TOUCH_FAILED', message: 'Session heartbeat could not be recorded.' });
   }
-  return res.status(200).json({ success: true });
 };
 
 const status = async (req, res) => {
@@ -165,17 +171,24 @@ const revoke = async (req, res) => {
 };
 
 export default async function handler(req, res) {
-  if (!applyCors(req, res)) {
-    return res.status(403).json({ error: 'FORBIDDEN_ORIGIN', message: 'This API is locked to the app domain.' });
-  }
-  const path = (req.url || '/').split('?')[0];
+  try {
+    if (!applyCors(req, res)) {
+      return res.status(403).json({ error: 'FORBIDDEN_ORIGIN', message: 'This API is locked to the app domain.' });
+    }
+    const path = (req.url || '/').split('?')[0];
 
-  if (req.method === 'POST' && path.endsWith('/register')) return register(req, res);
-  if (req.method === 'POST' && path.endsWith('/touch')) return touch(req, res);
-  if (req.method === 'POST' && path.endsWith('/revoke')) return revoke(req, res);
-  if (req.method === 'GET' && path.endsWith('/devices')) return devices(req, res);
-  if ((req.method === 'GET' || req.method === 'POST') && (path.endsWith('/validate') || path.endsWith('/status'))) {
-    return status(req, res);
+    if (req.method === 'POST' && path.endsWith('/register')) return register(req, res);
+    if (req.method === 'POST' && path.endsWith('/touch')) return touch(req, res);
+    if (req.method === 'POST' && path.endsWith('/revoke')) return revoke(req, res);
+    if (req.method === 'GET' && path.endsWith('/devices')) return devices(req, res);
+    if ((req.method === 'GET' || req.method === 'POST') && (path.endsWith('/validate') || path.endsWith('/status'))) {
+      return status(req, res);
+    }
+    return res.status(405).json({ error: 'Method not allowed' });
+  } catch (err) {
+    console.error('Session handler error:', err?.message);
+    if (res.headersSent) return;
+    const code = err?.code === 'AUTH_SERVICE_UNAVAILABLE' ? 502 : 500;
+    return res.status(code).json({ error: 'SESSION_ERROR', message: 'Session request failed.' });
   }
-  return res.status(405).json({ error: 'Method not allowed' });
 }

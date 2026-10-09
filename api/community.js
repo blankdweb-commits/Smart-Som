@@ -21,15 +21,21 @@
 //   /api/community/posts/edit-comment      edit reply  { comment_id, content }
 //   /api/community/posts/delete-comment    delete reply { comment_id }
 //   /api/community/posts/report      report           { post_id, reason }
+//   /api/community/posts/vote        up/down vote     { post_id, value }
 //   /api/community/groups/join       join             { group_id }
 //   /api/community/groups/leave      leave            { group_id }
 //   /api/community/groups/panel      panel info       { group_id }
 //   /api/community/groups/feed       authorized feed  { group_id, limit? }
+//   /api/community/anonymous/room-create  open a new room { name? }
 //   /api/community/anonymous/room    room bootstrap   { group_id? }
 //   /api/community/anonymous/feed    masked messages  { group_id?, before?, limit? }
 //   /api/community/anonymous/message one message      { message_id, group_id? }
 //   /api/community/anonymous/send    speak            { content, group_id?, reply_to_post_id? }
 //   /api/community/anonymous/react   react            { message_id, emoji, active, group_id? }
+//   /api/community/anonymous/ack     accept notice    { group_id?, key? }
+//   /api/community/anonymous/lock    close/open room  { group_id?, locked }
+//   /api/community/moderation/reports  admin queue    { status?, limit? }
+//   /api/community/moderation/resolve  admin action   { report_id, action, note? }
 //   /api/community/cleanup           scheduler        header X-Cleanup-Token
 // ============================================================
 
@@ -43,6 +49,8 @@ import {
   handleEditComment,
   handleDeleteComment,
   handleReport,
+  handleVote,
+  handleCreateAnonRoom,
   handleJoinGroup,
   handleLeaveGroup,
   handlePanel,
@@ -52,6 +60,10 @@ import {
   handleAnonMessage,
   handleAnonSend,
   handleAnonReact,
+  handleAnonAck,
+  handleAnonSetLocked,
+  handleModerationReports,
+  handleModerationResolve,
   handleCleanup,
 } from './_community.js';
 
@@ -63,16 +75,22 @@ const HANDLERS = [
   { re: /\/posts\/edit-comment$/, fn: handleEditComment },
   { re: /\/posts\/delete-comment$/, fn: handleDeleteComment },
   { re: /\/posts\/report$/, fn: handleReport },
+  { re: /\/posts\/vote$/, fn: handleVote },
   { re: /\/posts$/, fn: handleCreatePost },
   { re: /\/groups\/join$/, fn: handleJoinGroup },
   { re: /\/groups\/leave$/, fn: handleLeaveGroup },
   { re: /\/groups\/panel$/, fn: handlePanel },
   { re: /\/groups\/feed$/, fn: handleGroupFeed },
+  { re: /\/anonymous\/room-create$/, fn: handleCreateAnonRoom },
   { re: /\/anonymous\/room$/, fn: handleAnonRoom },
   { re: /\/anonymous\/feed$/, fn: handleAnonFeed },
   { re: /\/anonymous\/message$/, fn: handleAnonMessage },
   { re: /\/anonymous\/send$/, fn: handleAnonSend },
   { re: /\/anonymous\/react$/, fn: handleAnonReact },
+  { re: /\/anonymous\/ack$/, fn: handleAnonAck },
+  { re: /\/anonymous\/lock$/, fn: handleAnonSetLocked },
+  { re: /\/moderation\/reports$/, fn: handleModerationReports },
+  { re: /\/moderation\/resolve$/, fn: handleModerationResolve },
   { re: /\/cleanup$/, fn: handleCleanup },
 ];
 

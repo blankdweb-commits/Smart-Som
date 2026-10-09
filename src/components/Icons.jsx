@@ -3,6 +3,8 @@ import {
   AlertTriangle,
   ArrowLeft,
   ArrowRight,
+  ArrowUp,
+  ArrowDown,
   Award,
   Bell,
   Book,
@@ -84,12 +86,19 @@ import {
   Coins,
   SkipForward,
   Snowflake,
-  Flame
+  Flame,
+  CornerUpLeft,
+  Smile,
+  Crown,
+  BellOff,
+  Unlock
 } from 'lucide-react';export {
   AlertCircle,
   AlertTriangle,
   ArrowLeft,
   ArrowRight,
+  ArrowUp,
+  ArrowDown,
   Award,
   Bell,
   Book,
@@ -172,5 +181,10 @@ import {
   Coins,
   SkipForward,
   Snowflake,
-  Flame
+  Flame,
+  CornerUpLeft,
+  Smile,
+  Crown,
+  BellOff,
+  Unlock
 };

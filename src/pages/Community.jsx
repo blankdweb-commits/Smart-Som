@@ -851,11 +851,6 @@ const Community = () => {
                                 <Clock size={9} /> Live
                               </span>
                             )}
-                            {post.post_state === 'cold' && (
-                              <span className="px-2 py-0.5 bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400 text-[8px] font-black uppercase rounded-md flex items-center gap-1">
-                                <Clock size={9} /> Expiring soon
-                              </span>
-                            )}
                             {post.section && post.section !== 'general' && (
                               (() => {
                                 const sec = getSection(post.section);

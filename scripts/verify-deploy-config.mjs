@@ -478,9 +478,9 @@ let passed = 0;
       : fail('Community.jsx comment edit/delete not via communityApi'),
   );
   checks.push(
-    /post\.post_state === 'cold'/.test(com) && /Expiring soon/.test(com) && /lives_until/.test(com)
-      ? ok('Community.jsx renders the ephemeral cold/expiring badge from server post_state')
-      : fail('Community.jsx ephemeral badges missing'),
+    /post\.post_state === 'active'/.test(com) && /lives_until/.test(com) && !/Expiring soon/.test(com)
+      ? ok('Community.jsx renders the LIVE badge + gone note from server post_state (stale EXPIRING SOON removed)')
+      : fail('Community.jsx ephemeral badge wiring missing / still shows EXPIRING SOON'),
   );
   checks.push(
     !com.includes("from('community_posts').insert") && !com.includes("from('community_post_likes').insert") && !com.includes("from('community_comments').insert")
@@ -515,6 +515,116 @@ let passed = 0;
     /room\?\.group\?\.spectator_price/.test(anon) && !/\b(499|599)\b/.test(anon) && /product: 'anonymous_spectate'/.test(anon)
       ? ok('AnonymousRoom.jsx: spectator price is server-resolved (no hardcoded 499/599) via Paystack')
       : fail('AnonymousRoom.jsx hardcodes the spectator price'),
+  );
+
+  // v42: server-authoritative up/down votes + opening new anonymous rooms.
+  const apiCommunitySrc = read(resolve(ROOT, 'api/_community.js'));
+  const communityRouterSrc = read(resolve(ROOT, 'api/community.js'));
+  const migrationV42Src = read(resolve(ROOT, 'scripts/migration-v42-anonymous-voting.sql'));
+  checks.push(
+    /export async function handleVote/.test(apiCommunitySrc) && /community_post_votes/.test(apiCommunitySrc) && /onConflict: 'post_id,user_id'/.test(apiCommunitySrc)
+      ? ok('api/_community.js: handleVote upserts community_post_votes (one vote per post+user)')
+      : fail('api/_community.js missing server-authoritative handleVote'),
+  );
+  checks.push(
+    /export async function handleCreateAnonRoom/.test(apiCommunitySrc) && /type: 'anonymous'/.test(apiCommunitySrc) && /group_state: 'waiting'/.test(apiCommunitySrc)
+      ? ok('api/_community.js: handleCreateAnonRoom opens a waiting anonymous room server-side')
+      : fail('api/_community.js missing handleCreateAnonRoom'),
+  );
+  checks.push(
+    communityRouterSrc.includes('vote$/') && communityRouterSrc.includes('room-create$/') && /handleVote/.test(communityRouterSrc) && /handleCreateAnonRoom/.test(communityRouterSrc)
+      ? ok('community.js router exposes /posts/vote and /anonymous/room-create')
+      : fail('community.js router missing vote/create routes'),
+  );
+  checks.push(
+    /community_post_votes/.test(migrationV42Src) && /enable row level security/i.test(migrationV42Src) && /spectator_price set default 499/.test(migrationV42Src)
+      ? ok('migration-v42: votes table + RLS + spectator_price default 499')
+      : fail('migration-v42 missing votes table/RLS/default price'),
+  );
+  checks.push(
+    /ArrowUp/.test(anon) && /voteMessage/.test(anon) && /my_vote/.test(anon) && /'\/posts\/vote'/.test(anon)
+      ? ok('AnonymousRoom.jsx: up/down vote UI wired to /posts/vote with my_vote state')
+      : fail('AnonymousRoom.jsx missing vote UI'),
+  );
+  checks.push(
+    /Create a new Anonymous room/.test(anon) && /Watch as Spectator/.test(anon) && /Return to groups/.test(anon) && /setConfirmSpectate/.test(anon)
+      ? ok('AnonymousRoom.jsx: locked-room 3-option flow (spectate/create/return) with confirmation')
+      : fail('AnonymousRoom.jsx missing locked-room 3-option flow'),
+  );
+
+  // v43: anonymous-room messages live EXACTLY 5 minutes (server-authoritative
+  // expires_at, never extendable by reactions/replies/votes); cleanup batched.
+  const migrationV43Src = read(resolve(ROOT, 'scripts/migration-v43-anonymous-message-lifetime.sql'));
+  checks.push(
+    /add column if not exists expires_at timestamptz/.test(migrationV43Src) &&
+      /interval '5 minutes'/.test(migrationV43Src) &&
+      /create trigger trg_community_posts_assign_expiry/.test(migrationV43Src)
+      ? ok('v43: community_posts.expires_at + 5-minute anonymous expiry trigger')
+      : fail('v43 migration missing expires_at column / 5-minute trigger'),
+  );
+  checks.push(
+    /community_post_lives_until/.test(migrationV43Src) && /expires_at is not null then p\.expires_at/.test(migrationV43Src)
+      ? ok('v43: community_post_lives_until honors expires_at before the idle/6h model')
+      : fail('v43 lives_until does not honor expires_at'),
+  );
+  checks.push(
+    /create or replace function public\.community_cleanup/.test(migrationV43Src) &&
+      /expires_at is not null/.test(migrationV43Src) &&
+      /v_batch/.test(migrationV43Src)
+      ? ok('v43: community_cleanup purges expired anonymous posts in batches')
+      : fail('v43 cleanup does not batch-purge expired anonymous posts'),
+  );
+  checks.push(
+    /cp\.expires_at is null[\s\S]{0,220}exists \(select 1 from public\.community_reports/.test(migrationV43Src)
+      ? ok('v43: retain-for-moderation branch excludes anonymous posts (they must vanish)')
+      : fail('v43 retain branch does not exclude anonymous posts'),
+  );
+  checks.push(
+    /cp\.expires_at is not null[\s\S]{0,140}or not exists \(select 1 from public\.community_reports/.test(migrationV43Src)
+      ? ok('v43: purge branch hard-deletes expired anonymous posts EVEN when reported')
+      : fail('v43 purge branch does not force-delete reported anonymous posts'),
+  );
+  checks.push(
+    /community_assign_post_expiry/.test(migrationV43Src) &&
+      /grant execute on function public\.community_cleanup/.test(migrationV43Src)
+      ? ok('v43: expiry trigger + service-role-only cleanup grant')
+      : fail('v43 missing the expiry trigger grant / cleanup ACLs'),
+  );
+  checks.push(
+    /message_lifetime_seconds:\s*300/.test(apiCommunitySrc) && /expires_at/.test(apiCommunitySrc)
+      ? ok('api/_community.js exposes message_lifetime_seconds + selects expires_at')
+      : fail('api/_community.js missing message_lifetime_seconds / expires_at'),
+  );
+  checks.push(
+    /ROOM_NOTICE = \{ key: 'anonymous_room_safety', version: 3 \}/.test(apiCommunitySrc)
+      ? ok('ROOM_NOTICE bumped to version 3 (5-minute lifetime copy)')
+      : fail('ROOM_NOTICE not bumped for the new lifetime'),
+  );
+  checks.push(
+    /fmtMSS/.test(anon) && /Expires in \{fmtMSS\(remaining\)\}/.test(anon) &&
+      /exactly 5 minutes/.test(anon) && !/COLD_AFTER_MS/.test(anon)
+      ? ok('AnonymousRoom.jsx shows "Expires in m:ss" and drops the cold clock (5-min copy)')
+      : fail('AnonymousRoom.jsx missing the 5-minute countdown copy / stale cold clock'),
+  );
+
+  // P1: one shared, deduped refresh path (apexFetch) used by the API client + app.
+  const apexFetchSrc = read(resolve(ROOT, 'src/utils/apexFetch.js'));
+  const communityApiSrc = read(resolve(ROOT, 'src/utils/communityApi.js'));
+  const appCtxSrc = read(resolve(ROOT, 'src/context/AppContext.jsx'));
+  checks.push(
+    /export async function ensureFreshSessionToken/.test(apexFetchSrc) && /export class ApiError/.test(apexFetchSrc) && /export async function apiFetch/.test(apexFetchSrc)
+      ? ok('apexFetch.js: shared ensureFreshSessionToken + ApiError + apiFetch')
+      : fail('apexFetch.js missing shared auth fetch primitives'),
+  );
+  checks.push(
+    /apiFetch\(/.test(communityApiSrc) && /from '\.\/apexFetch'/.test(communityApiSrc)
+      ? ok('communityApi.js wraps the shared apiFetch (auth-aware, 401 replay)')
+      : fail('communityApi.js not wired to shared apiFetch'),
+  );
+  checks.push(
+    /from '\.\.\/utils\/apexFetch'/.test(appCtxSrc) && /ensureFreshSessionToken/.test(appCtxSrc)
+      ? ok('AppContext uses the shared ensureFreshSessionToken (single refresh path)')
+      : fail('AppContext not using shared ensureFreshSessionToken'),
   );
   checks.push(
     /\/anonymous\/\$\{id\}/.test(grp) && grp.includes('<Navigate to={`/anonymous/${id}`} replace />')

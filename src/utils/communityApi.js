@@ -3,21 +3,21 @@
 // join/leave/panel) go through this router because migration-v29 removed direct
 // client RLS writes from community_posts/comments/likes/reports. Public reads
 // still use Supabase directly (community_feed view / RPCs).
+//
+// Auth-aware: on a 401 the shared apiFetch refreshes the session once (deduped)
+// and replays the request, so a leave→rejoin cycle that trips over an
+// about-to-expire access token self-heals instead of failing until a reload.
 
 import { authHeaders } from './apiHeaders';
+import { apiFetch } from './apexFetch';
 
 export async function communityApi(session, path, body = {}) {
-  const res = await fetch(`/api/community${path}`, {
+  return apiFetch(`/community${path}`, {
     method: 'POST',
-    headers: { ...authHeaders(session, { json: true }) },
-    body: JSON.stringify(body),
+    headers: authHeaders(session, { json: true }),
+    token: session?.access_token,
+    body,
   });
-  const data = await res.json().catch(() => ({}));
-  if (!res.ok) {
-    const err = new Error(data.message || data.error || 'Request failed');
-    err.code = data.error;
-    err.status = res.status;
-    throw err;
-  }
-  return data;
 }
+
+export default communityApi;

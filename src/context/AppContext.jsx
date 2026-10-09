@@ -3,6 +3,7 @@ import { initialFlashcards } from '../data/initialData';
 import { CURRICULUM_MASTER } from '../data/curriculumMaster';
 import { supabase } from '../utils/supabase';
 import { authHeaders } from '../utils/apiHeaders';
+import { ensureFreshSessionToken } from '../utils/apexFetch';
 import { safeGet, safeSet, safeRemove } from '../utils/safeStorage';
 import { dedupe, getCacheFirst, cacheClearAll, cacheTtl } from '../utils/cache';
 import {
@@ -56,10 +57,8 @@ const ANONYMOUS_PROFILE = {
 // that expired while it was closed. A 401 that our server returns while we DID
 // send a bearer token usually means exactly that. We refresh once (deduped so a
 // simultaneous burst never fires N concurrent refreshSession() calls against the
-// same single-use refresh token) and replay the request with the fresh token.
-let refreshInFlight = null;
-let lastSuccessfulRefreshAt = 0;
-let cachedFreshSession = null;
+// same single-use refresh token — the single-flight lives in apexFetch and is
+// SHARED with the community client) and replay the request with the fresh token.
 // Coalesce concurrent auth-initialization passes (React StrictMode double-mount
 // in dev, or a dual Provider mount) into ONE getSession/refresh sequence so the
 // initial auth burst never fans out into parallel token reads.
@@ -71,44 +70,11 @@ let authInitInFlight = null;
 // computed once and the toast fires once, never in a retry storm.
 let achievementEvalInFlight = null;
 
-// Whether a refresh/GetUser failure looks like a transient network problem
-// (vs. a hard auth rejection). Transient failures must NOT tear the session
-// down — the app should keep the user signed in and let the caller degrade.
-const isNetworkyError = (msg) =>
-  /fetch|network|timeout|timed out|load failed|ERR_|abort|socket|DNS|ECONN|Failed to fetch/i.test(String(msg || ''));
-
 const isTokenExpiringSoon = (sess, withinSec = 90) => {
   if (!sess?.access_token || !sess.refresh_token) return false;
   const exp = sess.expires_at;
   if (!exp) return false;
   return Date.now() / 1000 > Number(exp) - withinSec;
-};
-
-const ensureFreshSessionToken = async () => {
-  if (!supabase) return { session: null, recoverable: true };
-  // A refresh that succeeded moments ago already produced the current token —
-  // reuse it instead of forcing another rotation (single-use refresh tokens).
-  if (lastSuccessfulRefreshAt && Date.now() - lastSuccessfulRefreshAt < 5000 && cachedFreshSession?.access_token) {
-    return { session: cachedFreshSession, recoverable: true };
-  }
-  if (!refreshInFlight) {
-    refreshInFlight = supabase.auth
-      .refreshSession()
-      .then((r) => {
-        if (r?.data?.session?.access_token) cachedFreshSession = r.data.session;
-        return r;
-      })
-      .catch((err) => ({ error: err }))
-      .finally(() => { refreshInFlight = null; });
-  }
-  const result = await refreshInFlight;
-  const session = result?.data?.session;
-  if (session?.access_token) {
-    lastSuccessfulRefreshAt = Date.now();
-    cachedFreshSession = session;
-    return { session, recoverable: true };
-  }
-  return { session: null, recoverable: isNetworkyError(result?.error?.message || result?.error?.status) };
 };
 
 // Defer non-critical work until the browser is idle (or a fixed budget passes)

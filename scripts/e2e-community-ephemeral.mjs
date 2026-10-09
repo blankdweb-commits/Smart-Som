@@ -6,9 +6,9 @@
 //   2. A new post renders with the LIVE (active) badge because last_interaction
 //      is fresh.
 //   3. Injected time: after created_at/last_interaction_at are backdated past
-//      the 110s cold window the SAME post must badge EXPIRING SOON (`gone …`)
-//      after a refetch — expiry state comes from the server view, never the
-//      client clock.
+//      the 110s cold window the SAME post must drop its LIVE badge and show the
+//      `gone …` note after a refetch — expiry state comes from the server view,
+//      never the client clock. The amber "EXPIRING SOON" badge was removed.
 //   4. Backdating past the 1h life removes the post from the feed entirely.
 //
 // Requires the dev server (serve-api :3001 + vite :5173) and the migration v29
@@ -43,6 +43,9 @@ try {
   // ---------- 1. SINGLE GENERAL FEED (no section tabs) ----------
   await page.goto(`${BASE}/community`, { waitUntil: 'networkidle' });
   await waitForText(page, 'Community').catch(() => {});
+  // Let the auth/session context hydrate before posting — otherwise the
+  // composer's guard can fire before the signed-in user is available.
+  await page.waitForTimeout(1500);
   const noLegacyTabs = ['Pharmacology', 'Clinical Questions', 'Exam Discussions', 'Clinical Experience', 'School Communities'];
   for (const label of noLegacyTabs) {
     const count = await page.locator('button', { hasText: label }).count().catch(() => 0);
@@ -52,25 +55,44 @@ try {
   // ---------- 2. NEW POST IS LIVE ----------
   const composer = page.locator('textarea');
   if (!(await composer.count())) throw new Error('Composer textarea not found');
-  await composer.first().fill(postText);
-  await page.locator('button', { hasText: /^Post$/ }).first().click();
 
+  const findRow = async () => {
+    const { data } = await admin
+      .from('community_posts')
+      .select('*')
+      .eq('content', postText)
+      .order('created_at', { ascending: false })
+      .limit(1);
+    return data?.[0] || null;
+  };
+
+  // Post, then confirm the row actually persisted. The composer's auth check
+  // can be slow on a cold session in CI, so retry once before giving up.
+  let row = null;
+  for (let attempt = 0; attempt < 3 && !row; attempt++) {
+    await composer.first().fill(postText);
+    await page.locator('button', { hasText: /^Post$/ }).first().click();
+    const deadline = Date.now() + 15000;
+    while (!row && Date.now() < deadline) {
+      await page.waitForTimeout(500);
+      row = await findRow();
+    }
+  }
+  const postId = row?.id;
+  tester.log('post row found for time injection', !!postId, String(postId));
+
+  // Reload so the feed reflects the persisted server state before asserting.
+  await page.reload({ waitUntil: 'networkidle' });
   let liveBadge = false;
   try {
-    await waitForText(page, 'Live', 15000);
+    // The badge renders via CSS `uppercase`, so Playwright's innerText is "LIVE".
+    await waitForText(page, 'LIVE', 15000);
     const card = page.locator('div', { hasText: postText }).last();
     liveBadge = ((await card.textContent()) || '').includes('Live');
   } catch { /* fall through */ }
   tester.log('new post shows the LIVE badge', liveBadge);
 
   // ---------- 3. INJECTED TIME → COLD (110s window passed) ----------
-  const { data: row } = await admin
-    .from('community_posts')
-    .select('*')
-    .eq('content', postText)
-    .maybeSingle();
-  const postId = row?.id;
-  tester.log('post row found for time injection', !!postId, String(postId));
 
   if (postId) {
     const aged = new Date(Date.now() - 4 * 60 * 1000).toISOString();
@@ -80,16 +102,16 @@ try {
       .eq('id', postId);
 
     await page.reload({ waitUntil: 'networkidle' });
-    let coldBadge = false;
+    await page.waitForTimeout(2000);
+    let expiredBadge = false;
     let goneText = false;
     try {
-      await waitForText(page, 'Expiring soon', 15000);
       const card = page.locator('div', { hasText: postText }).last();
       const cardText = (await card.textContent()) || '';
-      coldBadge = cardText.includes('Expiring soon');
+      expiredBadge = /expiring soon/i.test(cardText);
       goneText = cardText.includes('gone');
     } catch { /* fall through */ }
-    tester.log('injected-cold post badges EXPIRING SOON', coldBadge);
+    tester.log('injected-cold post no longer badges EXPIRING SOON', !expiredBadge);
     tester.log('injected-cold post appends "· gone …"', goneText);
     let liveGone = true;
     if (await page.locator('div', { hasText: postText }).last().isVisible().catch(() => false)) {
