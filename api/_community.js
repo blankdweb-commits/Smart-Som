@@ -1631,7 +1631,7 @@ export async function handleAnonSend(req, res, user) {
     if (!replyTo) return res.status(400).json({ error: 'INVALID_REPLY', message: 'Invalid reply target.' });
     const { data: parent } = await supabase
       .from('community_posts')
-      .select('id, group_id')
+      .select('id, group_id, created_at, expires_at, grace_until, last_interaction_at, is_deleted, is_hidden')
       .eq('id', replyTo)
       .maybeSingle();
     if (!parent || parent.group_id !== group.id || !isPostAlive(parent)) {
@@ -2330,6 +2330,7 @@ export async function handleCleanup(req, res) {
   // browser is open to trigger the throttled heartbeat-path reap. Owner seats
   // are protected by the RPC. Best-effort: presence may not be applied yet.
   const presenceReaped = [];
+  const seatsReconciled = [];
   try {
     const { data: anonGroups } = await supabase
       .from('study_groups')
@@ -2342,10 +2343,23 @@ export async function handleCleanup(req, res) {
         p_inactivity: PRESENCE_INACTIVITY_SECONDS,
       });
       if (reap) presenceReaped.push({ group: g.id, ...reap });
+
+      // v51 — release idle seats in EVERY state (waiting AND active) so a room
+      // never shows a stale member count when nobody is online. The RPC is
+      // owner-exempt and only wipes when an ACTIVE room falls below its
+      // survival threshold.
+      const { data: recon } = await supabase.rpc('community_membership_reconcile', {
+        p_group: g.id,
+        p_deadline: null,
+        p_warning: null,
+      });
+      if (recon?.ok && ((recon.released || 0) > 0 || recon.wipe)) {
+        seatsReconciled.push({ group: g.id, ...recon });
+      }
     }
   } catch {
-    /* v44 not applied yet — nothing to reap */
+    /* v44/v51 not applied yet — nothing to reap */
   }
 
-  return res.status(200).json({ ok: true, result: data, presence_reaped: presenceReaped });
+  return res.status(200).json({ ok: true, result: data, presence_reaped: presenceReaped, seats_reconciled: seatsReconciled });
 }

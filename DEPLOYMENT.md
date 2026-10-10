@@ -101,6 +101,8 @@ Hobby **12-function** budget is preserved).
 | `scripts/migration-v48-license-renewal.sql` | `nursing_licenses` + `license_renewal_attempts` tables, `license_ensure`/`license_apply_result` RPCs, `license_renewal` config (100 SC / 50 Q / 80% / 24h / 12mo). |
 | `scripts/migration-v49-sc-ledger-ref-id-text.sql` | Widens `smart_coin_ledger.ref_id` bigint→text so `_sc_apply` accepts a ref id (fixes a latent v31 bug). |
 | `scripts/migration-v50-loan-shark.sql` | `loan_profiles` + `loans` tables, `loan` config (cap 3/10, 10%, 48h, licence 500 SC / ≥1500 balance), and the 8 loan lifecycle RPCs. |
+| `scripts/migration-v51-anonymous-waiting-reconcile.sql` | Rewrites `community_membership_reconcile` to release idle seats in **waiting** rooms too (was active-only), plus a one-time stale-seat self-heal — fixes the "N/100 members" count when nobody is online. |
+| `scripts/migration-v52-premium-grant-two-users.sql` | Data grant: one active `monthly` subscription (+30d / +32d grace) + `profiles.is_activated` for the two operator accounts (idempotent, `on conflict (reference) do nothing`). |
 
 Apply with the Management-API helper: `node scripts/_apply-v43.mjs <file>` (needs
 a valid `SUPABASE_ACCESS_TOKEN` in `.env`; HTTP 201 = ok).
@@ -122,3 +124,45 @@ a valid `SUPABASE_ACCESS_TOKEN` in `.env`; HTTP 201 = ok).
 > achievements and all data from the first stage") is surfaced as a warning only
 > and is **not** auto-executed — it would require a separate, confirmed
 > account-reset action.
+
+---
+
+## 7. Web Push (VAPID) + WhatsApp-style reply-to-message
+
+### No migration required
+
+Push was a double no-op: no VAPID keys were set anywhere, and `web-push` was not
+a dependency (`api/_push.js` lazy-`import('web-push')` threw → `PUSH_ENABLED=false`
+→ the client showed "Push notifications are not configured on this server yet").
+The v44 tables (`push_subscriptions`, `notification_preferences`) and
+`public/sw.js` already exist, so **no SQL** was needed. Reply-to-message was
+already implemented end-to-end; this release (a) makes the reply affordance
+discoverable on touch and (b) fixes a **latent 404**: the reply-parent SELECT was
+`id, group_id` only, so `isPostAlive` had no `expires_at/created_at` and judged
+every parent dead → all anonymous replies 404'd `REPLY_NOT_FOUND`.
+
+### New server dependency
+
+*   `web-push@^3.6.7` (in `package.json`). Already `npm install`ed — run `npm install` on the deploy machine so the lockfile installs it.
+
+### Vercel env vars (MUST set + redeploy — the whole push feature gates on these)
+
+```env
+VAPID_PUBLIC_KEY=BIRbVNvYtH2DqyRLPIAxM4-l-52mzT92US4q8TIK2eVHn0el2y4zRlfR1GTICJSN3sxb1RY3tuoS27A8kdk09pk
+VAPID_PRIVATE_KEY=12QnZ6KDGGcU78cengsdBqGBQnAB5do2U2D7KTexwPg
+VAPID_SUBJECT=mailto:admin@polynurse.com.ng
+```
+
+These are also in `.env` (local dev, gitignored) and `.env.example` (placeholders). `GET/POST /api/community/notifications/vapid` returns `{ok, public_key, enabled}` — `enabled:true` only when both keys are present. Push is **targeted** (mention / reply-to / Encoded recipient / member joined), fire-and-forget — it never fails a message write.
+
+### Reply-to-message release contents
+
+*   `src/pages/AnonymousRoom.jsx` — **swipe-to-reply**: `SWIPE_REPLY_THRESHOLD=64`, pointer handlers (`beginSwipe/moveSwipe/endSwipe/cancelSwipe`, `setPointerCapture`, horizontal-only, vertical `touch-pan-y` preserved, `prefersReducedMotion` respected, vibrate + composer focus on arm) and the message-action ⋮ button is now always visible (was hover-only).
+*   `api/_community.js` — reply-parent SELECT now includes `created_at, expires_at, grace_until, last_interaction_at, is_deleted, is_hidden` so a real alive parent can be quoted (fixes the 404).
+
+### Verification
+
+*   `node scripts/verify-deploy-config.mjs` → **250/250** (new PART E gates: `web-push` dep, `_push.js` VAPID/web-push wiring, `/notifications/vapid` `enabled`, swipe handlers, non-hover-only trigger, `.env.example` VAPID, reply-parent lifetime columns).
+*   `npm run e2e:anonymous-lifecycle` → **102/102** (10f block: quoted target posted → reply persists `reply_to_post_id` (DB-backed) → hydrated `reply` quote with `Anonymous #NN` author + excerpt → bogus target 404).
+*   `npm run build` ✓; eslint 0 errors on touched files.
+*   Post-deploy browser QA: open the Anonymous room → toggle push on (permission prompt) → have a second account reply / `@mention` / Encoded / join → the first device must receive a system notification; test swipe-to-reply on a phone.

@@ -538,7 +538,42 @@ try {
     decSpec.status === 403 && decSpec.body?.error === 'ENCODED_PRIVATE',
     `status=${decSpec.status} error=${decSpec.body?.error}`);
 
-  // ---------- 10f. SOCIAL ACTIONS (v44) — cooldown + mute (v46 action set) ----------
+  // ---------- 10f. WHATSAPP-STYLE REPLY (reply_to_post_id) ----------
+  // A reply is a normal post with reply_to_post_id; the server validates it
+  // against an ALIVE parent in the SAME room and hydrates an inline `reply`
+  // quote so the client can render the Swift-like replying-to block.
+  await callHandler(handleAnonAck, { id: recipId }, { group_id: scratchGroupId }); // parent author accepts the notice so it can speak
+  const parentPosted = await callHandler(handleAnonSend, { id: recipId }, { group_id: scratchGroupId, content: `original ${stamp}` });
+  const parentMsg = parentPosted.body?.message;
+  log('a public message is posted and can be quoted as the reply target',
+    parentPosted.status === 200 && !!parentMsg?.id, `status=${parentPosted.status} id=${parentMsg?.id}`);
+  const replyPosted = await callHandler(handleAnonSend, { id: memberId }, {
+    group_id: scratchGroupId,
+    content: `in reply ${stamp}`,
+    reply_to_post_id: parentMsg?.id,
+  });
+  const replyMsg = replyPosted.body?.message;
+  const replyRow = !!replyMsg?.id
+    ? await admin.from('community_posts').select('reply_to_post_id').eq('id', replyMsg.id).single()
+    : { data: null };
+  log('reply_to_post_id is accepted and persisted on the reply post (DB-backed)',
+    replyPosted.status === 200 && !!replyMsg?.id && replyRow.data?.reply_to_post_id === parentMsg?.id,
+    `status=${replyPosted.status} reply_to=${replyRow.data?.reply_to_post_id}`);
+  log('the hydrated reply carries the WhatsApp-style quote (`reply`: author + excerpt)',
+    !!replyMsg?.reply && replyMsg.reply.id === parentMsg?.id &&
+      replyMsg.reply.author === `Anonymous #${String(recipAlias).padStart(2, '0')}` &&
+      replyMsg.reply.excerpt === `original ${stamp}`,
+    JSON.stringify(replyMsg?.reply));
+  const badReply = await callHandler(handleAnonSend, { id: memberId }, {
+    group_id: scratchGroupId,
+    content: `ghost ${stamp}`,
+    reply_to_post_id: '00000000-0000-4000-8000-000000000000',
+  });
+  log('replying to a message that does not exist is refused (404 REPLY_NOT_FOUND)',
+    badReply.status === 404 && badReply.body?.error === 'REPLY_NOT_FOUND',
+    `status=${badReply.status} error=${badReply.body?.error}`);
+
+  // ---------- 10g. SOCIAL ACTIONS (v44) — cooldown + mute (v46 action set) ----------
   const socialMsg = encMsg?.id || sentMessageId;
   const actorId = thirdId; // lockjoin has never acted before
   const s1 = await callHandler(handleAnonSocial, { id: actorId }, { message_id: socialMsg, action: 'hug', group_id: scratchGroupId });

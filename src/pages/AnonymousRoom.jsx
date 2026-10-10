@@ -47,6 +47,8 @@ import { pushSupported, getPushState, enablePush, disablePush, savePreferences }
 const TYPING_TTL_MS = 3000;
 const TYPING_THROTTLE_MS = 2500;
 const MUTE_KEY = 'apex:anon_muted_aliases';
+// Rightward drag (px) on a touch device that arms a WhatsApp-style reply.
+const SWIPE_REPLY_THRESHOLD = 64;
 
 const REPORT_CATEGORIES = [
   { value: 'harassment', label: 'Harassment or bullying' },
@@ -281,7 +283,6 @@ const AnonymousRoom = () => {
   const lastTypingSentRef = useRef(0);
   const lastActivityRef = useRef(Date.now());
   const presenceKeyRef = useRef(`s:${Math.random().toString(36).slice(2, 10)}`);
-  const expiringRef = useRef(new Set());
   const bootstrapInFlightRef = useRef(null);
   const lastAccessRef = useRef(null);
   const seenSoundIdsRef = useRef(new Set());
@@ -292,6 +293,10 @@ const AnonymousRoom = () => {
   // alias -> last-celebrated timestamp. Join broadcasts can be delivered again
   // on a reconnect/reconcile; this keeps one celebration per member per TTL.
   const celebratedRef = useRef(new Map());
+  // WhatsApp-style swipe-to-reply: { id, dx } for the row being dragged, plus
+  // the raw pointer start used by the pointermove/up handlers.
+  const [swipeReply, setSwipeReply] = useState(null);
+  const swipeStartRef = useRef(null);
   const [olderError, setOlderError] = useState(false);
   const prefersReducedMotion = useMemo(
     () =>
@@ -541,6 +546,10 @@ const AnonymousRoom = () => {
 
   const realtimeEnabled =
     !!room && !!room.channel && room.access !== 'banned' && room.access !== 'wiped';
+  // Presence is only meaningful for seated members and spectators. A visitor on
+  // the join/closed screen must NOT heartbeat — the server correctly rejects
+  // non-members with 403, which would otherwise spam the console.
+  const canPresence = isMember || isSpectator;
 
   const { conn, online, retry, sendTyping } = useAnonymousRoomRealtime({
     topic: room?.channel,
@@ -555,7 +564,7 @@ const AnonymousRoom = () => {
   // Presence heartbeat (server-authoritative; best-effort before v44)
   // ---------------------------------------------------------------
   useEffect(() => {
-    if (!realtimeEnabled || !groupId) return undefined;
+    if (!canPresence || !groupId) return undefined;
     let alive = true;
     const beat = async () => {
       try {
@@ -584,7 +593,7 @@ const AnonymousRoom = () => {
       document.removeEventListener('visibilitychange', onVis);
       communityApi(session, '/anonymous/presence-leave', { group_id: groupId }).catch(() => {});
     };
-  }, [realtimeEnabled, groupId, session]);
+  }, [canPresence, groupId, session]);
 
   useEffect(() => {
     setServerOnline(null);
@@ -625,12 +634,12 @@ const AnonymousRoom = () => {
     const now = Date.now();
     for (const m of messages) {
       const lives = Date.parse(m.lives_until || '');
-      if (Number.isFinite(lives) && lives <= now && !expiringRef.current.has(m.id)) {
-        expiringRef.current.add(m.id);
-        fetchOneMessage(m.id).finally(() => expiringRef.current.delete(m.id));
-      }
+      // The server enforces lifetime strictly: a message past its lives_until is
+      // already gone. Drop it locally instead of re-fetching (which only 404s
+      // and spams the console) — the realtime delete event covers the rest.
+      if (Number.isFinite(lives) && lives <= now) removeMessage(m.id);
     }
-  }, [messages, tick, fetchOneMessage]);
+  }, [messages, tick, removeMessage]);
 
   useEffect(() => {
     const t = setInterval(() => {
@@ -1032,6 +1041,57 @@ const AnonymousRoom = () => {
     if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
     setTimeout(() => setHighlightId(null), 2000);
   }, [messages]);
+
+  // ---------------------------------------------------------------
+  // Swipe-to-reply (touch). Only members can reply, so spectators and any
+  // drag that starts on an interactive control are ignored. Vertical drags
+  // fall through to the list scroller (the row is `touch-pan-y`).
+  // ---------------------------------------------------------------
+  const beginSwipe = useCallback((e, msg) => {
+    if (!canSpeak || e.pointerType === 'mouse') return;
+    if (e.target?.closest?.('button, a, textarea, input, [role="button"]')) return;
+    try {
+      e.currentTarget.setPointerCapture?.(e.pointerId);
+    } catch {
+      // pointer capture is best-effort
+    }
+    swipeStartRef.current = { id: msg.id, x: e.clientX, y: e.clientY, horizontal: null };
+  }, [canSpeak]);
+
+  const moveSwipe = useCallback((e, msg) => {
+    const s = swipeStartRef.current;
+    if (!s || s.id !== msg.id) return;
+    const dx = e.clientX - s.x;
+    const dy = e.clientY - s.y;
+    if (s.horizontal === null) {
+      if (Math.abs(dx) < 6 && Math.abs(dy) < 6) return;
+      s.horizontal = Math.abs(dx) > Math.abs(dy);
+    }
+    if (!s.horizontal) return;
+    if (dx <= 0) {
+      setSwipeReply(null);
+      return;
+    }
+    setSwipeReply({ id: msg.id, dx: Math.min(dx, SWIPE_REPLY_THRESHOLD + 24) });
+  }, []);
+
+  const endSwipe = useCallback((e, msg) => {
+    const s = swipeStartRef.current;
+    swipeStartRef.current = null;
+    const dx = s && s.id === msg.id ? e.clientX - s.x : 0;
+    const armed = !!(s && s.horizontal && dx >= SWIPE_REPLY_THRESHOLD);
+    setSwipeReply(null);
+    if (!armed) return;
+    setReplyTo(msg);
+    setOpenActions(null);
+    if (typeof navigator !== 'undefined' && navigator.vibrate) navigator.vibrate(10);
+    requestAnimationFrame(() => draftRef.current?.focus());
+  }, []);
+
+  const cancelSwipe = useCallback(() => {
+    swipeStartRef.current = null;
+    setSwipeReply(null);
+  }, []);
 
   const joinRoom = async () => {
     if (!groupId || joining) return;
@@ -1621,11 +1681,26 @@ const buySpectator = async () => {
             <div
               id={`anon-msg-${msg.id}`}
               key={msg.id}
-              className={`group px-1 py-1.5 rounded-2xl transition ${
+              onPointerDown={(e) => beginSwipe(e, msg)}
+              onPointerMove={(e) => moveSwipe(e, msg)}
+              onPointerUp={(e) => endSwipe(e, msg)}
+              onPointerCancel={cancelSwipe}
+              className={`group relative px-1 py-1.5 rounded-2xl overflow-hidden touch-pan-y transition ${
                 isOpen ? 'bg-slate-900/70' : ''
               } ${highlightId === msg.id ? 'bg-apex-500/15 ring-1 ring-apex-500/40' : ''}`}
             >
-              <div className="flex items-start gap-2.5">
+              {canSpeak && swipeReply?.id === msg.id && (
+                <div
+                  className="absolute left-3 top-1/2 -translate-y-1/2 text-apex-400 pointer-events-none"
+                  style={{ opacity: Math.min(1, swipeReply.dx / SWIPE_REPLY_THRESHOLD) }}
+                >
+                  <CornerUpLeft size={16} />
+                </div>
+              )}
+              <div
+                className={`flex items-start gap-2.5 ${prefersReducedMotion ? '' : 'transition-transform'}`}
+                style={swipeReply?.id === msg.id ? { transform: `translateX(${swipeReply.dx}px)` } : undefined}
+              >
                 <div
                   className="w-8 h-8 rounded-lg bg-slate-900 border border-slate-800 flex items-center justify-center text-[10px] font-black shrink-0 mt-0.5"
                   style={identityStyle(ali)}
@@ -1945,7 +2020,7 @@ const buySpectator = async () => {
                     setOpenActions(isOpen ? null : msg.id);
                     setReactFor(null);
                   }}
-                  className="opacity-0 group-hover:opacity-100 focus:opacity-100 text-slate-600 hover:text-slate-300 transition shrink-0 mt-1"
+                  className="opacity-70 group-hover:opacity-100 focus:opacity-100 text-slate-500 hover:text-slate-200 transition shrink-0 mt-1"
                   aria-label="Message actions"
                 >
                   <MoreHorizontal size={16} />

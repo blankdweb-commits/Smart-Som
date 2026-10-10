@@ -1534,6 +1534,130 @@ let passed = 0;
   );
 }
 
+// PART D — ANONYMOUS ROOM STALE-MEMBERSHIP FIX (v51). `waiting` rooms must
+// also release idle seats so the member count reflects only online members;
+// the cron cleanup reconciles every anonymous room; and the client must not
+// heartbeat presence as a non-member nor re-fetch already-expired messages.
+// ---------------------------------------------------------------------------
+{
+  const communitySrc = read(resolve(ROOT, 'api/_community.js'));
+  const roomSrc = read(resolve(ROOT, 'src/pages/AnonymousRoom.jsx'));
+  const v51 = existsSync(resolve(ROOT, 'scripts/migration-v51-anonymous-waiting-reconcile.sql'))
+    ? read(resolve(ROOT, 'scripts/migration-v51-anonymous-waiting-reconcile.sql')) : '';
+
+  checks.push(
+    /create or replace function public\.community_membership_reconcile/.test(v51)
+      && /elsif v_gr\.group_state = 'waiting' then/.test(v51)
+      ? ok('migration-v51: community_membership_reconcile releases idle seats in WAITING rooms too')
+      : fail('migration-v51 waiting-room reconcile branch missing'),
+  );
+  checks.push(
+    /v_gr\.group_state = 'active' then/.test(v51)
+      && /community_anonymous_wipe\(p_group\)/.test(v51)
+      && /minimum_members_to_remain_active/.test(v51)
+      ? ok('migration-v51 keeps the active-state warning + wipe watchdog intact')
+      : fail('migration-v51 dropped the active-state wipe watchdog'),
+  );
+  checks.push(
+    /delete from public\.study_group_members m\s+using public\.study_groups g/.test(v51)
+      && /g\.group_state = 'waiting'/.test(v51)
+      ? ok('migration-v51 one-time self-heal deletes already-stale waiting seats')
+      : fail('migration-v51 self-heal delete missing'),
+  );
+  checks.push(
+    /grant execute on function public\.community_membership_reconcile\(bigint, integer, integer\)\s+to service_role/.test(v51)
+      ? ok('migration-v51 re-asserts the service_role-only grant')
+      : fail('migration-v51 grant missing'),
+  );
+  checks.push(
+    /community_presence_reap/.test(communitySrc)
+      && /community_membership_reconcile/.test(communitySrc)
+      && /seats_reconciled/.test(communitySrc)
+      ? ok('api/_community.js cleanup reconciles seats for every anonymous room (cron self-heal)')
+      : fail('api/_community.js cleanup does not reconcile membership'),
+  );
+  checks.push(
+    /const canPresence = isMember \|\| isSpectator/.test(roomSrc)
+      && /if \(!canPresence \|\| !groupId\) return undefined/.test(roomSrc)
+      ? ok('AnonymousRoom presence heartbeat gated to member/spectator (no 403 for join/closed)')
+      : fail('AnonymousRoom presence heartbeat not gated'),
+  );
+  checks.push(
+    !/expiringRef/.test(roomSrc)
+      && /lives <= now\) removeMessage\(m\.id\)/.test(roomSrc)
+      ? ok('AnonymousRoom drops already-expired messages locally (no /anonymous/message 404 spam)')
+      : fail('AnonymousRoom still re-fetches expired messages'),
+  );
+  checks.push(
+    existsSync(resolve(ROOT, 'scripts/migration-v52-premium-grant-two-users.sql'))
+      ? ok('scripts/migration-v52-premium-grant-two-users.sql present (1-month grants)')
+      : fail('scripts/migration-v52-premium-grant-two-users.sql missing'),
+  );
+}
+
+// PART E — WEB PUSH ENABLED + WHATSAPP-STYLE REPLY.
+// Push was a double no-op (no VAPID keys + no web-push dep); the client hides
+// Reply behind a hover-only menu. These gates keep push configured and the
+// reply affordance discoverable on touch.
+// ---------------------------------------------------------------------------
+{
+  const pkg = existsSync(resolve(ROOT, 'package.json'))
+    ? JSON.parse(read(resolve(ROOT, 'package.json'))) : null;
+  const pushSrc = existsSync(resolve(ROOT, 'api/_push.js'))
+    ? read(resolve(ROOT, 'api/_push.js')) : '';
+  const communitySrc = read(resolve(ROOT, 'api/_community.js'));
+  const roomSrc = read(resolve(ROOT, 'src/pages/AnonymousRoom.jsx'));
+  const envSample = existsSync(resolve(ROOT, '.env.example'))
+    ? read(resolve(ROOT, '.env.example')) : '';
+
+  checks.push(
+    !!pkg && !!pkg.dependencies?.['web-push']
+      ? ok('package.json depends on web-push (real push delivery, not a no-op)')
+      : fail('package.json does not list web-push'),
+  );
+  checks.push(
+    /VAPID_PUBLIC_KEY/.test(pushSrc)
+      && /VAPID_PRIVATE_KEY/.test(pushSrc)
+      && /import\('web-push'\)/.test(pushSrc)
+      && /export const isPushEnabled/.test(pushSrc)
+      ? ok('api/_push.js gates on VAPID keys and lazy-loads web-push (graceful no-op kept)')
+      : fail('api/_push.js VAPID / web-push wiring missing'),
+  );
+  checks.push(
+    /process\.env\.VAPID_PUBLIC_KEY \|\| null/.test(communitySrc)
+      && /enabled: !!\(process\.env\.VAPID_PUBLIC_KEY && process\.env\.VAPID_PRIVATE_KEY\)/.test(communitySrc)
+      ? ok('/notifications/vapid returns the public key + enabled flag')
+      : fail('/notifications/vapid handler not reporting enabled'),
+  );
+  checks.push(
+    /SWIPE_REPLY_THRESHOLD = 64/.test(roomSrc)
+      && /const beginSwipe = useCallback/.test(roomSrc)
+      && /const endSwipe = useCallback/.test(roomSrc)
+      && /touch-pan-y/.test(roomSrc)
+      && /setPointerCapture/.test(roomSrc)
+      ? ok('AnonymousRoom swipe-to-reply wired (touch, pointer-captured, vertical scroll preserved)')
+      : fail('AnonymousRoom swipe-to-reply missing'),
+  );
+  checks.push(
+    /\.select\('id, group_id, created_at, expires_at, grace_until, last_interaction_at, is_deleted, is_hidden'\)/.test(communitySrc)
+      ? ok('reply-parent check selects the post-lifetime columns so isPostAlive can judge living parents')
+      : fail('reply-parent check selects a bare row -> every anonymous reply would 404 REPLY_NOT_FOUND'),
+  );
+  checks.push(
+    !/opacity-0 group-hover:opacity-100/.test(roomSrc)
+      && /opacity-70 group-hover:opacity-100/.test(roomSrc)
+      ? ok('message action trigger is always visible (discoverable on touch, not hover-only)')
+      : fail('message action trigger still hover-only'),
+  );
+  checks.push(
+    /VAPID_PUBLIC_KEY=/.test(envSample)
+      && /VAPID_PRIVATE_KEY=/.test(envSample)
+      && /VAPID_SUBJECT=mailto:/.test(envSample)
+      ? ok('.env.example documents the three VAPID_* placeholders')
+      : fail('.env.example VAPID placeholders missing'),
+  );
+}
+
 // ---------------------------------------------------------------------------
 console.log('\n----');
 const failed = checks.filter((c) => c === false).length;
