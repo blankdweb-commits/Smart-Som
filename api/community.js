@@ -34,10 +34,14 @@
 //   /api/community/anonymous/react   react            { message_id, emoji, active, group_id? }
 //   /api/community/anonymous/ack     accept notice    { group_id?, key? }
 //   /api/community/anonymous/lock    close/open room  { group_id?, locked }
-//   /api/community/anonymous/social  social action    { message_id, action, group_id? }
+//   /api/community/anonymous/social        action card  { action, message_id? | target_alias?, group_id? }
+//   /api/community/anonymous/event         one card     { event_id, group_id? }
+//   /api/community/anonymous/event-react   react to card { event_id, emoji, active, group_id? }
+//   /api/community/anonymous/event-respond accept/decline { event_id, respond, group_id? }
+//   /api/community/anonymous/prefs         anti-slam opt-out { declining_interactions?, group_id? }
 //   /api/community/anonymous/presence       heartbeat { session_id, group_id? }
 //   /api/community/anonymous/presence-leave exit      { group_id? }
-//   /api/community/anonymous/encoded premium decode   { message_id, group_id? }
+//   /api/community/anonymous/encoded premium decode/reveal { message_id, action?, group_id? }
 //   /api/community/notifications/subscribe    { endpoint, keys:{p256dh,auth}, user_agent? }
 //   /api/community/notifications/unsubscribe  { endpoint }
 //   /api/community/notifications/preferences  { room_messages?, member_joins?, social? }
@@ -71,6 +75,10 @@ import {
   handleAnonAck,
   handleAnonSetLocked,
   handleAnonSocial,
+  handleAnonEvent,
+  handleAnonEventReact,
+  handleAnonEventRespond,
+  handleAnonPrefs,
   handleAnonPresence,
   handleAnonPresenceLeave,
   handleAnonEncoded,
@@ -106,6 +114,10 @@ const HANDLERS = [
   { re: /\/anonymous\/ack$/, fn: handleAnonAck },
   { re: /\/anonymous\/lock$/, fn: handleAnonSetLocked },
   { re: /\/anonymous\/social$/, fn: handleAnonSocial },
+  { re: /\/anonymous\/event-react$/, fn: handleAnonEventReact },
+  { re: /\/anonymous\/event-respond$/, fn: handleAnonEventRespond },
+  { re: /\/anonymous\/event$/, fn: handleAnonEvent },
+  { re: /\/anonymous\/prefs$/, fn: handleAnonPrefs },
   { re: /\/anonymous\/presence-leave$/, fn: handleAnonPresenceLeave },
   { re: /\/anonymous\/presence$/, fn: handleAnonPresence },
   { re: /\/anonymous\/encoded$/, fn: handleAnonEncoded },

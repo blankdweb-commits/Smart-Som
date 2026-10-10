@@ -61,6 +61,10 @@ import {
   handleAnonRoom,
   handleAnonEncoded,
   handleAnonSocial,
+  handleAnonEvent,
+  handleAnonEventReact,
+  handleAnonEventRespond,
+  handleAnonPrefs,
   handleVote,
   handleCreateAnonRoom,
   handleReport,
@@ -800,6 +804,174 @@ try {
   log('computeLivesUntil clamps a farmed post to created_at + 6h',
     computed === new Date(ceilingPost.created_at).getTime() + MAX_POST_LIFE_MS && MAX_POST_LIFE_MS === 6 * 60 * 60 * 1000,
     `lives=${new Date(computed).toISOString()} ceiling=${new Date(ceilingPost.created_at).getTime() + MAX_POST_LIFE_MS}`);
+
+  // ---------- 14b. v53 — EVENT CARDS / CHALLENGE RESPOND / ANTI-SLAM / REVEAL ----------
+  // Seated members here: owner + recipId (u2) + thirdId (lockjoin). memberId (u1)
+  // was released above, so every aim is between two LIVE members.
+  const v53Actor = recipId;
+  const v53Target = thirdId;
+  const thirdAlias = await ensureRoomAlias(scratchGroupId, v53Target);
+
+  // 14b-i. An action becomes a standalone, masked event card (interleaves w/ feed).
+  const actEvent = await callHandler(handleAnonSocial, { id: v53Actor }, { group_id: scratchGroupId, action: 'hug', target_alias: thirdAlias });
+  const evCard = actEvent.body?.event;
+  log('v53: an action aimed by alias records an event card (masked, no user ids)',
+    actEvent.status === 200 && evCard?.kind === 'action' && evCard?.action === 'hug' &&
+      evCard?.actor === `Anonymous #${String(recipAlias).padStart(2, '0')}` &&
+      evCard?.target === `Anonymous #${String(thirdAlias).padStart(2, '0')}` &&
+      evCard?.actor_id === undefined && evCard?.target_id === undefined,
+    JSON.stringify(evCard));
+  log('v53: the event card carries glyph/label/tone from the room action set',
+    evCard?.glyph === '🤗' && evCard?.label === 'Hug' && evCard?.tone === 'amber',
+    `glyph=${evCard?.glyph} tone=${evCard?.tone}`);
+  const v53EventId = evCard?.id;
+
+  const fetchedEvent = await callHandler(handleAnonEvent, { id: ownerId }, { group_id: scratchGroupId, event_id: v53EventId });
+  log('v53: a single event card is fetchable by id (realtime hint path)',
+    fetchedEvent.status === 200 && fetchedEvent.body?.event?.id === v53EventId &&
+      fetchedEvent.body?.event?.is_actor === false && fetchedEvent.body?.event?.is_target === false,
+    JSON.stringify(fetchedEvent.body?.event));
+
+  const feedEvents = await callHandler(handleAnonFeed, { id: ownerId }, { group_id: scratchGroupId, limit: 50 });
+  log('v53: the feed returns an events array and includes the new card',
+    Array.isArray(feedEvents.body?.events) && feedEvents.body.events.some((e) => e.id === v53EventId),
+    `events=${(feedEvents.body?.events || []).length}`);
+
+  // 14b-ii. Event reactions (count + mine per viewer); unsupported emoji refused.
+  const reacted = await callHandler(handleAnonEventReact, { id: v53Target }, { group_id: scratchGroupId, event_id: v53EventId, emoji: '🔥', active: true });
+  const reactList = reacted.body?.event?.reactions || [];
+  log('v53: a member can react to an event card (mine=true, count=1)',
+    reacted.status === 200 && reactList.find((r) => r.emoji === '🔥')?.count === 1 &&
+      reactList.find((r) => r.emoji === '🔥')?.mine === true,
+    JSON.stringify(reactList));
+  const unreacted = await callHandler(handleAnonEventReact, { id: v53Target }, { group_id: scratchGroupId, event_id: v53EventId, emoji: '🔥', active: false });
+  log('v53: removing the reaction clears it',
+    unreacted.status === 200 && !(unreacted.body?.event?.reactions || []).some((r) => r.emoji === '🔥'),
+    JSON.stringify(unreacted.body?.event?.reactions));
+  const badReaction = await callHandler(handleAnonEventReact, { id: v53Target }, { group_id: scratchGroupId, event_id: v53EventId, emoji: '💩', active: true });
+  log('v53: an unsupported reaction emoji is refused (REACTION_NOT_ALLOWED)',
+    badReaction.status === 400 && badReaction.body?.error === 'REACTION_NOT_ALLOWED',
+    `status=${badReaction.status} error=${badReaction.body?.error}`);
+
+  // 14b-iii. CHALLENGE: accept starts a fresh FIGHT; decline resolves; one-shot.
+  const chal = await callHandler(handleAnonSocial, { id: v53Actor }, { group_id: scratchGroupId, action: 'challenge', target_alias: thirdAlias });
+  const chalEvent = chal.body?.event;
+  log('v53: a challenge event card is pending and only the target can respond',
+    chal.status === 200 && chalEvent?.kind === 'challenge' && chalEvent?.status === 'pending' &&
+      chalEvent?.can_respond === false && chalEvent?.is_actor === true && chalEvent?.is_target === false,
+    JSON.stringify(chalEvent));
+  const chalForTarget = await callHandler(handleAnonEvent, { id: v53Target }, { group_id: scratchGroupId, event_id: chalEvent?.id });
+  log('v53: the challenged member sees can_respond=true on the card',
+    chalForTarget.body?.event?.can_respond === true && chalForTarget.body?.event?.is_target === true,
+    JSON.stringify(chalForTarget.body?.event));
+  const wrongResponder = await callHandler(handleAnonEventRespond, { id: ownerId }, { group_id: scratchGroupId, event_id: chalEvent?.id, respond: 'accept' });
+  log('v53: a non-target cannot respond to the challenge (403 NOT_AUTHORIZED)',
+    wrongResponder.status === 403 && wrongResponder.body?.error === 'NOT_AUTHORIZED',
+    `status=${wrongResponder.status} error=${wrongResponder.body?.error}`);
+  const accepted = await callHandler(handleAnonEventRespond, { id: v53Target }, { group_id: scratchGroupId, event_id: chalEvent?.id, respond: 'accept' });
+  log('v53: accepting the challenge flips it to accepted',
+    accepted.status === 200 && accepted.body?.event?.status === 'accepted',
+    JSON.stringify(accepted.body?.event));
+  await new Promise((r) => setTimeout(r, 900));
+  const afterAccept = await callHandler(handleAnonFeed, { id: ownerId }, { group_id: scratchGroupId, limit: 50 });
+  log('v53: accepting also starts a fresh FIGHT (a fight event card appears)',
+    (afterAccept.body?.events || []).some((e) => e.kind === 'fight'),
+    `kinds=${(afterAccept.body?.events || []).map((e) => e.kind).join(',')}`);
+  const reRespond = await callHandler(handleAnonEventRespond, { id: v53Target }, { group_id: scratchGroupId, event_id: chalEvent?.id, respond: 'decline' });
+  log('v53: a resolved challenge cannot be answered again (409 EVENT_RESOLVED)',
+    reRespond.status === 409 && reRespond.body?.error === 'EVENT_RESOLVED',
+    `status=${reRespond.status} error=${reRespond.body?.error}`);
+  const chal2 = await callHandler(handleAnonSocial, { id: v53Actor }, { group_id: scratchGroupId, action: 'challenge', target_alias: thirdAlias });
+  const declined = await callHandler(handleAnonEventRespond, { id: v53Target }, { group_id: scratchGroupId, event_id: chal2.body?.event?.id, respond: 'decline' });
+  log('v53: declining a challenge marks it declined',
+    declined.status === 200 && declined.body?.event?.status === 'declined',
+    JSON.stringify(declined.body?.event));
+  const badRespond = await callHandler(handleAnonEventRespond, { id: v53Target }, { group_id: scratchGroupId, event_id: chal2.body?.event?.id, respond: 'maybe' });
+  log('v53: an invalid respond value is refused (INVALID_RESPOND)',
+    badRespond.status === 400 && badRespond.body?.error === 'INVALID_RESPOND',
+    `status=${badRespond.status} error=${badRespond.body?.error}`);
+
+  // 14b-iv. ANTI-SLAM opt-out: a member "declining interactions" refuses targets.
+  const setDeclining = await callHandler(handleAnonPrefs, { id: v53Target }, { group_id: scratchGroupId, declining_interactions: true });
+  log('v53: a member can switch on "declining interactions"',
+    setDeclining.status === 200 && setDeclining.body?.declining_interactions === true,
+    JSON.stringify(setDeclining.body));
+  const declinedAim = await callHandler(handleAnonSocial, { id: v53Actor }, { group_id: scratchGroupId, action: 'wave', target_alias: thirdAlias });
+  log('v53: aiming an action at a member declining interactions is refused (403 SOCIAL_DECLINED)',
+    declinedAim.status === 403 && declinedAim.body?.error === 'SOCIAL_DECLINED',
+    `status=${declinedAim.status} error=${declinedAim.body?.error}`);
+  const clearDeclining = await callHandler(handleAnonPrefs, { id: v53Target }, { group_id: scratchGroupId, declining_interactions: false });
+  log('v53: the member can switch "declining interactions" back off',
+    clearDeclining.status === 200 && clearDeclining.body?.declining_interactions === false,
+    JSON.stringify(clearDeclining.body));
+
+  // 14b-v. ENCODED REVEAL (v53): recipient reveals to the room; re-lock is gated.
+  const v53premium = await admin.from('subscriptions').insert({
+    user_id: v53Actor, status: 'active', plan: 'monthly', amount: 6999,
+    reference: `e2e-v53-enc-${stamp}`, expires_at: new Date(Date.now() + 86400000).toISOString(),
+    grace_until: new Date(Date.now() + 86400000).toISOString(),
+  });
+  log('v53: premium granted for the reveal-test author', !v53premium.error, v53premium.error?.message);
+  const encText2 = `reveal me ${stamp}`;
+  const encSent2 = await callHandler(handleAnonSend, { id: v53Actor }, { group_id: scratchGroupId, content: encText2, encoded: true, recipient_alias: thirdAlias });
+  const encMsg2 = encSent2.body?.message;
+  log('v53: encoded message sent blank + locked (never cipher in feed)',
+    encSent2.status === 200 && encMsg2?.encoded === true && encMsg2?.content === '' && encMsg2?.revealed === false,
+    JSON.stringify(encMsg2));
+  const ownerDecodeBefore = await callHandler(handleAnonEncoded, { id: ownerId }, { group_id: scratchGroupId, message_id: encMsg2?.id });
+  log('v53: a non-party member cannot decode it (403 ENCODED_PRIVATE)',
+    ownerDecodeBefore.status === 403 && ownerDecodeBefore.body?.error === 'ENCODED_PRIVATE',
+    `status=${ownerDecodeBefore.status} error=${ownerDecodeBefore.body?.error}`);
+  const authorReveal = await callHandler(handleAnonEncoded, { id: v53Actor }, { group_id: scratchGroupId, message_id: encMsg2?.id, action: 'reveal' });
+  log('v53: the AUTHOR cannot force a public reveal (recipient-only, 403 ENCODED_PRIVATE)',
+    authorReveal.status === 403 && authorReveal.body?.error === 'ENCODED_PRIVATE',
+    `status=${authorReveal.status} error=${authorReveal.body?.error}`);
+  const reveal = await callHandler(handleAnonEncoded, { id: v53Target }, { group_id: scratchGroupId, message_id: encMsg2?.id, action: 'reveal' });
+  log('v53: the recipient reveals the message (ok + plaintext returned)',
+    reveal.status === 200 && reveal.body?.revealed === true && reveal.body?.content === encText2,
+    JSON.stringify(reveal.body));
+  const ownerFeedRevealed = await callHandler(handleAnonFeed, { id: ownerId }, { group_id: scratchGroupId, limit: 50 });
+  const ownerRowRevealed = (ownerFeedRevealed.body?.messages || []).find((m) => m.id === encMsg2?.id);
+  log('v53: after reveal the WHOLE room sees plaintext, but cannot re-lock it',
+    ownerRowRevealed?.revealed === true && ownerRowRevealed?.content === encText2 && ownerRowRevealed?.can_unreveal === false,
+    `revealed=${ownerRowRevealed?.revealed} content=${JSON.stringify(ownerRowRevealed?.content)} can_unreveal=${ownerRowRevealed?.can_unreveal}`);
+  const revealerFeed = await callHandler(handleAnonFeed, { id: v53Target }, { group_id: scratchGroupId, limit: 50 });
+  const revealerRow = (revealerFeed.body?.messages || []).find((m) => m.id === encMsg2?.id);
+  log('v53: the revealer (recipient) can take it private again (can_unreveal=true)',
+    revealerRow?.revealed === true && revealerRow?.can_unreveal === true,
+    `revealed=${revealerRow?.revealed} can_unreveal=${revealerRow?.can_unreveal}`);
+  const authorFeed = await callHandler(handleAnonFeed, { id: v53Actor }, { group_id: scratchGroupId, limit: 50 });
+  const authorRowRevealed = (authorFeed.body?.messages || []).find((m) => m.id === encMsg2?.id);
+  log('v53: the author may also take their message private again (can_unreveal=true)',
+    authorRowRevealed?.can_unreveal === true && authorRowRevealed?.revealed === true,
+    `can_unreveal=${authorRowRevealed?.can_unreveal}`);
+  const privateAgain = await callHandler(handleAnonEncoded, { id: v53Target }, { group_id: scratchGroupId, message_id: encMsg2?.id, action: 'unreveal' });
+  log('v53: unrevealing returns the message to private (revealed=false)',
+    privateAgain.status === 200 && privateAgain.body?.revealed === false, JSON.stringify(privateAgain.body));
+  const ownerFeedPrivate = await callHandler(handleAnonFeed, { id: ownerId }, { group_id: scratchGroupId, limit: 50 });
+  const ownerRowPrivate = (ownerFeedPrivate.body?.messages || []).find((m) => m.id === encMsg2?.id);
+  log('v53: after unreveal the feed hides the body again for everyone',
+    ownerRowPrivate?.revealed === false && ownerRowPrivate?.content === '',
+    `revealed=${ownerRowPrivate?.revealed} content=${JSON.stringify(ownerRowPrivate?.content)}`);
+  const nonRevealerUnreveal = await callHandler(handleAnonEncoded, { id: ownerId }, { group_id: scratchGroupId, message_id: encMsg2?.id, action: 'unreveal' });
+  log('v53: a non-author/non-revealer cannot unreveal (403 ENCODED_PRIVATE)',
+    nonRevealerUnreveal.status === 403 && nonRevealerUnreveal.body?.error === 'ENCODED_PRIVATE',
+    `status=${nonRevealerUnreveal.status} error=${nonRevealerUnreveal.body?.error}`);
+  const badEncAction = await callHandler(handleAnonEncoded, { id: v53Target }, { group_id: scratchGroupId, message_id: encMsg2?.id, action: 'publish' });
+  log('v53: an unknown encoded-message action is refused (INVALID_ACTION)',
+    badEncAction.status === 400 && badEncAction.body?.error === 'INVALID_ACTION',
+    `status=${badEncAction.status} error=${badEncAction.body?.error}`);
+
+  // 14b-vi. ANTI-SLAM rate cap: >SOCIAL_RATE_CAP cards per actor/minute → 429.
+  let sawRateLimited = false;
+  let rateStatus = null;
+  for (let i = 0; i < 14; i += 1) {
+    const spam = await callHandler(handleAnonSocial, { id: v53Actor }, { group_id: scratchGroupId, action: 'wave', target_alias: thirdAlias });
+    rateStatus = spam.status;
+    if (spam.status === 429) { sawRateLimited = true; break; }
+  }
+  log('v53: the anti-slam cap returns 429 SOCIAL_RATE_LIMITED after the per-minute budget',
+    sawRateLimited, `last_status=${rateStatus}`);
 
   // ---------- 15. SURVIVAL: stays active at the floor; below it wipes ----------
   const removable = joinerIds.filter((uid) => uid !== ownerId); // owner cannot leave

@@ -103,6 +103,7 @@ Hobby **12-function** budget is preserved).
 | `scripts/migration-v50-loan-shark.sql` | `loan_profiles` + `loans` tables, `loan` config (cap 3/10, 10%, 48h, licence 500 SC / ≥1500 balance), and the 8 loan lifecycle RPCs. |
 | `scripts/migration-v51-anonymous-waiting-reconcile.sql` | Rewrites `community_membership_reconcile` to release idle seats in **waiting** rooms too (was active-only), plus a one-time stale-seat self-heal — fixes the "N/100 members" count when nobody is online. |
 | `scripts/migration-v52-premium-grant-two-users.sql` | Data grant: one active `monthly` subscription (+30d / +32d grace) + `profiles.is_activated` for the two operator accounts (idempotent, `on conflict (reference) do nothing`). |
+| `scripts/migration-v53-anonymous-social-events.sql` | Anonymous-room **event cards** (`anonymous_room_events`), event reactions (`anonymous_event_reactions`), member anti-slam prefs (`anonymous_room_member_prefs`), and `anonymous_encoded_messages.revealed_at`/`revealed_by` (Encoded Message public reveal). Service-role only. Idempotent. |
 
 Apply with the Management-API helper: `node scripts/_apply-v43.mjs <file>` (needs
 a valid `SUPABASE_ACCESS_TOKEN` in `.env`; HTTP 201 = ok).
@@ -166,3 +167,33 @@ These are also in `.env` (local dev, gitignored) and `.env.example` (placeholder
 *   `npm run e2e:anonymous-lifecycle` → **102/102** (10f block: quoted target posted → reply persists `reply_to_post_id` (DB-backed) → hydrated `reply` quote with `Anonymous #NN` author + excerpt → bogus target 404).
 *   `npm run build` ✓; eslint 0 errors on touched files.
 *   Post-deploy browser QA: open the Anonymous room → toggle push on (permission prompt) → have a second account reply / `@mention` / Encoded / join → the first device must receive a system notification; test swipe-to-reply on a phone.
+
+---
+
+## 8. Anonymous room — action event cards + challenge respond + anti-slam + Encoded reveal (v53)
+
+### Migration
+
+*   `scripts/migration-v53-anonymous-social-events.sql` (apply in order; idempotent, HTTP 201 via `node scripts/_apply-v43.mjs`). Creates `anonymous_room_events`, `anonymous_event_reactions`, `anonymous_room_member_prefs`, and adds `anonymous_encoded_messages.revealed_at`/`revealed_by`.
+
+### Endpoints (bearer session; unauth → `401 {"error":"Unauthorized"}`)
+
+*   `POST /api/community/anonymous/social` — `{ action, message_id? | target_alias?, group_id? }` (records a masked event card; target path resolves the alias server-side). 403 `SOCIAL_DECLINED` / `SOCIAL_BLOCKED`, 429 `SOCIAL_COOLDOWN` / `SOCIAL_RATE_LIMITED`.
+*   `POST /api/community/anonymous/event` — `{ event_id, group_id? }` (single card, realtime hint path).
+*   `POST /api/community/anonymous/event-react` — `{ event_id, emoji, active, group_id? }` (400 `REACTION_NOT_ALLOWED`).
+*   `POST /api/community/anonymous/event-respond` — `{ event_id, respond: accept|decline, group_id? }` (accept starts a fresh fight; 409 `EVENT_RESOLVED`, 403 `NOT_AUTHORIZED`, 400 `INVALID_RESPOND`).
+*   `POST /api/community/anonymous/prefs` — `{ declining_interactions?, group_id? }` (anti-slam opt-out).
+*   `POST /api/community/anonymous/encoded` — `{ message_id, action?: decode|reveal|unreveal, group_id? }` (reveal = recipient-only; unreveal = author or revealer; 400 `INVALID_ACTION`/`NOT_ENCODED`, 403 `ENCODED_PRIVATE`).
+
+### Behaviour
+
+*   Actions/challenges/fights are standalone **event cards** interleaved with messages; the feed returns `events` (last 50, oldest-first) and `hydrateRoomMessages` adds `revealed` + `can_unreveal`.
+*   A **CHALLENGE** accept records an `anonymous_fights` row and surfaces a **fight** event card; decline resolves it; **declining interactions** refuses inbound actions; an anti-slam **rate cap** (10 event cards / 60 s / actor) returns 429.
+*   An Encoded Message body **never enters the feed** (any viewer) until the **recipient** publicly reveals it; the author or the revealer may take it private again.
+*   Client: `src/pages/AnonymousRoom.jsx` (RoomEventCard, Actions bottom sheet, declining toggle, reveal/re-lock UI) + `src/utils/anonSound.js` tones.
+
+### Verification
+
+*   `npm run e2e:anonymous-lifecycle` → **133/133** (v53 block `14b` covers every contract above).
+*   `node scripts/verify-deploy-config.mjs` → **266/266** (PART F v53 gates).
+*   `npm run build` ✓; eslint on touched files 0/0.

@@ -35,13 +35,12 @@ import {
   VolumeX,
   Sparkles,
   Swords,
-  Plus,
 } from '../components/Icons';
 import { communityApi } from '../utils/communityApi';
 import { authHeaders } from '../utils/apiHeaders';
 import { useAnonymousRoomRealtime } from '../hooks/useAnonymousRoomRealtime';
 import { useAppContext } from '../context/AppContext';
-import { playMessagePop, playJoinChime, playSocialTone } from '../utils/anonSound';
+import { playMessagePop, playJoinChime, playSocialTone, playChallengeTone, playLockTone, playRevealTone } from '../utils/anonSound';
 import { pushSupported, getPushState, enablePush, disablePush, savePreferences } from '../utils/push';
 
 const TYPING_TTL_MS = 3000;
@@ -79,7 +78,17 @@ const SEND_ERRORS = {
   TAG_NOT_ALLOWED: 'That tag is not available.',
   SOCIAL_NOT_ALLOWED: 'That action is not available.',
   SOCIAL_COOLDOWN: 'Give it a moment before the next action.',
+  SOCIAL_RATE_LIMITED: 'You have used a lot of actions just now — take a short break.',
   SOCIAL_BLOCKED: 'This member is not accepting that action.',
+  SOCIAL_DECLINED: 'This member is declining interactions right now.',
+  TARGET_REQUIRED: 'Pick another member for this action.',
+  TARGET_NOT_IN_ROOM: 'That member is not in this room.',
+  REACTION_NOT_ALLOWED: 'That reaction is not available.',
+  INVALID_RESPOND: 'Respond with accept or decline.',
+  NOT_AUTHORIZED: 'Only the challenged member may respond.',
+  EVENT_RESOLVED: 'This challenge has already been resolved.',
+  INVALID_ACTION: 'Unknown encoded-message action.',
+  NOT_ENCODED: 'That message is not encoded.',
   SCHEMA_NOT_READY: 'That feature is not available just yet.',
 };
 
@@ -170,6 +179,131 @@ const fmtMSS = (ms) => {
   const m = Math.floor(total / 60);
   const s = total % 60;
   return `${m}:${String(s).padStart(2, '0')}`;
+};
+
+// Parse "Anonymous #NN" back into the room number (identity colour, targeting).
+const labelAliasNum = (label) => {
+  if (label == null) return null;
+  const m = String(label).match(/#(\d+)/);
+  return m ? Number(m[1]) : null;
+};
+
+// v53 — an EVENT CARD sits inline in the timeline (an action aimed at another
+// member, a pending CHALLENGE invite, or a FIGHT). Members and spectators can
+// react to it; a challenged member can Accept (starts the fight) or Decline.
+const RoomEventCard = ({ ev, canReact, busy, onReact, onRespond, onMention, reactionPalette }) => {
+  const palette = Array.isArray(reactionPalette) && reactionPalette.length ? reactionPalette : ['👍', '😂', '❤️', '🔥', '🤔'];
+  const isPendingChallenge = ev.kind === 'challenge' && ev.status === 'pending';
+  const actorN = labelAliasNum(ev.actor);
+  const targetN = labelAliasNum(ev.target);
+  const busyId = busy && busy.id === ev.id;
+  const borderClass =
+    ev.tone === 'rose'
+      ? 'border-rose-500/30 bg-rose-500/5'
+      : ev.tone === 'violet' || ev.tone === 'indigo'
+        ? 'border-violet-500/25 bg-violet-500/5'
+        : 'border-slate-800 bg-slate-900/80';
+  return (
+    <div className="mx-auto my-2 w-[92%] max-w-[min(100%,560px)]">
+      <div className={`rounded-2xl border px-3.5 py-2.5 ${borderClass}`}>
+        <div className="flex items-center gap-2.5">
+          <span className="w-9 h-9 shrink-0 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center text-lg">
+            {ev.glyph}
+          </span>
+          <div className="min-w-0 flex-1">
+            <div className="flex items-center gap-1.5 flex-wrap">
+              <span className="text-[11px] font-black text-slate-200 uppercase tracking-widest">{ev.label}</span>
+              {ev.kind === 'challenge' && (
+                <span
+                  className={`px-1.5 py-0.5 rounded-full border text-[8px] font-black uppercase tracking-widest ${
+                    ev.status === 'accepted'
+                      ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
+                      : ev.status === 'declined'
+                        ? 'bg-slate-800 text-slate-500 border-slate-700'
+                        : 'bg-amber-500/15 text-amber-300 border-amber-500/40'
+                  }`}
+                >
+                  {ev.status === 'accepted' ? 'Accepted — it is on!' : ev.status === 'declined' ? 'Declined' : 'Challenge'}
+                </span>
+              )}
+              {ev.kind === 'fight' && (
+                <span className="px-1.5 py-0.5 rounded-full border border-rose-500/40 bg-rose-500/15 text-rose-300 text-[8px] font-black uppercase tracking-widest inline-flex items-center gap-1">
+                  <Swords size={8} /> Fight
+                </span>
+              )}
+              <span className="text-[9px] font-bold text-slate-600">{timeOf(ev.created_at)}</span>
+            </div>
+            <p className="text-[12px] font-medium text-slate-400 mt-0.5 truncate">
+              <button
+                type="button"
+                disabled={!onMention || actorN == null}
+                onClick={() => actorN != null && onMention?.(actorN)}
+                className={`${onMention && actorN != null ? 'hover:underline' : 'cursor-default'}`}
+                style={identityStyle(actorN)}
+              >
+                {ev.actor}
+              </button>
+              {ev.kind === 'fight' ? ' and ' : ' → '}
+              {ev.target ? (
+                <button
+                  type="button"
+                  disabled={!onMention || targetN == null}
+                  onClick={() => targetN != null && onMention?.(targetN)}
+                  className={`${onMention && targetN != null ? 'hover:underline' : 'cursor-default'}`}
+                  style={identityStyle(targetN)}
+                >
+                  {ev.target}
+                </button>
+              ) : (
+                <span className="text-slate-500">the room</span>
+              )}
+            </p>
+          </div>
+          {isPendingChallenge && ev.can_respond && (
+            <div className="flex items-center gap-1 shrink-0">
+              <button
+                onClick={() => onRespond?.(ev, 'accept')}
+                disabled={busyId}
+                className="px-2.5 py-1 rounded-lg bg-emerald-600 text-white text-[9px] font-black uppercase tracking-widest hover:bg-emerald-700 disabled:opacity-40"
+              >
+                Accept
+              </button>
+              <button
+                onClick={() => onRespond?.(ev, 'decline')}
+                disabled={busyId}
+                className="px-2.5 py-1 rounded-lg bg-slate-800 border border-slate-700 text-slate-300 text-[9px] font-black uppercase tracking-widest hover:text-white disabled:opacity-40"
+              >
+                Decline
+              </button>
+            </div>
+          )}
+        </div>
+
+        {canReact && (
+          <div className="flex items-center gap-1.5 flex-wrap mt-2">
+            {palette.map((emoji) => {
+              const existing = (ev.reactions || []).find((r) => r.emoji === emoji);
+              return (
+                <button
+                  key={emoji}
+                  onClick={() => onReact?.(ev, emoji, !existing?.mine)}
+                  disabled={busyId}
+                  className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-black border transition disabled:opacity-60 ${
+                    existing?.mine
+                      ? 'bg-apex-500/20 border-apex-500/50 text-apex-300'
+                      : 'bg-slate-950 border-slate-800 text-slate-400 hover:border-slate-700'
+                  }`}
+                >
+                  <span>{emoji}</span>
+                  {existing?.count > 0 ? <span>{existing.count}</span> : null}
+                </button>
+              );
+            })}
+          </div>
+        )}
+      </div>
+    </div>
+  );
 };
 
 const StatusPill = ({ conn }) => {
@@ -274,6 +408,19 @@ const AnonymousRoom = () => {
   const [pushPrefsReady, setPushPrefsReady] = useState(false);
   const [prefsBusy, setPrefsBusy] = useState(false);
 
+  // v53 — interleaved event cards + the Actions bottom sheet (aim an action at
+  // another member) + the viewer's anti-slam opt-out.
+  const [events, setEvents] = useState([]);
+  const [actionSheetOpen, setActionSheetOpen] = useState(false);
+  const [pendingAction, setPendingAction] = useState(null);
+  const [actionTarget, setActionTarget] = useState(null);
+  const [actionMessage, setActionMessage] = useState(null);
+  const [actionBusy, setActionBusy] = useState(false);
+  const [actionCooldownUntil, setActionCooldownUntil] = useState(0);
+  const [eventBusyFor, setEventBusyFor] = useState(null);
+  const [declining, setDeclining] = useState(false);
+  const [decliningBusy, setDecliningBusy] = useState(false);
+
   const scrollRef = useRef(null);
   const atBottomRef = useRef(true);
   const firstLoadRef = useRef(true);
@@ -325,7 +472,6 @@ const AnonymousRoom = () => {
   const noticeAccepted = !isMember || room?.notice?.accepted === true;
   const myAliasNum = room?.my_alias ?? null;
   const roomActions = room?.config?.actions || room?.config?.tags || room?.config?.social_actions || [];
-  const roomTags = roomActions;
   const roomSocial = roomActions;
   const isPremiumRoom = room?.is_premium === true;
   const tagMap = useMemo(() => {
@@ -387,6 +533,78 @@ const AnonymousRoom = () => {
     }
   }, [session, groupId, upsertMessage, removeMessage]);
 
+  // ------------------------------------------------------------------
+  // v53 — event cards: upsert/fetch one, React, and Accept/Decline a
+  // CHALLENGE. Cards are standalone rows in the same timeline as messages.
+  // ------------------------------------------------------------------
+  const upsertEvent = useCallback((ev) => {
+    if (!ev || !ev.id) return;
+    setEvents((prev) => {
+      const idx = prev.findIndex((e) => e.id === ev.id);
+      const next = idx >= 0 ? prev.map((e) => (e.id === ev.id ? ev : e)) : [...prev, ev];
+      return next.sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));
+    });
+  }, []);
+
+  const fetchOneEvent = useCallback(
+    async (eventId) => {
+      if (!groupId) return null;
+      try {
+        const data = await communityApi(session, '/anonymous/event', { event_id: eventId, group_id: groupId });
+        if (data.event) upsertEvent(data.event);
+        return data.event || null;
+      } catch (err) {
+        if (err.status === 404) setEvents((prev) => prev.filter((e) => e.id !== eventId));
+        return null;
+      }
+    },
+    [session, groupId, upsertEvent],
+  );
+
+  const toggleEventReaction = async (ev, emoji, active) => {
+    if (eventBusyFor) return;
+    setEventBusyFor({ kind: 'react', id: ev.id });
+    setComposerError('');
+    try {
+      const data = await communityApi(session, '/anonymous/event-react', {
+        event_id: ev.id,
+        emoji,
+        active,
+        group_id: groupId,
+      });
+      if (data.event) upsertEvent(data.event);
+      markActivity();
+    } catch (err) {
+      setComposerError(SEND_ERRORS[err.code] || err.message || 'Reaction could not be saved.');
+    } finally {
+      setEventBusyFor(null);
+    }
+  };
+
+  const respondEvent = async (ev, respond) => {
+    if (eventBusyFor) return;
+    setEventBusyFor({ kind: 'respond', id: ev.id });
+    setComposerError('');
+    try {
+      const data = await communityApi(session, '/anonymous/event-respond', {
+        event_id: ev.id,
+        respond,
+        group_id: groupId,
+      });
+      if (data.event) upsertEvent(data.event);
+      if (soundRef.current) {
+        if (respond === 'accept') playChallengeTone();
+        else playLockTone();
+      }
+      markActivity();
+    } catch (err) {
+      if (['EVENT_RESOLVED', 'NOT_AUTHORIZED'].includes(err.code)) fetchOneEvent(ev.id);
+      setComposerError(SEND_ERRORS[err.code] || err.message || 'Could not respond to this challenge.');
+    } finally {
+      setEventBusyFor(null);
+    }
+  };
+
   // When a member seat is released (inactivity reconciliation) the room stays
   // open but the member loses access: detect the member→closed transition so a
   // viewer currently in the room is told why and sent home instead of being
@@ -419,6 +637,11 @@ const AnonymousRoom = () => {
             .filter((m) => Date.parse(m.lives_until || '') > Date.now())
             .sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));
         });
+        setEvents((prev) => {
+          const map = new Map(prev.map((e) => [e.id, e]));
+          for (const ev of feed.events || []) map.set(ev.id, ev);
+          return [...map.values()].sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));
+        });
         setHasMore(!!feed.has_more);
         olderCursorRef.current = feed.next_before || (fetched[0]?.created_at ?? null);
       }
@@ -443,11 +666,13 @@ const AnonymousRoom = () => {
         if (data.access === 'member' || data.access === 'spectator') {
           const feed = await loadFeed(data.group.id);
           setMessages(feed.messages || []);
+          setEvents(feed.events || []);
           setHasMore(!!feed.has_more);
           olderCursorRef.current = feed.next_before || (feed.messages?.[0]?.created_at ?? null);
           firstLoadRef.current = true;
         } else {
           setMessages([]);
+          setEvents([]);
           setHasMore(false);
         }
       } catch (err) {
@@ -514,6 +739,16 @@ const AnonymousRoom = () => {
       if (payload?.id) fetchOneMessage(payload.id);
       return;
     }
+    if (type === 'room_event') {
+      if (payload?.id) fetchOneEvent(payload.id);
+      if (payload?.action === 'fight') {
+        // A FIGHT event carries both names for the banner.
+        setFightAlert({ attacker: payload?.attacker ?? null, defender: payload?.defender ?? null });
+        if (fightTimerRef.current) clearTimeout(fightTimerRef.current);
+        fightTimerRef.current = setTimeout(() => setFightAlert(null), 5000);
+      }
+      return;
+    }
     if (type === 'fight') {
       // S1 — a reciprocal slap/kick started a fight. Transient banner only.
       setFightAlert({ attacker: payload?.attacker ?? null, defender: payload?.defender ?? null });
@@ -534,7 +769,7 @@ const AnonymousRoom = () => {
     else if (type === 'state') pushSystemEvent('state');
     else if (type === 'wipe') pushSystemEvent('wipe');
     reconcile();
-  }, [myLabel, myAliasNum, fetchOneMessage, removeMessage, pushSystemEvent, reconcile, celebrate]);
+  }, [myLabel, myAliasNum, fetchOneMessage, fetchOneEvent, removeMessage, pushSystemEvent, reconcile, celebrate]);
 
   const presence = useMemo(
     () =>
@@ -805,37 +1040,117 @@ const AnonymousRoom = () => {
     }
   };
 
-  const sendSocial = async (msg, action) => {
-    if (!canReact || !msg?.id) return;
+  // Open the Actions bottom sheet, optionally pre-aimed at a message (its
+  // author becomes the default target). An actor always targets ANOTHER member.
+  const openActionSheet = (msg = null) => {
+    const preset = msg ? aliasNum(msg) : null;
+    setActionMessage(msg || null);
+    setActionTarget(preset != null && preset !== Number(room?.my_alias) ? preset : null);
+    setPendingAction(null);
+    setComposerError('');
+    setActionSheetOpen(true);
+  };
+
+  const actionLocked = actionCooldownUntil > tick;
+
+  const sendSheetAction = async () => {
+    const action = pendingAction;
+    const target = actionTarget;
+    if (!action || target == null || actionBusy || actionLocked || !groupId) return;
     if (soundRef.current) playSocialTone();
+    setActionBusy(true);
+    setComposerError('');
     try {
       const data = await communityApi(session, '/anonymous/social', {
-        message_id: msg.id,
+        ...(actionMessage?.id ? { message_id: actionMessage.id } : {}),
+        target_alias: target,
         action,
         group_id: groupId,
       });
-      setMessages((prev) => prev.map((m) => (m.id === msg.id ? { ...m, social: data.social } : m)));
+      if (data.event) upsertEvent(data.event);
+      setActionSheetOpen(false);
+      setPendingAction(null);
+      setActionTarget(null);
+      setActionMessage(null);
       markActivity();
     } catch (err) {
-      setComposerError(SEND_ERRORS[err.code] || err.message || 'Action could not be saved.');
+      if (['SOCIAL_COOLDOWN', 'SOCIAL_RATE_LIMITED'].includes(err.code)) {
+        const wait = Number(err.retry_after_ms) || 0;
+        setActionCooldownUntil(Date.now() + wait);
+      }
+      setComposerError(SEND_ERRORS[err.code] || err.message || 'Action could not be sent.');
     } finally {
-      setOpenActions(null);
+      setActionBusy(false);
     }
   };
 
-  const revealEncoded = async (msg) => {
+  // Anti-slam opt-out — "declining interactions"; the server refuses actions
+  // aimed at members who have switched this on.
+  const fetchDecliningPref = useCallback(async () => {
+    if (!groupId) return;
+    try {
+      const data = await communityApi(session, '/anonymous/prefs', { group_id: groupId });
+      setDeclining(!!data.declining_interactions);
+    } catch {
+      /* best-effort — the feature is optional */
+    }
+  }, [session, groupId]);
+
+  const toggleDeclining = async () => {
+    if (decliningBusy) return;
+    setDecliningBusy(true);
+    try {
+      const data = await communityApi(session, '/anonymous/prefs', {
+        group_id: groupId,
+        declining_interactions: !declining,
+      });
+      setDeclining(!!data.declining_interactions);
+    } catch (err) {
+      setComposerError(err.message || 'Could not update your preferences.');
+    } finally {
+      setDecliningBusy(false);
+    }
+  };
+
+  useEffect(() => {
+    if (isMember) fetchDecliningPref();
+  }, [isMember, fetchDecliningPref]);
+  // Encoded Messages (v53): unlock (decode, private), reveal to the whole room,
+  // or take it private again. The recipient alone may reveal; the author or the
+  // revealer may undo it.
+  const setEncodedAction = async (msg, action) => {
     if (!msg?.id) return;
     setComposerError('');
     try {
       const data = await communityApi(session, '/anonymous/encoded', {
         message_id: msg.id,
+        action,
         group_id: groupId,
       });
-      setRevealedEncoded((prev) => ({ ...prev, [msg.id]: data.content || '' }));
+      if (action === 'reveal') {
+        if (soundRef.current) playRevealTone();
+        setRevealedEncoded((prev) => ({ ...prev, [msg.id]: data.content || '' }));
+        fetchOneMessage(msg.id);
+      } else if (action === 'unreveal') {
+        if (soundRef.current) playLockTone();
+        setRevealedEncoded((prev) => {
+          const next = { ...prev };
+          delete next[msg.id];
+          return next;
+        });
+        fetchOneMessage(msg.id);
+      } else {
+        setRevealedEncoded((prev) => ({ ...prev, [msg.id]: data.content || '' }));
+      }
     } catch (err) {
       setComposerError(SEND_ERRORS[err.code] || err.message || 'Could not unlock this message.');
+      if (err.code === 'ENCODED_PRIVATE' || err.code === 'NOT_ENCODED') fetchOneMessage(msg.id);
     }
   };
+
+  const revealEncoded = (msg) => setEncodedAction(msg, 'decode');
+  const revealToRoom = (msg) => setEncodedAction(msg, 'reveal');
+  const privateAgain = (msg) => setEncodedAction(msg, 'unreveal');
 
   const toggleSound = () => {
     setSoundOn((prev) => {
@@ -1211,8 +1526,25 @@ const buySpectator = async () => {
       const n = aliasNum(m);
       if (Number.isFinite(n) && n !== Number(room?.my_alias)) set.set(n, `Anonymous #${String(n).padStart(2, '0')}`);
     }
+    for (const ev of events) {
+      for (const label of [ev.actor, ev.target]) {
+        const n = labelAliasNum(label);
+        if (n != null && String(n) !== String(room?.my_alias) && !Number.isNaN(n)) set.set(n, label);
+      }
+    }
     return [...set.entries()].sort((a, b) => a[0] - b[0]);
-  }, [messages, room?.my_alias]);
+  }, [messages, events, room?.my_alias]);
+
+  // v53 — MESSAGES + EVENT CARDS share ONE timeline, sorted by created_at.
+  // Deterministic tie-break (kind + id) so React keys stay stable.
+  const mergedTimeline = useMemo(() => {
+    const rows = [];
+    for (const m of messages) rows.push({ kind: 'message', item: m, at: Date.parse(m.created_at) || 0 });
+    for (const ev of events) rows.push({ kind: 'event', item: ev, at: Date.parse(ev.created_at) || 0 });
+    return rows.sort(
+      (a, b) => a.at - b.at || (a.kind === b.kind ? String(a.item.id).localeCompare(String(b.item.id)) : a.kind.localeCompare(b.kind)),
+    );
+  }, [messages, events]);
 
   const mentionMatch = draft.match(/@(?:Anonymous\s*#?)?(\d{0,4})$/i);
   const mentionSuggestions = useMemo(() => {
@@ -1658,7 +1990,7 @@ const buySpectator = async () => {
           </div>
         )}
 
-        {messages.length === 0 && (
+        {mergedTimeline.length === 0 && (
           <div className="flex flex-col items-center justify-center h-full text-center px-6">
             <MessageCircle size={34} className="text-slate-700 mb-3" />
             <p className="text-slate-500 font-black text-sm">
@@ -1669,7 +2001,23 @@ const buySpectator = async () => {
           </div>
         )}
 
-        {messages.map((msg) => {
+        {mergedTimeline.map((row) => {
+          if (row.kind === 'event') {
+            const ev = row.item;
+            return (
+              <RoomEventCard
+                key={`ev-${ev.id}`}
+                ev={ev}
+                canReact={canReact}
+                busy={eventBusyFor}
+                reactionPalette={room?.config?.reactions}
+                onReact={toggleEventReaction}
+                onRespond={respondEvent}
+                onMention={isMember ? jumpToAlias : null}
+              />
+            );
+          }
+          const msg = row.item;
           const lives = Date.parse(msg.lives_until || '') || 0;
           const remaining = lives ? lives - tick : Infinity;
           const isOpen = openActions === msg.id;
@@ -1800,23 +2148,68 @@ const buySpectator = async () => {
                         </div>
                       ) : (
                         <>
-                          {revealedEncoded[msg.id] !== undefined ? (
-                            <p className="text-sm font-medium text-slate-300 mt-0.5 whitespace-pre-wrap break-words leading-relaxed">
-                              {mentionNodes(revealedEncoded[msg.id], jumpToAlias)}
-                            </p>
-                          ) : msg.locked ? (
-                            <div className="mt-1 inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-violet-500/10 border border-violet-500/30">
+                          {msg.encoded && msg.revealed ? (
+                            // PUBLICLY REVEALED — the whole room sees it now. The
+                            // author (or whoever revealed it) can take it private.
+                            <div className="mt-1">
+                              <p className="text-sm font-medium text-slate-300 whitespace-pre-wrap break-words leading-relaxed">
+                                {mentionNodes(msg.content || '', jumpToAlias)}
+                              </p>
+                              <div className="inline-flex items-center gap-2 mt-1">
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/15 border border-emerald-500/40 text-emerald-300 text-[8px] font-black uppercase tracking-widest">
+                                  <Eye size={9} /> Revealed to the room
+                                </span>
+                                {msg.can_unreveal && (
+                                  <button
+                                    onClick={() => privateAgain(msg)}
+                                    className="text-[10px] font-black uppercase tracking-widest text-violet-300 hover:text-white underline"
+                                  >
+                                    Make private again
+                                  </button>
+                                )}
+                              </div>
+                            </div>
+                          ) : msg.encoded && revealedEncoded[msg.id] !== undefined ? (
+                            // DECODED LOCALLY — visible only to me while the
+                            // room copy stays private. "Re-lock" is local only.
+                            <div className="mt-1">
+                              <p className="text-sm font-medium text-slate-300 whitespace-pre-wrap break-words leading-relaxed">
+                                {mentionNodes(revealedEncoded[msg.id], jumpToAlias)}
+                              </p>
+                              <button
+                                onClick={() =>
+                                  setRevealedEncoded((prev) => {
+                                    const next = { ...prev };
+                                    delete next[msg.id];
+                                    return next;
+                                  })
+                                }
+                                className="mt-1 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-violet-300 hover:text-white"
+                              >
+                                <Lock size={10} /> Re-lock
+                              </button>
+                            </div>
+                          ) : msg.encoded && msg.locked ? (
+                            <div className="mt-1 inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-violet-500/10 border border-violet-500/30 flex-wrap">
                               <Lock size={13} className="text-violet-300" />
                               <span className="text-[11px] font-bold text-violet-200">
                                 {msg.encoded_for_me ? 'Encoded message' : 'Encoded · private'}
                               </span>
                               {msg.encoded_for_me ? (
-                                <button
-                                  onClick={() => revealEncoded(msg)}
-                                  className="text-[10px] font-black uppercase tracking-widest text-violet-300 hover:text-white"
-                                >
-                                  Unlock
-                                </button>
+                                <>
+                                  <button
+                                    onClick={() => revealEncoded(msg)}
+                                    className="text-[10px] font-black uppercase tracking-widest text-violet-300 hover:text-white"
+                                  >
+                                    Unlock
+                                  </button>
+                                  <button
+                                    onClick={() => revealToRoom(msg)}
+                                    className="text-[10px] font-black uppercase tracking-widest text-emerald-300 hover:text-white"
+                                  >
+                                    Reveal to room
+                                  </button>
+                                </>
                               ) : (
                                 <span className="text-[10px] font-bold text-violet-300/70">Only the recipient can read this</span>
                               )}
@@ -1953,19 +2346,16 @@ const buySpectator = async () => {
                       >
                         <Smile size={11} /> React
                       </button>
-                      {canReact && roomSocial.length > 0 && (
-                        <div className="inline-flex items-center gap-1">
-                          {roomSocial.map((a) => (
-                            <button
-                              key={a.key}
-                              onClick={() => sendSocial(msg, a.key)}
-                              title={a.label}
-                              className="w-7 h-7 rounded-lg bg-slate-900 border border-slate-800 text-sm hover:border-apex-500/60 transition"
-                            >
-                              {a.glyph}
-                            </button>
-                          ))}
-                        </div>
+                      {canSpeak && roomSocial.length > 0 && (
+                        <button
+                          onClick={() => {
+                            openActionSheet(msg);
+                            setOpenActions(null);
+                          }}
+                          className="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-slate-900 border border-slate-800 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white"
+                        >
+                          <Swords size={11} /> Actions
+                        </button>
                       )}
                       {msg.is_mine && (
                         <>
@@ -2122,25 +2512,6 @@ const buySpectator = async () => {
           </div>
         )}
 
-        {pickerOpen === 'tag' && canSpeak && (
-          <div className="flex items-center gap-1.5 flex-wrap px-1 pb-2">
-            {roomTags.map((t) => (
-              <button
-                key={t.key}
-                onClick={() => {
-                  setPendingTag(pendingTag === t.key ? null : t.key);
-                  setPickerOpen(null);
-                }}
-                className={`px-2.5 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest transition ${
-                  TAG_TONE_CLASS[t.tone] || 'bg-slate-800 text-slate-400 border-slate-700'
-                } ${pendingTag === t.key ? 'ring-1 ring-white/40' : ''}`}
-              >
-                {t.label}
-              </button>
-            ))}
-          </div>
-        )}
-
         {mentionSuggestions.length > 0 && (
           <div className="flex items-center gap-1.5 flex-wrap px-1 pb-2">
             {mentionSuggestions.map(([n]) => (
@@ -2189,15 +2560,19 @@ const buySpectator = async () => {
 
         <div className="flex items-center gap-1.5 px-1 pb-2">
           <button
-            onClick={() => setPickerOpen(pickerOpen === 'tag' ? null : 'tag')}
+            onClick={() => {
+              setPickerOpen(null);
+              openActionSheet(null);
+            }}
             disabled={!canSpeak}
             className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition disabled:opacity-40 ${
-              pickerOpen === 'tag'
+              actionSheetOpen
                 ? 'bg-apex-500/20 border-apex-500/50 text-apex-300'
                 : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
             }`}
+            title="Aim an action at another member"
           >
-            <Plus size={12} /> Tag
+            <Swords size={12} /> Actions
           </button>
           <button
             onClick={() => {
@@ -2646,6 +3021,117 @@ const buySpectator = async () => {
             </p>
           )}
         </Modal>
+      )}
+
+      {actionSheetOpen && isMember && (
+        <div className="fixed inset-0 z-50 flex items-end justify-center">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setActionSheetOpen(false)} />
+          <div className="relative w-full max-w-md mx-auto bg-slate-950 border-t border-x border-slate-800 rounded-t-3xl p-4 pb-8 max-h-[80vh] overflow-y-auto flex flex-col gap-4">
+            <div className="flex items-center justify-between gap-2">
+              <div className="min-w-0">
+                <h3 className="font-black text-white text-sm flex items-center gap-1.5">
+                  <Swords size={14} className="text-apex-400" /> Aim an action
+                </h3>
+                <p className="text-[11px] font-semibold text-slate-500 mt-0.5 truncate">
+                  {actionMessage ? (
+                    <>
+                      On a message from <span style={identityStyle(aliasNum(actionMessage))}>{actionMessage.author}</span>
+                    </>
+                  ) : (
+                    'To another member in this room'
+                  )}
+                </p>
+              </div>
+              <button onClick={() => setActionSheetOpen(false)} className="text-slate-500 hover:text-white transition shrink-0">
+                <X size={18} />
+              </button>
+            </div>
+
+            <div className="grid grid-cols-4 gap-2">
+              {roomSocial.map((a) => (
+                <button
+                  key={a.key}
+                  onClick={() => setPendingAction(pendingAction === a.key ? null : a.key)}
+                  disabled={actionBusy}
+                  className={`flex flex-col items-center gap-1 py-2.5 rounded-xl border transition disabled:opacity-40 ${
+                    pendingAction === a.key
+                      ? 'bg-apex-500/20 border-apex-500/60 text-apex-200'
+                      : 'bg-slate-900 border-slate-800 text-slate-300 hover:border-slate-600'
+                  }`}
+                >
+                  <span className="text-lg leading-none">{a.glyph}</span>
+                  <span className="text-[8px] font-black uppercase tracking-widest text-center leading-tight">{a.label}</span>
+                </button>
+              ))}
+              {roomSocial.length === 0 && (
+                <span className="text-[11px] font-bold text-slate-500 col-span-4 text-center py-2">
+                  No actions are available in this room.
+                </span>
+              )}
+            </div>
+
+            {pendingAction && (
+              <div>
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Target</p>
+                <div className="flex items-center gap-1.5 flex-wrap">
+                  {knownAliases.length === 0 && (
+                    <span className="text-[11px] font-bold text-slate-500">No other members have spoken yet.</span>
+                  )}
+                  {knownAliases.map(([n]) => (
+                    <button
+                      key={n}
+                      onClick={() => setActionTarget(actionTarget === n ? null : n)}
+                      className={`px-2.5 py-1 rounded-full border text-[11px] font-black transition ${
+                        actionTarget === n
+                          ? 'bg-apex-500/20 border-apex-500/60 text-apex-200'
+                          : 'bg-slate-900 border-slate-800 hover:border-slate-600'
+                      }`}
+                      style={identityStyle(n)}
+                    >
+                      Anonymous #{String(n).padStart(2, '0')}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {actionLocked && (
+              <p className="text-[11px] font-bold text-slate-500 flex items-center gap-1.5">
+                <Loader2 size={12} className="animate-spin" /> The actions are cooling down ({fmtMSS(actionCooldownUntil - tick)}).
+              </p>
+            )}
+
+            <div className="border-t border-slate-800 pt-3 flex items-center justify-between gap-3">
+              <div className="min-w-0">
+                <p className="text-[11px] font-black text-slate-300">Declining interactions</p>
+                <p className="text-[10px] font-semibold text-slate-500">Block others from aiming actions at you.</p>
+              </div>
+              <button
+                onClick={toggleDeclining}
+                disabled={decliningBusy}
+                aria-pressed={declining}
+                className={`relative w-11 h-6 rounded-full transition shrink-0 ${declining ? 'bg-rose-500' : 'bg-slate-700'} disabled:opacity-50`}
+              >
+                <span className={`absolute top-0.5 w-5 h-5 rounded-full bg-white transition-all ${declining ? 'left-[1.4rem]' : 'left-0.5'}`} />
+              </button>
+            </div>
+
+            {composerError && <p className="text-[11px] font-bold text-red-400">{composerError}</p>}
+
+            <button
+              onClick={sendSheetAction}
+              disabled={!pendingAction || actionTarget == null || actionBusy || actionLocked}
+              className="w-full px-4 py-3 rounded-xl bg-apex-600 text-white font-black text-xs uppercase tracking-widest hover:bg-apex-700 disabled:opacity-40 inline-flex items-center justify-center gap-2"
+            >
+              {actionBusy ? <Loader2 size={14} className="animate-spin" /> : <Swords size={14} />}
+              {!pendingAction
+                ? 'Pick an action'
+                : actionTarget == null
+                  ? 'Pick a target'
+                  : `${roomSocial.find((a) => a.key === pendingAction)?.label ?? 'Send'} → Anonymous #${String(actionTarget).padStart(2, '0')}`}
+            </button>
+          </div>
+        </div>
       )}
     </div>
   );

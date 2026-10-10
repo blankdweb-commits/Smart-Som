@@ -68,4 +68,29 @@ export function playSocialTone() {
   blip(ac, { freq: 1080, at: 0.05, dur: 0.12, gain: 0.07, type: 'triangle' });
 }
 
-export default { playMessagePop, playJoinChime, playSocialTone };
+// A bright fanfare when a challenge invites/accepts and open a duel.
+export function playChallengeTone() {
+  const ac = getCtx();
+  if (!ac) return;
+  blip(ac, { freq: 440, at: 0, dur: 0.1, gain: 0.09, type: 'triangle' });
+  blip(ac, { freq: 554.37, at: 0.08, dur: 0.1, gain: 0.09, type: 'triangle' });
+  blip(ac, { freq: 659.25, at: 0.16, dur: 0.16, gain: 0.11, type: 'triangle' });
+}
+
+// The short "click" of an Encoded Message being locked/unlocked.
+export function playLockTone() {
+  const ac = getCtx();
+  if (!ac) return;
+  blip(ac, { freq: 340, at: 0, dur: 0.06, gain: 0.09, type: 'square' });
+  blip(ac, { freq: 220, at: 0.05, dur: 0.09, gain: 0.07, type: 'square' });
+}
+
+// A restrained "hush" when an Encoded Message is publicly revealed.
+export function playRevealTone() {
+  const ac = getCtx();
+  if (!ac) return;
+  blip(ac, { freq: 587.33, at: 0, dur: 0.12, gain: 0.08, type: 'sine' });
+  blip(ac, { freq: 783.99, at: 0.07, dur: 0.18, gain: 0.08, type: 'sine' });
+}
+
+export default { playMessagePop, playJoinChime, playSocialTone, playChallengeTone, playLockTone, playRevealTone };

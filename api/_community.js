@@ -72,6 +72,12 @@ export const ATTACK_ACTION_KEYS = new Set(
   ROOM_ACTIONS.filter((a) => a.kind === 'attack').map((a) => a.key),
 );
 export const SOCIAL_COOLDOWN_MS = 8_000;
+// Anti-slam guardrails (v53): a per-actor ACTION-event budget inside the rate
+// window so nobody can spam event cards into the feed.
+export const SOCIAL_RATE_CAP = 10;
+export const SOCIAL_RATE_WINDOW_MS = 60_000;
+// How many recent action/challenge/fight event cards the feed hydrates.
+export const EVENT_FEED_LIMIT = 50;
 
 export const PRESENCE_GRACE_SECONDS = 45;
 export const PRESENCE_INACTIVITY_SECONDS = 300;
@@ -358,11 +364,16 @@ async function loadEncodedBodies(ids) {
   try {
     const { data, error } = await supabase
       .from('anonymous_encoded_messages')
-      .select('post_id, cipher_text, recipient_user_id')
+      .select('post_id, cipher_text, recipient_user_id, revealed_at, revealed_by')
       .in('post_id', list);
     if (error) return map;
     for (const row of data || []) {
-      map.set(row.post_id, { cipher: row.cipher_text, recipient: row.recipient_user_id });
+      map.set(row.post_id, {
+        cipher: row.cipher_text,
+        recipient: row.recipient_user_id,
+        revealed_at: row.revealed_at,
+        revealed_by: row.revealed_by,
+      });
     }
   } catch {
     /* v44 not applied yet */
@@ -1243,6 +1254,81 @@ const orderedSocial = (counts) =>
     mine: !!counts[a.key].mine,
   }));
 
+// ------------------------------------------------------------
+// v53 — room EVENT cards (actions / challenges / fights) that interleave with
+// the feed. Each event is a standalone row so members can React to it and a
+// member can Accept/Decline a challenge. All optional: an un-migrated DB just
+// yields zero events (never throws).
+// ------------------------------------------------------------
+const EVENT_COLUMNS = 'id, group_id, post_id, action, kind, status, actor_id, actor_alias, target_id, target_alias, created_at';
+
+async function loadEventReactions(eventIds, viewerId) {
+  const byEvent = new Map();
+  const list = [...new Set((eventIds || []).filter((n) => Number.isFinite(Number(n))))];
+  if (!list.length) return byEvent;
+  const supabase = getDb();
+  if (!supabase) return byEvent;
+  try {
+    const { data, error } = await supabase
+      .from('anonymous_event_reactions')
+      .select('event_id, emoji, user_id')
+      .in('event_id', list);
+    if (error) return byEvent;
+    for (const row of data || []) {
+      if (!byEvent.has(row.event_id)) byEvent.set(row.event_id, {});
+      const counts = byEvent.get(row.event_id);
+      if (!counts[row.emoji]) counts[row.emoji] = { count: 0, mine: false };
+      counts[row.emoji].count += 1;
+      if (row.user_id === viewerId) counts[row.emoji].mine = true;
+    }
+  } catch {
+    /* v53 not applied yet */
+  }
+  return byEvent;
+}
+
+const eventActionMeta = (action) => ROOM_ACTIONS.find((a) => a.key === action) || null;
+
+// Raw event rows -> masked event-card payloads (no user ids, ever). A card is
+// targetable for Respond only when the viewer IS the challenged member.
+function hydrateRoomEvent(row, viewerId, reactions = {}) {
+  return {
+    id: Number(row.id),
+    action: row.action,
+    glyph: eventActionMeta(row.action)?.glyph || '✨',
+    label: eventActionMeta(row.action)?.label || row.action,
+    tone: eventActionMeta(row.action)?.tone || 'slate',
+    kind: row.kind || 'action',
+    status: row.status || 'open',
+    actor: aliasLabel(row.actor_alias),
+    target: row.target_alias != null ? aliasLabel(row.target_alias) : null,
+    created_at: row.created_at,
+    is_actor: row.actor_id === viewerId,
+    is_target: !!row.target_id && row.target_id === viewerId,
+    can_respond: row.kind === 'challenge' && row.status === 'pending' && !!row.target_id && row.target_id === viewerId,
+    reactions: orderedReactions(reactions),
+  };
+}
+
+async function hydrateRoomEvents(group, rows, viewerId) {
+  if (!rows?.length) return [];
+  const ids = rows.map((r) => r.id);
+  const reactionsByEvent = await loadEventReactions(ids, viewerId);
+  return rows.map((row) => hydrateRoomEvent(row, viewerId, reactionsByEvent.get(row.id)));
+}
+
+async function fetchRoomEvent(group, eventId) {
+  const supabase = getDb();
+  const { data, error } = await supabase
+    .from('anonymous_room_events')
+    .select(EVENT_COLUMNS)
+    .eq('id', eventId)
+    .eq('group_id', group.id)
+    .maybeSingle();
+  if (error || !data) return null;
+  return data;
+}
+
 // Raw room rows -> masked message payloads (NO author_id, ever).
 async function hydrateRoomMessages(group, rows, viewerId, now = Date.now()) {
   if (!rows.length) return [];
@@ -1325,12 +1411,12 @@ async function hydrateRoomMessages(group, rows, viewerId, now = Date.now()) {
     const meta = metaByPost.get(row.id) || null;
     const isEncoded = !!meta?.is_encoded;
     const encBody = isEncoded ? encodedByPost.get(row.id) : null;
+    // v53 — a recipient may REVEAL an Encoded Message to the whole room; until
+    // then the private body never enters the feed for ANY viewer.
+    const revealed = isEncoded && !!encBody?.revealed_at;
     return {
       id: row.id,
-      // The private body NEVER enters the feed for ANY viewer (not even a
-      // premium one) — an Encoded Message is decoded only by its author or
-      // its intended recipient via the /anonymous/encoded endpoint.
-      content: isEncoded ? '' : row.content,
+      content: isEncoded ? (revealed ? decodeEncoded(encBody.cipher) : '') : row.content,
       created_at: row.created_at,
       edited,
       alias: aliases.get(row.author_id),
@@ -1343,8 +1429,16 @@ async function hydrateRoomMessages(group, rows, viewerId, now = Date.now()) {
       my_vote: votes.mine,
       tag: meta?.tag || null,
       encoded: isEncoded,
+      revealed: isEncoded ? revealed : false,
       // Only the author and the addressed recipient may unlock (server agrees).
       encoded_for_me: isEncoded && !!encBody && (encBody.recipient === viewerId || row.author_id === viewerId),
+      // The author or whoever revealed it may take it private again.
+      can_unreveal:
+        isEncoded &&
+        !!encBody &&
+        revealed &&
+        encBody.revealed_by != null &&
+        (row.author_id === viewerId || encBody.revealed_by === viewerId),
       locked: isEncoded,
       state: computePostState(row, now),
       lives_until: new Date(computeLivesUntil(row)).toISOString(),
@@ -1472,6 +1566,8 @@ export async function handleAnonRoom(req, res, user) {
       actions: ROOM_ACTIONS,
       tags: ROOM_TAGS,
       social_actions: SOCIAL_ACTIONS,
+      social_rate: { cap: SOCIAL_RATE_CAP, window_ms: SOCIAL_RATE_WINDOW_MS },
+      event_feed_limit: EVENT_FEED_LIMIT,
       votes: {
         upvote_threshold: UPVOTE_THRESHOLD,
         downvote_threshold: DOWNVOTE_THRESHOLD,
@@ -1542,7 +1638,28 @@ export async function handleAnonFeed(req, res, user) {
   }
 
   const messages = (await hydrateRoomMessages(group, alive, user.id)).reverse(); // oldest first
-  return res.status(200).json({ ok: true, messages, has_more: hasMore, next_before: nextBefore });
+
+  // v53 — interleave action/challenge/fight EVENT cards with the messages.
+  // Newest cards first, returned oldest-first for a clean client-side merge.
+  let events = [];
+  try {
+    const { data: eventRows, error: eventError } = await supabase
+      .from('anonymous_room_events')
+      .select(EVENT_COLUMNS)
+      .eq('group_id', group.id)
+      .order('created_at', { ascending: false })
+      .order('id', { ascending: false })
+      .limit(EVENT_FEED_LIMIT);
+    if (eventError) {
+      /* v53 not applied yet */
+    } else if (eventRows?.length) {
+      events = await hydrateRoomEvents(group, eventRows.reverse(), user.id);
+    }
+  } catch {
+    /* v53 not applied yet */
+  }
+
+  return res.status(200).json({ ok: true, messages, events, has_more: hasMore, next_before: nextBefore });
 }
 
 // POST /api/community/anonymous/message  { message_id, group_id? }
@@ -1842,8 +1959,11 @@ export async function handleAnonSetLocked(req, res, user) {
   return res.status(200).json({ ok: true, membership_locked: !!data.membership_locked, member_count: data.member_count, member_limit: data.member_limit });
 }
 
-// POST /api/community/anonymous/social  { message_id, action, group_id? }
-// Lightweight ephemeral acknowledgement aimed at a message (support/hug/…).
+// POST /api/community/anonymous/social  { message_id?, target_user_id?, action, group_id? }
+// An action aimed at ANOTHER member becomes an interleaved event card in the
+// feed (v53). A message may be referenced (then the author is the target), or
+// a member may be targeted directly by profile. Challenges turn into invites
+// the target may Accept (starts a fresh fight) or Decline.
 export async function handleAnonSocial(req, res, user) {
   const supabase = getDb();
   if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
@@ -1854,32 +1974,71 @@ export async function handleAnonSocial(req, res, user) {
   const { access } = await roomAccess(group, user.id);
   if (access === 'banned') return res.status(403).json({ error: 'BANNED', message: 'Your community access is currently restricted.' });
   if (access === 'wiped') return res.status(403).json({ error: 'GROUP_WIPED', message: 'This round has been wiped.' });
-  if (!['member', 'spectator'].includes(access)) {
-    return res.status(403).json({ error: 'ANONYMOUS_MEMBERS_ONLY', message: 'Only members can interact in the Anonymous room.' });
+  if (access !== 'member') {
+    return res.status(403).json({ error: 'ANONYMOUS_MEMBERS_ONLY', message: 'Only members can use actions in the Anonymous room.' });
   }
 
-  const messageId = parseId(req.body?.message_id);
-  if (!messageId) return res.status(400).json({ error: 'Invalid message id' });
   const action = typeof req.body?.action === 'string' ? req.body.action : '';
   if (!SOCIAL_ACTION_KEYS.has(action)) {
     return res.status(400).json({ error: 'SOCIAL_NOT_ALLOWED', message: 'That action is not available.' });
   }
 
-  const { data: post } = await supabase
-    .from('community_posts')
-    .select(ROOM_POST_COLUMNS)
-    .eq('id', messageId)
-    .eq('group_id', group.id)
+  // Target: either the author of a referenced message, or a directly addressed
+  // member (profile tap) — resolved server-side; user ids never leave the api.
+  const messageId = parseId(req.body?.message_id);
+  let targetUserId = null;
+  if (messageId) {
+    const { data: post } = await supabase
+      .from('community_posts')
+      .select(ROOM_POST_COLUMNS)
+      .eq('id', messageId)
+      .eq('group_id', group.id)
+      .maybeSingle();
+    if (!post || !isPostAlive(post)) {
+      return res.status(404).json({ error: 'MESSAGE_NOT_FOUND', message: 'That message is gone.' });
+    }
+    targetUserId = post.author_id;
+  } else {
+    // Direct member aiming by alias (@Anonymous #NN) or, for server-internal
+    // callers, by raw user id. User ids never reach the client, so the public
+    // path resolves the alias to a uid here and nowhere else.
+    const rawTarget = typeof req.body?.target_user_id === 'string' ? req.body.target_user_id.trim() : '';
+    const aliasNum = Number(req.body?.target_alias);
+    if (UUID_RE.test(rawTarget)) {
+      const targetAliases = await loadRoomAliases(group.id, [rawTarget]);
+      if (!targetAliases.has(rawTarget)) {
+        return res.status(400).json({ error: 'TARGET_NOT_IN_ROOM', message: 'That member is not in this room.' });
+      }
+      targetUserId = rawTarget;
+    } else if (Number.isFinite(aliasNum) && aliasNum >= 1) {
+      const uid = await resolveAliasToUser(group.id, aliasNum).catch(() => null);
+      if (!uid) {
+        return res.status(400).json({ error: 'TARGET_NOT_IN_ROOM', message: 'That member is not in this room.' });
+      }
+      targetUserId = uid;
+    } else {
+      return res.status(400).json({ error: 'TARGET_REQUIRED', message: 'Choose a member to aim this action at.' });
+    }
+  }
+  if (!targetUserId || targetUserId === user.id) {
+    return res.status(400).json({ error: 'TARGET_REQUIRED', message: 'Pick another member for this action.' });
+  }
+
+  // Anti-slam: a member opting out of being targeted refuses the action.
+  const { data: prefs } = await supabase
+    .from('anonymous_room_member_prefs')
+    .select('declining_interactions')
+    .eq('owner_id', targetUserId)
     .maybeSingle();
-  if (!post || !isPostAlive(post)) {
-    return res.status(404).json({ error: 'MESSAGE_NOT_FOUND', message: 'That message is gone.' });
+  if (prefs?.declining_interactions) {
+    return res.status(403).json({ error: 'SOCIAL_DECLINED', message: 'This member is declining interactions right now.' });
   }
 
   // A member who has muted this actor refuses the action (server-side).
   const { data: blocked } = await supabase
     .from('anonymous_social_prefs')
     .select('blocked')
-    .eq('owner_id', post.author_id)
+    .eq('owner_id', targetUserId)
     .eq('peer_id', user.id)
     .maybeSingle();
   if (blocked?.blocked) {
@@ -1888,81 +2047,340 @@ export async function handleAnonSocial(req, res, user) {
 
   // Room-wide cooldown: one social action per actor per cooldown window.
   const cutoff = new Date(Date.now() - SOCIAL_COOLDOWN_MS).toISOString();
-  const { data: recent, error: rateError } = await supabase
-    .from('anonymous_social_actions')
-    .select('created_at')
-    .eq('actor_id', user.id)
-    .gte('created_at', cutoff)
-    .limit(1);
-  if (rateError) {
-    console.error('[anonymous room social]', rateError);
-    return res.status(503).json({ error: 'SCHEMA_NOT_READY', message: 'Social actions are not available yet.' });
-  }
-  if (recent && recent.length) {
-    return res.status(429).json({
-      error: 'SOCIAL_COOLDOWN',
-      message: 'Give it a moment before the next action.',
-      retry_after_ms: SOCIAL_COOLDOWN_MS,
-    });
+  if (messageId) {
+    const { data: recent, error: rateError } = await supabase
+      .from('anonymous_social_actions')
+      .select('created_at')
+      .eq('actor_id', user.id)
+      .gte('created_at', cutoff)
+      .limit(1);
+    if (rateError) {
+      console.error('[anonymous room social]', rateError);
+      return res.status(503).json({ error: 'SCHEMA_NOT_READY', message: 'Social actions are not available yet.' });
+    }
+    if (recent && recent.length) {
+      return res.status(429).json({
+        error: 'SOCIAL_COOLDOWN',
+        message: 'Give it a moment before the next action.',
+        retry_after_ms: SOCIAL_COOLDOWN_MS,
+      });
+    }
+    // PER-TARGET cooldown: the same member cannot repeatedly spam a single
+    // message within the window even if their room-wide allowance reset.
+    const { data: targetRecent } = await supabase
+      .from('anonymous_social_actions')
+      .select('created_at')
+      .eq('actor_id', user.id)
+      .eq('post_id', messageId)
+      .gte('created_at', cutoff)
+      .limit(1);
+    if (targetRecent && targetRecent.length) {
+      return res.status(429).json({
+        error: 'SOCIAL_COOLDOWN',
+        message: 'Give it a moment before the next action.',
+        retry_after_ms: SOCIAL_COOLDOWN_MS,
+      });
+    }
   }
 
-  // PER-TARGET cooldown: the same member cannot repeatedly spam a single
-  // message within the window even if their room-wide allowance reset.
-  const { data: targetRecent } = await supabase
-    .from('anonymous_social_actions')
-    .select('created_at')
+  // Anti-slam cap: no more than SOCIAL_RATE_CAP event cards per actor per window.
+  const rateCutoff = new Date(Date.now() - SOCIAL_RATE_WINDOW_MS).toISOString();
+  const { data: recentEvents, error: eventRateError } = await supabase
+    .from('anonymous_room_events')
+    .select('id')
+    .eq('group_id', group.id)
     .eq('actor_id', user.id)
-    .eq('post_id', messageId)
-    .gte('created_at', cutoff)
-    .limit(1);
-  if (targetRecent && targetRecent.length) {
+    .gte('created_at', rateCutoff);
+  if (!eventRateError && Array.isArray(recentEvents) && recentEvents.length >= SOCIAL_RATE_CAP) {
     return res.status(429).json({
-      error: 'SOCIAL_COOLDOWN',
-      message: 'Give it a moment before the next action.',
-      retry_after_ms: SOCIAL_COOLDOWN_MS,
+      error: 'SOCIAL_RATE_LIMITED',
+      message: 'You have used a lot of actions just now — take a short break.',
+      retry_after_ms: SOCIAL_RATE_WINDOW_MS,
     });
   }
 
   const alias = await ensureRoomAlias(group.id, user.id);
-  const targetAlias = (await loadRoomAliases(group.id, [post.author_id])).get(post.author_id) ?? null;
-  const { error: upsertError } = await supabase
-    .from('anonymous_social_actions')
-    .upsert(
-      { post_id: messageId, actor_id: user.id, actor_alias: alias, action, target_alias: targetAlias },
-      { onConflict: 'post_id,actor_id,action', ignoreDuplicates: true },
-    );
-  if (upsertError) {
-    console.error('[anonymous room social]', upsertError);
+  const targetAlias = (await loadRoomAliases(group.id, [targetUserId])).get(targetUserId) ?? (await ensureRoomAlias(group.id, targetUserId).catch(() => null));
+
+  if (messageId) {
+    const { error: upsertError } = await supabase
+      .from('anonymous_social_actions')
+      .upsert(
+        { post_id: messageId, actor_id: user.id, actor_alias: alias, action, target_alias: targetAlias },
+        { onConflict: 'post_id,actor_id,action', ignoreDuplicates: true },
+      );
+    if (upsertError) {
+      console.error('[anonymous room social]', upsertError);
+      return res.status(500).json({ error: 'Failed to record action' });
+    }
+  }
+
+  const isChallenge = action === 'challenge';
+  const { data: eventRow, error: eventError } = await supabase
+    .from('anonymous_room_events')
+    .insert({
+      group_id: group.id,
+      post_id: messageId || null,
+      action,
+      kind: isChallenge ? 'challenge' : 'action',
+      status: isChallenge ? 'pending' : 'open',
+      actor_id: user.id,
+      actor_alias: alias,
+      target_id: targetUserId,
+      target_alias: targetAlias,
+    })
+    .select(EVENT_COLUMNS)
+    .single();
+  if (eventError) {
+    console.error('[anonymous room event]', eventError);
     return res.status(500).json({ error: 'Failed to record action' });
   }
 
-  publishRoomEvent(group.id, 'social', { id: messageId, action });
+  publishRoomEvent(group.id, 'room_event', { id: Number(eventRow.id) });
+  if (messageId) publishRoomEvent(group.id, 'social', { id: messageId, action });
   void touchMembership(group.id, user.id);
 
+  // A challenge flags the target; give them a nudge (opt-in social pref).
+  if (isChallenge) {
+    void sendRoomPush({
+      groupId: group.id,
+      recipientUserIds: [targetUserId],
+      kind: 'social',
+      title: '⚔️ You have been challenged!',
+      body: `${aliasLabel(alias)} challenged you in the Anonymous room.`,
+      url: `/study-groups/${group.id}`,
+    }).catch(() => {});
+  }
+
   // S1 — a reciprocal attack inside the fight window starts ONE (deduped)
-  // fight. Only an assigned attack action can trigger it.
+  // fight. Only an assigned attack action can trigger it. The fight is also
+  // surfaced as an event card (v53).
   let fight = false;
-  if (ATTACK_ACTION_KEYS.has(action)) {
+  if (ATTACK_ACTION_KEYS.has(action) && messageId) {
     try {
       const { data: fightResult } = await supabase.rpc('community_fight_check', {
         p_group: group.id,
         p_actor: user.id,
-        p_target: post.author_id,
+        p_target: targetUserId,
         p_action: action,
       });
       fight = !!fightResult?.fight;
       if (fight && !fightResult?.deduped) {
-        const attacker = await ensureRoomAlias(group.id, user.id);
-        const defender = (await loadRoomAliases(group.id, [post.author_id])).get(post.author_id) ?? null;
-        publishRoomEvent(group.id, 'fight', { attacker, defender, action });
+        const attacker = alias;
+        const defender = targetAlias;
+        if (attacker != null && defender != null) {
+          await supabase
+            .from('anonymous_room_events')
+            .insert({
+              group_id: group.id,
+              post_id: messageId,
+              action: 'fight',
+              kind: 'fight',
+              status: 'open',
+              actor_id: user.id,
+              actor_alias: attacker,
+              target_id: targetUserId,
+              target_alias: defender,
+            })
+            .then(({ error: insertError }) => {
+              if (!insertError) publishRoomEvent(group.id, 'room_event', { action: 'fight' });
+            });
+          publishRoomEvent(group.id, 'fight', { attacker, defender, action });
+        }
       }
     } catch {
       /* v46 not applied yet */
     }
   }
 
-  const counts = (await loadSocialCounts([messageId], user.id)).get(messageId) || {};
-  return res.status(200).json({ ok: true, social: orderedSocial(counts), fight });
+  const counts = (messageId ? (await loadSocialCounts([messageId], user.id)).get(messageId) : null) || {};
+  const reactions = await loadEventReactions([eventRow.id], user.id);
+  return res.status(200).json({
+    ok: true,
+    social: messageId ? orderedSocial(counts) : [],
+    fight,
+    event: hydrateRoomEvent(eventRow, user.id, reactions.get(eventRow.id)),
+  });
+}
+
+// POST /api/community/anonymous/event  { event_id, group_id? }
+// Fetch one event card (used after a realtime room_event hint).
+export async function handleAnonEvent(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+
+  const group = await resolveAnonGroup(req.body?.group_id);
+  if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND', message: 'No Anonymous room found.' });
+
+  const { access } = await roomAccess(group, user.id);
+  if (!['member', 'spectator'].includes(access)) {
+    return res.status(403).json({ error: access.toUpperCase(), message: 'You cannot read this room right now.' });
+  }
+
+  const eventId = Number(req.body?.event_id);
+  if (!Number.isFinite(eventId) || eventId <= 0) return res.status(400).json({ error: 'Invalid event id' });
+
+  const row = await fetchRoomEvent(group, eventId);
+  if (!row) return res.status(404).json({ error: 'EVENT_NOT_FOUND', message: 'This event is no longer visible.' });
+
+  const reactions = await loadEventReactions([row.id], user.id);
+  return res.status(200).json({ ok: true, event: hydrateRoomEvent(row, user.id, reactions.get(row.id)) });
+}
+
+// POST /api/community/anonymous/event-react  { event_id, emoji, active, group_id? }
+// React to an event card (or remove the reaction).
+export async function handleAnonEventReact(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+
+  const group = await resolveAnonGroup(req.body?.group_id);
+  if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND', message: 'No Anonymous room found.' });
+
+  const { access } = await roomAccess(group, user.id);
+  if (access === 'banned') return res.status(403).json({ error: 'BANNED', message: 'Your community access is currently restricted.' });
+  if (!['member', 'spectator'].includes(access)) {
+    return res.status(403).json({ error: access.toUpperCase(), message: 'You cannot interact with this room right now.' });
+  }
+
+  const eventId = Number(req.body?.event_id);
+  if (!Number.isFinite(eventId) || eventId <= 0) return res.status(400).json({ error: 'Invalid event id' });
+  const emoji = typeof req.body?.emoji === 'string' ? req.body.emoji : '';
+  if (!ROOM_REACTIONS.includes(emoji)) {
+    return res.status(400).json({ error: 'REACTION_NOT_ALLOWED', message: 'That reaction is not available.' });
+  }
+  const active = req.body?.active !== false;
+
+  const row = await fetchRoomEvent(group, eventId);
+  if (!row) return res.status(404).json({ error: 'EVENT_NOT_FOUND', message: 'This event is no longer visible.' });
+
+  if (active) {
+    await supabase
+      .from('anonymous_event_reactions')
+      .upsert({ event_id: eventId, user_id: user.id, emoji }, { onConflict: 'event_id,user_id,emoji', ignoreDuplicates: true });
+  } else {
+    await supabase
+      .from('anonymous_event_reactions')
+      .delete()
+      .eq('event_id', eventId)
+      .eq('user_id', user.id)
+      .eq('emoji', emoji);
+  }
+
+  publishRoomEvent(group.id, 'room_event', { id: eventId });
+  void touchMembership(group.id, user.id);
+
+  const reactions = await loadEventReactions([eventId], user.id);
+  return res.status(200).json({ ok: true, event: hydrateRoomEvent(row, user.id, reactions.get(eventId)) });
+}
+
+// POST /api/community/anonymous/event-respond  { event_id, respond: accept|decline, group_id? }
+// A CHALLENGE invite can be Accepted (starts a live fight) or Declined by the
+// targeted member. One-shot: responding again returns 409 EVENT_RESOLVED.
+export async function handleAnonEventRespond(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+
+  const group = await resolveAnonGroup(req.body?.group_id);
+  if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND', message: 'No Anonymous room found.' });
+
+  const { access } = await roomAccess(group, user.id);
+  if (access === 'banned') return res.status(403).json({ error: 'BANNED', message: 'Your community access is currently restricted.' });
+  if (access !== 'member') {
+    return res.status(403).json({ error: 'ANONYMOUS_MEMBERS_ONLY', message: 'Only members can respond to a challenge.' });
+  }
+
+  const eventId = Number(req.body?.event_id);
+  if (!Number.isFinite(eventId) || eventId <= 0) return res.status(400).json({ error: 'Invalid event id' });
+  const respond = req.body?.respond === 'accept' ? 'accept' : req.body?.respond === 'decline' ? 'decline' : null;
+  if (!respond) return res.status(400).json({ error: 'INVALID_RESPOND', message: 'Respond with accept or decline.' });
+
+  const row = await fetchRoomEvent(group, eventId);
+  if (!row) return res.status(404).json({ error: 'EVENT_NOT_FOUND', message: 'This event is no longer visible.' });
+  if (row.kind !== 'challenge' || row.status !== 'pending') {
+    return res.status(409).json({ error: 'EVENT_RESOLVED', message: 'This challenge has already been resolved.' });
+  }
+  if (!row.target_id || row.target_id !== user.id) {
+    return res.status(403).json({ error: 'NOT_AUTHORIZED', message: 'Only the challenged member may respond.' });
+  }
+
+  const nextStatus = respond === 'accept' ? 'accepted' : 'declined';
+  await supabase
+    .from('anonymous_room_events')
+    .update({ status: nextStatus })
+    .eq('id', eventId)
+    .eq('group_id', group.id);
+
+  publishRoomEvent(group.id, 'room_event', { id: eventId });
+  void touchMembership(group.id, user.id);
+
+  if (respond === 'accept') {
+    // The duel is live: record the fight and surface a fight event card.
+    const lo = user.id < row.actor_id ? user.id : row.actor_id;
+    const hi = user.id < row.actor_id ? row.actor_id : user.id;
+    await supabase.from('anonymous_fights').insert({ group_id: group.id, a_id: lo, b_id: hi }).then(async ({ error: fightInsertError }) => {
+      if (!fightInsertError) {
+        await supabase
+          .from('anonymous_room_events')
+          .insert({
+            group_id: group.id,
+            post_id: row.post_id,
+            action: 'fight',
+            kind: 'fight',
+            status: 'open',
+            actor_id: row.actor_id,
+            actor_alias: row.actor_alias,
+            target_id: row.target_id,
+            target_alias: row.target_alias,
+          })
+          .then(({ error: cardError }) => {
+            if (!cardError) publishRoomEvent(group.id, 'room_event', { action: 'fight' });
+          });
+      }
+    });
+    publishRoomEvent(group.id, 'fight', { attacker: row.actor_alias, defender: row.target_alias, action: 'challenge' });
+    void sendRoomPush({
+      groupId: group.id,
+      recipientUserIds: [row.actor_id],
+      kind: 'social',
+      title: '⚔️ Your challenge was accepted!',
+      body: `${aliasLabel(row.target_alias)} accepted your challenge — it is on!`,
+      url: `/study-groups/${group.id}`,
+    }).catch(() => {});
+  } else {
+    void sendRoomPush({
+      groupId: group.id,
+      recipientUserIds: [row.actor_id],
+      kind: 'social',
+      title: '🤝 Challenge declined',
+      body: `${aliasLabel(row.target_alias)} declined your challenge.`,
+      url: `/study-groups/${group.id}`,
+    }).catch(() => {});
+  }
+
+  const refreshed = await fetchRoomEvent(group, eventId);
+  const reactions = await loadEventReactions([eventId], user.id);
+  return res.status(200).json({ ok: true, event: hydrateRoomEvent(refreshed, user.id, reactions.get(eventId)) });
+}
+
+// POST /api/community/anonymous/prefs  { declining_interactions? }
+// Read/update the viewer's "declining interactions" anti-slam opt-out.
+export async function handleAnonPrefs(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+
+  const wanted = req.body?.declining_interactions;
+  if (wanted !== undefined && wanted !== null) {
+    await supabase.from('anonymous_room_member_prefs').upsert(
+      { owner_id: user.id, declining_interactions: wanted === true || wanted === 'true', updated_at: new Date().toISOString() },
+      { onConflict: 'owner_id' },
+    );
+  }
+  const { data } = await supabase
+    .from('anonymous_room_member_prefs')
+    .select('declining_interactions')
+    .eq('owner_id', user.id)
+    .maybeSingle();
+  return res.status(200).json({ ok: true, declining_interactions: !!data?.declining_interactions });
 }
 
 // Throttled, best-effort spot-reap so an absent member releases their seat
@@ -2066,9 +2484,13 @@ export async function handleAnonPresenceLeave(req, res, user) {
   return res.status(200).json({ ok: true });
 }
 
-// POST /api/community/anonymous/encoded  { message_id, group_id? }
+// POST /api/community/anonymous/encoded  { message_id, action: decode|reveal|unreveal, group_id? }
 // Decode of an Encoded Message — only the author or the single intended
 // recipient may ever see the plaintext. Server-authoritative.
+//   decode   (default)  return the plaintext to the author/recipient.
+//   reveal              the RECIPIENT publicly reveals the secret so the whole
+//                       room sees the plaintext inline ("the room knows").
+//   unreveal            the author or the revealer takes it private again.
 export async function handleAnonEncoded(req, res, user) {
   const supabase = getDb();
   if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
@@ -2083,6 +2505,10 @@ export async function handleAnonEncoded(req, res, user) {
 
   const messageId = parseId(req.body?.message_id);
   if (!messageId) return res.status(400).json({ error: 'Invalid message id' });
+  const action = typeof req.body?.action === 'string' && req.body.action ? req.body.action : 'decode';
+  if (!['decode', 'reveal', 'unreveal'].includes(action)) {
+    return res.status(400).json({ error: 'INVALID_ACTION', message: 'Unknown encoded-message action.' });
+  }
 
   const { data: post } = await supabase
     .from('community_posts')
@@ -2094,7 +2520,7 @@ export async function handleAnonEncoded(req, res, user) {
 
   const { data: enc } = await supabase
     .from('anonymous_encoded_messages')
-    .select('cipher_text, recipient_user_id')
+    .select('cipher_text, recipient_user_id, revealed_at, revealed_by')
     .eq('post_id', messageId)
     .maybeSingle();
   if (!enc) return res.status(400).json({ error: 'NOT_ENCODED', message: 'That message is not encoded.' });
@@ -2108,6 +2534,43 @@ export async function handleAnonEncoded(req, res, user) {
   if (!isAuthor && !isRecipient) {
     return res.status(403).json({ error: 'ENCODED_PRIVATE', message: 'This is a private Encoded Message.' });
   }
+
+  if (action === 'reveal') {
+    // Public reveal is the RECIPIENT's call (they consciously share the secret).
+    if (!isRecipient) {
+      return res.status(403).json({ error: 'ENCODED_PRIVATE', message: 'Only the intended recipient can reveal this message.' });
+    }
+    const { error } = await supabase
+      .from('anonymous_encoded_messages')
+      .update({ revealed_at: new Date().toISOString(), revealed_by: user.id })
+      .eq('post_id', messageId);
+    if (error) {
+      console.error('[anonymous room reveal]', error);
+      return res.status(500).json({ error: 'Failed to update message' });
+    }
+    publishRoomEvent(group.id, 'message', { id: messageId });
+    return res.status(200).json({ ok: true, revealed: true, content: decodeEncoded(enc.cipher_text) });
+  }
+
+  if (action === 'unreveal') {
+    const canUnreveal = isAuthor || (!!enc.revealed_by && user.id === enc.revealed_by);
+    if (!canUnreveal) {
+      return res.status(403).json({ error: 'ENCODED_PRIVATE', message: 'Only the author or the revealer can take this private again.' });
+    }
+    if (enc.revealed_at) {
+      const { error } = await supabase
+        .from('anonymous_encoded_messages')
+        .update({ revealed_at: null, revealed_by: null })
+        .eq('post_id', messageId);
+      if (error) {
+        console.error('[anonymous room unreveal]', error);
+        return res.status(500).json({ error: 'Failed to update message' });
+      }
+      publishRoomEvent(group.id, 'message', { id: messageId });
+    }
+    return res.status(200).json({ ok: true, revealed: false });
+  }
+
   return res.status(200).json({ ok: true, content: decodeEncoded(enc.cipher_text) });
 }
 

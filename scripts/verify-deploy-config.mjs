@@ -629,8 +629,8 @@ let passed = 0;
   checks.push(
     /anonymous_encoded_messages/.test(apiCommunitySrc) && /toString\('base64'\)/.test(apiCommunitySrc) &&
       /encoded_for_me/.test(apiCommunitySrc) && /PREMIUM_REQUIRED/.test(apiCommunitySrc) &&
-      /content: isEncoded \? '' : row\.content/.test(apiCommunitySrc)
-      ? ok('api/_community.js: premium recipient-targeted Encoded Messages (body never in the feed)')
+      /content: isEncoded \? \(revealed \? decodeEncoded\(encBody\.cipher\) : ''\) : row\.content/.test(apiCommunitySrc)
+      ? ok('api/_community.js: premium recipient-targeted Encoded Messages (body never in the feed until the recipient reveals)')
       : fail('api/_community.js missing Encoded Message handling'),
   );
   checks.push(
@@ -1655,6 +1655,144 @@ let passed = 0;
       && /VAPID_SUBJECT=mailto:/.test(envSample)
       ? ok('.env.example documents the three VAPID_* placeholders')
       : fail('.env.example VAPID placeholders missing'),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PART F — ANONYMOUS ROOM EVENT CARDS + CHALLENGE RESPOND + ANTI-SLAM + REVEAL (v53).
+// Actions became interleaved event cards (React/Respond), a single Actions
+// sheet replaced inline chips, CHALLENGE accept starts a fresh fight, an
+// anti-slam rate cap + "declining interactions" opt-out, and Encoded Messages
+// gained a recipient-driven public reveal / re-lock.
+// ---------------------------------------------------------------------------
+{
+  const communitySrc = read(resolve(ROOT, 'api/_community.js'));
+  const routerSrc = read(resolve(ROOT, 'api/community.js'));
+  const roomSrc = read(resolve(ROOT, 'src/pages/AnonymousRoom.jsx'));
+  const soundSrc = existsSync(resolve(ROOT, 'src/utils/anonSound.js'))
+    ? read(resolve(ROOT, 'src/utils/anonSound.js')) : '';
+  const migrationSrc = existsSync(resolve(ROOT, 'scripts/migration-v53-anonymous-social-events.sql'))
+    ? read(resolve(ROOT, 'scripts/migration-v53-anonymous-social-events.sql')) : '';
+
+  // --- server model ---
+  checks.push(
+    /anonymous_room_events/.test(communitySrc)
+      && /anonymous_event_reactions/.test(communitySrc)
+      && /anonymous_room_member_prefs/.test(communitySrc)
+      ? ok('v53 event tables referenced (events / event reactions / member prefs)')
+      : fail('v53 event tables not referenced in api/_community.js'),
+  );
+  checks.push(
+    /SOCIAL_RATE_CAP = 10/.test(communitySrc)
+      && /SOCIAL_RATE_WINDOW_MS = 60_000/.test(communitySrc)
+      && /EVENT_FEED_LIMIT = 50/.test(communitySrc)
+      ? ok('v53 anti-slam constants present (rate cap + window + event feed limit)')
+      : fail('v53 anti-slam constants missing'),
+  );
+  checks.push(
+    /export async function handleAnonEvent\(/.test(communitySrc)
+      && /export async function handleAnonEventReact\(/.test(communitySrc)
+      && /export async function handleAnonEventRespond\(/.test(communitySrc)
+      && /export async function handleAnonPrefs\(/.test(communitySrc)
+      ? ok('v53 handlers exported (event / event-react / event-respond / prefs)')
+      : fail('v53 event handlers not exported'),
+  );
+  checks.push(
+    /SOCIAL_DECLINED/.test(communitySrc)
+      && /SOCIAL_BLOCKED/.test(communitySrc)
+      && /SOCIAL_RATE_LIMITED/.test(communitySrc)
+      && /resolveAliasToUser\(group\.id, aliasNum\)/.test(communitySrc)
+      ? ok('handleAnonSocial enforces declining / blocked / rate cap and resolves target_alias')
+      : fail('handleAnonSocial anti-slam / target_alias wiring missing'),
+  );
+  checks.push(
+    /kind: isChallenge \? 'challenge' : 'action'/.test(communitySrc)
+      && /status: isChallenge \? 'pending' : 'open'/.test(communitySrc)
+      ? ok('an action/challenge insert records a masked event card row')
+      : fail('event-card insert missing challenge/action kind + status'),
+  );
+  checks.push(
+    /EVENT_RESOLVED/.test(communitySrc)
+      && /from\('anonymous_fights'\)\.insert\(\{ group_id: group\.id, a_id: lo, b_id: hi \}\)/.test(communitySrc)
+      && /action: 'fight'/.test(communitySrc)
+      ? ok('accepting a CHALLENGE starts a fresh fight and surfaces a fight event card')
+      : fail('challenge accept->fight wiring missing'),
+  );
+  checks.push(
+    /if \(action === 'reveal'\)/.test(communitySrc)
+      && /if \(action === 'unreveal'\)/.test(communitySrc)
+      && /can_unreveal:/.test(communitySrc)
+      && /revealed \? decodeEncoded\(encBody\.cipher\) : ''/.test(communitySrc)
+      ? ok('Encoded Messages: recipient reveal + author/revealer re-lock + feed gating + can_unreveal')
+      : fail('encoded reveal / unreveal / can_unreveal wiring missing'),
+  );
+  checks.push(
+    /events = await hydrateRoomEvents\(group, eventRows\.reverse\(\), user\.id\)/.test(communitySrc)
+      && /return res\.status\(200\)\.json\(\{ ok: true, messages, events, has_more: hasMore, next_before: nextBefore/.test(communitySrc)
+      ? ok('feed returns interleaved events oldest-first alongside messages')
+      : fail('feed does not return interleaved events'),
+  );
+
+  // --- routing (the client contract) ---
+  checks.push(
+    /fn: handleAnonEventReact/.test(routerSrc)
+      && /fn: handleAnonEventRespond/.test(routerSrc)
+      && /fn: handleAnonPrefs/.test(routerSrc)
+      && /fn: handleAnonEvent\b/.test(routerSrc)
+      ? ok('api/community.js dispatches event / event-react / event-respond / prefs')
+      : fail('v53 dispatch routes missing from api/community.js'),
+  );
+
+  // --- client surface ---
+  checks.push(
+    /const RoomEventCard = \(/.test(roomSrc)
+      && /const upsertEvent = useCallback/.test(roomSrc)
+      && /const respondEvent = async/.test(roomSrc)
+      && /const toggleEventReaction = async/.test(roomSrc)
+      ? ok('AnonymousRoom renders RoomEventCard with react/respond helpers')
+      : fail('AnonymousRoom event-card render/helpers missing'),
+  );
+  checks.push(
+    /const openActionSheet = \(/.test(roomSrc)
+      && /const sendSheetAction = async/.test(roomSrc)
+      && /actionSheetOpen/.test(roomSrc)
+      ? ok('AnonymousRoom uses a single Actions bottom sheet (inline tag chips removed)')
+      : fail('AnonymousRoom action sheet missing'),
+  );
+  checks.push(
+    /const toggleDeclining = async/.test(roomSrc)
+      && /declining_interactions/.test(roomSrc)
+      ? ok('AnonymousRoom exposes the "declining interactions" anti-slam opt-out')
+      : fail('AnonymousRoom declining-interactions toggle missing'),
+  );
+  checks.push(
+    /const revealEncoded = \(msg\) => setEncodedAction\(msg, 'decode'\)/.test(roomSrc)
+      && /const revealToRoom = \(msg\) => setEncodedAction\(msg, 'reveal'\)/.test(roomSrc)
+      && /const privateAgain = \(msg\) => setEncodedAction\(msg, 'unreveal'\)/.test(roomSrc)
+      && /msg\.can_unreveal/.test(roomSrc)
+      ? ok('AnonymousRoom wires decode + reveal-to-room + private-again (can_unreveal gated)')
+      : fail('AnonymousRoom encoded reveal/re-lock UI missing'),
+  );
+  checks.push(
+    /const mergedTimeline = useMemo/.test(roomSrc)
+      && /String\(a\.item\.id\)\.localeCompare\(String\(b\.item\.id\)\)/.test(roomSrc)
+      ? ok('AnonymousRoom merges events + messages into one timeline (numeric-id safe comparison)')
+      : fail('AnonymousRoom timeline merge missing'),
+  );
+  checks.push(
+    /playChallengeTone/.test(soundSrc)
+      && /playLockTone/.test(soundSrc)
+      && /playRevealTone/.test(soundSrc)
+      ? ok('anonSound adds challenge / lock / reveal tones')
+      : fail('anonSound new tones missing'),
+  );
+  checks.push(
+    /anonymous_room_events/.test(migrationSrc)
+      && /anonymous_event_reactions/.test(migrationSrc)
+      && /anonymous_room_member_prefs/.test(migrationSrc)
+      && /revealed_at/.test(migrationSrc)
+      ? ok('migration v53 defines the event tables + reveal columns')
+      : fail('migration v53 missing event tables / reveal columns'),
   );
 }
 
