@@ -15,7 +15,9 @@
     "e2e:study-groups": "node scripts/e2e-study-groups.mjs",
     "e2e:group-quiz-sc": "node scripts/e2e-group-quiz-sc.mjs",
     "e2e:community-ephemeral": "node scripts/e2e-community-ephemeral.mjs",
-    "e2e:anonymous-lifecycle": "node scripts/e2e-anonymous-lifecycle.mjs"
+    "e2e:anonymous-lifecycle": "node scripts/e2e-anonymous-lifecycle.mjs",
+    "e2e:license-renewal": "node scripts/e2e-license-renewal.mjs",
+    "e2e:loan-shark": "node scripts/e2e-loan-shark.mjs"
   },
   "dependencies": {
     "@daformat/react-swipeable-cards": "^1.0.4",

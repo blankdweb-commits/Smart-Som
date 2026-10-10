@@ -30,6 +30,8 @@ const GroupPage = lazy(() => import('./pages/GroupPage'));
 const AnonymousRoom = lazy(() => import('./pages/AnonymousRoom'));
 const StudyGroups = lazy(() => import('./components/StudyGroups'));
 const Marketplace = lazy(() => import('./pages/Marketplace'));
+const LicenseRenewal = lazy(() => import('./pages/LicenseRenewal'));
+const LoanShark = lazy(() => import('./pages/LoanShark'));
 const Voting = lazy(() => import('./pages/Voting'));
 const Reviews = lazy(() => import('./pages/Reviews'));
 const WeaknessDrill = lazy(() => import('./pages/WeaknessDrill'));
@@ -111,6 +113,8 @@ const AppRouter = () => (
         <Route path="/challenges" element={<RequireAuth><Challenges /></RequireAuth>} />
         <Route path="/squads" element={<RequireAuth><Squads /></RequireAuth>} />
         <Route path="/rooms" element={<RequireAuth><Rooms /></RequireAuth>} />
+        <Route path="/license" element={<RequireAuth><LicenseRenewal /></RequireAuth>} />
+        <Route path="/loans" element={<RequireAuth><LoanShark /></RequireAuth>} />
 
       <Route path="/legal/terms" element={<LegalPage section="terms" />} />
       <Route path="/legal/privacy" element={<LegalPage section="privacy" />} />

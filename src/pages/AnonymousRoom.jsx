@@ -30,11 +30,19 @@ import {
   Crown,
   BellOff,
   Shield,
+  Bell,
+  Volume2,
+  VolumeX,
+  Sparkles,
+  Swords,
+  Plus,
 } from '../components/Icons';
 import { communityApi } from '../utils/communityApi';
 import { authHeaders } from '../utils/apiHeaders';
 import { useAnonymousRoomRealtime } from '../hooks/useAnonymousRoomRealtime';
 import { useAppContext } from '../context/AppContext';
+import { playMessagePop, playJoinChime, playSocialTone } from '../utils/anonSound';
+import { pushSupported, getPushState, enablePush, disablePush, savePreferences } from '../utils/push';
 
 const TYPING_TTL_MS = 3000;
 const TYPING_THROTTLE_MS = 2500;
@@ -62,6 +70,36 @@ const SEND_ERRORS = {
   REPORT_RATE_LIMITED: 'You have sent too many reports. Please wait a while.',
   CONTENT_REQUIRED: 'Write something first.',
   CONTENT_TOO_LONG: 'That message is too long.',
+  PREMIUM_REQUIRED: 'Encoded Messages are a premium feature.',
+  RECIPIENT_REQUIRED: 'Choose who can read this Encoded Message.',
+  INVALID_RECIPIENT: 'Pick another member of this room to encode to.',
+  ENCODED_PRIVATE: 'This is a private Encoded Message.',
+  TAG_NOT_ALLOWED: 'That tag is not available.',
+  SOCIAL_NOT_ALLOWED: 'That action is not available.',
+  SOCIAL_COOLDOWN: 'Give it a moment before the next action.',
+  SOCIAL_BLOCKED: 'This member is not accepting that action.',
+  SCHEMA_NOT_READY: 'That feature is not available just yet.',
+};
+
+// Server allowlist tones → explicit classes (Tailwind must see full strings).
+const TAG_TONE_CLASS = {
+  sky: 'bg-sky-500/15 text-sky-300 border-sky-500/40',
+  emerald: 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40',
+  rose: 'bg-rose-500/15 text-rose-300 border-rose-500/40',
+  violet: 'bg-violet-500/15 text-violet-300 border-violet-500/40',
+  amber: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
+  indigo: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/40',
+};
+
+const SOUND_KEY = 'soundEnabled';
+
+const loadSound = () => {
+  try {
+    const raw = localStorage.getItem(SOUND_KEY);
+    return raw === null ? true : raw === 'true';
+  } catch {
+    return true;
+  }
 };
 
 const timeOf = (iso) => {
@@ -215,6 +253,25 @@ const AnonymousRoom = () => {
   const [reportBusy, setReportBusy] = useState(false);
   const [reportError, setReportError] = useState('');
 
+  const [soundOn, setSoundOn] = useState(loadSound);
+  const [pendingTag, setPendingTag] = useState(null);
+  const [encodedOn, setEncodedOn] = useState(false);
+  const [encodedRecipient, setEncodedRecipient] = useState(null);
+  const [pickerOpen, setPickerOpen] = useState(null);
+  const [celebration, setCelebration] = useState(null);
+  const [fightAlert, setFightAlert] = useState(null);
+  const [memberWarning, setMemberWarning] = useState(false);
+  const [releasedNotice, setReleasedNotice] = useState(false);
+  const [serverOnline, setServerOnline] = useState(null);
+  const [exitDone, setExitDone] = useState(false);
+  const [revealedEncoded, setRevealedEncoded] = useState({});
+  const [pushOpen, setPushOpen] = useState(false);
+  const [pushState, setPushState] = useState({ supported: false, subscribed: false, permission: 'default' });
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushPrefs, setPushPrefs] = useState({ room_messages: true, member_joins: true, social: true });
+  const [pushPrefsReady, setPushPrefsReady] = useState(false);
+  const [prefsBusy, setPrefsBusy] = useState(false);
+
   const scrollRef = useRef(null);
   const atBottomRef = useRef(true);
   const firstLoadRef = useRef(true);
@@ -222,9 +279,31 @@ const AnonymousRoom = () => {
   const prependKeepRef = useRef(null);
   const draftRef = useRef(null);
   const lastTypingSentRef = useRef(0);
+  const lastActivityRef = useRef(Date.now());
   const presenceKeyRef = useRef(`s:${Math.random().toString(36).slice(2, 10)}`);
   const expiringRef = useRef(new Set());
   const bootstrapInFlightRef = useRef(null);
+  const lastAccessRef = useRef(null);
+  const seenSoundIdsRef = useRef(new Set());
+  const soundRef = useRef(soundOn);
+  const olderCursorRef = useRef(null);
+  const celebrationTimerRef = useRef(null);
+  const fightTimerRef = useRef(null);
+  // alias -> last-celebrated timestamp. Join broadcasts can be delivered again
+  // on a reconnect/reconcile; this keeps one celebration per member per TTL.
+  const celebratedRef = useRef(new Map());
+  const [olderError, setOlderError] = useState(false);
+  const prefersReducedMotion = useMemo(
+    () =>
+      typeof window !== 'undefined' &&
+      typeof window.matchMedia === 'function' &&
+      window.matchMedia('(prefers-reduced-motion: reduce)').matches,
+    [],
+  );
+
+  useEffect(() => {
+    soundRef.current = soundOn;
+  }, [soundOn]);
 
   const groupId = room?.group?.id ?? (id ? Number(id) : null);
   const myLabel = room?.my_alias ? `Anonymous #${String(room.my_alias).padStart(2, '0')}` : null;
@@ -234,11 +313,21 @@ const AnonymousRoom = () => {
   const canReact = isMember || isSpectator;
   const isHost = !!room?.is_host;
   const memberCount = room?.member_count;
-  const memberLimit = room?.group?.member_limit;
+  const memberLimit = room?.config?.membership?.capacity ?? room?.group?.member_limit;
   const membershipLocked = !!room?.group?.membership_locked;
   const thresholds = room?.thresholds || {};
   const price = room?.group?.spectator_price;
   const noticeAccepted = !isMember || room?.notice?.accepted === true;
+  const myAliasNum = room?.my_alias ?? null;
+  const roomActions = room?.config?.actions || room?.config?.tags || room?.config?.social_actions || [];
+  const roomTags = roomActions;
+  const roomSocial = roomActions;
+  const isPremiumRoom = room?.is_premium === true;
+  const tagMap = useMemo(() => {
+    const map = new Map();
+    for (const t of room?.config?.actions || room?.config?.tags || []) map.set(t.key, t);
+    return map;
+  }, [room?.config?.actions, room?.config?.tags]);
 
   // ---------------------------------------------------------------
   // Data loading
@@ -258,6 +347,18 @@ const AnonymousRoom = () => {
 
   const upsertMessage = useCallback((msg) => {
     if (!msg) return;
+    // Audible cue for genuinely new incoming messages only (not our own send,
+    // not a re-fetch of a message we've already seen, not history).
+    const isNew = !seenSoundIdsRef.current.has(msg.id);
+    seenSoundIdsRef.current.add(msg.id);
+    if (
+      isNew &&
+      !msg.is_mine &&
+      soundRef.current &&
+      Date.now() - (Date.parse(msg.created_at) || 0) < 30000
+    ) {
+      playMessagePop();
+    }
     setMessages((prev) => {
       const idx = prev.findIndex((m) => m.id === msg.id);
       const next = idx >= 0 ? prev.map((m) => (m.id === msg.id ? msg : m)) : [...prev, msg];
@@ -281,11 +382,26 @@ const AnonymousRoom = () => {
     }
   }, [session, groupId, upsertMessage, removeMessage]);
 
+  // When a member seat is released (inactivity reconciliation) the room stays
+  // open but the member loses access: detect the member→closed transition so a
+  // viewer currently in the room is told why and sent home instead of being
+  // silently dumped onto the rejoin screen. Wipe/banned are handled elsewhere.
+  const detectRelease = useCallback((data) => {
+    const prev = lastAccessRef.current;
+    lastAccessRef.current = data?.access;
+    const wasMember = prev === 'member';
+    const gone = !data || !['member', 'spectator'].includes(data.access);
+    if (wasMember && gone && data && data.access !== 'wiped' && data.access !== 'banned') {
+      setReleasedNotice(true);
+    }
+  }, []);
+
   // Re-fetch the room state + latest page. Merges so older loaded pages survive
   // and disappeared recent messages are pruned (deletes/expiry stay consistent).
   const reconcile = useCallback(async () => {
     try {
       const data = await loadRoom();
+      detectRelease(data);
       if (data.access === 'member' || data.access === 'spectator') {
         const feed = await loadFeed(data.group.id);
         const fetched = feed.messages || [];
@@ -299,11 +415,12 @@ const AnonymousRoom = () => {
             .sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));
         });
         setHasMore(!!feed.has_more);
+        olderCursorRef.current = feed.next_before || (fetched[0]?.created_at ?? null);
       }
     } catch {
       /* transient — realtime retry / polling will reconcile again */
     }
-  }, [loadRoom, loadFeed]);
+  }, [loadRoom, loadFeed, detectRelease]);
 
   const bootstrap = useCallback(async (isRefresh = false) => {
     // Dedupe concurrent bootstraps (StrictMode double-mount, refresh + realtime
@@ -317,10 +434,12 @@ const AnonymousRoom = () => {
       setBootError('');
       try {
         const data = await loadRoom();
+        detectRelease(data);
         if (data.access === 'member' || data.access === 'spectator') {
           const feed = await loadFeed(data.group.id);
           setMessages(feed.messages || []);
           setHasMore(!!feed.has_more);
+          olderCursorRef.current = feed.next_before || (feed.messages?.[0]?.created_at ?? null);
           firstLoadRef.current = true;
         } else {
           setMessages([]);
@@ -343,7 +462,7 @@ const AnonymousRoom = () => {
     } finally {
       bootstrapInFlightRef.current = null;
     }
-  }, [loadRoom, loadFeed]);
+  }, [loadRoom, loadFeed, detectRelease]);
 
   useEffect(() => {
     bootstrap(false);
@@ -356,6 +475,26 @@ const AnonymousRoom = () => {
     ]);
   }, []);
 
+  // Celebrate a new member joining (transient overlay + optional chime).
+  // Deduplicates per member so a reconnect/reconcile does not replay it.
+  const celebrate = useCallback((alias) => {
+    const key = alias != null ? String(alias) : '__anon__';
+    const now = Date.now();
+    if (now - (celebratedRef.current.get(key) || 0) < 60_000) return;
+    celebratedRef.current.set(key, now);
+    setCelebration({ id: now, alias: alias ?? null, reduced: prefersReducedMotion });
+    if (soundRef.current) playJoinChime();
+    if (celebrationTimerRef.current) clearTimeout(celebrationTimerRef.current);
+    celebrationTimerRef.current = setTimeout(() => setCelebration(null), 3500);
+  }, [prefersReducedMotion]);
+
+  useEffect(
+    () => () => {
+      if (celebrationTimerRef.current) clearTimeout(celebrationTimerRef.current);
+    },
+    [],
+  );
+
   // ---------------------------------------------------------------
   // Realtime events (notification-only — always re-fetch before trusting)
   // ---------------------------------------------------------------
@@ -366,20 +505,31 @@ const AnonymousRoom = () => {
       setTypers((prev) => ({ ...prev, [alias]: Date.now() + TYPING_TTL_MS }));
       return;
     }
-    if (type === 'message' || type === 'edit' || type === 'react') {
+    if (type === 'message' || type === 'edit' || type === 'react' || type === 'social') {
       if (payload?.id) fetchOneMessage(payload.id);
+      return;
+    }
+    if (type === 'fight') {
+      // S1 — a reciprocal slap/kick started a fight. Transient banner only.
+      setFightAlert({ attacker: payload?.attacker ?? null, defender: payload?.defender ?? null });
+      if (fightTimerRef.current) clearTimeout(fightTimerRef.current);
+      fightTimerRef.current = setTimeout(() => setFightAlert(null), 5000);
       return;
     }
     if (type === 'delete') {
       if (payload?.id) removeMessage(payload.id);
       return;
     }
-    if (type === 'join') pushSystemEvent('join', { alias: payload?.alias ?? null });
-    else if (type === 'departure') pushSystemEvent('departure', { alias: payload?.alias ?? null });
+    if (type === 'join') {
+      pushSystemEvent('join', { alias: payload?.alias ?? null });
+      if (payload?.alias == null || Number(payload.alias) !== Number(myAliasNum)) {
+        celebrate(payload?.alias ?? null);
+      }
+    } else if (type === 'departure') pushSystemEvent('departure', { alias: payload?.alias ?? null });
     else if (type === 'state') pushSystemEvent('state');
     else if (type === 'wipe') pushSystemEvent('wipe');
     reconcile();
-  }, [myLabel, fetchOneMessage, removeMessage, pushSystemEvent, reconcile]);
+  }, [myLabel, myAliasNum, fetchOneMessage, removeMessage, pushSystemEvent, reconcile, celebrate]);
 
   const presence = useMemo(
     () =>
@@ -400,6 +550,67 @@ const AnonymousRoom = () => {
     onEvent,
     onReconcile: reconcile,
   });
+
+  // ---------------------------------------------------------------
+  // Presence heartbeat (server-authoritative; best-effort before v44)
+  // ---------------------------------------------------------------
+  useEffect(() => {
+    if (!realtimeEnabled || !groupId) return undefined;
+    let alive = true;
+    const beat = async () => {
+      try {
+        const data = await communityApi(session, '/anonymous/presence', {
+          group_id: groupId,
+          session_id: presenceKeyRef.current,
+        });
+        if (alive && typeof data?.online === 'number') setServerOnline(data.online);
+      } catch {
+        /* presence is best-effort; the room still works without it */
+      }
+    };
+    beat();
+    const t = setInterval(beat, 25000);
+    const onVis = () => {
+      if (document.visibilityState === 'hidden') {
+        communityApi(session, '/anonymous/presence-leave', { group_id: groupId }).catch(() => {});
+      } else {
+        beat();
+      }
+    };
+    document.addEventListener('visibilitychange', onVis);
+    return () => {
+      alive = false;
+      clearInterval(t);
+      document.removeEventListener('visibilitychange', onVis);
+      communityApi(session, '/anonymous/presence-leave', { group_id: groupId }).catch(() => {});
+    };
+  }, [realtimeEnabled, groupId, session]);
+
+  useEffect(() => {
+    setServerOnline(null);
+  }, [groupId]);
+
+  // S4 — in-app nudge before the server releases an inactive seat. The server
+  // remains authoritative; this only warns the user to interact before the
+  // activity deadline so they are not silently removed from the room.
+  const membershipWarningSeconds = room?.config?.membership?.warning_seconds ?? 600;
+  const markActivity = useCallback(() => {
+    lastActivityRef.current = Date.now();
+    setMemberWarning(false);
+  }, []);
+
+  useEffect(() => {
+    if (!isMember) {
+      setMemberWarning(false);
+      return undefined;
+    }
+    lastActivityRef.current = Date.now();
+    const warnAt = Math.max(0, Number(membershipWarningSeconds) || 0) * 1000;
+    const check = () => setMemberWarning(Date.now() - lastActivityRef.current >= warnAt);
+    check();
+    const t = setInterval(check, 15000);
+    return () => clearInterval(t);
+  }, [isMember, membershipWarningSeconds, room?.my_alias]);
 
   // ---------------------------------------------------------------
   // Timers: clock tick, expiry sweep, typing TTL, system-event fade
@@ -488,18 +699,35 @@ const AnonymousRoom = () => {
   }, []);
 
   const loadOlder = async () => {
-    if (!hasMore || loadingOlder || !messages.length || !groupId) return;
+    if (!hasMore || loadingOlder || !groupId) return;
+    // Use the server's raw page cursor so an all-expired page can still advance
+    // (and so the "Load earlier messages" control is never a dead end).
+    const before = olderCursorRef.current || messages[0]?.created_at || null;
+    if (!before) return;
     setLoadingOlder(true);
+    setOlderError(false);
     const el = scrollRef.current;
     try {
-      const feed = await loadFeed(groupId, messages[0].created_at);
+      const feed = await loadFeed(groupId, before);
       const seen = new Set(messages.map((m) => m.id));
       const older = (feed.messages || []).filter((m) => !seen.has(m.id));
       if (el) prependKeepRef.current = el.scrollHeight - el.scrollTop;
-      setMessages((prev) => [...older, ...prev]);
-      setHasMore(!!feed.has_more);
+      setMessages((prev) => {
+        const map = new Map(prev.map((m) => [m.id, m]));
+        for (const m of older) map.set(m.id, m);
+        return [...map.values()].sort(
+          (a, b) => Date.parse(a.created_at) - Date.parse(b.created_at),
+        );
+      });
+      olderCursorRef.current = feed.next_before || before;
+      // Only keep the control when BOTH the server says there is more AND we
+      // actually found something new — no more phantom "load earlier".
+      setHasMore(!!feed.has_more && older.length > 0);
     } catch (err) {
       console.error('anonymous room older load', err);
+      // Keep the control in place so the user can retry the same page.
+      setHasMore(true);
+      setOlderError(true);
     } finally {
       setLoadingOlder(false);
     }
@@ -517,21 +745,34 @@ const AnonymousRoom = () => {
 
   const sendMessage = async () => {
     const content = draft.trim();
+    const tag = pendingTag;
+    const encoded = encodedOn && isPremiumRoom;
     if (!content || sending || !groupId) return;
+    if (encoded && encodedRecipient == null) {
+      setComposerError(SEND_ERRORS.RECIPIENT_REQUIRED);
+      setPickerOpen('recipient');
+      return;
+    }
     setSending(true);
     setComposerError('');
     try {
       const data = await communityApi(session, '/anonymous/send', {
-        content,
+        content: content || '',
         group_id: groupId,
         ...(replyTo ? { reply_to_post_id: replyTo.id } : {}),
+        ...(tag ? { tag } : {}),
+        ...(encoded ? { encoded: true, recipient_alias: encodedRecipient } : {}),
       });
       justSentRef.current = true;
       upsertMessage(data.message);
       setDraft('');
+      setPendingTag(null);
+      setEncodedRecipient(null);
+      setPickerOpen(null);
       if (draftRef.current) draftRef.current.style.height = 'auto';
       setReplyTo(null);
       jumpToBottom();
+      markActivity();
     } catch (err) {
       if (err.code === 'NOTICE_REQUIRED') {
         setShowNotice(true);
@@ -539,11 +780,113 @@ const AnonymousRoom = () => {
       } else {
         setComposerError(SEND_ERRORS[err.code] || err.message || 'Message could not be sent.');
       }
+      if (err.code === 'PREMIUM_REQUIRED') {
+        setEncodedOn(false);
+        setEncodedRecipient(null);
+      }
+      if (err.code === 'RECIPIENT_REQUIRED' || err.code === 'INVALID_RECIPIENT') {
+        setEncodedRecipient(null);
+        setPickerOpen('recipient');
+      }
       if (['GROUP_WIPED', 'BANNED', 'ANONYMOUS_MEMBERS_ONLY', 'GROUP_FULL', 'MEMBERSHIP_LOCKED'].includes(err.code)) {
         bootstrap(true);
       }
     } finally {
       setSending(false);
+    }
+  };
+
+  const sendSocial = async (msg, action) => {
+    if (!canReact || !msg?.id) return;
+    if (soundRef.current) playSocialTone();
+    try {
+      const data = await communityApi(session, '/anonymous/social', {
+        message_id: msg.id,
+        action,
+        group_id: groupId,
+      });
+      setMessages((prev) => prev.map((m) => (m.id === msg.id ? { ...m, social: data.social } : m)));
+      markActivity();
+    } catch (err) {
+      setComposerError(SEND_ERRORS[err.code] || err.message || 'Action could not be saved.');
+    } finally {
+      setOpenActions(null);
+    }
+  };
+
+  const revealEncoded = async (msg) => {
+    if (!msg?.id) return;
+    setComposerError('');
+    try {
+      const data = await communityApi(session, '/anonymous/encoded', {
+        message_id: msg.id,
+        group_id: groupId,
+      });
+      setRevealedEncoded((prev) => ({ ...prev, [msg.id]: data.content || '' }));
+    } catch (err) {
+      setComposerError(SEND_ERRORS[err.code] || err.message || 'Could not unlock this message.');
+    }
+  };
+
+  const toggleSound = () => {
+    setSoundOn((prev) => {
+      const next = !prev;
+      try {
+        localStorage.setItem(SOUND_KEY, String(next));
+      } catch {
+        /* best effort */
+      }
+      return next;
+    });
+  };
+
+  const openPush = async () => {
+    setPushOpen(true);
+    setPushState(await getPushState());
+    try {
+      const data = await communityApi(session, '/notifications/preferences', {});
+      if (data?.preferences) {
+        setPushPrefs({
+          room_messages: data.preferences.room_messages !== false,
+          member_joins: data.preferences.member_joins !== false,
+          social: data.preferences.social !== false,
+        });
+        setPushPrefsReady(!!data.ready);
+      }
+    } catch {
+      setPushPrefsReady(false);
+    }
+  };
+
+  const togglePref = async (key) => {
+    if (prefsBusy) return;
+    const next = { ...pushPrefs, [key]: !pushPrefs[key] };
+    setPushPrefs(next);
+    setPrefsBusy(true);
+    try {
+      const data = await savePreferences(session, { [key]: next[key] });
+      if (data?.preferences) setPushPrefsReady(!!data.ready);
+    } catch {
+      setPushPrefs((prev) => ({ ...prev, [key]: !next[key] }));
+    } finally {
+      setPrefsBusy(false);
+    }
+  };
+
+  const togglePush = async () => {
+    if (pushBusy) return;
+    setPushBusy(true);
+    setComposerError('');
+    try {
+      const res = pushState.subscribed ? await disablePush(session) : await enablePush(session);
+      if (!res.ok) {
+        if (res.reason === 'not_configured') setComposerError('Push notifications are not configured on this server yet.');
+        else if (res.reason === 'denied') setComposerError('Notifications are blocked in your browser settings.');
+        else if (res.reason === 'unsupported') setComposerError('This browser does not support push notifications.');
+      }
+      setPushState(await getPushState());
+    } finally {
+      setPushBusy(false);
     }
   };
 
@@ -574,6 +917,7 @@ const AnonymousRoom = () => {
         group_id: groupId,
       });
       setMessages((prev) => prev.map((m) => (m.id === msg.id ? { ...m, reactions: data.reactions } : m)));
+      markActivity();
     } catch (err) {
       setComposerError(SEND_ERRORS[err.code] || err.message || 'Reaction could not be saved.');
     } finally {
@@ -598,6 +942,7 @@ const AnonymousRoom = () => {
       setMessages((prevList) =>
         prevList.map((m) => (m.id === msg.id ? patch(m, data.score, data.my_vote) : m))
       );
+      markActivity();
       return data;
     } catch (err) {
       setMessages((prevList) =>
@@ -713,9 +1058,11 @@ const AnonymousRoom = () => {
     setLeaving(true);
     try {
       await communityApi(session, '/groups/leave', { group_id: groupId });
+      await communityApi(session, '/anonymous/presence-leave', { group_id: groupId }).catch(() => {});
       setExitOpen(false);
       setShowRules(false);
-      navigate('/study-groups');
+      setServerOnline(null);
+      setExitDone(true);
     } catch (err) {
       setComposerError(err.message || 'Could not leave right now.');
     } finally {
@@ -923,7 +1270,7 @@ const buySpectator = async () => {
   }
 
   if (room && room.access === 'join') {
-    const target = thresholds.activate ?? 10;
+    const target = thresholds.activate ?? memberLimit ?? 0;
     const pct = Math.min(100, Math.round(((memberCount || 0) / target) * 100));
     return (
       <div className="h-[100dvh] bg-slate-950 text-slate-200 overflow-y-auto">
@@ -1022,10 +1369,71 @@ const buySpectator = async () => {
     );
   }
 
+  if (exitDone) {
+    return (
+      <div className="h-[100dvh] bg-slate-950 text-slate-200 overflow-y-auto">
+        <GateCard>
+          <div className="text-4xl mb-3">👋</div>
+          <h1 className="text-xl font-black text-white">You've left the room.</h1>
+          <p className="text-sm text-slate-400 font-medium mt-2">
+            Your seat has been released and the room no longer counts you. Any messages you sent stay
+            anonymous and expire on their own 5-minute timer.
+          </p>
+          <div className="flex flex-col items-stretch gap-2.5 mt-6">
+            <button
+              onClick={() => navigate('/study-groups')}
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-apex-600 text-white font-black text-xs uppercase tracking-widest hover:bg-apex-700 transition"
+            >
+              <Users size={14} /> Find another room
+            </button>
+            <button
+              onClick={() => {
+                setExitDone(false);
+                bootstrap(true);
+              }}
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black text-xs uppercase tracking-widest hover:bg-slate-700 transition"
+            >
+              <RefreshCw size={14} /> Rejoin this room
+            </button>
+          </div>
+        </GateCard>
+      </div>
+    );
+  }
+
   const mutedCount = muted.size;
+  const liveOnline = serverOnline ?? online;
 
   return (
     <div className="relative h-[100dvh] bg-slate-950 text-slate-200 flex flex-col overflow-hidden">
+      {celebration && (
+        <div className="pointer-events-none absolute inset-x-0 top-16 z-20 flex justify-center">
+          <div className={`flex items-center gap-2 px-4 py-2 rounded-full bg-apex-600/90 text-white text-xs font-black uppercase tracking-widest shadow-2xl border border-apex-400/40 ${celebration.reduced ? '' : 'animate-bounce'}`}>
+            <Sparkles size={13} />
+            {celebration.alias != null
+              ? `Anonymous #${String(celebration.alias).padStart(2, '0')} joined 🎉`
+              : 'A new member joined 🎉'}
+          </div>
+        </div>
+      )}
+      {fightAlert && (
+        <div className="pointer-events-none absolute inset-x-0 top-16 z-20 flex justify-center">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-rose-600/90 text-white text-xs font-black uppercase tracking-widest shadow-2xl border border-rose-400/40 animate-bounce">
+            <Swords size={13} />
+            {fightAlert.attacker != null && fightAlert.defender != null
+              ? `Fight! Anonymous #${String(fightAlert.attacker).padStart(2, '0')} vs #${String(fightAlert.defender).padStart(2, '0')}`
+              : 'A fight broke out 🥊'}
+          </div>
+        </div>
+      )}
+      {memberWarning && isMember && (
+        <div className="pointer-events-none absolute inset-x-0 bottom-24 z-20 flex justify-center px-4">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/95 text-slate-950 text-[11px] font-black uppercase tracking-widest shadow-2xl border border-amber-300/50">
+            <Info size={13} />
+            Still there? Interact to keep your seat
+          </div>
+        </div>
+      )}
       <header className="shrink-0 border-b border-slate-800/80 bg-slate-950/95 backdrop-blur px-4 py-3 flex items-center gap-2.5">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
@@ -1052,19 +1460,26 @@ const buySpectator = async () => {
                 <Eye size={10} /> Spectator
               </span>
             )}
-            {online !== null && (
-              <span className="inline-flex items-center gap-1">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> {online} online
-              </span>
-            )}
-            {typeof memberCount === 'number' && (
-              <span className="inline-flex items-center gap-1">
-                <Users size={10} /> {memberCount}
-                {typeof memberLimit === 'number' ? ` / ${memberLimit}` : ''}
+            {(typeof memberCount === 'number' || (liveOnline !== null && liveOnline !== undefined)) && (
+              <span className="inline-flex items-center gap-1.5">
+                {typeof memberCount === 'number' && (
+                  <span className="inline-flex items-center gap-1" title="Members / capacity">
+                    <Users size={10} /> {memberCount}
+                    {typeof memberLimit === 'number' ? `/${memberLimit}` : ''} members
+                  </span>
+                )}
+                {typeof memberCount === 'number' &&
+                  liveOnline !== null &&
+                  liveOnline !== undefined && <span className="text-slate-600">·</span>}
+                {liveOnline !== null && liveOnline !== undefined && (
+                  <span className="inline-flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> {liveOnline} online
+                  </span>
+                )}
               </span>
             )}
             {room?.group?.group_state === 'waiting' && (
-              <span className="text-amber-400">opens at {thresholds.activate ?? 10}</span>
+              <span className="text-amber-400">opens at {thresholds.activate ?? '—'}</span>
             )}
             {mutedCount > 0 && (
               <button
@@ -1094,6 +1509,27 @@ const buySpectator = async () => {
             <span className="hidden sm:inline text-[10px] font-black uppercase tracking-widest">
               {membershipLocked ? 'Reopen' : 'Close'}
             </span>
+          </button>
+        )}
+        <button
+          onClick={toggleSound}
+          className="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition shrink-0"
+          aria-label={soundOn ? 'Mute sounds' : 'Enable sounds'}
+          title={soundOn ? 'Sounds on' : 'Sounds off'}
+        >
+          {soundOn ? <Volume2 size={15} /> : <VolumeX size={15} />}
+        </button>
+        {pushSupported() && (
+          <button
+            onClick={openPush}
+            className="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition shrink-0 relative"
+            aria-label="Notification settings"
+            title="Notifications"
+          >
+            <Bell size={15} />
+            {pushState.subscribed && (
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 rounded-full bg-emerald-400" />
+            )}
           </button>
         )}
         <button
@@ -1145,15 +1581,20 @@ const buySpectator = async () => {
 
       <main ref={scrollRef} onScroll={onScroll} className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
         {hasMore && (
-          <div className="flex justify-center pb-3">
+          <div className="flex flex-col items-center gap-1.5 pb-3">
             <button
               onClick={loadOlder}
               disabled={loadingOlder}
               className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-slate-900 border border-slate-800 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white disabled:opacity-50"
             >
               {loadingOlder && <Loader2 size={12} className="animate-spin" />}
-              Load earlier messages
+              {olderError ? 'Retry earlier messages' : 'Load earlier messages'}
             </button>
+            {olderError && (
+              <span className="text-[10px] font-bold text-red-400">
+                Couldn't load earlier messages. Tap to retry.
+              </span>
+            )}
           </div>
         )}
 
@@ -1201,6 +1642,20 @@ const buySpectator = async () => {
                     )}
                     <span className="text-[10px] font-bold text-slate-600">{timeOf(msg.created_at)}</span>
                     {msg.edited && <span className="text-[10px] font-bold text-slate-600 italic">edited</span>}
+                    {msg.tag && tagMap.get(msg.tag) && (
+                      <span
+                        className={`px-1.5 py-0.5 rounded-full border text-[8px] font-black uppercase tracking-widest ${
+                          TAG_TONE_CLASS[tagMap.get(msg.tag).tone] || 'bg-slate-800 text-slate-400 border-slate-700'
+                        }`}
+                      >
+                        {tagMap.get(msg.tag).label}
+                      </span>
+                    )}
+                    {msg.encoded && (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-violet-500/15 text-violet-300 border border-violet-500/30 text-[8px] font-black uppercase tracking-widest">
+                        <Lock size={8} /> Encoded
+                      </span>
+                    )}
                     {Number.isFinite(remaining) && remaining > 0 && (
                       <span className="text-[10px] font-semibold text-slate-600 tabular-nums">
                         Expires in {fmtMSS(remaining)}
@@ -1269,9 +1724,34 @@ const buySpectator = async () => {
                           </div>
                         </div>
                       ) : (
-                        <p className="text-sm font-medium text-slate-300 mt-0.5 whitespace-pre-wrap break-words leading-relaxed">
-                          {mentionNodes(msg.content, jumpToAlias)}
-                        </p>
+                        <>
+                          {revealedEncoded[msg.id] !== undefined ? (
+                            <p className="text-sm font-medium text-slate-300 mt-0.5 whitespace-pre-wrap break-words leading-relaxed">
+                              {mentionNodes(revealedEncoded[msg.id], jumpToAlias)}
+                            </p>
+                          ) : msg.locked ? (
+                            <div className="mt-1 inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-violet-500/10 border border-violet-500/30">
+                              <Lock size={13} className="text-violet-300" />
+                              <span className="text-[11px] font-bold text-violet-200">
+                                {msg.encoded_for_me ? 'Encoded message' : 'Encoded · private'}
+                              </span>
+                              {msg.encoded_for_me ? (
+                                <button
+                                  onClick={() => revealEncoded(msg)}
+                                  className="text-[10px] font-black uppercase tracking-widest text-violet-300 hover:text-white"
+                                >
+                                  Unlock
+                                </button>
+                              ) : (
+                                <span className="text-[10px] font-bold text-violet-300/70">Only the recipient can read this</span>
+                              )}
+                            </div>
+                          ) : msg.content ? (
+                            <p className="text-sm font-medium text-slate-300 mt-0.5 whitespace-pre-wrap break-words leading-relaxed">
+                              {mentionNodes(msg.content, jumpToAlias)}
+                            </p>
+                          ) : null}
+                        </>
                       )}
 
                       {canReact && (
@@ -1329,6 +1809,25 @@ const buySpectator = async () => {
                           ))}
                         </div>
                       )}
+
+                      {msg.social?.length > 0 && (
+                        <div className="flex items-center gap-1.5 flex-wrap mt-1.5">
+                          {msg.social.map((s) => (
+                            <span
+                              key={s.action}
+                              className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[11px] font-black border ${
+                                s.mine
+                                  ? 'bg-apex-500/20 border-apex-500/50 text-apex-300'
+                                  : 'bg-slate-900 border-slate-800 text-slate-400'
+                              }`}
+                              title={s.label}
+                            >
+                              <span>{s.glyph}</span>
+                              <span>{s.count}</span>
+                            </span>
+                          ))}
+                        </div>
+                      )}
                     </>
                   )}
 
@@ -1379,6 +1878,20 @@ const buySpectator = async () => {
                       >
                         <Smile size={11} /> React
                       </button>
+                      {canReact && roomSocial.length > 0 && (
+                        <div className="inline-flex items-center gap-1">
+                          {roomSocial.map((a) => (
+                            <button
+                              key={a.key}
+                              onClick={() => sendSocial(msg, a.key)}
+                              title={a.label}
+                              className="w-7 h-7 rounded-lg bg-slate-900 border border-slate-800 text-sm hover:border-apex-500/60 transition"
+                            >
+                              {a.glyph}
+                            </button>
+                          ))}
+                        </div>
+                      )}
                       {msg.is_mine && (
                         <>
                           <button
@@ -1498,6 +2011,61 @@ const buySpectator = async () => {
           </div>
         )}
 
+        {(pendingTag || (encodedOn && isPremiumRoom)) && (
+          <div className="flex items-center gap-1.5 flex-wrap px-1 pb-2">
+            {pendingTag && tagMap.get(pendingTag) && (
+              <span
+                className={`inline-flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest ${
+                  TAG_TONE_CLASS[tagMap.get(pendingTag).tone] || 'bg-slate-800 text-slate-400 border-slate-700'
+                }`}
+              >
+                {tagMap.get(pendingTag).label}
+                <button onClick={() => setPendingTag(null)} className="hover:text-white">
+                  <X size={11} />
+                </button>
+              </span>
+            )}
+            {encodedOn && isPremiumRoom && (
+              <span className="inline-flex items-center gap-1.5 pl-2 pr-1 py-1 rounded-full bg-violet-500/15 border border-violet-500/30 text-[10px] font-black uppercase tracking-widest text-violet-300">
+                <Lock size={10} /> Encoded
+                <span className="text-violet-100 normal-case font-bold tracking-normal">
+                  {encodedRecipient != null
+                    ? `to Anonymous #${String(encodedRecipient).padStart(2, '0')}`
+                    : '· choose recipient'}
+                </span>
+                <button
+                  onClick={() => {
+                    setEncodedOn(false);
+                    setEncodedRecipient(null);
+                  }}
+                  className="hover:text-white"
+                >
+                  <X size={11} />
+                </button>
+              </span>
+            )}
+          </div>
+        )}
+
+        {pickerOpen === 'tag' && canSpeak && (
+          <div className="flex items-center gap-1.5 flex-wrap px-1 pb-2">
+            {roomTags.map((t) => (
+              <button
+                key={t.key}
+                onClick={() => {
+                  setPendingTag(pendingTag === t.key ? null : t.key);
+                  setPickerOpen(null);
+                }}
+                className={`px-2.5 py-1 rounded-full border text-[10px] font-black uppercase tracking-widest transition ${
+                  TAG_TONE_CLASS[t.tone] || 'bg-slate-800 text-slate-400 border-slate-700'
+                } ${pendingTag === t.key ? 'ring-1 ring-white/40' : ''}`}
+              >
+                {t.label}
+              </button>
+            ))}
+          </div>
+        )}
+
         {mentionSuggestions.length > 0 && (
           <div className="flex items-center gap-1.5 flex-wrap px-1 pb-2">
             {mentionSuggestions.map(([n]) => (
@@ -1513,7 +2081,84 @@ const buySpectator = async () => {
           </div>
         )}
 
+        {pickerOpen === 'recipient' && encodedOn && isPremiumRoom && canSpeak && (
+          <div className="flex items-center gap-1.5 flex-wrap px-1 pb-2">
+            <span className="text-[10px] font-black uppercase tracking-widest text-violet-300 px-1">
+              Encoded to
+            </span>
+            {knownAliases.length === 0 && (
+              <span className="text-[11px] font-bold text-slate-500">No other members have spoken yet.</span>
+            )}
+            {knownAliases.map(([n]) => (
+              <button
+                key={n}
+                onClick={() => {
+                  setEncodedRecipient(n);
+                  setPickerOpen(null);
+                  setComposerError('');
+                }}
+                className={`px-2.5 py-1 rounded-full border text-[11px] font-black transition ${
+                  encodedRecipient === n
+                    ? 'bg-violet-500/20 border-violet-500/50 text-violet-200'
+                    : 'bg-slate-900 border-slate-800 hover:border-violet-500/40'
+                }`}
+                style={identityStyle(n)}
+              >
+                @Anonymous #{String(n).padStart(2, '0')}
+              </button>
+            ))}
+          </div>
+        )}
+
         {composerError && <p className="text-[11px] font-bold text-red-400 px-1 mb-2">{composerError}</p>}
+
+        <div className="flex items-center gap-1.5 px-1 pb-2">
+          <button
+            onClick={() => setPickerOpen(pickerOpen === 'tag' ? null : 'tag')}
+            disabled={!canSpeak}
+            className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition disabled:opacity-40 ${
+              pickerOpen === 'tag'
+                ? 'bg-apex-500/20 border-apex-500/50 text-apex-300'
+                : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+            }`}
+          >
+            <Plus size={12} /> Tag
+          </button>
+          <button
+            onClick={() => {
+              if (isPremiumRoom) {
+                setEncodedOn((v) => {
+                  if (v) setEncodedRecipient(null);
+                  return !v;
+                });
+              } else setComposerError('Encoded Messages are a premium feature.');
+            }}
+            disabled={!canSpeak}
+            className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition disabled:opacity-40 ${
+              encodedOn && isPremiumRoom
+                ? 'bg-violet-500/20 border-violet-500/50 text-violet-300'
+                : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+            }`}
+            title={isPremiumRoom ? 'Encoded Message' : 'Encoded Messages are premium'}
+          >
+            <Lock size={12} /> Encode
+          </button>
+          {encodedOn && isPremiumRoom && (
+            <button
+              onClick={() => setPickerOpen(pickerOpen === 'recipient' ? null : 'recipient')}
+              disabled={!canSpeak}
+              className={`inline-flex items-center gap-1 px-2.5 py-1.5 rounded-xl border text-[10px] font-black uppercase tracking-widest transition disabled:opacity-40 ${
+                pickerOpen === 'recipient' || encodedRecipient != null
+                  ? 'bg-violet-500/20 border-violet-500/50 text-violet-300'
+                  : 'bg-slate-900 border-slate-800 text-slate-400 hover:text-white'
+              }`}
+              title="Choose who can read the Encoded Message"
+            >
+              <Users size={12} /> To
+              {encodedRecipient != null && <span className="text-violet-100">#{String(encodedRecipient).padStart(2, '0')}</span>}
+            </button>
+          )}
+        </div>
 
         <div className="flex items-end gap-2 pb-2">
           <textarea
@@ -1571,7 +2216,7 @@ const buySpectator = async () => {
             </li>
             <li className="flex gap-2">
               <span className="text-apex-400 font-black">03</span>
-              Messages are ephemeral. Every message disappears exactly 5 minutes after it is sent, and a
+              Messages are ephemeral. Every message disappears exactly 10 minutes after it is sent, and a
               wiped round erases everything.
             </li>
             <li className="flex gap-2">
@@ -1610,7 +2255,7 @@ const buySpectator = async () => {
             </li>
             <li className="flex gap-2">
               <span className="text-apex-400 font-black">03</span>
-              Every message is ephemeral — it disappears exactly 5 minutes after it is sent. A wiped round
+              Every message is ephemeral — it disappears exactly 10 minutes after it is sent. A wiped round
               erases everything.
             </li>
             <li className="flex gap-2">
@@ -1621,6 +2266,13 @@ const buySpectator = async () => {
             <li className="flex gap-2">
               <span className="text-apex-400 font-black">05</span>
               Report harmful messages. You can also mute any Anonymous member locally.
+            </li>
+            <li className="flex gap-2">
+              <span className="text-apex-400 font-black">06</span>
+              Seats are live. Interact (send, reply, react, vote or use an action) at least once every{' '}
+              {Math.round((room?.config?.membership?.activity_seconds ?? 900) / 60)} minutes or your seat is
+              released so someone else can join. A heartbeat or open tab does not count — being present is not
+              the same as participating.
             </li>
           </ul>
           {isMember && (
@@ -1638,30 +2290,74 @@ const buySpectator = async () => {
         </Modal>
       )}
 
-      {exitOpen && (
-        <Modal onClose={() => setExitOpen(false)}>
-          <h2 className="font-black text-white text-lg">Leave the Anonymous room?</h2>
-          <p className="text-sm font-medium text-slate-400 mt-2">
-            Your account keeps its messages posted anonymously, but your seat is released. If membership falls
-            below {thresholds.survive ?? 'the minimum'}, the whole round is wiped.
-          </p>
-          <div className="flex gap-2 mt-5">
-            <button
-              onClick={() => setExitOpen(false)}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 font-black text-xs uppercase tracking-widest"
-            >
-              Stay
-            </button>
-            <button
-              onClick={leaveRoom}
-              disabled={leaving}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-red-600 text-white font-black text-xs uppercase tracking-widest hover:bg-red-700 disabled:opacity-50 inline-flex items-center justify-center gap-2"
-            >
-              {leaving ? <Loader2 size={14} className="animate-spin" /> : <ArrowLeft size={14} />}
-              Leave
-            </button>
+      {releasedNotice && (
+        <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur flex items-center justify-center p-5">
+          <div className="w-full max-w-sm text-center">
+            <div className="text-5xl mb-4">⏳</div>
+            <h2 className="text-xl font-black text-white">Your seat was released</h2>
+            <p className="text-sm font-medium text-slate-400 mt-2">
+              You went {Math.round((room?.config?.membership?.activity_seconds ?? 900) / 60)} minutes without
+              interacting, so your seat in this Anonymous room was released for someone else. You can rejoin
+              whenever a spot is open.
+            </p>
+            <div className="flex flex-col gap-2.5 mt-6">
+              <button
+                onClick={() => navigate('/dashboard')}
+                className="w-full px-4 py-3 rounded-xl bg-apex-600 text-white font-black text-xs uppercase tracking-widest hover:bg-apex-700 inline-flex items-center justify-center gap-2"
+              >
+                <ArrowLeft size={14} />
+                Return to Home
+              </button>
+              <button
+                onClick={() => setReleasedNotice(false)}
+                className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 font-black text-xs uppercase tracking-widest hover:text-white"
+              >
+                Stay here
+              </button>
+            </div>
           </div>
-        </Modal>
+        </div>
+      )}
+
+      {exitOpen && (
+        <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur flex items-center justify-center p-5">
+          <div className="w-full max-w-sm text-center">
+            {leaving ? (
+              <>
+                <Loader2 size={40} className="mx-auto text-apex-400 animate-spin mb-4" />
+                <h2 className="text-xl font-black text-white">Leaving Anonymous Room…</h2>
+                <p className="text-sm font-medium text-slate-400 mt-2">
+                  Releasing your seat. Hold on a moment.
+                </p>
+              </>
+            ) : (
+              <>
+                <div className={`text-5xl mb-4 ${prefersReducedMotion ? '' : 'animate-bounce'}`}>👋</div>
+                <h2 className="text-xl font-black text-white">Leave the Anonymous room?</h2>
+                <p className="text-sm font-medium text-slate-400 mt-2">
+                  Your messages stay posted anonymously, but your seat is released. If membership falls below{' '}
+                  {thresholds.survive ?? 'the minimum'}, the whole round is wiped.
+                </p>
+                <div className="flex flex-col gap-2.5 mt-6">
+                  <button
+                    onClick={leaveRoom}
+                    disabled={leaving}
+                    className="w-full px-4 py-3 rounded-xl bg-red-600 text-white font-black text-xs uppercase tracking-widest hover:bg-red-700 disabled:opacity-50 inline-flex items-center justify-center gap-2"
+                  >
+                    <ArrowLeft size={14} />
+                    Confirm Exit
+                  </button>
+                  <button
+                    onClick={() => setExitOpen(false)}
+                    className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 font-black text-xs uppercase tracking-widest hover:text-white"
+                  >
+                    Stay in Room
+                  </button>
+                </div>
+              </>
+            )}
+          </div>
+        </div>
       )}
 
       {reportFor && (
@@ -1796,6 +2492,84 @@ const buySpectator = async () => {
               Pay ₦{price ?? '…'}
             </button>
           </div>
+        </Modal>
+      )}
+
+      {pushOpen && (
+        <Modal onClose={() => setPushOpen(false)}>
+          <div className="flex items-center gap-2 mb-3">
+            <Bell size={18} className="text-apex-400" />
+            <h2 className="font-black text-white text-lg">Notifications</h2>
+            <button onClick={() => setPushOpen(false)} className="ml-auto text-slate-500 hover:text-white">
+              <X size={16} />
+            </button>
+          </div>
+          {pushState.supported ? (
+            <>
+              <p className="text-sm font-medium text-slate-400">
+                Get a quiet alert when a new message or a new member arrives in this room. Message
+                content is never included in a notification.
+              </p>
+              {pushState.permission === 'denied' && (
+                <p className="text-[11px] font-bold text-amber-400 mt-3">
+                  Notifications are blocked in your browser settings. Enable them for this site to turn
+                  this on.
+                </p>
+              )}
+              {composerError && <p className="text-[11px] font-bold text-red-400 mt-2">{composerError}</p>}
+              <button
+                onClick={togglePush}
+                disabled={pushBusy}
+                className={`mt-4 w-full px-4 py-3 rounded-xl font-black text-xs uppercase tracking-widest inline-flex items-center justify-center gap-2 disabled:opacity-50 transition ${
+                  pushState.subscribed
+                    ? 'bg-slate-800 border border-slate-700 text-slate-200 hover:bg-slate-700'
+                    : 'bg-apex-600 text-white hover:bg-apex-700'
+                }`}
+              >
+                {pushBusy ? <Loader2 size={14} className="animate-spin" /> : pushState.subscribed ? <VolumeX size={14} /> : <Bell size={14} />}
+                {pushState.subscribed ? 'Turn off notifications' : 'Turn on notifications'}
+              </button>
+
+              <div className="mt-4 border-t border-slate-800 pt-3">
+                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
+                  Notify me about
+                </p>
+                {[
+                  { key: 'room_messages', label: 'Messages that mention or reply to me' },
+                  { key: 'member_joins', label: 'New members joining' },
+                  { key: 'social', label: 'Social actions aimed at me' },
+                ].map((row) => (
+                  <button
+                    key={row.key}
+                    onClick={() => togglePref(row.key)}
+                    disabled={prefsBusy || !pushPrefsReady}
+                    aria-pressed={!!pushPrefs[row.key]}
+                    className="w-full flex items-center justify-between gap-3 px-2 py-2 rounded-xl hover:bg-slate-800/60 transition disabled:opacity-60"
+                  >
+                    <span className="text-left text-[12px] font-bold text-slate-300">{row.label}</span>
+                    <span
+                      className={`relative w-9 h-5 rounded-full transition shrink-0 ${
+                        pushPrefs[row.key] ? 'bg-apex-600' : 'bg-slate-700'
+                      }`}
+                    >
+                      <span
+                        className={`absolute top-0.5 w-4 h-4 rounded-full bg-white transition-all ${
+                          pushPrefs[row.key] ? 'left-[1.15rem]' : 'left-0.5'
+                        }`}
+                      />
+                    </span>
+                  </button>
+                ))}
+                <p className="text-[10px] font-bold text-slate-600 px-2 mt-1">
+                  Preferences are saved to your account and apply once notifications are on.
+                </p>
+              </div>
+            </>
+          ) : (
+            <p className="text-sm font-medium text-slate-400">
+              This browser does not support push notifications.
+            </p>
+          )}
         </Modal>
       )}
     </div>

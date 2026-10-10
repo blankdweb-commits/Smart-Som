@@ -34,6 +34,14 @@
 //   /api/community/anonymous/react   react            { message_id, emoji, active, group_id? }
 //   /api/community/anonymous/ack     accept notice    { group_id?, key? }
 //   /api/community/anonymous/lock    close/open room  { group_id?, locked }
+//   /api/community/anonymous/social  social action    { message_id, action, group_id? }
+//   /api/community/anonymous/presence       heartbeat { session_id, group_id? }
+//   /api/community/anonymous/presence-leave exit      { group_id? }
+//   /api/community/anonymous/encoded premium decode   { message_id, group_id? }
+//   /api/community/notifications/subscribe    { endpoint, keys:{p256dh,auth}, user_agent? }
+//   /api/community/notifications/unsubscribe  { endpoint }
+//   /api/community/notifications/preferences  { room_messages?, member_joins?, social? }
+//   /api/community/notifications/vapid        public key
 //   /api/community/moderation/reports  admin queue    { status?, limit? }
 //   /api/community/moderation/resolve  admin action   { report_id, action, note? }
 //   /api/community/cleanup           scheduler        header X-Cleanup-Token
@@ -62,6 +70,14 @@ import {
   handleAnonReact,
   handleAnonAck,
   handleAnonSetLocked,
+  handleAnonSocial,
+  handleAnonPresence,
+  handleAnonPresenceLeave,
+  handleAnonEncoded,
+  handleNotificationsSubscribe,
+  handleNotificationsUnsubscribe,
+  handleNotificationsPreferences,
+  handleNotificationsVapid,
   handleModerationReports,
   handleModerationResolve,
   handleCleanup,
@@ -89,6 +105,14 @@ const HANDLERS = [
   { re: /\/anonymous\/react$/, fn: handleAnonReact },
   { re: /\/anonymous\/ack$/, fn: handleAnonAck },
   { re: /\/anonymous\/lock$/, fn: handleAnonSetLocked },
+  { re: /\/anonymous\/social$/, fn: handleAnonSocial },
+  { re: /\/anonymous\/presence-leave$/, fn: handleAnonPresenceLeave },
+  { re: /\/anonymous\/presence$/, fn: handleAnonPresence },
+  { re: /\/anonymous\/encoded$/, fn: handleAnonEncoded },
+  { re: /\/notifications\/subscribe$/, fn: handleNotificationsSubscribe },
+  { re: /\/notifications\/unsubscribe$/, fn: handleNotificationsUnsubscribe },
+  { re: /\/notifications\/preferences$/, fn: handleNotificationsPreferences },
+  { re: /\/notifications\/vapid$/, fn: handleNotificationsVapid },
   { re: /\/moderation\/reports$/, fn: handleModerationReports },
   { re: /\/moderation\/resolve$/, fn: handleModerationResolve },
   { re: /\/cleanup$/, fn: handleCleanup },

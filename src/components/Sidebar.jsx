@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Volume2, Settings, Award, Users, Search, Brain, FileUp, Shield, Coins, Target, Trophy, Sparkles } from './Icons';
+import { LayoutDashboard, BookOpen, Volume2, Settings, Award, Users, Search, Brain, FileUp, Shield, ShieldCheck, Coins, Target, Trophy, Sparkles } from './Icons';
 import { useAppContext } from '../context/AppContext';
 import BrandLogo from './BrandLogo';
 
@@ -13,6 +13,8 @@ const Sidebar = () => {
     { name: 'Quiz Mode', icon: Brain, path: '/quiz' },
     { name: 'Weakness Drill', icon: Target, path: '/weakness-drill' },
     { name: 'Achievements', icon: Award, path: '/achievements' },
+    { name: 'Nursing License', icon: ShieldCheck, path: '/license' },
+    { name: 'Loan Shark', icon: Coins, path: '/loans' },
     { name: 'Leaderboard', icon: Trophy, path: '/leaderboard' },
     { name: 'Challenges', icon: Target, path: '/challenges' },
     { name: 'Squads', icon: Users, path: '/squads' },

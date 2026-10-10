@@ -36,6 +36,10 @@ const REWRITES = [
   { source: '/api/quiz-batch-get', destination: '/api/quiz' },
   { source: '/api/quiz-batch-answer', destination: '/api/quiz' },
   { source: '/api/quiz-batch-complete', destination: '/api/quiz' },
+  // /api/license/* -> /api/quiz (Nursing License Renewal sub-router, S8)
+  { source: '/api/license/:path*', destination: '/api/quiz', prefix: true },
+  // /api/loans/* -> /api/quiz (Loan Shark sub-router, S9)
+  { source: '/api/loans/:path*', destination: '/api/quiz', prefix: true },
   { source: '/api/matches/create', destination: '/api/matches-create' },
   { source: '/api/payments/webhook', destination: '/api/payments-webhook' },
   // /api/community/* -> /api/community (sub-path router like api/quiz.js)

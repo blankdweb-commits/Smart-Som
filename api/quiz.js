@@ -19,6 +19,11 @@
 
 import { applyCors } from './_utils.js';
 import { handleCreate, handleGet, handleAnswer, handleComplete } from './_quiz-batches.js';
+import { handleLicenseStatus, handleLicenseStart, handleLicenseSubmit } from './_license.js';
+import {
+  handleLoanList, handleLoanRequest, handleLoanOffer, handleLoanAccept, handleLoanRepay,
+  handleLoanReject, handleLoanCancel, handleLoanSharkBuy, handleLoanDefault,
+} from './_loans.js';
 
 export default async function handler(req, res) {
   if (!applyCors(req, res)) {
@@ -30,6 +35,25 @@ export default async function handler(req, res) {
 
   // Dispatch on the ORIGINAL path (query strings are irrelevant to routing).
   const path = (req.url || '').split('?')[0];
+
+  // Nursing License Renewal (S8) sub-routes (/api/license/status|start|submit).
+  const license = path.match(/license[-/](status|start|submit)$/)?.[1];
+  if (license === 'status') return handleLicenseStatus(req, res);
+  if (license === 'start') return handleLicenseStart(req, res);
+  if (license === 'submit') return handleLicenseSubmit(req, res);
+
+  // Loan Shark (S9) sub-routes (/api/loans/list|request|offer|accept|repay|...).
+  const loan = path.match(/loans?\/(list|request|offer|accept|repay|reject|cancel|shark-buy|default)$/)?.[1];
+  if (loan === 'list') return handleLoanList(req, res);
+  if (loan === 'request') return handleLoanRequest(req, res);
+  if (loan === 'offer') return handleLoanOffer(req, res);
+  if (loan === 'accept') return handleLoanAccept(req, res);
+  if (loan === 'repay') return handleLoanRepay(req, res);
+  if (loan === 'reject') return handleLoanReject(req, res);
+  if (loan === 'cancel') return handleLoanCancel(req, res);
+  if (loan === 'shark-buy') return handleLoanSharkBuy(req, res);
+  if (loan === 'default') return handleLoanDefault(req, res);
+
   const action = path.match(/batch-(create|get|answer|complete)$/)?.[1];
 
   switch (action) {

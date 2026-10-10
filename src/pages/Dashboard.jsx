@@ -1,7 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { BookOpen, TrendingUp, Award, Zap, ArrowRight, Clock, AlertCircle, Target, CheckCircle, ChevronRight, Lock, Sparkles, Coins, Trophy, Users } from '../components/Icons';
+import { BookOpen, TrendingUp, Award, Zap, ArrowRight, Clock, AlertCircle, Target, CheckCircle, ChevronRight, Lock, Sparkles, Coins, Trophy, Users, ShieldCheck } from '../components/Icons';
+import { fetchLicenseStatus } from '../utils/licenseApi';
 import { differenceInDays } from 'date-fns';
 
 import DailyChallengeWidget from '../components/DailyChallengeWidget';
@@ -348,6 +349,8 @@ const Dashboard = () => {
 
            <GlobalRankCard rank={globalRankInfo} />
 
+           <LicenseCard session={session} />
+
            <StudyPlanCard />
 
             <button
@@ -595,6 +598,60 @@ const GlobalRankCard = ({ rank }) => {
         )}
       </div>
     </div>
+  );
+};
+
+// ---- Nursing License card: server-authoritative status (S8) ----
+const LicenseCard = ({ session }) => {
+  const navigate = useNavigate();
+  const [state, setState] = React.useState({ loading: true, license: null });
+
+  React.useEffect(() => {
+    let alive = true;
+    if (!session) return undefined;
+    fetchLicenseStatus(session)
+      .then((res) => { if (alive) setState({ loading: false, license: res?.license || null }); })
+      .catch(() => { if (alive) setState({ loading: false, license: null }); });
+    return () => { alive = false; };
+  }, [session]);
+
+  const lic = state.license;
+  const expired = lic?.status === 'expired';
+  const days = lic?.days_remaining;
+  const renewSoon = !expired && lic?.reminder_due != null;
+
+  return (
+    <button
+      onClick={() => navigate('/license')}
+      aria-label="Nursing License — view status and renew"
+      className="w-full bg-white dark:bg-slate-800 p-6 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-700 text-left transition-all hover:border-slate-200 dark:hover:border-slate-600 flex flex-col gap-3 relative overflow-hidden"
+    >
+      <div className="flex items-center justify-between gap-3">
+        <h3 className="text-lg font-black flex items-center gap-2 text-slate-900 dark:text-white uppercase tracking-tight">
+          <ShieldCheck className="text-apex-600" size={20} /> Nursing License
+        </h3>
+        <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-lg ${
+          state.loading ? 'bg-slate-100 text-slate-500 dark:bg-slate-700 dark:text-slate-300'
+            : expired ? 'bg-red-50 text-red-600 dark:bg-red-900/30 dark:text-red-300'
+              : renewSoon ? 'bg-amber-50 text-amber-600 dark:bg-amber-900/30 dark:text-amber-300'
+                : 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/30 dark:text-emerald-300'
+        }`}>
+          {state.loading ? 'Loading' : expired ? 'Expired' : renewSoon ? 'Renew soon' : 'Active'}
+        </span>
+      </div>
+      <p className="text-xs text-slate-500 dark:text-slate-400">
+        {state.loading
+          ? 'Checking your license status…'
+          : expired
+            ? 'Your license has expired — start a renewal exam to reactivate it.'
+            : days != null
+              ? `${days} day${days === 1 ? '' : 's'} remaining · expires ${new Date(lic.expires_at).toLocaleDateString()}`
+              : 'Loading license details.'}
+      </p>
+      <span className="inline-flex items-center gap-2 text-xs font-black uppercase tracking-widest text-apex-600 dark:text-apex-400">
+        View license <ArrowRight size={14} />
+      </span>
+    </button>
   );
 };
 

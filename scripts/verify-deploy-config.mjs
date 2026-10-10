@@ -591,20 +591,168 @@ let passed = 0;
       : fail('v43 missing the expiry trigger grant / cleanup ACLs'),
   );
   checks.push(
-    /message_lifetime_seconds:\s*300/.test(apiCommunitySrc) && /expires_at/.test(apiCommunitySrc)
-      ? ok('api/_community.js exposes message_lifetime_seconds + selects expires_at')
+    /MESSAGE_LIFETIME_SECONDS = 600/.test(apiCommunitySrc) &&
+      /message_lifetime_seconds:\s*MESSAGE_LIFETIME_SECONDS/.test(apiCommunitySrc) && /expires_at/.test(apiCommunitySrc)
+      ? ok('api/_community.js exposes 10-minute message_lifetime_seconds + selects expires_at')
       : fail('api/_community.js missing message_lifetime_seconds / expires_at'),
   );
   checks.push(
-    /ROOM_NOTICE = \{ key: 'anonymous_room_safety', version: 3 \}/.test(apiCommunitySrc)
-      ? ok('ROOM_NOTICE bumped to version 3 (5-minute lifetime copy)')
+    /ROOM_NOTICE = \{ key: 'anonymous_room_safety', version: 4 \}/.test(apiCommunitySrc)
+      ? ok('ROOM_NOTICE bumped to version 4 (10-minute lifetime copy)')
       : fail('ROOM_NOTICE not bumped for the new lifetime'),
   );
   checks.push(
     /fmtMSS/.test(anon) && /Expires in \{fmtMSS\(remaining\)\}/.test(anon) &&
-      /exactly 5 minutes/.test(anon) && !/COLD_AFTER_MS/.test(anon)
-      ? ok('AnonymousRoom.jsx shows "Expires in m:ss" and drops the cold clock (5-min copy)')
-      : fail('AnonymousRoom.jsx missing the 5-minute countdown copy / stale cold clock'),
+      /exactly 10 minutes/.test(anon) && !/COLD_AFTER_MS/.test(anon)
+      ? ok('AnonymousRoom.jsx shows "Expires in m:ss" and drops the cold clock (10-min copy)')
+      : fail('AnonymousRoom.jsx missing the 10-minute countdown copy / stale cold clock'),
+  );
+
+  // v44: anonymous-room social + premium Encoded Messages + server-authoritative
+  // presence + per-device Web Push / notification preferences.
+  const migrationV44Src = read(resolve(ROOT, 'scripts/migration-v44-anonymous-social-premium-presence.sql'));
+  const migrationV45Src = read(resolve(ROOT, 'scripts/migration-v45-anonymous-encoded-content.sql'));
+  checks.push(
+    /anonymous_encoded_messages/.test(migrationV44Src) && /recipient_user_id/.test(migrationV44Src) &&
+      /anonymous_social_actions/.test(migrationV44Src) && /anonymous_social_prefs/.test(migrationV44Src) &&
+      /anonymous_presence/.test(migrationV44Src) && /push_subscriptions/.test(migrationV44Src) &&
+      /notification_preferences/.test(migrationV44Src)
+      ? ok('migration-v44: encoded/social/prefs/presence/push/notification tables')
+      : fail('migration-v44 missing v44 tables/columns'),
+  );
+  checks.push(
+    /community_presence_heartbeat/.test(migrationV44Src) && /community_presence_reap/.test(migrationV44Src) &&
+      /to service_role/.test(migrationV44Src) && /revoke execute on function public\.community_presence_heartbeat/.test(migrationV44Src)
+      ? ok('migration-v44: server-authoritative presence RPCs (service-role only)')
+      : fail('migration-v44 missing presence RPCs / service-role grants'),
+  );
+  checks.push(
+    /anonymous_encoded_messages/.test(apiCommunitySrc) && /toString\('base64'\)/.test(apiCommunitySrc) &&
+      /encoded_for_me/.test(apiCommunitySrc) && /PREMIUM_REQUIRED/.test(apiCommunitySrc) &&
+      /content: isEncoded \? '' : row\.content/.test(apiCommunitySrc)
+      ? ok('api/_community.js: premium recipient-targeted Encoded Messages (body never in the feed)')
+      : fail('api/_community.js missing Encoded Message handling'),
+  );
+  checks.push(
+    /encBody\.recipient === viewerId \|\| row\.author_id === viewerId/.test(apiCommunitySrc)
+      ? ok('api/_community.js: decode gate is author-or-recipient (never any premium viewer)')
+      : fail('api/_community.js encode gate is not recipient-scoped'),
+  );
+  checks.push(
+    !/ROOM_STICKER/.test(apiCommunitySrc) && !/sticker_categories:/.test(apiCommunitySrc) &&
+      !/pendingSticker/.test(anon) && !/roomStickerGroups/.test(anon) && !/sticker_glyph/.test(anon)
+      ? ok('stickers removed: no sticker allowlist/payload/glyph on server or client')
+      : fail('sticker remnants still present in server or AnonymousRoom.jsx'),
+  );
+  checks.push(
+    /olderError/.test(anon) && /prefersReducedMotion/.test(anon) &&
+      /togglePref/.test(anon) && /savePreferences/.test(anon)
+      ? ok('AnonymousRoom.jsx: load-earlier retry + reduced-motion + per-kind notification toggles')
+      : fail('AnonymousRoom.jsx missing v44 client features (retry/reduced-motion/prefs)'),
+  );
+  checks.push(
+    /drop constraint if exists community_posts_content_check/.test(migrationV45Src)
+      ? ok('migration-v45: community_posts content check relaxed (blank Encoded content allowed)')
+      : fail('migration-v45 missing the content-check relaxation'),
+  );
+
+  // v46: anonymous-room corrections — central server_config, 10-min lifetime with
+  // vote adjustments, social ACTION set + fight detection, membership activity,
+  // and atomic first-visitor room creation.
+  const migrationV46Src = read(resolve(ROOT, 'scripts/migration-v46-anonymous-room-corrections.sql'));
+  checks.push(
+    /server_config/.test(migrationV46Src) && /community_apply_vote_expiry/.test(migrationV46Src) &&
+      /community_fight_check/.test(migrationV46Src) && /community_membership_reconcile/.test(migrationV46Src) &&
+      /community_ensure_anonymous_room/.test(migrationV46Src) && /anonymous_combat_events/.test(migrationV46Src) &&
+      /base_expires_at/.test(migrationV46Src)
+      ? ok('migration-v46: server_config + vote-expiry + fight + membership + first-visitor RPCs')
+      : fail('migration-v46 missing v46 tables/functions'),
+  );
+  checks.push(
+    /community_presence_reap/.test(migrationV46Src) && /presence_reaped/.test(migrationV46Src) &&
+      !/members_released/.test(migrationV46Src)
+      ? ok('migration-v46: presence reap is presence-only (seat release owned by reconcile)')
+      : fail('migration-v46 presence reap not redefined as presence-only'),
+  );
+  checks.push(
+    /ROOM_ACTIONS/.test(apiCommunitySrc) && /ATTACK_ACTION_KEYS/.test(apiCommunitySrc) &&
+      /ensureAnonRoom/.test(apiCommunitySrc) && /applyVoteExpiry/.test(apiCommunitySrc) &&
+      /reconcileMembership/.test(apiCommunitySrc) && /community_fight_check/.test(apiCommunitySrc)
+      ? ok('api/_community.js: v46 action set + first-visitor + vote-expiry + fight + membership')
+      : fail('api/_community.js missing v46 server logic'),
+  );
+  checks.push(
+    /config\?\.actions/.test(anon)
+      ? ok('AnonymousRoom.jsx consumes the server ACTION set from config')
+      : fail('AnonymousRoom.jsx not wired to the v46 action set'),
+  );
+  checks.push(
+    /fightAlert/.test(anon) && /memberWarning/.test(anon) && /markActivity/.test(anon)
+      ? ok('AnonymousRoom.jsx: fight banner + membership warning + activity stamping')
+      : fail('AnonymousRoom.jsx missing v46 fight/membership client wiring'),
+  );
+  checks.push(
+    /capacity: typeof group\.member_limit/.test(apiCommunitySrc) &&
+      /room\?\.config\?\.membership\?\.capacity/.test(anon)
+      ? ok('membership capacity exposed from the real member_limit + consumed from config')
+      : fail('membership capacity not server-derived and config-driven'),
+  );
+  checks.push(
+    /releasedNotice/.test(anon) && /detectRelease/.test(anon) && /Return to Home/.test(anon)
+      ? ok('AnonymousRoom.jsx: released-member detection + explanation + homepage redirect')
+      : fail('AnonymousRoom.jsx missing released-member redirect flow'),
+  );
+  checks.push(
+    /\.members/.test(anon) && /·/.test(anon) && / online/.test(anon) &&
+      /A heartbeat or open tab does not count/.test(anon)
+      ? ok('AnonymousRoom.jsx: "N/capacity members · M online" status + explicit activity rule')
+      : fail('AnonymousRoom.jsx status/rule copy not updated for membership model'),
+  );
+
+  // Phase 3: "Load earlier messages" is never a dead end — the server only
+  // reports has_more when an ALIVE older message exists, and the client keeps
+  // the control only when there is genuinely more (with an inline retry).
+  checks.push(
+    /hasOlderAlive/.test(apiCommunitySrc) && /has_more: hasMore/.test(apiCommunitySrc) &&
+      /next_before: nextBefore/.test(apiCommunitySrc)
+      ? ok('api/_community.js: feed pagination reports has_more only when an alive older message exists')
+      : fail('api/_community.js feed pagination not hardened against an empty "load earlier" page'),
+  );
+  checks.push(
+    /feed\.has_more && older\.length > 0/.test(anon) && /olderError/.test(anon) &&
+      /next_before/.test(anon) && /Retry earlier messages/.test(anon)
+      ? ok('AnonymousRoom.jsx: "load earlier" hides on empty page + inline retry on failure')
+      : fail('AnonymousRoom.jsx "load earlier" empty-state/retry not handled'),
+  );
+  checks.push(
+    /upvote_adjust_applied/.test(migrationV46Src) && /downvote_adjust_applied/.test(migrationV46Src) &&
+      /community_apply_vote_expiry/.test(migrationV46Src)
+      ? ok('migration-v46: once-only vote adjustments (+3min ≥7 up / -3min ≥10 down)')
+      : fail('migration-v46 vote adjustments are not once-only'),
+  );
+
+  // v47: stickers fully removed (drop the sticker-only column; tag/encoded kept).
+  const migrationV47Src = read(resolve(ROOT, 'scripts/migration-v47-anonymous-remove-stickers.sql'));
+  checks.push(
+    /anonymous_message_meta/.test(migrationV47Src) && /drop column if exists sticker/.test(migrationV47Src) &&
+      !/drop column if exists tag/.test(migrationV47Src) && !/drop column if exists is_encoded/.test(migrationV47Src)
+      ? ok('migration-v47: sticker column dropped (tag + encoded preserved)')
+      : fail('migration-v47 does not drop only the sticker column'),
+  );
+
+  // v28: the quota/difficulty RPC surface is fully locked to service_role.
+  const migrationV28Src = read(resolve(ROOT, 'scripts/migration-v28-server-only-rpcs.sql'));
+  checks.push(
+    /consume_course_quota\(uuid, text, integer, boolean\)/.test(migrationV28Src) &&
+      /consume_course_quota\(uuid, text, integer, boolean, uuid\)/.test(migrationV28Src) &&
+      /get_course_quota_status\(uuid\)/.test(migrationV28Src) &&
+      /record_difficulty_correct\(uuid, text\)/.test(migrationV28Src) &&
+      /record_difficulty_correct\(uuid, text, text\)/.test(migrationV28Src) &&
+      /get_difficulty_status\(uuid\)/.test(migrationV28Src) &&
+      /get_difficulty_status\(uuid, text\)/.test(migrationV28Src) &&
+      /reset_course_quota\(uuid\)/.test(migrationV28Src)
+      ? ok('migration-v28: every quota/difficulty RPC overload locked to service_role')
+      : fail('migration-v28 missing an RPC overload lockdown'),
   );
 
   // P1: one shared, deduped refresh path (apexFetch) used by the API client + app.
@@ -1174,6 +1322,215 @@ let passed = 0;
     /google-adsense-account/.test(indexHtml) && !/adsbygoogle/.test(indexHtml)
       ? ok('verification meta present with no adsbygoogle snippet (R7)')
       : fail('R7 invariant broken'),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PART B — NURSING LICENSE RENEWAL (S8). The whole flow is dispatched from the
+// existing api/quiz.js function (Vercel Hobby 12-function cap), scored
+// server-side, and its SC fee runs through the canonical _sc_apply ledger.
+// ---------------------------------------------------------------------------
+{
+  const licenseSrc = existsSync(resolve(ROOT, 'api/_license.js')) ? read(resolve(ROOT, 'api/_license.js')) : '';
+  const quizSrc = read(resolve(ROOT, 'api/quiz.js'));
+  const vercelRaw = read(resolve(ROOT, 'vercel.json'));
+  const serveSrc = read(resolve(ROOT, 'scripts/serve-api.mjs'));
+  const v48 = existsSync(resolve(ROOT, 'scripts/migration-v48-license-renewal.sql'))
+    ? read(resolve(ROOT, 'scripts/migration-v48-license-renewal.sql')) : '';
+  const v49 = existsSync(resolve(ROOT, 'scripts/migration-v49-sc-ledger-ref-id-text.sql'))
+    ? read(resolve(ROOT, 'scripts/migration-v49-sc-ledger-ref-id-text.sql')) : '';
+
+  checks.push(
+    existsSync(resolve(ROOT, 'api/_license.js'))
+      && /export\s+async\s+function\s+handleLicenseStatus/.test(licenseSrc)
+      && /export\s+async\s+function\s+handleLicenseStart/.test(licenseSrc)
+      && /export\s+async\s+function\s+handleLicenseSubmit/.test(licenseSrc)
+      ? ok('api/_license.js exports the 3 license handlers (underscore = not a separate function)')
+      : fail('api/_license.js missing/incorrect handler exports'),
+  );
+  checks.push(
+    /from '\.\/_license\.js'/.test(quizSrc)
+      && /license\[-\/\]\(status\|start\|submit\)\$/.test(quizSrc)
+      ? ok('api/quiz.js imports + dispatches license/status|start|submit')
+      : fail('api/quiz.js does not dispatch the license sub-routes'),
+  );
+  checks.push(
+    /\{\s*"source":\s*"\/api\/license\/:path\*",\s*"destination":\s*"\/api\/quiz"\s*\}/.test(vercelRaw)
+      ? ok('vercel.json rewrites /api/license/:path* -> /api/quiz')
+      : fail('vercel.json missing the /api/license/:path* rewrite'),
+  );
+  checks.push(
+    /source:\s*'\/api\/license\/:path\*',\s*destination:\s*'\/api\/quiz',\s*prefix:\s*true/.test(serveSrc)
+      ? ok('serve-api.mjs mirrors the /api/license/:path* rewrite')
+      : fail('serve-api.mjs missing the license rewrite (local != prod)'),
+  );
+
+  // Server authority: fee via _sc_apply + client request id; answers stripped;
+  // submit re-scores from persisted rows (never a client score/pass).
+  checks.push(
+    /rpc\('_sc_apply'/.test(licenseSrc) && /p_client_request_id:\s*requestId/.test(licenseSrc)
+      ? ok('license start charges the fee via canonical _sc_apply (idempotent on requestId)')
+      : fail('license start does not use the canonical idempotent SC fee'),
+  );
+  checks.push(
+    /SENSITIVE_Q_FIELDS/.test(licenseSrc) && /\.map\(stripSensitive\)/.test(licenseSrc)
+      ? ok('license start strips sensitive answer fields from the exam payload')
+      : fail('license exam payload does not strip answers/rationale'),
+  );
+  checks.push(
+    /from\('quiz_batch_questions'\)[\s\S]{0,120}select\('answered, correct'\)/.test(licenseSrc)
+      && /license_apply_result/.test(licenseSrc)
+      ? ok('license submit re-scores from persisted server-graded rows (client score ignored)')
+      : fail('license submit does not re-score server-side'),
+  );
+
+  // Migration v48 objects.
+  checks.push(
+    /create table if not exists public\.nursing_licenses/.test(v48)
+      && /create table if not exists public\.license_renewal_attempts/.test(v48)
+      && /create or replace function public\.license_ensure/.test(v48)
+      && /create or replace function public\.license_apply_result/.test(v48)
+      ? ok('migration-v48: license + attempts tables and license_ensure/apply_result RPCs')
+      : fail('migration-v48 missing the license tables/RPCs'),
+  );
+  checks.push(
+    /nursing_licenses_select_own/.test(v48) && /license_attempts_select_own/.test(v48)
+      && /grant execute on function public\.license_ensure\(uuid\) to service_role/.test(v48)
+      ? ok('migration-v48: read-own RLS + service_role-only RPC grants')
+      : fail('migration-v48 RLS/grants incomplete'),
+  );
+  checks.push(
+    /'license_renewal'/.test(v48) && /"fee_sc":100/.test(v48) && /"question_count":50/.test(v48) && /"pass_pct":80/.test(v48)
+      ? ok('migration-v48 seeds the license_renewal config (100 SC / 50 Q / 80%)')
+      : fail('migration-v48 license config seed missing'),
+  );
+  checks.push(
+    /alter column ref_id type text using ref_id::text/.test(v49)
+      ? ok('migration-v49 widens smart_coin_ledger.ref_id to text (fixes _sc_apply with a ref id)')
+      : fail('migration-v49 ref_id type fix missing'),
+  );
+
+  // Client wiring.
+  const licenseApiSrc = existsSync(resolve(ROOT, 'src/utils/licenseApi.js')) ? read(resolve(ROOT, 'src/utils/licenseApi.js')) : '';
+  const appSrc = read(resolve(ROOT, 'src/App.jsx'));
+  const sidebarSrc = read(resolve(ROOT, 'src/components/Sidebar.jsx'));
+  const dashSrc = read(resolve(ROOT, 'src/pages/Dashboard.jsx'));
+  checks.push(
+    /fetchLicenseStatus/.test(licenseApiSrc) && /startLicenseRenewal/.test(licenseApiSrc) && /submitLicenseRenewal/.test(licenseApiSrc)
+      ? ok('src/utils/licenseApi.js exposes status/start/submit helpers')
+      : fail('src/utils/licenseApi.js missing helpers'),
+  );
+  checks.push(
+    existsSync(resolve(ROOT, 'src/pages/LicenseRenewal.jsx'))
+      && /LicenseRenewal/.test(appSrc) && /path="\/license"/.test(appSrc)
+      ? ok('LicenseRenewal page exists + lazy /license route registered')
+      : fail('LicenseRenewal page/route missing'),
+  );
+  checks.push(
+    /Nursing License/.test(sidebarSrc) && /path: '\/license'/.test(sidebarSrc)
+      && /LicenseCard/.test(dashSrc) && /fetchLicenseStatus/.test(dashSrc)
+      ? ok('Sidebar link + Dashboard license status card wired')
+      : fail('Sidebar/Dashboard license entry missing'),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PART C — LOAN SHARK (S9). SC-only peer-to-peer lending dispatched from the
+// existing api/quiz.js function; every balance change runs through the v50 RPCs
+// on top of the canonical _sc_apply ledger (no shadow wallet, no fiat).
+// ---------------------------------------------------------------------------
+{
+  const loansSrc = existsSync(resolve(ROOT, 'api/_loans.js')) ? read(resolve(ROOT, 'api/_loans.js')) : '';
+  const quizSrc = read(resolve(ROOT, 'api/quiz.js'));
+  const vercelRaw = read(resolve(ROOT, 'vercel.json'));
+  const serveSrc = read(resolve(ROOT, 'scripts/serve-api.mjs'));
+  const v50 = existsSync(resolve(ROOT, 'scripts/migration-v50-loan-shark.sql'))
+    ? read(resolve(ROOT, 'scripts/migration-v50-loan-shark.sql')) : '';
+
+  checks.push(
+    existsSync(resolve(ROOT, 'api/_loans.js'))
+      && /export\s+async\s+function\s+handleLoanList/.test(loansSrc)
+      && /handleLoanRequest/.test(loansSrc) && /handleLoanAccept/.test(loansSrc)
+      && /handleLoanRepay/.test(loansSrc) && /handleLoanSharkBuy/.test(loansSrc)
+      && /handleLoanDefault/.test(loansSrc)
+      ? ok('api/_loans.js exports the loan handlers (underscore = not a separate function)')
+      : fail('api/_loans.js missing/incorrect handler exports'),
+  );
+  checks.push(
+    /from '\.\/_loans\.js'/.test(quizSrc) && /handleLoanList/.test(quizSrc)
+      && /shark-buy/.test(quizSrc) && /handleLoanDefault/.test(quizSrc)
+      ? ok('api/quiz.js imports + dispatches /api/loans/(list|request|offer|accept|repay|reject|cancel|shark-buy|default)')
+      : fail('api/quiz.js does not dispatch the loan sub-routes'),
+  );
+  checks.push(
+    /\{\s*"source":\s*"\/api\/loans\/:path\*",\s*"destination":\s*"\/api\/quiz"\s*\}/.test(vercelRaw)
+      ? ok('vercel.json rewrites /api/loans/:path* -> /api/quiz')
+      : fail('vercel.json missing the /api/loans/:path* rewrite'),
+  );
+  checks.push(
+    /source:\s*'\/api\/loans\/:path\*',\s*destination:\s*'\/api\/quiz',\s*prefix:\s*true/.test(serveSrc)
+      ? ok('serve-api.mjs mirrors the /api/loans/:path* rewrite')
+      : fail('serve-api.mjs missing the loans rewrite (local != prod)'),
+  );
+
+  // Migration v50: tables, config, RPCs, RLS + service_role grants.
+  checks.push(
+    /create table if not exists public\.loan_profiles/.test(v50)
+      && /create table if not exists public\.loans/.test(v50)
+      && /create or replace function public\.loan_request/.test(v50)
+      && /create or replace function public\.loan_accept/.test(v50)
+      && /create or replace function public\.loan_repay/.test(v50)
+      && /create or replace function public\.loan_shark_buy/.test(v50)
+      && /create or replace function public\.loan_mark_default/.test(v50)
+      ? ok('migration-v50: loan_profiles + loans tables and the loan lifecycle RPCs')
+      : fail('migration-v50 missing the loan tables/RPCs'),
+  );
+  checks.push(
+    /"normal_max_active_loans":3/.test(v50) && /"shark_max_active_loans":10/.test(v50)
+      && /"interest_pct":10/.test(v50) && /"repayment_window_hours":48/.test(v50)
+      && /"shark_license_fee_sc":500/.test(v50) && /"shark_require_balance_sc":1500/.test(v50)
+      ? ok('migration-v50 seeds the loan config (cap 3/10, 10%, 48h, fee 500 / balance 1500)')
+      : fail('migration-v50 loan config seed missing'),
+  );
+  checks.push(
+    /loan_profiles_select_own/.test(v50) && /loans_select_party/.test(v50)
+      && /grant execute on function public\.loan_request\(uuid, integer, uuid, text\) to service_role/.test(v50)
+      && /grant execute on function public\.loan_mark_default\(uuid, uuid\) to service_role/.test(v50)
+      ? ok('migration-v50: read-own RLS + service_role-only RPC grants')
+      : fail('migration-v50 RLS/grants incomplete'),
+  );
+  checks.push(
+    /public\._sc_apply\(/.test(v50) && /loan_principal_out/.test(v50) && /loan_repayment/.test(v50)
+      && /loan_default_recovery/.test(v50)
+      ? ok('migration-v50 moves SC through the canonical _sc_apply ledger (P2P principal/repayment/recovery)')
+      : fail('migration-v50 does not use the canonical SC ledger'),
+  );
+
+  // Client wiring.
+  const loanApiSrc = existsSync(resolve(ROOT, 'src/utils/loanApi.js')) ? read(resolve(ROOT, 'src/utils/loanApi.js')) : '';
+  const appSrc = read(resolve(ROOT, 'src/App.jsx'));
+  const sidebarSrc = read(resolve(ROOT, 'src/components/Sidebar.jsx'));
+  checks.push(
+    /fetchLoans/.test(loanApiSrc) && /requestLoan/.test(loanApiSrc) && /acceptLoan/.test(loanApiSrc)
+      && /repayLoan/.test(loanApiSrc) && /buySharkLicense/.test(loanApiSrc)
+      ? ok('src/utils/loanApi.js exposes the loan helpers')
+      : fail('src/utils/loanApi.js missing helpers'),
+  );
+  checks.push(
+    existsSync(resolve(ROOT, 'src/pages/LoanShark.jsx'))
+      && /LoanShark/.test(appSrc) && /path="\/loans"/.test(appSrc)
+      ? ok('LoanShark page exists + lazy /loans route registered')
+      : fail('LoanShark page/route missing'),
+  );
+  checks.push(
+    /Loan Shark/.test(sidebarSrc) && /path: '\/loans'/.test(sidebarSrc)
+      ? ok('Sidebar Loan Shark link wired')
+      : fail('Sidebar Loan Shark entry missing'),
+  );
+  checks.push(
+    existsSync(resolve(ROOT, 'scripts/e2e-loan-shark.mjs'))
+      ? ok('scripts/e2e-loan-shark.mjs present (live loan lifecycle e2e)')
+      : fail('scripts/e2e-loan-shark.mjs missing'),
   );
 }
 

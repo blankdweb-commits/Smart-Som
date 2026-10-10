@@ -84,3 +84,41 @@ Next.js feature and are not supported by Vercel filesystem functions.
 *   Ensure **Row Level Security (RLS)** is enabled in Supabase (the setup script does this).
 *   Never expose `SUPABASE_SERVICE_ROLE_KEY` or `PAYSTACK_SECRET_KEY` to the frontend (prefixed with `VITE_`).
 *   Always verify `x-paystack-signature` in webhooks (handled in `api/payments-webhook.js`).
+
+---
+
+## 6. Phase 4–5 features: Nursing Licence (S8) + Loan Shark (S9)
+
+Both are **Smart-Coin-only** and server-authoritative. They add **no** new Vercel
+functions — all routes dispatch from the existing `api/quiz.js` (underscore
+modules `api/_license.js` / `api/_loans.js` are not deployed as functions, so the
+Hobby **12-function** budget is preserved).
+
+### Database migrations (apply in order, all idempotent)
+
+| File | Purpose |
+| --- | --- |
+| `scripts/migration-v48-license-renewal.sql` | `nursing_licenses` + `license_renewal_attempts` tables, `license_ensure`/`license_apply_result` RPCs, `license_renewal` config (100 SC / 50 Q / 80% / 24h / 12mo). |
+| `scripts/migration-v49-sc-ledger-ref-id-text.sql` | Widens `smart_coin_ledger.ref_id` bigint→text so `_sc_apply` accepts a ref id (fixes a latent v31 bug). |
+| `scripts/migration-v50-loan-shark.sql` | `loan_profiles` + `loans` tables, `loan` config (cap 3/10, 10%, 48h, licence 500 SC / ≥1500 balance), and the 8 loan lifecycle RPCs. |
+
+Apply with the Management-API helper: `node scripts/_apply-v43.mjs <file>` (needs
+a valid `SUPABASE_ACCESS_TOKEN` in `.env`; HTTP 201 = ok).
+
+### Endpoints (all require a bearer session; unauth → `401 {"error":"Unauthorized"}`)
+
+*   `GET  /api/quiz/license-status` · `POST /api/quiz/license-start` · `POST /api/quiz/license-submit`
+*   `GET  /api/loans/list` · `POST /api/loans/{request|offer|accept|repay|reject|cancel|shark-buy|default}`
+
+### Verification
+
+*   `npm run e2e:license-renewal` (32/32) and `npm run e2e:loan-shark` (36/36) — live.
+*   `node scripts/verify-deploy-config.mjs` (235 checks) — static/deploy parity.
+*   RLS/authority for both features is documented in `docs/QUIZ_SECURITY_AUDIT.md`.
+
+> **Loan Shark default policy:** a default sweeps the borrower's *available* SC
+> (never below 0) to the lender and records the default on their public loan
+> history. The stronger consequence described to borrowers ("lose licences,
+> achievements and all data from the first stage") is surfaced as a warning only
+> and is **not** auto-executed — it would require a separate, confirmed
+> account-reset action.

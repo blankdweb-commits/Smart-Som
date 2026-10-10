@@ -525,6 +525,71 @@ export class QuestionSelectionService {
   }
 
   // --------------------------------------------------------
+  // LICENSE RENEWAL EXAM (S8)
+  //
+  // Server-issued exam: an aggregate, framework-agnostic, 50-question draw
+  // from the live bank (no difficulty gate, no per-course quota — the API
+  // charges the SC fee itself through _sc_apply). The resulting batch is a
+  // normal quiz_batch so the existing /api/quiz-batch-answer grading is
+  // reused verbatim; the license result is scored separately from the
+  // persisted, server-graded rows (see api/_license.js) and NEVER credits
+  // player_score.
+  // --------------------------------------------------------
+  async createLicenseExam({ userId, batchSize = 50, metadata = {} } = {}) {
+    const finalBatchSize = Math.max(1, Math.min(Number(batchSize) || 50, 100));
+
+    await this._cleanupExpiredBatches(userId);
+    const userHistory = await this._fetchUserHistory(userId);
+
+    const candidates = await this._fetchCandidates({ aggregate: true });
+    if (!candidates || candidates.length === 0) {
+      return { error: 'NO_CANDIDATES', message: 'No questions available for the renewal exam.' };
+    }
+
+    const selectedSet = new Set();
+    const topicCounts = new Map();
+    const conceptCounts = new Map();
+    const { selected } = this._selectWithRelaxation(
+      candidates,
+      finalBatchSize,
+      userHistory,
+      selectedSet,
+      topicCounts,
+      conceptCounts
+    );
+
+    const selectedIds = selected.map((q) => q.id);
+    if (selectedIds.length === 0) {
+      return { error: 'SELECTION_FAILED', message: 'Could not select exam questions.' };
+    }
+
+    const shuffledIds = shuffle(selectedIds);
+
+    const diffCounts = {};
+    for (const q of selected) {
+      diffCounts[q.difficulty] = (diffCounts[q.difficulty] || 0) + 1;
+    }
+
+    const batch = await this._createBatchTransaction({
+      userId,
+      mode: 'practice',
+      examFramework: null,
+      courseKey: 'license-renewal',
+      difficultyDistribution: diffCounts,
+      questionIds: shuffledIds,
+      selectionId: crypto.randomUUID(),
+      relaxationLevel: 0,
+      metadata: { ...metadata, licenseRenewal: true },
+    });
+
+    return {
+      batchId: batch.id,
+      total: shuffledIds.length,
+      questionCount: shuffledIds.length,
+    };
+  }
+
+  // --------------------------------------------------------
   // Get a batch's questions (for the player)
   // --------------------------------------------------------
   async getBatch(batchId, userId) {

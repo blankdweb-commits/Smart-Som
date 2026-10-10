@@ -33,7 +33,9 @@
 -- Idempotent. Safe to re-run.
 -- ============================================================
 
--- 1. consume_course_quota — v26 5-arg (the surviving overload)
+-- 1. consume_course_quota — lock BOTH overloads (v13 4-arg + v26 5-arg).
+revoke execute on function public.consume_course_quota(uuid, text, integer, boolean) from public, anon, authenticated;
+grant execute on function public.consume_course_quota(uuid, text, integer, boolean) to service_role;
 revoke execute on function public.consume_course_quota(uuid, text, integer, boolean, uuid) from public, anon, authenticated;
 grant execute on function public.consume_course_quota(uuid, text, integer, boolean, uuid) to service_role;
 
@@ -41,16 +43,20 @@ grant execute on function public.consume_course_quota(uuid, text, integer, boole
 revoke execute on function public.get_course_quota_status(uuid) from public, anon, authenticated;
 grant execute on function public.get_course_quota_status(uuid) to service_role;
 
--- 3. record_difficulty_correct — v20 3-arg (user_id, course_key, difficulty)
+-- 3. record_difficulty_correct — lock BOTH overloads (v10 2-arg + v20 3-arg).
+revoke execute on function public.record_difficulty_correct(uuid, text) from public, anon, authenticated;
+grant execute on function public.record_difficulty_correct(uuid, text) to service_role;
 revoke execute on function public.record_difficulty_correct(uuid, text, text) from public, anon, authenticated;
 grant execute on function public.record_difficulty_correct(uuid, text, text) to service_role;
 
--- 4. get_difficulty_status — v20 2-arg (user_id, course_key default null)
+-- 4. get_difficulty_status — lock BOTH overloads (v10 1-arg + v20 2-arg).
+revoke execute on function public.get_difficulty_status(uuid) from public, anon, authenticated;
+grant execute on function public.get_difficulty_status(uuid) to service_role;
 revoke execute on function public.get_difficulty_status(uuid, text) from public, anon, authenticated;
 grant execute on function public.get_difficulty_status(uuid, text) to service_role;
 
--- 5. reset_course_quota — admin/debug only
-revoke execute on function public.reset_course_quota(uuid, text) from public, anon, authenticated;
-grant execute on function public.reset_course_quota(uuid, text) to service_role;
+-- 5. reset_course_quota — admin/debug only (live signature is 1-arg).
+revoke execute on function public.reset_course_quota(uuid) from public, anon, authenticated;
+grant execute on function public.reset_course_quota(uuid) to service_role;
 
 -- DONE.

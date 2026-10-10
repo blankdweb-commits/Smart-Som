@@ -117,3 +117,29 @@ and nothing suggests a quota-skip path.
   (Vite inlines `VITE_*` into the browser bundle).
 - Client-bundled question banks are still inspectable by an authenticated
   client; RLS + RPC + server feature-gating are the real authority, as documented.
+
+## Licence Renewal (S8) + Loan Shark (S9) — RLS / authority audit
+
+Both features are dispatched from the existing `api/quiz.js` function (Vercel
+Hobby 12-function cap) and are 100% server-authoritative.
+
+| Concern | Authority | Client role |
+| --- | --- | --- |
+| Licence issuance/renewal | `license_ensure` / `license_apply_result` RPCs (service_role only) | Reads own status via `GET /api/quiz/license-status` |
+| Licence exam fee (100 SC) | `_sc_apply` inside `handleLicenseStart`, idempotent on `attemptId` | Sends an attempt id; never an amount |
+| Licence exam scoring | `handleLicenseSubmit` recomputes from persisted `quiz_batch_questions` (server-graded) | Client score/pass is ignored |
+| Licence exam questions | server strips `correct_answer`/`answer`/`correct`/`rationale`/`explanation`/`hint` before returning | Renders options only |
+| Loan lifecycle | v50 RPCs `loan_request/offer/accept/repay/reject/cancel/shark_buy/mark_default` (service_role only) | Calls `/api/loans/*`; never writes tables |
+| Loan balances | `_sc_apply` inside the v50 RPCs (peer-to-peer principal/repayment/recovery) | One canonical `profiles.smart_coins`; no shadow wallet |
+| Loan Shark licence (500 SC, ≥1500 balance) | `loan_shark_buy` RPC | Sends a request id only |
+
+RLS (verified live by `scripts/e2e-loan-shark.mjs` + `scripts/e2e-license-renewal.mjs`):
+`nursing_licenses`, `license_renewal_attempts`, `loan_profiles` and `loans` are
+**read-own / party-select only**; every client INSERT is denied with `42501`; the
+`loan_*` and `license_*` RPCs are **not client-executable** (`42501`); all writes
+go through service_role. Default recovery is partial and can never drive a
+balance negative (`_sc_apply` refuses overdraft).
+
+Secret hygiene: no `SERVICE_ROLE`/`service_role`/`_sc_apply`/`SUPABASE_ACCESS_TOKEN`/
+`PAYSTACK_SECRET` value or symbol is referenced anywhere under `src/` (the only
+matches are explanatory comments) — all privileged access stays server-side.

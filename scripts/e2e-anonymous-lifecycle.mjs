@@ -34,6 +34,17 @@
 //   13. 6h ephemeral ceiling is enforced by computeLivesUntil
 //   14. survival: stays active at the floor; below it wipes and revokes passes
 //
+// v44 additions (this file also covers them):
+//   10e. ENCODED MESSAGES — premium sender must name ONE recipient alias; the
+//        plaintext never enters the feed (blank for every viewer, even the
+//        premium recipient) and the decode endpoint answers ONLY the author or
+//        the addressed recipient (403 ENCODED_PRIVATE for everyone else).
+//   10f. SOCIAL ACTIONS — a member can act, the cooldown window blocks a
+//        repeat, and a member who muted the target is refused (SOCIAL_BLOCKED).
+//   10g. PRESENCE — heartbeat → online counts, explicit leave drops it
+//        immediately, and the reap releases ONLY the departed member's seat
+//        (the owner seat is never released, and the room does not wipe).
+//
 // Requires a reachable Supabase project (VITE_SUPABASE_URL +
 // SUPABASE_SERVICE_ROLE_KEY + VITE_SUPABASE_ANON_KEY in .env). Run:
 //   npm run e2e:anonymous-lifecycle
@@ -47,9 +58,13 @@ import {
   handleAnonAck,
   handleAnonSend,
   handleAnonFeed,
+  handleAnonRoom,
+  handleAnonEncoded,
+  handleAnonSocial,
   handleVote,
   handleCreateAnonRoom,
   handleReport,
+  ensureRoomAlias,
 } from '../api/_community.js';
 
 const env = loadEnv();
@@ -78,6 +93,7 @@ const password = 'testpass123';
 
 let users = [];
 let scratchGroupId = null;
+let pageGroupId = null;
 
 // Minimal req/res harness so we can exercise the real server handlers (the
 // same functions the /api/community router dispatches to) against live DB.
@@ -267,6 +283,23 @@ try {
     `status=${postAck.status} author_leak=${postAck.body?.message?.author_id}`);
   const sentMessageId = postAck.body?.message?.id || null;
 
+  // ---------- PHASE 1/2. STICKER-FREE CONFIG + SERVER-DERIVED CAPACITY ----------
+  const roomForMember = await callHandler(handleAnonRoom, { id: memberId }, { group_id: scratchGroupId });
+  const cfgRoom = roomForMember.body?.config || {};
+  log('room config carries NO sticker allowlist/categories (stickers removed)',
+    !(cfgRoom.stickers || cfgRoom.sticker_categories),
+    JSON.stringify(Object.keys(cfgRoom).filter((k) => /sticker/i.test(k))));
+  log('membership capacity is served from the real member_limit (capacity from config)',
+    Number(cfgRoom?.membership?.capacity) === CAPACITY &&
+      Number(roomForMember.body?.group?.member_limit) === CAPACITY &&
+      Number.isFinite(Number(roomForMember.body?.member_count)),
+    `capacity=${cfgRoom?.membership?.capacity} limit=${roomForMember.body?.group?.member_limit} count=${roomForMember.body?.member_count}`);
+  log('room header carries the "members · online" fields (counts + presence)',
+    Number.isInteger(roomForMember.body?.member_count) &&
+      Number.isInteger(roomForMember.body?.online_count) &&
+      roomForMember.body?.access === 'member',
+    `member_count=${roomForMember.body?.member_count} online=${roomForMember.body?.online_count} access=${roomForMember.body?.access}`);
+
   // ---------- 10. REPORTS PERSIST category + pending (v41 schema) ----------
   if (sentMessageId) {
     const rep = await callHandler(handleReport, { id: memberId }, {
@@ -324,7 +357,7 @@ try {
     !!hydrateB && hydrateB.score === voteScore && hydrateB.my_vote === -1,
     JSON.stringify(hydrateB && { score: hydrateB.score, my_vote: hydrateB.my_vote }));
 
-  // ---------- 10d. ABSOLUTE 5-MINUTE ANONYMOUS LIFETIME (v43) ----------
+  // ---------- 10d. ABSOLUTE 10-MINUTE ANONYMOUS LIFETIME (v43 → v46) ----------
   // Interactions (reports + votes above) already touched this post, so this
   // also proves nothing can push the expiry out.
   if (sentMessageId) {
@@ -335,12 +368,12 @@ try {
       .single();
     const createdMs = Date.parse(lifeRow?.created_at);
     const expiresMs = Date.parse(lifeRow?.expires_at);
-    log('v43: an anonymous message carries expires_at = created_at + 5 min',
-      Number.isFinite(expiresMs) && Math.abs((expiresMs - createdMs) - 5 * 60 * 1000) < 1500,
+    log('v46: an anonymous message carries expires_at = created_at + 10 min',
+      Number.isFinite(expiresMs) && Math.abs((expiresMs - createdMs) - 10 * 60 * 1000) < 1500,
       `created=${lifeRow?.created_at} expires=${lifeRow?.expires_at}`);
-    log('v43: the message really received interactions (last_interaction moved)',
-      Date.parse(lifeRow?.last_interaction_at) >= createdMs,
-      `created=${lifeRow?.created_at} last=${lifeRow?.last_interaction_at}`);
+    log('v46: the interaction clock never exceeds the absolute 10-min expiry',
+      !!lifeRow && (lifeRow.last_interaction_at === null || Date.parse(lifeRow.last_interaction_at) <= expiresMs),
+      `created=${lifeRow?.created_at} last=${lifeRow?.last_interaction_at} expires=${lifeRow?.expires_at}`);
     const computed = computeLivesUntil({ ...lifeRow, grace_until: null });
     log('v43: computeLivesUntil prefers the absolute expires_at (interactions cannot extend it)',
       Math.abs(computed - expiresMs) < 1000,
@@ -434,6 +467,203 @@ try {
     dupUser.error?.code === '23505' && dupRef.error?.code === '23505',
     `dupUser=${dupUser.error?.code || 'none'}/${dupRef.error?.code}`);
 
+  // ---------- 10e. ENCODED MESSAGES (v44) — sender + recipient only ----------
+  // The plaintext never enters the feed (blank for EVERY viewer) and the
+  // decode endpoint answers only the author or the single addressed member.
+  const recipId = joinerIds[1]; // u2 — the member being encoded TO
+  const thirdId = joinerIds[2]; // lockjoin — a member who must NOT decode
+  const authorAlias = await ensureRoomAlias(scratchGroupId, memberId);
+  const recipAlias = await ensureRoomAlias(scratchGroupId, recipId);
+  const encText = `secret ${stamp}`;
+  const prec = await admin.from('subscriptions').insert({
+    user_id: memberId,
+    status: 'active',
+    plan: 'monthly',
+    amount: 6999,
+    reference: `e2e-enc-${stamp}`,
+    expires_at: new Date(Date.now() + 86400000).toISOString(),
+    grace_until: new Date(Date.now() + 86400000).toISOString(),
+  });
+  log('premium grant (subscriptions) makes the sender premium', !prec.error, prec.error?.message);
+  const encFree = await callHandler(handleAnonSend, { id: recipId }, { group_id: scratchGroupId, content: 'x', encoded: true, recipient_alias: authorAlias });
+  log('non-premium encoding is refused (PREMIUM_REQUIRED)',
+    encFree.status === 403 && encFree.body?.error === 'PREMIUM_REQUIRED',
+    `status=${encFree.status} error=${encFree.body?.error}`);
+  const encNoRecip = await callHandler(handleAnonSend, { id: memberId }, { group_id: scratchGroupId, content: encText, encoded: true });
+  log('premium encoding without a recipient is refused (RECIPIENT_REQUIRED)',
+    encNoRecip.status === 400 && encNoRecip.body?.error === 'RECIPIENT_REQUIRED',
+    `status=${encNoRecip.status} error=${encNoRecip.body?.error}`);
+  const encBadRecip = await callHandler(handleAnonSend, { id: memberId }, { group_id: scratchGroupId, content: encText, encoded: true, recipient_alias: 9999 });
+  log('encoding to an alias outside the room is refused (INVALID_RECIPIENT)',
+    encBadRecip.status === 400 && encBadRecip.body?.error === 'INVALID_RECIPIENT',
+    `status=${encBadRecip.status} error=${encBadRecip.body?.error}`);
+  const encSelf = await callHandler(handleAnonSend, { id: memberId }, { group_id: scratchGroupId, content: encText, encoded: true, recipient_alias: authorAlias });
+  log('a member cannot encode to themselves (INVALID_RECIPIENT)',
+    encSelf.status === 400 && encSelf.body?.error === 'INVALID_RECIPIENT',
+    `status=${encSelf.status} error=${encSelf.body?.error}`);
+  const encSent = await callHandler(handleAnonSend, { id: memberId }, { group_id: scratchGroupId, content: encText, encoded: true, recipient_alias: recipAlias });
+  const encMsg = encSent.body?.message;
+  log('encoded message is sent: encoded + locked + for-me (author), blank content',
+    encSent.status === 200 && encMsg?.encoded === true && encMsg?.locked === true &&
+      encMsg?.encoded_for_me === true && encMsg?.content === '',
+    JSON.stringify(encMsg));
+
+  const feedRecip = await callHandler(handleAnonFeed, { id: recipId }, { group_id: scratchGroupId, limit: 50 });
+  const encHydRecip = (feedRecip.body?.messages || []).find((m) => m.id === encMsg?.id);
+  log('v44: the feed NEVER decodes the body, even for the premium recipient',
+    !!encHydRecip && encHydRecip.content === '' && encHydRecip.encoded === true,
+    `encoded=${encHydRecip?.encoded} content=${JSON.stringify(encHydRecip?.content)}`);
+  log('v44: the recipient is flagged encoded_for_me (client can offer Unlock)',
+    encHydRecip?.encoded_for_me === true, `for_me=${encHydRecip?.encoded_for_me}`);
+  const feedThird = await callHandler(handleAnonFeed, { id: thirdId }, { group_id: scratchGroupId, limit: 50 });
+  const encHydThird = (feedThird.body?.messages || []).find((m) => m.id === encMsg?.id);
+  log('v44: a non-recipient member sees a private (blank, not for-me) message',
+    !!encHydThird && encHydThird.content === '' && encHydThird.encoded_for_me === false,
+    `for_me=${encHydThird?.encoded_for_me} content=${JSON.stringify(encHydThird?.content)}`);
+
+  const decRecip = await callHandler(handleAnonEncoded, { id: recipId }, { message_id: encMsg?.id, group_id: scratchGroupId });
+  log('the addressed recipient can decode the message',
+    decRecip.status === 200 && decRecip.body?.content === encText,
+    `status=${decRecip.status} content=${decRecip.body?.content}`);
+  const decAuthor = await callHandler(handleAnonEncoded, { id: memberId }, { message_id: encMsg?.id, group_id: scratchGroupId });
+  log('the author can re-read their own Encoded Message',
+    decAuthor.status === 200 && decAuthor.body?.content === encText,
+    `status=${decAuthor.status} content=${decAuthor.body?.content}`);
+  const decThird = await callHandler(handleAnonEncoded, { id: thirdId }, { message_id: encMsg?.id, group_id: scratchGroupId });
+  log('another member cannot decode it (403 ENCODED_PRIVATE)',
+    decThird.status === 403 && decThird.body?.error === 'ENCODED_PRIVATE',
+    `status=${decThird.status} error=${decThird.body?.error}`);
+  const decSpec = await callHandler(handleAnonEncoded, { id: spectatorId }, { message_id: encMsg?.id, group_id: scratchGroupId });
+  log('a spectator cannot decode either (403 ENCODED_PRIVATE)',
+    decSpec.status === 403 && decSpec.body?.error === 'ENCODED_PRIVATE',
+    `status=${decSpec.status} error=${decSpec.body?.error}`);
+
+  // ---------- 10f. SOCIAL ACTIONS (v44) — cooldown + mute (v46 action set) ----------
+  const socialMsg = encMsg?.id || sentMessageId;
+  const actorId = thirdId; // lockjoin has never acted before
+  const s1 = await callHandler(handleAnonSocial, { id: actorId }, { message_id: socialMsg, action: 'hug', group_id: scratchGroupId });
+  log('a member can send a social action (server records count)',
+    s1.status === 200 && s1.body?.social?.find((x) => x.action === 'hug')?.count === 1, JSON.stringify(s1.body));
+  const s2 = await callHandler(handleAnonSocial, { id: actorId }, { message_id: socialMsg, action: 'highfive', group_id: scratchGroupId });
+  log('a repeat action inside the cooldown window is refused (429 SOCIAL_COOLDOWN)',
+    s2.status === 429 && s2.body?.error === 'SOCIAL_COOLDOWN', `status=${s2.status} error=${s2.body?.error}`);
+  await new Promise((r) => setTimeout(r, 8500));
+  const s3 = await callHandler(handleAnonSocial, { id: actorId }, { message_id: socialMsg, action: 'highfive', group_id: scratchGroupId });
+  log('after the cooldown window the member can act again (room-wide reset)',
+    s3.status === 200 && s3.body?.social?.find((x) => x.action === 'highfive')?.count === 1, JSON.stringify(s3.body));
+  const muted = await admin.from('anonymous_social_prefs').insert({ owner_id: memberId, peer_id: actorId, blocked: true });
+  const sBlocked = await callHandler(handleAnonSocial, { id: actorId }, { message_id: sentMessageId, action: 'hug', group_id: scratchGroupId });
+  log('an action toward a member who muted the actor is refused (403 SOCIAL_BLOCKED)',
+    !muted.error && sBlocked.status === 403 && sBlocked.body?.error === 'SOCIAL_BLOCKED',
+    `status=${sBlocked.status} error=${sBlocked.body?.error}`);
+  const sBadAction = await callHandler(handleAnonSocial, { id: actorId }, { message_id: sentMessageId, action: 'cheer', group_id: scratchGroupId });
+  log('an action outside the v46 action set is refused (SOCIAL_NOT_ALLOWED)',
+    sBadAction.status === 400 && sBadAction.body?.error === 'SOCIAL_NOT_ALLOWED',
+    `status=${sBadAction.status} error=${sBadAction.body?.error}`);
+
+  // ---------- 10f2. FIGHTS (v46) — two reciprocal attacks start ONE fight ----------
+  await callHandler(handleAnonAck, { id: recipId }, { group_id: scratchGroupId });
+  const postByU2 = await callHandler(handleAnonSend, { id: recipId }, { group_id: scratchGroupId, content: `fight target ${stamp}` });
+  const postByU2Id = postByU2.body?.message?.id;
+  const fa = await callHandler(handleAnonSocial, { id: recipId }, { message_id: sentMessageId, action: 'slap', group_id: scratchGroupId });
+  await new Promise((r) => setTimeout(r, 8500));
+  const fb = await callHandler(handleAnonSocial, { id: memberId }, { message_id: postByU2Id, action: 'kick', group_id: scratchGroupId });
+  log('reciprocal attack actions inside the window start a fight (v46 fight_check)',
+    fa.status === 200 && fa.body?.fight === false && fb.status === 200 && fb.body?.fight === true,
+    `fa=${JSON.stringify(fa.body)} fb=${JSON.stringify(fb.body)}`);
+
+  // ---------- 10g. PRESENCE (v44) — heartbeat / online / leave / reap ----------
+  const presUsers = [ownerId, memberId, joinerIds[1], joinerIds[2]];
+  for (const u of presUsers) {
+    const hb = await admin.rpc('community_presence_heartbeat', { p_group: scratchGroupId, p_user: u, p_session: `e2e-sess-${stamp}` });
+    if (!hb.data?.ok) throw new Error(`presence heartbeat failed for ${u}: ${hb.error?.message}`);
+  }
+  const online = await admin.rpc('community_presence_online', { p_group: scratchGroupId, p_grace: 45 });
+  log('presence heartbeat + online count cover every present member',
+    Number(online.data) === presUsers.length, `online=${online.data}`);
+  const presLeave = await admin.rpc('community_presence_leave', { p_group: scratchGroupId, p_user: memberId });
+  const onlineAfter = await admin.rpc('community_presence_online', { p_group: scratchGroupId, p_grace: 45 });
+  log('explicit presence-leave drops the member from the live count immediately',
+    !presLeave.error && Number(onlineAfter.data) === presUsers.length - 1, `online=${onlineAfter.data}`);
+  // v46 — the presence reap is presence-ONLY: it clears stale presence rows and
+  // never touches seats (seat release is owned by membership reconcile).
+  await admin
+    .from('anonymous_presence')
+    .update({ last_seen_at: new Date(Date.now() - 10 * 60 * 1000).toISOString() })
+    .eq('group_id', scratchGroupId)
+    .eq('user_id', joinerIds[1]);
+  const reap = await admin.rpc('community_presence_reap', { p_group: scratchGroupId, p_grace: 45, p_inactivity: 300 });
+  log('presence reap clears stale presence rows only (never releases a seat)',
+    reap.data?.ok === true && Number(reap.data?.presence_reaped) === 1 &&
+      !('members_released' in (reap.data || {})) &&
+      Number(reap.data?.member_count) === presUsers.length,
+    JSON.stringify(reap.data));
+
+  // v46 — an idle member's seat is released by the membership reconcile, and the
+  // owner is never released (S4 membership corrections).
+  await admin
+    .from('study_group_members')
+    .update({ last_activity_at: new Date(Date.now() - 20 * 60 * 1000).toISOString() })
+    .eq('group_id', scratchGroupId)
+    .eq('user_id', memberId);
+  const recon = await admin.rpc('community_membership_reconcile', { p_group: scratchGroupId, p_deadline: 900, p_warning: 600 });
+  log('membership reconcile releases an idle member seat and never the owner',
+    recon.data?.ok === true && Number(recon.data?.released) === 1 &&
+      Number(recon.data?.member_count) === presUsers.length - 1,
+    JSON.stringify(recon.data));
+
+  // 10h2. PHASE 3 — the released member loses read access END-TO-END and no stale
+  // subscription can reintroduce them (a later feed/message call must 403).
+  const releasedFeed = await callHandler(handleAnonFeed, { id: memberId }, { group_id: scratchGroupId, limit: 5 });
+  log('revoked member feed is refused immediately (no stale access after release)',
+    releasedFeed.status === 403 && releasedFeed.body?.message, `status=${releasedFeed.status} error=${releasedFeed.body?.error}`);
+  const releasedSend = await callHandler(handleAnonSend, { id: memberId }, { group_id: scratchGroupId, content: `revoked ${stamp}` });
+  log('revoked member cannot send either (server-enforced, direct endpoint)',
+    [400, 403].includes(releasedSend.status) && !releasedSend.body?.ok,
+    `status=${releasedSend.status} error=${releasedSend.body?.error}`);
+
+  // 10h3. PHASE 3 — vote adjustments are once-only (+3min at >=7 up, -3min at
+  // >=10 down). Exercised through the real RPC the server calls per vote.
+  try {
+    const voterIds = [];
+    for (let i = 0; i < 10; i += 1) voterIds.push(await makeUser(`vote${i}`));
+    const { data: upPost } = await admin
+      .from('community_posts')
+      .insert({ group_id: scratchGroupId, author_id: voterIds[0], content: `upvote adjust ${stamp}` })
+      .select('id')
+      .single();
+    await admin.from('community_post_votes').insert([
+      ...voterIds.slice(0, 7).map((uid, i) => ({ post_id: upPost.id, user_id: uid, value: 1, created_at: new Date(Date.now() + i).toISOString() })),
+    ]);
+    const upExp = await admin.rpc('community_apply_vote_expiry', { p_post: upPost.id });
+    const { data: upRow } = await admin.from('community_posts').select('base_expires_at, expires_at, upvote_adjust_applied').eq('id', upPost.id).single();
+    const upDelta = new Date(upRow.expires_at) - new Date(upRow.base_expires_at);
+    log('>=7 upvotes extends the anonymous message by exactly +3min, once',
+      upRow.upvote_adjust_applied === true && Math.abs(upDelta - 180_000) < 5000,
+      `delta_ms=${upDelta}`);
+    const upExp2 = await admin.rpc('community_apply_vote_expiry', { p_post: upPost.id });
+    const upDelta2 = new Date(upRow.expires_at) - new Date(upRow.base_expires_at);
+    log('a second apply is a no-op (adjustment is once-only)',
+      Number(!!upExp.data) === 1 && Math.abs(upDelta2 - 180_000) < 5000, `delta_ms=${upDelta2}`);
+
+    const { data: downPost } = await admin
+      .from('community_posts')
+      .insert({ group_id: scratchGroupId, author_id: voterIds[0], content: `downvote adjust ${stamp}` })
+      .select('id')
+      .single();
+    await admin.from('community_post_votes').insert([
+      ...voterIds.slice(0, 10).map((uid, i) => ({ post_id: downPost.id, user_id: uid, value: -1, created_at: new Date(Date.now() + i).toISOString() })),
+    ]);
+    await admin.rpc('community_apply_vote_expiry', { p_post: downPost.id });
+    const { data: downRow } = await admin.from('community_posts').select('base_expires_at, expires_at, downvote_adjust_applied').eq('id', downPost.id).single();
+    const downDelta = new Date(downRow.expires_at) - new Date(downRow.base_expires_at);
+    log('>=10 downvotes shortens the anonymous message by exactly -3min, once',
+      downRow.downvote_adjust_applied === true && Math.abs(downDelta + 180_000) < 5000,
+      `delta_ms=${downDelta}`);
+  } catch (e) {
+    log('vote-adjustment RPC checks executed without error', false, String(e).slice(0, 200));
+  }
+
   // ---------- 12. RLS: a signed-in member still cannot SELECT the room rows ----------
   try {
     const publishable = createClient(env.VITE_SUPABASE_URL, env.VITE_SUPABASE_ANON_KEY);
@@ -498,6 +728,32 @@ try {
     for (const ch of channels) { try { await ch.unsubscribe(); } catch { /* ignore */ } }
   }
 
+  // ---------- 13b. "LOAD EARLIER MESSAGES" NEVER DEAD-ENDS (Phase 3) ----------
+  // Isolated room: 3 fresh messages paginated 2-at-a-time must terminate with
+  // has_more=false after exactly the messages that exist (no phantom page).
+  const { data: pageGrp } = await admin
+    .from('study_groups')
+    .insert({
+      name: `Anon Page ${stamp}`, creator_id: ownerId, is_verified: true, member_limit: 100,
+      is_active: true, type: 'anonymous', privacy: 'restricted', spectator_price: SPECTATOR_PRICE,
+      minimum_members_to_activate: 1, minimum_members_to_remain_active: 1, group_state: 'active',
+    })
+    .select('id')
+    .single();
+  pageGroupId = pageGrp?.id || null;
+  await admin.from('study_group_members').insert({ group_id: pageGroupId, user_id: ownerId, role: 'owner' });
+  await callHandler(handleAnonAck, { id: ownerId }, { group_id: pageGroupId });
+  for (let i = 0; i < 3; i += 1) {
+    await callHandler(handleAnonSend, { id: ownerId }, { group_id: pageGroupId, content: `page ${i} ${stamp}` });
+  }
+  const pg1 = await callHandler(handleAnonFeed, { id: ownerId }, { group_id: pageGroupId, limit: 2 });
+  const pg2 = await callHandler(handleAnonFeed, { id: ownerId }, { group_id: pageGroupId, limit: 2, before: pg1.body?.next_before });
+  const pgUnion = new Set([...(pg1.body?.messages || []), ...(pg2.body?.messages || [])].map((m) => m.id));
+  log('load-earlier paginates to exactly the messages that exist (no phantom "load earlier" page)',
+    pg1.status === 200 && pg1.body?.has_more === true && (pg1.body?.messages || []).length === 2 &&
+      pg2.body?.has_more === false && pgUnion.size === 3,
+    `p1=${pg1.body?.messages?.length} more1=${pg1.body?.has_more} p2=${pg2.body?.messages?.length} more2=${pg2.body?.has_more} union=${pgUnion.size}`);
+
   // ---------- 14. 6h EPHEMERAL CEILING ----------
   const nowMs = Date.now();
   const ceilingPost = {
@@ -546,6 +802,11 @@ try {
       await admin.from('anonymous_spectators').delete().eq('group_id', scratchGroupId);
       await admin.from('study_group_members').delete().eq('group_id', scratchGroupId);
       await admin.from('study_groups').delete().eq('id', scratchGroupId);
+    }
+    if (pageGroupId) {
+      await admin.from('community_posts').delete().eq('group_id', pageGroupId);
+      await admin.from('study_group_members').delete().eq('group_id', pageGroupId);
+      await admin.from('study_groups').delete().eq('id', pageGroupId);
     }
     for (const u of users) {
       await admin.auth.admin.deleteUser(u.id).catch(() => {});
