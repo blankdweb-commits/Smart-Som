@@ -10,14 +10,33 @@
 
 import { authHeaders } from './apiHeaders';
 import { apiFetch } from './apexFetch';
+import { getAnonVisitKey } from './anonVisit';
 
 export async function communityApi(session, path, body = {}) {
+  // WS3 — tag every request with the current tab's Anonymous room visit key so
+  // the server can re-roll a member's pseudonym on a new visit. Harmless on
+  // non-room routes (the server only reads it where a viewer's alias matters).
+  const visit = getAnonVisitKey();
+  const headers = authHeaders(session, { json: true });
+  if (visit) headers['x-room-visit'] = visit;
   return apiFetch(`/community${path}`, {
     method: 'POST',
-    headers: authHeaders(session, { json: true }),
+    headers,
     token: session?.access_token,
     body,
   });
 }
 
 export default communityApi;
+
+// WS4 — public, UNAUTHENTICATED preview of a deep-linked Anonymous room. No
+// bearer token (unlike communityApi): the /anonymous/preview route is
+// special-cased on the server before authorizeRequest. Used to render a
+// logged-out preview screen for /anonymous/:id without booting the full room.
+export async function communityPreview(groupId) {
+  return apiFetch('/community/anonymous/preview', {
+    method: 'POST',
+    retryOnAuth: false,
+    body: { group_id: groupId },
+  });
+}

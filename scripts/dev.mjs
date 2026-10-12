@@ -12,6 +12,7 @@
 //   * an unexpected child exit triggers a bounded auto-restart of just that
 //     child so a transient crash can't take the other server down with it
 import { spawn } from 'child_process';
+import fs from 'fs';
 import path from 'path';
 import { fileURLToPath } from 'url';
 
@@ -37,6 +38,13 @@ function spawnChild(name, args) {
     if (!rec) return;
     const unexpected = children.size > 0 && rec.child === child;
     if (!unexpected) return;
+    if (rec.intentionalKill) {
+      // Triggered by the api/ file watcher — respawn without counting a crash.
+      rec.intentionalKill = false;
+      log(`Restarting ${name} after api/ file change...`);
+      rec.child = spawnChild(name, args);
+      return;
+    }
     log(`${name} exited (code=${code}, signal=${signal ?? 'none'}).`);
 
     const now = Date.now();
@@ -55,6 +63,32 @@ function spawnChild(name, args) {
   });
   children.set(name, { child, restarts: 0, firstRestartAt: Date.now() });
   return child;
+}
+
+// Watch api/*.js and restart the API child on change. serve-api.mjs cache-busts
+// only each route's entry file (import(...?t=)), NOT its static imports like
+// `./_community.js` / `./_utils.js` / `./_quiz-batches.js` — so editing a
+// support module left the running server serving stale handlers (a 500 that
+// only goes away on restart). Watching api/ makes the dev server self-heal.
+let apiWatchTimer = null;
+function watchApi() {
+  const apiDir = path.join(ROOT, 'api');
+  let watcher;
+  try {
+    watcher = fs.watch(apiDir, { recursive: true }, (_event, filename) => {
+      if (filename && !String(filename).endsWith('.js')) return;
+      clearTimeout(apiWatchTimer);
+      apiWatchTimer = setTimeout(() => {
+        const rec = children.get('api');
+        if (!rec) return;
+        rec.intentionalKill = true;
+        try { killTree(rec.child.pid); } catch { /* already gone */ }
+      }, 250);
+    });
+  } catch {
+    return; // recursive watch unsupported on this platform — skip silently
+  }
+  watcher.on('error', () => { /* keep dev running if watching fails */ });
 }
 
 function shutdown() {
@@ -82,3 +116,4 @@ process.on('SIGTERM', () => { log('SIGTERM — shutting down dev servers.'); shu
 
 spawnChild('api', ['scripts/serve-api.mjs']);
 spawnChild('vite', ['node_modules/vite/bin/vite.js']);
+watchApi();

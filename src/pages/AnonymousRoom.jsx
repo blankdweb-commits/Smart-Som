@@ -6,7 +6,7 @@ import React, {
   useMemo,
   useLayoutEffect,
 } from 'react';
-import { useParams, useNavigate } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import {
   ArrowLeft,
   ArrowUp,
@@ -40,7 +40,7 @@ import {
   Copy,
   Compass,
 } from '../components/Icons';
-import { communityApi } from '../utils/communityApi';
+import { communityApi, communityPreview } from '../utils/communityApi';
 import { authHeaders } from '../utils/apiHeaders';
 import { useAnonymousRoomRealtime } from '../hooks/useAnonymousRoomRealtime';
 import { useAppContext } from '../context/AppContext';
@@ -380,13 +380,98 @@ const GateCard = ({ children }) => (
   </div>
 );
 
+// WS4 — logged-out preview of a deep-linked Anonymous room (/anonymous/:id).
+// Rendered ONLY while there is no session: the room's public metadata + a
+// sign-in CTA. Nothing private is shown (no messages, aliases, or roster). The
+// seat counts come from the server's public preview endpoint which runs with
+// the service role, so even these numbers are not exposed to the anon DB role.
+const RoomPreview = ({ preview, error, locationPath }) => {
+  const navigate = useNavigate();
+  const group = preview?.room;
+  const seats = preview?.capacity;
+  const showSeats = typeof seats?.total_capacity === 'number';
+  const ended = group?.group_state === 'wiped';
+  const stateLabel = ended ? 'This round has ended'
+    : group?.group_state === 'active'
+      ? 'Open now'
+      : 'Opens soon · waiting';
+  const signIn = () => navigate('/login', { state: { from: locationPath || '/anonymous' } });
+
+  return (
+    <div className="h-[100dvh] bg-slate-950 text-slate-200">
+      <GateCard>
+        <MessageCircle size={38} className="mx-auto mb-3 text-apex-400" />
+        <h1 className="text-xl font-black text-white">{group?.name || 'Anonymous Room'}</h1>
+
+        {!error && group && (
+          <>
+            <span
+              className={`inline-block mt-3 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-widest ${
+                ended ? 'bg-red-500/15 text-red-300' : 'bg-apex-500/15 text-apex-300'
+              }`}
+            >
+              {stateLabel}
+            </span>
+            <div className="text-sm text-slate-400 font-medium mt-4 space-y-1.5">
+              <p>
+                {showSeats
+                  ? `${seats.member_count ?? 0}/${seats.total_capacity} spots taken · ${seats.spectator_count ?? 0} watching`
+                  : `${seats?.member_count ?? 0} spots taken`}
+              </p>
+              {seats?.member_paid_required && typeof seats.member_price === 'number' && (
+                <p>Member seat ₦{seats.member_price}</p>
+              )}
+              {typeof seats?.spectator_price === 'number' && !ended && (
+                <p>Spectator pass ₦{seats.spectator_price}</p>
+              )}
+              <p className="italic text-slate-500">Everyone stays Anonymous in here.</p>
+            </div>
+          </>
+        )}
+
+        {error && !group && (
+          <>
+            <p className="text-sm text-red-300 font-medium mt-4">{error}</p>
+            <div className="flex items-center justify-center gap-3 mt-6">
+              <button
+                onClick={() => navigate(0)}
+                className="px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 font-black text-xs uppercase tracking-widest"
+              >
+                Retry
+              </button>
+            </div>
+          </>
+        )}
+
+        <div className="flex items-center justify-center gap-3 mt-6">
+          <button
+            onClick={() => navigate('/study-groups')}
+            className="px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 font-black text-xs uppercase tracking-widest"
+          >
+            Browse groups
+          </button>
+          <button
+            onClick={signIn}
+            className="px-5 py-2.5 rounded-xl bg-apex-600 text-white font-black text-xs uppercase tracking-widest"
+          >
+            {ended ? 'Start a new round' : 'Sign in to join'}
+          </button>
+        </div>
+      </GateCard>
+    </div>
+  );
+};
+
 const AnonymousRoom = () => {
   const { id } = useParams();
   const navigate = useNavigate();
+  const location = useLocation();
   const { session } = useAppContext();
 
   const [booting, setBooting] = useState(true);
   const [bootError, setBootError] = useState('');
+  const [preview, setPreview] = useState(null);
+  const [previewError, setPreviewError] = useState('');
   const [room, setRoom] = useState(null);
   const [messages, setMessages] = useState([]);
   const [systemEvents, setSystemEvents] = useState([]);
@@ -802,6 +887,27 @@ const AnonymousRoom = () => {
   useEffect(() => {
     bootstrap(false);
   }, [bootstrap]);
+
+  // WS4 — logged-out preview: fetch the room's public metadata once. Only runs
+  // without a session; the moment the user signs in the bootstrap effect takes
+  // over and loads the real room.
+  useEffect(() => {
+    if (session) return undefined;
+    let cancelled = false;
+    setPreview(null);
+    setPreviewError('');
+    const roomId = typeof id === 'string' && Number.isFinite(Number(id)) ? Number(id) : null;
+    communityPreview(roomId)
+      .then((data) => {
+        if (!cancelled) setPreview(data && data.room ? data : null);
+      })
+      .catch((err) => {
+        if (!cancelled) setPreviewError(err?.message || 'Could not load this room.');
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [session, id]);
 
   // P3 — a shared gift deep link (/anonymous/{id}?gift=CODE) prefills the claim
   // box. Only opens the claim UI for a visitor who is NOT already seated.
@@ -1500,6 +1606,22 @@ const AnonymousRoom = () => {
     setTimeout(() => setHighlightId(null), 2000);
   }, [messages]);
 
+  const jumpToReply = useCallback(
+    async (reply) => {
+      if (!reply?.id || reply.deleted) return;
+      let target = messages.find((m) => m.id === reply.id);
+      if (!target) {
+        target = await fetchOneMessage(reply.id);
+      }
+      if (!target) return;
+      setHighlightId(target.id);
+      const el = document.getElementById(`anon-msg-${target.id}`);
+      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      setTimeout(() => setHighlightId(null), 2000);
+    },
+    [messages, fetchOneMessage]
+  );
+
   // ---------------------------------------------------------------
   // Swipe-to-reply (touch). Only members can reply, so spectators and any
   // drag that starts on an interactive control are ignored. Vertical drags
@@ -1939,6 +2061,16 @@ const AnonymousRoom = () => {
   // ---------------------------------------------------------------
   // Early screens
   // ---------------------------------------------------------------
+  if (!session) {
+    return (
+      <RoomPreview
+        preview={preview}
+        error={previewError}
+        locationPath={location.pathname + location.search}
+      />
+    );
+  }
+
   if (booting) {
     return (
       <div className="h-[100dvh] bg-slate-950 flex items-center justify-center">
@@ -2245,7 +2377,7 @@ const AnonymousRoom = () => {
           </div>
         </div>
       )}
-      <header className="shrink-0 border-b border-slate-800/80 bg-slate-950/95 backdrop-blur px-4 py-3 flex items-center gap-2.5">
+      <header className="shrink-0 border-b border-slate-800/80 bg-slate-950/95 backdrop-blur px-4 py-2.5 flex items-center gap-2.5">
         <div className="min-w-0 flex-1">
           <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-sm font-black text-white truncate flex items-center gap-1.5">
@@ -2264,40 +2396,28 @@ const AnonymousRoom = () => {
               </span>
             )}
           </div>
-          <p className="text-[10px] font-bold text-slate-500 mt-0.5 flex items-center gap-2 flex-wrap">
+          <p className="text-[10px] font-bold text-slate-500 mt-0.5 flex items-center gap-2 flex-wrap min-h-[14px]">
             {isMember && myLabel && <span style={{ ...identityStyle(room?.my_alias) }} className="font-black">{myLabel}</span>}
             {isSpectator && (
               <span className="inline-flex items-center gap-1 text-amber-300">
                 <Eye size={10} /> Spectator
               </span>
             )}
-            {(typeof memberCount === 'number' || (liveOnline !== null && liveOnline !== undefined)) && (
-              <span className="inline-flex items-center gap-1.5">
-                {typeof memberCount === 'number' && (
-                  <span
-                    className="inline-flex items-center gap-1"
-                    title={`Founding members ${seatMemberCount ?? memberCount}/${foundingCap ?? '—'} · free spectators ${spectatorCount ?? '—'}/${freeSpecCap ?? '—'} · total ${(seatMemberCount ?? 0) + (spectatorCount ?? 0)}/${totalCapacity ?? memberLimit ?? '—'}`}
-                  >
-                    <Users size={10} /> {seatMemberCount ?? memberCount}
-                    {typeof foundingCap === 'number' ? `/${foundingCap}` : ''} founding
-                    {typeof spectatorCount === 'number' && typeof freeSpecCap === 'number'
-                      ? ` · ${spectatorCount}/${freeSpecCap} free spectators`
-                      : ''}
-                    {typeof totalCapacity === 'number'
-                      ? ` · ${(seatMemberCount ?? 0) + (spectatorCount ?? 0)}/${totalCapacity}`
-                      : ''}
-                  </span>
-                )}
-                {typeof memberCount === 'number' &&
-                  liveOnline !== null &&
-                  liveOnline !== undefined && <span className="text-slate-600">·</span>}
-                {liveOnline !== null && liveOnline !== undefined && (
-                  <span className="inline-flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> {liveOnline} online
-                  </span>
-                )}
+            <span
+              className="inline-flex items-center gap-1.5 whitespace-nowrap"
+              title={`Founding members ${seatMemberCount ?? memberCount ?? '—'}/${foundingCap ?? '—'} · free spectators ${spectatorCount ?? '—'}/${freeSpecCap ?? '—'} · total ${(seatMemberCount ?? 0) + (spectatorCount ?? 0)}/${totalCapacity ?? memberLimit ?? '—'}`}
+            >
+              <span className="inline-flex items-center gap-1">
+                <Users size={10} />
+                {typeof seatMemberCount === 'number' || typeof memberCount === 'number'
+                  ? `${seatMemberCount ?? memberCount}${typeof foundingCap === 'number' ? `/${foundingCap}` : ''}`
+                  : '—'}
               </span>
-            )}
+              <span className="text-slate-600">·</span>
+              <span className="inline-flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" /> {liveOnline ?? 0} online
+              </span>
+            </span>
             {room?.group?.group_state === 'waiting' && (
               <span className="text-amber-400">opens at {thresholds.activate ?? '—'}</span>
             )}
@@ -2562,8 +2682,8 @@ const AnonymousRoom = () => {
                       {msg.reply && (
                         <button
                           type="button"
-                          onClick={() => msg.reply.id && jumpToAlias(msg.reply.alias)}
-                          className="mt-1 pl-2.5 border-l-2 border-slate-700 text-left text-[11px] font-medium text-slate-500 truncate w-full"
+                          onClick={() => msg.reply.id && jumpToReply(msg.reply)}
+                          className="mt-1 pl-2.5 border-l-2 border-slate-700 text-left text-[11px] font-medium text-slate-500 hover:text-slate-300 truncate w-full"
                         >
                           <CornerUpLeft size={10} className="inline mr-1" />
                           {msg.reply.deleted ? (

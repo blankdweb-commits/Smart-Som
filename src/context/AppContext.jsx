@@ -375,6 +375,22 @@ export function AppProvider({ children }) {
     document.documentElement.classList.toggle('dark', darkMode);
   }, [darkMode]);
 
+  // Register the push service worker ONCE at app mount (idempotent). Doing it
+  // here — not only inside the room — lets notifications arrive even when the
+  // user never opens the Anonymous room. Fails soft on unsupported browsers.
+  useEffect(() => {
+    let cancelled = false;
+    (async () => {
+      try {
+        const { registerServiceWorker } = await import('../utils/push');
+        if (!cancelled) await registerServiceWorker();
+      } catch {
+        // push is optional — never surface an error
+      }
+    })();
+    return () => { cancelled = true; };
+  }, []);
+
   const fetchUserData = useCallback(async () => {
     if (!supabase || !session) return;
     try {
@@ -792,13 +808,17 @@ export function AppProvider({ children }) {
   //     writes duels history + competitive_stats, and is replay-safe.
   // All helpers fail SOFT (return null) so a not-yet-migrated DB degrades to
   // "match could not start" instead of crashing.
-  const createCompetitiveMatch = useCallback(async ({ mode, stake, opponentId }) => {
+  const createCompetitiveMatch = useCallback(async ({ mode, stake, opponentId, format, bot }) => {
     if (!session) return null;
     try {
       const { data, error } = await supabase.rpc('create_competitive_match', {
         p_mode: mode,
         p_stake: Number(stake) || 0,
         p_opponent_id: opponentId || null,
+        p_format: format || 'sudden_death',
+        // v60 tutor bots (non-blitz 1v1 only): the server grades the tutor and
+        // settles; opponent_id is forced NULL server-side. Omit -> NULL.
+        p_bot: bot || null,
       });
       if (error || !data?.ok) {
         console.warn('Competitive match create failed:', error?.message || data?.error);
@@ -807,6 +827,68 @@ export function AppProvider({ children }) {
       return data;
     } catch (err) {
       console.warn('Competitive match create failed:', err?.message);
+      return null;
+    }
+  }, [session]);
+
+  // Duel roster (v60): live, eligible (activated + premium + solvent) scholars
+  // waiting for this mode/format. Server-authoritative list for the betting
+  // screen's "challenge a scholar" section. Fails soft (empty list).
+  const fetchDuelRoster = useCallback(async ({ mode = 'duel', stake = 0, format = 'sudden_death' } = {}) => {
+    if (!session) return [];
+    try {
+      const { data, error } = await supabase.rpc('duel_roster', {
+        p_mode: mode,
+        p_stake: Number(stake) || 0,
+        p_format: format,
+      });
+      if (error || !data?.ok) {
+        console.warn('Duel roster fetch failed:', error?.message || data?.error);
+        return [];
+      }
+      return Array.isArray(data.players) ? data.players : [];
+    } catch (err) {
+      console.warn('Duel roster fetch failed:', err?.message);
+      return [];
+    }
+  }, [session]);
+
+  // Blitz (v58): the 1v1 Duel Lobby format — 40-NMCN-question, 90s shared clock.
+  // createBlitzMatch is a thin alias (server picks + pins the balanced sequence);
+  // startCompetitiveMatch opens the 90s window from the 3-2-1 countdown.
+  const createBlitzMatch = useCallback(async ({ stake, opponentId }) => {
+    if (!session) return null;
+    try {
+      const { data, error } = await supabase.rpc('create_competitive_match', {
+        p_mode: 'duel',
+        p_stake: Number(stake) || 0,
+        p_opponent_id: opponentId || null,
+        p_format: 'blitz',
+      });
+      if (error || !data?.ok) {
+        console.warn('Blitz match create failed:', error?.message || data?.error);
+        return null;
+      }
+      return data;
+    } catch (err) {
+      console.warn('Blitz match create failed:', err?.message);
+      return null;
+    }
+  }, [session]);
+
+  const startCompetitiveMatch = useCallback(async (matchId) => {
+    if (!session) return null;
+    try {
+      const { data, error } = await supabase.rpc('start_competitive_match', {
+        p_match_id: matchId,
+      });
+      if (error || !data?.ok) {
+        console.warn('Blitz match start failed:', error?.message || data?.error);
+        return null;
+      }
+      return data;
+    } catch (err) {
+      console.warn('Blitz match start failed:', err?.message);
       return null;
     }
   }, [session]);
@@ -828,13 +910,14 @@ export function AppProvider({ children }) {
     }
   }, [session]);
 
-  const submitCompetitiveAnswer = useCallback(async ({ matchId, questionIndex, selected }) => {
+  const submitCompetitiveAnswer = useCallback(async ({ matchId, questionIndex, selected, double }) => {
     if (!session) return null;
     try {
       const { data, error } = await supabase.rpc('submit_competitive_answer', {
         p_match_id: matchId,
         p_question_index: Number(questionIndex) || 0,
         p_selected: selected ?? null,
+        p_double: !!double,
       });
       if (error || !data?.ok) {
         console.warn('Competitive answer submit failed:', error?.message || data?.error);
@@ -2303,6 +2386,7 @@ export function AppProvider({ children }) {
       smartCoins, scLedger, claimDailySC, spendSC, recordStreakBreak, recordQuizFailPenalty,
       finalizeDuel,
       createCompetitiveMatch, getCompetitiveMatch, submitCompetitiveAnswer, completeCompetitiveMatch,
+      createBlitzMatch, startCompetitiveMatch, fetchDuelRoster,
       claimChallengeReward, getMyReferral, applyReferral,
       createSquad, joinSquad, leaveSquad, getMySquad, claimSquadReward,
       createRoom, joinRoom, leaveRoom, getActiveRooms, getMyRoom,

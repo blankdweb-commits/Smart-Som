@@ -17,7 +17,8 @@
     "e2e:community-ephemeral": "node scripts/e2e-community-ephemeral.mjs",
     "e2e:anonymous-lifecycle": "node scripts/e2e-anonymous-lifecycle.mjs",
     "e2e:license-renewal": "node scripts/e2e-license-renewal.mjs",
-    "e2e:loan-shark": "node scripts/e2e-loan-shark.mjs"
+    "e2e:loan-shark": "node scripts/e2e-loan-shark.mjs",
+    "e2e:duel": "node scripts/e2e-duel-lobby.mjs"
   },
   "dependencies": {
     "@daformat/react-swipeable-cards": "^1.0.4",

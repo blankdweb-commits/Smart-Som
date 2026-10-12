@@ -902,7 +902,7 @@ export async function handleJoinGroup(req, res, user) {
       });
     }
     if (!data.already_member) {
-      const alias = await ensureRoomAlias(groupId, user.id).catch(() => null);
+      const alias = await ensureRoomAlias(groupId, user.id, readVisitKey(req)).catch(() => null);
       publishRoomEvent(groupId, 'join', alias ? { alias } : {});
       void sendRoomPush({
         groupId,
@@ -1057,7 +1057,7 @@ export async function handleAnonGiftClaim(req, res, user) {
 
   // A newly granted seat gets a room identity + a join push, mirroring the
   // free/paid join flow so the member immediately appears to everyone.
-  const alias = await ensureRoomAlias(groupId, user.id).catch(() => null);
+  const alias = await ensureRoomAlias(groupId, user.id, readVisitKey(req)).catch(() => null);
   publishRoomEvent(groupId, 'join', alias ? { alias } : {});
   void sendRoomPush({
     groupId,
@@ -1089,7 +1089,7 @@ export async function handleLeaveGroup(req, res, user) {
   if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND' });
 
   if (group.type === 'anonymous') {
-    const alias = await ensureRoomAlias(groupId, user.id).catch(() => null);
+    const alias = await ensureRoomAlias(groupId, user.id, readVisitKey(req)).catch(() => null);
     const { data, error } = await supabase.rpc('community_anonymous_leave', { p_group: groupId, p_user: user.id });
     if (error) {
       console.error('[community anon leave]', error);
@@ -1269,24 +1269,66 @@ async function reconcileMembership(groupId) {
   }
 }
 
+// A "visit" is one browser session/tab (a client-minted key held in
+// sessionStorage). WS3: the same member re-entering in a NEW visit gets a
+// fresh Anonymous #NN so they cannot be correlated across visits — while the
+// identity row (PK group_id,user_id) and membership stay untouched. Only the
+// routes that speak for the CURRENT viewer pass a visit key; every other
+// caller (hydrating other members, rosters, targeting) passes none and
+// therefore keeps whoever's stable current alias.
+const VISIT_KEY_RE = /^[A-Za-z0-9_-]{8,64}$/;
+export function readVisitKey(req) {
+  const raw = req?.body?.visit_key ?? req?.headers?.['x-room-visit'];
+  const value = typeof raw === 'string' ? raw.trim() : '';
+  return VISIT_KEY_RE.test(value) ? value : null;
+}
+
 // Stable random room identity. Retries on 23505 (alias collision);
-// PK (group_id,user_id) means a user always keeps their own number.
-export async function ensureRoomAlias(groupId, userId) {
+// PK (group_id,user_id) means a user always keeps their own number. When a
+// `visitKey` is supplied and differs from the stored one, the alias is
+// RE-ROLLED (per-visit pseudonym) and the new visit stamped.
+export async function ensureRoomAlias(groupId, userId, visitKey = null) {
   const supabase = getDb();
   if (!supabase) throw err('SERVER_CONFIG', 'Server configuration error', 500);
   const { data: existing } = await supabase
     .from('anonymous_room_identities')
-    .select('alias')
+    .select('alias, visit_key')
     .eq('group_id', groupId)
     .eq('user_id', userId)
     .maybeSingle();
-  if (existing) return existing.alias;
+  // Same visit (or a caller that doesn't track visits) → keep the alias.
+  if (existing && (!visitKey || existing.visit_key === visitKey)) return existing.alias;
+
+  const roll = () => 1 + Math.floor(Math.random() * 9999);
+  // A returning member in a NEW visit: re-roll the pseudonym.
+  if (existing) {
+    for (let attempt = 0; attempt < 8; attempt += 1) {
+      const { data, error } = await supabase
+        .from('anonymous_room_identities')
+        .update({ alias: roll(), visit_key: visitKey })
+        .eq('group_id', groupId)
+        .eq('user_id', userId)
+        .select('alias')
+        .single();
+      if (!error) return data.alias;
+      if (error.code !== '23505') {
+        console.error('[anonymous room alias]', error);
+        throw err('IDENTITY_FAILED', 'Could not assign a room identity.', 500);
+      }
+    }
+    // Every re-roll collided — keep the existing number but stamp the visit.
+    await supabase
+      .from('anonymous_room_identities')
+      .update({ visit_key: visitKey })
+      .eq('group_id', groupId)
+      .eq('user_id', userId);
+    return existing.alias;
+  }
 
   for (let attempt = 0; attempt < 8; attempt += 1) {
-    const alias = 1 + Math.floor(Math.random() * 9999);
     const { data, error } = await supabase
       .from('anonymous_room_identities')
-      .insert({ group_id: groupId, user_id: userId, alias })
+      .insert({ group_id: groupId, user_id: userId, alias: roll(), ...(visitKey ? { visit_key: visitKey } : {}) })
       .select('alias')
       .single();
     if (!error) return data.alias;
@@ -1710,7 +1752,7 @@ export async function handleAnonRoom(req, res, user) {
         ? seatSpectatorCount >= freeSpectatorCap
         : null,
   };
-  const myAlias = access === 'member' ? await ensureRoomAlias(group.id, user.id) : null;
+  const myAlias = access === 'member' ? await ensureRoomAlias(group.id, user.id, readVisitKey(req)) : null;
   // Opening the room is real engagement for a member (S4).
   if (access === 'member') void touchMembership(group.id, user.id);
   const noticeAccepted = access === 'member' ? await hasNoticeAck(user.id) : true;
@@ -1862,6 +1904,70 @@ export async function handleAnonRooms(req, res) {
   }
 
   return res.status(200).json({ ok: true, rooms });
+}
+
+// POST /api/community/anonymous/preview  { group_id }
+// WS4 — PUBLIC, unauthenticated preview of a deep-linked Anonymous room so a
+// logged-out visitor landing on /anonymous/:id sees something useful instead of
+// a login redirect. Routed in api/community.js BEFORE authorizeRequest (no
+// session required, like handleCleanup). Only NON-SENSITIVE room metadata + the
+// live seat-count breakdown — never messages, aliases, or the roster. The
+// counts come from the service role, so nothing leaks to the anon role.
+export async function handleAnonPreview(req, res) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+
+  const requestedId = req?.body?.group_id;
+  const hasRequestedId = requestedId !== undefined && requestedId !== null && requestedId !== '';
+  // A specific room id that does not resolve is a real 404; a bare preview
+  // (no id, the /anonymous index) resolves the current default room.
+  const group = await resolveAnonGroup(hasRequestedId ? requestedId : null);
+  if (!group) {
+    return res.status(404).json({ error: 'GROUP_NOT_FOUND', message: 'No Anonymous room found.' });
+  }
+
+  const seatMemberCount = await roomMemberCount(group.id);
+  const seatSpectatorCount = await roomSpectatorCount(group.id);
+  const foundingCap = typeof group.founding_member_cap === 'number' ? group.founding_member_cap : null;
+  const freeSpectatorCap = typeof group.free_spectator_cap === 'number' ? group.free_spectator_cap : null;
+  const totalCapacity = typeof group.member_limit === 'number' ? group.member_limit : null;
+  const memberPrice = group.member_price != null ? Number(group.member_price) : null;
+  const spectatorPrice = group.spectator_price != null ? Number(group.spectator_price) : null;
+
+  return res.status(200).json({
+    ok: true,
+    requires_auth: true,
+    access: 'preview',
+    room: {
+      id: group.id,
+      name: group.name,
+      group_state: group.group_state,
+      is_active: !!group.is_active,
+      membership_locked: !!group.membership_locked,
+    },
+    member_count: typeof seatMemberCount === 'number' ? seatMemberCount : null,
+    capacity: {
+      total_capacity: totalCapacity,
+      founding_member_cap: foundingCap,
+      free_spectator_cap: freeSpectatorCap,
+      member_price: memberPrice,
+      spectator_price: spectatorPrice,
+      member_count: seatMemberCount,
+      spectator_count: seatSpectatorCount,
+      member_paid_required:
+        typeof seatMemberCount === 'number' && typeof foundingCap === 'number'
+          ? seatMemberCount >= foundingCap
+          : null,
+      spectator_paid_required:
+        typeof seatSpectatorCount === 'number' && typeof freeSpectatorCap === 'number'
+          ? seatSpectatorCount >= freeSpectatorCap
+          : null,
+    },
+    thresholds: {
+      activate: group.minimum_members_to_activate,
+      survive: group.minimum_members_to_remain_active,
+    },
+  });
 }
 
 // POST /api/community/anonymous/members  { group_id? }
@@ -2161,6 +2267,9 @@ export async function handleAnonSend(req, res, user) {
     }
   }
 
+  // Stamp the viewer's CURRENT visit so their pseudonym is per-visit (WS3)
+  // before the message is hydrated with the (possibly re-rolled) alias.
+  await ensureRoomAlias(group.id, user.id, readVisitKey(req)).catch(() => null);
   const [message] = await hydrateRoomMessages(group, [post], user.id);
   void touchMembership(group.id, user.id);
   publishRoomEvent(group.id, 'message', { id: post.id });
@@ -2465,7 +2574,7 @@ export async function handleAnonSocial(req, res, user) {
     });
   }
 
-  const alias = await ensureRoomAlias(group.id, user.id);
+  const alias = await ensureRoomAlias(group.id, user.id, readVisitKey(req));
   const targetAlias = (await loadRoomAliases(group.id, [targetUserId])).get(targetUserId) ?? (await ensureRoomAlias(group.id, targetUserId).catch(() => null));
 
   if (messageId) {

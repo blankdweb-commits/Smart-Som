@@ -31,8 +31,8 @@ self.addEventListener('push', (event) => {
       tag: data.tag || 'apex-anon-room',
       renotify: false,
       data: { url },
-      icon: '/apex-mark.png',
-      badge: '/apex-mark.png',
+      icon: '/polynurse-mark.svg',
+      badge: '/polynurse-mark.svg',
     }),
   );
 });

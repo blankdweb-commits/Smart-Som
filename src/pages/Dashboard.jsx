@@ -10,6 +10,7 @@ import IdentityCard from '../components/IdentityCard';
 import IdentityUnlockModal from '../components/IdentityUnlockModal';
 import Recommendations from '../components/Recommendations';
 import StudyPlanCard from '../components/StudyPlanCard';
+import PushOptInBanner from '../components/PushOptInBanner';
 import AdSenseSlot from '../components/ads/AdSenseSlot';
 import { ACHIEVEMENT_CATALOG, tierForAchievement, tierStyle } from '../utils/achievementEngine';
 import { greetingForName } from '../utils/getGreeting';
@@ -202,6 +203,8 @@ const Dashboard = () => {
       </header>
 
       <IdentityUnlockModal identity={identityUnlock} onClose={dismissIdentityUnlock} />
+
+      <PushOptInBanner session={session} />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         <div className="lg:col-span-2 space-y-8">

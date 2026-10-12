@@ -1,5 +1,5 @@
-import React, { lazy, Suspense } from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import React, { lazy, Suspense, useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'react-router-dom';
 import { AppProvider, useAppContext } from './context/AppContext';
 import Layout from './components/Layout';
 import RequireAuth from './components/RequireAuth';
@@ -106,9 +106,11 @@ const AppRouter = () => (
       <Route path="/signup" element={<Auth />} />
       <Route path="/xp-hall" element={<XpHall />} />
       {/* Anonymous room: immersive full-screen (no sidebar/bottom nav),
-          direct entry at /anonymous and deep link at /anonymous/:id. */}
-      <Route path="/anonymous" element={<RequireAuth><AnonymousRoom /></RequireAuth>} />
-      <Route path="/anonymous/:id" element={<RequireAuth><AnonymousRoom /></RequireAuth>} />
+          direct entry at /anonymous and deep link at /anonymous/:id. PUBLIC —
+          WS4 unwraps RequireAuth so a logged-out deep link shows a preview
+          (limited metadata + sign-in CTA) instead of bouncing to /login. */}
+      <Route path="/anonymous" element={<AnonymousRoom />} />
+      <Route path="/anonymous/:id" element={<AnonymousRoom />} />
         <Route path="/leaderboard" element={<RequireAuth><Leaderboard /></RequireAuth>} />
         <Route path="/challenges" element={<RequireAuth><Challenges /></RequireAuth>} />
         <Route path="/squads" element={<RequireAuth><Squads /></RequireAuth>} />
@@ -125,11 +127,34 @@ const AppRouter = () => (
   </Suspense>
 );
 
+// When the push service worker is clicked it focuses this tab and posts an
+// `apex:push-navigate` message with the target URL. This bridge SPA-navigates
+// (no full reload) so the open app lands directly on the referenced room.
+const PushNavigationListener = () => {
+  const navigate = useNavigate();
+  useEffect(() => {
+    if (typeof navigator === 'undefined' || !('serviceWorker' in navigator)) return undefined;
+    const onMessage = (event) => {
+      const msg = event?.data;
+      if (!msg || msg.type !== 'apex:push-navigate' || typeof msg.url !== 'string' || !msg.url) return;
+      try {
+        navigate(msg.url);
+      } catch {
+        window.location.assign(msg.url);
+      }
+    };
+    navigator.serviceWorker.addEventListener('message', onMessage);
+    return () => navigator.serviceWorker.removeEventListener('message', onMessage);
+  }, [navigate]);
+  return null;
+};
+
 function App() {
   return (
     <AppProvider>
       <MotionConfig reducedMotion="user">
         <Router>
+          <PushNavigationListener />
           <AdSenseManager>
             <AppRouter />
             <CelebrationHost />

@@ -14,10 +14,13 @@ import {
   GraduationCap,
   Building2,
   Copy,
-  Sparkles
+  Sparkles,
+  Bell,
+  BellOff
 } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import Toast from '../components/Toast';
+import { pushSupported, getPushState, enablePush, disablePush, savePreferences } from '../utils/push';
 
 const NURSING_YEARS = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'];
 const DEPARTMENTS = [
@@ -34,6 +37,55 @@ export default function Settings() {
 
   const [referral, setReferral] = useState(null);
   const [referralToast, setReferralToast] = useState(null);
+  const [pushState, setPushState] = useState({ supported: pushSupported(), subscribed: false, permission: 'default' });
+  const [pushPrefs, setPushPrefs] = useState({ room_messages: true, member_joins: true, social: true });
+  const [pushBusy, setPushBusy] = useState(false);
+  const [pushNote, setPushNote] = useState('');
+
+  const refreshPushState = useCallback(async () => {
+    if (!session) return;
+    setPushState(await getPushState());
+    try {
+      const prefs = await savePreferences(session, {});
+      if (prefs?.preferences) setPushPrefs(prefs.preferences);
+    } catch {
+      // preferences table may not be migrated yet — keep safe defaults
+    }
+  }, [session]);
+
+  const togglePushPref = useCallback(async (key) => {
+    if (!session) return;
+    const next = { ...pushPrefs, [key]: !pushPrefs[key] };
+    setPushPrefs(next);
+    try {
+      await savePreferences(session, { [key]: next[key] });
+    } catch {
+      setPushPrefs(pushPrefs); // revert the optimistic toggle
+    }
+  }, [session, pushPrefs]);
+
+  useEffect(() => {
+    refreshPushState();
+  }, [refreshPushState]);
+
+  const togglePush = useCallback(async () => {
+    if (!session) return;
+    setPushBusy(true);
+    setPushNote('');
+    const res = pushState.subscribed ? await disablePush(session) : await enablePush(session);
+    setPushBusy(false);
+    if (!res.ok) {
+      const reason = res.reason;
+      if (reason === 'denied') setPushNote('Notifications are blocked in your browser settings.');
+      else if (reason === 'not_configured') setPushNote('Push is not configured on this server yet.');
+      else if (reason === 'unsupported') setPushNote('This browser does not support push notifications.');
+      else setPushNote('Could not update notifications. Please try again.');
+    } else {
+      // Enabling from Settings is an explicit opt-in: clear the Dashboard dismiss.
+      try { localStorage.removeItem('apex:pushOptInDismissed'); } catch { /* storage unavailable */ }
+    }
+    refreshPushState();
+  }, [session, pushState.subscribed, refreshPushState]);
 
   const loadReferral = useCallback(async () => {
     if (!session || !getMyReferral) return;
@@ -355,6 +407,62 @@ export default function Settings() {
           </form>
         )}
       </motion.div>
+
+      {/* Push notifications */}
+      {session && (
+        <motion.div
+          initial={{ y: 10, opacity: 0 }}
+          animate={{ y: 0, opacity: 1 }}
+          transition={{ delay: 0.14 }}
+          className="bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-100 dark:border-slate-700 p-6 sm:p-8 shadow-clinical"
+        >
+          <div className="flex items-center justify-between gap-3 mb-5">
+            <h2 className="text-sm font-black uppercase tracking-widest text-slate-400">Notifications</h2>
+            <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${pushState.subscribed ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>
+              {pushState.subscribed ? 'On' : 'Off'}
+            </span>
+          </div>
+
+          {!pushState.supported ? (
+            <p className="text-xs font-bold text-slate-400">Your browser does not support push notifications.</p>
+          ) : (
+            <>
+              <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
+                Receive alerts for room messages, new members and social activity — even when the app is closed.
+              </p>
+              <button
+                onClick={togglePush}
+                disabled={pushBusy}
+                className={`w-full py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 disabled:opacity-60 ${pushState.subscribed ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600' : 'bg-polynurse-600 text-white hover:bg-polynurse-700'}`}
+              >
+                {pushState.subscribed ? <BellOff size={16} /> : <Bell size={16} />}
+                {pushBusy ? 'Working…' : pushState.subscribed ? 'Turn off notifications' : 'Enable notifications'}
+              </button>
+              {pushState.subscribed && (
+                <div className="mt-5 space-y-2">
+                  {[
+                    { key: 'room_messages', label: 'Room messages, replies & mentions' },
+                    { key: 'member_joins', label: 'New members joining your rooms' },
+                    { key: 'social', label: 'Social activity (actions & challenges)' }
+                  ].map(({ key, label }) => (
+                    <button
+                      key={key}
+                      onClick={() => togglePushPref(key)}
+                      className="w-full flex items-center justify-between gap-3 py-2.5 text-left group"
+                    >
+                      <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{label}</span>
+                      <span className={`shrink-0 w-10 h-6 rounded-full transition-colors relative ${pushPrefs[key] ? 'bg-polynurse-600' : 'bg-slate-300 dark:bg-slate-600'}`}>
+                        <span className={`absolute top-0.5 left-0.5 w-5 h-5 rounded-full bg-white shadow transition-transform ${pushPrefs[key] ? 'translate-x-4' : ''}`} />
+                      </span>
+                    </button>
+                  ))}
+                </div>
+              )}
+            </>
+          )}
+          {pushNote && <p className="mt-3 text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400">{pushNote}</p>}
+        </motion.div>
+      )}
 
       {/* Session */}
       {session && (

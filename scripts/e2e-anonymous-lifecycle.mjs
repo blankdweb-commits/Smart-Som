@@ -65,6 +65,21 @@
 //        used/bogus codes and already-members are refused; a wipe expires the
 //        unclaimed gifts. Handlers: /anonymous/gifts + /anonymous/gift-claim.
 //
+// v59 additions (per-visit identity — WS3, requires migration-v59 applied live):
+//   PHASE 1/2b. A member keeps ONE identity row per room, but the displayed
+//        Anonymous #NN is re-rolled whenever they return in a NEW visit (a new
+//        client-minted visit_key). The same visit keeps the number; a caller
+//        that sends no visit key keeps the current alias (no spurious re-roll);
+//        membership/seat is never touched by a re-roll.
+//
+// WS4 additions (PUBLIC room preview — no migration needed):
+//   PHASE 1/2c. A logged-out deep link (/anonymous/:id) resolves through the
+//        public /anonymous/preview handler (special-cased before
+//        authorizeRequest) and returns ONLY non-sensitive room metadata — never
+//        messages, aliases, or the roster. A bare preview (no id) resolves the
+//        current default room; a bogus id 404s; a wiped room still previews its
+//        ended state.
+//
 // Requires a reachable Supabase project (VITE_SUPABASE_URL +
 // SUPABASE_SERVICE_ROLE_KEY + VITE_SUPABASE_ANON_KEY in .env). Run:
 //   npm run e2e:anonymous-lifecycle
@@ -77,8 +92,10 @@ import {
   roomChannel,
   handleAnonAck,
   handleAnonSend,
+  handleAnonMessage,
   handleAnonFeed,
   handleAnonRoom,
+  handleAnonPreview,
   handleAnonMembers,
   handleAnonSpectateFree,
   handleAnonRooms,
@@ -332,6 +349,68 @@ try {
       Number.isInteger(roomForMember.body?.online_count) &&
       roomForMember.body?.access === 'member',
     `member_count=${roomForMember.body?.member_count} online=${roomForMember.body?.online_count} access=${roomForMember.body?.access}`);
+
+  // ---------- PHASE 1/2b. PER-VISIT ANONYMOUS IDENTITY (WS3) ----------
+  // A member keeps ONE identity row per room but the displayed Anonymous #NN is
+  // re-rolled on a NEW visit (a new client-minted visit_key) so the pseudonym
+  // cannot be correlated across visits. The same visit keeps the number; a
+  // caller that sends no visit key keeps whatever alias is current (no spurious
+  // re-roll) — membership/seat is never touched by any of this.
+  const visitA = `visitA-${stamp}`;
+  const visitB = `visitB-${stamp}`;
+  const roomVisitA1 = await callHandler(handleAnonRoom, { id: memberId }, { group_id: scratchGroupId, visit_key: visitA });
+  const aliasVisitA = roomVisitA1.body?.my_alias;
+  const roomVisitA2 = await callHandler(handleAnonRoom, { id: memberId }, { group_id: scratchGroupId, visit_key: visitA });
+  log('WS3: re-entering the SAME visit keeps the member\'s Anonymous #NN',
+    typeof aliasVisitA === 'number' && roomVisitA2.body?.my_alias === aliasVisitA,
+    `alias=${aliasVisitA} again=${roomVisitA2.body?.my_alias}`);
+  const roomVisitB = await callHandler(handleAnonRoom, { id: memberId }, { group_id: scratchGroupId, visit_key: visitB });
+  const aliasVisitB = roomVisitB.body?.my_alias;
+  log('WS3: a NEW visit re-rolls the member\'s Anonymous #NN (uncorrelatable across visits)',
+    typeof aliasVisitB === 'number' && aliasVisitB !== aliasVisitA,
+    `visitA=${aliasVisitA} visitB=${aliasVisitB}`);
+  const { data: idRow } = await admin
+    .from('anonymous_room_identities')
+    .select('alias, visit_key')
+    .eq('group_id', scratchGroupId)
+    .eq('user_id', memberId)
+    .maybeSingle();
+  log('WS3: the identity row keeps ONE alias per member and stamps the current visit',
+    idRow?.alias === aliasVisitB && idRow?.visit_key === visitB,
+    `alias=${idRow?.alias} visit_key=${idRow?.visit_key}`);
+  const roomNoVisit = await callHandler(handleAnonRoom, { id: memberId }, { group_id: scratchGroupId });
+  log('WS3: a caller with no visit key keeps the member\'s current alias (no spurious re-roll)',
+    roomNoVisit.body?.my_alias === aliasVisitB, `alias=${roomNoVisit.body?.my_alias}`);
+  log('WS3: membership is untouched by a visit re-roll (still a member)',
+    roomNoVisit.body?.access === 'member', `access=${roomNoVisit.body?.access}`);
+
+  // ---------- PHASE 1/2c. PUBLIC ROOM PREVIEW (WS4) ----------
+  // A logged-out deep link must resolve through the public preview handler
+  // (it never sees a session) and return ONLY non-sensitive room metadata.
+  const previewOK = await callHandler(handleAnonPreview, null, { group_id: scratchGroupId });
+  log('WS4: preview resolves WITHOUT a session (requires_auth surface)',
+    previewOK.status === 200 && previewOK.body?.ok === true && previewOK.body?.requires_auth === true && previewOK.body?.access === 'preview',
+    `status=${previewOK.status} access=${previewOK.body?.access}`);
+  log('WS4: preview leaks no alias / roster / messages / channel',
+    !!previewOK.body?.room &&
+      typeof previewOK.body?.my_alias === 'undefined' &&
+      !Array.isArray(previewOK.body?.members) &&
+      !Array.isArray(previewOK.body?.messages) &&
+      typeof previewOK.body?.channel === 'undefined',
+    JSON.stringify(Object.keys(previewOK.body || {})));
+  log('WS4: preview carries the room state + capacity breakdown',
+    ['waiting', 'active'].includes(previewOK.body?.room?.group_state) &&
+      Number.isFinite(previewOK.body?.capacity?.total_capacity) &&
+      typeof previewOK.body?.capacity?.spectator_price === 'number',
+    `state=${previewOK.body?.room?.group_state} capacity=${previewOK.body?.capacity?.total_capacity} spec=${previewOK.body?.capacity?.spectator_price}`);
+  const previewDefault = await callHandler(handleAnonPreview, null, {});
+  log('WS4: a bare preview (no id) resolves the current default room',
+    previewDefault.status === 200 && Number.isFinite(previewDefault.body?.room?.id),
+    `status=${previewDefault.status} id=${previewDefault.body?.room?.id}`);
+  const previewBogus = await callHandler(handleAnonPreview, null, { group_id: 999999999 });
+  log('WS4: a bogus room id previews 404 (GROUP_NOT_FOUND)',
+    previewBogus.status === 404 && previewBogus.body?.error === 'GROUP_NOT_FOUND',
+    `status=${previewBogus.status} error=${previewBogus.body?.error}`);
 
   // ---------- 10. REPORTS PERSIST category + pending (v41 schema) ----------
   if (sentMessageId) {
@@ -605,6 +684,26 @@ try {
   log('replying to a message that does not exist is refused (404 REPLY_NOT_FOUND)',
     badReply.status === 404 && badReply.body?.error === 'REPLY_NOT_FOUND',
     `status=${badReply.status} error=${badReply.body?.error}`);
+
+  // WS2 — reply navigation by exact post id. The client's jumpToReply resolves
+  // the parent via /anonymous/message when it is NOT in the loaded window, so
+  // the exact-id fetch must return the quoted parent (never the author's newest
+  // message) and 404 an absent/dead row.
+  const parentById = await callHandler(handleAnonMessage, { id: memberId }, {
+    message_id: parentMsg?.id,
+    group_id: scratchGroupId,
+  });
+  log('the reply parent is resolved by its exact post id (WS2 fallback path)',
+    parentById.status === 200 && parentById.body?.message?.id === parentMsg?.id &&
+      parentById.body?.message?.content === `original ${stamp}`,
+    `status=${parentById.status} id=${parentById.body?.message?.id}`);
+  const absentParent = await callHandler(handleAnonMessage, { id: memberId }, {
+    message_id: '00000000-0000-4000-8000-000000000000',
+    group_id: scratchGroupId,
+  });
+  log('an absent reply parent 404s so the jump silently no-ops',
+    absentParent.status === 404 && absentParent.body?.error === 'MESSAGE_NOT_FOUND',
+    `status=${absentParent.status} error=${absentParent.body?.error}`);
 
   // ---------- 10g. SOCIAL ACTIONS (v44) — cooldown + mute (v46 action set) ----------
   const socialMsg = encMsg?.id || sentMessageId;
@@ -1428,6 +1527,10 @@ try {
     .from('anonymous_spectators').select('status').eq('group_id', scratchGroupId).eq('user_id', spectatorId).single();
   log('spectator pass revoked on wipe (room-lifecycle expiry)',
     specAfter?.status === 'revoked', specAfter?.status);
+  const previewWiped = await callHandler(handleAnonPreview, null, { group_id: scratchGroupId });
+  log('WS4: a wiped room still previews its ended state (no crash)',
+    previewWiped.status === 200 && previewWiped.body?.room?.group_state === 'wiped',
+    `status=${previewWiped.status} state=${previewWiped.body?.room?.group_state}`);
 } catch (err) {
   log('anonymous lifecycle/spectator e2e', false, err.message);
 } finally {

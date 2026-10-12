@@ -1675,6 +1675,138 @@ let passed = 0;
       ? ok('.env.example documents the three VAPID_* placeholders')
       : fail('.env.example VAPID placeholders missing'),
   );
+  checks.push(
+    /const jumpToReply = useCallback/.test(roomSrc)
+      && /messages\.find\(\(m\) => m\.id === reply\.id\)/.test(roomSrc)
+      && /onClick=\{\(\) => msg\.reply\.id && jumpToReply\(msg\.reply\)\}/.test(roomSrc)
+      ? ok('WS2 reply preview jumps by exact post id (falls back to /anonymous/message) instead of the author\'s newest message')
+      : fail('WS2 reply preview still jumps by alias -> wrong/absent target'),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PART E2 — PER-VISIT ANONYMOUS IDENTITY (WS3, migration v59).
+// A member keeps one identity row per room but the displayed Anonymous #NN is
+// re-rolled on a NEW visit so the pseudonym cannot be correlated across visits.
+// The visit key is a client-minted, sessionStorage-scoped token sent as a
+// request header; ONLY the routes that speak for the current viewer pass it.
+// ---------------------------------------------------------------------------
+{
+  const communitySrc = read(resolve(ROOT, 'api/_community.js'));
+  const visitSrc = existsSync(resolve(ROOT, 'src/utils/anonVisit.js'))
+    ? read(resolve(ROOT, 'src/utils/anonVisit.js')) : '';
+  const communityApiSrc = read(resolve(ROOT, 'src/utils/communityApi.js'));
+  const mig59Src = existsSync(resolve(ROOT, 'scripts/migration-v59-anonymous-visit-aliases.sql'))
+    ? read(resolve(ROOT, 'scripts/migration-v59-anonymous-visit-aliases.sql')) : '';
+
+  checks.push(
+    /alter table public\.anonymous_room_identities/.test(mig59Src)
+      && /add column if not exists visit_key text/.test(mig59Src)
+      && /create index if not exists idx_anonymous_room_identities_visit/.test(mig59Src)
+      && /revoke all on public\.anonymous_room_identities from public, anon, authenticated/.test(mig59Src)
+      ? ok('migration v59 adds a service-role-only visit_key to anonymous_room_identities (idempotent)')
+      : fail('migration v59 visit_key / index / revoke missing'),
+  );
+  checks.push(
+    /export function readVisitKey\(req\)/.test(communitySrc)
+      && /const VISIT_KEY_RE = \/\^\[A-Za-z0-9_-\]\{8,64\}\$\//.test(communitySrc)
+      && /req\?\.body\?\.visit_key \?\? req\?\.headers\?\.\['x-room-visit'\]/.test(communitySrc)
+      ? ok('server validates a visit key from body.visit_key or the X-Room-Visit header')
+      : fail('readVisitKey validation missing'),
+  );
+  checks.push(
+    /export async function ensureRoomAlias\(groupId, userId, visitKey = null\)/.test(communitySrc)
+      && /existing\.visit_key === visitKey/.test(communitySrc)
+      && /\.update\(\{ alias: roll\(\), visit_key: visitKey \}\)/.test(communitySrc)
+      ? ok('ensureRoomAlias re-rolls a member\'s alias on a new visit (same visit keeps the number)')
+      : fail('ensureRoomAlias per-visit re-roll missing'),
+  );
+  checks.push(
+    /const myAlias = access === 'member' \? await ensureRoomAlias\(group\.id, user\.id, readVisitKey\(req\)\) : null/.test(communitySrc)
+      && /ensureRoomAlias\(group\.id, user\.id, readVisitKey\(req\)\)\.catch/.test(communitySrc)
+      ? ok('the room view + message send stamp the viewer\'s current visit (other members keep a stable alias)')
+      : fail('viewer visit key not threaded into handleAnonRoom / handleAnonSend'),
+  );
+  checks.push(
+    /const VISIT_KEY_STORAGE = 'apex:anon_visit_key'/.test(visitSrc)
+      && /sessionStorage/.test(visitSrc)
+      && /getAnonVisitKey/.test(visitSrc)
+      ? ok('client mints a sessionStorage-scoped per-visit key (reload keeps it, new tab re-rolls)')
+      : fail('src/utils/anonVisit.js per-visit key missing'),
+  );
+  checks.push(
+    /import \{ getAnonVisitKey \} from '\.\/anonVisit'/.test(communityApiSrc)
+      && /headers\['x-room-visit'\] = visit/.test(communityApiSrc)
+      ? ok('communityApi tags requests with the X-Room-Visit header')
+      : fail('communityApi does not send the visit key header'),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PART E3 — PUBLIC ROOM PREVIEW (WS4).
+// /anonymous/:id is unwrapped from RequireAuth; a logged-out visitor resolves
+// the room through a public /anonymous/preview handler (routed BEFORE
+// authorizeRequest like handleCleanup) that returns ONLY non-sensitive room
+// metadata + the live seat-count breakdown — never messages, aliases, or the
+// roster. The preview screen carries a sign-in CTA preserved in location.state.
+// ---------------------------------------------------------------------------
+{
+  const communitySrc = read(resolve(ROOT, 'api/_community.js'));
+  const routerSrc = read(resolve(ROOT, 'api/community.js'));
+  const communityApiSrc = read(resolve(ROOT, 'src/utils/communityApi.js'));
+  const appSrc = read(resolve(ROOT, 'src/App.jsx'));
+  const roomSrc = read(resolve(ROOT, 'src/pages/AnonymousRoom.jsx'));
+  const e2eSrc = read(resolve(ROOT, 'scripts/e2e-anonymous-lifecycle.mjs'));
+
+  checks.push(
+    /export async function handleAnonPreview\(req, res\)/.test(communitySrc)
+      && /requires_auth: true/.test(communitySrc)
+      && /access: 'preview'/.test(communitySrc)
+      && /const group = await resolveAnonGroup\(/.test(communitySrc)
+      ? ok('api/_community.js exposes a public handleAnonPreview (non-sensitive metadata only)')
+      : fail('handleAnonPreview missing / leaks a sensitive surface'),
+  );
+  checks.push(
+    /room: \{\s*id: group\.id,\s*name: group\.name,\s*group_state: group\.group_state/.test(communitySrc)
+      ? ok('the preview payload is restricted to room metadata (no messages / aliases / roster)')
+      : fail('preview payload shape widened beyond { room, capacity, thresholds }'),
+  );
+  checks.push(
+    /\{ re: \/\\\/anonymous\\\/preview\$\/, fn: handleAnonPreview \}/.test(routerSrc)
+      && /entry\.fn === handleAnonPreview/.test(routerSrc)
+      && /routed in api\/community\.js BEFORE authorizeRequest|public room preview for logged-out deep links/.test(routerSrc)
+      ? ok('api/community.js routes /anonymous/preview and special-cases it before authorizeRequest')
+      : fail('preview route not registered / not exempted from auth'),
+  );
+  checks.push(
+    /export async function communityPreview\(groupId\)/.test(communityApiSrc)
+      && /retryOnAuth: false/.test(communityApiSrc)
+      && /\/community\/anonymous\/preview/.test(communityApiSrc)
+      ? ok('client has an unauthenticated communityPreview() helper')
+      : fail('communityPreview() helper missing'),
+  );
+  checks.push(
+    !/<RequireAuth><AnonymousRoom \/>/.test(appSrc)
+      && /<Route path="\/anonymous" element={<AnonymousRoom \/>} \/>/.test(appSrc)
+      && /<Route path="\/anonymous\/:id" element={<AnonymousRoom \/>} \/>/.test(appSrc)
+      ? ok('App.jsx unwraps /anonymous + /anonymous/:id from RequireAuth (public preview route)')
+      : fail('/anonymous routes still wrapped by RequireAuth'),
+  );
+  checks.push(
+    /if \(!session\) \{\s*return \(\s*<RoomPreview/.test(roomSrc)
+      && /communityPreview\(roomId\)/.test(roomSrc)
+      && /const RoomPreview = \(\{ preview, error, locationPath \}\) =>/.test(roomSrc)
+      && /navigate\('\/login', \{ state: \{ from: locationPath/.test(roomSrc)
+      ? ok('AnonymousRoom renders a logged-out RoomPreview (public metadata + sign-in CTA)')
+      : fail('AnonymousRoom preview screen / CTA missing'),
+  );
+  checks.push(
+    /PHASE 1\/2c\. PUBLIC ROOM PREVIEW \(WS4\)/.test(e2eSrc)
+      && /previewOK\.body\?\.requires_auth/.test(e2eSrc)
+      && /previewWiped\.body\?\.room\?\.group_state === 'wiped'/.test(e2eSrc)
+      ? ok('WS4 preview is covered by the anonymous lifecycle e2e (logged-out preview + bogus id + wiped state)')
+      : fail('WS4 e2e coverage missing'),
+  );
 }
 
 // ---------------------------------------------------------------------------
@@ -2294,6 +2426,324 @@ checks.push(
       && /14g/.test(e2eSrc)
       ? ok('e2e lifecycle covers the P3 mint / claim / full-room / wipe gates')
       : fail('e2e P3 gates not wired'),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PART K — 1v1 DUEL LOBBY + BLITZ (v58): the v38 competitive-match engine gains
+// a second server-authoritative format. Schema gets format/starts_at/ends_at/
+// multiplier (+partial UNIQUE one-double); create_competitive_match gains a
+// balanced 40-Q NMCN sequence + duplicate pair-write; a NEW start RPC opens the
+// shared 90s clock; submit is first-answer-wins with a one-time x2 Double;
+// complete REFUSES early (BLITZ_NOT_ENDED) and settles deterministically via
+// _sc_apply only at ends_at (replay-proof, stats gated on both humans battling).
+// No new api/*.js — the 12-function Hobby ceiling stays untouched.
+// ---------------------------------------------------------------------------
+{
+  const mig = existsSync(resolve(ROOT, 'scripts/migration-v58-duel-blitz.sql'))
+    ? read(resolve(ROOT, 'scripts/migration-v58-duel-blitz.sql')) : '';
+  const app = read(resolve(ROOT, 'src/context/AppContext.jsx'));
+  const hall = read(resolve(ROOT, 'src/pages/XpHall.jsx'));
+  const hook = existsSync(resolve(ROOT, 'src/hooks/useMatchRealtime.js'))
+    ? read(resolve(ROOT, 'src/hooks/useMatchRealtime.js')) : '';
+  const e2eSrc = existsSync(resolve(ROOT, 'scripts/e2e-duel-lobby.mjs'))
+    ? read(resolve(ROOT, 'scripts/e2e-duel-lobby.mjs')) : '';
+  const pkg = read(resolve(ROOT, 'package.json'));
+
+  checks.push(
+    !existsSync(resolve(ROOT, 'api/duel.js')) && !existsSync(resolve(ROOT, 'api/blitz.js'))
+      && /api\/\*\.js — the 12-function Vercel cap is untouched/.test(mig)
+      ? ok('v58 adds NO Vercel function (RPC-only; 12-function ceiling intact)')
+      : fail('a duel api/*.js file exists — would blow the 12-function ceiling'),
+  );
+  checks.push(
+    /add column if not exists format text not null default 'sudden_death'/.test(mig)
+      && /add column if not exists starts_at timestamptz/.test(mig)
+      && /add column if not exists ends_at timestamptz/.test(mig)
+      && /competitive_matches_format_check/.test(mig)
+      && /add column if not exists multiplier int not null default 1/.test(mig)
+      && /create unique index if not exists uq_cma_one_double/.test(mig)
+      && /duel_waiting_format_check/.test(mig)
+      ? ok('v58 schema: format/starts_at/ends_at/multiplier(+one-double) and format-aware duel_waiting')
+      : fail('v58 schema deltas missing'),
+  );
+  checks.push(
+    /drop function if exists public\.create_competitive_match\(text, integer, uuid\);/.test(mig)
+      && /create or replace function public\.create_competitive_match\(\s*p_mode text,\s*p_stake integer,\s*p_opponent_id uuid default null,\s*p_format text default 'sudden_death'/.test(mig)
+      ? ok('create_competitive_match 3-arg dropped, 4-arg (format-aware) replaces it')
+      : fail('create_competitive_match 4-arg replace missing'),
+  );
+  checks.push(
+    /v_wants int\[\] := array\[8, 12, 12, 8\];/.test(mig)
+      && /partition by c\.diff_rank order by c\.id/.test(mig)
+      && /'HUMAN_DUEL_ONLY'/.test(mig)
+      && /'BLITZ_IS_1V1'/.test(mig)
+      && /case when p_format = 'blitz' then 'waiting' else 'active' end/.test(mig)
+      ? ok('blitz create: balanced 40-Q split (Easy8/Moderate12/Hard12/Expert8), human-only, stores WAITING')
+      : fail('blitz create protections / balanced selection missing'),
+  );
+  checks.push(
+    /create or replace function public\.start_competitive_match\(p_match_id uuid\)/.test(mig)
+      && /now\(\) \+ interval '90 seconds'/.test(mig)
+      && /'NOT_BLITZ'/.test(mig)
+      && /'MATCH_NOT_WAITING'/.test(mig)
+      && /'startsAt', v_m\.starts_at, 'endsAt', v_m\.ends_at/.test(mig)
+      ? ok('start_competitive_match opens the shared 90s wall-clock once (idempotent replay)')
+      : fail('start_competitive_match missing clock / guards'),
+  );
+  checks.push(
+    /drop function if exists public\.submit_competitive_answer\(uuid, integer, text\);/.test(mig)
+      && !/create or replace function public\.submit_competitive_answer\(\s*p_match_id uuid,\s*p_question_index integer default 0,\s*p_selected text default null\s*\)/.test(mig)
+      && /create or replace function public\.submit_competitive_answer\(\s*p_match_id uuid,\s*p_question_index integer default 0,\s*p_selected text default null,\s*p_double boolean default false/.test(mig)
+      && /v_mult := 2;/.test(mig)
+      && /on conflict \(match_id, player_id, question_index\) do nothing/.test(mig)
+      ? ok('submit: SINGLE 4-arg overload (3-arg dropped -> no PGRST203), server-graded, first-answer-wins, one-time Double')
+      : fail('submit_competitive_answer overload contract missing'),
+  );
+  checks.push(
+    /'BLITZ_NOT_ENDED'/.test(mig)
+      && /if now\(\) < v_m\.ends_at then/.test(mig)
+      && /v_answered_humans := \(case when v_a1 > 0 then 1 else 0 end\)/.test(mig)
+      && /and v_answered_humans = v_human_count then/.test(mig)
+      && /v_match_key \|\| ':' \|\| v_human::text\)::uuid/.test(mig)
+      && /perform public\.refresh_duel_risk\(v_human\);/.test(mig)
+      ? ok('blitz settle: refuses early (BLITZ_NOT_ENDED), settles at ends_at deterministically via _sc_apply (both-humans stats gate)')
+      : fail('blitz complete/settle guard missing'),
+  );
+  checks.push(
+    /revoke all on function public\.create_competitive_match\(text, integer, uuid, text\)\s*from public, anon;/.test(mig)
+      && /grant execute on function public\.create_competitive_match\(text, integer, uuid, text\)\s*to authenticated;/.test(mig)
+      && /revoke all on function public\.submit_competitive_answer\(uuid, integer, text, boolean\)\s*from public, anon;/.test(mig)
+      && /notify pgrst, 'reload schema';/.test(mig)
+      ? ok('v58 ACLs: anonymous revoked, authenticated granted on every blitz RPC; pgrst reload')
+      : fail('v58 RPC ACLs / schema reload missing'),
+  );
+  checks.push(
+    /const createBlitzMatch = useCallback/.test(app)
+      && /p_mode: 'duel'[\s\S]*?p_format: 'blitz'/.test(app)
+      && /supabase\.rpc\('start_competitive_match'/.test(app)
+      && /supabase\.rpc\('submit_competitive_answer',[\s\S]*?p_double/.test(app)
+      && /supabase\.rpc\('complete_competitive_match'/.test(app)
+      ? ok('AppContext wire-up: createBlitzMatch + start/submit(double)/complete RPCs')
+      : fail('AppContext blitz helpers missing'),
+  );
+  checks.push(
+    /useMatchRealtime/.test(hall)
+      && /sendLobby/.test(hall)
+      && /phase === "blitz-waiting"/.test(hall)
+      && /phase === "blitz-countdown"/.test(hall)
+      && /phase === "blitz-play"/.test(hall)
+      && /phase === "blitz-result"/.test(hall)
+      && /apex_active_blitz/.test(hall)
+      && /Battle Voided/.test(hall)
+      && /fmtBlitzTime/.test(hall)
+      && /lobbyOnline/.test(hall)
+      ? ok('XpHall blitz UI: waiting/countdown/play/result phases + lobby online + resume key + voided branch')
+      : fail('XpHall blitz UI wiring missing'),
+  );
+  checks.push(
+    /match-lobby:duel:blitz/.test(hook)
+      && /sendState/.test(hook)
+      && /\bonline\b/.test(hook)
+      ? ok('useMatchRealtime exposes lobby presence (blitz topic), online flag, and mirrored sendState')
+      : fail('useMatchRealtime blitz lobby hook missing'),
+  );
+  checks.push(
+    /"e2e:duel": "node scripts\/e2e-duel-lobby\.mjs"/.test(pkg)
+      ? ok('package.json adds the e2e:duel script')
+      : fail('e2e:duel npm script missing'),
+  );
+  checks.push(
+    /create_competitive_match/.test(e2eSrc)
+      && /start_competitive_match/.test(e2eSrc)
+      && /submit_competitive_answer/.test(e2eSrc)
+      && /complete_competitive_match/.test(e2eSrc)
+      && /BLITZ_NOT_ENDED/.test(e2eSrc)
+      && /uq_cma_one_double/.test(e2eSrc)
+      && /multiplier === 2/.test(e2eSrc)
+      ? ok('e2e-duel-lobby drives all five RPCs incl. one-double enforce + early-close refusal')
+      : fail('e2e-duel-lobby does not cover the blitz RPCs'),
+  );
+}
+
+// PART L — 1v1 DUEL TUTOR BOTS + ELIGIBLE-SCHOLAR ROSTER (WS5 / v60):
+// competitive_matches gains opponent_bot (house|apollo|zainab); the 4-arg
+// create becomes 5-arg (+p_bot); complete_competitive_match grades the tutor by
+// a per-bot skill roll and settles like a human sudden-death (silence = draw /
+// AND a tutorial win still pays SC but earns NO verified stats). A new
+// duel_roster RPC lists eligible (activated + premium + solvent) waiting
+// scholars. RPC-only; the 12-function Hobby ceiling stays untouched.
+// ---------------------------------------------------------------------------
+{
+  const m60 = existsSync(resolve(ROOT, 'scripts/migration-v60-duel-bots.sql'))
+    ? read(resolve(ROOT, 'scripts/migration-v60-duel-bots.sql')) : '';
+  const app = read(resolve(ROOT, 'src/context/AppContext.jsx'));
+  const hall = read(resolve(ROOT, 'src/pages/XpHall.jsx'));
+  const e2eSrc = existsSync(resolve(ROOT, 'scripts/e2e-duel-lobby.mjs'))
+    ? read(resolve(ROOT, 'scripts/e2e-duel-lobby.mjs')) : '';
+
+  checks.push(
+    existsSync(resolve(ROOT, 'scripts/migration-v60-duel-bots.sql'))
+      && !existsSync(resolve(ROOT, 'api/duel.js')) && !existsSync(resolve(ROOT, 'api/bots.js'))
+      ? ok('WS5 adds NO Vercel function (RPC-only; 12-function ceiling intact)')
+      : fail('WS5 migration missing or a new api/*.js would blow the 12-function ceiling'),
+  );
+  checks.push(
+    /add column if not exists opponent_bot text/.test(m60)
+      && /competitive_matches_opponent_bot_check/.test(m60)
+      && /opponent_bot in \('house', 'apollo', 'zainab'\)/.test(m60)
+      ? ok('v60 schema: opponent_bot column + CHECK (house|apollo|zainab)')
+      : fail('v60 opponent_bot column / CHECK missing'),
+  );
+  checks.push(
+    /drop function if exists public\.create_competitive_match\(text, integer, uuid, text\);/.test(m60)
+      && /create or replace function public\.create_competitive_match\(\s*p_mode text,\s*p_stake integer,\s*p_opponent_id uuid default null,\s*p_format text default 'sudden_death',\s*p_bot text default null/.test(m60)
+      ? ok('create_competitive_match 4-arg dropped, 5-arg (+p_bot, defaulting) replaces it')
+      : fail('create_competitive_match 5-arg replace missing'),
+  );
+  checks.push(
+    /'BOTS_ARE_1V1'/.test(m60)
+      && /'INVALID_BOT'/.test(m60)
+      && /v_opp := null;/.test(m60)
+      && /cm\.opponent_bot is not distinct from v_bot/.test(m60)
+      ? ok('create: bots are non-blitz 1v1 only (BOTS_ARE_1V1/INVALID_BOT), forces opponent_id NULL, bot-aware de-dupe')
+      : fail('v60 create bot validation / de-dupe missing'),
+  );
+  checks.push(
+    /random\(\)::numeric < v_bot_skill/.test(m60)
+      && /when 'apollo' then 0\.78/.test(m60)
+      && /when 'zainab' then 0\.62/.test(m60)
+      && /'Prof\. Apollo'/.test(m60)
+      && /'Nurse Zainab'/.test(m60)
+      && /v_m\.opponent_bot is not null and v_human_count = 1/.test(m60)
+      && /v_m\.opponent_id is not null and v_ans > 0/.test(m60)
+      ? ok('v60 settle: per-bot skill roll (house .55 / zainab .62 / apollo .78), tutor named winner, no verified stats for bots')
+      : fail('v60 bot settlement / skill profiles missing'),
+  );
+  checks.push(
+    /create or replace function public\.duel_roster\(/.test(m60)
+      && /p_mode text default 'duel',\s*p_stake integer default 0,\s*p_format text default 'sudden_death'/.test(m60)
+      && /from public\.duel_waiting/.test(m60)
+      && /dw\.user_id <> v_user/.test(m60)
+      && /coalesce\(p\.smart_coins, 0\) >= dw\.stake/.test(m60)
+      && /status = 'active'/.test(m60)
+      && /coalesce\(s\.expires_at, s\.grace_until\) > now\(\)/.test(m60)
+      ? ok('v60 duel_roster RPC: eligible waiting scholars (activated + premium + solvent, stake/format scoped)')
+      : fail('duel_roster RPC / eligibility filters missing'),
+  );
+  checks.push(
+    /revoke all on function public\.duel_roster\(text, integer, text\)\s*from public, anon;/.test(m60)
+      && /grant execute on function public\.duel_roster\(text, integer, text\)\s*to authenticated;/.test(m60)
+      && /notify pgrst, 'reload schema';/.test(m60)
+      ? ok('v60 ACLs: duel_roster anonymous-revoked / authenticated-granted; pgrst reload')
+      : fail('v60 RPC ACLs / schema reload missing'),
+  );
+  checks.push(
+    /p_bot: bot \|\| null/.test(app)
+      && /const fetchDuelRoster = useCallback/.test(app)
+      && /supabase\.rpc\('duel_roster'/.test(app)
+      && /fetchDuelRoster,/.test(app)
+      ? ok('AppContext wire-up: createCompetitiveMatch(p_bot) + fetchDuelRoster(rpc duel_roster) exported')
+      : fail('AppContext WS5 helpers missing'),
+  );
+  checks.push(
+    /const BOT_OPPONENTS = \[/.test(hall)
+      && /const startVsBot = useCallback/.test(hall)
+      && /const challengeScholar = useCallback/.test(hall)
+      && /fetchDuelRoster\(\{ mode: 'duel', stake, format: 'sudden_death' \}\)/.test(hall)
+      && /finding === 'bot'/.test(hall)
+      && /setConfirmHighWager/.test(hall)
+      ? ok('XpHall WS5 UI: tutor cards (startVsBot) + live-scholar roster (challengeScholar) + tutor countdown branch')
+      : fail('XpHall WS5 bot/roster UI missing'),
+  );
+  checks.push(
+    /p_bot: 'apollo'/.test(e2eSrc)
+      && /INVALID_BOT/.test(e2eSrc)
+      && /BOTS_ARE_1V1/.test(e2eSrc)
+      && /duel_roster/.test(e2eSrc)
+      && /opponent_bot === 'apollo'/.test(e2eSrc)
+      && /isBot/.test(e2eSrc)
+      && /NO verified competitive stats/.test(e2eSrc)
+      ? ok('e2e-duel-lobby covers v60 bots (skill settle, no stats) + eligible-scholar roster')
+      : fail('e2e-duel-lobby does not cover the v60 bot / roster contract'),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PART M — WEB PUSH (WS-P): notifications must actually pop up on mobile and
+// laptop. The SW is registered ONCE at app mount (not only inside the room), a
+// SW->SPA navigation bridge handles notification clicks, the service worker
+// references an icon that exists, and there is a real user-gesture opt-in path
+// (Dashboard banner + Settings section). Push stays gated server-side on VAPID.
+// ---------------------------------------------------------------------------
+{
+  const swSrc = read(resolve(ROOT, 'public/sw.js'));
+  const app = read(resolve(ROOT, 'src/context/AppContext.jsx'));
+  const appJsx = read(resolve(ROOT, 'src/App.jsx'));
+  const dash = read(resolve(ROOT, 'src/pages/Dashboard.jsx'));
+  const settings = read(resolve(ROOT, 'src/pages/Settings.jsx'));
+  const banner = existsSync(resolve(ROOT, 'src/components/PushOptInBanner.jsx'))
+    ? read(resolve(ROOT, 'src/components/PushOptInBanner.jsx')) : '';
+  const pushSrc = read(resolve(ROOT, 'src/utils/push.js'));
+  const pushApi = read(resolve(ROOT, 'api/_push.js'));
+  const envExample = read(resolve(ROOT, '.env.example'));
+
+  checks.push(
+    /icon: '\/polynurse-mark\.svg'/.test(swSrc)
+      && /badge: '\/polynurse-mark\.svg'/.test(swSrc)
+      && !/apex-mark\.png/.test(swSrc)
+      ? ok('sw.js notification icon/badge point at an existing asset (/polynurse-mark.svg)')
+      : fail('sw.js still references a missing icon asset'),
+  );
+  checks.push(
+    /navigator\.serviceWorker\.register\('\/sw\.js'\)/.test(pushSrc)
+      && /registerServiceWorker/.test(pushSrc)
+      ? ok('push.js exposes an idempotent registerServiceWorker() that registers /sw.js')
+      : fail('push.js registerServiceWorker() missing'),
+  );
+  checks.push(
+    /await import\('\.\.\/utils\/push'\)/.test(app)
+      && /registerServiceWorker\(\)/.test(app)
+      ? ok('AppContext registers the service worker once at app mount (push works without opening the room)')
+      : fail('AppContext does not register the service worker at mount'),
+  );
+  checks.push(
+    /apex:push-navigate/.test(appJsx)
+      && /navigator\.serviceWorker\.addEventListener\('message'/.test(appJsx)
+      && /useNavigate/.test(appJsx)
+      ? ok('App.jsx bridges SW notification clicks (apex:push-navigate) into SPA navigation')
+      : fail('App.jsx push-navigation bridge missing'),
+  );
+  checks.push(
+    /PushOptInBanner/.test(dash)
+      && /pushSupported/.test(banner)
+      && /enablePush\(session\)/.test(banner)
+      && /apex:pushOptInDismissed/.test(banner)
+      ? ok('Dashboard shows a one-time, dismissible push opt-in that calls enablePush on user gesture')
+      : fail('Dashboard push opt-in banner missing'),
+  );
+  checks.push(
+    /enablePush/.test(settings)
+      && /disablePush/.test(settings)
+      && /savePreferences/.test(settings)
+      && /room_messages/.test(settings)
+      && /member_joins/.test(settings)
+      ? ok('Settings push section: enable/disable + per-kind preference toggles')
+      : fail('Settings push section missing'),
+  );
+  checks.push(
+    /process\.env\.VAPID_PUBLIC_KEY/.test(pushApi)
+      && /process\.env\.VAPID_PRIVATE_KEY/.test(pushApi)
+      && /PUSH_ENABLED/.test(pushApi)
+      ? ok('server push stays VAPID-gated and degrades to a no-op when unconfigured')
+      : fail('server push VAPID gate missing'),
+  );
+  checks.push(
+    /VAPID_PUBLIC_KEY=/.test(envExample)
+      && /VAPID_PRIVATE_KEY=/.test(envExample)
+      && /VAPID_SUBJECT=/.test(envExample)
+      ? ok('.env.example documents the VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY / VAPID_SUBJECT server env')
+      : fail('.env.example VAPID documentation missing'),
   );
 }
 

@@ -29,6 +29,7 @@
 //   /api/community/anonymous/room-create  open a new room { name? }
 //   /api/community/anonymous/rooms   browse open rooms  {}
 //   /api/community/anonymous/room    room bootstrap   { group_id? }
+//   /api/community/anonymous/preview public room preview { group_id } (no auth)
 //   /api/community/anonymous/spectate-free  free spectator seat { group_id }
 //   /api/community/anonymous/feed    masked messages  { group_id?, before?, limit? }
 //   /api/community/anonymous/members room roster      { group_id? }
@@ -74,6 +75,7 @@ import {
   handlePanel,
   handleGroupFeed,
   handleAnonRoom,
+  handleAnonPreview,
   handleAnonRooms,
   handleAnonFeed,
   handleAnonMembers,
@@ -118,6 +120,7 @@ const HANDLERS = [
   { re: /\/anonymous\/gifts$/, fn: handleAnonGifts },
   { re: /\/anonymous\/gift-claim$/, fn: handleAnonGiftClaim },
   { re: /\/anonymous\/room$/, fn: handleAnonRoom },
+  { re: /\/anonymous\/preview$/, fn: handleAnonPreview },
   { re: /\/anonymous\/spectate-free$/, fn: handleAnonSpectateFree },
   { re: /\/anonymous\/feed$/, fn: handleAnonFeed },
   { re: /\/anonymous\/members$/, fn: handleAnonMembers },
@@ -165,6 +168,21 @@ export default async function handler(req, res) {
   if (entry.fn === handleCleanup) {
     // Scheduler endpoint: authenticated by header token only.
     return handleCleanup(req, res);
+  }
+
+  if (entry.fn === handleAnonPreview) {
+    // WS4 — public room preview for logged-out deep links. No session needed
+    // (like handleCleanup, this is special-cased before authorizeRequest); the
+    // handler returns only non-sensitive room metadata.
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
+    try {
+      return await handleAnonPreview(req, res);
+    } catch (error) {
+      console.error(`[community ${path}]`, error?.stack || error?.message || error);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
   }
 
   if (req.method !== 'POST') {
