@@ -177,12 +177,12 @@ export default async function handler(req, res) {
     }
     const path = (req.url || '/').split('?')[0];
 
-    if (req.method === 'POST' && path.endsWith('/register')) return register(req, res);
-    if (req.method === 'POST' && path.endsWith('/touch')) return touch(req, res);
-    if (req.method === 'POST' && path.endsWith('/revoke')) return revoke(req, res);
-    if (req.method === 'GET' && path.endsWith('/devices')) return devices(req, res);
+    if (req.method === 'POST' && path.endsWith('/register')) return await register(req, res);
+    if (req.method === 'POST' && path.endsWith('/touch')) return await touch(req, res);
+    if (req.method === 'POST' && path.endsWith('/revoke')) return await revoke(req, res);
+    if (req.method === 'GET' && path.endsWith('/devices')) return await devices(req, res);
     if ((req.method === 'GET' || req.method === 'POST') && (path.endsWith('/validate') || path.endsWith('/status'))) {
-      return status(req, res);
+      return await status(req, res);
     }
     return res.status(405).json({ error: 'Method not allowed' });
   } catch (err) {

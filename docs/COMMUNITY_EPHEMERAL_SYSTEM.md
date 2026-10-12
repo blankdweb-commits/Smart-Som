@@ -87,7 +87,7 @@ expiry-filtered) and `community_comments` (RLS read gate). The client helper is
 - `minimum_members_to_activate` = 30 — at the 30th join the group auto-activates.
 - `minimum_members_to_remain_active` = 18 — an active group drops below this and
   gets wiped.
-- `spectator_price` = ₦499 — non-members can watch ONLY while active.
+- `spectator_price` = ₦299 — non-members can watch ONLY while active.
 
 | Hook | Behavior |
 |---|---|
@@ -108,7 +108,7 @@ price > 0, buyer not a member/active spectator. Payment lands on `/api/verify-pa
 **Read model for anonymous UIs** (`GroupPage.jsx` / `StudyGroups.jsx`):
 - waiting → "X/10 joined", **Join as Anonymous**; members see the board, outsiders don't.
 - active → members/spectators see the masked board; outsiders see "Membership closed"
-  + **Watch as Spectator — ₦499**; spectators can read & react but **cannot post**.
+  + **Watch as Spectator — ₦299**; spectators can read & react but **cannot post**.
 - wiped → "This room was wiped." card; board hidden; join = `GROUP_WIPED`.
 - Members/Leadership tabs are hidden for anonymous rooms (no identity leak);
   the group quiz sprint CTA is hidden too.
@@ -116,7 +116,7 @@ price > 0, buyer not a member/active spectator. Payment lands on `/api/verify-pa
 ## 5. Seeding
 
 The seed lives inside the migration (idempotent): an admin-anchored `Anonymous`
-group (type `anonymous`, privacy `restricted`, 10/5/₦499, `group_state='waiting'`)
+group (type `anonymous`, privacy `restricted`, 10/5/₦299, `group_state='waiting'`)
 created only when no `type='anonymous'` row exists.
 
 ## 6. Deployment notes (Vercel)

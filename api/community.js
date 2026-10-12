@@ -27,8 +27,11 @@
 //   /api/community/groups/panel      panel info       { group_id }
 //   /api/community/groups/feed       authorized feed  { group_id, limit? }
 //   /api/community/anonymous/room-create  open a new room { name? }
+//   /api/community/anonymous/rooms   browse open rooms  {}
 //   /api/community/anonymous/room    room bootstrap   { group_id? }
+//   /api/community/anonymous/spectate-free  free spectator seat { group_id }
 //   /api/community/anonymous/feed    masked messages  { group_id?, before?, limit? }
+//   /api/community/anonymous/members room roster      { group_id? }
 //   /api/community/anonymous/message one message      { message_id, group_id? }
 //   /api/community/anonymous/send    speak            { content, group_id?, reply_to_post_id? }
 //   /api/community/anonymous/react   react            { message_id, emoji, active, group_id? }
@@ -64,11 +67,16 @@ import {
   handleVote,
   handleCreateAnonRoom,
   handleJoinGroup,
+  handleAnonSpectateFree,
+  handleAnonGifts,
+  handleAnonGiftClaim,
   handleLeaveGroup,
   handlePanel,
   handleGroupFeed,
   handleAnonRoom,
+  handleAnonRooms,
   handleAnonFeed,
+  handleAnonMembers,
   handleAnonMessage,
   handleAnonSend,
   handleAnonReact,
@@ -106,8 +114,13 @@ const HANDLERS = [
   { re: /\/groups\/panel$/, fn: handlePanel },
   { re: /\/groups\/feed$/, fn: handleGroupFeed },
   { re: /\/anonymous\/room-create$/, fn: handleCreateAnonRoom },
+  { re: /\/anonymous\/rooms$/, fn: handleAnonRooms },
+  { re: /\/anonymous\/gifts$/, fn: handleAnonGifts },
+  { re: /\/anonymous\/gift-claim$/, fn: handleAnonGiftClaim },
   { re: /\/anonymous\/room$/, fn: handleAnonRoom },
+  { re: /\/anonymous\/spectate-free$/, fn: handleAnonSpectateFree },
   { re: /\/anonymous\/feed$/, fn: handleAnonFeed },
+  { re: /\/anonymous\/members$/, fn: handleAnonMembers },
   { re: /\/anonymous\/message$/, fn: handleAnonMessage },
   { re: /\/anonymous\/send$/, fn: handleAnonSend },
   { re: /\/anonymous\/react$/, fn: handleAnonReact },

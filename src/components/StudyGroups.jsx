@@ -1,7 +1,6 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import {
   Users,
-  Lock,
   ShieldCheck,
   Check,
   X,
@@ -611,8 +610,7 @@ const StudyGroups = () => {
                         ? 'bg-slate-500/15 text-slate-500 dark:text-slate-400 border-slate-500/30'
                         : 'bg-amber-500/15 text-amber-600 dark:text-amber-400 border-amber-500/30'
                   }`}>
-                    {group.group_state === 'active' ? '🔥 Active · closed' : group.group_state === 'wiped' ? '💀 Wiped' : '⏳ Waiting · open'}
-                    <Lock size={9} />
+                    {group.group_state === 'active' ? '🔥 Active · join or spectate' : group.group_state === 'wiped' ? '💀 Wiped' : '⏳ Waiting · opens at ' + (group.minimum_members_to_activate ?? '—')}
                   </span>
                 )}
                 {group.focus && (
@@ -622,7 +620,12 @@ const StudyGroups = () => {
                 <div className="flex flex-wrap gap-2 mt-4 text-[9px] font-black uppercase tracking-widest text-slate-400">
                   {group.school && <span className="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded-lg">🏫 {group.school}</span>}
                   {group.level && <span className="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded-lg">🎓 {group.level}</span>}
-                  <span className="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded-lg flex items-center gap-1"><Users size={10} /> {group.member_count}</span>
+                  <span className="px-2 py-1 bg-slate-100 dark:bg-slate-900 rounded-lg flex items-center gap-1">
+                    <Users size={10} />{' '}
+                    {group.type === 'anonymous'
+                      ? `${group.member_count}/${group.founding_member_cap ?? '—'} members`
+                      : group.member_count}
+                  </span>
                 </div>
 
                 <div className="flex flex-wrap items-center gap-2 mt-5 pt-5 border-t border-slate-100 dark:border-slate-700">

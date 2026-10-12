@@ -67,7 +67,12 @@ export const getUserFromRequest = async (req) => {
   const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : null;
   if (!token) return null;
 
-  const supabase = getSupabaseAdmin();
+  let supabase;
+  try {
+    supabase = getSupabaseAdmin();
+  } catch {
+    throw authServiceUnavailable();
+  }
   if (!supabase) return null;
 
   try {

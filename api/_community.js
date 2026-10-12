@@ -54,8 +54,10 @@ export const MENTION_RE = /@Anonymous\s*#(\d{1,4})/gi;
 // action carries a kind: 'affection' | 'attack' | 'play'. Two reciprocal
 // attacks inside the fight window start ONE (deduped) fight.
 export const ROOM_ACTIONS = [
-  { key: 'slap', glyph: '👉', label: 'Slap', kind: 'attack', tone: 'rose' },
+  { key: 'punch', glyph: '👊', label: 'Punch', kind: 'attack', tone: 'rose' },
   { key: 'kick', glyph: '🦵', label: 'Kick', kind: 'attack', tone: 'rose' },
+  { key: 'fuckoff', glyph: '🖕', label: 'Fuck Off', kind: 'attack', tone: 'rose' },
+  { key: 'waka', glyph: '🖐️', label: 'Waka', kind: 'attack', tone: 'amber' },
   { key: 'hug', glyph: '🤗', label: 'Hug', kind: 'affection', tone: 'amber' },
   { key: 'highfive', glyph: '🙌', label: 'High five', kind: 'affection', tone: 'emerald' },
   { key: 'kiss', glyph: '😘', label: 'Kiss', kind: 'affection', tone: 'pink' },
@@ -78,6 +80,9 @@ export const SOCIAL_RATE_CAP = 10;
 export const SOCIAL_RATE_WINDOW_MS = 60_000;
 // How many recent action/challenge/fight event cards the feed hydrates.
 export const EVENT_FEED_LIMIT = 50;
+// v54 — action/challenge/fight event cards expire from the feed just like
+// messages: 10 minutes after they are created. No event outlives a message.
+export const EVENT_LIFETIME_MS = 10 * 60 * 1000;
 
 export const PRESENCE_GRACE_SECONDS = 45;
 export const PRESENCE_INACTIVITY_SECONDS = 300;
@@ -887,9 +892,13 @@ export async function handleJoinGroup(req, res, user) {
       return res.status(403).json({
         error: data.code,
         message: data.message || 'Unable to join this group right now.',
-        ...(data.spectator_price ? { spectator_price: data.spectator_price } : {}),
+        ...(data.spectator_price != null ? { spectator_price: data.spectator_price } : {}),
+        ...(data.member_price != null ? { member_price: data.member_price } : {}),
         ...(data.member_count != null ? { member_count: data.member_count } : {}),
+        ...(data.spectator_count != null ? { spectator_count: data.spectator_count } : {}),
         ...(data.member_limit != null ? { member_limit: data.member_limit } : {}),
+        ...(data.founding_member_cap != null ? { founding_member_cap: data.founding_member_cap } : {}),
+        ...(data.free_spectator_cap != null ? { free_spectator_cap: data.free_spectator_cap } : {}),
       });
     }
     if (!data.already_member) {
@@ -909,12 +918,163 @@ export async function handleJoinGroup(req, res, user) {
       member_count: data.member_count,
       group_state: data.group_state,
       member_limit: data.member_limit,
+      founding_member_cap: data.founding_member_cap,
+      free: data.free === true,
       already_member: !!data.already_member,
     });
   }
 
   // Normal group membership (client manages these directly).
   return res.status(400).json({ error: 'NOT_ANONYMOUS', message: 'Use the standard join flow for regular groups.' });
+}
+
+// POST /api/community/anonymous/spectate-free  { group_id }
+// P2 — claim one of the first `free_spectator_cap` spectator seats (no charge).
+// Beyond the cap the server refuses with SPECTATOR_PAYMENT_REQUIRED so the
+// client can offer the ₦299 paid pass instead.
+export async function handleAnonSpectateFree(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+
+  const groupId = Number(req.body?.group_id);
+  if (!Number.isFinite(groupId)) return res.status(400).json({ error: 'Invalid group id' });
+  if (await isBanned(user.id)) return res.status(403).json({ error: 'BANNED', message: 'Your community access is currently restricted.' });
+
+  const { data, error } = await supabase.rpc('community_anonymous_spectate_free', {
+    p_group: groupId,
+    p_user: user.id,
+  });
+  if (error) {
+    console.error('[community anon spectate-free]', error);
+    return res.status(500).json({ error: 'Failed to start spectating', message: error.message });
+  }
+  if (!data?.ok) {
+    return res.status(403).json({
+      error: data.code,
+      message: data.message || 'Unable to spectate this room right now.',
+      ...(data.spectator_price != null ? { spectator_price: data.spectator_price } : {}),
+      ...(data.member_price != null ? { member_price: data.member_price } : {}),
+      ...(data.member_count != null ? { member_count: data.member_count } : {}),
+      ...(data.spectator_count != null ? { spectator_count: data.spectator_count } : {}),
+      ...(data.member_limit != null ? { member_limit: data.member_limit } : {}),
+      ...(data.free_spectator_cap != null ? { free_spectator_cap: data.free_spectator_cap } : {}),
+    });
+  }
+  return res.status(200).json({
+    ok: true,
+    free: data.free === true,
+    already_spectator: !!data.already_spectator,
+    spectator_count: data.spectator_count,
+    member_count: data.member_count,
+    free_spectator_cap: data.free_spectator_cap,
+    member_limit: data.member_limit,
+  });
+}
+
+// P3 — the buyer's SOCIAL gift seats: shared codes that grant ONE member seat
+// in a specific Anonymous room when redeemed. Only the buyer ever sees the
+// codes (they own the links they paid for); nobody else should enumerate them.
+async function loadAnonGiftSeats(userId, groupId) {
+  const supabase = getDb();
+  if (!supabase) return [];
+  let q = supabase
+    .from('anonymous_membership_gifts')
+    .select(
+      'id, group_id, code, reference, amount, status, created_at, claimed_at, claimed_by, ' +
+      'study_groups(name, group_state, is_active)',
+    )
+    .eq('buyer_id', userId);
+  if (groupId != null) q = q.eq('group_id', Number(groupId));
+  const { data, error } = await q.order('created_at', { ascending: false }).limit(50);
+  if (error) {
+    console.error('[anonymous gifts]', error);
+    return [];
+  }
+  return (data || []).map((g) => ({
+    id: g.id,
+    group_id: g.group_id,
+    group_name: g.study_groups?.name ?? null,
+    group_state: g.study_groups?.group_state ?? null,
+    group_active: g.study_groups?.is_active !== false,
+    code: g.code,
+    amount: g.amount,
+    status: g.status,
+    created_at: g.created_at,
+    claimed_at: g.claimed_at,
+    claimed_by_self: g.claimed_by === userId,
+    room_link: `/anonymous/${g.group_id}?gift=${g.code}`,
+  }));
+}
+
+// POST /api/community/anonymous/gifts  { group_id? }
+// P3 — the buyer's own gift seats for this (or any) Anonymous room, so they can
+// copy/share the redeem links. Claimed/expired seats are included with status.
+export async function handleAnonGifts(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+
+  const groupId = req.body?.group_id != null ? Number(req.body.group_id) : null;
+  if (groupId != null && !Number.isFinite(groupId)) {
+    return res.status(400).json({ error: 'Invalid group id' });
+  }
+  const gifts = await loadAnonGiftSeats(user.id, groupId);
+  return res.status(200).json({ ok: true, gifts });
+}
+
+// POST /api/community/anonymous/gift-claim  { group_id, code }
+// P3 — redeem ONE gift seat for this room. The claimant's identity comes from
+// the session token; the gift code identifies WHICH paid seat. Redemption never
+// exceeds capacity: purchases never add seats, so a full room returns
+// GROUP_FULL and the gift stays unclaimed until a seat frees.
+export async function handleAnonGiftClaim(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+
+  const groupId = Number(req.body?.group_id);
+  const code = String(req.body?.code || '').trim();
+  if (!Number.isFinite(groupId)) return res.status(400).json({ error: 'Invalid group id' });
+  if (!code || code.length > 32) return res.status(400).json({ error: 'INVALID_GIFT', message: 'Enter the gift code exactly as it was shared.' });
+
+  const { data, error } = await supabase.rpc('community_anonymous_redeem_gift', {
+    p_group: groupId,
+    p_user: user.id,
+    p_code: code,
+  });
+  if (error) {
+    console.error('[anonymous gift claim]', error);
+    return res.status(500).json({ error: 'Failed to claim gift', message: error.message });
+  }
+  if (!data?.ok) {
+    const status = ['INVALID_GIFT', 'GIFT_ALREADY_CLAIMED', 'GIFT_EXPIRED'].includes(data.code) ? 400 : 403;
+    return res.status(status).json({
+      error: data.code,
+      message: data.message || 'This gift could not be claimed right now.',
+      ...(data.member_count != null ? { member_count: data.member_count } : {}),
+      ...(data.spectator_count != null ? { spectator_count: data.spectator_count } : {}),
+      ...(data.member_limit != null ? { member_limit: data.member_limit } : {}),
+    });
+  }
+
+  // A newly granted seat gets a room identity + a join push, mirroring the
+  // free/paid join flow so the member immediately appears to everyone.
+  const alias = await ensureRoomAlias(groupId, user.id).catch(() => null);
+  publishRoomEvent(groupId, 'join', alias ? { alias } : {});
+  void sendRoomPush({
+    groupId,
+    excludeUserId: user.id,
+    kind: 'member_joins',
+    title: 'Someone joined',
+    body: 'A new member joined the Anonymous room via a gift seat.',
+    url: `/anonymous/${groupId}`,
+  });
+
+  return res.status(200).json({
+    ok: true,
+    claimed: true,
+    member_count: data.member_count,
+    group_state: data.group_state,
+    code: data.code,
+  });
 }
 
 // POST /api/community/groups/leave  { group_id }
@@ -1022,6 +1182,18 @@ async function roomMemberCount(groupId) {
   const supabase = getDb();
   const { data } = await supabase.rpc('community_member_count', { p_group: groupId });
   return typeof data === 'number' ? data : null;
+}
+
+// P2 — active spectator seats (free + paid) for a room. Used by the capacity
+// breakdown. Best-effort: an un-migrated DB yields null rather than throwing.
+async function roomSpectatorCount(groupId) {
+  const supabase = getDb();
+  try {
+    const { data } = await supabase.rpc('community_spectator_count', { p_group: groupId });
+    return typeof data === 'number' ? data : null;
+  } catch {
+    return null;
+  }
 }
 
 // Resolve the canonical NON-WIPED anonymous room. Returns null when every
@@ -1287,17 +1459,25 @@ async function loadEventReactions(eventIds, viewerId) {
   return byEvent;
 }
 
-const eventActionMeta = (action) => ROOM_ACTIONS.find((a) => a.key === action) || null;
+// v54 — 'slap' was replaced by 'punch'. Legacy rows (and any env where the v54
+// migration has not run yet) still render as a Punch card, never an ✨ fallback.
+const eventActionMeta = (action) =>
+  ROOM_ACTIONS.find((a) => a.key === action) ||
+  (action === 'slap' ? ROOM_ACTIONS.find((a) => a.key === 'punch') : null) ||
+  null;
 
 // Raw event rows -> masked event-card payloads (no user ids, ever). A card is
 // targetable for Respond only when the viewer IS the challenged member.
 function hydrateRoomEvent(row, viewerId, reactions = {}) {
+  // v54 — the DB rewrite + this alias both surface any legacy 'slap' row as
+  // the canonical Punch card (correct glyph/label AND the "punched" verb).
+  const action = row.action === 'slap' ? 'punch' : row.action;
   return {
     id: Number(row.id),
-    action: row.action,
-    glyph: eventActionMeta(row.action)?.glyph || '✨',
-    label: eventActionMeta(row.action)?.label || row.action,
-    tone: eventActionMeta(row.action)?.tone || 'slate',
+    action,
+    glyph: eventActionMeta(action)?.glyph || '✨',
+    label: eventActionMeta(action)?.label || action,
+    tone: eventActionMeta(action)?.tone || 'slate',
     kind: row.kind || 'action',
     status: row.status || 'open',
     actor: aliasLabel(row.actor_alias),
@@ -1326,6 +1506,9 @@ async function fetchRoomEvent(group, eventId) {
     .eq('group_id', group.id)
     .maybeSingle();
   if (error || !data) return null;
+  // v54 — events expire at 10 minutes, exactly like anonymous messages.
+  const created = Date.parse(data.created_at);
+  if (!Number.isFinite(created) || created <= Date.now() - EVENT_LIFETIME_MS) return null;
   return data;
 }
 
@@ -1356,6 +1539,9 @@ async function hydrateRoomMessages(group, rows, viewerId, now = Date.now()) {
     if (alias === undefined) alias = await ensureRoomAlias(group.id, parent.author_id);
     parentAliases.set(parent.id, alias);
   }
+  // v54 — a reply to an Encoded Message quotes as "🔒 Encoded message" (the
+  // private body must never leak into a quote preview).
+  const parentMeta = await loadMessageMeta(parentIds);
 
   const { data: reactionRows } = await supabase
     .from('community_post_reactions')
@@ -1398,6 +1584,7 @@ async function hydrateRoomMessages(group, rows, viewerId, now = Date.now()) {
           alias: parentAliases.get(parent.id),
           author: aliasLabel(parentAliases.get(parent.id)),
           excerpt: excerptOf(parent.content),
+          encoded: !!parentMeta.get(parent.id)?.is_encoded,
           deleted: false,
         };
       } else {
@@ -1447,7 +1634,7 @@ async function hydrateRoomMessages(group, rows, viewerId, now = Date.now()) {
 }
 
 const ROOM_POST_COLUMNS =
-  'id, author_id, content, created_at, updated_at, last_interaction_at, grace_until, is_deleted, is_hidden, reply_to_post_id, expires_at';
+  'id, group_id, author_id, content, created_at, updated_at, last_interaction_at, grace_until, is_deleted, is_hidden, reply_to_post_id, expires_at';
 
 // Does an ALIVE message exist strictly older than `beforeIso`? Expired rows
 // linger until the cleanup runs, so "there are more rows" is not the same as
@@ -1496,7 +1683,33 @@ export async function handleAnonRoom(req, res, user) {
 
   const { role, access } = await roomAccess(group, user.id);
   const viewable = access === 'member' || access === 'spectator';
-  const memberCount = viewable || access === 'join' ? await roomMemberCount(group.id) : null;
+  // P2 — the capacity breakdown (seat counts + caps + prices) is a prospective-
+  // joiner surface, so the counts are computed for every access. The top-level
+  // `member_count` stays restricted to viewers / waiting rooms as before.
+  const seatMemberCount = await roomMemberCount(group.id);
+  const seatSpectatorCount = await roomSpectatorCount(group.id);
+  const memberCount = viewable || access === 'join' ? seatMemberCount : null;
+  const foundingCap = typeof group.founding_member_cap === 'number' ? group.founding_member_cap : null;
+  const freeSpectatorCap = typeof group.free_spectator_cap === 'number' ? group.free_spectator_cap : null;
+  const totalCapacity = typeof group.member_limit === 'number' ? group.member_limit : null;
+  const memberPrice = group.member_price != null ? Number(group.member_price) : null;
+  const capacity = {
+    total_capacity: totalCapacity,
+    founding_member_cap: foundingCap,
+    free_spectator_cap: freeSpectatorCap,
+    member_price: memberPrice,
+    spectator_price: group.spectator_price != null ? Number(group.spectator_price) : null,
+    member_count: seatMemberCount,
+    spectator_count: seatSpectatorCount,
+    member_paid_required:
+      typeof seatMemberCount === 'number' && typeof foundingCap === 'number'
+        ? seatMemberCount >= foundingCap
+        : null,
+    spectator_paid_required:
+      typeof seatSpectatorCount === 'number' && typeof freeSpectatorCap === 'number'
+        ? seatSpectatorCount >= freeSpectatorCap
+        : null,
+  };
   const myAlias = access === 'member' ? await ensureRoomAlias(group.id, user.id) : null;
   // Opening the room is real engagement for a member (S4).
   if (access === 'member') void touchMembership(group.id, user.id);
@@ -1528,6 +1741,10 @@ export async function handleAnonRoom(req, res, user) {
     isHost = membership?.role === 'owner';
   }
 
+  // P3 — gift seats I bought for THIS room (the shareable purchase codes).
+  // Only the buyer of a seat ever receives its code.
+  const gifts = await loadAnonGiftSeats(user.id, group.id);
+
   return res.status(200).json({
     ok: true,
     access,
@@ -1537,6 +1754,8 @@ export async function handleAnonRoom(req, res, user) {
     member_count: memberCount,
     online_count: online,
     is_premium: premium,
+    capacity,
+    gifts,
     can_speak: access === 'member',
     can_react: viewable,
     group: {
@@ -1547,6 +1766,9 @@ export async function handleAnonRoom(req, res, user) {
       spectator_price: group.spectator_price,
       member_limit: group.member_limit,
       membership_locked: !!group.membership_locked,
+      founding_member_cap: foundingCap,
+      free_spectator_cap: freeSpectatorCap,
+      member_price: memberPrice,
     },
     thresholds: {
       activate: group.minimum_members_to_activate,
@@ -1568,6 +1790,7 @@ export async function handleAnonRoom(req, res, user) {
       social_actions: SOCIAL_ACTIONS,
       social_rate: { cap: SOCIAL_RATE_CAP, window_ms: SOCIAL_RATE_WINDOW_MS },
       event_feed_limit: EVENT_FEED_LIMIT,
+      event_lifetime_seconds: Math.round(EVENT_LIFETIME_MS / 1000),
       votes: {
         upvote_threshold: UPVOTE_THRESHOLD,
         downvote_threshold: DOWNVOTE_THRESHOLD,
@@ -1584,6 +1807,134 @@ export async function handleAnonRoom(req, res, user) {
         inactivity_seconds: PRESENCE_INACTIVITY_SECONDS,
       },
     },
+  });
+}
+
+// POST /api/community/anonymous/rooms
+// P2 — browse joinable Anonymous rooms BEFORE creating a new one: every
+// non-wiped anonymous room with its live capacity breakdown (members,
+// spectators, caps, prices, seats left) so a visitor can pick an open room.
+export async function handleAnonRooms(req, res) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+
+  const { data: rows, error } = await supabase
+    .from('study_groups')
+    .select('id, name, group_state, is_active, member_limit, spectator_price, membership_locked, founding_member_cap, free_spectator_cap, member_price, minimum_members_to_activate, created_at')
+    .eq('type', 'anonymous')
+    .eq('is_active', true)
+    .neq('group_state', 'wiped')
+    .order('created_at', { ascending: false })
+    .limit(50);
+  if (error) {
+    console.error('[anonymous rooms]', error);
+    return res.status(500).json({ error: 'Failed to load rooms' });
+  }
+
+  const rooms = [];
+  for (const g of rows || []) {
+    const memberCount = await roomMemberCount(g.id);
+    const spectatorCount = await roomSpectatorCount(g.id);
+    const foundingCap = typeof g.founding_member_cap === 'number' ? g.founding_member_cap : null;
+    const freeSpecCap = typeof g.free_spectator_cap === 'number' ? g.free_spectator_cap : null;
+    const totalCapacity = typeof g.member_limit === 'number' ? g.member_limit : null;
+    const used =
+      (typeof memberCount === 'number' ? memberCount : 0) +
+      (typeof spectatorCount === 'number' ? spectatorCount : 0);
+    rooms.push({
+      id: g.id,
+      name: g.name,
+      group_state: g.group_state,
+      membership_locked: !!g.membership_locked,
+      member_count: memberCount,
+      spectator_count: spectatorCount,
+      total_capacity: totalCapacity,
+      founding_member_cap: foundingCap,
+      free_spectator_cap: freeSpecCap,
+      member_price: g.member_price != null ? Number(g.member_price) : null,
+      spectator_price: g.spectator_price != null ? Number(g.spectator_price) : null,
+      member_paid_required:
+        typeof memberCount === 'number' && typeof foundingCap === 'number' ? memberCount >= foundingCap : null,
+      spectator_paid_required:
+        typeof spectatorCount === 'number' && typeof freeSpecCap === 'number' ? spectatorCount >= freeSpecCap : null,
+      seats_left: totalCapacity != null ? Math.max(totalCapacity - used, 0) : null,
+    });
+  }
+
+  return res.status(200).json({ ok: true, rooms });
+}
+
+// POST /api/community/anonymous/members  { group_id? }
+// The room roster — every CURRENT member's Anonymous #NN identity plus a live
+// online flag — so an action can be aimed at anyone present, not just people
+// who have already spoken. Members only (spectators cannot use actions, and
+// the roster is a member surface). User ids never leave the api.
+export async function handleAnonMembers(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+
+  const group = await resolveAnonGroup(req.body?.group_id);
+  if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND', message: 'No Anonymous room found.' });
+
+  const { access } = await roomAccess(group, user.id);
+  if (access === 'banned') return res.status(403).json({ error: 'BANNED', message: 'Your community access is currently restricted.' });
+  if (access === 'wiped') return res.status(403).json({ error: 'GROUP_WIPED', message: 'This round has been wiped. Nothing persists.' });
+  if (access !== 'member') {
+    return res.status(403).json({ error: 'ANONYMOUS_MEMBERS_ONLY', message: 'Only members can view the room roster.' });
+  }
+
+  const { data: memberRows, error: memberError } = await supabase
+    .from('study_group_members')
+    .select('user_id, role')
+    .eq('group_id', group.id);
+  if (memberError) {
+    console.error('[anonymous members]', memberError);
+    return res.status(500).json({ error: 'Failed to load members' });
+  }
+  const seats = (memberRows || []).filter((m) => m.user_id);
+  const memberIds = seats.map((m) => m.user_id);
+  const roleById = new Map(seats.map((m) => [m.user_id, m.role]));
+
+  // Every member has a stable identity; assign any that are still missing so
+  // the roster never hides someone who simply has not spoken yet.
+  const aliasMap = await loadRoomAliases(group.id, memberIds);
+  const missing = memberIds.filter((uid) => !aliasMap.has(uid));
+  if (missing.length) {
+    const assigned = await Promise.all(
+      missing.map((uid) => ensureRoomAlias(group.id, uid).then((a) => [uid, a]).catch(() => null)),
+    );
+    for (const pair of assigned) if (pair) aliasMap.set(pair[0], pair[1]);
+  }
+
+  // Online = a presence heartbeat inside the grace window (same signal the
+  // header counter uses).
+  const cutoff = new Date(Date.now() - PRESENCE_GRACE_SECONDS * 1000).toISOString();
+  const { data: presenceRows } = await supabase
+    .from('anonymous_presence')
+    .select('user_id')
+    .eq('group_id', group.id)
+    .gt('last_seen_at', cutoff);
+  const onlineIds = new Set((presenceRows || []).map((r) => r.user_id));
+
+  const members = memberIds
+    .map((uid) => {
+      const alias = aliasMap.get(uid);
+      if (alias == null) return null;
+      return {
+        alias: Number(alias),
+        online: onlineIds.has(uid),
+        is_self: uid === user.id,
+        is_host: roleById.get(uid) === 'owner',
+      };
+    })
+    .filter(Boolean)
+    .sort((a, b) => a.alias - b.alias);
+
+  return res.status(200).json({
+    ok: true,
+    members,
+    member_count: members.length,
+    online_count: members.filter((m) => m.online).length,
   });
 }
 
@@ -1647,6 +1998,7 @@ export async function handleAnonFeed(req, res, user) {
       .from('anonymous_room_events')
       .select(EVENT_COLUMNS)
       .eq('group_id', group.id)
+      .gte('created_at', new Date(nowMs - EVENT_LIFETIME_MS).toISOString())
       .order('created_at', { ascending: false })
       .order('id', { ascending: false })
       .limit(EVENT_FEED_LIMIT);
@@ -1858,7 +2210,7 @@ export async function handleAnonReact(req, res, user) {
 
   const { data: post } = await supabase
     .from('community_posts')
-    .select('id, group_id, author_id')
+    .select(ROOM_POST_COLUMNS)
     .eq('id', messageId)
     .maybeSingle();
   if (!post || post.group_id !== group.id || !isPostAlive(post)) {
@@ -2022,6 +2374,20 @@ export async function handleAnonSocial(req, res, user) {
   }
   if (!targetUserId || targetUserId === user.id) {
     return res.status(400).json({ error: 'TARGET_REQUIRED', message: 'Pick another member for this action.' });
+  }
+
+  // A directly aimed action must target a CURRENT member: an alias can linger
+  // after someone leaves the room, so confirm the seat before recording it.
+  if (!messageId) {
+    const { data: targetSeat } = await supabase
+      .from('study_group_members')
+      .select('user_id')
+      .eq('group_id', group.id)
+      .eq('user_id', targetUserId)
+      .maybeSingle();
+    if (!targetSeat) {
+      return res.status(400).json({ error: 'NOT_A_MEMBER', message: 'That member is no longer in this room.' });
+    }
   }
 
   // Anti-slam: a member opting out of being targeted refuses the action.

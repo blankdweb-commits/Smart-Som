@@ -1,10 +1,12 @@
 // api/verify-payment.js
 // Server-side Paystack callback verifier.
-// Handles TWO products:
+// Handles THREE products:
 //   - premium subscription (legacy): creates/extends a subscriptions row.
-//   - anonymous_spectate: one-time ₦499 spectator pass for the Anonymous
+//   - anonymous_spectate: one-time spectator pass for the Anonymous
 //     group — inserts an `active` anonymous_spectators row (NO subscription).
-// Both verify the transaction with Paystack, validate the amount against a
+//   - anonymous_membership: one-time paid member seat for the Anonymous
+//     group — grants via community_anonymous_grant_membership (NO subscription).
+// All verify the transaction with Paystack, validate the amount against a
 // server-resolved price, and are idempotent on the reference.
 import { applyCors, getSupabaseAdmin, getUserFromRequest } from './_utils.js';
 
@@ -67,6 +69,7 @@ async function grantSpectator(supabase, user, paidAmount, metadata) {
     user_id: user.id,
     reference: metadata?.reference,
     amount: paidAmount,
+    tier: 'paid',
     status: 'active',
   });
   if (spectatorsInsertError) {
@@ -86,6 +89,148 @@ async function grantSpectator(supabase, user, paidAmount, metadata) {
   }
 
   return { status: 200, body: { success: true, spectate: true, reference: metadata?.reference } };
+}
+
+// P2 — one-time paid member seat: grant via the service-role RPC (records the
+// ledger row, revokes any spectator seat, re-checks capacity atomically).
+async function grantMembership(supabase, user, paidAmount, metadata) {
+  const groupId = Number(metadata?.group_id);
+  if (!Number.isFinite(groupId)) {
+    return { status: 400, body: { error: 'Invalid group id', message: 'Payment metadata is missing the group.' } };
+  }
+
+  const { data: group } = await supabase
+    .from('study_groups')
+    .select('id, type, group_state, is_active, member_price')
+    .eq('id', groupId)
+    .maybeSingle();
+  if (!group || group.type !== 'anonymous' || group.group_state === 'wiped' || group.is_active === false) {
+    return { status: 400, body: { error: 'GROUP_NOT_ACTIVE', message: 'This room is not accepting members right now.' } };
+  }
+  const expected = Number(group.member_price);
+  if (expected > 0 && Math.abs(paidAmount - expected) > 1) {
+    console.error(`Membership amount mismatch for ref ${metadata?.reference || '(unknown)'}: paid ${paidAmount}, expected ${expected}`);
+    return { status: 400, body: { error: 'Payment amount does not match the membership fee' } };
+  }
+
+  const { data: result, error: grantError } = await supabase.rpc('community_anonymous_grant_membership', {
+    p_group: groupId,
+    p_user: user.id,
+    p_reference: metadata?.reference,
+    p_amount: Math.round(paidAmount),
+    p_tier: 'paid',
+  });
+  if (grantError) {
+    // A replay of the same reference (unique) means the seat was already granted.
+    if (grantError.code === '23505') {
+      return { status: 200, body: { success: true, message: 'Already processed', member: true } };
+    }
+    throw grantError;
+  }
+  if (!result?.ok) {
+    return {
+      status: 400,
+      body: { error: result?.code || 'MEMBERSHIP_GRANT_FAILED', message: 'This room could not grant your seat right now.' },
+    };
+  }
+
+  return { status: 200, body: { success: true, member: true, already_member: !!result.already_member, reference: metadata?.reference } };
+}
+
+// P3 — one charge for a multi-slot purchase. After a verified charge:
+//   `for_me` seats -> buyer's normal paid membership (community_anonymous_grant_membership)
+//   `gift_count` seats -> unique shareable gift codes (community_anonymous_create_gifts)
+// Gifts are always deliverable (they unlock only when the room has space); only
+// the buyer's own seat depends on live capacity.
+async function grantMembershipsBundle(supabase, user, paidAmount, metadata) {
+  const groupId = Number(metadata?.group_id);
+  if (!Number.isFinite(groupId)) {
+    return { status: 400, body: { error: 'Invalid group id', message: 'Payment metadata is missing the group.' } };
+  }
+
+  const { data: group } = await supabase
+    .from('study_groups')
+    .select('id, type, group_state, is_active, member_price')
+    .eq('id', groupId)
+    .maybeSingle();
+  if (!group || group.type !== 'anonymous' || group.group_state === 'wiped' || group.is_active === false) {
+    return { status: 400, body: { error: 'GROUP_NOT_ACTIVE', message: 'This room is not accepting members right now.' } };
+  }
+  const expected = Number(group.member_price);
+  const total = Math.max(1, Math.min(Math.round(Number(metadata?.count) || 1), 50));
+  const forMe = Number(metadata?.for_me) === 1 ? 1 : 0;
+  const giftCount = Math.max(0, total - forMe);
+  if (expected > 0 && Math.abs(paidAmount - expected * total) > 1) {
+    console.error(`Bundle amount mismatch for ref ${metadata?.reference || '(unknown)'}: paid ${paidAmount}, expected ${expected * total}`);
+    return { status: 400, body: { error: 'Payment amount does not match the bundle total' } };
+  }
+
+  // Idempotency: gifts are created once per payment reference. A concurrent
+  // verify/webhook on the same charge must never mint duplicate codes.
+  const { data: existingGifts } = await supabase
+    .from('anonymous_membership_gifts')
+    .select('id')
+    .eq('reference', metadata?.reference)
+    .limit(1);
+  if (existingGifts?.length > 0) {
+    return { status: 200, body: { success: true, message: 'Already processed', bundle: true } };
+  }
+
+  let codes = [];
+  if (giftCount > 0 && metadata?.reference) {
+    const { data: giftRes, error: giftError } = await supabase.rpc('community_anonymous_create_gifts', {
+      p_group: groupId,
+      p_buyer: user.id,
+      p_count: giftCount,
+      p_reference: metadata.reference,
+      p_amount: Math.round(expected || paidAmount / total),
+    });
+    if (giftError || !giftRes?.ok) {
+      if (giftError?.code === '23505') {
+        return { status: 200, body: { success: true, message: 'Already processed', bundle: true } };
+      }
+      return { status: 400, body: { error: giftRes?.code || 'GIFT_CREATION_FAILED', message: giftError?.message || giftRes?.message || 'Gift seats could not be created.' } };
+    }
+    codes = (giftRes.codes || []).map((c) => ({ code: c, room_link: `/anonymous/${groupId}?gift=${c}` }));
+  }
+
+  let seat = { granted: false };
+  let seatError = null;
+  if (forMe === 1) {
+    const { data: result, error: grantError } = await supabase.rpc('community_anonymous_grant_membership', {
+      p_group: groupId,
+      p_user: user.id,
+      p_reference: metadata.reference,
+      p_amount: Math.round(paidAmount),
+      p_tier: 'paid',
+    });
+    if (grantError) {
+      if (grantError.code === '23505') {
+        seat = { granted: true, already_member: true };
+      } else {
+        seatError = grantError;
+      }
+    } else if (result?.ok) {
+      seat = { granted: true, already_member: !!result.already_member };
+    } else {
+      seatError = result?.code || 'MEMBERSHIP_GRANT_FAILED';
+    }
+  }
+
+  return {
+    status: 200,
+    body: {
+      success: true,
+      bundle: true,
+      count: total,
+      for_me: forMe,
+      gift_count: giftCount,
+      gifts: codes,
+      seat,
+      seat_error: seatError,
+      reference: metadata?.reference,
+    },
+  };
 }
 
 export default async function handler(req, res) {
@@ -122,12 +267,22 @@ export default async function handler(req, res) {
     const paidAmount = result.data.amount / KOBOS;
     const metadata = result.data.metadata || {};
     const spectatorProduct = metadata.product === 'anonymous_spectate';
+    const membershipProduct = metadata.product === 'anonymous_membership';
+    const bundleProduct = metadata.product === 'anonymous_memberships';
 
-    // Spectator product branches early — no subscription is created.
-    if (spectatorProduct) {
+    // Spectator / membership / bundle products branch early — no subscription.
+    if (spectatorProduct || membershipProduct || bundleProduct) {
       const processed = await recordPayment(supabase, user, paidAmount, reference, metadata);
       if (processed) {
         return res.status(200).json({ success: true, message: 'Already processed' });
+      }
+      if (bundleProduct) {
+        const r = await grantMembershipsBundle(supabase, user, paidAmount, { ...metadata, reference });
+        return res.status(r.status).json(r.body);
+      }
+      if (membershipProduct) {
+        const r = await grantMembership(supabase, user, paidAmount, { ...metadata, reference });
+        return res.status(r.status).json(r.body);
       }
       return grantSpectator(supabase, user, paidAmount, { ...metadata, reference });
     }

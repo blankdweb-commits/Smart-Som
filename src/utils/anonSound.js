@@ -93,4 +93,61 @@ export function playRevealTone() {
   blip(ac, { freq: 783.99, at: 0.07, dur: 0.18, gain: 0.08, type: 'sine' });
 }
 
-export default { playMessagePop, playJoinChime, playSocialTone, playChallengeTone, playLockTone, playRevealTone };
+// v54 — a distinct, recognisable cue per action key (synth only, no assets).
+// Challenge/fight reuse their dedicated fanfares; anything unknown gets the
+// gentle social tone.
+export function playActionSfx(actionKey) {
+  const ac = getCtx();
+  if (!ac) return;
+  switch (actionKey) {
+    case 'punch':
+      blip(ac, { freq: 120, at: 0, dur: 0.13, gain: 0.14, type: 'square' });
+      blip(ac, { freq: 90, at: 0.04, dur: 0.17, gain: 0.12, type: 'square' });
+      break;
+    case 'kick':
+      blip(ac, { freq: 170, at: 0, dur: 0.08, gain: 0.13, type: 'square' });
+      blip(ac, { freq: 110, at: 0.08, dur: 0.13, gain: 0.12, type: 'square' });
+      break;
+    case 'fuckoff':
+      blip(ac, { freq: 210, at: 0, dur: 0.16, gain: 0.1, type: 'sawtooth' });
+      blip(ac, { freq: 160, at: 0.07, dur: 0.2, gain: 0.09, type: 'sawtooth' });
+      break;
+    case 'waka':
+      blip(ac, { freq: 440, at: 0, dur: 0.1, gain: 0.1, type: 'triangle' });
+      blip(ac, { freq: 660, at: 0.06, dur: 0.12, gain: 0.09, type: 'triangle' });
+      blip(ac, { freq: 880, at: 0.12, dur: 0.16, gain: 0.08, type: 'triangle' });
+      break;
+    case 'hug':
+      blip(ac, { freq: 330, at: 0, dur: 0.14, gain: 0.09 });
+      blip(ac, { freq: 392, at: 0.07, dur: 0.16, gain: 0.08 });
+      break;
+    case 'highfive':
+      blip(ac, { freq: 740, at: 0, dur: 0.06, gain: 0.1, type: 'triangle' });
+      blip(ac, { freq: 620, at: 0.05, dur: 0.07, gain: 0.09, type: 'triangle' });
+      break;
+    case 'kiss':
+      blip(ac, { freq: 1046.5, at: 0, dur: 0.09, gain: 0.08 });
+      blip(ac, { freq: 1318.5, at: 0.06, dur: 0.11, gain: 0.08 });
+      break;
+    case 'wave':
+      blip(ac, { freq: 587.33, at: 0, dur: 0.08, gain: 0.09, type: 'triangle' });
+      blip(ac, { freq: 880, at: 0.05, dur: 0.1, gain: 0.08, type: 'triangle' });
+      break;
+    case 'danceoff':
+      blip(ac, { freq: 392, at: 0, dur: 0.08, gain: 0.09, type: 'triangle' });
+      blip(ac, { freq: 523.25, at: 0.07, dur: 0.08, gain: 0.09, type: 'triangle' });
+      blip(ac, { freq: 659.25, at: 0.14, dur: 0.13, gain: 0.1, type: 'triangle' });
+      break;
+    case 'challenge':
+      return playChallengeTone();
+    case 'fight':
+      blip(ac, { freq: 330, at: 0, dur: 0.12, gain: 0.1, type: 'sawtooth' });
+      blip(ac, { freq: 230, at: 0.08, dur: 0.16, gain: 0.1, type: 'sawtooth' });
+      break;
+    default:
+      return playSocialTone();
+  }
+  return undefined;
+}
+
+export default { playMessagePop, playJoinChime, playSocialTone, playChallengeTone, playLockTone, playRevealTone, playActionSfx };

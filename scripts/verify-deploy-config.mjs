@@ -448,7 +448,7 @@ let passed = 0;
   );
 
   // API router: all write endpoints + comment edit/delete wired.
-  for (const route of ['/posts/edit-comment$', '/posts/delete-comment$', '/posts/reply$', '/groups/feed$', '/groups/panel$', '/anonymous/room$', '/anonymous/feed$', '/anonymous/message$', '/anonymous/send$', '/anonymous/react$']) {
+  for (const route of ['/posts/edit-comment$', '/posts/delete-comment$', '/posts/reply$', '/groups/feed$', '/groups/panel$', '/anonymous/room$', '/anonymous/feed$', '/anonymous/members$', '/anonymous/message$', '/anonymous/send$', '/anonymous/react$']) {
     // Handlers are declared as `re: /\/posts\/edit-comment$/` — the source text
     // carries escaped slashes (`\/`), so match the escaped literal form.
     const escaped = route.replace(/\//g, '\\/');
@@ -547,8 +547,8 @@ let passed = 0;
       : fail('AnonymousRoom.jsx missing vote UI'),
   );
   checks.push(
-    /Create a new Anonymous room/.test(anon) && /Watch as Spectator/.test(anon) && /Return to groups/.test(anon) && /setConfirmSpectate/.test(anon)
-      ? ok('AnonymousRoom.jsx: locked-room 3-option flow (spectate/create/return) with confirmation')
+    /Can't join right now/.test(anon) && /Watch as spectator · /.test(anon) && /Create a new Anonymous room/.test(anon) && /Return to groups/.test(anon) && /setLockedOptionsOpen/.test(anon)
+      ? ok('AnonymousRoom.jsx: locked-room 3-option flow (watch/create/return) with confirmation')
       : fail('AnonymousRoom.jsx missing locked-room 3-option flow'),
   );
 
@@ -861,6 +861,25 @@ let passed = 0;
     !/_sc_apply|smart_coin|smart_coins/.test(mig40)
       ? ok('v40: no SC-ledger involvement (Paystack naira pass only)')
       : fail('v40 unexpectedly touches the Smart Coin ledger'),
+  );
+
+  // Migration v55: the anonymous spectator pass is now ₦299, normalized
+  // server-side (supersedes the v40 ₦499 / v42 default), idempotent.
+  const mig55 = read(resolve(ROOT, 'scripts/migration-v55-anonymous-spectator-price-299.sql'));
+  checks.push(
+    /spectator_price = 299/.test(mig55) && /where type = 'anonymous'/.test(mig55) && /is distinct from 299/.test(mig55)
+      ? ok('v55: anonymous spectator price normalized to ₦299 (idempotent, server-authoritative)')
+      : fail('v55 migration does not set the anonymous spectator price to 299'),
+  );
+  checks.push(
+    /alter column spectator_price set default 299/.test(mig55)
+      ? ok('v55: new anonymous rooms default spectator_price to ₦299')
+      : fail('v55 migration does not set the spectator_price default to 299'),
+  );
+  checks.push(
+    !/_sc_apply|smart_coin|smart_coins/.test(mig55)
+      ? ok('v55: no SC-ledger involvement (Paystack naira pass only)')
+      : fail('v55 unexpectedly touches the Smart Coin ledger'),
   );
 
   // StudyGroups.jsx: anonymous join/leave + posts all routed, counts via RPC.
@@ -1793,6 +1812,488 @@ let passed = 0;
       && /revealed_at/.test(migrationSrc)
       ? ok('migration v53 defines the event tables + reveal columns')
       : fail('migration v53 missing event tables / reveal columns'),
+  );
+}
+
+// PART G — v54 FINAL TWEAKS (Punch/action set, event expiry, react fix, Share,
+// auto-lock at 20). slap -> punch everywhere; punch/fuckoff/waka are the attack
+// actions; events expire after 10 minutes like messages; the MESSAGE-reaction
+// path selects full post columns (fixes the isPostAlive-NaN 404); encoded
+// replies render a locked placeholder; a Share button copies an anonymous deep
+// link; membership auto-locks the moment a room hits 20 members.
+// ---------------------------------------------------------------------------
+{
+  const communitySrc = read(resolve(ROOT, 'api/_community.js'));
+  const roomSrc = read(resolve(ROOT, 'src/pages/AnonymousRoom.jsx'));
+  const soundSrc = existsSync(resolve(ROOT, 'src/utils/anonSound.js'))
+    ? read(resolve(ROOT, 'src/utils/anonSound.js')) : '';
+  const migrationSrc = existsSync(resolve(ROOT, 'scripts/migration-v54-anonymous-final-tweaks.sql'))
+    ? read(resolve(ROOT, 'scripts/migration-v54-anonymous-final-tweaks.sql')) : '';
+  const migrationV56Src = existsSync(resolve(ROOT, 'scripts/migration-v56-anonymous-capacity-monetization.sql'))
+    ? read(resolve(ROOT, 'scripts/migration-v56-anonymous-capacity-monetization.sql')) : '';
+
+  // --- action set: punch/fuckoff/waka attacks, slap retired ---
+  checks.push(
+    /export const ROOM_ACTIONS = \[/.test(communitySrc)
+      && /key: 'punch', glyph: '👊', label: 'Punch', kind: 'attack'/.test(communitySrc)
+      && /key: 'kick'/.test(communitySrc)
+      && /key: 'fuckoff', glyph: '🖕', label: 'Fuck Off', kind: 'attack'/.test(communitySrc)
+      && /key: 'waka', glyph: '🖐️', label: 'Waka', kind: 'attack'/.test(communitySrc)
+      && !/key: 'slap'/.test(communitySrc)
+      ? ok('ROOM_ACTIONS = punch/kick/fuckoff/waka attacks; retired slap removed')
+      : fail('ROOM_ACTIONS action set (punch/fuckoff/waka, no slap) not as specified'),
+  );
+  checks.push(
+    /const action = row\.action === 'slap' \? 'punch' : row\.action/.test(communitySrc)
+      && /eventActionMeta\(action\)\?\.glyph/.test(communitySrc)
+      ? ok('legacy slap rows hydrate as the canonical Punch card (glyph + verb)')
+      : fail('hydrateRoomEvent does not map legacy slap rows to punch'),
+  );
+
+  // --- event expiry (10 min, mirroring the message lifetime) ---
+  checks.push(
+    /export const EVENT_LIFETIME_MS = 10 \* 60 \* 1000/.test(communitySrc)
+      && /event_lifetime_seconds: Math\.round\(EVENT_LIFETIME_MS \/ 1000\)/.test(communitySrc)
+      ? ok('server event lifetime constant + config event_lifetime_seconds exposed')
+      : fail('server EVENT_LIFETIME_MS / config event_lifetime_seconds missing'),
+  );
+  checks.push(
+    /created <= Date\.now\(\) - EVENT_LIFETIME_MS\) return null/.test(communitySrc)
+      && /\.gte\('created_at', new Date\(nowMs - EVENT_LIFETIME_MS\)\.toISOString\(\)\)/.test(communitySrc)
+      ? ok('fetchRoomEvent + feed both enforce the 10-minute event expiry')
+      : fail('event expiry not enforced on fetch and feed'),
+  );
+
+  // --- MESSAGE-reaction fix + encoded reply flag ---
+  checks.push(
+    /\.from\('community_posts'\)\s*\n\s*\.select\(ROOM_POST_COLUMNS\)\s*\n\s*\.eq\('id', messageId\)/.test(communitySrc)
+      ? ok('handleAnonReact selects full ROOM_POST_COLUMNS (isPostAlive 404 regression fixed)')
+      : fail('handleAnonReact still selects a partial row for the aliveness check'),
+  );
+  checks.push(
+    /encoded: !!parentMeta\.get\(parent\.id\)\?\.is_encoded/.test(communitySrc)
+      ? ok('reply hydration carries the encoded flag for the from-of-room placeholder')
+      : fail('reply hydration does not expose the parent-is-encoded flag'),
+  );
+
+  // --- client surface ---
+  checks.push(
+    /const EVENT_LIFETIME_SECONDS = 600/.test(roomSrc)
+      && /room\?\.config\?\.event_lifetime_seconds \|\| EVENT_LIFETIME_SECONDS/.test(roomSrc)
+      ? ok('client expiry sweep mirrors the server lifetime (600s, config-aware)')
+      : fail('client event expiry sweep missing'),
+  );
+  checks.push(
+    /const EVENT_VERB = \{/.test(roomSrc)
+      && /punch: 'punched'/.test(roomSrc)
+      && /fuckoff: 'told'/.test(roomSrc)
+      && /const EVENT_AFTER = \{/.test(roomSrc)
+      && /fuckoff: 'to fuck off'/.test(roomSrc)
+      ? ok('event cards render full sentences via EVENT_VERB/EVENT_AFTER')
+      : fail('full-sentence event card rendering missing'),
+  );
+  checks.push(
+    /playActionSfx\(ev\.action\)/.test(roomSrc)
+      && /playActionSfx\(action\)/.test(roomSrc)
+      && /export function playActionSfx\(/.test(soundSrc)
+      ? ok('per-action sound cues on incoming events + sheet sends (anonSound)')
+      : fail('per-action sound cues not wired'),
+  );
+  checks.push(
+    /Only the recipient can read this/.test(roomSrc)
+      && /🔒 Encoded message/.test(roomSrc)
+      && /{msg\.encoded_for_me \? 'Encoded message' : 'Encoded · private'}/.test(roomSrc)
+      ? ok('encoded-locked UI: recipient prompt + reply-to-encoded placeholder')
+      : fail('encoded-locked / reply placeholder copy missing'),
+  );
+  checks.push(
+    /navigator\.share\(\{ title: 'Apex Anonymous Room'/.test(roomSrc)
+      && /navigator\.clipboard\.writeText/.test(roomSrc)
+      && /copiedShare/.test(roomSrc)
+      && /<Share2 size=\{15\} \/>/.test(roomSrc)
+      ? ok('Share anonymous-link button (navigator.share + clipboard fallback + copied state)')
+      : fail('Share anonymous-link button missing'),
+  );
+
+  // --- migration v54 ---
+  checks.push(
+    /set action = 'punch'/.test(migrationSrc)
+      && /where action = 'slap'/.test(migrationSrc)
+      && /anonymous_combat_events/.test(migrationSrc)
+      ? ok('migration v54 rewrites slap -> punch on room + combat events')
+      : fail('migration v54 slap -> punch rewrite missing'),
+  );
+  checks.push(
+    /create or replace function public\.community_anonymous_join/.test(migrationV56Src)
+      && /'MEMBERSHIP_PAYMENT_REQUIRED'/.test(migrationV56Src)
+      && /set membership_locked = true, updated_at = now\(\)/.test(migrationSrc)
+      ? ok('v56 supersedes the v54 auto-lock: join reveals MEMBERSHIP_PAYMENT_REQUIRED; membership_locked is host-only (v54 auto-lock gate is vestigial)')
+      : fail('v56 join RPC does not replace the v54 auto-lock with MEMBERSHIP_PAYMENT_REQUIRED'),
+  );
+checks.push(
+    /set minimum_members_to_activate = 20, updated_at = now\(\)/.test(migrationSrc)
+      && /id = 12/.test(migrationSrc)
+      ? ok('canon Anonymous room activates at 20 ("opens at 20")')
+      : fail('canon room activate-at-20 update missing in migration v54'),
+  );
+  checks.push(
+    /anonymous_fight/.test(migrationSrc)
+      && /"attack_actions":\["punch","kick","fuckoff","waka"\]/.test(migrationSrc)
+      ? ok('fight-check attack allowlist updated to punch/kick/fuckoff/waka (slap removed)')
+      : fail('migration v54 does not update the anonymous_fight attack allowlist'),
+  );
+}
+
+// PART H — P1 MEMBER ROSTER (target ANY present member). The action sheet lists
+// every current room member from the server (not just those who have spoken),
+// with live online status, members-only; a directly aimed action must land on a
+// CURRENT member (NOT_A_MEMBER for a lingering alias).
+// ---------------------------------------------------------------------------
+{
+  const communitySrc = read(resolve(ROOT, 'api/_community.js'));
+  const routerSrc = read(resolve(ROOT, 'api/community.js'));
+  const roomSrc = read(resolve(ROOT, 'src/pages/AnonymousRoom.jsx'));
+
+  checks.push(
+    /export async function handleAnonMembers\(req, res, user\)/.test(communitySrc)
+      && /from\('study_group_members'\)/.test(communitySrc)
+      && /anonymous_presence/.test(communitySrc)
+      && /online: onlineIds\.has\(uid\)/.test(communitySrc)
+      ? ok('handleAnonMembers builds a masked roster with live presence (members-only)')
+      : fail('handleAnonMembers roster/presence wiring missing'),
+  );
+  checks.push(
+    /ANONYMOUS_MEMBERS_ONLY/.test(communitySrc)
+      && /is_self: uid === user\.id/.test(communitySrc)
+      && /is_host: roleById\.get\(uid\) === 'owner'/.test(communitySrc)
+      ? ok('roster is members-only and marks is_self + is_host without leaking ids')
+      : fail('roster membership gate / self+host flags missing'),
+  );
+  checks.push(
+    /NOT_A_MEMBER/.test(communitySrc)
+      && /\.from\('study_group_members'\)\s*\n\s*\.select\('user_id'\)\s*\n\s*\.eq\('group_id', group\.id\)\s*\n\s*\.eq\('user_id', targetUserId\)/.test(communitySrc)
+      ? ok('a directly aimed action confirms the target still holds a seat (NOT_A_MEMBER)')
+      : fail('handleAnonSocial missing the current-member seat check'),
+  );
+  checks.push(
+    /handleAnonMembers,/.test(routerSrc) && /fn: handleAnonMembers/.test(routerSrc)
+      ? ok('api/community.js imports + dispatches handleAnonMembers (/anonymous/members)')
+      : fail('community.js router missing the members route'),
+  );
+  checks.push(
+    /communityApi\(session, '\/anonymous\/members'/.test(roomSrc)
+      && /const loadRoster = useCallback/.test(roomSrc)
+      && /if \(data\.access === 'member'\) void loadRoster\(\)/.test(roomSrc)
+      ? ok('AnonymousRoom loads the roster on member entry (/anonymous/members)')
+      : fail('AnonymousRoom roster load missing'),
+  );
+  checks.push(
+    /const actionTargets = useMemo/.test(roomSrc)
+      && /rosterQuery/.test(roomSrc)
+      && /setRosterQuery\(''\)/.test(roomSrc)
+      && /Search Anonymous #NN/.test(roomSrc)
+      ? ok('action sheet searchable roster list (online-first, offline disabled) wired')
+      : fail('action sheet roster list / search missing in AnonymousRoom'),
+  );
+}
+
+// PART I — P2 CAPACITY / MONETIZATION (v56): 20 free founding member seats ->
+// ₦499 paid member seat; first 20 spectator slots free -> ₦299 pass; capacity
+// = members + spectators <= member_limit; capacity breakdown exposed on the
+// closed screen, the open-room browser, and the waitlist club card.
+// ---------------------------------------------------------------------------
+{
+  const communitySrc = read(resolve(ROOT, 'api/_community.js'));
+  const routerSrc = read(resolve(ROOT, 'api/community.js'));
+  const roomSrc = read(resolve(ROOT, 'src/pages/AnonymousRoom.jsx'));
+  const groupsSrc = read(resolve(ROOT, 'src/components/StudyGroups.jsx'));
+  const iconSrc = read(resolve(ROOT, 'src/components/Icons.jsx'));
+  const e2eSrc = read(resolve(ROOT, 'scripts/e2e-anonymous-lifecycle.mjs'));
+  const mig = existsSync(resolve(ROOT, 'scripts/migration-v56-anonymous-capacity-monetization.sql'))
+    ? read(resolve(ROOT, 'scripts/migration-v56-anonymous-capacity-monetization.sql')) : '';
+
+  checks.push(
+    /founding_member_cap integer not null default 20/.test(mig)
+      && /free_spectator_cap integer not null default 20/.test(mig)
+      && /member_price numeric\(12,2\) not null default 499/.test(mig)
+      && /study_groups_member_price_check/.test(mig)
+      ? ok('migration v56 adds founding_member_cap/free_spectator_cap/member_price with defaults + checks')
+      : fail('migration v56 capacity/member-price columns missing'),
+  );
+  checks.push(
+    /add column if not exists tier text/.test(mig)
+      && /anonymous_spectators_tier_check/.test(mig)
+      && /anonymous_spectators_amount_check/.test(mig)
+      && /create table if not exists public\.anonymous_memberships/.test(mig)
+      ? ok('migration v56 adds spectator tier (free|paid) + anonymous_memberships ledger')
+      : fail('migration v56 spectator tier / memberships table missing'),
+  );
+  checks.push(
+    /v_count >= v_gr\.founding_member_cap/.test(mig)
+      && /'MEMBERSHIP_PAYMENT_REQUIRED'/.test(mig)
+      && /'member_price', v_gr\.member_price/.test(mig)
+      && /v_gr\.membership_locked then/.test(mig)
+      && /'MEMBERSHIP_LOCKED'/.test(mig)
+      ? ok('join RPC: free-while-below-founding-cap else MEMBERSHIP_PAYMENT_REQUIRED (₦499); host lock takes priority')
+      : fail('join RPC founding boundary / host-lock priority missing'),
+  );
+  checks.push(
+    /v_spec >= v_gr\.free_spectator_cap/.test(mig)
+      && /'SPECTATOR_PAYMENT_REQUIRED'/.test(mig)
+      && /'GROUP_NOT_ACTIVE'/.test(mig)
+      && /'free-spectate-'/.test(mig)
+      && /'free', 'active'/.test(mig)
+      ? ok('spectate-free RPC: first free_spectator_cap slots free (tier free), else SPECTATOR_PAYMENT_REQUIRED, active-rooms only')
+      : fail('spectate-free RPC free tier / paid boundary missing'),
+  );
+  checks.push(
+    /create or replace function public\.community_anonymous_grant_membership/.test(mig)
+      && /from public\.anonymous_spectators/.test(mig)
+      && /insert into public\.anonymous_memberships/.test(mig)
+      && /on conflict \(group_id, user_id\) do nothing/.test(mig)
+      && /update public\.anonymous_memberships\s*\n\s*set status = 'revoked'/.test(mig)
+      ? ok('grant_membership fulfils a paid seat (revokes spectator seat, idempotent); wipe revokes paid memberships')
+      : fail('grant_membership / wipe memberships revocation missing'),
+  );
+  checks.push(
+    /revoke execute on function public\.community_anonymous_join\(bigint, uuid\) from public, anon, authenticated/.test(mig)
+      && /revoke execute on function public\.community_anonymous_spectate_free\(bigint, uuid\) from public, anon, authenticated/.test(mig)
+      && /grant execute on function public\.community_anonymous_grant_membership/.test(mig)
+      ? ok('payment/lifecycle RPCs are service_role-only (explicit anon/authenticated revokes)')
+      : fail('v56 RPC grants not locked to service_role'),
+  );
+  checks.push(
+    /const seatMemberCount = await roomMemberCount\(group\.id\)/.test(communitySrc)
+      && /const seatSpectatorCount = await roomSpectatorCount\(group\.id\)/.test(communitySrc)
+      && /member_paid_required:/.test(communitySrc)
+      && /spectator_paid_required:/.test(communitySrc)
+      ? ok('handleAnonRoom computes the capacity breakdown for EVERY access and exposes member_paid_required/spectator_paid_required')
+      : fail('handleAnonRoom capacity breakdown missing for closed/prospective-joiner access'),
+  );
+  checks.push(
+    /export async function handleAnonSpectateFree\(req, res, user\)/.test(communitySrc)
+      && /community_anonymous_spectate_free/.test(communitySrc)
+      && /error: data\.code/.test(communitySrc)
+      && /free_spectator_cap: data\.free_spectator_cap/.test(communitySrc)
+      ? ok('handleAnonSpectateFree maps the free→paid spectator codes + capacity numbers')
+      : fail('handleAnonSpectateFree handler missing or incomplete'),
+  );
+  checks.push(
+    /export async function handleAnonRooms\(req, res\)/.test(communitySrc)
+      && /member_paid_required:/.test(communitySrc)
+      && /seats_left: totalCapacity != null \? Math\.max\(totalCapacity - used, 0\) : null/.test(communitySrc)
+      ? ok('handleAnonRooms lists active rooms with live capacity + paid flags + seats_left')
+      : fail('handleAnonRooms active-room browser missing'),
+  );
+  checks.push(
+    /handleAnonSpectateFree,/.test(routerSrc)
+      && /\\\/anonymous\\\/spectate-free\$/.test(routerSrc)
+      && /handleAnonRooms,/.test(routerSrc)
+      && /\\\/anonymous\\\/rooms\$/.test(routerSrc)
+      ? ok('api/community.js dispatches /anonymous/spectate-free + /anonymous/rooms')
+      : fail('community.js router missing the v56 routes'),
+  );
+  checks.push(
+    /setConfirmMembership\(true\)/.test(roomSrc)
+      && /MEMBERSHIP_PAYMENT_REQUIRED/.test(roomSrc)
+      && /setConfirmSpectate\(true\)/.test(roomSrc)
+      && /SPECTATOR_PAYMENT_REQUIRED/.test(roomSrc)
+      && /const buyMembership = async \(\) =>/.test(roomSrc)
+      && /product: 'anonymous_memberships'/.test(roomSrc)
+      ? ok('AnonymousRoom join paths surface MEMBERSHIP/SPECTATOR_PAYMENT_REQUIRED and pay via buyMembership')
+      : fail('AnonymousRoom P2 payment wiring missing'),
+  );
+  checks.push(
+    /const startSpectate = async \(\) =>/.test(roomSrc)
+      && /\/anonymous\/spectate-free/.test(roomSrc)
+      && /SPECTATOR_PAYMENT_REQUIRED/.test(roomSrc)
+      && /buySpectator/.test(roomSrc)
+      ? ok('Start spectating tries the free path first, falls back to the ₦299 confirm')
+      : fail('AnonymousRoom free-first spectate flow missing'),
+  );
+  checks.push(
+    /const seatMemberCount =/.test(roomSrc)
+      && /capacity\.member_count \?\? memberCount/.test(roomSrc)
+      && /freeMemberSeatsLeft/.test(roomSrc)
+      && /freeSpectatorSeatsLeft/.test(roomSrc)
+      && /foundingCap/.test(roomSrc)
+      && /memberPrice/.test(roomSrc)
+      && /totalCapacity/.test(roomSrc)
+      ? ok('AnonymousRoom derives seat counts + free/paid labels from capacity.member_count')
+      : fail('AnonymousRoom derived capacity helpers missing'),
+  );
+  checks.push(
+    /browseOpen && \(/.test(roomSrc)
+      && /openRoomBrowser/.test(roomSrc)
+      && /browseRooms\.map/.test(roomSrc)
+      && /Browse active Anonymous rooms/.test(roomSrc)
+      && /<Compass size=\{14\} \/>/.test(roomSrc)
+      ? ok('browse-rooms modal renders the active-room list with a Compass entry button')
+      : fail('AnonymousRoom browse modal / Compass button missing'),
+  );
+  checks.push(
+    /confirmMembership && \(/.test(roomSrc)
+      && /Buy member seats/.test(roomSrc)
+      && /Pay ₦\{bundleTotal/.test(roomSrc)
+      && /<Crown size=\{14\} \/>/.test(roomSrc)
+      && /Include me/.test(roomSrc)
+      && /my own member seat/.test(roomSrc)
+      ? ok('confirmMembership modal buys ₦499 member seats (bundle stepper + include-me + gift-only copy)')
+      : fail('confirmMembership modal missing'),
+  );
+  checks.push(
+    /Compass/.test(iconSrc)
+      ? ok('Icons.jsx re-exports Compass (browse button)')
+      : fail('Icons.jsx does not re-export Compass'),
+  );
+  checks.push(
+    /Active · join or spectate/.test(groupsSrc)
+      && !/^\s*Lock,$/m.test(groupsSrc)
+      ? ok('StudyGroups anonymous badge says "join or spectate" (no dead Lock import)')
+      : fail('StudyGroups badge not updated to the joinable model'),
+  );
+  checks.push(
+    /community_anonymous_grant_membership/.test(e2eSrc)
+      && /handleAnonSpectateFree/.test(e2eSrc)
+      && /handleAnonRooms/.test(e2eSrc)
+      && /MEMBERSHIP_PAYMENT_REQUIRED/.test(e2eSrc)
+      && /SPECTATOR_PAYMENT_REQUIRED/.test(e2eSrc)
+      ? ok('e2e lifecycle covers the P2 paid-boundary + grant + rooms gates')
+      : fail('e2e P2 gates not wired'),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PART J — P3 MULTI-SLOT PURCHASES + GIFTING (v57): a paid bundle mints N
+// one-slot gift codes (buyer-only, never add capacity); one code redeems ONE
+// seat at claim time (GROUP_FULL without consuming on a full room); gift RPCs
+// are service_role-only; a wipe expires unclaimed gifts.
+// ---------------------------------------------------------------------------
+{
+  const communitySrc = read(resolve(ROOT, 'api/_community.js'));
+  const routerSrc = read(resolve(ROOT, 'api/community.js'));
+  const roomSrc = read(resolve(ROOT, 'src/pages/AnonymousRoom.jsx'));
+  const initSrc = read(resolve(ROOT, 'api/initiate-payment.js'));
+  const verifySrc = read(resolve(ROOT, 'api/verify-payment.js'));
+  const webhookSrc = read(resolve(ROOT, 'api/payments-webhook.js'));
+  const e2eSrc = read(resolve(ROOT, 'scripts/e2e-anonymous-lifecycle.mjs'));
+  const mig = existsSync(resolve(ROOT, 'scripts/migration-v57-anonymous-gifting.sql'))
+    ? read(resolve(ROOT, 'scripts/migration-v57-anonymous-gifting.sql')) : '';
+
+  checks.push(
+    /create table if not exists public\.anonymous_membership_gifts/.test(mig)
+      && /status text not null default 'unclaimed'/.test(mig)
+      && /anonymous_membership_gifts_status_check/.test(mig)
+      && /enable row level security/.test(mig)
+      && /revoke all on public\.anonymous_membership_gifts from public, anon, authenticated/.test(mig)
+      ? ok('migration v57 adds the anonymous_membership_gifts ledger (status check, RLS service-role only)')
+      : fail('migration v57 gifts table missing / unlocked'),
+  );
+  checks.push(
+    /create or replace function public\.community_anonymous_create_gifts/.test(mig)
+      && /pg_advisory_xact_lock/.test(mig)
+      && /where reference = p_reference/.test(mig)
+      && /exception when unique_violation/.test(mig)
+      && /'unclaimed'/.test(mig)
+      ? ok('create_gifts mints N unique codes (reference-idempotent, collision-safe) without granting a seat')
+      : fail('community_anonymous_create_gifts missing or insecure'),
+  );
+  checks.push(
+    /create or replace function public\.community_anonymous_redeem_gift/.test(mig)
+      && /'INVALID_GIFT'/.test(mig)
+      && /'GIFT_ALREADY_CLAIMED'/.test(mig)
+      && /'GIFT_EXPIRED'/.test(mig)
+      && /'ALREADY_MEMBER'/.test(mig)
+      && /v_count \+ v_spec >= v_gr\.member_limit/.test(mig)
+      && /'GROUP_FULL'/.test(mig)
+      && /insert into public\.anonymous_memberships \(group_id, user_id, reference, amount, tier, status\)/.test(mig)
+      && /'gift:' \|\| v_gift\.code/.test(mig)
+      ? ok('redeem_gift enforces the one-slot contract: invalid/used/expired/dupe/self refusal, capacity at redemption')
+      : fail('community_anonymous_redeem_gift contract missing'),
+  );
+  checks.push(
+    /update public\.anonymous_membership_gifts\s*\n\s*set status = 'expired'/.test(mig)
+      && /create or replace function public\.community_anonymous_wipe/.test(mig)
+      ? ok('community_anonymous_wipe expires unclaimed gifts on wipe')
+      : fail('wipe does not expire unclaimed gifts'),
+  );
+  checks.push(
+    /revoke execute on function public\.community_anonymous_create_gifts\(bigint, uuid, integer, text, integer\) from public, anon, authenticated/.test(mig)
+      && /revoke execute on function public\.community_anonymous_redeem_gift\(bigint, uuid, text\) from public, anon, authenticated/.test(mig)
+      && /grant execute on function public\.community_anonymous_create_gifts/.test(mig)
+      ? ok('v57 gifting RPCs are service_role-only')
+      : fail('v57 gifting RPC grants not locked to service_role'),
+  );
+  checks.push(
+    /async function loadAnonGiftSeats\(userId, groupId\)/.test(communitySrc)
+      && /export async function handleAnonGifts\(req, res, user\)/.test(communitySrc)
+      && /room_link: `\/anonymous\/\$\{g\.group_id\}\?gift=\$\{g\.code\}`/.test(communitySrc)
+      && /claimed_by_self: g\.claimed_by === userId/.test(communitySrc)
+      ? ok('handleAnonGifts serves buyer-only gift seats with shareable room links')
+      : fail('handleAnonGifts handler missing'),
+  );
+  checks.push(
+    /export async function handleAnonGiftClaim\(req, res, user\)/.test(communitySrc)
+      && /community_anonymous_redeem_gift/.test(communitySrc)
+      && /'GIFT_ALREADY_CLAIMED', 'GIFT_EXPIRED'\]\.includes\(data\.code\) \? 400 : 403/.test(communitySrc)
+      && /sendRoomPush/.test(communitySrc)
+      ? ok('handleAnonGiftClaim redeems one seat and pushes the join')
+      : fail('handleAnonGiftClaim handler missing'),
+  );
+  checks.push(
+    /handleAnonGifts,/.test(routerSrc)
+      && /handleAnonGiftClaim,/.test(routerSrc)
+      && /\\\/anonymous\\\/gifts\$/.test(routerSrc)
+      && /\\\/anonymous\\\/gift-claim\$/.test(routerSrc)
+      ? ok('api/community.js dispatches /anonymous/gifts + /anonymous/gift-claim')
+      : fail('community.js router missing the P3 gifting routes'),
+  );
+  checks.push(
+    /resolveMembershipsPurchase/.test(initSrc)
+      && /'anonymous_memberships'/.test(initSrc)
+      && /for_me/.test(initSrc)
+      && /MAX_BUNDLE = 50/.test(initSrc)
+      ? ok('initiate-payment resolves anonymous_memberships bundles (count 1..50, for_me, amount = count × member_price)')
+      : fail('initiate-payment bundle product missing'),
+  );
+  checks.push(
+    /grantMembershipsBundle/.test(verifySrc)
+      && /'anonymous_memberships'/.test(verifySrc)
+      && /community_anonymous_create_gifts/.test(verifySrc)
+      ? ok('verify-payment grants a memberships bundle (creates gift codes + optional for_me seat)')
+      : fail('verify-payment bundle grant missing'),
+  );
+  checks.push(
+    /grantMembershipsBundle/.test(webhookSrc)
+      && /'anonymous_memberships'/.test(webhookSrc)
+      ? ok('payments-webhook mirrors the memberships bundle grant')
+      : fail('payments-webhook bundle grant missing'),
+  );
+  checks.push(
+    /const \[bundleCount, setBundleCount\] = useState\(1\)/.test(roomSrc)
+      && /bundleForMe/.test(roomSrc)
+      && /product: 'anonymous_memberships'/.test(roomSrc)
+      && /giftClaimOpen && \(/.test(roomSrc)
+      && /giftPanelOpen && \(/.test(roomSrc)
+      && /.\/anonymous\/gift-claim/.test(roomSrc)
+      ? ok('AnonymousRoom bundle modal + gift panel + gift-claim modal wired')
+      : fail('AnonymousRoom P3 UI wiring missing'),
+  );
+  checks.push(
+    /new URLSearchParams\(window\.location\.search\)\.get\('gift'\)/.test(roomSrc)
+      && /replaceState/.test(roomSrc)
+      ? ok('AnonymousRoom deep-links /anonymous/:id?gift=CODE into the claim box')
+      : fail('AnonymousRoom gift deep-link missing'),
+  );
+  checks.push(
+    /handleAnonGifts/.test(e2eSrc)
+      && /handleAnonGiftClaim/.test(e2eSrc)
+      && /community_anonymous_create_gifts/.test(e2eSrc)
+      && /GROUP_FULL/.test(e2eSrc)
+      && /GIFT_ALREADY_CLAIMED/.test(e2eSrc)
+      && /14g/.test(e2eSrc)
+      ? ok('e2e lifecycle covers the P3 mint / claim / full-room / wipe gates')
+      : fail('e2e P3 gates not wired'),
   );
 }
 

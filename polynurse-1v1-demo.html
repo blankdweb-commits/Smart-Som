@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Polynurse 1v1 – demo</title>
+<style>
+:root{
+  --page:#ffffff;--surface-1:#f4f3ee;--surface-2:#e9e7df;--border:rgba(0,0,0,.15);
+  --text:#1f1e1b;--text-secondary:#6b6a63;--text-muted:#9a998f;--radius:8px;
+  --bg-accent:#E6F1FB;--text-accent:#0C447C;--fill-accent:#378ADD;
+  --bg-success:#EAF3DE;--text-success:#27500A;--border-success:#639922;
+  --bg-danger:#FCEBEB;--text-danger:#791F1F;--border-danger:#E24B4A;
+  --border-warning:#BA7517;
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --page:#1a1a18;--surface-1:#242421;--surface-2:#31312d;--border:rgba(255,255,255,.18);
+    --text:#ecebe4;--text-secondary:#a8a79c;--text-muted:#7d7c72;
+    --bg-accent:#14304f;--text-accent:#B5D4F4;--fill-accent:#378ADD;
+    --bg-success:#1f3510;--text-success:#C0DD97;--border-success:#639922;
+    --bg-danger:#4a1b1b;--text-danger:#F7C1C1;--border-danger:#E24B4A;
+  }
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--page);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;
+  padding:max(16px,env(safe-area-inset-top)) 16px max(16px,env(safe-area-inset-bottom))}
+.wrap{max-width:420px;margin:0 auto}
+h1{font-size:15px;font-weight:500;margin:0 0 10px}
+.note{font-size:12px;color:var(--text-muted);margin:12px 0 0;text-align:center}
+button{font:inherit;color:var(--text);background:transparent;border:0.5px solid var(--border);border-radius:var(--radius);padding:8px 14px;cursor:pointer}
+button:active:not(:disabled){transform:scale(.98)}
+button:disabled{color:var(--text-muted);cursor:default}
+button:focus-visible{outline:2px solid var(--fill-accent);outline-offset:2px}
+svg.i{width:1em;height:1em;vertical-align:-.125em;stroke:currentColor;fill:none;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.o{display:block;width:100%;text-align:left;margin:0 0 8px;padding:12px 14px;font-size:15px;min-height:44px;background:var(--surface-2)}
+.c{flex:1;border-radius:var(--radius);padding:8px 10px;transition:box-shadow .3s}
+.k{flex:1;border-radius:var(--radius);padding:10px;text-align:center;transition:transform .16s}
+#np,#nn{transition:opacity .15s,transform .15s;display:flex;justify-content:center;align-items:center;gap:2px;font-size:28px;font-weight:500}
+.glow{box-shadow:0 0 0 2px var(--border-warning),0 0 14px var(--border-warning)}
+.b3{flex:1;min-height:44px}
+@media (prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<h1>Polynurse 1v1</h1>
+<div style="background:var(--surface-1);border-radius:12px;padding:14px">
+<div id="game">
+  <div style="display:flex;gap:10px;margin-bottom:10px">
+    <div class="c" id="mec" style="background:var(--bg-accent);color:var(--text-accent)">
+      <div style="font-size:12px">You</div><div id="me" style="font-size:26px;font-weight:500">0</div>
+    </div>
+    <div class="c" id="opc" style="background:var(--surface-2);border:0.5px solid var(--border)">
+      <div style="font-size:12px;color:var(--text-secondary)">Opponent</div><div id="op" style="font-size:26px;font-weight:500">0</div>
+    </div>
+  </div>
+  <div style="display:flex;align-items:center;gap:8px;margin-bottom:12px">
+    <svg class="i" viewBox="0 0 24 24" style="font-size:16px;color:var(--text-secondary)" aria-hidden="true"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg>
+    <div style="flex:1;height:6px;background:var(--surface-2);border-radius:3px;overflow:hidden"><div id="bar" style="height:100%;width:100%;background:var(--fill-accent)"></div></div>
+    <span id="t" style="font-size:14px;font-weight:500;min-width:28px;text-align:right">90s</span>
+  </div>
+  <div style="display:flex;gap:10px;margin-bottom:12px">
+    <div class="k" id="cp" style="background:var(--bg-success);color:var(--text-success)"><div id="np"></div></div>
+    <div class="k" id="cn" style="background:var(--bg-danger);color:var(--text-danger)"><div id="nn"></div></div>
+  </div>
+  <p id="q" style="font-size:16px;font-weight:500;line-height:1.4;margin:0 0 12px"></p>
+  <div id="opts"></div>
+  <div style="display:flex;gap:10px;margin-top:4px">
+    <button id="sk" class="b3"><svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 5l9 7-9 7z"/><path d="M19 5v14"/></svg> Skip</button>
+    <button id="dd" class="b3">???</button>
+  </div>
+</div>
+<div id="res" style="display:none"></div>
+</div>
+<p class="note">Prototype demo. The opponent is simulated.</p>
+</div>
+<script>
+var FLASH=200;
+var BOLT='<svg class="i" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 3L5 14h6l-1 7 8-11h-6z"/></svg>';
+var Q=[["Normal serum potassium range?",["2.5–3.5 mEq/L","3.5–5.0 mEq/L","5.5–6.5 mEq/L","6.0–7.5 mEq/L"],1],
+["Antidote for heparin overdose?",["Vitamin K","Naloxone","Protamine sulfate","Flumazenil"],2],
+["Best position for respiratory distress?",["Supine","High Fowler's","Trendelenburg","Prone"],1],
+["Antidote for acetaminophen overdose?",["Acetylcysteine","Atropine","Glucagon","Physostigmine"],0],
+["Normal adult resting heart rate?",["40–60 bpm","60–100 bpm","100–120 bpm","120–140 bpm"],1],
+["First action for a choking adult who cannot speak?",["Offer water","Lay flat","Call family","Abdominal thrusts"],3]];
+var s,qi,tm,iv,done,lock,log;
+function $(i){return document.getElementById(i)}
+function f(n){return (n>0?'+':n<0?'−':'')+Math.abs(n)}
+function chips(k){var m=s.dd===1?2:1,b=m==2?BOLT.replace('class="i"','class="i" style="font-size:20px"'):'';
+function set(id,cid,h,go){var e=$(id),c=$(cid);if(!go){e.innerHTML=h;return}
+e.style.opacity='0';e.style.transform='translateY(10px)';c.style.transform='scale(1.14)';
+setTimeout(function(){e.innerHTML=h;e.style.opacity='1';e.style.transform='translateY(0)'},150);
+setTimeout(function(){c.style.transform='scale(1)'},320)}
+set('np','cp',b+'+'+((s.p+1)*m),k==='p'||k==='b');set('nn','cn',b+'−'+((s.n+1)*m),k==='n'||k==='b')}
+function ui(){$('me').textContent=s.cnt;$('op').textContent=s.oq;$('t').textContent=tm+'s';$('bar').style.width=(tm/90*100)+'%';
+$('mec').classList.toggle('glow',s.dd===1);$('opc').classList.toggle('glow',s.od===1)}
+function btns(){$('sk').disabled=s.dd===1;$('dd').disabled=s.dd!==0}
+function show(){var q=Q[qi%Q.length];$('q').textContent=q[0];var h=$('opts');h.innerHTML='';
+q[1].forEach(function(x,i){var b=document.createElement('button');b.className='o';b.textContent=x;b.onclick=function(){ans(i)};h.appendChild(b)})}
+function paint(b,k){b.style.background='var(--bg-'+k+')';b.style.borderColor='var(--border-'+k+')';b.style.color='var(--text-'+k+')'}
+function nextQ(){if(done)return;qi++;lock=false;show();ui();btns()}
+function ans(i){if(done||lock)return;lock=true;var q=Q[qi%Q.length],ok=i===q[2],b=$('opts').children[i],m=s.dd===1?2:1,v;
+s.cnt++;
+if(ok){s.p++;v=s.p*m;s.sc+=v;paint(b,'success');log.push({d:v,ok:true,dd:m==2})}
+else{s.n++;v=s.n*m;s.sc-=v;paint(b,'danger');log.push({d:-v,ok:false,dd:m==2,q:q[0],a:q[1][q[2]]})}
+if(m==2)s.dd=2;
+ui();chips(ok?'p':'n');btns();setTimeout(nextQ,FLASH)}
+$('sk').onclick=function(){if(done||lock||s.dd===1)return;s.cnt++;log.push({d:0});nextQ()};
+$('dd').onclick=function(){if(done||s.dd!==0)return;var answered=lock;s.dd=1;chips('b');
+if(!answered){s.cnt++;log.push({d:0});nextQ()}else{ui();btns()}};
+function oppTick(){var el=90-tm;if(s.od===0&&el>=s.oT)s.od=1;
+if(Math.random()<.35){s.oq++;var ok=Math.random()<.7,m=s.od===1?2:1,v;
+if(ok){s.po++;v=s.po*m;s.op+=v}else{s.no++;v=s.no*m;s.op-=v}
+if(m==2){s.od=2;s.odv=ok?v:-v}}}
+function cd(name,base,dd,used,fin,acc){return '<div class="c" style="background:'+(acc?'var(--bg-accent);color:var(--text-accent)':'var(--surface-2);border:0.5px solid var(--border)')+'"><div style="font-size:12px;margin-bottom:6px">'+name+'</div>'+
+'<div style="font-size:13px;display:flex;justify-content:space-between"><span>Base</span><span>'+f(base)+'</span></div>'+
+'<div style="font-size:13px;display:flex;justify-content:space-between;margin:2px 0 6px"><span>'+BOLT+' Double</span><span>'+(used?f(dd):'Unused')+'</span></div>'+
+'<div style="font-size:26px;font-weight:500;text-align:center">'+fin+'</div></div>'}
+function end(){if(done)return;done=true;clearInterval(iv);
+var ddv=0,used=false;log.forEach(function(l){if(l.dd){ddv=l.d;used=true}});
+var ou=s.od===2,odv=ou?s.odv:0;
+var w=s.sc>s.op?'You win':s.sc<s.op?'Opponent wins':'Tie';
+var sq=log.map(function(l){var k=l.d>0?'success':l.d<0?'danger':'';
+return '<div style="width:32px;height:32px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:11px;background:'+(k?'var(--bg-'+k+')':'var(--surface-2)')+';color:'+(k?'var(--text-'+k+')':'var(--text-muted)')+(l.dd?';box-shadow:0 0 0 1.5px var(--border-warning)':'')+'">'+(l.d>0?'+':l.d<0?'−':'')+(l.d?Math.abs(l.d):'–')+'</div>'}).join('');
+var ms=log.map(function(l,i){return l.ok===false?'<p style="font-size:13px;margin:0 0 8px;line-height:1.4"><span style="color:var(--text-secondary)">Q'+(i+1)+' · '+l.q+'</span><br>'+l.a+'</p>':''}).join('');
+$('game').style.display='none';var r=$('res');r.style.display='block';
+r.innerHTML='<p style="text-align:center;font-size:13px;color:var(--text-secondary);margin:0 0 8px">Time is up</p>'+
+'<div style="display:flex;gap:10px;margin-bottom:8px">'+cd('You',s.sc-ddv,ddv,used,s.sc,true)+cd('Opponent',s.op-odv,odv,ou,s.op,false)+'</div>'+
+'<p style="text-align:center;font-size:18px;font-weight:500;margin:0 0 16px">'+w+'</p>'+
+'<div style="font-size:12px;color:var(--text-secondary);margin:0 0 6px">Your run, question by question</div>'+
+'<div style="display:flex;flex-wrap:wrap;gap:6px;margin-bottom:16px">'+(sq||'<span style="font-size:13px;color:var(--text-muted)">No questions played</span>')+'</div>'+
+(ms?'<div style="font-size:12px;color:var(--text-secondary);margin-bottom:6px">Missed</div>'+ms:'')+
+'<button id="rs" style="width:100%;min-height:44px;margin-top:8px">Play again</button>';
+$('rs').onclick=init}
+function init(){s={sc:0,p:0,n:0,op:0,oq:0,cnt:0,dd:0,po:0,no:0,od:0,odv:0,oT:15+Math.floor(Math.random()*60)};
+log=[];qi=0;tm=90;done=false;lock=false;
+$('res').style.display='none';$('game').style.display='block';show();ui();chips('');btns();clearInterval(iv);
+iv=setInterval(function(){tm--;oppTick();ui();if(tm<=0)end()},1000)}
+init();
+</script>
+</body>
+</html>

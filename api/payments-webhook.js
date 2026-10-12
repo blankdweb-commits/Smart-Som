@@ -1,9 +1,11 @@
 // api/payments-webhook.js (webhook URL: /api/payments/webhook via vercel.json rewrite)
 //
-// Handles charge.success for BOTH products:
+// Handles charge.success for THREE products:
 //   - premium subscription (legacy): creates a subscriptions row + activates profile.
-//   - anonymous_spectate: one-time ₦499 spectator pass — inserts an `active`
+//   - anonymous_spectate: one-time spectator pass — inserts an `active`
 //     anonymous_spectators row (NO subscription, NO profile activation).
+//   - anonymous_membership: one-time paid member seat — grants via
+//     community_anonymous_grant_membership (NO subscription).
 // Signature-verified, idempotent on the reference.
 import crypto from 'crypto';
 import { getSupabaseAdmin } from './_utils.js';
@@ -71,6 +73,7 @@ async function grantSpectator(supabase, paidAmount, metadata) {
       user_id: userId,
       reference: metadata.reference,
       amount: paidAmount,
+      tier: 'paid',
       status: 'active',
     })
     .select('id')
@@ -82,6 +85,177 @@ async function grantSpectator(supabase, paidAmount, metadata) {
   if (grantError) throw grantError;
 
   return { status: 200, body: { status: 'spectator_granted', spectator_id: grant?.id } };
+}
+
+// P2 — one-time paid member seat from the webhook. The reference's UNIQUE
+// constraint makes this safe against the callback verifier racing the webhook.
+async function grantMembership(supabase, paidAmount, metadata) {
+  const groupId = Number(metadata?.group_id);
+  const userId = metadata?.user_id;
+  if (!Number.isFinite(groupId) || !userId) {
+    return { status: 200, body: { status: 'ignored' } };
+  }
+
+  const { data: group } = await supabase
+    .from('study_groups')
+    .select('id, type, group_state, is_active, member_price')
+    .eq('id', groupId)
+    .maybeSingle();
+  if (!group || group.type !== 'anonymous' || group.group_state === 'wiped' || group.is_active === false) {
+    return { status: 200, body: { status: 'ignored' } };
+  }
+
+  // Idempotency — the callback verifier may have already granted this.
+  const { data: existing } = await supabase
+    .from('anonymous_memberships')
+    .select('id')
+    .eq('reference', metadata.reference)
+    .maybeSingle();
+  if (existing) {
+    return { status: 200, body: { status: 'already_processed' } };
+  }
+
+  const expected = Number(group.member_price);
+  if (expected > 0 && Math.abs(paidAmount - expected) > 1) {
+    console.error(`Webhook membership amount mismatch, ref ${metadata.reference}: paid ${paidAmount}, expected ${expected}`);
+    return { status: 200, body: { status: 'amount_mismatch' } };
+  }
+
+  const { error: txnError } = await supabase
+    .from('transactions')
+    .insert({
+      user_id: userId,
+      reference: metadata.reference,
+      amount: paidAmount,
+      status: 'success',
+      paid_at: new Date().toISOString(),
+      metadata: metadata,
+    });
+  if (txnError && txnError.code === '23505') {
+    const { data: existingTxn } = await supabase
+      .from('transactions')
+      .select('id')
+      .eq('reference', metadata.reference)
+      .maybeSingle();
+    if (existingTxn) return { status: 200, body: { status: 'already_processed' } };
+  }
+  if (txnError) throw txnError;
+
+  const { data: result, error: grantError } = await supabase.rpc('community_anonymous_grant_membership', {
+    p_group: groupId,
+    p_user: userId,
+    p_reference: metadata.reference,
+    p_amount: Math.round(paidAmount),
+    p_tier: 'paid',
+  });
+  if (grantError && grantError.code === '23505') {
+    return { status: 200, body: { status: 'already_processed' } };
+  }
+  if (grantError) throw grantError;
+  if (!result?.ok) {
+    return { status: 200, body: { status: 'membership_denied', code: result?.code || null } };
+  }
+
+  return { status: 200, body: { status: 'member_granted', already_member: !!result.already_member } };
+}
+
+// P3 — multi-slot purchase from the webhook (mirrors verify-payment). Gifts are
+// created once per reference (idempotent against the callback verifier); the
+// buyer's own seat is granted when `for_me` is set.
+async function grantMembershipsBundle(supabase, paidAmount, metadata) {
+  const groupId = Number(metadata?.group_id);
+  const userId = metadata?.user_id;
+  if (!Number.isFinite(groupId) || !userId) {
+    return { status: 200, body: { status: 'ignored' } };
+  }
+
+  const { data: group } = await supabase
+    .from('study_groups')
+    .select('id, type, group_state, is_active, member_price')
+    .eq('id', groupId)
+    .maybeSingle();
+  if (!group || group.type !== 'anonymous' || group.group_state === 'wiped' || group.is_active === false) {
+    return { status: 200, body: { status: 'ignored' } };
+  }
+
+  // Idempotency — tips of the race: the verifier may have already minted codes.
+  const { data: existing } = await supabase
+    .from('anonymous_membership_gifts')
+    .select('id')
+    .eq('reference', metadata.reference)
+    .limit(1);
+  if (existing?.length > 0) {
+    return { status: 200, body: { status: 'already_processed' } };
+  }
+
+  const expected = Number(group.member_price);
+  const total = Math.max(1, Math.min(Math.round(Number(metadata?.count) || 1), 50));
+  const forMe = Number(metadata?.for_me) === 1 ? 1 : 0;
+  const giftCount = Math.max(0, total - forMe);
+  if (expected > 0 && Math.abs(paidAmount - expected * total) > 1) {
+    console.error(`Webhook bundle amount mismatch, ref ${metadata.reference}: paid ${paidAmount}, expected ${expected * total}`);
+    return { status: 200, body: { status: 'amount_mismatch' } };
+  }
+
+  const { error: txnError } = await supabase
+    .from('transactions')
+    .insert({
+      user_id: userId,
+      reference: metadata.reference,
+      amount: paidAmount,
+      status: 'success',
+      paid_at: new Date().toISOString(),
+      metadata: metadata,
+    });
+  if (txnError && txnError.code === '23505') {
+    const { data: existingTxn } = await supabase
+      .from('transactions')
+      .select('id')
+      .eq('reference', metadata.reference)
+      .maybeSingle();
+    if (existingTxn) return { status: 200, body: { status: 'already_processed' } };
+  }
+  if (txnError) throw txnError;
+
+  let codes = [];
+  if (giftCount > 0) {
+    const { data: giftRes, error: giftError } = await supabase.rpc('community_anonymous_create_gifts', {
+      p_group: groupId,
+      p_buyer: userId,
+      p_count: giftCount,
+      p_reference: metadata.reference,
+      p_amount: Math.round(expected || paidAmount / total),
+    });
+    if (giftError && giftError.code === '23505') {
+      return { status: 200, body: { status: 'already_processed' } };
+    }
+    if (giftError || !giftRes?.ok) {
+      return { status: 200, body: { status: 'gift_creation_failed', code: giftRes?.code || null } };
+    }
+    codes = (giftRes.codes || []).map((c) => c.code);
+  }
+
+  let seatStatus = null;
+  if (forMe === 1) {
+    const { data: result, error: grantError } = await supabase.rpc('community_anonymous_grant_membership', {
+      p_group: groupId,
+      p_user: userId,
+      p_reference: metadata.reference,
+      p_amount: Math.round(paidAmount),
+      p_tier: 'paid',
+    });
+    if (grantError && grantError.code === '23505') {
+      seatStatus = 'already_granted';
+    } else if (grantError) {
+      seatStatus = 'grant_error';
+    } else if (result?.ok) {
+      seatStatus = result.already_member ? 'already_member' : 'member_granted';
+    } else {
+      seatStatus = 'membership_denied';
+    }
+  }
+
+  return { status: 200, body: { status: 'bundle_processed', count: total, for_me: forMe, gift_count: giftCount, gift_codes: codes, seat: seatStatus } };
 }
 
 export default async function handler(req, res) {
@@ -107,9 +281,17 @@ export default async function handler(req, res) {
     const paidAmount = amount / 100; // kobo -> naira
 
     try {
-      // Spectator product branches before any subscription logic.
+      // Spectator / membership products branch before any subscription logic.
       if (metadata?.product === 'anonymous_spectate') {
         const r = await grantSpectator(supabase, paidAmount, { ...(metadata || {}), reference });
+        return res.status(r.status).json(r.body);
+      }
+      if (metadata?.product === 'anonymous_membership') {
+        const r = await grantMembership(supabase, paidAmount, { ...(metadata || {}), reference });
+        return res.status(r.status).json(r.body);
+      }
+      if (metadata?.product === 'anonymous_memberships') {
+        const r = await grantMembershipsBundle(supabase, paidAmount, { ...(metadata || {}), reference });
         return res.status(r.status).json(r.body);
       }
 

@@ -35,12 +35,23 @@ import {
   VolumeX,
   Sparkles,
   Swords,
+  Share2,
+  Check,
+  Copy,
+  Compass,
 } from '../components/Icons';
 import { communityApi } from '../utils/communityApi';
 import { authHeaders } from '../utils/apiHeaders';
 import { useAnonymousRoomRealtime } from '../hooks/useAnonymousRoomRealtime';
 import { useAppContext } from '../context/AppContext';
-import { playMessagePop, playJoinChime, playSocialTone, playChallengeTone, playLockTone, playRevealTone } from '../utils/anonSound';
+import {
+  playMessagePop,
+  playJoinChime,
+  playChallengeTone,
+  playLockTone,
+  playRevealTone,
+  playActionSfx,
+} from '../utils/anonSound';
 import { pushSupported, getPushState, enablePush, disablePush, savePreferences } from '../utils/push';
 
 const TYPING_TTL_MS = 3000;
@@ -48,6 +59,9 @@ const TYPING_THROTTLE_MS = 2500;
 const MUTE_KEY = 'apex:anon_muted_aliases';
 // Rightward drag (px) on a touch device that arms a WhatsApp-style reply.
 const SWIPE_REPLY_THRESHOLD = 64;
+// v54 — action/challenge/fight event cards die at the same 10 minutes as
+// messages. Mirrors the server's EVENT_LIFETIME_MS (config.event_lifetime_seconds).
+const EVENT_LIFETIME_SECONDS = 600;
 
 const REPORT_CATEGORIES = [
   { value: 'harassment', label: 'Harassment or bullying' },
@@ -68,6 +82,10 @@ const SEND_ERRORS = {
   NOTICE_REQUIRED: 'Accept the room safety notice before you speak.',
   GROUP_FULL: 'The room is at capacity. A spectator pass is available instead.',
   MEMBERSHIP_LOCKED: 'The host has closed membership. A spectator pass is available instead.',
+  MEMBERSHIP_PAYMENT_REQUIRED: 'All free founding member seats are taken. A one-time fee unlocks a member seat.',
+  SPECTATOR_PAYMENT_REQUIRED: 'All free spectator slots are taken. A one-time pass unlocks spectator access.',
+  SPECTATOR_FREE_AVAILABLE: 'A free spectator seat is still open.',
+  MEMBERSHIP_FREE_AVAILABLE: 'A free member seat is still open.',
   REPORT_RATE_LIMITED: 'You have sent too many reports. Please wait a while.',
   CONTENT_REQUIRED: 'Write something first.',
   CONTENT_TOO_LONG: 'That message is too long.',
@@ -188,6 +206,26 @@ const labelAliasNum = (label) => {
   return m ? Number(m[1]) : null;
 };
 
+// v54 — full human-readable sentences for event cards (no truncation, wraps to
+// a second line): "Anonymous #235 kicked Anonymous #344". `EVENT_AFTER` holds a
+// suffix inserted after the target ("… told Anonymous #344 to fuck off").
+const EVENT_VERB = {
+  punch: 'punched',
+  kick: 'kicked',
+  fuckoff: 'told',
+  waka: 'waka’d at',
+  hug: 'hugged',
+  highfive: 'high-fived',
+  kiss: 'kissed',
+  danceoff: 'started a dance-off with',
+  wave: 'waved at',
+  challenge: 'challenged',
+  fight: 'fought',
+};
+const EVENT_AFTER = {
+  fuckoff: 'to fuck off',
+};
+
 // v53 — an EVENT CARD sits inline in the timeline (an action aimed at another
 // member, a pending CHALLENGE invite, or a FIGHT). Members and spectators can
 // react to it; a challenged member can Accept (starts the fight) or Decline.
@@ -233,23 +271,23 @@ const RoomEventCard = ({ ev, canReact, busy, onReact, onRespond, onMention, reac
               )}
               <span className="text-[9px] font-bold text-slate-600">{timeOf(ev.created_at)}</span>
             </div>
-            <p className="text-[12px] font-medium text-slate-400 mt-0.5 truncate">
+            <p className="text-[12px] font-medium text-slate-400 mt-0.5 flex items-center flex-wrap gap-x-1 leading-relaxed">
               <button
                 type="button"
                 disabled={!onMention || actorN == null}
                 onClick={() => actorN != null && onMention?.(actorN)}
-                className={`${onMention && actorN != null ? 'hover:underline' : 'cursor-default'}`}
+                className={`${onMention && actorN != null ? 'hover:underline' : 'cursor-default'} font-bold`}
                 style={identityStyle(actorN)}
               >
                 {ev.actor}
               </button>
-              {ev.kind === 'fight' ? ' and ' : ' → '}
+              <span className="text-slate-300">{EVENT_VERB[ev.action] || ev.label?.toLowerCase() || 'interacted with'}</span>
               {ev.target ? (
                 <button
                   type="button"
                   disabled={!onMention || targetN == null}
                   onClick={() => targetN != null && onMention?.(targetN)}
-                  className={`${onMention && targetN != null ? 'hover:underline' : 'cursor-default'}`}
+                  className={`${onMention && targetN != null ? 'hover:underline' : 'cursor-default'} font-bold`}
                   style={identityStyle(targetN)}
                 >
                   {ev.target}
@@ -257,6 +295,7 @@ const RoomEventCard = ({ ev, canReact, busy, onReact, onRespond, onMention, reac
               ) : (
                 <span className="text-slate-500">the room</span>
               )}
+              {EVENT_AFTER[ev.action] ? <span className="text-slate-300">{EVENT_AFTER[ev.action]}</span> : null}
             </p>
           </div>
           {isPendingChallenge && ev.can_respond && (
@@ -381,7 +420,24 @@ const AnonymousRoom = () => {
   const [lockBusy, setLockBusy] = useState(false);
   const [lockedOptionsOpen, setLockedOptionsOpen] = useState(false);
   const [confirmSpectate, setConfirmSpectate] = useState(false);
+  const [confirmMembership, setConfirmMembership] = useState(false);
+  const [buyingMembership, setBuyingMembership] = useState(false);
+  // P3 — multi-slot purchases + single-slot gifting.
+  const [bundleCount, setBundleCount] = useState(1);
+  const [bundleForMe, setBundleForMe] = useState(true);
+  const [giftPanelOpen, setGiftPanelOpen] = useState(false);
+  const [giftClaimOpen, setGiftClaimOpen] = useState(false);
+  const [giftCodeInput, setGiftCodeInput] = useState('');
+  const [claimBusy, setClaimBusy] = useState(false);
+  const [claimResult, setClaimResult] = useState(null);
+  const [giftCopied, setGiftCopied] = useState(null);
+  const [resolvedGiftParam, setResolvedGiftParam] = useState(false);
+  const [spectating, setSpectating] = useState(false);
   const [creatingRoom, setCreatingRoom] = useState(false);
+  const [browseOpen, setBrowseOpen] = useState(false);
+  const [browseRooms, setBrowseRooms] = useState(null);
+  const [browseBusy, setBrowseBusy] = useState(false);
+  const [browseError, setBrowseError] = useState('');
 
   const [reportFor, setReportFor] = useState(null);
   const [reportCategory, setReportCategory] = useState('harassment');
@@ -420,6 +476,10 @@ const AnonymousRoom = () => {
   const [eventBusyFor, setEventBusyFor] = useState(null);
   const [declining, setDeclining] = useState(false);
   const [decliningBusy, setDecliningBusy] = useState(false);
+  // Server roster: every current member's Anonymous #NN + live online flag, so
+  // an action can be aimed at anyone present — not only recent posters.
+  const [roster, setRoster] = useState([]);
+  const [rosterQuery, setRosterQuery] = useState('');
 
   const scrollRef = useRef(null);
   const atBottomRef = useRef(true);
@@ -437,6 +497,7 @@ const AnonymousRoom = () => {
   const olderCursorRef = useRef(null);
   const celebrationTimerRef = useRef(null);
   const fightTimerRef = useRef(null);
+  const giftCopiedTimerRef = useRef(null);
   // alias -> last-celebrated timestamp. Join broadcasts can be delivered again
   // on a reconnect/reconcile; this keeps one celebration per member per TTL.
   const celebratedRef = useRef(new Map());
@@ -469,8 +530,32 @@ const AnonymousRoom = () => {
   const membershipLocked = !!room?.group?.membership_locked;
   const thresholds = room?.thresholds || {};
   const price = room?.group?.spectator_price;
+  // P2 — capacity + monetization. `capacity` is the server-computed breakdown;
+  // the group fallbacks keep the UI sane if an old room lacks the field.
+  const capacity = room?.capacity || {};
+  const foundingCap = capacity.founding_member_cap ?? room?.group?.founding_member_cap ?? null;
+  const freeSpecCap = capacity.free_spectator_cap ?? room?.group?.free_spectator_cap ?? null;
+  const memberPrice = capacity.member_price ?? room?.group?.member_price ?? null;
+  const seatMemberCount = capacity.member_count ?? memberCount ?? null;
+  const spectatorCount = capacity.spectator_count ?? null;
+  const totalCapacity = capacity.total_capacity ?? memberLimit ?? null;
+  const freeMemberSeatsLeft =
+    typeof seatMemberCount === 'number' && typeof foundingCap === 'number'
+      ? Math.max(foundingCap - seatMemberCount, 0)
+      : null;
+  const freeSpectatorSeatsLeft =
+    typeof spectatorCount === 'number' && typeof freeSpecCap === 'number'
+      ? Math.max(freeSpecCap - spectatorCount, 0)
+      : null;
   const noticeAccepted = !isMember || room?.notice?.accepted === true;
   const myAliasNum = room?.my_alias ?? null;
+  // P3 — gift seats I bought for THIS room (from handleAnonRoom). Unclaimed ones
+  // are shareable; claimed ones show the recipient's claim state.
+  const myGifts = Array.isArray(room?.gifts) ? room.gifts : [];
+  const unclaimedGifts = myGifts.filter((g) => g.status === 'unclaimed');
+  const bundleUnit = Number(memberPrice) || null;
+  const bundleTotal =
+    bundleUnit != null ? bundleUnit * Math.max(1, Math.round(Number(bundleCount) || 1)) : null;
   const roomActions = room?.config?.actions || room?.config?.tags || room?.config?.social_actions || [];
   const roomSocial = roomActions;
   const isPremiumRoom = room?.is_premium === true;
@@ -495,6 +580,18 @@ const AnonymousRoom = () => {
       ...(before ? { before } : {}),
     });
   }, [session]);
+
+  // The room roster (all current members + online status). Non-fatal: the
+  // action sheet falls back to aliases seen in the feed if this fails.
+  const loadRoster = useCallback(async () => {
+    if (!groupId) return;
+    try {
+      const data = await communityApi(session, '/anonymous/members', { group_id: groupId });
+      setRoster(Array.isArray(data?.members) ? data.members : []);
+    } catch {
+      /* best-effort */
+    }
+  }, [session, groupId]);
 
   const upsertMessage = useCallback((msg) => {
     if (!msg) return;
@@ -537,8 +634,15 @@ const AnonymousRoom = () => {
   // v53 — event cards: upsert/fetch one, React, and Accept/Decline a
   // CHALLENGE. Cards are standalone rows in the same timeline as messages.
   // ------------------------------------------------------------------
+  // v54 — one-shot per-action sound for genuinely new incoming event cards
+  // (never for my own actions, never for history backfills, never twice).
+  const seenEventSoundIdsRef = useRef(new Set());
   const upsertEvent = useCallback((ev) => {
     if (!ev || !ev.id) return;
+    const isNew = !seenEventSoundIdsRef.current.has(ev.id);
+    seenEventSoundIdsRef.current.add(ev.id);
+    const recent = Number.isFinite(ev.created_at ? Date.parse(ev.created_at) : NaN) && Date.now() - Date.parse(ev.created_at) < 30000;
+    if (isNew && !ev.is_actor && soundRef.current && recent) playActionSfx(ev.action);
     setEvents((prev) => {
       const idx = prev.findIndex((e) => e.id === ev.id);
       const next = idx >= 0 ? prev.map((e) => (e.id === ev.id ? ev : e)) : [...prev, ev];
@@ -670,6 +774,7 @@ const AnonymousRoom = () => {
           setHasMore(!!feed.has_more);
           olderCursorRef.current = feed.next_before || (feed.messages?.[0]?.created_at ?? null);
           firstLoadRef.current = true;
+          if (data.access === 'member') void loadRoster();
         } else {
           setMessages([]);
           setEvents([]);
@@ -692,11 +797,33 @@ const AnonymousRoom = () => {
     } finally {
       bootstrapInFlightRef.current = null;
     }
-  }, [loadRoom, loadFeed, detectRelease]);
+  }, [loadRoom, loadFeed, loadRoster, detectRelease]);
 
   useEffect(() => {
     bootstrap(false);
   }, [bootstrap]);
+
+  // P3 — a shared gift deep link (/anonymous/{id}?gift=CODE) prefills the claim
+  // box. Only opens the claim UI for a visitor who is NOT already seated.
+  useEffect(() => {
+    if (resolvedGiftParam) return;
+    const code = new URLSearchParams(window.location.search).get('gift');
+    if (!code || typeof code !== 'string') {
+      setResolvedGiftParam(true);
+      return;
+    }
+    setResolvedGiftParam(true);
+    setGiftCodeInput(code.trim());
+    const cleanUrl = window.location.pathname + window.location.search.replace(/[?&]gift=[^&]*/, '').replace(/^\?&/, '?');
+    window.history.replaceState(null, '', cleanUrl.replace(/\?$/, ''));
+    if (room?.access === 'member') {
+      setClaimResult({ ok: false, message: 'Your gift is safe, but you already have a seat here.' });
+      setGiftClaimOpen(true);
+    } else if (room?.access === 'join' || room?.access === 'closed') {
+      setGiftClaimOpen(true);
+      setClaimResult(null);
+    }
+  }, [resolvedGiftParam, room?.access]);
 
   const pushSystemEvent = useCallback((type, extra = {}) => {
     setSystemEvents((prev) => [
@@ -750,7 +877,7 @@ const AnonymousRoom = () => {
       return;
     }
     if (type === 'fight') {
-      // S1 — a reciprocal slap/kick started a fight. Transient banner only.
+      // S1 — reciprocal attack actions started a fight. Transient banner only.
       setFightAlert({ attacker: payload?.attacker ?? null, defender: payload?.defender ?? null });
       if (fightTimerRef.current) clearTimeout(fightTimerRef.current);
       fightTimerRef.current = setTimeout(() => setFightAlert(null), 5000);
@@ -875,6 +1002,20 @@ const AnonymousRoom = () => {
       if (Number.isFinite(lives) && lives <= now) removeMessage(m.id);
     }
   }, [messages, tick, removeMessage]);
+
+  // v54 — action/challenge/fight event cards expire at the same 10 minutes as
+  // messages. Swept locally on the same clock the server enforces.
+  useEffect(() => {
+    if (!events.length) return;
+    const cutoff = Date.now() - (room?.config?.event_lifetime_seconds || EVENT_LIFETIME_SECONDS) * 1000;
+    setEvents((prev) => {
+      const next = prev.filter((e) => {
+        const at = Date.parse(e.created_at || '');
+        return Number.isFinite(at) && at > cutoff;
+      });
+      return next.length === prev.length ? prev : next;
+    });
+  }, [events, tick, room?.config?.event_lifetime_seconds]);
 
   useEffect(() => {
     const t = setInterval(() => {
@@ -1047,8 +1188,10 @@ const AnonymousRoom = () => {
     setActionMessage(msg || null);
     setActionTarget(preset != null && preset !== Number(room?.my_alias) ? preset : null);
     setPendingAction(null);
+    setRosterQuery('');
     setComposerError('');
     setActionSheetOpen(true);
+    void loadRoster();
   };
 
   const actionLocked = actionCooldownUntil > tick;
@@ -1057,7 +1200,7 @@ const AnonymousRoom = () => {
     const action = pendingAction;
     const target = actionTarget;
     if (!action || target == null || actionBusy || actionLocked || !groupId) return;
-    if (soundRef.current) playSocialTone();
+    if (soundRef.current) playActionSfx(action);
     setActionBusy(true);
     setComposerError('');
     try {
@@ -1416,7 +1559,10 @@ const AnonymousRoom = () => {
       await communityApi(session, '/groups/join', { group_id: groupId });
       await bootstrap(true);
     } catch (err) {
-      if (['MEMBERSHIP_LOCKED', 'GROUP_FULL'].includes(err.code)) {
+      if (err.code === 'MEMBERSHIP_PAYMENT_REQUIRED') {
+        setConfirmMembership(true);
+        setComposerError(SEND_ERRORS[err.code]);
+      } else if (['MEMBERSHIP_LOCKED', 'GROUP_FULL'].includes(err.code)) {
         setLockedOptionsOpen(true);
         setComposerError(SEND_ERRORS[err.code]);
       } else {
@@ -1445,9 +1591,32 @@ const AnonymousRoom = () => {
     }
   };
 
-  // Spectator purchase: two-step (confirm → checkout) so a charge is never
-// accidental. The amount is resolved SERVER-SIDE in initiate-payment.js.
-const buySpectator = async () => {
+  // P2 — spectating tries a FREE seat first; the server refuses with
+  // SPECTATOR_PAYMENT_REQUIRED once the free slots are gone, which is the only
+  // time we offer the paid pass. No charge happens without an explicit confirm.
+  const startSpectate = async () => {
+    if (!groupId || spectating) return;
+    setSpectating(true);
+    setComposerError('');
+    try {
+      await communityApi(session, '/anonymous/spectate-free', { group_id: groupId });
+      await bootstrap(true);
+    } catch (err) {
+      if (err.code === 'SPECTATOR_PAYMENT_REQUIRED') {
+        setConfirmSpectate(true);
+      } else if (err.code === 'ALREADY_MEMBER') {
+        await bootstrap(true);
+      } else {
+        setComposerError(SEND_ERRORS[err.code] || err.message || 'Could not start spectating.');
+      }
+    } finally {
+      setSpectating(false);
+    }
+  };
+
+  // Paid spectator pass: two-step (confirm → checkout) so a charge is never
+  // accidental. The amount is resolved SERVER-SIDE in initiate-payment.js.
+  const buySpectator = async () => {
     if (!groupId || buying) return;
     setBuying(true);
     try {
@@ -1467,6 +1636,131 @@ const buySpectator = async () => {
     } finally {
       setBuying(false);
       setConfirmSpectate(false);
+    }
+  };
+
+  // P3 — paid member seats. ONE Paystack charge for `count` seats at
+  // count × member_price: `forMe` seats become my own membership
+  // (existing single-seat path), the rest become GIFT seats — one shareable
+  // code per slot, usable whenever the room has a free seat. Amount is resolved
+  // SERVER-SIDE from study_groups.member_price.
+  const buyMembership = async () => {
+    if (!groupId || buyingMembership) return;
+    const count = Math.max(1, Math.min(Math.round(Number(bundleCount) || 1), 50));
+    setBuyingMembership(true);
+    try {
+      const res = await fetch('/api/initiate-payment', {
+        method: 'POST',
+        headers: { ...authHeaders(session, { json: true }) },
+        body: JSON.stringify({
+          product: 'anonymous_memberships',
+          group_id: groupId,
+          count,
+          for_me: bundleForMe ? 1 : 0,
+        }),
+      });
+      const body = await res.json();
+      if (res.ok && body.authorization_url) {
+        window.location.assign(body.authorization_url);
+        return;
+      }
+      setComposerError(
+        body.error === 'ALREADY_MEMBER'
+          ? 'You already hold a seat. Clear "include me" to buy gift seats only.'
+          : (body.error || body.message || 'Payment could not be started.'),
+      );
+    } catch {
+      setComposerError('Could not start payment. Check your connection and try again.');
+    } finally {
+      setBuyingMembership(false);
+      setConfirmMembership(false);
+    }
+  };
+
+  // P3 — claim ONE gift seat for this room. The server validates the code,
+  // keeps the gift usable until a seat frees, and refuses once claimed.
+  const claimGift = async () => {
+    if (!groupId || claimBusy) return;
+    const code = (giftCodeInput || '').trim();
+    if (!code) return;
+    setClaimBusy(true);
+    setClaimResult(null);
+    try {
+      const data = await communityApi(session, '/anonymous/gift-claim', {
+        group_id: groupId,
+        code,
+      });
+      setClaimResult({ ok: true, member_count: data.member_count });
+      setGiftCodeInput('');
+      await bootstrap(true);
+    } catch (err) {
+      const messages = {
+        INVALID_GIFT: 'That gift code is not valid for this room.',
+        GIFT_ALREADY_CLAIMED: 'This gift has already been claimed.',
+        GIFT_EXPIRED: 'This gift expired when the room was wiped.',
+        ALREADY_MEMBER: 'You already have a seat in this room.',
+        GROUP_FULL: 'This room is at capacity right now — your gift will work as soon as a seat frees.',
+        BANNED: 'You are not allowed to join this room.',
+      };
+      setClaimResult({ ok: false, message: messages[err.code] || err.message || 'Could not claim this gift.' });
+    } finally {
+      setClaimBusy(false);
+    }
+  };
+
+  // P3 — open the buyer's gift-seat share panel (live from the server so a
+  // claim elsewhere is visible immediately).
+  const openGiftPanel = async () => {
+    setGiftPanelOpen(true);
+    try {
+      const data = await communityApi(session, '/anonymous/gifts', { group_id: groupId });
+      if (Array.isArray(data?.gifts)) {
+        setRoom((prev) => (prev ? { ...prev, gifts: data.gifts } : prev));
+      }
+    } catch {
+      /* panel falls back to room.gifts */
+    }
+  };
+
+  const shareGift = async (gift) => {
+    const url = `${window.location.origin}${gift.room_link}`;
+    try {
+      if (typeof navigator !== 'undefined' && navigator.share) {
+        await navigator.share({ title: 'Gift seat — Anonymous room', text: 'Claim a member seat with this code.', url });
+        return;
+      }
+    } catch {
+      /* share aborted -> fall through to copy */
+    }
+    if (typeof navigator !== 'undefined' && navigator.clipboard) {
+      await navigator.clipboard.writeText(url);
+    } else {
+      const tx = document.createElement('textarea');
+      tx.value = url;
+      document.body.appendChild(tx);
+      tx.select();
+      document.execCommand('copy');
+      tx.remove();
+    }
+    setGiftCopied(gift.code);
+    if (giftCopiedTimerRef.current) clearTimeout(giftCopiedTimerRef.current);
+    giftCopiedTimerRef.current = setTimeout(() => setGiftCopied(null), 2500);
+  };
+
+  // P2 — browse live Anonymous rooms BEFORE creating a new one, so visitors
+  // join an existing active room instead of fragmenting into empty ones.
+  const openRoomBrowser = async () => {
+    setBrowseOpen(true);
+    setBrowseBusy(true);
+    setBrowseError('');
+    setBrowseRooms(null);
+    try {
+      const data = await communityApi(session, '/anonymous/rooms', {});
+      setBrowseRooms(Array.isArray(data?.rooms) ? data.rooms : []);
+    } catch (err) {
+      setBrowseError(err.message || 'Could not load rooms.');
+    } finally {
+      setBrowseBusy(false);
     }
   };
 
@@ -1517,6 +1811,42 @@ const buySpectator = async () => {
     bootstrap(true);
   };
 
+  // v54 — Share an anonymous deep link (navigator.share with a clipboard
+  // fallback). The link routes through the normal join flow, so membership
+  // locks / spectator checks still apply.
+  const [shareBusy, setShareBusy] = useState(false);
+  const [copiedShare, setCopiedShare] = useState(false);
+  const copyTimerRef = useRef(null);
+  const shareRoom = async () => {
+    if (shareBusy || !groupId) return;
+    setShareBusy(true);
+    const url = `${window.location.origin}/anonymous/${groupId}`;
+    const text = 'Join me in an Apex Anonymous room — masked identities, messages that vanish in 10 minutes, free founding member seats, and spectator passes.';
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: 'Apex Anonymous Room', text, url });
+      } else {
+        await navigator.clipboard.writeText(url);
+        setCopiedShare(true);
+        if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+        copyTimerRef.current = setTimeout(() => setCopiedShare(false), 1500);
+      }
+    } catch {
+      if (navigator.share && navigator.clipboard) {
+        try {
+          await navigator.clipboard.writeText(url);
+          setCopiedShare(true);
+          if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+          copyTimerRef.current = setTimeout(() => setCopiedShare(false), 1500);
+        } catch {
+          /* not shareable or copyable — silent */
+        }
+      }
+    } finally {
+      setShareBusy(false);
+    }
+  };
+
   // ---------------------------------------------------------------
   // Draft + mention autocomplete
   // ---------------------------------------------------------------
@@ -1534,6 +1864,29 @@ const buySpectator = async () => {
     }
     return [...set.entries()].sort((a, b) => a[0] - b[0]);
   }, [messages, events, room?.my_alias]);
+
+  // The action-sheet target list. Prefer the SERVER ROSTER (every current
+  // member, online status included) so anyone present is aimable — falling
+  // back to aliases seen in the feed if the roster has not loaded. Online
+  // members sort first; the search filters by Anonymous #NN.
+  const actionTargets = useMemo(() => {
+    const list = roster
+      .filter((m) => !m.is_self && Number.isFinite(Number(m.alias)))
+      .map((m) => ({ n: Number(m.alias), online: !!m.online }));
+    const q = rosterQuery.trim().replace(/[^0-9]/g, '');
+    const filtered = q === ''
+      ? list
+      : list.filter((t) => String(t.n).padStart(2, '0').includes(q) || String(t.n).includes(q));
+    filtered.sort((a, b) => (a.online === b.online ? a.n - b.n : a.online ? -1 : 1));
+    return filtered;
+  }, [roster, rosterQuery]);
+
+  const rosterOnline = useMemo(
+    () => roster.filter((m) => !m.is_self && m.online).length,
+    [roster],
+  );
+
+  const rosterLoaded = roster.length > 0;
 
   // v53 — MESSAGES + EVENT CARDS share ONE timeline, sorted by created_at.
   // Deterministic tie-break (kind + id) so React keys stay stable.
@@ -1670,9 +2023,10 @@ const buySpectator = async () => {
           <div className="text-4xl mb-3">⏳</div>
           <h1 className="text-xl font-black text-white">The room is filling up.</h1>
           <p className="text-sm text-slate-400 font-medium mt-2">
-            Messages open at <span className="text-amber-400 font-black">{target} members</span>. The room
-            keeps accepting members after that until it reaches capacity ({memberLimit ?? '—'}), so join now
-            to guarantee your spot.
+            Messages open at <span className="text-amber-400 font-black">{target} members</span>. The first{' '}
+            <span className="text-white font-black">{foundingCap ?? '…'}</span> member seats are free; after that
+            a member seat is <span className="text-white font-black">₦{memberPrice ?? '…'}</span>. Total capacity
+            is {memberLimit ?? '—'}, so join now to guarantee your spot.
           </p>
           <div className="mt-5">
             <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
@@ -1702,7 +2056,9 @@ const buySpectator = async () => {
               className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-apex-600 text-white font-black text-xs uppercase tracking-widest hover:bg-apex-700 disabled:opacity-50 transition"
             >
               {joining ? <Loader2 size={14} className="animate-spin" /> : <Users size={14} />}
-              Join as Anonymous
+              {typeof freeMemberSeatsLeft === 'number' && freeMemberSeatsLeft > 0
+                ? `Join · Free (${freeMemberSeatsLeft} left)`
+                : `Join · ₦${memberPrice ?? '…'}`}
             </button>
           </div>
         </GateCard>
@@ -1711,12 +2067,25 @@ const buySpectator = async () => {
   }
 
   if (room && room.access === 'closed') {
-    const full = typeof memberCount === 'number' && typeof memberLimit === 'number' && memberCount >= memberLimit;
+    const totalSeats = typeof totalCapacity === 'number' ? totalCapacity : memberLimit;
+    const usedSeats =
+      (typeof seatMemberCount === 'number' ? seatMemberCount : 0) +
+      (typeof spectatorCount === 'number' ? spectatorCount : 0);
+    const capacityFull = typeof totalSeats === 'number' && usedSeats >= totalSeats;
+    const canJoin = !membershipLocked && !capacityFull;
+    const memberFree = typeof freeMemberSeatsLeft === 'number' && freeMemberSeatsLeft > 0;
+    const spectateFree = typeof freeSpectatorSeatsLeft === 'number' && freeSpectatorSeatsLeft > 0;
+    const joinLabel = memberFree
+      ? `Join as member · Free${freeMemberSeatsLeft ? ` (${freeMemberSeatsLeft} left)` : ''}`
+      : `Join as member · ₦${memberPrice ?? '…'}`;
+    const spectateLabel = spectateFree
+      ? `Watch as spectator · Free${freeSpectatorSeatsLeft ? ` (${freeSpectatorSeatsLeft} left)` : ''}`
+      : `Watch as spectator · ₦${price ?? '…'}`;
     const reason = membershipLocked
       ? 'The host has closed membership for this round.'
-      : full
+      : capacityFull
         ? 'This room is at capacity.'
-        : 'Membership for this room is closed.';
+        : 'This room is live.';
     return (
       <div className="h-[100dvh] bg-slate-950 text-slate-200 overflow-y-auto">
         <GateCard>
@@ -1725,21 +2094,71 @@ const buySpectator = async () => {
           ) : (
             <Users size={38} className="mx-auto mb-3 text-emerald-400" />
           )}
-          <h1 className="text-xl font-black text-white">{membershipLocked ? 'Membership closed' : 'Room is full'}</h1>
+          <h1 className="text-xl font-black text-white">
+            {membershipLocked ? 'Membership closed' : capacityFull ? 'Room is full' : 'Join the room'}
+          </h1>
           <p className="text-sm text-slate-400 font-medium mt-2">
-            {reason} This room is {memberCount ?? '…'} of {memberLimit ?? '…'} members strong. You can watch
-            it anonymously with a one-time <span className="text-white font-black">₦{price ?? '…'}</span>{' '}
-            spectator pass — read and react, never post — or open your own room.
+            {reason}{' '}
+            {canJoin ? (
+              <>
+                Founding member seats are free while they last (then{' '}
+                <span className="text-white font-black">₦{memberPrice ?? '…'}</span>); spectator slots are free
+                for the first {freeSpecCap ?? '…'} (then <span className="text-white font-black">₦{price ?? '…'}</span>).
+              </>
+            ) : (
+              <>
+                You can watch it anonymously with a one-time{' '}
+                <span className="text-white font-black">₦{price ?? '…'}</span> spectator pass — read and react,
+                never post.
+              </>
+            )}{' '}
+            Or open your own room.
           </p>
           {composerError && <p className="text-[11px] font-bold text-red-400 mt-3">{composerError}</p>}
           <div className="flex flex-col items-stretch gap-2.5 mt-6">
+            {canJoin && (
+              <button
+                onClick={joinRoom}
+                disabled={joining}
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-emerald-600 text-white font-black text-xs uppercase tracking-widest hover:bg-emerald-700 disabled:opacity-50 transition"
+              >
+                {joining ? <Loader2 size={14} className="animate-spin" /> : <Users size={14} />}
+                {joinLabel}
+              </button>
+            )}
             <button
-              onClick={() => setConfirmSpectate(true)}
-              disabled={buying}
+              onClick={startSpectate}
+              disabled={spectating || capacityFull}
               className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-apex-600 text-white font-black text-xs uppercase tracking-widest hover:bg-apex-700 disabled:opacity-50 transition"
             >
-              {buying ? <Loader2 size={14} className="animate-spin" /> : <Eye size={14} />}
-              Watch as Spectator — ₦{price ?? '…'}
+              {spectating ? <Loader2 size={14} className="animate-spin" /> : <Eye size={14} />}
+              {spectateLabel}
+            </button>
+            <button
+              onClick={() => {
+                setClaimResult(null);
+                setGiftClaimOpen(true);
+              }}
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black text-xs uppercase tracking-widest hover:bg-slate-700 transition"
+            >
+              <Crown size={14} />
+              Have a gift code?
+            </button>
+            {unclaimedGifts.length > 0 && (
+              <button
+                onClick={openGiftPanel}
+                className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-apex-500/10 border border-apex-500/30 text-apex-300 font-black text-xs uppercase tracking-widest hover:bg-apex-500/20 transition"
+              >
+                <Crown size={14} />
+                Share your gift seats ({unclaimedGifts.length})
+              </button>
+            )}
+            <button
+              onClick={openRoomBrowser}
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black text-xs uppercase tracking-widest hover:bg-slate-700 transition"
+            >
+              <Compass size={14} />
+              Browse active Anonymous rooms
             </button>
             <button
               onClick={createAnonRoom}
@@ -1855,9 +2274,18 @@ const buySpectator = async () => {
             {(typeof memberCount === 'number' || (liveOnline !== null && liveOnline !== undefined)) && (
               <span className="inline-flex items-center gap-1.5">
                 {typeof memberCount === 'number' && (
-                  <span className="inline-flex items-center gap-1" title="Members / capacity">
-                    <Users size={10} /> {memberCount}
-                    {typeof memberLimit === 'number' ? `/${memberLimit}` : ''} members
+                  <span
+                    className="inline-flex items-center gap-1"
+                    title={`Founding members ${seatMemberCount ?? memberCount}/${foundingCap ?? '—'} · free spectators ${spectatorCount ?? '—'}/${freeSpecCap ?? '—'} · total ${(seatMemberCount ?? 0) + (spectatorCount ?? 0)}/${totalCapacity ?? memberLimit ?? '—'}`}
+                  >
+                    <Users size={10} /> {seatMemberCount ?? memberCount}
+                    {typeof foundingCap === 'number' ? `/${foundingCap}` : ''} founding
+                    {typeof spectatorCount === 'number' && typeof freeSpecCap === 'number'
+                      ? ` · ${spectatorCount}/${freeSpecCap} free spectators`
+                      : ''}
+                    {typeof totalCapacity === 'number'
+                      ? ` · ${(seatMemberCount ?? 0) + (spectatorCount ?? 0)}/${totalCapacity}`
+                      : ''}
                   </span>
                 )}
                 {typeof memberCount === 'number' &&
@@ -1925,6 +2353,25 @@ const buySpectator = async () => {
           </button>
         )}
         <button
+          onClick={shareRoom}
+          disabled={shareBusy}
+          className="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition shrink-0 disabled:opacity-50"
+          aria-label="Share anonymous link"
+          title={copiedShare ? 'Link copied' : 'Share link'}
+        >
+          {copiedShare ? <Check size={15} className="text-emerald-400" /> : <Share2 size={15} />}
+        </button>
+        {(myGifts.length > 0 || unclaimedGifts.length > 0) && (
+          <button
+            onClick={openGiftPanel}
+            className="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-apex-400 hover:text-apex-300 transition shrink-0"
+            aria-label="My gift seats"
+            title="My gift seats"
+          >
+            <Crown size={15} />
+          </button>
+        )}
+        <button
           onClick={refresh}
           disabled={refreshing}
           className="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition shrink-0 disabled:opacity-50"
@@ -1957,6 +2404,18 @@ const buySpectator = async () => {
         <div className="shrink-0 px-4 py-2 bg-amber-500/10 border-b border-amber-500/20 text-[11px] font-bold text-amber-300 flex items-center gap-2">
           <Eye size={13} className="shrink-0" />
           You're watching as a spectator — read and react only.
+          {!membershipLocked && (
+            <button
+              onClick={joinRoom}
+              disabled={joining}
+              className="ml-auto shrink-0 inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-amber-500/20 border border-amber-500/40 text-amber-200 font-black uppercase tracking-widest text-[9px] hover:bg-amber-500/30 disabled:opacity-50"
+            >
+              {joining ? <Loader2 size={11} className="animate-spin" /> : <Crown size={11} />}
+              {typeof freeMemberSeatsLeft === 'number' && freeMemberSeatsLeft > 0
+                ? 'Become a member · Free'
+                : `Become a member · ₦${memberPrice ?? '…'}`}
+            </button>
+          )}
         </div>
       )}
 
@@ -2112,7 +2571,11 @@ const buySpectator = async () => {
                           ) : (
                             <>
                               <span className="font-black" style={identityStyle(msg.reply.alias)}>{msg.reply.author}</span>{' '}
-                              {msg.reply.excerpt}
+                              {msg.reply.encoded ? (
+                                <span className="italic text-violet-400">🔒 Encoded message</span>
+                              ) : (
+                                msg.reply.excerpt
+                              )}
                             </>
                           )}
                         </button>
@@ -2176,18 +2639,26 @@ const buySpectator = async () => {
                               <p className="text-sm font-medium text-slate-300 whitespace-pre-wrap break-words leading-relaxed">
                                 {mentionNodes(revealedEncoded[msg.id], jumpToAlias)}
                               </p>
-                              <button
-                                onClick={() =>
-                                  setRevealedEncoded((prev) => {
-                                    const next = { ...prev };
-                                    delete next[msg.id];
-                                    return next;
-                                  })
-                                }
-                                className="mt-1 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-violet-300 hover:text-white"
-                              >
-                                <Lock size={10} /> Re-lock
-                              </button>
+                              <div className="inline-flex items-center gap-3 mt-1 flex-wrap">
+                                <button
+                                  onClick={() => revealToRoom(msg)}
+                                  className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-emerald-300 hover:text-white"
+                                >
+                                  <Eye size={10} /> Reveal to room
+                                </button>
+                                <button
+                                  onClick={() =>
+                                    setRevealedEncoded((prev) => {
+                                      const next = { ...prev };
+                                      delete next[msg.id];
+                                      return next;
+                                    })
+                                  }
+                                  className="inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-violet-300 hover:text-white"
+                                >
+                                  <Lock size={10} /> Re-lock
+                                </button>
+                              </div>
                             </div>
                           ) : msg.encoded && msg.locked ? (
                             <div className="mt-1 inline-flex items-center gap-2 px-3 py-2 rounded-xl bg-violet-500/10 border border-violet-500/30 flex-wrap">
@@ -2199,13 +2670,13 @@ const buySpectator = async () => {
                                 <>
                                   <button
                                     onClick={() => revealEncoded(msg)}
-                                    className="text-[10px] font-black uppercase tracking-widest text-violet-300 hover:text-white"
+                                    className="px-2.5 py-1 rounded-lg bg-violet-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-violet-700"
                                   >
                                     Unlock
                                   </button>
                                   <button
                                     onClick={() => revealToRoom(msg)}
-                                    className="text-[10px] font-black uppercase tracking-widest text-emerald-300 hover:text-white"
+                                    className="text-[10px] font-black uppercase tracking-widest text-slate-500 hover:text-emerald-300"
                                   >
                                     Reveal to room
                                   </button>
@@ -2711,7 +3182,9 @@ const buySpectator = async () => {
             <li className="flex gap-2">
               <span className="text-apex-400 font-black">04</span>
               The room opens at {thresholds.activate ?? '—'} members and is wiped if it drops below{' '}
-              {thresholds.survive ?? '—'}. Capacity is {memberLimit ?? '—'}.
+              {thresholds.survive ?? '—'}. Total capacity is {memberLimit ?? '—'}: the first{' '}
+              {foundingCap ?? '—'} member seats and first {freeSpecCap ?? '—'} spectator slots are free,
+              after which member seats cost ₦{memberPrice ?? '—'} and spectator passes ₦{price ?? '—'}.
             </li>
             <li className="flex gap-2">
               <span className="text-apex-400 font-black">05</span>
@@ -2873,22 +3346,24 @@ const buySpectator = async () => {
         <Modal onClose={() => setLockedOptionsOpen(false)}>
           <div className="flex items-center gap-2 mb-3">
             <Lock size={18} className="text-apex-400" />
-            <h2 className="font-black text-white text-lg">Membership is closed</h2>
+            <h2 className="font-black text-white text-lg">Can't join right now</h2>
           </div>
           <p className="text-sm font-medium text-slate-400 mt-1">
-            This room isn't taking new members right now. You have three options:
+            This room isn't taking new members. You can watch it instead, or open your own room:
           </p>
           <div className="flex flex-col items-stretch gap-2.5 mt-5">
             <button
               onClick={() => {
                 setLockedOptionsOpen(false);
-                setConfirmSpectate(true);
+                startSpectate();
               }}
-              disabled={buying || creatingRoom}
+              disabled={spectating || creatingRoom}
               className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-apex-600 text-white font-black text-xs uppercase tracking-widest hover:bg-apex-700 disabled:opacity-50 transition"
             >
-              {buying ? <Loader2 size={14} className="animate-spin" /> : <Eye size={14} />}
-              Watch as Spectator — ₦{price ?? '…'}
+              {spectating ? <Loader2 size={14} className="animate-spin" /> : <Eye size={14} />}
+              {typeof freeSpectatorSeatsLeft === 'number' && freeSpectatorSeatsLeft > 0
+                ? `Watch as spectator · Free (${freeSpectatorSeatsLeft} left)`
+                : `Watch as spectator · ₦${price ?? '…'}`}
             </button>
             <button
               onClick={() => {
@@ -2921,9 +3396,9 @@ const buySpectator = async () => {
             <h2 className="font-black text-white text-lg">Buy a spectator pass?</h2>
           </div>
           <p className="text-sm font-medium text-slate-400 mt-1">
-            You'll be charged a one-time <span className="text-white font-black">₦{price ?? '…'}</span> to
-            watch this room — read and react, never post. The pass is non-refundable and ends with the room
-            round.
+            All free spectator slots are taken. You'll be charged a one-time{' '}
+            <span className="text-white font-black">₦{price ?? '…'}</span> to watch this room — read and react,
+            never post. The pass is non-refundable and ends with the room round.
           </p>
           <div className="flex gap-2 mt-5">
             <button
@@ -2940,6 +3415,289 @@ const buySpectator = async () => {
             >
               {buying ? <Loader2 size={14} className="animate-spin" /> : <Eye size={14} />}
               Pay ₦{price ?? '…'}
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {confirmMembership && (
+        <Modal onClose={() => setConfirmMembership(false)}>
+          <div className="flex items-center gap-2 mb-3">
+            <Crown size={18} className="text-apex-400" />
+            <h2 className="font-black text-white text-lg">Buy member seats</h2>
+          </div>
+          <p className="text-sm font-medium text-slate-400 mt-1">
+            All {foundingCap ?? '…'} free founding member seats are taken. One seat is{' '}
+            <span className="text-white font-black">₦{memberPrice ?? '…'}</span>. Buy for yourself, buy extras
+            as <span className="text-white font-black">gift seats</span> (one shareable code per slot that anyone
+            can redeem whenever the room has room), or both — one charge.
+          </p>
+
+          <div className="mt-4 rounded-xl bg-slate-800/70 border border-slate-700 p-4">
+            <div className="flex items-center justify-between mb-3">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400">Seats</span>
+              <div className="inline-flex items-center gap-1 rounded-lg bg-slate-900 border border-slate-700 p-0.5">
+                <button
+                  onClick={() => setBundleCount((c) => Math.max(1, Number(c) - 1))}
+                  disabled={buyingMembership}
+                  className="w-8 h-8 rounded-md text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-40 font-black"
+                  aria-label="Fewer seats"
+                >
+                  –
+                </button>
+                <span className="w-9 text-center font-black text-white">{Math.max(1, Math.min(Math.round(Number(bundleCount) || 1), 50))}</span>
+                <button
+                  onClick={() => setBundleCount((c) => Math.min(50, Number(c) + 1))}
+                  disabled={buyingMembership}
+                  className="w-8 h-8 rounded-md text-slate-300 hover:text-white hover:bg-slate-700 disabled:opacity-40 font-black"
+                  aria-label="More seats"
+                >
+                  +
+                </button>
+              </div>
+            </div>
+            <label className="flex items-center justify-between gap-2 py-2 border-t border-slate-700/60 cursor-pointer">
+              <span className="text-xs font-bold text-slate-300">
+                Include me <span className="text-slate-500 font-medium">(my own member seat)</span>
+              </span>
+              <input
+                type="checkbox"
+                checked={bundleForMe}
+                onChange={(e) => setBundleForMe(e.target.checked)}
+                disabled={buyingMembership}
+                className="accent-apex-500 w-4 h-4"
+              />
+            </label>
+            {bundleTotal != null && Number(bundleTotal) > (bundleUnit || 0) && !bundleForMe && (
+              <p className="text-[10px] font-bold text-slate-400 mt-1">
+                Gift-only purchase — no seat for you. You'll get {Math.max(1, Math.min(Math.round(Number(bundleCount) || 1), 50))} gift{' '}
+                {Number(bundleCount) === 1 ? 'code' : 'codes'} to share.
+              </p>
+            )}
+            <div className="flex items-center justify-between pt-3 border-t border-slate-700/60 mt-2">
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Total</span>
+              <span className="font-black text-white text-lg">
+                ₦{bundleTotal != null ? bundleTotal : (memberPrice ?? '…')}
+              </span>
+            </div>
+          </div>
+
+          <div className="flex gap-2 mt-5">
+            <button
+              onClick={() => setConfirmMembership(false)}
+              disabled={buyingMembership}
+              className="flex-1 px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 font-black text-xs uppercase tracking-widest"
+            >
+              Cancel
+            </button>
+            <button
+              onClick={buyMembership}
+              disabled={buyingMembership || bundleTotal == null}
+              className="flex-1 px-4 py-2.5 rounded-xl bg-apex-600 text-white font-black text-xs uppercase tracking-widest hover:bg-apex-700 disabled:opacity-50 inline-flex items-center justify-center gap-2"
+            >
+              {buyingMembership ? <Loader2 size={14} className="animate-spin" /> : <Crown size={14} />}
+              Pay ₦{bundleTotal != null ? bundleTotal : (memberPrice ?? '…')}
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {giftPanelOpen && (
+        <Modal onClose={() => setGiftPanelOpen(false)}>
+          <div className="flex items-center gap-2 mb-3">
+            <Crown size={18} className="text-apex-400" />
+            <h2 className="font-black text-white text-lg">Your gift seats</h2>
+          </div>
+          <p className="text-sm font-medium text-slate-400 mt-1">
+            Each code unlocks <span className="text-white font-black">one member seat</span> in this room for the
+            person who redeems it. It only works while a seat is free — a full room waits, it never oversells above{' '}
+            {totalCapacity ?? memberLimit ?? '…'}.
+          </p>
+          <div className="mt-4 space-y-2 max-h-[45vh] overflow-y-auto pr-1">
+            {myGifts.length === 0 ? (
+              <p className="text-[11px] font-bold text-slate-500 mt-1">No gift seats for this room yet.</p>
+            ) : (
+              myGifts.map((g) => (
+                <div
+                  key={g.id}
+                  className={`rounded-xl border p-3 ${g.status === 'unclaimed' ? 'bg-slate-800/70 border-slate-700' : 'bg-slate-900/60 border-slate-800'}`}
+                >
+                  <div className="flex items-center justify-between gap-2">
+                    <div>
+                      <span className="font-black text-white tracking-[0.15em] text-sm">{g.code}</span>
+                      <span
+                        className={`ml-2 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                          g.status === 'unclaimed'
+                            ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                            : g.status === 'claimed'
+                              ? 'bg-slate-500/15 text-slate-400 border border-slate-600/40'
+                              : 'bg-red-500/15 text-red-300 border border-red-500/30'
+                        }`}
+                      >
+                        {g.status}
+                      </span>
+                    </div>
+                    <span className="text-[10px] font-bold text-slate-500">₦{g.amount}</span>
+                  </div>
+                  {g.status === 'unclaimed' ? (
+                    <div className="flex items-center gap-2 mt-2.5">
+                      <button
+                        onClick={() => shareGift(g)}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-apex-600 text-white text-[10px] font-black uppercase tracking-widest hover:bg-apex-700 transition"
+                      >
+                        {giftCopied === g.code ? <Check size={12} className="text-emerald-300" /> : <Share2 size={12} />}
+                        {giftCopied === g.code ? 'Copied' : 'Share link'}
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (typeof navigator !== 'undefined' && navigator.clipboard) navigator.clipboard.writeText(g.code);
+                          setGiftCopied(g.code);
+                          if (giftCopiedTimerRef.current) clearTimeout(giftCopiedTimerRef.current);
+                          giftCopiedTimerRef.current = setTimeout(() => setGiftCopied(null), 2500);
+                        }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-700/70 text-slate-200 text-[10px] font-black uppercase tracking-widest hover:bg-slate-600 transition"
+                      >
+                        {giftCopied === g.code ? <Check size={12} className="text-emerald-300" /> : <Copy size={12} />}
+                        Copy code
+                      </button>
+                    </div>
+                  ) : (
+                    <p className="text-[10px] font-bold text-slate-500 mt-2">
+                      {g.status === 'claimed'
+                        ? 'This seat was claimed — the code is spent.'
+                        : 'This seat expired when the room was wiped.'}
+                    </p>
+                  )}
+                </div>
+              ))
+            )}
+          </div>
+        </Modal>
+      )}
+
+      {giftClaimOpen && (
+        <Modal onClose={() => { setGiftClaimOpen(false); setClaimResult(null); }}>
+          <div className="flex items-center gap-2 mb-3">
+            <Crown size={18} className="text-apex-400" />
+            <h2 className="font-black text-white text-lg">Claim a gift seat</h2>
+          </div>
+          <p className="text-sm font-medium text-slate-400 mt-1">
+            A member seat paid for you. It's worth{' '}
+            <span className="text-white font-black">₦{memberPrice ?? '…'}</span> — and only counts if the room has
+            a free slot.
+          </p>
+          {claimResult && (
+            <p
+              className={`mt-3 px-3 py-2 rounded-lg text-xs font-bold ${
+                claimResult.ok
+                  ? 'bg-emerald-500/10 text-emerald-300 border border-emerald-500/30'
+                  : 'bg-red-500/10 text-red-300 border border-red-500/30'
+              }`}
+            >
+              {claimResult.ok
+                ? `Claimed! You're in — a member of this Anonymous room.`
+                : (claimResult.message || 'Could not claim this gift.')}
+            </p>
+          )}
+          <div className="mt-3 flex items-center gap-2">
+            <input
+              value={giftCodeInput}
+              onChange={(e) => setGiftCodeInput(e.target.value.toUpperCase())}
+              placeholder="XXXX-XXXX gift code"
+              maxLength={32}
+              disabled={claimBusy}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && giftCodeInput.trim()) claimGift();
+              }}
+              className="flex-1 min-w-0 px-3 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-white text-sm font-bold tracking-widest placeholder:text-slate-600 focus:outline-none focus:border-apex-500 disabled:opacity-50"
+            />
+            <button
+              onClick={claimGift}
+              disabled={claimBusy || !giftCodeInput.trim()}
+              className="inline-flex items-center justify-center gap-1.5 px-4 py-2.5 rounded-xl bg-apex-600 text-white font-black text-xs uppercase tracking-widest hover:bg-apex-700 disabled:opacity-50"
+            >
+              {claimBusy ? <Loader2 size={14} className="animate-spin" /> : <Crown size={14} />}
+              Claim
+            </button>
+          </div>
+        </Modal>
+      )}
+
+      {browseOpen && (
+        <Modal onClose={() => setBrowseOpen(false)}>
+          <div className="flex items-center gap-2 mb-3">
+            <Compass size={18} className="text-apex-400" />
+            <h2 className="font-black text-white text-lg">Join an active room</h2>
+          </div>
+          <p className="text-sm font-medium text-slate-400 mt-1">
+            Rooms stay open while they have seats. Founding member seats are free until{' '}
+            {foundingCap ?? '…'} members, then ₦{memberPrice ?? '…'}; the first {freeSpecCap ?? '…'} spectators
+            are free, then ₦{price ?? '…'}.
+          </p>
+          {browseBusy ? (
+            <div className="flex justify-center py-8">
+              <Loader2 size={22} className="animate-spin text-apex-400" />
+            </div>
+          ) : browseError ? (
+            <p className="text-[11px] font-bold text-red-400 mt-3">{browseError}</p>
+          ) : (browseRooms || []).length === 0 ? (
+            <p className="text-[11px] font-bold text-slate-500 mt-3">No other Anonymous rooms are open right now.</p>
+          ) : (
+            <div className="mt-4 space-y-2 max-h-[45vh] overflow-y-auto pr-1">
+              {browseRooms.map((r) => {
+                const seatsLeft = r.seats_left;
+                const joinFree = typeof r.member_paid_required === 'boolean' && !r.member_paid_required;
+                return (
+                  <button
+                    key={r.id}
+                    onClick={() => {
+                      setBrowseOpen(false);
+                      navigate(`/anonymous/${r.id}`);
+                    }}
+                    className="w-full text-left flex items-center gap-3 px-4 py-3 rounded-xl bg-slate-800/70 border border-slate-700 hover:border-apex-500/40 transition"
+                  >
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-black text-white truncate">{r.name}</p>
+                      <p className="text-[10px] font-bold text-slate-400 mt-0.5">
+                        {r.group_state === 'active' ? '🔥 Active' : '⏳ Waiting'} ·{' '}
+                        {r.member_count ?? 0}/{r.founding_member_cap ?? '—'} members ·{' '}
+                        {r.spectator_count ?? 0}/{r.free_spectator_cap ?? '—'} spectators
+                        {r.total_capacity != null ? ` · ${r.total_capacity} total` : ''}
+                      </p>
+                    </div>
+                    {seatsLeft != null && seatsLeft > 0 && !r.membership_locked && (
+                      <span
+                        className={`shrink-0 px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
+                          joinFree
+                            ? 'bg-emerald-500/15 text-emerald-300 border border-emerald-500/30'
+                            : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
+                        }`}
+                      >
+                        {joinFree ? 'Join free' : `₦${r.member_price ?? '…'}`}
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
+            </div>
+          )}
+          <div className="flex flex-col items-stretch gap-2.5 mt-5">
+            <button
+              onClick={() => {
+                setBrowseOpen(false);
+                createAnonRoom();
+              }}
+              disabled={creatingRoom}
+              className="inline-flex items-center justify-center gap-2 px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black text-xs uppercase tracking-widest hover:bg-slate-700 disabled:opacity-50 transition"
+            >
+              {creatingRoom ? <Loader2 size={14} className="animate-spin" /> : <Users size={14} />}
+              Create my own Anonymous room
+            </button>
+            <button
+              onClick={() => setBrowseOpen(false)}
+              className="px-4 py-2.5 rounded-xl bg-transparent border border-slate-800 text-slate-400 font-black text-xs uppercase tracking-widest hover:text-white transition"
+            >
+              Cancel
             </button>
           </div>
         </Modal>
@@ -3072,26 +3830,67 @@ const buySpectator = async () => {
 
             {pendingAction && (
               <div>
-                <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">Target</p>
-                <div className="flex items-center gap-1.5 flex-wrap">
-                  {knownAliases.length === 0 && (
-                    <span className="text-[11px] font-bold text-slate-500">No other members have spoken yet.</span>
-                  )}
-                  {knownAliases.map(([n]) => (
-                    <button
-                      key={n}
-                      onClick={() => setActionTarget(actionTarget === n ? null : n)}
-                      className={`px-2.5 py-1 rounded-full border text-[11px] font-black transition ${
-                        actionTarget === n
-                          ? 'bg-apex-500/20 border-apex-500/60 text-apex-200'
-                          : 'bg-slate-900 border-slate-800 hover:border-slate-600'
-                      }`}
-                      style={identityStyle(n)}
-                    >
-                      Anonymous #{String(n).padStart(2, '0')}
-                    </button>
-                  ))}
+                <div className="flex items-center justify-between mb-1.5">
+                  <p className="text-[10px] font-black uppercase tracking-widest text-slate-500">Target</p>
+                  <span className="text-[10px] font-bold text-slate-500">
+                    {rosterLoaded ? `${rosterOnline} online` : 'loading…'}
+                  </span>
                 </div>
+                {rosterLoaded ? (
+                  <>
+                    <input
+                      value={rosterQuery}
+                      onChange={(e) => setRosterQuery(e.target.value)}
+                      placeholder="Search Anonymous #NN…"
+                      inputMode="numeric"
+                      className="w-full mb-2 px-3 py-2 rounded-lg bg-slate-900 border border-slate-800 text-xs font-bold text-slate-200 placeholder-slate-600 focus:border-apex-500 outline-none"
+                    />
+                    <div className="flex items-center gap-1.5 flex-wrap max-h-32 overflow-y-auto">
+                      {actionTargets.length === 0 && (
+                        <span className="text-[11px] font-bold text-slate-500">No members match that search.</span>
+                      )}
+                      {actionTargets.map(({ n, online }) => (
+                        <button
+                          key={n}
+                          onClick={() => setActionTarget(actionTarget === n ? null : n)}
+                          disabled={!online}
+                          title={online ? 'Online' : 'Offline — not selectable'}
+                          className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full border text-[11px] font-black transition ${
+                            actionTarget === n
+                              ? 'bg-apex-500/20 border-apex-500/60 text-apex-200'
+                              : online
+                                ? 'bg-slate-900 border-slate-800 hover:border-slate-600'
+                                : 'bg-slate-900/50 border-slate-800/60 opacity-40 cursor-not-allowed'
+                          }`}
+                          style={identityStyle(n)}
+                        >
+                          <span className={`w-1.5 h-1.5 rounded-full ${online ? 'bg-emerald-400' : 'bg-slate-600'}`} />
+                          Anonymous #{String(n).padStart(2, '0')}
+                        </button>
+                      ))}
+                    </div>
+                  </>
+                ) : (
+                  <div className="flex items-center gap-1.5 flex-wrap">
+                    {knownAliases.length === 0 && (
+                      <span className="text-[11px] font-bold text-slate-500">No other members have spoken yet.</span>
+                    )}
+                    {knownAliases.map(([n]) => (
+                      <button
+                        key={n}
+                        onClick={() => setActionTarget(actionTarget === n ? null : n)}
+                        className={`px-2.5 py-1 rounded-full border text-[11px] font-black transition ${
+                          actionTarget === n
+                            ? 'bg-apex-500/20 border-apex-500/60 text-apex-200'
+                            : 'bg-slate-900 border-slate-800 hover:border-slate-600'
+                        }`}
+                        style={identityStyle(n)}
+                      >
+                        Anonymous #{String(n).padStart(2, '0')}
+                      </button>
+                    ))}
+                  </div>
+                )}
               </div>
             )}
 

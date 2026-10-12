@@ -92,7 +92,8 @@ import {
   Smile,
   Crown,
   BellOff,
-  Unlock
+  Unlock,
+  Compass
 } from 'lucide-react';export {
   AlertCircle,
   AlertTriangle,
@@ -186,7 +187,8 @@ import {
   Flame,
   CornerUpLeft,
   Smile,
-  Crown,
-  BellOff,
-  Unlock
+Crown,
+    BellOff,
+    Unlock,
+    Compass
 };
