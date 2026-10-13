@@ -21,7 +21,7 @@ const AdminUsers = lazy(() => import('./pages/AdminUsers'));
 const Settings = lazy(() => import('./pages/Settings'));
 const Community = lazy(() => import('./pages/Community'));
 const PronunciationHelper = lazy(() => import('./pages/PronunciationHelper'));
-const XpHall = lazy(() => import('./pages/XpHall'));
+const Rumble = lazy(() => import('./pages/Rumble'));
   const Leaderboard = lazy(() => import('./pages/Leaderboard'));
 const Challenges = lazy(() => import('./pages/Challenges'));
 const Squads = lazy(() => import('./pages/Squads'));
@@ -104,7 +104,8 @@ const AppRouter = () => (
 
       <Route path="/login" element={<Auth />} />
       <Route path="/signup" element={<Auth />} />
-      <Route path="/xp-hall" element={<XpHall />} />
+      <Route path="/rumble" element={<Rumble />} />
+      <Route path="/xp-hall" element={<Navigate to="/rumble" replace />} />
       {/* Anonymous room: immersive full-screen (no sidebar/bottom nav),
           direct entry at /anonymous and deep link at /anonymous/:id. PUBLIC —
           WS4 unwraps RequireAuth so a logged-out deep link shows a preview
