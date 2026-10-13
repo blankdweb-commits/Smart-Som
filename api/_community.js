@@ -3057,7 +3057,9 @@ export async function handleAnonEncoded(req, res, user) {
 // POST /api/community/notifications/subscribe  { endpoint, keys:{p256dh,auth}, user_agent? }
 export async function handleNotificationsSubscribe(req, res, user) {
   const supabase = getDb();
-  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+  if (!supabase) {
+    return res.status(503).json({ error: 'SERVICE_UNAVAILABLE', message: 'Push service temporarily unavailable.' });
+  }
 
   const endpoint = typeof req.body?.endpoint === 'string' ? req.body.endpoint.trim() : '';
   const p256dh = typeof req.body?.keys?.p256dh === 'string' ? req.body.keys.p256dh : '';
@@ -3078,8 +3080,8 @@ export async function handleNotificationsSubscribe(req, res, user) {
     { onConflict: 'endpoint' },
   );
   if (error) {
-    console.error('[push subscribe]', error);
-    return res.status(503).json({ error: 'SCHEMA_NOT_READY', message: 'Push notifications are not available yet.' });
+    console.error('[push subscribe]', error?.message || error);
+    return res.status(503).json({ error: 'DB_ERROR', message: 'Push notifications are not available yet.' });
   }
   return res.status(200).json({ ok: true });
 }
@@ -3087,7 +3089,7 @@ export async function handleNotificationsSubscribe(req, res, user) {
 // POST /api/community/notifications/unsubscribe  { endpoint }
 export async function handleNotificationsUnsubscribe(req, res, user) {
   const supabase = getDb();
-  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+  if (!supabase) return res.status(503).json({ error: 'SERVICE_UNAVAILABLE', message: 'Push service temporarily unavailable.' });
   const endpoint = typeof req.body?.endpoint === 'string' ? req.body.endpoint.trim() : '';
   if (!endpoint) return res.status(400).json({ error: 'INVALID_SUBSCRIPTION' });
   const { error } = await supabase
@@ -3096,8 +3098,8 @@ export async function handleNotificationsUnsubscribe(req, res, user) {
     .eq('endpoint', endpoint)
     .eq('user_id', user.id);
   if (error) {
-    console.error('[push unsubscribe]', error);
-    return res.status(503).json({ error: 'SCHEMA_NOT_READY', message: 'Push notifications are not available yet.' });
+    console.error('[push unsubscribe]', error?.message || error);
+    return res.status(503).json({ error: 'DB_ERROR', message: 'Push notifications are not available yet.' });
   }
   return res.status(200).json({ ok: true });
 }
@@ -3105,7 +3107,7 @@ export async function handleNotificationsUnsubscribe(req, res, user) {
 // POST /api/community/notifications/preferences  { room_messages?, member_joins?, social? }
 export async function handleNotificationsPreferences(req, res, user) {
   const supabase = getDb();
-  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+  if (!supabase) return res.status(503).json({ error: 'SERVICE_UNAVAILABLE', message: 'Notification preferences unavailable.' });
 
   const patch = {};
   for (const key of ['room_messages', 'member_joins', 'social']) {
@@ -3117,8 +3119,8 @@ export async function handleNotificationsPreferences(req, res, user) {
       .from('notification_preferences')
       .upsert({ user_id: user.id, ...patch, updated_at: new Date().toISOString() }, { onConflict: 'user_id' });
     if (error) {
-      console.error('[notification prefs]', error);
-      return res.status(503).json({ error: 'SCHEMA_NOT_READY', message: 'Notification preferences are not available yet.' });
+      console.error('[notification prefs]', error?.message || error);
+      return res.status(503).json({ error: 'DB_ERROR', message: 'Notification preferences are not available yet.' });
     }
   }
 
@@ -3140,10 +3142,12 @@ export async function handleNotificationsPreferences(req, res, user) {
 
 // POST /api/community/notifications/vapid  (public key for the client)
 export async function handleNotificationsVapid(req, res) {
+  const enabled = !!(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY);
   return res.status(200).json({
     ok: true,
     public_key: process.env.VAPID_PUBLIC_KEY || null,
-    enabled: !!(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY),
+    enabled,
+    configured: enabled,
   });
 }
 

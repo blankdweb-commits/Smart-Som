@@ -38,14 +38,21 @@ export const applyCors = (req, res) => {
 
 // Service-role client for administrative server-side tasks.
 export const getSupabaseAdmin = () => {
-  const url = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const url = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
   const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
 
   if (!url || !serviceKey) {
+    const missing = [];
+    if (!url) missing.push('SUPABASE_URL/VITE_SUPABASE_URL');
+    if (!serviceKey) missing.push('SUPABASE_SERVICE_ROLE_KEY');
+    const err = Object.assign(new Error('Supabase environment variables are missing'), {
+      code: 'SUPABASE_ENV_MISSING',
+      missing,
+    });
     if (process.env.NODE_ENV === 'production') {
-      throw new Error('Supabase environment variables are missing in production');
+      throw err;
     }
-    console.warn('Supabase environment variables are missing. Using local mock/fail mode.');
+    console.warn('Supabase environment variables are missing:', missing.join(', '));
     return null;
   }
 
