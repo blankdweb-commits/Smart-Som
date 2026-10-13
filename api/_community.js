@@ -3304,4 +3304,34 @@ export async function handleCleanup(req, res) {
   }
 
   return res.status(200).json({ ok: true, result: data, presence_reaped: presenceReaped, seats_reconciled: seatsReconciled });
+}export async function handleRelationshipRequest(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(503).json({ error: 'SERVICE_UNAVAILABLE' });
+  const targetId = req.body?.target_id;
+  const relType = req.body?.rel_type === 'rival' ? 'rival' : 'friend';
+  if (!targetId) return res.status(400).json({ error: 'MISSING_TARGET' });
+  const { data, error } = await supabase.rpc('request_relationship', { p_target: targetId, p_type: relType });
+  if (error) return res.status(500).json({ error: 'REQUEST_FAILED' });
+  return res.status(200).json(data || { ok: true });
+}
+
+export async function handleRelationshipRespond(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(503).json({ error: 'SERVICE_UNAVAILABLE' });
+  const relId = Number(req.body?.rel_id);
+  const accept = !!req.body?.accept;
+  if (!relId) return res.status(400).json({ error: 'MISSING_REL_ID' });
+  const { data, error } = await supabase.rpc('respond_relationship', { p_rel_id: relId, p_accept: accept });
+  if (error) return res.status(500).json({ error: 'RESPOND_FAILED' });
+  return res.status(200).json(data || { ok: true });
+}
+
+export async function handleRelationshipRemove(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(503).json({ error: 'SERVICE_UNAVAILABLE' });
+  const otherId = req.body?.other_id;
+  if (!otherId) return res.status(400).json({ error: 'MISSING_OTHER_ID' });
+  const { data, error } = await supabase.rpc('remove_relationship', { p_other: otherId });
+  if (error) return res.status(500).json({ error: 'REMOVE_FAILED' });
+  return res.status(200).json({ ok: true });
 }
