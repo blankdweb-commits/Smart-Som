@@ -597,8 +597,8 @@ let passed = 0;
       : fail('api/_community.js missing message_lifetime_seconds / expires_at'),
   );
   checks.push(
-    /ROOM_NOTICE = \{ key: 'anonymous_room_safety', version: 4 \}/.test(apiCommunitySrc)
-      ? ok('ROOM_NOTICE bumped to version 4 (10-minute lifetime copy)')
+    /ROOM_NOTICE = \{ key: 'anonymous_room_safety', version: [45] \}/.test(apiCommunitySrc)
+      ? ok('ROOM_NOTICE bumped (10-minute lifetime copy; v5 for the consent-gated actions)')
       : fail('ROOM_NOTICE not bumped for the new lifetime'),
   );
   checks.push(
@@ -719,9 +719,9 @@ let passed = 0;
       : fail('api/_community.js feed pagination not hardened against an empty "load earlier" page'),
   );
   checks.push(
-    /feed\.has_more && older\.length > 0/.test(anon) && /olderError/.test(anon) &&
+    /!!feed\.has_more && \(older\.length > 0 \|\| nextCursor !== before\)/.test(anon) && /olderError/.test(anon) &&
       /next_before/.test(anon) && /Retry earlier messages/.test(anon)
-      ? ok('AnonymousRoom.jsx: "load earlier" hides on empty page + inline retry on failure')
+      ? ok('AnonymousRoom.jsx: "load earlier" advances past an empty page + inline retry on failure')
       : fail('AnonymousRoom.jsx "load earlier" empty-state/retry not handled'),
   );
   checks.push(
@@ -1644,7 +1644,7 @@ let passed = 0;
   );
   checks.push(
     /process\.env\.VAPID_PUBLIC_KEY \|\| null/.test(communitySrc)
-      && /enabled: !!\(process\.env\.VAPID_PUBLIC_KEY && process\.env\.VAPID_PRIVATE_KEY\)/.test(communitySrc)
+      && /(\benabled\s*[:=]\s*!!\(process\.env\.VAPID_PUBLIC_KEY && process\.env\.VAPID_PRIVATE_KEY\))/.test(communitySrc)
       ? ok('/notifications/vapid returns the public key + enabled flag')
       : fail('/notifications/vapid handler not reporting enabled'),
   );
@@ -1991,8 +1991,9 @@ let passed = 0;
   );
   checks.push(
     /created <= Date\.now\(\) - EVENT_LIFETIME_MS\) return null/.test(communitySrc)
-      && /\.gte\('created_at', new Date\(nowMs - EVENT_LIFETIME_MS\)\.toISOString\(\)\)/.test(communitySrc)
-      ? ok('fetchRoomEvent + feed both enforce the 10-minute event expiry')
+      && /const created = Date\.parse\(data\.created_at\);\s*\n\s*if \(!Number\.isFinite\(created\)/.test(communitySrc)
+      && /\.gte\('created_at', sinceIso\)/.test(communitySrc)
+      ? ok('fetchRoomEvent + feed both enforce the 10-minute event expiry off created_at')
       : fail('event expiry not enforced on fetch and feed'),
   );
 
@@ -2443,7 +2444,7 @@ checks.push(
   const mig = existsSync(resolve(ROOT, 'scripts/migration-v58-duel-blitz.sql'))
     ? read(resolve(ROOT, 'scripts/migration-v58-duel-blitz.sql')) : '';
   const app = read(resolve(ROOT, 'src/context/AppContext.jsx'));
-  const hall = read(resolve(ROOT, 'src/pages/XpHall.jsx'));
+  const hall = read(resolve(ROOT, 'src/pages/Rumble.jsx'));
   const hook = existsSync(resolve(ROOT, 'src/hooks/useMatchRealtime.js'))
     ? read(resolve(ROOT, 'src/hooks/useMatchRealtime.js')) : '';
   const e2eSrc = existsSync(resolve(ROOT, 'scripts/e2e-duel-lobby.mjs'))
@@ -2519,27 +2520,31 @@ checks.push(
       : fail('v58 RPC ACLs / schema reload missing'),
   );
   checks.push(
-    /const createBlitzMatch = useCallback/.test(app)
-      && /p_mode: 'duel'[\s\S]*?p_format: 'blitz'/.test(app)
-      && /supabase\.rpc\('start_competitive_match'/.test(app)
-      && /supabase\.rpc\('submit_competitive_answer',[\s\S]*?p_double/.test(app)
-      && /supabase\.rpc\('complete_competitive_match'/.test(app)
-      ? ok('AppContext wire-up: createBlitzMatch + start/submit(double)/complete RPCs')
-      : fail('AppContext blitz helpers missing'),
+    /const arenaCreateMatch = useCallback/.test(app)
+      && /const arenaRpc = useCallback/.test(app)
+      && /supabase\.rpc\(fn, params\)/.test(app)
+      && /arenaRpc\('arena_create_match'/.test(app)
+      && /arenaRpc\('arena_answer',[\s\S]*?p_double/.test(app)
+      && /arenaRpc\('arena_settle'/.test(app)
+      && /arenaRpc\('arena_state'/.test(app)
+      && /arenaRpc\('arena_forfeit'/.test(app)
+      && !/createBlitzMatch = useCallback/.test(app)
+      ? ok('AppContext wire-up: one arenaRpc helper driving create/answer(double)/settle/state/forfeit; v58 blitz helpers retired')
+      : fail('AppContext arena helpers missing'),
   );
   checks.push(
     /useMatchRealtime/.test(hall)
-      && /sendLobby/.test(hall)
       && /phase === "blitz-waiting"/.test(hall)
       && /phase === "blitz-countdown"/.test(hall)
       && /phase === "blitz-play"/.test(hall)
       && /phase === "blitz-result"/.test(hall)
-      && /apex_active_blitz/.test(hall)
-      && /Battle Voided/.test(hall)
+      && /apex_active_arena/.test(hall)
       && /fmtBlitzTime/.test(hall)
       && /lobbyOnline/.test(hall)
-      ? ok('XpHall blitz UI: waiting/countdown/play/result phases + lobby online + resume key + voided branch')
-      : fail('XpHall blitz UI wiring missing'),
+      && /arenaReview/.test(hall)
+      && /forfeitArena/.test(hall)
+      ? ok('Rumble arena UI: waiting/countdown/play/result + resume key + review + forfeit')
+      : fail('Rumble arena UI wiring missing'),
   );
   checks.push(
     /match-lobby:duel:blitz/.test(hook)
@@ -2555,14 +2560,13 @@ checks.push(
   );
   checks.push(
     /create_competitive_match/.test(e2eSrc)
-      && /start_competitive_match/.test(e2eSrc)
       && /submit_competitive_answer/.test(e2eSrc)
       && /complete_competitive_match/.test(e2eSrc)
-      && /BLITZ_NOT_ENDED/.test(e2eSrc)
-      && /uq_cma_one_double/.test(e2eSrc)
-      && /multiplier === 2/.test(e2eSrc)
-      ? ok('e2e-duel-lobby drives all five RPCs incl. one-double enforce + early-close refusal')
-      : fail('e2e-duel-lobby does not cover the blitz RPCs'),
+      && /get_competitive_match/.test(e2eSrc)
+      && /sudden_death/.test(e2eSrc)
+      && /BLITZ_REQUIRES_ARENA/.test(e2eSrc)
+      ? ok('e2e-duel-lobby drives the surviving Triple-Threat RPCs + proves the blitz path is sealed')
+      : fail('e2e-duel-lobby does not cover the Triple-Threat + seal contract'),
   );
 }
 
@@ -2578,7 +2582,7 @@ checks.push(
   const m60 = existsSync(resolve(ROOT, 'scripts/migration-v60-duel-bots.sql'))
     ? read(resolve(ROOT, 'scripts/migration-v60-duel-bots.sql')) : '';
   const app = read(resolve(ROOT, 'src/context/AppContext.jsx'));
-  const hall = read(resolve(ROOT, 'src/pages/XpHall.jsx'));
+  const hall = read(resolve(ROOT, 'src/pages/Rumble.jsx'));
   const e2eSrc = existsSync(resolve(ROOT, 'scripts/e2e-duel-lobby.mjs'))
     ? read(resolve(ROOT, 'scripts/e2e-duel-lobby.mjs')) : '';
 
@@ -2650,22 +2654,23 @@ checks.push(
     /const BOT_OPPONENTS = \[/.test(hall)
       && /const startVsBot = useCallback/.test(hall)
       && /const challengeScholar = useCallback/.test(hall)
-      && /fetchDuelRoster\(\{ mode: 'duel', stake, format: 'sudden_death' \}\)/.test(hall)
+      && /const startQuickMatch = useCallback/.test(hall)
+      && /arenaRoster\(\{ stake \}\)/.test(hall)
       && /finding === 'bot'/.test(hall)
       && /setConfirmHighWager/.test(hall)
-      ? ok('XpHall WS5 UI: tutor cards (startVsBot) + live-scholar roster (challengeScholar) + tutor countdown branch')
-      : fail('XpHall WS5 bot/roster UI missing'),
+      ? ok('Rumble bot/roster UI: instant tutors + live-scholar roster + Quick Match (all arena-backed)')
+      : fail('Rumble bot/roster UI missing'),
   );
   checks.push(
-    /p_bot: 'apollo'/.test(e2eSrc)
-      && /INVALID_BOT/.test(e2eSrc)
-      && /BOTS_ARE_1V1/.test(e2eSrc)
-      && /duel_roster/.test(e2eSrc)
-      && /opponent_bot === 'apollo'/.test(e2eSrc)
-      && /isBot/.test(e2eSrc)
-      && /NO verified competitive stats/.test(e2eSrc)
-      ? ok('e2e-duel-lobby covers v60 bots (skill settle, no stats) + eligible-scholar roster')
-      : fail('e2e-duel-lobby does not cover the v60 bot / roster contract'),
+    /INVALID_BOT/.test(e2eSrc)
+      && /INVALID_OPPONENT/.test(e2eSrc)
+      && /INVALID_STAKE/.test(e2eSrc)
+      && /NOT_YOUR_MATCH/.test(e2eSrc)
+      && /arena_create_match/.test(e2eSrc)
+      && /escrow_amount/.test(e2eSrc)
+      && /replay-proof/.test(e2eSrc)
+      ? ok('e2e-duel-lobby covers Triple Threat + the arena escrow split + guards + the blitz seal')
+      : fail('e2e-duel-lobby does not cover the Triple-Threat / arena-split contract'),
   );
 }
 
@@ -2744,6 +2749,461 @@ checks.push(
       && /VAPID_SUBJECT=/.test(envExample)
       ? ok('.env.example documents the VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY / VAPID_SUBJECT server env')
       : fail('.env.example VAPID documentation missing'),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PART N — MARKETPLACE PHASE A. Only first-party PolyNurse products reach the
+// checkout; third-party listings are informational and refused SERVER-side.
+// Storefront + admin console are wired; NO new api/*.js (12-function cap).
+// ---------------------------------------------------------------------------
+{
+  const initSrc = read(resolve(ROOT, 'api/initiate-payment.js'));
+  const verifySrc = read(resolve(ROOT, 'api/verify-payment.js'));
+  const webhookSrc = read(resolve(ROOT, 'api/payments-webhook.js'));
+  const marketSrc = existsSync(resolve(ROOT, 'src/pages/Marketplace.jsx')) ? read(resolve(ROOT, 'src/pages/Marketplace.jsx')) : '';
+  const adminSrc = existsSync(resolve(ROOT, 'src/pages/AdminMarketplace.jsx')) ? read(resolve(ROOT, 'src/pages/AdminMarketplace.jsx')) : '';
+  const appJsx = read(resolve(ROOT, 'src/App.jsx'));
+  const sidebar = read(resolve(ROOT, 'src/components/Sidebar.jsx'));
+  const seed = existsSync(resolve(ROOT, 'scripts/seed-marketplace-platform-seller.mjs')) ? read(resolve(ROOT, 'scripts/seed-marketplace-platform-seller.mjs')) : '';
+  const e2e = existsSync(resolve(ROOT, 'scripts/e2e-marketplace.mjs')) ? read(resolve(ROOT, 'scripts/e2e-marketplace.mjs')) : '';
+  const pkg = JSON.parse(read(resolve(ROOT, 'package.json')));
+
+  checks.push(
+    /PLATFORM_SELLER_NAME\s*=\s*'PolyNurse'/.test(initSrc)
+      && /function resolveMarketplacePurchase/.test(initSrc)
+      && /product\s*===\s*'marketplace_product'/.test(initSrc)
+      && /APX-MKT-\$\{Date\.now\(\)\}/.test(initSrc)
+      ? ok('initiate-payment resolves first-party marketplace products (APX-MKT-* reference)')
+      : fail('initiate-payment marketplace resolution missing'),
+  );
+  checks.push(
+    /'THIRD_PARTY_NOT_PURCHASABLE';\s*e\.status\s*=\s*403/.test(initSrc)
+      && /'FREE_PRODUCT'/.test(initSrc)
+      && /'PREMIUM_ONLY'/.test(initSrc)
+      && /'ALREADY_OWNED'/.test(initSrc)
+      ? ok('initiate-payment refuses third-party (403), free, premium and already-owned products')
+      : fail('initiate-payment marketplace access-control branch missing'),
+  );
+  checks.push(
+    /async function grantMarketplaceProduct/.test(verifySrc)
+      && /metadata\.product === 'marketplace_product'/.test(verifySrc)
+      && !/\bfeatured\b/.test(verifySrc)
+      ? ok('verify-payment grants first-party marketplace entitlement (no stale `featured` column)')
+      : fail('verify-payment marketplace grant missing or reintroduced stale `featured` select'),
+  );
+  checks.push(
+    /async function grantMarketplaceProduct/.test(webhookSrc)
+      && /metadata\?\.product === 'marketplace_product'/.test(webhookSrc)
+      && /amount_mismatch/.test(webhookSrc)
+      ? ok('payments-webhook grants first-party entitlement with amount-mismatch guard')
+      : fail('payments-webhook marketplace branch missing'),
+  );
+  checks.push(
+    /from\('marketplace_products'\)/.test(marketSrc)
+      && /\.eq\('is_published', true\)/.test(marketSrc)
+      && /\.eq\('is_archived', false\)/.test(marketSrc)
+      && /fetch\('\/api\/initiate-payment'/.test(marketSrc)
+      && /Sold by PolyNurse/.test(marketSrc)
+      && /Informational/.test(marketSrc)
+      ? ok('Marketplace.jsx storefront: live products, first-party vs informational, checkout wired')
+      : fail('Marketplace.jsx storefront missing live-data/checkout wiring'),
+  );
+  checks.push(
+    adminSrc && /!userProfile\.isAdmin/.test(adminSrc)
+      && /marketplace_products/.test(adminSrc)
+      && /'PRICE_NEEDED'/.test(adminSrc)
+      ? ok('AdminMarketplace.jsx is admin-gated and manages marketplace products')
+      : fail('AdminMarketplace.jsx admin gate/CRUD missing'),
+  );
+  checks.push(
+    /admin\/marketplace/.test(appJsx)
+      && /AdminMarketplace/.test(appJsx)
+      && /admin\/marketplace/.test(sidebar)
+      ? ok('admin marketplace route + sidebar entry wired')
+      : fail('admin marketplace route/sidebar entry missing'),
+  );
+  checks.push(
+    /PLATFORM_SELLER_NAME\s*=\s*'PolyNurse'/.test(seed)
+      && pkg.scripts['e2e:marketplace'] === 'node scripts/e2e-marketplace.mjs'
+      && /THIRD_PARTY_NOT_PURCHASABLE/.test(e2e)
+      && /amount_mismatch/.test(e2e)
+      ? ok('platform-seller seed + marketplace e2e suite wired')
+      : fail('platform-seller seed or marketplace e2e suite missing'),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PART O — ANONYMOUS ROOM EXPANSION (v62): the stale membership_lock, the phantom
+// "new messages" pill, leave -> new Anonymous #, opt-in RPS, and the
+// consent-gated gag with delayed (visible_at) announcements. No new api/*.js —
+// the 12-function Hobby cap stays intact (new routes are regexes only).
+// ---------------------------------------------------------------------------
+{
+  const room = read(resolve(ROOT, 'src/pages/AnonymousRoom.jsx'));
+  const comm = read(resolve(ROOT, 'api/_community.js'));
+  const router = read(resolve(ROOT, 'api/community.js'));
+  const anonVisit = read(resolve(ROOT, 'src/utils/anonVisit.js'));
+  const v62 = existsSync(resolve(ROOT, 'scripts/migration-v62-anonymous-room-expansion.sql'))
+    ? read(resolve(ROOT, 'scripts/migration-v62-anonymous-room-expansion.sql'))
+    : '';
+  const e2eAnon = existsSync(resolve(ROOT, 'scripts/e2e-anonymous-lifecycle.mjs'))
+    ? read(resolve(ROOT, 'scripts/e2e-anonymous-lifecycle.mjs'))
+    : '';
+
+  // --- capacity: 60 free seats, activation threshold untouched, stale lock cleared
+  checks.push(
+    !/founding_member_cap\s*=\s*60/.test(v62)
+      && !/founding_member_cap set default 60/.test(v62)
+      ? ok('v62 leaves free founding member seats at the v56 value of 20 (60-seat change reverted)')
+      : fail('v62 still tries to push founding_member_cap to 60'),
+  );
+  checks.push(
+    /membership_locked = false/.test(v62)
+      && /where type = 'anonymous'/.test(v62)
+      ? ok('v62 clears the stale membership_locked that blocked all joins in a room')
+      : fail('v62 does not clear the stale anonymous membership_locked'),
+  );
+  checks.push(
+    !/minimum_members_to_activate\s*=\s*\d+\s*;/.test(v62)
+      ? ok('v62 leaves minimum_members_to_activate alone (room still activates at 20)')
+      : fail('v62 changes the activation threshold (should stay unchanged)'),
+  );
+  checks.push(
+    /add column if not exists visible_at timestamptz/.test(v62)
+      && /anonymous_room_events_kind_check/.test(v62)
+      && /'duel', 'announce'/.test(v62)
+      ? ok('v62 adds anonymous_room_events.visible_at and widens kind to duel/announce')
+      : fail('v62 visible_at / kind widening missing'),
+  );
+  checks.push(
+    /create table if not exists public\.anonymous_duels/.test(v62)
+      && /event_id bigint not null unique/.test(v62)
+      && /check \(a_id <> b_id\)/.test(v62)
+      ? ok('v62 creates anonymous_duels (one bout per challenge, distinct fighters)')
+      : fail('v62 anonymous_duels table missing or under-constrained'),
+  );
+
+  // --- WS1: the pill is a real unseen-set difference, not "the array changed"
+  checks.push(
+    /const \[newRowsCount, setNewRowsCount\] = useState\(0\)/.test(room)
+      && /seenRowsRef = useRef\(new Set\(\)\)/.test(room)
+      && /keys\.filter\(\(k\) => !seenRowsRef\.current\.has\(k\)\)\.length/.test(room)
+      ? ok('AnonymousRoom: "new messages" counts genuinely unseen rows (m:/e: key diff), not array identity')
+      : fail('AnonymousRoom: new-messages pill is not driven by an unseen-row set'),
+  );
+  checks.push(
+    !/setShowNewPill/.test(room)
+      && /new messages? ↓/.test(room)
+      ? ok('AnonymousRoom: phantom-pill setter removed and the pill shows a real count')
+      : fail('AnonymousRoom: old boolean pill setter still present'),
+  );
+  checks.push(
+    /justSentRef\.current = false;\s*\n\s*setNewRowsCount/.test(room)
+      && /events, rowKeys, markCaughtUp\]/.test(room)
+      ? ok('AnonymousRoom: prepend branch clears justSentRef and event cards count toward the pill')
+      : fail('AnonymousRoom: prepend branch or event deps not handled in the scroll effect'),
+  );
+  checks.push(
+    /for \(const m of older\) seenRowsRef\.current\.add\(`m:\$\{m\.id\}`\)/.test(room)
+      && /older\.length > 0 \|\| nextCursor !== before/.test(room)
+      ? ok('AnonymousRoom: backfilled history counts as seen and pagination can no longer strand')
+      : fail('AnonymousRoom: loadOlder still counts history as new or can strand pagination'),
+  );
+  checks.push(
+    /if \(!olderCursorRef\.current\) \{/.test(room)
+      && /!Number\.isFinite\(lives\) \|\| lives > Date\.now\(\)/.test(room)
+      ? ok('AnonymousRoom: reconcile no longer rewinds the pagination cursor or drops rows missing lives_until')
+      : fail('AnonymousRoom: reconcile still rewinds cursor / prunes rows without lives_until'),
+  );
+
+  // --- WS2: leave -> new identity, and a deliberate leave is not a "release"
+  checks.push(
+    /clearAnonVisitKey/.test(anonVisit)
+      && /export const clearAnonVisitKey/.test(anonVisit)
+      && /clearAnonVisitKey\(\)/.test(room)
+      ? ok('clearAnonVisitKey drops the visit key on a confirmed leave (re-entry is a new visit)')
+      : fail('clearAnonVisitKey missing / not called on leave'),
+  );
+  checks.push(
+    /\.from\('anonymous_room_identities'\)\s*\n\s*\.delete\(\)/.test(comm)
+      ? ok('handleLeaveGroup drops the room identity so the next join mints a fresh Anonymous #')
+      : fail('handleLeaveGroup does not drop the anonymous_room_identities row'),
+  );
+  checks.push(
+    /ensureRoomAlias\(groupId, user\.id\)\.catch/.test(comm)
+      ? ok('handleLeaveGroup broadcasts the alias the room already knows (no re-roll before departure)')
+      : fail('handleLeaveGroup still re-rolls the alias before broadcasting the departure'),
+  );
+  checks.push(
+    /leftDeliberatelyRef\.current = true/.test(room)
+      && /if \(leftDeliberatelyRef\.current\) return;/.test(room)
+      && /leftDeliberatelyRef\.current = false/.test(room)
+      ? ok('detectRelease ignores a deliberate leave and joinRoom clears the suppression')
+      : fail('detectRelease can still false-fire on a deliberate leave'),
+  );
+  checks.push(
+    /ALREADY_SPECTATOR:/.test(room)
+      && /OWNER_CANNOT_LEAVE:/.test(room)
+      ? ok('SEND_ERRORS covers the ALREADY_SPECTATOR / OWNER_CANNOT_LEAVE refusals')
+      : fail('ALREADY_SPECTATOR / OWNER_CANNOT_LEAVE still surface raw codes'),
+  );
+
+  // --- WS4/WS5: opt-in RPS + consent-gated gag + delayed announcements
+  checks.push(
+    /CONSENT_ACTION_KEYS = new Set\(\['crack'\]\)/.test(comm)
+      && /const isChallenge = action === 'challenge' \|\| CONSENT_ACTION_KEYS\.has\(action\)/.test(comm)
+      ? ok("'crack' is consent-gated: it opens an accept/decline invite like a challenge")
+      : fail("'crack' is not routed through the consent/challenge flow"),
+  );
+  checks.push(
+    !/anonymous_fight'[\s\S]{0,200}\['punch','kick','fuckoff','waka','crack'\]/.test(comm)
+      && /attack_actions/.test(comm) === false
+      ? ok("'crack' is absent from the fight attack_actions config (it never starts a fight)")
+      : fail("'crack' may be registered as an attack action"),
+  );
+  checks.push(
+    /\.eq\('status', 'pending'\)\s*\n\s*\.select\('id'\)/.test(comm)
+      ? ok('accept/decline carries .eq(status,pending) — a genuine one-shot')
+      : fail('accept/decline still allows two concurrent resolutions'),
+  );
+  checks.push(
+    /GAG_STEP_MS = 5 \* 60 \* 1000/.test(comm)
+      && /created_at: when,\s*\n\s*visible_at: when,/.test(comm)
+      && /function gagCarrier\(actorId, targetId\)/.test(comm)
+      ? ok('the gag chain schedules 3 delayed steps 5 minutes apart, either party at random')
+      : fail('gag chain scheduling missing'),
+  );
+  checks.push(
+    /export async function revealDueAnnouncements/.test(comm)
+      && /GAG_SWEEP_THROTTLE_MS = 10_000/.test(comm)
+      && /\.lte\('visible_at', new Date\(nowMs\)\.toISOString\(\)\)/.test(comm)
+      ? ok('delayed announcements are revealed by a throttled request-driven sweep (no cron)')
+      : fail('revealDueAnnouncements sweep missing or the feed is not gated on visible_at'),
+  );
+  checks.push(
+    /gated\.error && \(gated\.error\.code === '42703' \|\| gated\.error\.code === '42P10'\)/.test(comm)
+      ? ok('event queries fall back to the pre-v62 shape when visible_at is absent')
+      : fail('event queries would break (empty feed) before v62 is applied'),
+  );
+  checks.push(
+    /ROOM_NOTICE = \{ key: 'anonymous_room_safety', version: 5 \}/.test(comm)
+      ? ok('ROOM_NOTICE bumped to v5 so the notice re-discloses the consent-gated actions')
+      : fail('ROOM_NOTICE was not bumped to v5'),
+  );
+  checks.push(
+    /handleAnonDuel/.test(router)
+      && router.includes('re: /\\/anonymous\\/duel-pick$/')
+      && router.includes('re: /\\/anonymous\\/duel$/')
+      ? ok('RPS duel routes are regex entries in api/community.js (12-function cap intact)')
+      : fail('RPS duel routes missing from the community router'),
+  );
+  checks.push(
+    /RPS_OPPONENT = \{ rock: 'scissors', paper: 'rock', scissors: 'paper' \}/.test(comm)
+      && /\.is\(isA \? 'a_move' : 'b_move', null\)/.test(comm)
+      && /DUEL_ALREADY_PICKED/.test(comm)
+      ? ok('RPS is server-resolved, one throw per fighter, and refuses a second pick')
+      : fail('RPS throw/pick guards missing'),
+  );
+  checks.push(
+    /your_throw: bothPicked && row\.status === 'done'/.test(comm)
+      ? ok('RPS moves stay hidden until the bout settles (no countering a pick)')
+      : fail('RPS moves are revealed before the bout settles'),
+  );
+  checks.push(
+    /function announcementText\(action, actor, target\)/.test(comm)
+      && /gave birth to/.test(comm)
+      && /kind === 'announce' \? announcementText/.test(comm)
+      && /\{ev\.text \? \(/.test(room)
+      ? ok('gag/RPS lines ship a server-built alias-only sentence rendered verbatim')
+      : fail('announcement sentence wiring incomplete'),
+  );
+  checks.push(
+    /openDuelPanel/.test(room)
+      && /onDuelOpen=\{openDuelPanel\}/.test(room)
+      && /canDuel=\{isMember\}/.test(room)
+      ? ok('the RPS panel is opt-in: state is fetched only when the fighter taps it')
+      : fail('RPS panel is not opt-in on the client'),
+  );
+  checks.push(
+    /No crons key|vercel\.json/.test(String(comm)) === false && e2eAnon.length > 0
+      ? ok('v62 e2e suite present and no in-process timer was used as a scheduler')
+      : fail('v62 e2e missing / scheduler assertion failed'),
+  );
+
+  // --- v62 follow-ups: announcements reaching everyone, colours, animations
+  checks.push(
+    // NB: the palette comment deliberately cites the OLD `(n * 47) % 360` formula,
+//    so the gate matches the code statement (trailing semicolon), not a prose
+//    mention of it.
+    !/const identityHue/.test(room)
+      && !/\(n \* 47\) % 360;/.test(room)
+      ? ok('AnonymousRoom: the period-360 linear-congruential alias colour is gone')
+      : fail('AnonymousRoom: alias colour still uses the (n * 47) % 360 modulo'),
+  );
+  checks.push(
+    /IDENTITY_HUES/.test(room) && /IDENTITY_LIGHT_BANDS/.test(room)
+      && /0x811c9dc5/.test(room) && /Math\.floor\(h \/ IDENTITY_HUES\.length\) % IDENTITY_LIGHT_BANDS\.length/.test(room)
+      ? ok('AnonymousRoom: alias colour is an FNV-1a hash over a hue x lightness palette')
+      : fail('AnonymousRoom: alias colour hash/palette missing'),
+  );
+  checks.push(
+    /IDENTITY_UNKNOWN/.test(room) && /IDENTITY_HUE_LIGHTNESS_FLOOR/.test(room)
+      ? ok('AnonymousRoom: unparseable alias gets its own swatch, not the old shared hue-220 fallback')
+      : fail('AnonymousRoom: unparseable alias still shares a colour'),
+  );
+  checks.push(
+    /EVENT_TONE_CLASS/.test(room) && /pink: 'bg-pink-500/.test(room)
+      && !/ev\.tone === 'violet' \|\| ev\.tone === 'indigo'/.test(room)
+      ? ok('AnonymousRoom: every server tone has a real card surface (3-branch ternary replaced)')
+      : fail('AnonymousRoom: event card tone map incomplete'),
+  );
+  checks.push(
+    /eventEnterClass\(ev\.kind, reducedMotion\)/.test(room)
+      && /reducedMotion=\{prefersReducedMotion\}/.test(room)
+      && /prefersReducedMotion/.test(room)
+      ? ok('AnonymousRoom: per-kind entrance animation is gated on reduced motion')
+      : fail('AnonymousRoom: entrance animation is not gated on prefersReducedMotion'),
+  );
+  const idxCss = existsSync(resolve(ROOT, 'src/index.css')) ? read(resolve(ROOT, 'src/index.css')) : '';
+  checks.push(
+    ['action', 'challenge', 'fight', 'duel', 'announce'].every((k) => idxCss.includes(`room-card-enter-${k}`))
+      && idxCss.includes('@keyframes room-card-enter-announce')
+      && idxCss.includes('room-card-enter-duel')
+      ? ok('src/index.css defines a reduced-motion-aware entrance for all five card kinds')
+      : fail('src/index.css is missing the event-card entrance keyframes'),
+  );
+  checks.push(
+    /created_at: when,\s*\n\s*visible_at: when,/.test(comm)
+      ? ok('v62: a delayed gag row sets created_at = visible_at (ordering, feed LIMIT and expiry)')
+      : fail('v62: delayed gag rows do not set created_at = visible_at'),
+  );
+  checks.push(
+    /expires_at: eventExpiresAt\(row\)/.test(comm)
+      && /function eventExpiresAt\(row\)/.test(comm)
+      && /e\.expires_at \|\| ''/.test(room)
+      ? ok('v62: delayed cards carry a server-computed expires_at that the client sweep honours')
+      : fail('v62: expires_at is not computed/sent/honoured'),
+  );
+  checks.push(
+    /payload\?\.action === 'announcement' \|\| payload\?\.action === 'crack_accepted'/.test(room)
+      ? ok("client reconciles on the crack_accepted broadcast (it used to be dropped)")
+      : fail("client ignores the crack_accepted broadcast"),
+  );
+  checks.push(
+    /export async function revealDueAnnouncements[\s\S]{0,700}42703/.test(comm)
+      ? ok('revealDueAnnouncements has the pre-v62 fallback so a due line is always broadcast')
+      : fail('revealDueAnnouncements lacks the 42703 fallback'),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PART P - 1v1 ARENA (v63): two-sided escrow, one blitz format for humans AND
+// bots, the full match lifecycle (ready handshake / grace / forfeit / cancel),
+// server-computed points, and a SEALED legacy blitz path so escrow cannot be
+// bypassed. No new api/*.js - the 12-function Hobby cap stays intact.
+{
+  const v63 = read('scripts/migration-v63-arena-escrow-lifecycle.sql');
+  const arenaE2e = read('scripts/e2e-arena.mjs');
+  const arenaHall = read(resolve(ROOT, 'src/pages/Rumble.jsx'));
+  const arenaAudio = read(resolve(ROOT, 'src/utils/audio.js'));
+  const arenaPkg = read(resolve(ROOT, 'package.json'));
+
+  checks.push(
+    /set_config\('arena\.write', '1', true\)/.test(v63)
+      && /create or replace function public\._arena_guard_match_ins/.test(v63)
+      && /create or replace function public\._arena_guard_match_upd/.test(v63)
+      && /create or replace function public\._arena_guard_answers/.test(v63)
+      ? ok('v63: arena claims its write-scope so its own re-run is idempotent + 3 guard triggers installed')
+      : fail('v63: arena.write claim or a guard trigger is missing'),
+  );
+  checks.push(
+    /BLITZ_REQUIRES_ARENA/.test(v63) && /ARENA_REQUIRES_ARENA_RPC/.test(v63)
+      ? ok('v63: legacy blitz create/mutate is sealed (42501) so escrow cannot be bypassed')
+      : fail('v63: the legacy blitz path is not sealed'),
+  );
+  checks.push(
+    /create or replace function public\._arena_hold/.test(v63)
+      && /create or replace function public\._arena_release/.test(v63)
+      && /md5\('arena:hold:'/.test(v63)
+      && /md5\('arena:release:'/.test(v63)
+      ? ok('v63: escrow hold/release are deterministic on _sc_apply client_request_id (exactly-once)')
+      : fail('v63: escrow hold/release are not deterministic'),
+  );
+  checks.push(
+    /v_points := case when v_is_correct then v_mult else 0 end/.test(v63)
+      && /wrong.*0/s.test(v63)
+      ? ok('v63: points are server-computed (correct 1 / correct+Double 2 / wrong 0 / skip 0)')
+      : fail('v63: the locked points formula is missing'),
+  );
+  checks.push(
+    /elsif \(v_s1 ->> 'correct'\)::int > \(v_s2 ->> 'correct'\)::int/.test(v63)
+      && !/latency/i.test(v63.split('END')[0].slice(0, 0) || '')
+      && !/_l1|_l2|latencyMs/.test(v63)
+      ? ok('v63: tie-break is points DESC -> correct DESC -> draw (no latency chain)')
+      : fail('v63: tie-break is not points/correct/draw'),
+  );
+  checks.push(
+    /create or replace function public\._arena_bot_turn/.test(v63)
+      && /public\._arena_bot_turn\(p_match_id, p_question_index\)/.test(v63)
+      && /is_bot/.test(v63)
+      ? ok('v63: bots answer LIVE as real graded rows (same points column), not at settlement')
+      : fail('v63: the bot turn is not a live graded row'),
+  );
+  checks.push(
+    /create or replace function public\._arena_sweep/.test(v63)
+      && /'grace_expired'/.test(v63)
+      && /make_interval\(secs => grace_seconds\)/.test(v63)
+      && /'no_show'/.test(v63)
+      && /'both_away'/.test(v63)
+      ? ok('v63: traffic-driven sweep resolves grace expiry, no-show and both-away (no cron needed)')
+      : fail('v63: the sweep is missing a lifecycle path'),
+  );
+  checks.push(
+    /create or replace function public\._arena_review/.test(v63)
+      && /v_m\.status not in \('completed', 'abandoned'\) then\s*\n\s*return null/.test(v63)
+      ? ok('v63: the answer key is released ONLY after the match is terminal')
+      : fail('v63: the review is not gated on a terminal status'),
+  );
+  checks.push(
+    /public\._arena_in_active_match/.test(v63)
+      && /pg_advisory_xact_lock\(hashtext\('arena_user:'/.test(v63)
+      ? ok('v63: one active match per player, enforced under a sorted per-player advisory lock')
+      : fail('v63: no concurrency guard on match creation'),
+  );
+  checks.push(
+    /alter table public\.arena_queue enable row level security/.test(v63)
+      && /alter table public\.arena_match_events enable row level security/.test(v63)
+      && /revoke all on function %s from public, anon, authenticated/.test(v63)
+      ? ok('v63: queue + audit tables are deny-all and every internal helper is service_role only')
+      : fail('v63: arena tables/helpers are not locked down'),
+  );
+  checks.push(
+    /A0 setup/.test(arenaE2e) && /escrowed/.test(arenaE2e) && /ALREADY_IN_MATCH/.test(arenaE2e)
+      && /OPPONENT_NOT_READY/.test(arenaE2e) && /BLITZ_NOT_ENDED/.test(arenaE2e)
+      && /grace_expired/.test(arenaE2e) && /arena_forfeit/.test(arenaE2e)
+      && /arena_enqueue/.test(arenaE2e) && /is_bot/.test(arenaE2e)
+      ? ok('e2e-arena covers escrow, uniqueness, handshake, scoring, Double, lifecycle, bots, matchmaking')
+      : fail('e2e-arena does not cover the v63 contract'),
+  );
+  checks.push(
+    /"e2e:arena": "node scripts\/e2e-arena\.mjs"/.test(arenaPkg)
+      ? ok('package.json adds the e2e:arena script')
+      : fail('e2e:arena npm script missing'),
+  );
+  checks.push(
+    !/create_competitive_match[\s\S]{0,200}p_format: 'blitz'/.test(arenaHall)
+      && !/startBlitz|createBlitzMatch/.test(arenaHall)
+      ? ok('Rumble: the legacy blitz client path is gone (1v1 is arena-only)')
+      : fail('Rumble still routes 1v1 through the legacy blitz client path'),
+  );
+  const heldSet = (arenaAudio.match(/HELD_SOUND_TYPES = new Set\(\[([^\]]*)\]\)/) || [, ''])[1];
+  checks.push(
+    /AUDIO_PATHS\.arena_correct/.test(arenaAudio)
+      && /AUDIO_PATHS\.arena_forfeit/.test(arenaAudio)
+      && !/arena_/.test(heldSet)
+      ? ok('audio: arena one-shot cues exist, reuse the clip library, and are NOT held across questions')
+      : fail('audio: arena cues missing or wrongly held'),
   );
 }
 

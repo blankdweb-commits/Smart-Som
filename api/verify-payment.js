@@ -1,11 +1,14 @@
 // api/verify-payment.js
 // Server-side Paystack callback verifier.
-// Handles THREE products:
+// Handles FOUR products:
 //   - premium subscription (legacy): creates/extends a subscriptions row.
 //   - anonymous_spectate: one-time spectator pass for the Anonymous
 //     group — inserts an `active` anonymous_spectators row (NO subscription).
 //   - anonymous_membership: one-time paid member seat for the Anonymous
 //     group — grants via community_anonymous_grant_membership (NO subscription).
+//   - marketplace_product: first-party PolyNurse product — inserts a
+//     marketplace_purchases entitlement (NO subscription; third-party listings
+//     are refused, matching initiate-payment).
 // All verify the transaction with Paystack, validate the amount against a
 // server-resolved price, and are idempotent on the reference.
 import { applyCors, getSupabaseAdmin, getUserFromRequest } from './_utils.js';
@@ -233,6 +236,66 @@ async function grantMembershipsBundle(supabase, user, paidAmount, metadata) {
   };
 }
 
+// P-MK — grant a first-party marketplace purchase entitlement. Price and the
+// platform-seller check are resolved server-side; the (user_id, product_id)
+// unique constraint and the reference make replay safe.
+async function grantMarketplaceProduct(supabase, user, paidAmount, metadata) {
+  const productId = Number(metadata?.product_id);
+  if (!Number.isInteger(productId)) {
+    return { status: 400, body: { error: 'Invalid product id', message: 'Payment metadata is missing the product.' } };
+  }
+
+  const { data: product } = await supabase
+    .from('marketplace_products')
+    .select('id, title, price, access_type, is_published, is_archived, marketplace_sellers(business_name)')
+    .eq('id', productId)
+    .maybeSingle();
+  if (!product || !product.is_published || product.is_archived) {
+    return { status: 400, body: { error: 'PRODUCT_NOT_AVAILABLE', message: 'This product is no longer available.' } };
+  }
+  const seller = product.marketplace_sellers;
+  const isPlatform =
+    seller && seller.business_name?.toLowerCase() === 'polynurse';
+  if (!isPlatform) {
+    return { status: 400, body: { error: 'PRODUCT_NOT_PURCHASABLE', message: 'This listing is informational only and cannot be purchased.' } };
+  }
+  const expected = Number(product.price);
+  if (expected > 0 && Math.abs(paidAmount - expected) > 1) {
+    console.error(`Marketplace amount mismatch for ref ${metadata?.reference || '(unknown)'}: paid ${paidAmount}, expected ${expected}`);
+    return { status: 400, body: { error: 'Payment amount does not match the product price' } };
+  }
+
+  const { data: grant, error: grantError } = await supabase
+    .from('marketplace_purchases')
+    .insert({
+      user_id: user.id,
+      product_id: productId,
+      amount: paidAmount,
+      reference: metadata?.reference,
+      status: 'complete',
+    })
+    .select('id')
+    .maybeSingle();
+  if (grantError) {
+    // Unique on (user_id, product_id) and on reference — the webhook may have
+    // already processed this charge or the user already owns the product.
+    if (grantError.code === '23505') {
+      return { status: 200, body: { success: true, message: 'Already processed', marketplace: true } };
+    }
+    const { data: existing } = await supabase
+      .from('marketplace_purchases')
+      .select('id')
+      .eq('reference', metadata?.reference)
+      .maybeSingle();
+    if (existing) {
+      return { status: 200, body: { success: true, message: 'Already processed', marketplace: true } };
+    }
+    throw grantError;
+  }
+
+  return { status: 200, body: { success: true, marketplace: true, product_id: productId, reference: metadata?.reference, grant_id: grant?.id } };
+}
+
 export default async function handler(req, res) {
   if (!applyCors(req, res)) {
     return res.status(403).json({ error: 'FORBIDDEN_ORIGIN', message: 'This API is locked to the app domain.' });
@@ -269,12 +332,18 @@ export default async function handler(req, res) {
     const spectatorProduct = metadata.product === 'anonymous_spectate';
     const membershipProduct = metadata.product === 'anonymous_membership';
     const bundleProduct = metadata.product === 'anonymous_memberships';
+    const marketplaceProduct = metadata.product === 'marketplace_product';
 
-    // Spectator / membership / bundle products branch early — no subscription.
-    if (spectatorProduct || membershipProduct || bundleProduct) {
+    // Spectator / membership / bundle / marketplace products branch early — no
+    // subscription.
+    if (spectatorProduct || membershipProduct || bundleProduct || marketplaceProduct) {
       const processed = await recordPayment(supabase, user, paidAmount, reference, metadata);
       if (processed) {
         return res.status(200).json({ success: true, message: 'Already processed' });
+      }
+      if (marketplaceProduct) {
+        const r = await grantMarketplaceProduct(supabase, user, paidAmount, { ...metadata, reference });
+        return res.status(r.status).json(r.body);
       }
       if (bundleProduct) {
         const r = await grantMembershipsBundle(supabase, user, paidAmount, { ...metadata, reference });

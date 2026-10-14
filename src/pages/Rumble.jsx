@@ -6,6 +6,13 @@ import { supabase } from "../utils/supabase";
 import { motion, AnimatePresence } from "framer-motion";
 import { Brain, Zap, Star, ChevronLeft, ArrowRight, Users, AlertCircle, RefreshCw, Trophy, Award, Shield, User, SkipForward } from "../components/Icons";
 import { useMatchRealtime } from "../hooks/useMatchRealtime";
+import { audioManager } from "../utils/audio";
+
+// One-shot arena cues. Every call is safe when sound is disabled (the manager
+// no-ops) and never blocks the UI.
+const playArenaSfx = (cue) => {
+  try { audioManager.play(`arena_${cue}`); } catch { /* ignore */ }
+};
 
 const DUEL_MODES = [
   { id: "duel", title: "1v1 Duel", subtitle: "Live lobby · 40 NMCN questions · 90 seconds", players: 2, color: "from-indigo-600 to-purple-700", glow: "shadow-indigo-500/40", border: "border-indigo-500/30", icon: "⚔️" },
@@ -14,25 +21,28 @@ const DUEL_MODES = [
 const SC_STAKES = [1, 2, 5, 10, 20];
 const QUESTION_SECONDS = 20;
 const WAIT_FOR_HUMAN_MS = 3000;
-// ---- Tutor bots (non-blitz 1v1, migration v60) ----
-// The server grades the tutor from its skill profile at settlement, so these
-// keys are the ONLY thing the client sends (never a score/answer). Blitz stays
-// human-only; bots are a non-blitz sudden-death opponent.
+// ---- Tutor bots (1v1, migration v60 -> v63) ----
+// Tutors now play the SAME blitz format as a human: same 40-question board,
+// same 90s clock, same scoring, same one-time Double. The client sends only the
+// tutor id; the server answers them live, question by question.
 const BOT_OPPONENTS = [
   { key: 'house', name: 'The House', tier: 'Rookie', accent: 'from-slate-600 to-slate-800', icon: '🏛️', blurb: 'The classic. Plays fair — a warm-up duel.' },
   { key: 'zainab', name: 'Nurse Zainab', tier: 'Intermediate', accent: 'from-emerald-600 to-teal-700', icon: '🩺', blurb: 'Steady hands, sharp recall. A real drill.' },
   { key: 'apollo', name: 'Prof. Apollo', tier: 'Expert', accent: 'from-rose-600 to-red-700', icon: '🎓', blurb: 'Relentless. Only the sharp survive.' },
 ];
 const ROSTER_POLL_MS = 4000;
-// ---- Blitz (1v1 Duel Lobby, migration v58) ----
+// ---- Arena (1v1, migration v63) ----
+// One format, one clock, one economy. The server owns all of it.
 const BLITZ_DURATION_MS = 90 * 1000; // 90s shared wall-clock
 const BLITZ_QUESTION_COUNT = 40;
-const BLITZ_POLL_MS = 1600;
-const ACTIVE_BLITZ_KEY = "apex_active_blitz";
+const ARENA_POLL_MS = 1500;
+const ARENA_HEARTBEAT_MS = 5000;
+const ACTIVE_ARENA_KEY = "apex_active_arena";
+const EMPTY_CARD = { points: 0, correct: 0, incorrect: 0, skipped: 0, answers: 0 };
 
 const Rumble = () => {
   const navigate = useNavigate();
-  const { smartCoins, createCompetitiveMatch, getCompetitiveMatch, submitCompetitiveAnswer, completeCompetitiveMatch, createBlitzMatch, startCompetitiveMatch, syncAchievements, fetchDuelRoster } = useAppContext();
+  const { smartCoins, createCompetitiveMatch, submitCompetitiveAnswer, completeCompetitiveMatch, syncAchievements, arenaCreateMatch, arenaReady, arenaStart, arenaAnswer, arenaHeartbeat, arenaForfeit, arenaCancel, arenaSettle, arenaState, arenaEnqueue, arenaLeaveQueue, arenaRoster } = useAppContext();
   const [meId, setMeId] = useState(null);
   const [phase, setPhase] = useState("lobby");
   const [mode, setMode] = useState(null);
@@ -58,23 +68,30 @@ const Rumble = () => {
 
   // ---- Blitz (1v1 Duel Lobby) state ----
   const [blitzMatch, setBlitzMatch] = useState(null); // { matchId, questions, questionCount, startsAt, endsAt }
+  const [blitzQuestions, setBlitzQuestions] = useState([]);
   const [blitzIndex, setBlitzIndex] = useState(0);
   const [blitzScore, setBlitzScore] = useState(0);
   const [blitzWrongs, setBlitzWrongs] = useState(0);
+  const [blitzRight, setBlitzRight] = useState(0);
+  const [blitzSkipped, setBlitzSkipped] = useState(0);
   const [blitzAnswered, setBlitzAnswered] = useState(0);
   const [blitzStreak, setBlitzStreak] = useState(0);
   const [oppScore, setOppScore] = useState(0);
   const [oppWrongs, setOppWrongs] = useState(0);
+  const [oppRight, setOppRight] = useState(0);
+  const [oppSkipped, setOppSkipped] = useState(0);
   const [oppAnswered, setOppAnswered] = useState(0);
   const [oppStreak, setOppStreak] = useState(0);
-  const [blitzAnswers, setBlitzAnswers] = useState([]); // my results per answered index {index, correct, multiplier, delta}
+  const [blitzAnswers, setBlitzAnswers] = useState([]); // my per-index run (review is server-authoritative; this is the instant-feedback mirror)
   const [doubleArmed, setDoubleArmed] = useState(false);
   const [doubleUsed, setDoubleUsed] = useState(false);
   const [blitzTimeLeft, setBlitzTimeLeft] = useState(BLITZ_DURATION_MS);
   const [blitzResult, setBlitzResult] = useState(null);
+  const [arenaReview, setArenaReview] = useState(null); // post-match review (answer key)
+  const [oppDown, setOppDown] = useState(false);       // opponent inside the reconnect grace
   const [lobbyOnline, setLobbyOnline] = useState(null); // scholars currently waiting
+  const [forfeitOpen, setForfeitOpen] = useState(false); // forfeit confirmation
   const settleDoneRef = useRef(false);
-  const blitzOppIdRef = useRef(null);
 
   useEffect(() => { phaseRef.current = phase; }, [phase]);
 
@@ -129,174 +146,242 @@ const Rumble = () => {
     }
   };
 
-  const displayNameOf = useCallback(async (userId) => {
-    let name = "Rival Scholar";
-    try {
-      const { data: prof } = await supabase.from('community_profiles').select('display_name').eq('id', userId).single();
-      if (prof && prof.display_name) name = prof.display_name;
-    } catch { /* ignore */ }
-    return name;
+  // ============================================================
+  // 1v1 ARENA — one blitz format for humans AND bots (migration v63)
+  //
+  // The server owns everything that matters: the board, the grading, the
+  // escrow, the verdict. This layer only renders server state and dispatches
+  // intents. It never computes a score or decides an outcome.
+  // ============================================================
+
+  // Scorecards are SERVER-COMPUTED. Streaks are cosmetic only and are derived
+  // locally from the answer log; they never affect scoring or the verdict.
+  const streakOf = useCallback((rows) => {
+    let s = 0;
+    for (const r of rows || []) {
+      if (r?.skipped) continue;
+      s = r?.isCorrect ? s + 1 : 0;
+    }
+    return s;
   }, []);
 
-  // ============================================================
-  // BLITZ — the shared 90s/40-Q lobby duel (1v1 only)
-  // ============================================================
+  const setMyCardFrom = useCallback((card) => {
+    const c = card || EMPTY_CARD;
+    setBlitzScore(Number(c.points) || 0);
+    setBlitzRight(Number(c.correct) || 0);
+    setBlitzWrongs(Number(c.incorrect) || 0);
+    setBlitzSkipped(Number(c.skipped) || 0);
+    setBlitzAnswered(Number(c.answers) || 0);
+  }, []);
+  const setOppCardFrom = useCallback((card) => {
+    const c = card || EMPTY_CARD;
+    setOppScore(Number(c.points) || 0);
+    setOppRight(Number(c.correct) || 0);
+    setOppWrongs(Number(c.incorrect) || 0);
+    setOppSkipped(Number(c.skipped) || 0);
+    setOppAnswered(Number(c.answers) || 0);
+  }, []);
 
-  const startBlitz = useCallback(async () => {
-    if (!mode || !meId) return;
-    if (stake > smartCoins) return;
-    // Join the format-aware waiting queue.
-    try {
-      const { data, error } = await supabase
-        .from('duel_waiting')
-        .upsert({ user_id: meId, mode: mode.id, stake, format: 'blitz' }, { onConflict: 'user_id' })
-        .select('id');
-      if (!error && data && data[0]) ownWaitingKeyRef.current = data[0].id;
-    } catch { /* ignore */ }
-    setLobbyOnline(null);
-    setOpponent("Rival Scholar");
-    setPhase("blitz-waiting");
-  }, [mode, stake, meId, smartCoins]);
+  const applyArenaState = useCallback((data) => {
+    if (!data) return;
+    setMyCardFrom(data.myScore);
+    setOppCardFrom(data.opponentScore);
+    if (Array.isArray(data.myAnswers)) setBlitzStreak(streakOf(data.myAnswers));
+    if (Array.isArray(data.opponentAnswers)) setOppStreak(streakOf(data.opponentAnswers));
+    setOppDown(!!data.opponentDisconnected);
+  }, [setMyCardFrom, setOppCardFrom, streakOf]);
 
-  const matchedBy = useCallback(async (byId) => {
-    const byName = await displayNameOf(byId);
-    setOpponent(byName);
-    blitzOppIdRef.current = byId;
-    await clearWaiting();
-    let created = null;
-    try {
-      created = await createBlitzMatch({ stake, opponentId: byId });
-    } catch { /* ignore */ }
-    if (!created || !created.ok || !created.questions?.length) {
-      // Could not confirm the shared match — go back to the queue.
-      setPhase("blitz-waiting");
-      return;
-    }
-    blitzMatchRefCurrent(created);
-    setPhase("blitz-countdown");
-    setCountdown(3);
-  }, [stake, displayNameOf, createBlitzMatch]);
-
-  const matchedOpponent = useCallback(async (foundRow) => {
-    const name = await displayNameOf(foundRow.user_id);
-    setOpponent(name);
-    blitzOppIdRef.current = foundRow.user_id;
-    await clearWaiting();
-    // Broadcast to the lobby so the found scholar jumps into the battle too.
-    try { sendLobby({ type: 'matched', byId: meId }); } catch { /* ignore */ }
-    let created = null;
-    try {
-      created = await createBlitzMatch({ stake, opponentId: foundRow.user_id });
-    } catch { /* ignore */ }
-    if (!created || !created.ok || !created.questions?.length) {
-      setPhase("blitz-waiting");
-      return;
-    }
-    blitzMatchRefCurrent(created);
-    setPhase("blitz-countdown");
-    setCountdown(3);
-  }, [stake, meId, displayNameOf, createBlitzMatch]);
-
-  const blitzMatchRefCurrent = (created) => {
-    matchIdRef.current = created.matchId;
-    setBlitzMatch({ matchId: created.matchId, questions: created.questions, questionCount: created.questionCount || created.questions.length, startsAt: null, endsAt: null });
-    setBlitzQuestions(created.questions);
+  // Adopt a freshly created (or replayed) match and declare MY readiness.
+  // The clock only opens once the server says both sides are ready.
+  const adoptArena = useCallback(async (created, oppLabel) => {
+    if (!created || !created.matchId) return false;
+    const mid = created.matchId;
+    matchIdRef.current = mid;
+    const questions = created.questions || [];
+    setBlitzMatch({
+      matchId: mid,
+      questions,
+      questionCount: created.questionCount || questions.length,
+      startsAt: null,
+      endsAt: null,
+      stake,
+      escrowed: created.escrowed ?? stake * 2,
+    });
+    setBlitzQuestions(questions);
     setBlitzIndex(0);
-    setBlitzScore(0);
-    setBlitzWrongs(0);
-    setBlitzAnswered(0);
-    setBlitzStreak(0);
-    setOppScore(0);
-    setOppWrongs(0);
-    setOppAnswered(0);
-    setOppStreak(0);
+    setMyCardFrom(null); setOppCardFrom(null);
     setBlitzAnswers([]);
     setDoubleArmed(false);
     setDoubleUsed(false);
     setBlitzResult(null);
+    setArenaReview(null);
+    setOppDown(false);
+    setBlitzStreak(0); setOppStreak(0);
     setBlitzTimeLeft(BLITZ_DURATION_MS);
     settleDoneRef.current = false;
-  };
+    if (oppLabel) setOpponent(oppLabel);
 
-  const [blitzQuestions, setBlitzQuestions] = useState([]);
+    const ready = await arenaReady(mid);
+    try {
+      sessionStorage.setItem(ACTIVE_ARENA_KEY, JSON.stringify({ matchId: mid, stake }));
+    } catch { /* ignore */ }
 
-  // Lobby channel: presence gives the queue transparency count + 'matched'
-  // broadcasts let the two matched scholars both enter the same battle.
-  const { sendState: sendLobby, online: lobbyOnlineMembers } = useMatchRealtime({
+    if (ready?.canStart) { setPhase('blitz-countdown'); setCountdown(3); }
+    else { setPhase('blitz-waiting'); }
+    return true;
+  }, [stake, arenaReady, setMyCardFrom, setOppCardFrom]);
+
+  // Resume a match we were already in (ALREADY_IN_MATCH hands back the id).
+  const resumeArena = useCallback(async (mid, questionsOverride) => {
+    if (!mid) return;
+    const st = await arenaState(mid);
+    if (!st?.ok) return;
+    matchIdRef.current = mid;
+    const questions = st.questions || questionsOverride || [];
+    setBlitzMatch((m) => ({
+      ...(m || {}),
+      matchId: mid,
+      questions,
+      questionCount: st.questionCount || questions.length,
+      startsAt: st.startsAt || null,
+      endsAt: st.endsAt || null,
+      stake: st.stake ?? stake,
+      escrowed: st.escrowed ?? null,
+    }));
+    setBlitzQuestions(questions);
+    setOpponent(st.opponentName || "Rival Scholar");
+    applyArenaState(st);
+    setArenaReview(Array.isArray(st.review) ? st.review : null);
+    if (st.status === 'active' && st.endsAt) {
+      setBlitzTimeLeft(Math.max(0, Date.parse(st.endsAt) - Date.now()));
+      setPhase('blitz-play');
+    } else if (st.status === 'ready') {
+      setPhase('blitz-countdown'); setCountdown(3);
+    } else if (st.status === 'completed' || st.status === 'abandoned') {
+      settleDoneRef.current = true;
+      const res = await arenaSettle(mid);
+      finishArena(res);
+    } else {
+      setPhase('blitz-waiting');
+    }
+  }, [stake, arenaState, arenaSettle, applyArenaState]);
+
+  // ---- entry points (1v1 only) ----
+  const startQuickMatch = useCallback(async () => {
+    if (!meId || stake > smartCoins) return;
+    setFinding('human');
+    setOpponent("Rival Scholar");
+    setPhase('blitz-waiting');
+    const res = await arenaEnqueue({ stake });
+    if (res?.matchId) await adoptArena(res);
+    else if (res?.error === 'ALREADY_IN_MATCH' && res.matchId) await resumeArena(res.matchId);
+  }, [meId, stake, smartCoins, arenaEnqueue, adoptArena, resumeArena]);
+
+  const startVsBot = useCallback(async (botKey, botName) => {
+    if (stake > smartCoins) return;
+    setFinding('bot');
+    setOpponent(botName);
+    const res = await arenaCreateMatch({ stake, bot: botKey });
+    if (res?.matchId) await adoptArena(res, botName);
+    else if (res?.error === 'ALREADY_IN_MATCH' && res.matchId) await resumeArena(res.matchId, null);
+  }, [stake, smartCoins, arenaCreateMatch, adoptArena, resumeArena]);
+
+  const challengeScholar = useCallback(async (scholar) => {
+    if (stake > smartCoins) return;
+    setFinding('human');
+    setOpponent(scholar.name || "Rival Scholar");
+    const res = await arenaCreateMatch({ stake, opponentId: scholar.userId });
+    if (res?.matchId) await adoptArena(res, scholar.name);
+    else if (res?.error === 'ALREADY_IN_MATCH' && res.matchId) await resumeArena(res.matchId, null);
+  }, [stake, smartCoins, arenaCreateMatch, adoptArena, resumeArena]);
+
+  const cancelArena = useCallback(async () => {
+    const mid = matchIdRef.current;
+    if (!mid) { setPhase('betting'); return; }
+    await arenaLeaveQueue();
+    const res = await arenaCancel(mid);
+    if (res?.ok) { setBlitzResult(res); setPhase('blitz-result'); }
+    else setPhase('betting');
+  }, [arenaCancel, arenaLeaveQueue]);
+
+  // Lobby presence: shows how many scholars are queued. Presence is a nicety —
+  // pairing itself is decided server-side by arena_enqueue.
+  const { online: lobbyOnlineMembers } = useMatchRealtime({
     topic: 'match-lobby:duel:blitz',
-    enabled: !!meId && (phase === 'blitz-waiting' || phase === 'blitz-countdown'),
+    enabled: !!meId && phase === 'blitz-waiting' && !matchIdRef.current,
     sessionId: meId,
     track: { waiting: true, stake },
-    onEvent: (type, payload) => {
-      if (type === 'matched' && payload && payload.byId && payload.byId !== meId) {
-        matchedBy(payload.byId);
-      }
-    },
+    onEvent: () => {},
     onReconcile: () => {},
   });
   useEffect(() => { setLobbyOnline(lobbyOnlineMembers); }, [lobbyOnlineMembers]);
 
-  // Match channel: mirror my score/verdict to my opponent (notification only).
+  // Match channel is a "refresh now" trigger only. The authoritative scorecard
+  // always comes from arena_state, never from an opponent-supplied payload.
   const { sendState: sendMatch } = useMatchRealtime({
     topic: blitzMatch ? `match:${blitzMatch.matchId}` : null,
     enabled: !!blitzMatch && !!meId && (phase === 'blitz-countdown' || phase === 'blitz-play'),
     sessionId: meId,
     track: { inMatch: true },
-    onEvent: (type, payload) => {
-      if (!payload || !payload.id || payload.id === meId) return;
-      if (type === 'answer') {
-        setOppScore((typeof payload.score === 'number') ? payload.score : 0);
-        setOppWrongs((typeof payload.wrongs === 'number') ? payload.wrongs : 0);
-        setOppAnswered((typeof payload.answered === 'number') ? payload.answered : 0);
-        if (typeof payload.delta === 'number' && payload.delta > 0) setOppStreak((s) => s + 1);
-        if (typeof payload.delta === 'number' && payload.delta < 0) setOppStreak(0);
-      } else if (type === 'end') {
-        if (phaseRef.current === 'blitz-play') settleBlitz();
+    onEvent: (type) => {
+      if (type === 'answer' && phaseRef.current === 'blitz-play') {
+        pollArena();
       }
     },
     onReconcile: () => {},
   });
 
-  // Waiting-loop: keep me findable, look for a waiting human on the SAME
-  // mode + stake + format, and re-queue after each missed scan.
+  // Refresh the server-authoritative state of the match I'm in.
+  const pollArena = useCallback(async () => {
+    const mid = matchIdRef.current;
+    if (!mid) return null;
+    const st = await arenaState(mid);
+    if (!st?.ok) return null;
+    applyArenaState(st);
+    return st;
+  }, [arenaState, applyArenaState]);
+
+  // Waiting loop. Two distinct waits share this phase:
+  //   * in the matchmaking queue  -> keep re-enqueueing until paired
+  //   * already matched, opponent hasn't confirmed -> poll until both ready
   useEffect(() => {
     if (phase !== "blitz-waiting" || !meId) return;
     let stopped = false;
-    const scan = async () => {
-      // Re-assert my queue row each scan (fresh created_at stamp).
-      try {
-        const { data, error } = await supabase
-          .from('duel_waiting')
-          .upsert({ user_id: meId, mode: 'duel', stake, format: 'blitz' }, { onConflict: 'user_id' })
-          .select('id');
-        if (!error && data && data[0]) ownWaitingKeyRef.current = data[0].id;
-      } catch { /* ignore */ }
-      if (stopped) return;
-      let human = null;
-      try {
-        const { data } = await supabase
-          .from('duel_waiting')
-          .select('user_id, created_at, id')
-          .eq('mode', 'duel')
-          .eq('stake', stake)
-          .eq('format', 'blitz')
-          .neq('user_id', meId)
-          .order('created_at', { ascending: true })
-          .limit(1);
-        if (data && data[0]) human = data[0];
-      } catch { /* ignore */ }
-      if (!stopped && human) matchedOpponent(human);
-    };
-    scan();
-    const iv = setInterval(scan, BLITZ_POLL_MS);
-    return () => { stopped = true; clearInterval(iv); clearWaiting(); };
-  }, [phase, stake, meId, matchedOpponent]);
 
-  // Blitz pre-battle countdown -> open the 90s window.
+    const pump = async () => {
+      if (stopped) return;
+
+      if (matchIdRef.current) {
+        const st = await pollArena();
+        if (!st || stopped) return;
+        if (st.status === 'ready') { setPhase('blitz-countdown'); setCountdown(3); }
+        else if (st.status === 'completed' || st.status === 'abandoned') {
+          settleDoneRef.current = true;
+          const res = await arenaSettle(st.matchId);
+          finishArena(res);
+        }
+        return;
+      }
+
+      const res = await arenaEnqueue({ stake });
+      if (stopped) return;
+      if (res?.matchId) { await adoptArena(res); return; }
+      if (res?.error === 'ALREADY_IN_MATCH' && res.matchId) { await resumeArena(res.matchId); return; }
+      // Still queued — keep the slot warm.
+      const roster = await arenaRoster({ stake });
+      if (!stopped) setRoster(Array.isArray(roster) ? roster : []);
+    };
+
+    pump();
+    const iv = setInterval(pump, ARENA_POLL_MS);
+    return () => { stopped = true; clearInterval(iv); };
+  }, [phase, stake, meId, pollArena, arenaEnqueue, arenaRoster, adoptArena, resumeArena, arenaSettle]);
+
+  // Countdown -> open the shared clock (requires BOTH players ready server-side).
   useEffect(() => {
     if (phase !== "blitz-countdown") return;
     if (countdown <= 0) {
-      startTheBlitz();
+      startTheArena();
       return;
     }
     const t = setTimeout(() => setCountdown(c => c - 1), 1000);
@@ -304,129 +389,146 @@ const Rumble = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, countdown]);
 
-  const startTheBlitz = useCallback(async () => {
-    if (!blitzMatch) return;
-    let res = null;
-    try {
-      res = await startCompetitiveMatch(blitzMatch.matchId);
-    } catch { /* ignore */ }
-    if (!res || !res.ok) {
-      // Opponent may have already started it — refetch authoritative state.
-      try {
-        const fetched = await getCompetitiveMatch(blitzMatch.matchId);
-        if (fetched && fetched.ok && fetched.startsAt) {
-          res = { ok: true, replay: true, startsAt: fetched.startsAt, endsAt: fetched.endsAt };
-        }
-      } catch { /* ignore */ }
+  const startTheArena = useCallback(async () => {
+    const mid = matchIdRef.current;
+    if (!mid) return;
+    let res = await arenaStart(mid);
+    if (!res?.ok) {
+      // The opponent may already have opened it — take the server's clock.
+      const st = await arenaState(mid);
+      if (st?.startsAt && st?.endsAt) res = { ok: true, startsAt: st.startsAt, endsAt: st.endsAt };
     }
-    if (!res || !res.ok || !res.startsAt || !res.endsAt) {
-      setPhase("blitz-waiting");
-      return;
-    }
-    const ends = Date.parse(res.endsAt);
-    setBlitzMatch((m) => ({ ...m, startsAt: res.startsAt, endsAt: res.endsAt }));
-    setBlitzTimeLeft(Math.max(0, ends - Date.now()));
-    setPhase("blitz-play");
-    try {
-      sessionStorage.setItem(ACTIVE_BLITZ_KEY, JSON.stringify({
-        matchId: blitzMatch.matchId,
-        stakes: stake,
-        opponent: opponent,
-        opponentId: blitzOppIdRef.current,
-      }));
-    } catch { /* ignore */ }
-  }, [blitzMatch, stake, opponent, startCompetitiveMatch, getCompetitiveMatch]);
+    if (!res?.startsAt || !res?.endsAt) { setPhase('blitz-waiting'); return; }
+    setBlitzMatch((m) => ({ ...(m || {}), startsAt: res.startsAt, endsAt: res.endsAt }));
+    setBlitzTimeLeft(Math.max(0, Date.parse(res.endsAt) - Date.now()));
+    setPhase('blitz-play');
+  }, [arenaStart, arenaState]);
 
-  // 90s shared wall-clock ticking.
+  // 90s shared wall-clock + heartbeat.
+  //
+  // The heartbeat is what keeps the reconnect-grace timer alive on the server
+  // AND re-syncs the authoritative scorecard. Without it a player on a slow
+  // connection would be forfeited while still playing.
   useEffect(() => {
-    if (phase !== "blitz-play" || !blitzMatch || !blitzMatch.endsAt) return;
+    if (phase !== "blitz-play" || !blitzMatch?.endsAt) return;
     const ends = Date.parse(blitzMatch.endsAt);
     const tick = () => {
       const remain = Math.max(0, ends - Date.now());
       setBlitzTimeLeft(remain);
-      if (remain <= 0) settleBlitz();
+      if (remain <= 0) settleArena();
     };
     tick();
     const iv = setInterval(tick, 250);
-    return () => clearInterval(iv);
+    // One heartbeat does the work of three things: it keeps the reconnect-grace
+    // timer alive on the server, re-syncs the authoritative scorecards, and
+    // reports whether the opponent has dropped. Without it a player on a slow
+    // connection would be forfeited while still playing.
+    const hb = setInterval(async () => {
+      const mid = matchIdRef.current;
+      if (!mid) return;
+      const beat = await arenaHeartbeat(mid);
+      if (!beat?.ok) return;
+      if (beat.status === 'completed' || beat.status === 'abandoned') { settleArena(mid); return; }
+      setMyCardFrom(beat.myScore);
+      setOppCardFrom(beat.opponentScore);
+      setOppDown(!!beat.opponentDisconnected);
+    }, ARENA_HEARTBEAT_MS);
+    return () => { clearInterval(iv); clearInterval(hb); };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, blitzMatch]);
 
-  const settleBlitz = useCallback(async () => {
-    if (settleDoneRef.current) return;
-    if (!blitzMatch) return;
-    settleDoneRef.current = true;
-    try {
-      const res = await completeCompetitiveMatch(blitzMatch.matchId);
-      if (res && res.ok) {
-        setBlitzResult(res);
-        setPhase("blitz-result");
-        try { sessionStorage.removeItem(ACTIVE_BLITZ_KEY); } catch { /* ignore */ }
-        try { sendMatch({ type: 'end', id: meId }); } catch { /* ignore */ }
-        fetchHistory();
-        clearWaiting();
-      } else if (res && res.error === 'BLITZ_NOT_ENDED' && res.remainingMs != null) {
-        setBlitzTimeLeft(Number(res.remainingMs) || 0);
-        settleDoneRef.current = false;
-      } else {
-        // Failed to settle (server could not agree) — let the screen hold.
-        settleDoneRef.current = false;
-      }
-    } catch (err) {
-      console.warn('Blitz settle failed:', err?.message);
-      settleDoneRef.current = false;
-    }
-  }, [blitzMatch, meId, completeCompetitiveMatch, fetchHistory, sendMatch]);
+  // A single disconnect edge fires the alert tone once (not on every poll).
+  const wasDownRef = useRef(false);
+  useEffect(() => {
+    if (oppDown && !wasDownRef.current) playArenaSfx('disconnect');
+    wasDownRef.current = oppDown;
+  }, [oppDown]);
 
-  // Reconnect resume: if I left mid-blitz, re-join the SAME battle (never
-  // reset). A running match re-syncs my mirror from my stored answers; a
-  // settled match fetches its verdict.
+  const finishArena = useCallback(async (res) => {
+    if (res?.ok) {
+      setBlitzResult(res);
+      try { sessionStorage.removeItem(ACTIVE_ARENA_KEY); } catch { /* ignore */ }
+      const mid = matchIdRef.current;
+      if (mid) {
+        const st = await arenaState(mid);
+        if (st?.ok) { setArenaReview(Array.isArray(st.review) ? st.review : null); applyArenaState(st); }
+      }
+      setPhase('blitz-result');
+      fetchHistory();
+      try { sendMatch({ type: 'end', id: meId }); } catch { /* ignore */ }
+    }
+  }, [arenaState, applyArenaState, fetchHistory, sendMatch, meId]);
+
+  const settleArena = useCallback(async (midArg) => {
+    const mid = midArg || matchIdRef.current;
+    if (!mid || settleDoneRef.current) return;
+    settleDoneRef.current = true;
+    const res = await arenaSettle(mid);
+    if (res?.ok) { await finishArena(res); return; }
+    if (res?.error === 'BLITZ_NOT_ENDED' && res.remainingMs != null) {
+      setBlitzTimeLeft(Number(res.remainingMs) || 0);
+      settleDoneRef.current = false;
+      return;
+    }
+    settleDoneRef.current = false;
+  }, [arenaSettle, finishArena]);
+
+  // Voluntary forfeit: immediate, no grace. The leaver loses the stake and the
+  // other player is refunded — both decided server-side.
+  const forfeitArena = useCallback(async () => {
+    const mid = matchIdRef.current;
+    setForfeitOpen(false);
+    if (!mid) return;
+    const res = await arenaForfeit(mid);
+    if (res?.ok) { settleDoneRef.current = true; await finishArena(res); }
+  }, [arenaForfeit, finishArena]);
+
+  // Reconnect resume: rejoin the SAME battle from the server, never reset.
   useEffect(() => {
     let live = true;
     const resume = async () => {
       let saved = null;
-      try { saved = JSON.parse(sessionStorage.getItem(ACTIVE_BLITZ_KEY) || 'null'); } catch { /* ignore */ }
-      if (!saved || !saved.matchId || !meId) return;
+      try { saved = JSON.parse(sessionStorage.getItem(ACTIVE_ARENA_KEY) || 'null'); } catch { /* ignore */ }
+      if (!saved?.matchId || !meId) return;
+      if (phaseRef.current === 'blitz-play' || phaseRef.current === 'blitz-result') return;
       try {
-        const data = await getCompetitiveMatch(saved.matchId);
-        if (!live || !data || !data.ok) return;
-        if (data.status === 'active' && data.format === 'blitz' && data.startsAt) {
-          const ends = Date.parse(data.endsAt);
-          if (ends > Date.now() && !phaseRef.current.includes('blitz')) {
-            matchIdRef.current = data.matchId;
-            blitzOppIdRef.current = saved.opponentId || blitzOppIdRef.current;
-            setOpponent(saved.opponent || "Rival Scholar");
-            // Rebuild my running mirror from MY OWN stored answers (resume).
-            let score = 0, wrongs = 0, answered = 0;
-            const mine = Array.isArray(data.myAnswers) ? data.myAnswers : [];
-            for (const a of mine) {
-              if (a.selected == null) continue;
-              const mult = a.multiplier === 2 ? 2 : 1;
-              score += a.isCorrect ? mult : -mult;
-              if (!a.isCorrect) wrongs += 1;
-              answered += 1;
-            }
-            const idxSet = new Set(mine.map(a => a.index));
-            let nextIndex = 0;
-            while (idxSet.has(nextIndex)) nextIndex += 1;
-            setBlitzQuestions(data.questions || []);
-            setBlitzScore(score);
-            setBlitzWrongs(wrongs);
-            setBlitzAnswered(answered);
-            setBlitzIndex(nextIndex);
-            setBlitzMatch({ matchId: data.matchId, questions: data.questions || [], questionCount: data.questionCount || (data.questions || []).length, startsAt: data.startsAt, endsAt: data.endsAt });
-            setBlitzTimeLeft(Math.max(0, ends - Date.now()));
-            setPhase("blitz-play");
-          } else if ((data.status === 'completed' || data.status === 'abandoned') && !phaseRef.current.includes('blitz')) {
-            // A settled battle I never witnessed — fetch the verdict.
-            const res = await completeCompetitiveMatch(data.matchId);
-            if (live && res && res.ok) {
-              setBlitzResult(res);
-              setPhase("blitz-result");
-              try { sessionStorage.removeItem(ACTIVE_BLITZ_KEY); } catch { /* ignore */ }
-              fetchHistory();
-            }
-          }
+        const st = await arenaState(saved.matchId);
+        if (!live || !st?.ok) return;
+        matchIdRef.current = saved.matchId;
+        const questions = st.questions || [];
+        setBlitzMatch({
+          matchId: st.matchId, questions,
+          questionCount: st.questionCount || questions.length,
+          startsAt: st.startsAt || null, endsAt: st.endsAt || null,
+          stake: st.stake ?? saved.stake, escrowed: st.escrowed ?? null,
+        });
+        setBlitzQuestions(questions);
+        setOpponent(st.opponentName || "Rival Scholar");
+        applyArenaState(st);
+
+        const mine = Array.isArray(st.myAnswers) ? st.myAnswers : [];
+        const done = new Set(mine.map(a => a.index));
+        let next = 0;
+        while (done.has(next)) next += 1;
+        setBlitzIndex(next);
+        setBlitzAnswers(mine.map(a => ({
+          index: a.index, correct: a.skipped ? null : !!a.isCorrect,
+          multiplier: a.multiplier, delta: a.points ?? 0, skipped: !!a.skipped,
+        })));
+        setDoubleUsed(mine.some(a => a.multiplier === 2));
+        setArenaReview(Array.isArray(st.review) ? st.review : null);
+
+        if (st.status === 'active' && st.endsAt) {
+          setBlitzTimeLeft(Math.max(0, Date.parse(st.endsAt) - Date.now()));
+          setPhase('blitz-play');
+        } else if (st.status === 'ready') {
+          setPhase('blitz-countdown'); setCountdown(3);
+        } else if (st.status === 'completed' || st.status === 'abandoned') {
+          settleDoneRef.current = true;
+          const res = await arenaSettle(st.matchId);
+          if (live) await finishArena(res);
+        } else {
+          setPhase('blitz-waiting');
         }
       } catch { /* ignore */ }
     };
@@ -438,57 +540,58 @@ const Rumble = () => {
   const blitzPick = useCallback(async (option) => {
     if (!blitzMatch || userAnswerState !== null) return;
     if (blitzTimeLeft <= 0) return;
-    const isSkip = option === null;
+    const mid = blitzMatch.matchId;
+    const idx = blitzIndex;
+    const isSkip = option === null || option === undefined;
+    const armed = doubleArmed;
+
+    // The Double is consumed the MOMENT it is spent, so it can never leak into
+    // the next question. It is restored only if the submit itself failed and
+    // the question is still open.
+    setDoubleArmed(false);
     setUserAnswerState(isSkip ? 'timeout' : 'answered');
-    lastOptionRef.current = option ?? null;
+    lastOptionRef.current = isSkip ? null : option;
     setTxState('pending');
-    let correct = false;
-    let multiplier = 1;
-    let replay = false;
-    let dblApplied = false;
+    if (armed) playArenaSfx('double');
+
+    let res = null;
     try {
-      const res = await submitCompetitiveAnswer({
-        matchId: blitzMatch.matchId,
-        questionIndex: blitzIndex,
-        selected: option,
-        double: doubleArmed,
+      res = await arenaAnswer({
+        matchId: mid, questionIndex: idx,
+        selected: isSkip ? null : option, double: armed, skipped: isSkip,
       });
-      if (res) {
-        correct = !!res.isCorrect;
-        multiplier = res.multiplier === 2 ? 2 : 1;
-        replay = !!res.replay;
-        dblApplied = doubleArmed && multiplier === 2;
-      }
     } catch (err) {
-      console.warn('Blitz answer submit failed:', err?.message);
+      console.warn('Arena answer failed:', err?.message);
+    }
+
+    if (!res?.ok) {
       setUserAnswerState(null);
       setTxState(null);
+      if (armed) setDoubleArmed(true);
       return;
     }
-    const delta = isSkip ? 0 : (correct ? multiplier : -multiplier);
-    const newScore = blitzScore + delta;
-    const newWrongs = (!isSkip && !correct) ? blitzWrongs + 1 : blitzWrongs;
-    const newAnswered = isSkip ? blitzAnswered : blitzAnswered + 1;
-    setBlitzScore(newScore);
-    setBlitzWrongs(newWrongs);
-    setBlitzAnswered(newAnswered);
-    if (!isSkip) {
-      if (correct) setBlitzStreak((s) => s + 1);
-      else setBlitzStreak(0);
-    }
-    if (dblApplied) { setDoubleUsed(true); setDoubleArmed(false); }
-    setBlitzAnswers((prev) => [...prev, { index: blitzIndex, correct: (isSkip ? null : correct), multiplier, delta }]);
+
+    if (res.multiplier === 2) setDoubleUsed(true);
+    if (isSkip) playArenaSfx('skip');
+    else if (!res.replay) playArenaSfx(res.isCorrect ? 'correct' : 'wrong');
+
+    setMyCardFrom(res.myScore);
+    setBlitzAnswers((prev) => [...prev, {
+      index: idx, correct: isSkip ? null : !!res.isCorrect,
+      multiplier: res.multiplier, delta: res.points ?? 0, skipped: isSkip,
+    }]);
+    // The opponent advanced too (server resolved their turn in the same call).
+    if (res.botTurn) playArenaSfx('opponent');
+
     setTxState('done');
-    try {
-      sendMatch({ type: 'answer', id: meId, delta, score: newScore, wrongs: newWrongs, answered: newAnswered });
-    } catch { /* ignore */ }
-    // Show the graded outcome briefly, then advance to the next question.
     setTimeout(() => {
       setUserAnswerState(null);
       setTxState(null);
       setBlitzIndex((i) => i + 1);
-    }, replay ? 150 : 450);
-  }, [blitzMatch, blitzIndex, blitzScore, blitzWrongs, blitzAnswered, doubleArmed, meId, userAnswerState, blitzTimeLeft, submitCompetitiveAnswer, sendMatch]);
+      // Clear any armed Double again in case the timer raced the click.
+      setDoubleArmed(false);
+    }, res.replay ? 150 : 450);
+  }, [blitzMatch, blitzIndex, blitzTimeLeft, userAnswerState, doubleArmed, arenaAnswer, setMyCardFrom]);
 
   // ============================================================
   // TRIPLE THREAT (sudden-death) — unchanged flow
@@ -557,52 +660,27 @@ const Rumble = () => {
 
   const finishVsHouse = async () => {
     setOpponent("The House");
-    await startCountdownPhaseWithBatch("The House", null, mode?.id === 'duel' ? 'house' : null);
+    await startCountdownPhaseWithBatch("The House", null, null);
   };
 
-  // Play a specific TUTOR BOT (non-blitz 1v1). The server grades the tutor from
-  // its skill profile at settlement — the client only sends the bot key.
-  const startVsBot = useCallback(async (botKey, botName) => {
-    if (!meId || stake > smartCoins) return;
-    await clearWaiting();
-    setOpponent(botName);
-    setFinding('bot');
-    blitzOppIdRef.current = null;
-    await startCountdownPhaseWithBatch(botName, null, botKey);
-  }, [meId, stake, smartCoins]);
-
-  // Challenge a specific live scholar from the eligible roster.
-  const challengeScholar = useCallback(async (scholar) => {
-    if (!meId || !scholar?.userId || stake > smartCoins) return;
-    await clearWaiting();
-    const name = scholar.name || 'Rival Scholar';
-    setOpponent(name);
-    setFinding('human');
-    blitzOppIdRef.current = null;
-    await startCountdownPhaseWithBatch(name, scholar.userId, null);
-  }, [meId, stake, smartCoins]);
-
-  // Classic non-blitz 1v1 matchmaking (sudden-death, human-first, tutor fallback).
-  const startDuelSearch = useCallback(async () => {
-    if (!meId || stake > smartCoins) return;
-    await startBattle();
-  }, [meId, stake, smartCoins, startBattle]);
-
-  // Route every real-stakes entry (blitz / battle / tutor / scholar) through the
-  // same high-wager confirmation. >=10 SC defers the action behind the modal.
+  // Route every real-stakes entry through the same high-wager confirmation.
+  //
+  // The stake is CAPTURED with the deferred action, not read from live state
+  // when the modal is confirmed: tapping a different tier while the modal is
+  // open used to display one amount and wager another.
   const requestArena = useCallback((action) => {
-    if (stake >= 10) {
-      pendingArenaRef.current = action;
+    const capturedStake = stake;
+    const run = () => action(capturedStake);
+    if (capturedStake >= 10) {
+      pendingArenaRef.current = { run, stake: capturedStake };
       setConfirmHighWager(true);
       return;
     }
-    action();
+    run();
   }, [stake]);
 
-  // Create the battle with the SERVER (migration v38): the server picks the NMCN
-  // question sequence — no client question picking, no client-declared winner —
-  // and returns the SAME match for both matched humans (DB-side dedupe). When
-  // `bot` is set (v60) the server also grades the tutor at settlement.
+  // Triple Threat still uses the v38 sudden-death engine. 1v1 no longer does:
+  // sudden-death was removed from the arena in v63 (one blitz format only).
   const startCountdownPhaseWithBatch = async (oppName, oppId, bot = null) => {
     try {
       const matchResult = await createCompetitiveMatch({ mode: mode?.id, stake, opponentId: oppId || null, format: 'sudden_death', bot: bot || null });
@@ -634,7 +712,7 @@ const Rumble = () => {
       setRosterLoading(true);
       let players = [];
       try {
-        players = await fetchDuelRoster({ mode: 'duel', stake, format: 'sudden_death' });
+        players = await arenaRoster({ stake });
       } catch { /* ignore */ }
       if (!stopped) {
         setRoster(Array.isArray(players) ? players : []);
@@ -644,7 +722,7 @@ const Rumble = () => {
     load();
     const iv = setInterval(load, ROSTER_POLL_MS);
     return () => { stopped = true; clearInterval(iv); };
-  }, [phase, mode, stake, meId, smartCoins, fetchDuelRoster]);
+  }, [phase, mode, stake, meId, smartCoins, arenaRoster]);
 
   // Pre-game Countdown -> move to question
   useEffect(() => {
@@ -742,7 +820,6 @@ const Rumble = () => {
     });
     setPhase("result");
     fetchHistory();
-    clearWaiting();
   }, [userAnswerState, currentQuestion, mode, opponent, fetchHistory, submitCompetitiveAnswer, completeCompetitiveMatch, syncAchievements]);
 
   const resetToLobby = () => {
@@ -761,9 +838,7 @@ const Rumble = () => {
     setBlitzQuestions([]);
     setBlitzIndex(0);
     setBlitzResult(null);
-    blitzOppIdRef.current = null;
     setUserAnswerState(null);
-    clearWaiting();
   };
 
   const resetToBetting = () => {
@@ -780,9 +855,13 @@ const Rumble = () => {
     setBlitzQuestions([]);
     setBlitzIndex(0);
     setBlitzResult(null);
-    blitzOppIdRef.current = null;
+    setArenaReview(null);
+    setDoubleArmed(false);
+    setDoubleUsed(false);
+    setOppDown(false);
+    setForfeitOpen(false);
     setUserAnswerState(null);
-    clearWaiting();
+    try { sessionStorage.removeItem(ACTIVE_ARENA_KEY); } catch { /* ignore */ }
   };
 
   const fmtBlitzTime = (ms) => {
@@ -791,30 +870,56 @@ const Rumble = () => {
     return `${m}:${String(s % 60).padStart(2, "0")}`;
   };
 
+  // The breakdown is the SERVER's final scorecard — one shape for a human
+  // opponent and for a tutor, so the result screen renders identically.
   const blitzResultForMe = () => {
     if (!blitzResult) return null;
     const bd = Array.isArray(blitzResult.breakdown) ? blitzResult.breakdown : [];
-    const me = bd.find((p) => p.playerId === meId);
-    const opp = bd.find((p) => p.playerId !== meId) || bd[0];
+    const me = bd.find((p) => p.playerId && p.playerId === meId);
+    const opp = bd.find((p) => !p.playerId || p.playerId !== meId);
+    const card = (c) => ({
+      points: Number(c?.points) || 0,
+      correct: Number(c?.correct) || 0,
+      incorrect: Number(c?.incorrect) || 0,
+      skipped: Number(c?.skipped) || 0,
+      answers: Number(c?.answers) || 0,
+    });
     return {
-      youWon: !!blitzResult.youWon,
+      status: blitzResult.status,
+      reason: blitzResult.reason || null,
+      youWon: !!blitzResult.youWon && !blitzResult.draw,
       draw: !!blitzResult.draw,
-      winner: blitzResult.winner,
-      youScore: me ? Number(me.score) || 0 : (blitzResult.scores && blitzResult.scores[meId] != null ? Number(blitzResult.scores[meId]) : blitzScore),
-      oppScore: opp ? Number(opp.score) || 0 : (blitzResult.scores && blitzResult.scores[blitzOppIdRef.current] != null ? Number(blitzResult.scores[blitzOppIdRef.current]) : oppScore),
-      youWrongs: me ? Number(me.wrongs) || 0 : blitzWrongs,
-      oppWrongs: opp ? Number(opp.wrongs) || 0 : oppWrongs,
-      youAnswered: me ? Number(me.answered) || 0 : blitzAnswered,
-      oppAnswered: opp ? Number(opp.answered) || 0 : oppAnswered,
-      delta: blitzResult.delta,
-      settled: !!blitzResult.settled,
-      outcomeIndex: me ? me.index : null,
+      winner: opp?.name || "Your opponent",
+      you: card(me),
+      opp: card(opp),
+      oppIsBot: !!opp?.isBot,
+      delta: Number(blitzResult.myDelta ?? blitzResult.delta) || 0,
+      myOutcome: blitzResult.myOutcome || 'draw',
+      settled: true,
     };
   };
 
+  // Post-match review: every question, what you picked, the correct answer and
+  // the explanation/hint when the bank has one. Nothing is invented.
+  const reviewList = () => (Array.isArray(arenaReview) ? arenaReview : []);
+
+  // Fallback when the server review has not arrived (e.g. a very fast settle):
+  // the local mirror still shows which questions were missed.
   const missedList = () => {
-    const missed = blitzAnswers.filter((a) => a.delta < 0 && a.index != null);
-    return missed;
+    const fromServer = reviewList().filter((r) => !r.skipped && r.isCorrect === false);
+    if (fromServer.length) return fromServer;
+    return blitzAnswers.filter((a) => a.correct === false && a.index != null).map((a) => ({
+      index: a.index,
+      question: blitzQuestions[a.index]?.question ?? '…',
+      selected: null,
+      correctAnswer: null,
+      explanation: null,
+      hint: null,
+      isCorrect: false,
+      skipped: false,
+      multiplier: a.multiplier,
+      points: a.delta,
+    }));
   };
 
   return (
@@ -953,7 +1058,7 @@ const Rumble = () => {
               </div>
               )}
               {smartCoins > 0 && (
-              <button disabled={stake > smartCoins} onClick={() => requestArena(() => { if (mode.id === 'duel') startBlitz(); else startBattle(); })}
+              <button disabled={stake > smartCoins} onClick={() => requestArena(() => { if (mode.id === 'duel') startQuickMatch(); else startBattle(); })}
                 className="w-full py-6 rounded-[2rem] bg-gradient-to-r from-indigo-600 to-purple-600 font-black uppercase tracking-[0.3em] text-sm shadow-2xl shadow-indigo-500/30 active:scale-95 transition-all disabled:opacity-30 disabled:pointer-events-none flex items-center justify-center gap-3"
               >
                 <Zap size={18} fill="currentColor" /> {mode.id === 'duel' ? 'Enter the Arena · Blitz' : 'Enter the Arena'}
@@ -964,8 +1069,11 @@ const Rumble = () => {
                 <div className="space-y-4 pt-2">
                   <div className="flex items-center gap-2">
                     <Shield size={14} className="text-indigo-300" />
-                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">Challenge a Tutor — non-blitz 1v1</p>
+                    <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">Instant tutor match</p>
                   </div>
+                  <p className="text-[11px] text-slate-400 font-medium -mt-2">
+                    Tutors play the exact same 40-question blitz board, on the same clock, with the same scoring and Double.
+                  </p>
                   <div className="space-y-3">
                     {BOT_OPPONENTS.map(b => (
                       <button key={b.key} disabled={stake > smartCoins} onClick={() => requestArena(() => startVsBot(b.key, b.name))}
@@ -993,9 +1101,9 @@ const Rumble = () => {
                       <Users size={14} className="text-emerald-300" />
                       <p className="text-[10px] font-black uppercase tracking-[0.25em] text-slate-400">Live Scholars</p>
                     </div>
-                    <button disabled={stake > smartCoins} onClick={() => requestArena(() => startDuelSearch())}
+                    <button disabled={stake > smartCoins} onClick={() => requestArena(() => startQuickMatch())}
                       className="flex items-center gap-1.5 rounded-full border border-emerald-400/40 bg-emerald-400/10 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-emerald-300 active:scale-95 transition-all disabled:opacity-40">
-                      <Zap size={12} /> Find any scholar
+                      <Zap size={12} /> Quick Match
                     </button>
                   </div>
                   {roster.length === 0 ? (
@@ -1035,14 +1143,17 @@ const Rumble = () => {
                     <div>
                       <h3 className="font-black text-red-300">High-stakes duel</h3>
                       <p className="text-sm text-white/60 font-medium">
-                        You are about to wager <span className="text-amber-400 font-black">{stake} SC</span>. This is real — if you lose, it comes out of your balance.
+                        You are about to wager <span className="text-amber-400 font-black">{pendingArenaRef.current?.stake ?? stake} SC</span>. This is real — if you lose, it comes out of your balance.
+                      </p>
+                      <p className="text-[11px] text-white/40 font-medium mt-1">
+                        Both stakes are held in escrow before the clock opens. Quit or drop for 45s and you forfeit yours.
                       </p>
                     </div>
                   </div>
                   <div className="grid grid-cols-2 gap-3">
                     <button onClick={() => { pendingArenaRef.current = null; setConfirmHighWager(false); }}
                       className="py-3.5 rounded-2xl bg-white/10 font-black uppercase tracking-widest text-xs hover:bg-white/15 active:scale-95 transition-all">Cancel</button>
-                    <button onClick={() => { setConfirmHighWager(false); const a = pendingArenaRef.current; pendingArenaRef.current = null; if (a) a(); else if (mode.id === 'duel') startBlitz(); else startBattle(); }}
+                    <button onClick={() => { setConfirmHighWager(false); const p = pendingArenaRef.current; pendingArenaRef.current = null; if (p?.run) p.run(); else if (mode.id === 'duel') startQuickMatch(); else startBattle(); }}
                       className="py-3.5 rounded-2xl bg-red-600 font-black uppercase tracking-widest text-xs shadow-lg shadow-red-500/30 active:scale-95 transition-all">I Understand, Fight</button>
                   </div>
                 </motion.div>
@@ -1078,11 +1189,11 @@ const Rumble = () => {
                 )}
               </div>
               <p className="text-slate-500 text-xs font-medium max-w-xs">
-                Both scholars get the same 40 NMCN questions. The 90-second clock starts together. Winner takes the pot.
+                Both scholars get the same 40 NMCN questions and one shared 90-second clock. Both stakes are already held in escrow — cancel and they come straight back.
               </p>
-              <button onClick={resetToBetting}
+              <button onClick={matchIdRef.current ? cancelArena : resetToBetting}
                 className="mt-2 px-8 py-4 rounded-2xl bg-white/10 hover:bg-white/15 font-black uppercase tracking-widest text-xs flex items-center gap-2 active:scale-95 transition-all">
-                <ChevronLeft size={14} /> Cancel
+                <ChevronLeft size={14} /> Cancel {matchIdRef.current ? '& refund both' : ''}
               </button>
             </motion.div>
           )}
@@ -1109,7 +1220,7 @@ const Rumble = () => {
                     <span className="text-xs font-black uppercase tracking-widest text-amber-500">BLITZ DUEL</span>
                   </div>
                   <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest mt-1">
-                    Q {Math.min(blitzIndex + 1, blitzMatch.questionCount)}/{blitzMatch.questionCount} · {stake} SC
+                    Q {Math.min(blitzIndex + 1, blitzMatch.questionCount)}/{blitzMatch.questionCount} · {stake} SC held in escrow
                   </span>
                 </div>
                 <div className={`font-black tabular-nums text-2xl ${blitzTimeLeft <= 10000 ? "text-red-400 animate-pulse" : "text-white"}`}>
@@ -1117,16 +1228,36 @@ const Rumble = () => {
                 </div>
               </div>
 
+              {oppDown && (
+                <div className="flex items-center gap-3 p-3.5 rounded-2xl bg-amber-500/10 border border-amber-500/30">
+                  <AlertCircle size={16} className="text-amber-400 shrink-0 animate-pulse" />
+                  <p className="text-xs font-bold text-amber-200 leading-snug">
+                    {opponent} lost connection. They have {Math.round((blitzMatch.graceSeconds ?? 45))}s to come back — if they don't, they forfeit and your stake is refunded.
+                  </p>
+                </div>
+              )}
+
+              {/* One scorecard shape for humans and tutors alike. */}
               <div className="grid grid-cols-2 gap-3">
                 <div className="rounded-2xl bg-emerald-500/10 border border-emerald-500/20 p-4 text-center">
                   <p className="text-[10px] font-black uppercase tracking-widest text-emerald-300 mb-1">You</p>
                   <p className="text-3xl font-black tabular-nums text-emerald-300">{blitzScore}</p>
-                  <p className="text-[10px] text-white/40 font-bold tabular-nums mt-1">{blitzAnswered} answered · {blitzWrongs} wrong{blitzStreak >= 2 ? ` · 🔥 ${blitzStreak}` : ""}</p>
+                  <p className="text-[10px] text-white/50 font-bold tabular-nums mt-1">
+                    {blitzAnswered} seen · {blitzRight} right · {blitzWrongs} wrong · {blitzSkipped} skip
+                  </p>
+                  <p className="text-[9px] text-white/30 font-bold uppercase tracking-widest mt-0.5">
+                    {doubleUsed ? 'Double spent' : 'Double available'}{blitzStreak >= 2 ? ` · 🔥 ${blitzStreak}` : ""}
+                  </p>
                 </div>
                 <div className="rounded-2xl bg-indigo-500/10 border border-indigo-500/20 p-4 text-center min-w-0">
                   <p className="text-[10px] font-black uppercase tracking-widest text-indigo-300 mb-1 truncate">{opponent}</p>
                   <p className="text-3xl font-black tabular-nums text-indigo-300">{oppScore}</p>
-                  <p className="text-[10px] text-white/40 font-bold tabular-nums mt-1">{oppAnswered} answered · {oppWrongs} wrong{oppStreak >= 2 ? ` · 🔥 ${oppStreak}` : ""}</p>
+                  <p className="text-[10px] text-white/50 font-bold tabular-nums mt-1">
+                    {oppAnswered} seen · {oppRight} right · {oppWrongs} wrong · {oppSkipped} skip
+                  </p>
+                  <p className="text-[9px] text-white/30 font-bold uppercase tracking-widest mt-0.5">
+                    {oppDown ? 'Disconnected' : oppStreak >= 2 ? `🔥 ${oppStreak}` : 'Racing'}
+                  </p>
                 </div>
               </div>
 
@@ -1145,11 +1276,13 @@ const Rumble = () => {
                     <h2 className="text-2xl font-black leading-snug">{blitzQuestions[blitzIndex]?.question ?? "…"}</h2>
                   </div>
 
+                  {/* Double sits with the options, not detached above them. It is
+                      consumed by the very next submit and can never carry over. */}
                   {!doubleUsed && (
                     <button onClick={() => setDoubleArmed(armed => !armed)}
-                      className={`w-full p-4 rounded-2xl border-2 transition-all font-black text-sm flex items-center justify-center gap-2 ${doubleArmed ? "bg-amber-500/20 border-amber-500 text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.3)]" : "bg-white/5 border-white/10 text-white/50 hover:border-white/30"}`}>
-                      <Zap size={16} fill={doubleArmed ? "currentColor" : "none"} />
-                      {doubleArmed ? "Double armed — your next answer counts ×2 (tap to disarm)" : "??? Double — one answer ×2 (once per duel)"}
+                      className={`w-full py-2.5 rounded-2xl border-2 transition-all font-black text-xs flex items-center justify-center gap-2 ${doubleArmed ? "bg-amber-500/20 border-amber-500 text-amber-300 shadow-[0_0_20px_rgba(245,158,11,0.3)]" : "bg-white/5 border-white/10 text-white/50 hover:border-white/30"}`}>
+                      <Zap size={14} fill={doubleArmed ? "currentColor" : "none"} />
+                      {doubleArmed ? "Double armed ×2 — tap to cancel" : "Double — one answer ×2 (once per duel)"}
                     </button>
                   )}
 
@@ -1183,6 +1316,27 @@ const Rumble = () => {
                   {txState === 'pending' && (
                     <p className="text-center text-xs text-amber-400 font-bold animate-pulse">Grading…</p>
                   )}
+                  <button onClick={() => setForfeitOpen(true)}
+                    className="w-full p-3 rounded-2xl bg-red-500/5 border border-red-500/20 text-red-400/70 font-bold text-[10px] uppercase tracking-widest hover:bg-red-500/10 hover:text-red-300 active:scale-95 transition-all">
+                    Forfeit — lose your {stake} SC stake
+                  </button>
+
+                  {forfeitOpen && (
+                    <div className="rounded-2xl p-5 bg-red-500/10 border border-red-500/30 space-y-3">
+                      <div className="flex items-start gap-2">
+                        <AlertCircle size={18} className="text-red-400 shrink-0 mt-0.5" />
+                        <p className="text-sm text-white/70 font-medium leading-snug">
+                          Forfeit now? Your <span className="text-red-300 font-black">{stake} SC</span> stake is lost and {opponent} is refunded theirs. This cannot be undone.
+                        </p>
+                      </div>
+                      <div className="grid grid-cols-2 gap-3">
+                        <button onClick={() => setForfeitOpen(false)}
+                          className="py-3 rounded-2xl bg-white/10 font-black uppercase tracking-widest text-xs hover:bg-white/15 active:scale-95 transition-all">Keep playing</button>
+                        <button onClick={forfeitArena}
+                          className="py-3 rounded-2xl bg-red-600 font-black uppercase tracking-widest text-xs shadow-lg shadow-red-500/30 active:scale-95 transition-all">Forfeit</button>
+                      </div>
+                    </div>
+                  )}
                 </>
               )}
             </motion.div>
@@ -1194,13 +1348,29 @@ const Rumble = () => {
                 const r = blitzResultForMe();
                 if (!r) return null;
                 if (blitzResult.status === 'abandoned') {
+                  const ABANDON_COPY = {
+                    forfeit: ['You Forfeited', 'You left the duel, so your stake is gone and your opponent was refunded theirs.'],
+                    grace_expired: ['Opponent Forfeited', `${opponent} dropped out and did not come back inside the reconnect window. Their stake is gone and yours was refunded.`],
+                    cancel: ['Battle Voided', 'The duel was cancelled before the clock opened, so both stakes were refunded in full.'],
+                    no_show: ['Opponent Never Arrived', `${opponent} never confirmed the wager, so both stakes were refunded in full.`],
+                    both_away: ['Battle Voided', 'Both players lost connection, so both stakes were refunded in full.'],
+                    v63_pre_migration_void: ['Battle Voided', 'This duel was voided by a system upgrade. Nothing was wagered.'],
+                  };
+                  const [title, copy] = ABANDON_COPY[blitzResult.reason] || ABANDON_COPY.v63_pre_migration_void;
                   return (
                     <div className="p-8 rounded-[2rem] text-center bg-white/5 border border-white/10 space-y-3">
                       <AlertCircle size={40} className="mx-auto text-amber-400" />
-                      <h2 className="text-2xl font-black uppercase tracking-tight text-amber-300">Battle Voided</h2>
-                      <p className="text-white/60 font-medium text-sm">The duel never began, so nothing was wagered. Better luck next time.</p>
-                      <button onClick={resetToBetting}
-                        className="mt-3 w-full py-5 rounded-[2rem] bg-gradient-to-r from-indigo-600 to-purple-600 font-black uppercase tracking-widest text-xs shadow-xl shadow-indigo-500/20 active:scale-95 transition-all">Fight Again</button>
+                      <h2 className="text-2xl font-black uppercase tracking-tight text-amber-300">{title}</h2>
+                      <p className="text-white/60 font-medium text-sm leading-relaxed">{copy}</p>
+                      {reviewList().length > 0 && (
+                        <p className="text-white/40 text-xs font-medium">{reviewList().length} questions reviewed below.</p>
+                      )}
+                      <div className="grid grid-cols-2 gap-3 mt-4">
+                        <button onClick={resetToBetting}
+                          className="py-4 rounded-2xl bg-white/10 font-black uppercase tracking-widest text-xs active:scale-95 transition-all">Back</button>
+                        <button onClick={resetToBetting}
+                          className="py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 font-black uppercase tracking-widest text-xs shadow-xl shadow-indigo-500/20 active:scale-95 transition-all">Fight Again</button>
+                      </div>
                     </div>
                   );
                 }
@@ -1224,33 +1394,70 @@ const Rumble = () => {
                       )}
                       <p className="text-white/50 mt-2 font-medium">
                         {youWon
-                          ? "You dominated the 40-question board."
+                          ? "Higher points on the 40-question board."
                           : r.draw
-                            ? "Even Stevenses — nobody took the pot. Your wager is safe."
-                            : `${r.winner || "Your opponent"} claimed the SC.`}
+                            ? `Level on points — both stakes returned, nothing lost.`
+                            : `${r.winner || "Your opponent"} took the pot.`}
                       </p>
                       <div className={`mt-4 inline-flex items-center gap-2 px-4 py-2 rounded-2xl font-black text-lg ${r.delta > 0 ? "bg-emerald-500/15 text-emerald-400" : r.delta < 0 ? "bg-red-500/15 text-red-400" : "bg-white/10 text-white/60"}`}>
                         {r.delta !== 0 ? `${r.delta > 0 ? "+" : ""}${r.delta} SC` : "0 SC"}
                       </div>
-                      {r.settled === false && (
-                        <p className="mt-3 text-xs text-amber-400/90 font-bold">
-                          Settlement couldn't be recorded — your Smart Coin balance was not changed.
-                        </p>
-                      )}
                     </div>
 
+                    {/* Identical scorecard shape for a human and for a tutor. */}
                     <div className="grid grid-cols-2 gap-3">
                       <div className="rounded-2xl bg-emerald-500/10 border border-emerald-500/20 p-4 text-center">
                         <p className="text-[10px] font-black uppercase tracking-widest text-emerald-300 mb-1">You</p>
-                        <p className="text-3xl font-black tabular-nums text-emerald-300">{r.youScore}</p>
-                        <p className="text-[10px] text-white/40 font-bold tabular-nums mt-1">{r.youAnswered} answered · {r.youWrongs} wrong</p>
+                        <p className="text-3xl font-black tabular-nums text-emerald-300">{r.you.points}</p>
+                        <p className="text-[10px] text-white/50 font-bold tabular-nums mt-1">
+                          {r.you.answers} seen · {r.you.correct} right · {r.you.incorrect} wrong · {r.you.skipped} skip
+                        </p>
                       </div>
                       <div className="rounded-2xl bg-indigo-500/10 border border-indigo-500/20 p-4 text-center min-w-0">
-                        <p className="text-[10px] font-black uppercase tracking-widest text-indigo-300 mb-1 truncate">{opponent}</p>
-                        <p className="text-3xl font-black tabular-nums text-indigo-300">{r.oppScore}</p>
-                        <p className="text-[10px] text-white/40 font-bold tabular-nums mt-1">{r.oppAnswered} answered · {r.oppWrongs} wrong</p>
+                        <p className="text-[10px] font-black uppercase tracking-widest text-indigo-300 mb-1 truncate">
+                          {r.winner}{r.oppIsBot ? ' · tutor' : ''}
+                        </p>
+                        <p className="text-3xl font-black tabular-nums text-indigo-300">{r.opp.points}</p>
+                        <p className="text-[10px] text-white/50 font-bold tabular-nums mt-1">
+                          {r.opp.answers} seen · {r.opp.correct} right · {r.opp.incorrect} wrong · {r.opp.skipped} skip
+                        </p>
                       </div>
                     </div>
+
+                    {reviewList().length > 0 && (
+                      <div className="p-5 rounded-[2rem] bg-white/5 border border-white/10">
+                        <div className="flex items-center gap-2 mb-3">
+                          <Brain size={14} className="text-indigo-300" />
+                          <span className="text-[10px] font-black uppercase tracking-[0.25em] text-indigo-300">Question review</span>
+                        </div>
+                        <div className="space-y-2 max-h-96 overflow-y-auto pr-1">
+                          {reviewList().map(rv => (
+                            <div key={rv.index} className={`rounded-xl p-3 text-sm ${rv.skipped ? 'bg-white/[0.03]' : rv.isCorrect ? 'bg-emerald-500/5' : 'bg-red-500/5'}`}>
+                              <p className="font-bold text-white/90 leading-snug">
+                                Q{rv.index + 1}. {rv.question ?? '…'}
+                              </p>
+                              <div className="mt-1.5 space-y-1 text-xs">
+                                <p className={rv.skipped ? 'text-white/40 font-bold' : rv.isCorrect ? 'text-emerald-300 font-bold' : 'text-red-300 font-bold'}>
+                                  {rv.skipped ? 'Skipped · 0 pts' : rv.isCorrect ? `Correct · ${rv.points} pt${rv.points === 1 ? '' : 's'}${rv.multiplier === 2 ? ' (doubled)' : ''}` : `Incorrect · 0 pts${rv.multiplier === 2 ? ' (doubled, still 0)' : ''}`}
+                                </p>
+                                {rv.selected && !rv.isCorrect && (
+                                  <p className="text-white/40 font-medium">Your answer: {rv.selected}</p>
+                                )}
+                                {rv.correctAnswer && !rv.isCorrect && !rv.skipped && (
+                                  <p className="text-emerald-200 font-bold">Correct answer: {rv.correctAnswer}</p>
+                                )}
+                                {rv.explanation && (
+                                  <p className="text-slate-300 font-medium leading-relaxed pt-1">{rv.explanation}</p>
+                                )}
+                                {!rv.explanation && rv.hint && (
+                                  <p className="text-slate-400 italic font-medium pt-1">Hint: {rv.hint}</p>
+                                )}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      </div>
+                    )}
 
                     {missedList().length > 0 && (
                       <div className="p-5 rounded-[2rem] bg-white/5 border border-white/10">

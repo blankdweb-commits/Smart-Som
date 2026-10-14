@@ -32,6 +32,7 @@ const Sidebar = () => {
     { name: 'Finance Admin', icon: Shield, path: '/admin/finance' },
     { name: 'User Management', icon: Users, path: '/admin/users' },
     { name: 'Question Bank', icon: Search, path: '/admin/questions' },
+    { name: 'Marketplace', icon: FileUp, path: '/admin/marketplace' },
   ] : [];
 
   return (

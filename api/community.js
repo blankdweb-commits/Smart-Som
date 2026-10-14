@@ -42,6 +42,8 @@
 //   /api/community/anonymous/event         one card     { event_id, group_id? }
 //   /api/community/anonymous/event-react   react to card { event_id, emoji, active, group_id? }
 //   /api/community/anonymous/event-respond accept/decline { event_id, respond, group_id? }
+//   /api/community/anonymous/duel      RPS bout state { event_id, group_id? }
+//   /api/community/anonymous/duel-pick RPS throw      { duel_id, move, group_id? }
 //   /api/community/anonymous/prefs         anti-slam opt-out { declining_interactions?, group_id? }
 //   /api/community/anonymous/presence       heartbeat { session_id, group_id? }
 //   /api/community/anonymous/presence-leave exit      { group_id? }
@@ -88,6 +90,7 @@ import {
   handleAnonEvent,
   handleAnonEventReact,
   handleAnonEventRespond,
+  handleAnonDuel,
   handleAnonPrefs,
   handleAnonPresence,
   handleAnonPresenceLeave,
@@ -133,6 +136,9 @@ const HANDLERS = [
   { re: /\/anonymous\/event-react$/, fn: handleAnonEventReact },
   { re: /\/anonymous\/event-respond$/, fn: handleAnonEventRespond },
   { re: /\/anonymous\/event$/, fn: handleAnonEvent },
+  // v62 - opt-in rock-paper-scissors on an accepted challenge.
+  { re: /\/anonymous\/duel-pick$/, fn: handleAnonDuel },
+  { re: /\/anonymous\/duel$/, fn: handleAnonDuel },
   { re: /\/anonymous\/prefs$/, fn: handleAnonPrefs },
   { re: /\/anonymous\/presence-leave$/, fn: handleAnonPresenceLeave },
   { re: /\/anonymous\/presence$/, fn: handleAnonPresence },

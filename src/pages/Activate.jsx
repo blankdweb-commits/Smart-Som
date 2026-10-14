@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { ShieldCheck, ArrowRight, Star, Clock, Loader2, AlertCircle, CheckCircle2 } from '../components/Icons';
+import { ShieldCheck, ArrowRight, Star, Clock, Loader2, AlertCircle, CheckCircle2, Info } from '../components/Icons';
 import { useAppContext } from '../context/AppContext';
 import { supabase } from '../utils/supabase';
 
@@ -175,10 +175,13 @@ export default function Activate() {
                         {plan.name} Access
                       </p>
                       <p className="text-[10px] text-slate-400 font-bold uppercase mt-0.5">
-                        NGN {Number(plan.price).toLocaleString()} / {durationLabel(plan.duration_days)}
+                        {durationLabel(plan.duration_days)} access · one-time payment
                       </p>
-                      <p className="text-[9px] text-slate-400 font-bold uppercase mt-1 sm:hidden">
-                        Tap to pay securely
+                      <p className="text-xs font-black text-slate-700 dark:text-slate-200 mt-1">
+                        Total payable: NGN {Number(plan.price).toLocaleString()}
+                      </p>
+                      <p className="text-[9px] text-slate-400 font-bold uppercase mt-1">
+                        No auto-renewal
                       </p>
                     </div>
                     <div className="flex flex-col items-end gap-2 shrink-0">
@@ -196,6 +199,15 @@ export default function Activate() {
                   </button>
                 );
               })}
+           </div>
+
+           <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/50 p-3 flex items-start gap-2">
+             <Info size={14} className="text-slate-400 shrink-0 mt-0.5" />
+             <p className="text-[11px] text-slate-500 dark:text-slate-400 leading-relaxed">
+               The “Total payable” above is exactly what Paystack charges — no hidden fees. Access runs for the plan
+               duration shown and does <span className="font-bold">not</span> renew automatically; you can purchase
+               again when it expires.
+             </p>
            </div>
 
            {!userProfile.isActivated && (

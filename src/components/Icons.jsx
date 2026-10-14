@@ -93,7 +93,10 @@ import {
   Crown,
   BellOff,
   Unlock,
-  Compass
+  Compass,
+  Store,
+  ShoppingCart,
+  Wallet
 } from 'lucide-react';export {
   AlertCircle,
   AlertTriangle,
@@ -190,5 +193,8 @@ import {
 Crown,
     BellOff,
     Unlock,
-    Compass
+    Compass,
+    Store,
+    ShoppingCart,
+    Wallet
 };

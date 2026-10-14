@@ -1,8 +1,8 @@
-﻿// api/_community.js
+// api/_community.js
 //
 // Support module backing the single api/community.js serverless function (the
 // underscore prefix keeps Vercel from deploying this file as a separate
-// function â€” the Hobby 12-function cap requires ONE file for all community
+// function — the Hobby 12-function cap requires ONE file for all community
 // writes). Contains every server-authoritative rule for the "Community Reset +
 // Ephemeral Posts + Anonymous Group System":
 //
@@ -55,12 +55,15 @@ export const MENTION_RE = /@Anonymous\s*#(\d{1,4})/gi;
 // attacks inside the fight window start ONE (deduped) fight.
 export const ROOM_ACTIONS = [
   { key: 'punch', glyph: '👊', label: 'Punch', kind: 'attack', tone: 'rose' },
-  { key: 'kick', glyph: '🦵', label: 'Kick', kind: 'attack', tone: 'rose' },
+  { key: 'kick', glyph: '🪵', label: 'Kick', kind: 'attack', tone: 'rose' },
   { key: 'fuckoff', glyph: '🖕', label: 'Fuck Off', kind: 'attack', tone: 'rose' },
   { key: 'waka', glyph: '🖐️', label: 'Waka', kind: 'attack', tone: 'amber' },
   { key: 'hug', glyph: '🤗', label: 'Hug', kind: 'affection', tone: 'amber' },
   { key: 'highfive', glyph: '🙌', label: 'High five', kind: 'affection', tone: 'emerald' },
   { key: 'kiss', glyph: '😘', label: 'Kiss', kind: 'affection', tone: 'pink' },
+  // v62 — consent-gated comedic gag. A kind='challenge' row the TARGET must
+  // accept before anything happens; NOT an attack, so it never starts a fight.
+  { key: 'crack', glyph: '🥵', label: 'Toast / Crack', kind: 'affection', tone: 'pink' },
   { key: 'danceoff', glyph: '💃', label: 'Dance-off', kind: 'play', tone: 'violet' },
   { key: 'wave', glyph: '👋', label: 'Wave', kind: 'affection', tone: 'sky' },
   { key: 'challenge', glyph: '⚔️', label: 'Challenge', kind: 'play', tone: 'indigo' },
@@ -84,6 +87,33 @@ export const EVENT_FEED_LIMIT = 50;
 // messages: 10 minutes after they are created. No event outlives a message.
 export const EVENT_LIFETIME_MS = 10 * 60 * 1000;
 
+// v62 — actions that open a CONSENT prompt (accept/decline) rather than firing
+// straight away. 'crack' is a comedic gag: nothing happens until the target says
+// yes, and the target may decline — which ends the chain entirely.
+export const CONSENT_ACTION_KEYS = new Set(['crack']);
+
+// v62 — the gag timeline. One step every GAG_STEP_MS, revealed by the
+// request-driven sweep in `revealDueAnnouncements` (no cron exists on this
+// project). Copy is deliberately NON-GRAPHIC: slang only, no explicit text.
+export const GAG_STEP_MS = 5 * 60 * 1000;
+export const GAG_STEPS = [
+  { key: 'belle', label: 'belle' },
+  { key: 'denied', label: 'denied the belle' },
+  { key: 'birth', label: 'gave birth to quadruplets' },
+];
+const GAG_BIRTHS = [
+  'quadruplets',
+  'twins',
+  'triplets',
+  'a set of septuplets',
+  'one loud baby',
+];
+
+// v62 — rock-paper-scissors for an accepted challenge. Both fighters must have
+// picked before the bout resolves; an unanswered bout expires with the card.
+export const RPS_MOVES = ['rock', 'paper', 'scissors'];
+export const RPS_OPPONENT = { rock: 'scissors', paper: 'rock', scissors: 'paper' };
+
 export const PRESENCE_GRACE_SECONDS = 45;
 export const PRESENCE_INACTIVITY_SECONDS = 300;
 export const ENCODED_MAX = MAX_CONTENT;
@@ -106,7 +136,9 @@ export const MEMBERSHIP_WARNING_SECONDS = 600; // warn at 10 min
 export const MAX_POST_LIFE_MS = 6 * 60 * 60 * 1000;
 
 // Versioned safety notice members must acknowledge before they can speak.
-export const ROOM_NOTICE = { key: 'anonymous_room_safety', version: 4 };
+// v62 - bumped to 5: the room gained the consent-gated "Toast / Crack" gag, so
+// everyone re-accepts the notice (which now discloses it) before it can appear.
+export const ROOM_NOTICE = { key: 'anonymous_room_safety', version: 5 };
 
 // Reporting: fixed categories + a per-user hourly rate limit.
 export const REPORT_CATEGORIES = ['harassment', 'spam', 'self_harm', 'hate', 'sexual', 'personal_info', 'other'];
@@ -191,10 +223,10 @@ export const isBanned = async (userId) => {
   return !!data?.community_banned_at;
 };
 
-// viewer role for a group (member|spectator|admin|none) â€” server side.
+// viewer role for a group (member|spectator|admin|none) — server side.
 export const viewerRole = async (groupId, userId) => {
   const supabase = getDb();
-  if (!supabase) throw err('SERVER_CONFIG', 'Servicio de configuraciÃ³n no disponible', 500);
+  if (!supabase) throw err('SERVER_CONFIG', 'Servicio de configuración no disponible', 500);
   const { data, error } = await supabase
     .rpc('community_role_for_group', { p_group: groupId, p_user: userId });
   if (error) throw err('RPC_FAILED', error.message, 500);
@@ -204,7 +236,7 @@ export const viewerRole = async (groupId, userId) => {
 // can this user view content of a group?
 export const canViewGroup = async (groupId, userId) => {
   const supabase = getDb();
-  if (!supabase) throw err('SERVER_CONFIG', 'Servicio de configuraciÃ³n no disponible', 500);
+  if (!supabase) throw err('SERVER_CONFIG', 'Servicio de configuración no disponible', 500);
   const { data, error } = await supabase
     .rpc('community_can_view', { p_group: groupId, p_user: userId });
   if (error) throw err('RPC_FAILED', error.message, 500);
@@ -214,7 +246,7 @@ export const canViewGroup = async (groupId, userId) => {
 // Fetch a post and decide whether `userId` may see/interact with it.
 export const fetchAlivePost = async (postId, userId) => {
   const supabase = getDb();
-  if (!supabase) throw err('SERVER_CONFIG', 'Servicio de configuraciÃ³n no disponible', 500);
+  if (!supabase) throw err('SERVER_CONFIG', 'Servicio de configuración no disponible', 500);
   const { data: post } = await supabase
     .from('community_posts')
     .select('*')
@@ -931,7 +963,7 @@ export async function handleJoinGroup(req, res, user) {
 // POST /api/community/anonymous/spectate-free  { group_id }
 // P2 — claim one of the first `free_spectator_cap` spectator seats (no charge).
 // Beyond the cap the server refuses with SPECTATOR_PAYMENT_REQUIRED so the
-// client can offer the ₦299 paid pass instead.
+// client can offer the ?299 paid pass instead.
 export async function handleAnonSpectateFree(req, res, user) {
   const supabase = getDb();
   if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
@@ -1088,8 +1120,11 @@ export async function handleLeaveGroup(req, res, user) {
   const group = await fetchAnonGroup(groupId);
   if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND' });
 
-  if (group.type === 'anonymous') {
-    const alias = await ensureRoomAlias(groupId, user.id, readVisitKey(req)).catch(() => null);
+if (group.type === 'anonymous') {
+    // Read the alias the ROOM ALREADY KNOWS (no visit key => no re-roll). Passing
+    // the visit key here used to re-roll first, so a departing member in a new
+    // tab was announced under a number nobody had ever seen.
+    const alias = await ensureRoomAlias(groupId, user.id).catch(() => null);
     const { data, error } = await supabase.rpc('community_anonymous_leave', { p_group: groupId, p_user: user.id });
     if (error) {
       console.error('[community anon leave]', error);
@@ -1102,8 +1137,31 @@ export async function handleLeaveGroup(req, res, user) {
       publishRoomEvent(groupId, 'wipe');
     } else {
       publishRoomEvent(groupId, 'departure', alias ? { alias } : {});
+      // Leaving drops the room identity so the NEXT join mints a fresh
+      // Anonymous #NN. The visit key lives in sessionStorage, so without this
+      // a leave?re-enter in the same tab short-circuited on the stored
+      // visit_key and kept the old pseudonym (ensureRoomAlias line ~1300).
+      // Membership/seat are already gone; only the identity changes, and only
+      // for this room.
+      try {
+        await supabase
+          .from('anonymous_room_identities')
+          .delete()
+          .eq('group_id', groupId)
+          .eq('user_id', user.id);
+      } catch (identityErr) {
+        // Non-fatal: the worst case is the same pseudonym on re-entry.
+        console.error('[anonymous room identity drop]', identityErr);
+      }
     }
-    return res.status(200).json({ ok: true, member_count: data.member_count, group_state: data.group_state, wiped: !!data.wiped });
+    return res.status(200).json({
+      ok: true,
+      member_count: data.member_count,
+      group_state: data.group_state,
+      wiped: !!data.wiped,
+      // The client clears its cached visit key so the re-join is a NEW visit.
+      new_identity: !data.wiped,
+    });
   }
 
   // Leave handled by the client for normal groups (members_delete_own policy).
@@ -1296,7 +1354,7 @@ export async function ensureRoomAlias(groupId, userId, visitKey = null) {
     .eq('group_id', groupId)
     .eq('user_id', userId)
     .maybeSingle();
-  // Same visit (or a caller that doesn't track visits) → keep the alias.
+  // Same visit (or a caller that doesn't track visits) ? keep the alias.
   if (existing && (!visitKey || existing.visit_key === visitKey)) return existing.alias;
 
   const roll = () => 1 + Math.floor(Math.random() * 9999);
@@ -1474,7 +1532,11 @@ const orderedSocial = (counts) =>
 // member can Accept/Decline a challenge. All optional: an un-migrated DB just
 // yields zero events (never throws).
 // ------------------------------------------------------------
-const EVENT_COLUMNS = 'id, group_id, post_id, action, kind, status, actor_id, actor_alias, target_id, target_alias, created_at';
+// v62 - visible_at is selected so a delayed line can be given an explicit
+// expiry (created_at + EVENT_LIFETIME is already spent when it finally shows).
+// The two call sites that select EVENT_COLUMNS both fall back to the pre-v62
+// column set on 42703, so this stays backwards compatible.
+const EVENT_COLUMNS = 'id, group_id, post_id, action, kind, status, actor_id, actor_alias, target_id, target_alias, created_at, visible_at';
 
 async function loadEventReactions(eventIds, viewerId) {
   const byEvent = new Map();
@@ -1503,28 +1565,97 @@ async function loadEventReactions(eventIds, viewerId) {
 
 // v54 — 'slap' was replaced by 'punch'. Legacy rows (and any env where the v54
 // migration has not run yet) still render as a Punch card, never an ✨ fallback.
+// v62 — synthetic cards (fight / RPS result / gag announcements) are not
+// user actions, so they get their own presentation table instead of the ?
+// fallback. Keep this in sync with the client sentence table.
+const EVENT_SYSTEM_META = {
+  fight: { glyph: '🥊', label: 'Fight', tone: 'rose' },
+  rps_win: { glyph: '✊', label: 'RPS win', tone: 'emerald' },
+  rps_draw: { glyph: '🤝', label: 'RPS draw', tone: 'sky' },
+  cracked: { glyph: '🥵', label: 'Cracked', tone: 'pink' },
+  cracking: { glyph: '😏', label: 'Cracking', tone: 'pink' },
+  belle: { glyph: '🤰', label: 'Belle', tone: 'amber' },
+  denied: { glyph: '🙅', label: 'Denied the belle', tone: 'sky' },
+};
+// `birth_<slug>` carries the exact wording with it.
+const eventSystemMeta = (action) => {
+  if (EVENT_SYSTEM_META[action]) return EVENT_SYSTEM_META[action];
+  if (typeof action === 'string' && action.startsWith('birth_')) {
+    return { glyph: '👶', label: action.slice(6).replace(/_/g, ' '), tone: 'emerald' };
+  }
+  return null;
+};
+
 const eventActionMeta = (action) =>
   ROOM_ACTIONS.find((a) => a.key === action) ||
   (action === 'slap' ? ROOM_ACTIONS.find((a) => a.key === 'punch') : null) ||
+  eventSystemMeta(action) ||
   null;
 
 // Raw event rows -> masked event-card payloads (no user ids, ever). A card is
 // targetable for Respond only when the viewer IS the challenged member.
+// v62 - when an event card should disappear from a client's timeline. A delayed
+// row is written with created_at = visible_at (see startGagChain), so
+// created_at already marks the moment the card became visible and the ordinary
+// created_at + EVENT_LIFETIME is correct for every row. Sending it explicitly
+// keeps the client's sweep in step with the server's filter.
+function eventExpiresAt(row) {
+  const created = Date.parse(row?.created_at || '');
+  if (!Number.isFinite(created)) return null;
+  return new Date(created + EVENT_LIFETIME_MS).toISOString();
+}
+
+// v62 - the exact wording for each system/gag line. Nigerian slang, no explicit
+// text. `birth_<slug>` carries its own words.
+function announcementText(action, actor, target) {
+  const both = actor && target ? `${actor} and ${target}` : actor;
+  switch (action) {
+    case 'cracked':
+      return target ? `${actor} cracked ${target}` : `${actor} cracked it`;
+    case 'cracking':
+      return `${both} are cracking`;
+    case 'belle':
+      return `${actor} don get belle`;
+    case 'denied':
+      return `${actor} denied the belle`;
+    case 'rps_win':
+      return target ? `${actor} won rock-paper-scissors against ${target}` : `${actor} won rock-paper-scissors`;
+    case 'rps_draw':
+      return `${both} tied at rock-paper-scissors`;
+    default:
+      if (typeof action === 'string' && action.startsWith('birth_')) {
+        return `${actor} gave birth to ${action.slice(6).replace(/_/g, ' ')}`;
+      }
+      return null;
+  }
+}
+
 function hydrateRoomEvent(row, viewerId, reactions = {}) {
-  // v54 — the DB rewrite + this alias both surface any legacy 'slap' row as
+  // v54 - the DB rewrite + this alias both surface any legacy 'slap' row as
   // the canonical Punch card (correct glyph/label AND the "punched" verb).
   const action = row.action === 'slap' ? 'punch' : row.action;
+  const actor = aliasLabel(row.actor_alias);
+  const target = row.target_alias != null ? aliasLabel(row.target_alias) : null;
+  const kind = row.kind || 'action';
   return {
     id: Number(row.id),
     action,
     glyph: eventActionMeta(action)?.glyph || '✨',
     label: eventActionMeta(action)?.label || action,
     tone: eventActionMeta(action)?.tone || 'slate',
-    kind: row.kind || 'action',
+    kind,
     status: row.status || 'open',
-    actor: aliasLabel(row.actor_alias),
-    target: row.target_alias != null ? aliasLabel(row.target_alias) : null,
+    actor,
+    target,
+    // v62 - system/gag lines carry their own sentence: the generic
+    // "actor + verb + target|room" shape cannot render "don get belle" or
+    // "gave birth to quadruplets" correctly. Still alias-only, never a user id.
+    text: kind === 'announce' ? announcementText(action, actor, target) : null,
     created_at: row.created_at,
+    // v62 - explicit expiry for the client's sweep. A delayed line starts its
+    // 10-minute life at visible_at, so created_at + lifetime would already be
+    // in the past the moment it is first served.
+    expires_at: eventExpiresAt(row),
     is_actor: row.actor_id === viewerId,
     is_target: !!row.target_id && row.target_id === viewerId,
     can_respond: row.kind === 'challenge' && row.status === 'pending' && !!row.target_id && row.target_id === viewerId,
@@ -1541,14 +1672,34 @@ async function hydrateRoomEvents(group, rows, viewerId) {
 
 async function fetchRoomEvent(group, eventId) {
   const supabase = getDb();
-  const { data, error } = await supabase
-    .from('anonymous_room_events')
-    .select(EVENT_COLUMNS)
-    .eq('id', eventId)
-    .eq('group_id', group.id)
-    .maybeSingle();
-  if (error || !data) return null;
-  // v54 — events expire at 10 minutes, exactly like anonymous messages.
+  if (!supabase) return null;
+  const baseQuery = () =>
+    supabase
+      .from('anonymous_room_events')
+      .select(EVENT_COLUMNS)
+      .eq('id', eventId)
+      .eq('group_id', group.id)
+      .maybeSingle();
+  let data = null;
+  let error = null;
+  // v62 - hide a scheduled gag line until its moment. Fall back to the pre-v62
+  // shape when the column is absent so single-card fetches keep working.
+  const gated = await baseQuery().lte('visible_at', new Date().toISOString());
+  if (gated.error && (gated.error.code === '42703' || gated.error.code === '42P10')) {
+    const plain = await baseQuery();
+    data = plain.data;
+    error = plain.error;
+  } else {
+    data = gated.data;
+    error = gated.error;
+  }
+if (error || !data) return null;
+  // v54 - events expire at 10 minutes, exactly like anonymous messages.
+  // v62 - a delayed gag row is written with created_at = visible_at (see
+  // startGagChain), so created_at ALREADY marks when the card became visible and
+  // this plain check is correct for every row. Deliberately do NOT widen this to
+  // max(created_at, visible_at): a row whose created_at was backdated but whose
+  // visible_at kept the insert-time default would then never expire.
   const created = Date.parse(data.created_at);
   if (!Number.isFinite(created) || created <= Date.now() - EVENT_LIFETIME_MS) return null;
   return data;
@@ -2096,18 +2247,52 @@ export async function handleAnonFeed(req, res, user) {
 
   const messages = (await hydrateRoomMessages(group, alive, user.id)).reverse(); // oldest first
 
+// v62 — reveal any gag step whose visible_at has come. This sweep IS the
+  // scheduler: it piggy-backs on ordinary room traffic (this feed fetch, the
+  // room open, and every realtime-triggered reconcile) because the project has
+  // no cron and a serverless invocation cannot hold a timer open.
+  await revealDueAnnouncements(supabase, group.id);
+
   // v53 — interleave action/challenge/fight EVENT cards with the messages.
   // Newest cards first, returned oldest-first for a clean client-side merge.
-  let events = [];
+let events = [];
   try {
-    const { data: eventRows, error: eventError } = await supabase
-      .from('anonymous_room_events')
-      .select(EVENT_COLUMNS)
-      .eq('group_id', group.id)
-      .gte('created_at', new Date(nowMs - EVENT_LIFETIME_MS).toISOString())
-      .order('created_at', { ascending: false })
-      .order('id', { ascending: false })
-      .limit(EVENT_FEED_LIMIT);
+// v62 - the event-lifetime cutoff. Shared by the "still alive" filter below.
+  const sinceIso = new Date(nowMs - EVENT_LIFETIME_MS).toISOString();
+  const baseEventQuery = () =>
+supabase
+        .from('anonymous_room_events')
+        .select(EVENT_COLUMNS)
+        .eq('group_id', group.id)
+        // v62 - lifetime filter. startGagChain writes created_at = visible_at for
+        // a delayed line, so this single comparison is already correct: the card
+        // is hidden until visible_at passes, and expires EVENT_LIFETIME after
+        // it APPEARS rather than after it was written.
+        .gte('created_at', sinceIso)
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: false })
+        .limit(EVENT_FEED_LIMIT);
+    // v62 - a scheduled gag line stays hidden until its moment. If the column is
+    // not there yet (v62 unapplied), fall back to the pre-v62 query so event
+    // cards keep working instead of vanishing.
+    let eventRows = null;
+    let eventError = null;
+    const gated = await baseEventQuery().lte('visible_at', new Date(nowMs).toISOString());
+    if (gated.error && (gated.error.code === '42703' || gated.error.code === '42P10')) {
+      const plain = await supabase
+        .from('anonymous_room_events')
+        .select(EVENT_COLUMNS)
+        .eq('group_id', group.id)
+        .gte('created_at', sinceIso)
+        .order('created_at', { ascending: false })
+        .order('id', { ascending: false })
+        .limit(EVENT_FEED_LIMIT);
+      eventRows = plain.data;
+      eventError = plain.error;
+    } else {
+      eventRows = gated.data;
+      eventError = gated.error;
+    }
     if (eventError) {
       /* v53 not applied yet */
     } else if (eventRows?.length) {
@@ -2590,7 +2775,9 @@ export async function handleAnonSocial(req, res, user) {
     }
   }
 
-  const isChallenge = action === 'challenge';
+  // v62 — 'crack' is consent-gated: it opens an accept/decline invite exactly
+  // like 'challenge', so the target consents before anything happens.
+  const isChallenge = action === 'challenge' || CONSENT_ACTION_KEYS.has(action);
   const { data: eventRow, error: eventError } = await supabase
     .from('anonymous_room_events')
     .insert({
@@ -2615,14 +2802,17 @@ export async function handleAnonSocial(req, res, user) {
   if (messageId) publishRoomEvent(group.id, 'social', { id: messageId, action });
   void touchMembership(group.id, user.id);
 
-  // A challenge flags the target; give them a nudge (opt-in social pref).
+// A challenge/consent invite flags the target; give them a nudge (opt-in social pref).
   if (isChallenge) {
+    const isCrack = action === 'crack';
     void sendRoomPush({
       groupId: group.id,
       recipientUserIds: [targetUserId],
       kind: 'social',
-      title: '⚔️ You have been challenged!',
-      body: `${aliasLabel(alias)} challenged you in the Anonymous room.`,
+      title: isCrack ? '🥵 Somebody toasted you!' : '⚔️ You have been challenged!',
+      body: isCrack
+        ? `${aliasLabel(alias)} sent you a move in the Anonymous room. Accept or decline.`
+        : `${aliasLabel(alias)} challenged you in the Anonymous room.`,
       url: `/study-groups/${group.id}`,
     }).catch(() => {});
   }
@@ -2748,6 +2938,322 @@ export async function handleAnonEventReact(req, res, user) {
   return res.status(200).json({ ok: true, event: hydrateRoomEvent(row, user.id, reactions.get(eventId)) });
 }
 
+// =====================================================================
+// v62 — the consent-gated comedic gag ("toast / crack / belle").
+//
+// Nothing happens until the TARGET accepts. On accept we publish the immediate
+// announcement and pre-write the delayed steps as HIDDEN rows (visible_at in
+// the future). There is no scheduler on this project (no vercel cron; Vercel
+// Hobby cron is daily-only), so the hidden rows are revealed by a
+// request-driven sweep that piggy-backs on the room's own traffic.
+// =====================================================================
+
+// Which of the pair ends up "pregnant" is a coin flip — either party can be,
+// which is the joke.
+function gagCarrier(actorId, targetId) {
+  return Math.random() < 0.5 ? actorId : targetId;
+}
+
+async function startGagChain(supabase, group, row) {
+  const carrierId = gagCarrier(row.actor_id, row.target_id);
+  const otherId = carrierId === row.actor_id ? row.target_id : row.actor_id;
+  const carrierAlias = carrierId === row.actor_id ? row.actor_alias : row.target_alias;
+  const otherAlias = carrierId === row.actor_id ? row.target_alias : row.actor_alias;
+  const birth = GAG_BIRTHS[Math.floor(Math.random() * GAG_BIRTHS.length)];
+
+  // t+0 — visible immediately.
+  const nowIso = new Date().toISOString();
+  const rows = [
+    {
+      group_id: group.id,
+      post_id: row.post_id,
+      action: Math.random() < 0.5 ? 'cracked' : 'cracking',
+      kind: 'announce',
+      status: 'open',
+      actor_id: row.actor_id,
+      actor_alias: row.actor_alias,
+      target_id: row.target_id,
+      target_alias: row.target_alias,
+      created_at: nowIso,
+      visible_at: nowIso,
+    },
+  ];
+
+  // t+5m, t+10m, t+15m — hidden until the sweep reveals them.
+  // created_at is deliberately set EQUAL to visible_at for a delayed row. That
+  // single choice fixes three things at once:
+  //   * ordering — the feed sorts by created_at, so the line lands at the
+  //     moment it is revealed instead of clustering at the original T0;
+  //   * the LIMIT 50 window — a delayed row is no longer pushed out of the feed
+  //     by everything that happened while it waited;
+  //   * expiry — created_at + EVENT_LIFETIME then equals visible_at + lifetime,
+  //     i.e. the card lives exactly 10 minutes after it APPEARS.
+  const at = (step) => new Date(Date.now() + step * GAG_STEP_MS).toISOString();
+  const payloadFor = (action, actorId, actorAlias, targetId, targetAlias, step) => {
+    const when = at(step);
+    return {
+      group_id: group.id,
+      post_id: row.post_id,
+      action,
+      kind: 'announce',
+      status: 'open',
+      actor_id: actorId,
+      actor_alias: actorAlias,
+      target_id: targetId,
+      target_alias: targetAlias,
+      created_at: when,
+      visible_at: when,
+    };
+  };
+  rows.push(payloadFor('belle', carrierId, carrierAlias, null, null, 1));
+  rows.push(payloadFor('denied', otherId, otherAlias, carrierId, carrierAlias, 2));
+  rows.push(payloadFor(`birth_${birth.replace(/\s+/g, '_')}`, carrierId, carrierAlias, null, null, 3));
+
+  const { error } = await supabase.from('anonymous_room_events').insert(rows);
+  if (error) {
+    // v62 not applied yet (or the CHECK was not widened): the invite still
+    // resolved, we just could not stage the punchline.
+    console.error('[anonymous gag chain]', error.code || '', error.message);
+  }
+}
+
+// Reveals any gag step whose time has come. Runs off ordinary room traffic
+// (feed fetch / room open / realtime-triggered reconcile) and broadcasts a hint
+// so connected clients refresh immediately. Throttled per room.
+const gagSweepAt = new Map();
+const GAG_SWEEP_THROTTLE_MS = 10_000;
+export async function revealDueAnnouncements(supabase, groupId) {
+  const last = gagSweepAt.get(groupId) || 0;
+  const nowMs = Date.now();
+  if (nowMs - last < GAG_SWEEP_THROTTLE_MS) return 0;
+  gagSweepAt.set(groupId, nowMs);
+  try {
+    const baseQuery = () =>
+      supabase
+        .from('anonymous_room_events')
+        .select('id')
+        .eq('group_id', groupId)
+        .eq('kind', 'announce')
+        .limit(1);
+    // v62 - gate on visible_at, but fall back to the pre-v62 shape when the
+    // column is absent. Without this fallback the sweep failed SILENTLY (the
+    // bare .lte() returned 42703 and hit the early return below), so a due gag
+    // line was never broadcast and clients only saw it on the next poll.
+    let due = null;
+    let error = null;
+    const gated = await baseQuery().lte('visible_at', new Date(nowMs).toISOString());
+    if (gated.error && (gated.error.code === '42703' || gated.error.code === '42P10')) {
+      const plain = await baseQuery();
+      due = plain.data;
+      error = plain.error;
+    } else {
+      due = gated.data;
+      error = gated.error;
+    }
+    if (error || !due || due.length === 0) return 0;
+    // Rows become visible the moment visible_at has passed (the feed filter is
+    // `visible_at <= now`), so all that is left is to tell clients to refetch.
+    publishRoomEvent(groupId, 'room_event', { action: 'announcement' });
+    return due.length;
+  } catch {
+    return 0;
+  }
+}
+
+// =====================================================================
+// v62 — rock-paper-scissors for an accepted challenge (opt-in). The bout is
+// only STARTED here; the fighters choose to play by tapping the card.
+// =====================================================================
+export async function openDuel(supabase, group, { eventId, aId, bId, aAlias, bAlias }) {
+  const { data, error } = await supabase
+    .from('anonymous_duels')
+    .insert({ group_id: group.id, event_id: eventId, a_id: aId, b_id: bId, a_alias: aAlias, b_alias: bAlias })
+    .select('id')
+    .single();
+  if (error) {
+    // Unique on event_id => the verifier/webhook already opened it.
+    if (error.code === '23505') return null;
+    // v62 not applied: fail soft, the fight card still works.
+    if (error.code === '42P01' || error.code === '42703') {
+      console.error('[anonymous duel schema]', error.code);
+      return null;
+    }
+    throw error;
+  }
+  publishRoomEvent(group.id, 'duel', { id: data.id, eventId });
+  return data.id;
+}
+
+const DUEL_COLUMNS = 'id, group_id, event_id, a_id, b_id, a_move, b_move, status, winner_id, a_alias, b_alias, created_at, decided_at';
+
+// Masked payload: the viewer learns only what is safe (their own move and
+// whether the opponent has locked in) plus the outcome once decided. Moves are
+// HIDDEN until both are in, so picking cannot be countered.
+function hydrateDuel(row, viewerId) {
+  if (!row) return null;
+  const isA = row.a_id === viewerId;
+  const isB = row.b_id === viewerId;
+  if (!isA && !isB) return null;
+  const bothPicked = !!row.a_move && !!row.b_move;
+  return {
+    id: Number(row.id),
+    event_id: Number(row.event_id),
+    you: aliasLabel(isA ? row.a_alias : row.b_alias),
+    them: aliasLabel(isA ? row.b_alias : row.a_alias),
+    your_move: isA ? row.a_move : row.b_move,
+    opponent_locked: isA ? !!row.b_move : !!row.a_move,
+    status: row.status,
+    // Revealed only once the bout is settled.
+    your_throw: bothPicked && row.status === 'done'
+      ? (isA ? row.a_move : row.b_move)
+      : null,
+    their_throw: bothPicked && row.status === 'done'
+      ? (isA ? row.b_move : row.a_move)
+      : null,
+    you_won: row.status === 'done' ? row.winner_id === viewerId : null,
+    result: row.status === 'done'
+      ? (row.winner_id ? 'won' : 'lost')
+      : null,
+  };
+}
+
+export function resolveRps(aMove, bMove) {
+  if (!RPS_MOVES.includes(aMove) || !RPS_MOVES.includes(bMove)) return null;
+  if (aMove === bMove) return 'draw';
+  return RPS_OPPONENT[aMove] === bMove ? 'a' : 'b';
+}
+
+export async function finishDuel(supabase, duel, group) {
+  const outcome = resolveRps(duel.a_move, duel.b_move);
+  if (!outcome) return null;
+  const winnerId = outcome === 'draw' ? null : outcome === 'a' ? duel.a_id : duel.b_id;
+  const { data: updated, error } = await supabase
+    .from('anonymous_duels')
+    .update({ status: 'done', winner_id: winnerId, decided_at: new Date().toISOString() })
+    .eq('id', duel.id)
+    .eq('status', 'open')
+    .select('id')
+    .single();
+  if (error || !updated) return null;
+
+  const winnerAlias = winnerId === duel.a_id ? duel.a_alias : duel.b_alias;
+  const loserId = winnerId === duel.a_id ? duel.b_id : duel.a_id;
+  const loserAliasNum = loserId === duel.a_id ? duel.a_alias : duel.b_alias;
+
+  // The result is a normal event card so it expires like everything else.
+  await supabase.from('anonymous_room_events').insert({
+    group_id: group.id,
+    action: outcome === 'draw' ? 'rps_draw' : 'rps_win',
+    kind: 'announce',
+    status: 'open',
+    actor_id: winnerId || duel.a_id,
+    actor_alias: winnerId ? winnerAlias : duel.a_alias,
+    target_id: loserId,
+    target_alias: loserAliasNum,
+    visible_at: new Date().toISOString(),
+  });
+  publishRoomEvent(group.id, 'duel', { id: duel.id, eventId: duel.event_id, done: true });
+  return { status: outcome, winner_id: winnerId };
+}
+
+// GET  /api/community/anonymous/duel  { event_id, group_id? }
+// POST /api/community/anonymous/duel-pick  { duel_id, move, group_id? }
+export async function handleAnonDuel(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+  const group = await resolveAnonGroup(req.body?.group_id);
+  if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND', message: 'No Anonymous room found.' });
+
+  const { access } = await roomAccess(group, user.id);
+  if (access !== 'member') {
+    return res.status(403).json({ error: 'ANONYMOUS_MEMBERS_ONLY', message: 'Only members can fight.' });
+  }
+
+  if (req.method === 'GET') {
+    const eventId = Number(req.body?.event_id);
+    if (!Number.isFinite(eventId) || eventId <= 0) return res.status(400).json({ error: 'Invalid event id' });
+    const { data, error } = await supabase
+      .from('anonymous_duels')
+      .select(DUEL_COLUMNS)
+      .eq('group_id', group.id)
+      .eq('event_id', eventId)
+      .maybeSingle();
+    if (error) {
+      if (error.code === '42P01') return res.status(503).json({ error: 'SCHEMA_NOT_READY', message: 'Duels are not available yet.' });
+      console.error('[anonymous duel get]', error);
+      return res.status(500).json({ error: 'Failed to load duel' });
+    }
+    if (!data) return res.status(404).json({ error: 'DUEL_NOT_FOUND', message: 'That bout is not available.' });
+    return res.status(200).json({ ok: true, duel: hydrateDuel(data, user.id) });
+  }
+
+  const duelId = Number(req.body?.duel_id);
+  const move = typeof req.body?.move === 'string' ? req.body.move : '';
+  if (!Number.isFinite(duelId) || duelId <= 0) return res.status(400).json({ error: 'Invalid duel id' });
+  if (!RPS_MOVES.includes(move)) {
+    return res.status(400).json({ error: 'INVALID_MOVE', message: 'Pick rock, paper or scissors.' });
+  }
+
+  const { data: duel, error: duelError } = await supabase
+    .from('anonymous_duels')
+    .select(DUEL_COLUMNS)
+    .eq('id', duelId)
+    .eq('group_id', group.id)
+    .maybeSingle();
+  if (duelError) {
+    if (duelError.code === '42P01') return res.status(503).json({ error: 'SCHEMA_NOT_READY', message: 'Duels are not available yet.' });
+    console.error('[anonymous duel pick]', duelError);
+    return res.status(500).json({ error: 'Failed to load duel' });
+  }
+  if (!duel) return res.status(404).json({ error: 'DUEL_NOT_FOUND', message: 'That bout is not available.' });
+
+  const isA = duel.a_id === user.id;
+  const isB = duel.b_id === user.id;
+  if (!isA && !isB) {
+    return res.status(403).json({ error: 'NOT_AUTHORIZED', message: 'You are not in this bout.' });
+  }
+  if (duel.status !== 'open') {
+    return res.status(409).json({ error: 'DUEL_RESOLVED', message: 'This bout is already finished.' });
+  }
+  // One throw per fighter — a second pick would let a loser change their answer.
+  const already = isA ? duel.a_move : duel.b_move;
+  if (already) {
+    return res.status(409).json({ error: 'DUEL_ALREADY_PICKED', message: 'You already threw.' });
+  }
+
+  const patch = isA ? { a_move: move } : { b_move: move };
+  const { error: patchError } = await supabase
+    .from('anonymous_duels')
+    .update(patch)
+    .eq('id', duelId)
+    .eq('status', 'open')
+    .is(isA ? 'a_move' : 'b_move', null);
+  if (patchError) {
+    console.error('[anonymous duel move]', patchError);
+    return res.status(409).json({ error: 'DUEL_ALREADY_PICKED', message: 'You already threw.' });
+  }
+  void touchMembership(group.id, user.id);
+
+  // Resolve once BOTH throws are in.
+  const { data: after } = await supabase
+    .from('anonymous_duels')
+    .select(DUEL_COLUMNS)
+    .eq('id', duelId)
+    .maybeSingle();
+  if (after?.a_move && after?.b_move) {
+    await finishDuel(supabase, after, group).catch((e) => console.error('[anonymous duel finish]', e));
+  } else {
+    publishRoomEvent(group.id, 'duel', { id: duelId, eventId: duel.event_id, locked: true });
+  }
+
+  const { data: finalRow } = await supabase
+    .from('anonymous_duels')
+    .select(DUEL_COLUMNS)
+    .eq('id', duelId)
+    .maybeSingle();
+  return res.status(200).json({ ok: true, duel: hydrateDuel(finalRow, user.id) });
+}
+
 // POST /api/community/anonymous/event-respond  { event_id, respond: accept|decline, group_id? }
 // A CHALLENGE invite can be Accepted (starts a live fight) or Declined by the
 // targeted member. One-shot: responding again returns 409 EVENT_RESOLVED.
@@ -2778,23 +3284,45 @@ export async function handleAnonEventRespond(req, res, user) {
     return res.status(403).json({ error: 'NOT_AUTHORIZED', message: 'Only the challenged member may respond.' });
   }
 
-  const nextStatus = respond === 'accept' ? 'accepted' : 'declined';
-  await supabase
+const nextStatus = respond === 'accept' ? 'accepted' : 'declined';
+  // `.eq('status','pending')` makes the accept/decline a genuine one-shot: two
+  // concurrent accepts previously both passed the check above and both settled.
+  const { data: updated, error: updateError } = await supabase
     .from('anonymous_room_events')
     .update({ status: nextStatus })
     .eq('id', eventId)
-    .eq('group_id', group.id);
+    .eq('group_id', group.id)
+    .eq('status', 'pending')
+    .select('id');
+  if (updateError || !updated || updated.length === 0) {
+    return res.status(409).json({ error: 'EVENT_RESOLVED', message: 'This challenge has already been resolved.' });
+  }
 
   publishRoomEvent(group.id, 'room_event', { id: eventId });
   void touchMembership(group.id, user.id);
 
-  if (respond === 'accept') {
-    // The duel is live: record the fight and surface a fight event card.
+  if (respond === 'accept' && row.action === 'crack') {
+    // v62 — the comedic gag. Accepted: announce it now, then SCHEDULE the
+    // delayed steps (belle ? the other one denies it ? the birth) as hidden
+    // rows (visible_at in the future) revealed by revealDueAnnouncements().
+    await startGagChain(supabase, group, row);
+    publishRoomEvent(group.id, 'room_event', { action: 'crack_accepted' });
+    void sendRoomPush({
+      groupId: group.id,
+      recipientUserIds: [row.actor_id],
+      kind: 'social',
+      title: '🥵 It is on!',
+      body: `${aliasLabel(row.target_alias)} accepted your move.`,
+      url: `/study-groups/${group.id}`,
+    }).catch(() => {});
+  } else if (respond === 'accept') {
+    // The duel is live: record the fight and surface a fight event card, then
+    // open an OPT-IN rock-paper-scissors bout on that card (nothing is forced).
     const lo = user.id < row.actor_id ? user.id : row.actor_id;
     const hi = user.id < row.actor_id ? row.actor_id : user.id;
     await supabase.from('anonymous_fights').insert({ group_id: group.id, a_id: lo, b_id: hi }).then(async ({ error: fightInsertError }) => {
       if (!fightInsertError) {
-        await supabase
+        const { data: fightCard, error: cardError } = await supabase
           .from('anonymous_room_events')
           .insert({
             group_id: group.id,
@@ -2807,9 +3335,21 @@ export async function handleAnonEventRespond(req, res, user) {
             target_id: row.target_id,
             target_alias: row.target_alias,
           })
-          .then(({ error: cardError }) => {
-            if (!cardError) publishRoomEvent(group.id, 'room_event', { action: 'fight' });
-          });
+          .select('id')
+          .single();
+        // Publish WITH the id so a realtime client can fetch the new card
+        // instead of waiting for the next feed refetch.
+        if (!cardError && fightCard?.id) {
+          publishRoomEvent(group.id, 'room_event', { id: fightCard.id, action: 'fight' });
+          // v62 — opt-in RPS bout for this fight.
+          await openDuel(supabase, group, {
+            eventId: fightCard.id,
+            aId: row.actor_id,
+            bId: row.target_id,
+            aAlias: row.actor_alias,
+            bAlias: row.target_alias,
+          }).catch((e) => console.error('[anonymous duel open]', e));
+        }
       }
     });
     publishRoomEvent(group.id, 'fight', { attacker: row.actor_alias, defender: row.target_alias, action: 'challenge' });
@@ -2822,12 +3362,16 @@ export async function handleAnonEventRespond(req, res, user) {
       url: `/study-groups/${group.id}`,
     }).catch(() => {});
   } else {
+    // Declined. For the gag this ENDS the chain (nothing is ever scheduled).
     void sendRoomPush({
       groupId: group.id,
       recipientUserIds: [row.actor_id],
       kind: 'social',
-      title: '🤝 Challenge declined',
-      body: `${aliasLabel(row.target_alias)} declined your challenge.`,
+      title: row.action === 'crack' ? '🤝 Declined' : '🤝 Challenge declined',
+      body:
+        row.action === 'crack'
+          ? `${aliasLabel(row.target_alias)} declined your move. Nothing happened.`
+          : `${aliasLabel(row.target_alias)} declined your challenge.`,
       url: `/study-groups/${group.id}`,
     }).catch(() => {});
   }
@@ -3074,8 +3618,8 @@ export async function handleNotificationsSubscribe(req, res, user) {
       endpoint: endpoint.slice(0, 1024),
       p256dh,
       auth,
-      user_agent: typeof req.body?.user_agent === 'string' ? req.body.user_agent.slice(0, 300) : null,
-      last_seen_at: new Date().toISOString(),
+user_agent: typeof req.body?.user_agent === 'string' ? req.body.user_agent.slice(0, 300) : null,
+      updated_at: new Date().toISOString(),
     },
     { onConflict: 'endpoint' },
   );
@@ -3304,7 +3848,9 @@ export async function handleCleanup(req, res) {
   }
 
   return res.status(200).json({ ok: true, result: data, presence_reaped: presenceReaped, seats_reconciled: seatsReconciled });
-}export async function handleRelationshipRequest(req, res, user) {
+}
+
+export async function handleRelationshipRequest(req, res) {
   const supabase = getDb();
   if (!supabase) return res.status(503).json({ error: 'SERVICE_UNAVAILABLE' });
   const targetId = req.body?.target_id;
@@ -3315,7 +3861,7 @@ export async function handleCleanup(req, res) {
   return res.status(200).json(data || { ok: true });
 }
 
-export async function handleRelationshipRespond(req, res, user) {
+export async function handleRelationshipRespond(req, res) {
   const supabase = getDb();
   if (!supabase) return res.status(503).json({ error: 'SERVICE_UNAVAILABLE' });
   const relId = Number(req.body?.rel_id);
@@ -3326,12 +3872,12 @@ export async function handleRelationshipRespond(req, res, user) {
   return res.status(200).json(data || { ok: true });
 }
 
-export async function handleRelationshipRemove(req, res, user) {
+export async function handleRelationshipRemove(req, res) {
   const supabase = getDb();
   if (!supabase) return res.status(503).json({ error: 'SERVICE_UNAVAILABLE' });
   const otherId = req.body?.other_id;
   if (!otherId) return res.status(400).json({ error: 'MISSING_OTHER_ID' });
-  const { data, error } = await supabase.rpc('remove_relationship', { p_other: otherId });
+  const { error } = await supabase.rpc('remove_relationship', { p_other: otherId });
   if (error) return res.status(500).json({ error: 'REMOVE_FAILED' });
   return res.status(200).json({ ok: true });
 }

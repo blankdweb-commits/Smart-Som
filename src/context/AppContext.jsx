@@ -853,100 +853,96 @@ export function AppProvider({ children }) {
     }
   }, [session]);
 
-  // Blitz (v58): the 1v1 Duel Lobby format — 40-NMCN-question, 90s shared clock.
-  // createBlitzMatch is a thin alias (server picks + pins the balanced sequence);
-  // startCompetitiveMatch opens the 90s window from the 3-2-1 countdown.
-  const createBlitzMatch = useCallback(async ({ stake, opponentId }) => {
+  // ==========================================================================
+  // 1v1 ARENA (migration v63) — ONE blitz format for humans AND bots, with a
+  // two-sided escrow economy and a full match lifecycle.
+  //
+  // These replace the v58/v60 blitz wrappers. Sudden-death is no longer an
+  // option for 1v1 (Triple Threat still uses create_competitive_match).
+  // Every call goes to a SECURITY DEFINER RPC: the server owns the board, the
+  // grading, the wager and the verdict. The client never sends a score, a
+  // winner, or a payout.
+  // ==========================================================================
+  const arenaRpc = useCallback(async (fn, params = {}) => {
     if (!session) return null;
     try {
-      const { data, error } = await supabase.rpc('create_competitive_match', {
-        p_mode: 'duel',
-        p_stake: Number(stake) || 0,
-        p_opponent_id: opponentId || null,
-        p_format: 'blitz',
-      });
+      const { data, error } = await supabase.rpc(fn, params);
       if (error || !data?.ok) {
-        console.warn('Blitz match create failed:', error?.message || data?.error);
-        return null;
+        console.warn(`Arena ${fn} failed:`, error?.message || data?.error);
+        return data || null;
       }
       return data;
     } catch (err) {
-      console.warn('Blitz match create failed:', err?.message);
+      console.warn(`Arena ${fn} failed:`, err?.message);
       return null;
     }
   }, [session]);
 
-  const startCompetitiveMatch = useCallback(async (matchId) => {
-    if (!session) return null;
-    try {
-      const { data, error } = await supabase.rpc('start_competitive_match', {
-        p_match_id: matchId,
-      });
-      if (error || !data?.ok) {
-        console.warn('Blitz match start failed:', error?.message || data?.error);
-        return null;
-      }
-      return data;
-    } catch (err) {
-      console.warn('Blitz match start failed:', err?.message);
-      return null;
+  // The server deducts nothing locally, so a settle refreshes the balance from
+  // the authoritative per-player breakdown the settlement returns.
+  const syncArenaBalance = useCallback((result) => {
+    const rows = Array.isArray(result?.breakdown) ? result.breakdown : [];
+    const me = rows.find((r) => r.playerId && r.playerId === session?.user?.id);
+    if (me && me.balance !== null && me.balance !== undefined) {
+      setSmartCoins(Number(me.balance));
     }
   }, [session]);
 
-  const getCompetitiveMatch = useCallback(async (matchId) => {
-    if (!session) return null;
-    try {
-      const { data, error } = await supabase.rpc('get_competitive_match', {
-        p_match_id: matchId,
-      });
-      if (error || !data?.ok) {
-        console.warn('Competitive match fetch failed:', error?.message || data?.error);
-        return null;
-      }
-      return data;
-    } catch (err) {
-      console.warn('Competitive match fetch failed:', err?.message);
-      return null;
-    }
-  }, [session]);
+  const arenaCreateMatch = useCallback(async ({ stake, opponentId = null, bot = null }) =>
+    arenaRpc('arena_create_match', {
+      p_mode: 'duel',
+      p_stake: Number(stake) || 0,
+      p_opponent_id: opponentId,
+      p_bot: bot,
+    }), [arenaRpc]);
 
-  const submitCompetitiveAnswer = useCallback(async ({ matchId, questionIndex, selected, double }) => {
-    if (!session) return null;
-    try {
-      const { data, error } = await supabase.rpc('submit_competitive_answer', {
-        p_match_id: matchId,
-        p_question_index: Number(questionIndex) || 0,
-        p_selected: selected ?? null,
-        p_double: !!double,
-      });
-      if (error || !data?.ok) {
-        console.warn('Competitive answer submit failed:', error?.message || data?.error);
-        return null;
-      }
-      return data;
-    } catch (err) {
-      console.warn('Competitive answer submit failed:', err?.message);
-      return null;
-    }
-  }, [session]);
+  const arenaReady = useCallback((matchId) =>
+    arenaRpc('arena_ready', { p_match_id: matchId }), [arenaRpc]);
 
-  const completeCompetitiveMatch = useCallback(async (matchId) => {
-    if (!session) return null;
-    try {
-      const { data, error } = await supabase.rpc('complete_competitive_match', {
-        p_match_id: matchId,
-      });
-      if (error || !data?.ok) {
-        console.warn('Competitive match complete failed:', error?.message || data?.error);
-        return null;
-      }
-      if (data.balance != null) setSmartCoins(Number(data.balance));
-      return data;
-    } catch (err) {
-      console.warn('Competitive match complete failed:', err?.message);
-      return null;
-    }
-  }, [session]);
+  const arenaStart = useCallback((matchId) =>
+    arenaRpc('arena_start', { p_match_id: matchId }), [arenaRpc]);
+
+  const arenaAnswer = useCallback(({ matchId, questionIndex, selected, double = false, skipped = false }) =>
+    arenaRpc('arena_answer', {
+      p_match_id: matchId,
+      p_question_index: Number(questionIndex) || 0,
+      p_selected: skipped ? null : (selected ?? null),
+      p_double: !!double,
+      p_skipped: !!skipped,
+    }), [arenaRpc]);
+
+  const arenaHeartbeat = useCallback((matchId) =>
+    arenaRpc('arena_heartbeat', { p_match_id: matchId }), [arenaRpc]);
+
+  const arenaForfeit = useCallback((matchId) =>
+    arenaRpc('arena_forfeit', { p_match_id: matchId }), [arenaRpc]);
+
+  const arenaCancel = useCallback((matchId) =>
+    arenaRpc('arena_cancel', { p_match_id: matchId }), [arenaRpc]);
+
+  const arenaSettle = useCallback(async (matchId) => {
+    const res = await arenaRpc('arena_settle', { p_match_id: matchId });
+    if (res?.ok) syncArenaBalance(res);
+    return res;
+  }, [arenaRpc, syncArenaBalance]);
+
+  const arenaState = useCallback((matchId) =>
+    arenaRpc('arena_state', { p_match_id: matchId }), [arenaRpc]);
+
+  const arenaOutcome = useCallback((matchId) =>
+    arenaRpc('arena_outcome', { p_match_id: matchId }), [arenaRpc]);
+
+  const arenaEnqueue = useCallback(({ stake }) =>
+    arenaRpc('arena_enqueue', { p_mode: 'duel', p_stake: Number(stake) || 0, p_format: 'blitz' }),
+    [arenaRpc]);
+
+  const arenaLeaveQueue = useCallback(() =>
+    arenaRpc('arena_leave_queue', {}), [arenaRpc]);
+
+  const arenaRoster = useCallback(async ({ stake = 0 } = {}) => {
+    const res = await arenaRpc('arena_roster', { p_stake: Number(stake) || 0, p_format: 'blitz' });
+    return Array.isArray(res?.players) ? res.players : [];
+  }, [arenaRpc]);
 
   // Viral growth (migration v35): challenges / referrals / squads / party rooms
   // are ALL server-authoritative. The client only invokes SECURITY DEFINER RPCs
@@ -2385,8 +2381,10 @@ export function AppProvider({ children }) {
       addFlashcard, updateFlashcard, deleteFlashcard, importFlashcards,
       smartCoins, scLedger, claimDailySC, spendSC, recordStreakBreak, recordQuizFailPenalty,
       finalizeDuel,
-      createCompetitiveMatch, getCompetitiveMatch, submitCompetitiveAnswer, completeCompetitiveMatch,
-      createBlitzMatch, startCompetitiveMatch, fetchDuelRoster,
+      createCompetitiveMatch, fetchDuelRoster,
+      arenaCreateMatch, arenaReady, arenaStart, arenaAnswer, arenaHeartbeat,
+      arenaForfeit, arenaCancel, arenaSettle, arenaState, arenaOutcome,
+      arenaEnqueue, arenaLeaveQueue, arenaRoster,
       claimChallengeReward, getMyReferral, applyReferral,
       createSquad, joinSquad, leaveSquad, getMySquad, claimSquadReward,
       createRoom, joinRoom, leaveRoom, getActiveRooms, getMyRoom,

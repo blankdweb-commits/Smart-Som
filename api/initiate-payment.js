@@ -9,9 +9,15 @@
 //   { plan_id }                          -> premium subscription (legacy)
 //   { product:'anonymous_spectate', group_id }    -> one-time spectator pass
 //   { product:'anonymous_membership', group_id }  -> one-time member seat
+//   { product:'marketplace_product', product_id } -> first-party PolyNurse
+//     product (one-time purchase; third-party listings are refused here).
 import { applyCors, getSupabaseAdmin, getUserFromRequest } from './_utils.js';
 
 const KOBOS = 100;
+
+// The ONLY seller that may sell through the platform checkout. First-party
+// products belong to this storefront; every other listing is informational.
+const PLATFORM_SELLER_NAME = 'PolyNurse';
 
 // Active member/spectator seat counts for the P2 capacity model. Best-effort:
 // an un-migrated DB yields zeros rather than throwing.
@@ -277,6 +283,87 @@ async function resolveMembershipsPurchase(supabase, user, body) {
   };
 }
 
+// P-MK — server-side resolution of a FIRST-PARTY marketplace purchase. Only
+// products sold by the PolyNurse platform seller are checkout-eligible; a
+// third-party listing is REFUSED here (not merely hidden in the UI) with an
+// explicit error. Price is resolved server-side — never trusted from the body.
+async function resolveMarketplacePurchase(supabase, user, productIdRaw) {
+  const productId = Number(productIdRaw);
+  if (!Number.isInteger(productId) || productId <= 0) {
+    const e = new Error('Invalid product id');
+    e.code = 'INVALID_PRODUCT'; e.status = 400; throw e;
+  }
+
+  const { data: product, error: productError } = await supabase
+    .from('marketplace_products')
+    .select('id, title, price, access_type, is_published, is_archived, seller_id, marketplace_sellers(business_name)')
+    .eq('id', productId)
+    .maybeSingle();
+  if (productError) {
+    const e = new Error('Failed to resolve product');
+    e.code = 'PRODUCT_LOOKUP_FAILED'; e.status = 500; throw e;
+  }
+  if (!product) {
+    const e = new Error('Product not found');
+    e.code = 'PRODUCT_NOT_FOUND'; e.status = 404; throw e;
+  }
+  if (!product.is_published || product.is_archived) {
+    const e = new Error('This product is not available for purchase');
+    e.code = 'PRODUCT_NOT_AVAILABLE'; e.status = 400; throw e;
+  }
+
+  // Platform gate — only first-party PolyNurse products reach the checkout.
+  const seller = product.marketplace_sellers;
+  const isPlatform =
+    seller && seller.business_name?.toLowerCase() === PLATFORM_SELLER_NAME.toLowerCase();
+  if (!isPlatform) {
+    const e = new Error('This product is listed by a third-party seller and cannot be purchased on PolyNurse.');
+    e.code = 'THIRD_PARTY_NOT_PURCHASABLE'; e.status = 403; throw e;
+  }
+
+  if (product.access_type === 'free') {
+    const e = new Error('This product is free — no payment is required.');
+    e.code = 'FREE_PRODUCT'; e.status = 400; throw e;
+  }
+  if (product.access_type === 'premium') {
+    const e = new Error('This product is included with a premium subscription and is not sold separately.');
+    e.code = 'PREMIUM_ONLY'; e.status = 400; throw e;
+  }
+  const price = Number(product.price);
+  if (!(price > 0)) {
+    const e = new Error('This product is not purchasable');
+    e.code = 'NOT_PURCHASABLE'; e.status = 400; throw e;
+  }
+
+  // Entitlement — a first-party product is purchased once per account.
+  const { data: owned } = await supabase
+    .from('marketplace_purchases')
+    .select('id')
+    .eq('user_id', user.id)
+    .eq('product_id', productId)
+    .eq('status', 'complete')
+    .maybeSingle();
+  if (owned) {
+    const e = new Error('You already own this product');
+    e.code = 'ALREADY_OWNED'; e.status = 400; throw e;
+  }
+
+  return {
+    amount: price,
+    metadata: {
+      product: 'marketplace_product',
+      product_id: productId,
+      product_title: product.title,
+      seller_name: seller.business_name,
+      user_id: user.id,
+      // Kobo amount the charge must match — authoritative server price, used
+      // by payments-webhook as a last-resort check even without a product row.
+      expected_amount_kobo: Math.round(price * KOBOS),
+    },
+    reference: `APX-MKT-${Date.now()}-${Math.random().toString(36).slice(2, 10).toUpperCase()}`,
+  };
+}
+
 export default async function handler(req, res) {
   if (!applyCors(req, res)) {
     return res.status(403).json({ error: 'FORBIDDEN_ORIGIN', message: 'This API is locked to the app domain.' });
@@ -294,14 +381,20 @@ export default async function handler(req, res) {
   const user = await getUserFromRequest(req);
   if (!user) return res.status(401).json({ error: 'Unauthorized' });
 
-  const { plan_id, product, group_id } = req.body || {};
+  const { plan_id, product, group_id, product_id } = req.body || {};
 
   try {
     let amount;
     let reference;
     let metadata;
 
-    if (product === 'anonymous_spectate') {
+    if (product === 'marketplace_product') {
+      // First-party marketplace product — one-time purchase, no subscription.
+      const spec = await resolveMarketplacePurchase(supabase, user, product_id);
+      amount = spec.amount;
+      metadata = spec.metadata;
+      reference = spec.reference;
+    } else if (product === 'anonymous_spectate') {
       // One-time spectator pass — no subscription is involved.
       const spec = await resolveSpectatorPurchase(supabase, user, group_id);
       amount = spec.amount;

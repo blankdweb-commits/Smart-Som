@@ -30,6 +30,7 @@ const GroupPage = lazy(() => import('./pages/GroupPage'));
 const AnonymousRoom = lazy(() => import('./pages/AnonymousRoom'));
 const StudyGroups = lazy(() => import('./components/StudyGroups'));
 const Marketplace = lazy(() => import('./pages/Marketplace'));
+const AdminMarketplace = lazy(() => import('./pages/AdminMarketplace'));
 const LicenseRenewal = lazy(() => import('./pages/LicenseRenewal'));
 const LoanShark = lazy(() => import('./pages/LoanShark'));
 const Voting = lazy(() => import('./pages/Voting'));
@@ -87,6 +88,7 @@ const AppRouter = () => (
         <Route path="/achievements" element={<RequireAuth><Achievements /></RequireAuth>} />
         <Route path="/papers" element={<Navigate to="/marketplace" replace />} />
         <Route path="/marketplace" element={<RequireAuth><Marketplace /></RequireAuth>} />
+        <Route path="/admin/marketplace" element={<RequireAuth><AdminMarketplace /></RequireAuth>} />
         <Route path="/voting" element={<RequireAuth><Voting /></RequireAuth>} />
         <Route path="/reviews" element={<RequireAuth><Reviews /></RequireAuth>} />
         <Route path="/payments" element={<RequireAuth><Payments /></RequireAuth>} />

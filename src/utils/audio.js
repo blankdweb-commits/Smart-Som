@@ -44,6 +44,22 @@ const AUDIO_PATHS = {
 // 'timeout' behaviour matches the wrong-answer pool.
 AUDIO_PATHS.timeout = AUDIO_PATHS.wrong;
 
+// ---- 1v1 Arena (migration v63) ----
+// One-shot arena cues, mapped onto the existing clip library so no new assets
+// are required. Deliberately NOT in HELD_SOUND_TYPES: a blitz question lasts a
+// couple of seconds, so the 12s held ring of the quiz answer sounds would bleed
+// across questions.
+AUDIO_PATHS.arena_correct = AUDIO_PATHS.correct;
+AUDIO_PATHS.arena_wrong = AUDIO_PATHS.wrong;
+AUDIO_PATHS.arena_skip = AUDIO_PATHS.wrong;
+AUDIO_PATHS.arena_double = AUDIO_PATHS.intro;
+AUDIO_PATHS.arena_opponent = AUDIO_PATHS.intro;
+AUDIO_PATHS.arena_win = AUDIO_PATHS.correct;
+AUDIO_PATHS.arena_loss = AUDIO_PATHS.wrong;
+AUDIO_PATHS.arena_draw = AUDIO_PATHS.intro;
+AUDIO_PATHS.arena_disconnect = AUDIO_PATHS.wrong;
+AUDIO_PATHS.arena_forfeit = AUDIO_PATHS.exit;
+
 const MAX_SOUND_SECONDS = 4;
 const POOL_SIZE = 3; // elements cached per URL
 

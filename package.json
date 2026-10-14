@@ -18,7 +18,10 @@
     "e2e:anonymous-lifecycle": "node scripts/e2e-anonymous-lifecycle.mjs",
     "e2e:license-renewal": "node scripts/e2e-license-renewal.mjs",
     "e2e:loan-shark": "node scripts/e2e-loan-shark.mjs",
-    "e2e:duel": "node scripts/e2e-duel-lobby.mjs"
+    "e2e:duel": "node scripts/e2e-duel-lobby.mjs",
+    "e2e:anon-v62": "node scripts/e2e-anon-v62.mjs",
+    "e2e:marketplace": "node scripts/e2e-marketplace.mjs",
+    "e2e:arena": "node scripts/e2e-arena.mjs"
   },
   "dependencies": {
     "@daformat/react-swipeable-cards": "^1.0.4",

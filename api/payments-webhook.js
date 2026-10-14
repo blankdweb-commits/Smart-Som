@@ -1,11 +1,14 @@
 // api/payments-webhook.js (webhook URL: /api/payments/webhook via vercel.json rewrite)
 //
-// Handles charge.success for THREE products:
+// Handles charge.success for FOUR products:
 //   - premium subscription (legacy): creates a subscriptions row + activates profile.
 //   - anonymous_spectate: one-time spectator pass — inserts an `active`
 //     anonymous_spectators row (NO subscription, NO profile activation).
 //   - anonymous_membership: one-time paid member seat — grants via
 //     community_anonymous_grant_membership (NO subscription).
+//   - marketplace_product: first-party PolyNurse product — inserts a
+//     marketplace_purchases entitlement (NO subscription; third-party listings
+//     are ignored).
 // Signature-verified, idempotent on the reference.
 import crypto from 'crypto';
 import { getSupabaseAdmin } from './_utils.js';
@@ -258,6 +261,89 @@ async function grantMembershipsBundle(supabase, paidAmount, metadata) {
   return { status: 200, body: { status: 'bundle_processed', count: total, for_me: forMe, gift_count: giftCount, gift_codes: codes, seat: seatStatus } };
 }
 
+// P-MK — first-party marketplace purchase from the webhook. The reference's
+// UNIQUE (and the (user_id, product_id) unique) makes this safe against the
+// callback verifier racing the webhook.
+async function grantMarketplaceProduct(supabase, paidAmount, metadata) {
+  const productId = Number(metadata?.product_id);
+  const userId = metadata?.user_id;
+  if (!Number.isInteger(productId) || !userId) {
+    return { status: 200, body: { status: 'ignored' } };
+  }
+
+  // Server-side price/platform resolution — never trust payment metadata alone.
+  const { data: product } = await supabase
+    .from('marketplace_products')
+    .select('id, price, access_type, is_published, is_archived, marketplace_sellers(business_name)')
+    .eq('id', productId)
+    .maybeSingle();
+  if (!product || !product.is_published || product.is_archived) {
+    return { status: 200, body: { status: 'ignored' } };
+  }
+  const seller = product.marketplace_sellers;
+  const isPlatform =
+    seller && seller.business_name?.toLowerCase() === 'polynurse';
+  if (!isPlatform) {
+    return { status: 200, body: { status: 'ignored' } };
+  }
+
+  // Idempotency — the callback verifier may have already granted this.
+  const { data: existing } = await supabase
+    .from('marketplace_purchases')
+    .select('id')
+    .eq('reference', metadata.reference)
+    .maybeSingle();
+  if (existing) {
+    return { status: 200, body: { status: 'already_processed' } };
+  }
+
+  const expected = Number(product.price);
+  if (expected > 0 && Math.abs(paidAmount - expected) > 1) {
+    console.error(`Webhook marketplace amount mismatch, ref ${metadata.reference}: paid ${paidAmount}, expected ${expected}`);
+    return { status: 200, body: { status: 'amount_mismatch' } };
+  }
+
+  const { error: txnError } = await supabase
+    .from('transactions')
+    .insert({
+      user_id: userId,
+      reference: metadata.reference,
+      amount: paidAmount,
+      status: 'success',
+      paid_at: new Date().toISOString(),
+      metadata: metadata,
+    });
+  // Unique on transactions.reference catches races with the verifier.
+  if (txnError && txnError.code === '23505') {
+    const { data: existingTxn } = await supabase
+      .from('transactions')
+      .select('id')
+      .eq('reference', metadata.reference)
+      .maybeSingle();
+    if (existingTxn) return { status: 200, body: { status: 'already_processed' } };
+  }
+  if (txnError) throw txnError;
+
+  const { data: grant, error: grantError } = await supabase
+    .from('marketplace_purchases')
+    .insert({
+      user_id: userId,
+      product_id: productId,
+      amount: paidAmount,
+      reference: metadata.reference,
+      status: 'complete',
+    })
+    .select('id')
+    .maybeSingle();
+  // Unique on reference / (user_id, product_id) — the verifier may have won.
+  if (grantError && grantError.code === '23505') {
+    return { status: 200, body: { status: 'already_processed' } };
+  }
+  if (grantError) throw grantError;
+
+  return { status: 200, body: { status: 'marketplace_granted', purchase_id: grant?.id } };
+}
+
 export default async function handler(req, res) {
   if (req.method !== 'POST') {
     return res.status(405).json({ error: 'Method not allowed' });
@@ -292,6 +378,10 @@ export default async function handler(req, res) {
       }
       if (metadata?.product === 'anonymous_memberships') {
         const r = await grantMembershipsBundle(supabase, paidAmount, { ...(metadata || {}), reference });
+        return res.status(r.status).json(r.body);
+      }
+      if (metadata?.product === 'marketplace_product') {
+        const r = await grantMarketplaceProduct(supabase, paidAmount, { ...(metadata || {}), reference });
         return res.status(r.status).json(r.body);
       }
 

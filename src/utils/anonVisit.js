@@ -27,4 +27,17 @@ export const getAnonVisitKey = () => {
   }
 };
 
+// Forgets the current visit. Called after a CONFIRMED voluntary leave so the
+// next join presents a fresh visit key — and therefore a fresh Anonymous #NN —
+// instead of short-circuiting on this tab's existing pseudonym. Membership and
+// seat are untouched; only the identity changes.
+export const clearAnonVisitKey = () => {
+  try {
+    if (typeof sessionStorage === 'undefined') return;
+    sessionStorage.removeItem(VISIT_KEY_STORAGE);
+  } catch {
+    /* storage unavailable — the server-side identity drop is the real control */
+  }
+};
+
 export default getAnonVisitKey;

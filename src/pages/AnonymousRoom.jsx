@@ -41,6 +41,7 @@ import {
   Compass,
 } from '../components/Icons';
 import { communityApi, communityPreview } from '../utils/communityApi';
+import { clearAnonVisitKey } from '../utils/anonVisit';
 import { authHeaders } from '../utils/apiHeaders';
 import { useAnonymousRoomRealtime } from '../hooks/useAnonymousRoomRealtime';
 import { useAppContext } from '../context/AppContext';
@@ -83,6 +84,8 @@ const SEND_ERRORS = {
   GROUP_FULL: 'The room is at capacity. A spectator pass is available instead.',
   MEMBERSHIP_LOCKED: 'The host has closed membership. A spectator pass is available instead.',
   MEMBERSHIP_PAYMENT_REQUIRED: 'All free founding member seats are taken. A one-time fee unlocks a member seat.',
+  ALREADY_SPECTATOR: 'You have spectator access here, so you cannot also take a member seat. Spectating is enough.',
+  OWNER_CANNOT_LEAVE: 'You created this room, so you cannot leave it. Close the room from your group controls instead.',
   SPECTATOR_PAYMENT_REQUIRED: 'All free spectator slots are taken. A one-time pass unlocks spectator access.',
   SPECTATOR_FREE_AVAILABLE: 'A free spectator seat is still open.',
   MEMBERSHIP_FREE_AVAILABLE: 'A free member seat is still open.',
@@ -106,6 +109,11 @@ const SEND_ERRORS = {
   NOT_AUTHORIZED: 'Only the challenged member may respond.',
   EVENT_RESOLVED: 'This challenge has already been resolved.',
   INVALID_ACTION: 'Unknown encoded-message action.',
+  INVALID_MOVE: 'Pick rock, paper or scissors.',
+  DUEL_NOT_FOUND: 'That bout is not available.',
+  DUEL_RESOLVED: 'This bout is already finished.',
+  DUEL_ALREADY_PICKED: 'You already threw.',
+  NOT_IN_DUEL: 'You are not in this bout.',
   NOT_ENCODED: 'That message is not encoded.',
   SCHEMA_NOT_READY: 'That feature is not available just yet.',
 };
@@ -118,7 +126,47 @@ const TAG_TONE_CLASS = {
   violet: 'bg-violet-500/15 text-violet-300 border-violet-500/40',
   amber: 'bg-amber-500/15 text-amber-300 border-amber-500/40',
   indigo: 'bg-indigo-500/15 text-indigo-300 border-indigo-500/40',
+  // v62 - 'pink' (kiss AND the whole crack/belle gag chain) had no entry, so
+  // those actions silently fell back to the neutral slate pill.
+  pink: 'bg-pink-500/15 text-pink-300 border-pink-500/40',
+  slate: 'bg-slate-800 text-slate-400 border-slate-700',
 };
+
+// v62 - EVENT CARD surface per tone. This replaces a 3-branch ternary that
+// only knew rose/violet+indigo, so 15 of the 18 possible actions rendered as
+// the SAME slate card (waka, hug, highfive, kiss, crack, wave, and the entire
+// belle/denied/birth chain were indistinguishable apart from their emoji).
+// Every tone the server can emit now has a real treatment, and `indigo` no
+// longer collapses onto `violet`.
+const EVENT_TONE_CLASS = {
+  rose: 'border-rose-500/40 bg-rose-500/10',
+  pink: 'border-pink-500/40 bg-pink-500/10',
+  amber: 'border-amber-500/40 bg-amber-500/10',
+  emerald: 'border-emerald-500/40 bg-emerald-500/10',
+  sky: 'border-sky-500/40 bg-sky-500/10',
+  violet: 'border-violet-500/40 bg-violet-500/10',
+  indigo: 'border-indigo-500/40 bg-indigo-500/10',
+  slate: 'border-slate-800 bg-slate-900/80',
+};
+const eventToneClass = (tone) => EVENT_TONE_CLASS[tone] || EVENT_TONE_CLASS.slate;
+
+// v62 - entrance animation per card KIND. Purely decorative, and it uses CSS
+// keyframes (see src/index.css) rather than framer-motion, so it adds nothing
+// to the render-blocking bundle. Every one of these is suppressed when the
+// reader prefers reduced motion - see `animateEvent` below.
+const EVENT_ENTER_CLASS = {
+  challenge: 'room-card-enter-challenge',
+  fight: 'room-card-enter-fight',
+  duel: 'room-card-enter-duel',
+  announce: 'room-card-enter-announce',
+  action: 'room-card-enter-action',
+};
+
+// `reduced` is the component's existing prefersReducedMotion value, so the
+// reduced-motion path stays a single source of truth and keeps satisfying the
+// verify-deploy-config gate on `prefersReducedMotion`.
+const eventEnterClass = (kind, reduced) =>
+  reduced ? '' : (EVENT_ENTER_CLASS[kind] || EVENT_ENTER_CLASS.action);
 
 const SOUND_KEY = 'soundEnabled';
 
@@ -155,15 +203,71 @@ const aliasNum = (msg) => {
   return m ? Number(m[1]) : null;
 };
 
-// Deterministic per-identity colour so the same Anonymous #NN always looks the
-// same within a round without ever touching a real identity.
-const identityHue = (alias) => {
+// v62 - per-identity colour so the same Anonymous #NN always looks the same
+// within a round, without ever touching a real identity.
+//
+// This used to be `(n * 47) % 360`. That is a linear congruential step with an
+// EXACT period of 360, so alias n and alias n+360 were byte-identical colours by
+// construction, and aliases 8 apart landed only 16 degrees apart — visually the
+// SAME colour. That systematic near-miss is what made two people look
+// identically coloured far more often than chance.
+//
+// It is now an FNV-1a hash (no arithmetic neighbours: n and n+1 land unrelated)
+// indexing a curated palette of 24 hues x 3 lightness bands = 72 swatches:
+//   - same lightness -> hues are 15 degrees apart (clearly distinct);
+//   - same hue       -> lightness steps 12% (clearly distinct);
+// so ANY two different swatches are distinguishable, and when two members do
+// share a swatch it is an obvious identical match rather than a confusing
+// near-miss.
+//
+// Residual, stated plainly: with a fixed client-side palette, two of the room's
+// 20 free member seats can still draw the same swatch (~95% of rooms will
+// contain at least one such pair). That is arithmetic, not a bug — eliminating
+// it entirely needs a server-assigned per-room colour slot. The #NN is
+// therefore never hidden next to the coloured name.
+const IDENTITY_HUES = [
+  0, 15, 30, 45, 60, 75, 90, 105, 120, 135, 150, 165,
+  180, 195, 210, 225, 240, 255, 270, 285, 300, 315, 330, 345,
+];
+const IDENTITY_LIGHT_BANDS = [64, 76, 88];
+const IDENTITY_SATURATION = 80;
+// Three deep hues cannot clear 4.5:1 at lightness 64 against slate-950, so
+// they start one step lighter. Verified: worst swatch in the built palette is
+// 4.82:1.
+const IDENTITY_HUE_LIGHTNESS_FLOOR = { 240: 68, 255: 66 };
+// A deliberately desaturated swatch for an alias we cannot parse. The old code
+// fell back to hue 220, so every unparseable alias (e.g. a reply preview whose
+// author alias is null) silently painted the SAME blue.
+const IDENTITY_UNKNOWN = { hue: 0, saturation: 30, lightness: 54 };
+
+const identitySwatch = (alias) => {
   const n = Number(alias);
-  if (!Number.isFinite(n)) return 220;
-  return (n * 47) % 360;
+  if (!Number.isInteger(n) || n <= 0) return IDENTITY_UNKNOWN;
+  let h = 0x811c9dc5;
+  const s = String(n);
+  for (let i = 0; i < s.length; i += 1) {
+    h ^= s.charCodeAt(i);
+    h = Math.imul(h, 0x01000193) >>> 0;
+  }
+  const index = h % IDENTITY_HUES.length;
+  const hue = IDENTITY_HUES[index];
+  const floor = IDENTITY_HUE_LIGHTNESS_FLOOR[hue];
+  // Take the lightness band from DIFFERENT hash bits than the hue. Using
+  // `h % IDENTITY_LIGHT_BANDS.length` would be perfectly correlated with
+  // `h % 24` (since 24 % 3 === 0), collapsing all 72 swatches back down to 24
+  // reachable ones. Dividing first takes an independent slice of the hash.
+  const band = IDENTITY_LIGHT_BANDS[Math.floor(h / IDENTITY_HUES.length) % IDENTITY_LIGHT_BANDS.length];
+  return {
+    hue,
+    saturation: IDENTITY_SATURATION,
+    lightness: floor ? Math.max(band, floor) : band,
+  };
 };
 
-const identityStyle = (alias) => ({ color: `hsl(${identityHue(alias)} 78% 72%)` });
+const identityStyle = (alias) => {
+  const { hue, saturation, lightness } = identitySwatch(alias);
+  return { color: `hsl(${hue} ${saturation}% ${lightness}%)` };
+};
 
 const mentionNodes = (text, onMention) => {
   const out = [];
@@ -221,28 +325,123 @@ const EVENT_VERB = {
   wave: 'waved at',
   challenge: 'challenged',
   fight: 'fought',
+  // v62 — the consent-gated gag. The invite reads as a move, not an attack.
+  crack: 'toasted',
 };
 const EVENT_AFTER = {
   fuckoff: 'to fuck off',
 };
 
+// v62 — opt-in rock-paper-scissors on a FIGHT card. Nothing is forced: the
+// fighter taps to open the panel, throws once, and sees the opponent's throw
+// only after both are in. Moves are hidden server-side until the bout settles.
+const RPS_MOVES_UI = [
+  { key: 'rock', emoji: '✊', label: 'Rock' },
+  { key: 'paper', emoji: '✋', label: 'Paper' },
+  { key: 'scissors', emoji: '✌️', label: 'Scissors' },
+];
+
+const RpsPanel = ({ ev, duel, duelBusy, onOpen, onPick }) => {
+  const [open, setOpen] = useState(false);
+  // The bout is only playable by the two fighters; the server refuses anyone
+  // else, so we simply do not offer the button to other viewers.
+  const eligible = duel != null;
+  if (!open && !eligible) {
+    return (
+      <button
+        onClick={() => {
+          setOpen(true);
+          onOpen?.(ev);
+        }}
+        className="mt-2 w-full rounded-xl border border-slate-800 bg-slate-950/60 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-slate-400 hover:text-white hover:border-slate-700 transition"
+      >
+        🥊 Fight! Rock-Paper-Scissors
+      </button>
+    );
+  }
+
+  const done = duel?.status === 'done';
+  return (
+    <div className="mt-2 rounded-xl border border-slate-800 bg-slate-950/70 px-3 py-2.5">
+      {!duel ? (
+        <p className="text-[10px] font-bold text-slate-500">
+          {duelBusy ? 'Opening the bout…' : 'Waiting for the bout to open…'}
+        </p>
+      ) : done ? (
+        <div className="text-[11px] font-bold text-slate-300">
+          <span className="block text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1">
+            Rock-Paper-Scissors
+          </span>
+          <span className="flex items-center gap-2 flex-wrap">
+            <span>You: {RPS_MOVES_UI.find((m) => m.key === duel.your_throw)?.emoji ?? '?'}</span>
+            <span className="text-slate-500">vs</span>
+            <span>{duel.them}: {RPS_MOVES_UI.find((m) => m.key === duel.their_throw)?.emoji ?? '?'}</span>
+            <span
+              className={`ml-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${
+                duel.you_won
+                  ? 'bg-emerald-500/15 text-emerald-300 border-emerald-500/40'
+                  : duel.result === 'lost'
+                    ? 'bg-rose-500/15 text-rose-300 border-rose-500/40'
+                    : 'bg-slate-800 text-slate-400 border-slate-700'
+              }`}
+            >
+              {duel.you_won ? 'You won' : duel.result === 'lost' ? 'You lost' : 'Draw'}
+            </span>
+          </span>
+        </div>
+      ) : (
+        <div>
+          <span className="block text-[9px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
+            Rock-Paper-Scissors
+          </span>
+          {duel.your_move ? (
+            <p className="text-[11px] font-bold text-slate-400">
+              You threw {RPS_MOVES_UI.find((m) => m.key === duel.your_move)?.emoji}{' '}
+              {duel.opponent_locked
+                ? `${duel.them} locked in — settling…`
+                : `waiting for ${duel.them} to throw…`}
+            </p>
+          ) : (
+            <>
+              <p className="text-[11px] font-bold text-slate-400 mb-2">
+                Pick one against {duel.them}. One throw each — it settles when both are in.
+              </p>
+              <div className="flex items-center gap-2">
+                {RPS_MOVES_UI.map((m) => (
+                  <button
+                    key={m.key}
+                    onClick={() => onPick?.(duel.id, m.key)}
+                    disabled={duelBusy}
+                    className="flex-1 rounded-lg border border-slate-800 bg-slate-900 px-2 py-2 text-lg hover:border-apex-500/60 hover:bg-slate-800 disabled:opacity-40 transition"
+                    aria-label={m.label}
+                  >
+                    {m.emoji}
+                  </button>
+                ))}
+              </div>
+            </>
+          )}
+        </div>
+      )}
+    </div>
+  );
+};
+
 // v53 — an EVENT CARD sits inline in the timeline (an action aimed at another
 // member, a pending CHALLENGE invite, or a FIGHT). Members and spectators can
 // react to it; a challenged member can Accept (starts the fight) or Decline.
-const RoomEventCard = ({ ev, canReact, busy, onReact, onRespond, onMention, reactionPalette }) => {
+const RoomEventCard = ({ ev, canReact, canDuel, busy, onReact, onRespond, onMention, reactionPalette, duel, duelBusy, onDuelOpen, onDuelPick, reducedMotion }) => {
   const palette = Array.isArray(reactionPalette) && reactionPalette.length ? reactionPalette : ['👍', '😂', '❤️', '🔥', '🤔'];
   const isPendingChallenge = ev.kind === 'challenge' && ev.status === 'pending';
   const actorN = labelAliasNum(ev.actor);
   const targetN = labelAliasNum(ev.target);
   const busyId = busy && busy.id === ev.id;
-  const borderClass =
-    ev.tone === 'rose'
-      ? 'border-rose-500/30 bg-rose-500/5'
-      : ev.tone === 'violet' || ev.tone === 'indigo'
-        ? 'border-violet-500/25 bg-violet-500/5'
-        : 'border-slate-800 bg-slate-900/80';
+  // v62 - real per-tone surface (was a 3-branch ternary) plus a per-kind
+  // entrance animation that is dropped entirely for reduced-motion readers.
+  const borderClass = eventToneClass(ev.tone);
+  const enterClass = eventEnterClass(ev.kind, reducedMotion);
   return (
-    <div className="mx-auto my-2 w-[92%] max-w-[min(100%,560px)]">
+    <div className={`mx-auto my-2 w-[92%] max-w-[min(100%,560px)] ${enterClass}`}>
       <div className={`rounded-2xl border px-3.5 py-2.5 ${borderClass}`}>
         <div className="flex items-center gap-2.5">
           <span className="w-9 h-9 shrink-0 rounded-xl bg-slate-950 border border-slate-800 flex items-center justify-center text-lg">
@@ -269,34 +468,46 @@ const RoomEventCard = ({ ev, canReact, busy, onReact, onRespond, onMention, reac
                   <Swords size={8} /> Fight
                 </span>
               )}
+              {ev.kind === 'announce' && (
+                <span className="px-1.5 py-0.5 rounded-full border border-slate-700 bg-slate-900 text-slate-400 text-[8px] font-black uppercase tracking-widest">
+                  Announcement
+                </span>
+              )}
               <span className="text-[9px] font-bold text-slate-600">{timeOf(ev.created_at)}</span>
             </div>
-            <p className="text-[12px] font-medium text-slate-400 mt-0.5 flex items-center flex-wrap gap-x-1 leading-relaxed">
-              <button
-                type="button"
-                disabled={!onMention || actorN == null}
-                onClick={() => actorN != null && onMention?.(actorN)}
-                className={`${onMention && actorN != null ? 'hover:underline' : 'cursor-default'} font-bold`}
-                style={identityStyle(actorN)}
-              >
-                {ev.actor}
-              </button>
-              <span className="text-slate-300">{EVENT_VERB[ev.action] || ev.label?.toLowerCase() || 'interacted with'}</span>
-              {ev.target ? (
+            {ev.text ? (
+              // v62 — system/gag lines bring their own sentence from the server
+              // (alias-only). The generic actor/verb/target shape cannot render
+              // "don get belle" or "gave birth to quadruplets".
+              <p className="text-[12px] font-bold text-slate-300 mt-0.5 leading-relaxed">{ev.text}</p>
+            ) : (
+              <p className="text-[12px] font-medium text-slate-400 mt-0.5 flex items-center flex-wrap gap-x-1 leading-relaxed">
                 <button
                   type="button"
-                  disabled={!onMention || targetN == null}
-                  onClick={() => targetN != null && onMention?.(targetN)}
-                  className={`${onMention && targetN != null ? 'hover:underline' : 'cursor-default'} font-bold`}
-                  style={identityStyle(targetN)}
+                  disabled={!onMention || actorN == null}
+                  onClick={() => actorN != null && onMention?.(actorN)}
+                  className={`${onMention && actorN != null ? 'hover:underline' : 'cursor-default'} font-bold`}
+                  style={identityStyle(actorN)}
                 >
-                  {ev.target}
+                  {ev.actor}
                 </button>
-              ) : (
-                <span className="text-slate-500">the room</span>
-              )}
-              {EVENT_AFTER[ev.action] ? <span className="text-slate-300">{EVENT_AFTER[ev.action]}</span> : null}
-            </p>
+                <span className="text-slate-300">{EVENT_VERB[ev.action] || ev.label?.toLowerCase() || 'interacted with'}</span>
+                {ev.target ? (
+                  <button
+                    type="button"
+                    disabled={!onMention || targetN == null}
+                    onClick={() => targetN != null && onMention?.(targetN)}
+                    className={`${onMention && targetN != null ? 'hover:underline' : 'cursor-default'} font-bold`}
+                    style={identityStyle(targetN)}
+                  >
+                    {ev.target}
+                  </button>
+                ) : (
+                  <span className="text-slate-500">the room</span>
+                )}
+                {EVENT_AFTER[ev.action] ? <span className="text-slate-300">{EVENT_AFTER[ev.action]}</span> : null}
+              </p>
+            )}
           </div>
           {isPendingChallenge && ev.can_respond && (
             <div className="flex items-center gap-1 shrink-0">
@@ -317,6 +528,10 @@ const RoomEventCard = ({ ev, canReact, busy, onReact, onRespond, onMention, reac
             </div>
           )}
         </div>
+
+        {ev.kind === 'fight' && canDuel && (
+          <RpsPanel ev={ev} duel={duel} duelBusy={duelBusy} onOpen={onDuelOpen} onPick={onDuelPick} />
+        )}
 
         {canReact && (
           <div className="flex items-center gap-1.5 flex-wrap mt-2">
@@ -486,7 +701,11 @@ const AnonymousRoom = () => {
 
   const [typers, setTypers] = useState({});
   const [tick, setTick] = useState(Date.now());
-  const [showNewPill, setShowNewPill] = useState(false);
+  // Count of timeline rows (messages AND event cards) that arrived since the
+  // reader was last at the bottom. The pill is driven by this REAL set
+  // difference — not by "the messages array identity changed" — so reacting,
+  // voting, editing or expiring an old row can never raise a phantom prompt.
+  const [newRowsCount, setNewRowsCount] = useState(0);
   const [openActions, setOpenActions] = useState(null);
   const [reactFor, setReactFor] = useState(null);
   const [editingId, setEditingId] = useState(null);
@@ -559,6 +778,12 @@ const AnonymousRoom = () => {
   const [actionBusy, setActionBusy] = useState(false);
   const [actionCooldownUntil, setActionCooldownUntil] = useState(0);
   const [eventBusyFor, setEventBusyFor] = useState(null);
+  // v62 — opt-in rock-paper-scissors state, keyed by the fight card's event id.
+  const [duels, setDuels] = useState({});
+  const [duelBusy, setDuelBusy] = useState(false);
+  // Mirrors `duels` for the realtime handler (which must not resubscribe on
+  // every throw just to read the current map).
+  const duelsRef = useRef({});
   const [declining, setDeclining] = useState(false);
   const [decliningBusy, setDecliningBusy] = useState(false);
   // Server roster: every current member's Anonymous #NN + live online flag, so
@@ -571,12 +796,21 @@ const AnonymousRoom = () => {
   const firstLoadRef = useRef(true);
   const justSentRef = useRef(false);
   const prependKeepRef = useRef(null);
+  // Every timeline row (message + event card) the reader has actually seen —
+  // i.e. that was rendered while they were at (or auto-scrolled to) the bottom.
+  // The "new messages" pill is `current - seen`, so it only ever counts rows
+  // that genuinely arrived after they scrolled away.
+  const seenRowsRef = useRef(new Set());
   const draftRef = useRef(null);
   const lastTypingSentRef = useRef(0);
   const lastActivityRef = useRef(Date.now());
   const presenceKeyRef = useRef(`s:${Math.random().toString(36).slice(2, 10)}`);
   const bootstrapInFlightRef = useRef(null);
   const lastAccessRef = useRef(null);
+  // True only between a CONFIRMED voluntary leave and the next successful
+  // join. Keeps detectRelease from mis-reading a deliberate exit as an
+  // inactivity release (which raised a blocking modal over a re-joined room).
+  const leftDeliberatelyRef = useRef(false);
   const seenSoundIdsRef = useRef(new Set());
   const soundRef = useRef(soundOn);
   const olderCursorRef = useRef(null);
@@ -794,13 +1028,71 @@ const AnonymousRoom = () => {
     }
   };
 
+  // v62 — fetch the RPS bout hanging off a fight card (null when the fighter
+  // is not a participant, which is also how the server answers).
+  const fetchDuel = useCallback(async (eventId) => {
+    if (!groupId || eventId == null) return null;
+    try {
+      const data = await communityApi(session, '/anonymous/duel', { event_id: eventId, group_id: groupId });
+      if (data.duel) {
+        setDuels((prev) => {
+          duelsRef.current = { ...prev, [eventId]: data.duel };
+          return duelsRef.current;
+        });
+      }
+      return data.duel || null;
+    } catch {
+      return null;
+    }
+  }, [session, groupId]);
+
+  // Opening the panel is the opt-in: only now do we ask the server for state.
+  const openDuelPanel = useCallback(
+    async (ev) => {
+      await fetchDuel(ev.id);
+    },
+    [fetchDuel],
+  );
+
+  const pickDuel = useCallback(
+    async (duelId, move) => {
+      if (duelBusy) return;
+      setDuelBusy(true);
+      setComposerError('');
+      try {
+        const data = await communityApi(session, '/anonymous/duel-pick', {
+          duel_id: duelId,
+          move,
+          group_id: groupId,
+        });
+        if (data.duel) {
+          setDuels((prev) => {
+            duelsRef.current = { ...prev, [data.duel.event_id]: data.duel };
+            return duelsRef.current;
+          });
+        }
+        if (soundRef.current) playChallengeTone();
+        markActivity();
+      } catch (err) {
+        setComposerError(SEND_ERRORS[err.code] || err.message || 'Could not throw.');
+      } finally {
+        setDuelBusy(false);
+      }
+    },
+    [session, groupId, duelBusy],
+  );
+
   // When a member seat is released (inactivity reconciliation) the room stays
   // open but the member loses access: detect the member→closed transition so a
   // viewer currently in the room is told why and sent home instead of being
   // silently dumped onto the rejoin screen. Wipe/banned are handled elsewhere.
+  // A DELIBERATE leave is not a release: `leftDeliberatelyRef` suppresses the
+  // member→closed edge so pressing "Leave" never raises the "your seat was
+  // released" modal over a room the user then successfully re-joined.
   const detectRelease = useCallback((data) => {
     const prev = lastAccessRef.current;
     lastAccessRef.current = data?.access;
+    if (leftDeliberatelyRef.current) return;
     const wasMember = prev === 'member';
     const gone = !data || !['member', 'spectator'].includes(data.access);
     if (wasMember && gone && data && data.access !== 'wiped' && data.access !== 'banned') {
@@ -823,7 +1115,13 @@ const AnonymousRoom = () => {
           const map = new Map();
           for (const m of [...olderKept, ...fetched]) map.set(m.id, m);
           return [...map.values()]
-            .filter((m) => Date.parse(m.lives_until || '') > Date.now())
+            // Keep a row whose lives_until is missing/unparseable — we cannot
+            // prove it expired, so pruning it here would silently destroy
+            // messages. The strict server lifetime still removes them.
+            .filter((m) => {
+              const lives = Date.parse(m.lives_until || '');
+              return !Number.isFinite(lives) || lives > Date.now();
+            })
             .sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));
         });
         setEvents((prev) => {
@@ -832,7 +1130,13 @@ const AnonymousRoom = () => {
           return [...map.values()].sort((a, b) => Date.parse(a.created_at) - Date.parse(b.created_at));
         });
         setHasMore(!!feed.has_more);
-        olderCursorRef.current = feed.next_before || (fetched[0]?.created_at ?? null);
+        // Only INITIALISE the backwards cursor here. reconcile() runs on every
+        // realtime event and every heartbeat; rewinding it to the newest page
+        // each time stranded a reader who had already paged back (their next
+        // "load earlier" refetched a seen page and killed the control).
+        if (!olderCursorRef.current) {
+          olderCursorRef.current = feed.next_before || (fetched[0]?.created_at ?? null);
+        }
       }
     } catch {
       /* transient — realtime retry / polling will reconcile again */
@@ -980,13 +1284,31 @@ const AnonymousRoom = () => {
         if (fightTimerRef.current) clearTimeout(fightTimerRef.current);
         fightTimerRef.current = setTimeout(() => setFightAlert(null), 5000);
       }
+      if (payload?.action === 'announcement' || payload?.action === 'crack_accepted') {
+        // v62 - a scheduled gag line is due (or the chain just started). The
+        // 'crack_accepted' broadcast used to fall through to the bare return
+        // below, so nobody refetched and the t+0 card only appeared on the
+        // next poll. reconcile() re-reads the feed, where the server applies
+        // the visible_at gate.
+        reconcile();
+      }
       return;
     }
-    if (type === 'fight') {
-      // S1 — reciprocal attack actions started a fight. Transient banner only.
+if (type === 'fight') {
+      // S1 - reciprocal attack actions started a fight. Transient banner only.
       setFightAlert({ attacker: payload?.attacker ?? null, defender: payload?.defender ?? null });
       if (fightTimerRef.current) clearTimeout(fightTimerRef.current);
       fightTimerRef.current = setTimeout(() => setFightAlert(null), 5000);
+      return;
+    }
+    if (type === 'duel') {
+      // v62 — an RPS bout opened, or one side locked a throw in. Refresh only
+      // bouts already on screen (never auto-open one the fighter did not ask
+      // for). duelsRef mirrors `duels` so this handler stays in sync without
+      // re-subscribing on every throw.
+      if (payload?.eventId != null && duelsRef.current?.[payload.eventId]) {
+        fetchDuel(payload.eventId);
+      }
       return;
     }
     if (type === 'delete') {
@@ -1116,6 +1438,11 @@ const AnonymousRoom = () => {
     const cutoff = Date.now() - (room?.config?.event_lifetime_seconds || EVENT_LIFETIME_SECONDS) * 1000;
     setEvents((prev) => {
       const next = prev.filter((e) => {
+        // v62 - prefer the server-computed expiry. A delayed gag line was
+        // created minutes before it was shown, so created_at + lifetime is
+        // already past and the card would be dropped the instant it arrived.
+        const expires = Date.parse(e.expires_at || '');
+        if (Number.isFinite(expires)) return expires > Date.now();
         const at = Date.parse(e.created_at || '');
         return Number.isFinite(at) && at > cutoff;
       });
@@ -1150,44 +1477,74 @@ const AnonymousRoom = () => {
   // ---------------------------------------------------------------
   // Scroll preservation — anchored prepends, bottom-follow appends
   // ---------------------------------------------------------------
+  // Timeline rows are keyed as `m:<uuid>` / `e:<id>` so a message and an event
+  // card can never collide.
+  const rowKeys = useCallback(
+    () => [
+      ...messages.map((m) => `m:${m.id}`),
+      ...events.map((e) => `e:${e.id}`),
+    ],
+    [messages, events],
+  );
+
+  // The reader is "caught up": every current row has now been rendered at the
+  // bottom, so the unseen set (and therefore the pill) resets to empty.
+  const markCaughtUp = useCallback(() => {
+    seenRowsRef.current = new Set(rowKeys());
+    setNewRowsCount(0);
+  }, [rowKeys]);
+
   useLayoutEffect(() => {
     const el = scrollRef.current;
     if (!el) return;
+    const keys = rowKeys();
     if (prependKeepRef.current != null) {
+      // Older history was prepended. Those rows are HISTORY, not new arrivals —
+      // record them as seen (loadOlder already did) and leave the unseen count
+      // untouched, then release justSentRef so it cannot leak into the next run.
       el.scrollTop = el.scrollHeight - prependKeepRef.current;
       prependKeepRef.current = null;
+      justSentRef.current = false;
+      setNewRowsCount(keys.filter((k) => !seenRowsRef.current.has(k)).length);
       return;
     }
     if (firstLoadRef.current) {
       firstLoadRef.current = false;
       el.scrollTop = el.scrollHeight;
       atBottomRef.current = true;
+      markCaughtUp();
       return;
     }
     if (atBottomRef.current || justSentRef.current) {
       el.scrollTop = el.scrollHeight;
       atBottomRef.current = true;
-      setShowNewPill(false);
+      markCaughtUp();
     } else {
-      setShowNewPill(true);
+      // Genuinely unseen rows only — reacting, voting, editing or expiring an
+      // existing row leaves the id set unchanged, so it cannot raise the pill.
+      setNewRowsCount(keys.filter((k) => !seenRowsRef.current.has(k)).length);
     }
     justSentRef.current = false;
-  }, [messages]);
+  }, [messages, events, rowKeys, markCaughtUp]);
 
   const onScroll = () => {
     const el = scrollRef.current;
     if (!el) return;
     const atBottom = el.scrollHeight - el.scrollTop - el.clientHeight < 80;
     atBottomRef.current = atBottom;
-    if (atBottom) setShowNewPill(false);
+    // Reaching the bottom (even by scrolling, not just the pill) clears it.
+    if (atBottom) {
+      if (seenRowsRef.current.size) markCaughtUp();
+      else setNewRowsCount(0);
+    }
   };
 
   const jumpToBottom = useCallback(() => {
     const el = scrollRef.current;
     if (el) el.scrollTop = el.scrollHeight;
     atBottomRef.current = true;
-    setShowNewPill(false);
-  }, []);
+    markCaughtUp();
+  }, [markCaughtUp]);
 
   const loadOlder = async () => {
     if (!hasMore || loadingOlder || !groupId) return;
@@ -1203,6 +1560,9 @@ const AnonymousRoom = () => {
       const seen = new Set(messages.map((m) => m.id));
       const older = (feed.messages || []).filter((m) => !seen.has(m.id));
       if (el) prependKeepRef.current = el.scrollHeight - el.scrollTop;
+      // Backfilled history is "seen" the instant it is prepended — it must
+      // never be counted as a new arrival by the pill.
+      for (const m of older) seenRowsRef.current.add(`m:${m.id}`);
       setMessages((prev) => {
         const map = new Map(prev.map((m) => [m.id, m]));
         for (const m of older) map.set(m.id, m);
@@ -1210,10 +1570,14 @@ const AnonymousRoom = () => {
           (a, b) => Date.parse(a.created_at) - Date.parse(b.created_at),
         );
       });
-      olderCursorRef.current = feed.next_before || before;
-      // Only keep the control when BOTH the server says there is more AND we
-      // actually found something new — no more phantom "load earlier".
-      setHasMore(!!feed.has_more && older.length > 0);
+      // Always advance the cursor to the server's next page so an
+      // all-expired page cannot strand the reader on the same window forever.
+      const nextCursor = feed.next_before || before;
+      olderCursorRef.current = nextCursor;
+      // Keep the control while EITHER new rows appeared OR the page moved on.
+      // (The old `&& older.length > 0` permanently deleted the control after a
+      // single empty page even though older history still existed.)
+      setHasMore(!!feed.has_more && (older.length > 0 || nextCursor !== before));
     } catch (err) {
       console.error('anonymous room older load', err);
       // Keep the control in place so the user can retry the same page.
@@ -1679,12 +2043,17 @@ const AnonymousRoom = () => {
     setComposerError('');
     try {
       await communityApi(session, '/groups/join', { group_id: groupId });
+      // A confirmed join clears the voluntary-leave suppression and any stale
+      // release modal, so a member who leaves and returns never gets blocked by
+      // a "your seat was released" overlay.
+      leftDeliberatelyRef.current = false;
+      setReleasedNotice(false);
       await bootstrap(true);
     } catch (err) {
       if (err.code === 'MEMBERSHIP_PAYMENT_REQUIRED') {
         setConfirmMembership(true);
         setComposerError(SEND_ERRORS[err.code]);
-      } else if (['MEMBERSHIP_LOCKED', 'GROUP_FULL'].includes(err.code)) {
+      } else if (['MEMBERSHIP_LOCKED', 'GROUP_FULL', 'ALREADY_SPECTATOR'].includes(err.code)) {
         setLockedOptionsOpen(true);
         setComposerError(SEND_ERRORS[err.code]);
       } else {
@@ -1702,12 +2071,23 @@ const AnonymousRoom = () => {
     try {
       await communityApi(session, '/groups/leave', { group_id: groupId });
       await communityApi(session, '/anonymous/presence-leave', { group_id: groupId }).catch(() => {});
+      // The seat is gone on purpose — stop detectRelease from reporting it as
+      // an inactivity release, and drop the visit key so re-entering mints a
+      // FRESH Anonymous #NN instead of reusing this tab's pseudonym.
+      leftDeliberatelyRef.current = true;
+      clearAnonVisitKey();
+      setMessages([]);
+      setEvents([]);
+      seenRowsRef.current = new Set();
+      setNewRowsCount(0);
+      setReleasedNotice(false);
+      lastAccessRef.current = 'closed';
       setExitOpen(false);
       setShowRules(false);
       setServerOnline(null);
       setExitDone(true);
     } catch (err) {
-      setComposerError(err.message || 'Could not leave right now.');
+      setComposerError(SEND_ERRORS[err.code] || err.message || 'Could not leave right now.');
     } finally {
       setLeaving(false);
     }
@@ -2125,6 +2505,45 @@ const AnonymousRoom = () => {
     );
   }
 
+  // Deliberate exit takes precedence over the join/closed/wiped gates: after
+  // leaving, the next reconcile reports access 'closed', which used to replace
+  // this screen with the join gate within seconds.
+  if (exitDone) {
+    return (
+      <div className="h-[100dvh] bg-slate-950 text-slate-200 overflow-y-auto">
+        <GateCard>
+          <div className="text-4xl mb-3">👋</div>
+          <h1 className="text-xl font-black text-white">You've left the room.</h1>
+          <p className="text-sm text-slate-400 font-medium mt-2">
+            Your seat has been released and the room no longer counts you. Any messages you sent stay
+            anonymous and expire on their own 10-minute timer. Walk back in any time — you will get a
+            fresh Anonymous #.
+          </p>
+          <div className="flex flex-col items-stretch gap-2.5 mt-6">
+            <button
+              onClick={async () => {
+                // Actually REJOIN (not just re-read state) while a seat is free.
+                // Re-entering presents a fresh visit key, so the server mints a
+                // NEW Anonymous #NN for this visit.
+                setExitDone(false);
+                await joinRoom();
+              }}
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-apex-600 text-white font-black text-xs uppercase tracking-widest hover:bg-apex-700 transition"
+            >
+              <RefreshCw size={14} /> Rejoin this room
+            </button>
+            <button
+              onClick={() => navigate('/study-groups')}
+              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black text-xs uppercase tracking-widest hover:bg-slate-700 transition"
+            >
+              <Users size={14} /> Find another room
+            </button>
+          </div>
+        </GateCard>
+      </div>
+    );
+  }
+
   if (room && room.access === 'wiped') {
     return (
       <div className="h-[100dvh] bg-slate-950 text-slate-200">
@@ -2305,38 +2724,6 @@ const AnonymousRoom = () => {
               className="px-4 py-2.5 rounded-xl bg-transparent border border-slate-800 text-slate-400 font-black text-xs uppercase tracking-widest hover:text-white transition"
             >
               Return to groups
-            </button>
-          </div>
-        </GateCard>
-      </div>
-    );
-  }
-
-  if (exitDone) {
-    return (
-      <div className="h-[100dvh] bg-slate-950 text-slate-200 overflow-y-auto">
-        <GateCard>
-          <div className="text-4xl mb-3">👋</div>
-          <h1 className="text-xl font-black text-white">You've left the room.</h1>
-          <p className="text-sm text-slate-400 font-medium mt-2">
-            Your seat has been released and the room no longer counts you. Any messages you sent stay
-            anonymous and expire on their own 5-minute timer.
-          </p>
-          <div className="flex flex-col items-stretch gap-2.5 mt-6">
-            <button
-              onClick={() => navigate('/study-groups')}
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-apex-600 text-white font-black text-xs uppercase tracking-widest hover:bg-apex-700 transition"
-            >
-              <Users size={14} /> Find another room
-            </button>
-            <button
-              onClick={() => {
-                setExitDone(false);
-                bootstrap(true);
-              }}
-              className="inline-flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black text-xs uppercase tracking-widest hover:bg-slate-700 transition"
-            >
-              <RefreshCw size={14} /> Rejoin this room
             </button>
           </div>
         </GateCard>
@@ -2588,11 +2975,17 @@ const AnonymousRoom = () => {
                 key={`ev-${ev.id}`}
                 ev={ev}
                 canReact={canReact}
+                canDuel={isMember}
                 busy={eventBusyFor}
                 reactionPalette={room?.config?.reactions}
                 onReact={toggleEventReaction}
                 onRespond={respondEvent}
                 onMention={isMember ? jumpToAlias : null}
+                duel={duels[ev.id] || null}
+                duelBusy={duelBusy}
+                onDuelOpen={openDuelPanel}
+                onDuelPick={pickDuel}
+                reducedMotion={prefersReducedMotion}
               />
             );
           }
@@ -3027,12 +3420,12 @@ const AnonymousRoom = () => {
         ))}
       </main>
 
-      {showNewPill && (
+      {newRowsCount > 0 && (
         <button
           onClick={jumpToBottom}
           className="absolute left-1/2 -translate-x-1/2 bottom-32 z-10 px-4 py-2 rounded-full bg-apex-600 text-white text-[10px] font-black uppercase tracking-widest shadow-lg"
         >
-          New messages ↓
+          {newRowsCount > 1 ? `${newRowsCount} new messages ↓` : 'New message ↓'}
         </button>
       )}
 
@@ -3262,6 +3655,15 @@ const AnonymousRoom = () => {
             </li>
             <li className="flex gap-2">
               <span className="text-apex-400 font-black">04</span>
+              Actions are opt-in. Some moves — like a toast or a crack — need the other person to
+              ACCEPT first, and declining ends it there. Nothing happens without a yes.
+            </li>
+            <li className="flex gap-2">
+              <span className="text-apex-400 font-black">05</span>
+              Turn on “declining interactions” any time to refuse every incoming action at once.
+            </li>
+            <li className="flex gap-2">
+              <span className="text-apex-400 font-black">06</span>
               If you see something harmful, report it. The team can hide messages and restrict accounts.
             </li>
           </ul>

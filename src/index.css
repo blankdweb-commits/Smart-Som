@@ -242,6 +242,93 @@ button, a {
     }
   }
 
+  /* v62 - Anonymous room event-card entrance, one flavour per card kind so an
+     action, a challenge, a fight, a duel and a system announcement each ARRIVE
+     differently instead of all appearing identically. CSS keyframes on purpose:
+     framer-motion is on the render-blocking critical path (see vite.config.js
+     manualChunks) and these are purely decorative. Each is a single short
+     transform/opacity tween - never a loop - so nothing pulses indefinitely.
+
+     The component also omits the class entirely when the reader prefers reduced
+     motion, and the media query below is the belt-and-braces backstop for
+     anyone who reaches these classes by another route. */
+  .room-card-enter-action {
+    animation: room-card-enter-action 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .room-card-enter-challenge {
+    animation: room-card-enter-challenge 0.32s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .room-card-enter-fight {
+    animation: room-card-enter-fight 0.34s cubic-bezier(0.34, 1.56, 0.64, 1) both;
+  }
+  .room-card-enter-duel {
+    animation: room-card-enter-duel 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+  .room-card-enter-announce {
+    animation: room-card-enter-announce 0.45s cubic-bezier(0.22, 1, 0.36, 1) both;
+  }
+
+  /* A plain settle — the default for a member acting on someone. */
+  @keyframes room-card-enter-action {
+    from {
+      opacity: 0;
+      transform: translateY(6px) scale(0.99);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  /* Slightly larger and more deliberate: this one is waiting on the target to
+     Accept or Decline, so it should read as an invitation. */
+  @keyframes room-card-enter-challenge {
+    from {
+      opacity: 0;
+      transform: translateY(-8px) scale(0.96);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0) scale(1);
+    }
+  }
+  /* A single quick punch-in. The slight overshoot is what makes a fight card
+     land differently from the rest. */
+  @keyframes room-card-enter-fight {
+    from {
+      opacity: 0;
+      transform: scale(0.9);
+    }
+    60% {
+      transform: scale(1.03);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1);
+    }
+  }
+  /* Slides in from the side it is fought on. */
+  @keyframes room-card-enter-duel {
+    from {
+      opacity: 0;
+      transform: translateX(-12px) scale(0.97);
+    }
+    to {
+      opacity: 1;
+      transform: translateX(0) scale(1);
+    }
+  }
+  /* The slow fade+rise of a room-wide announcement (crack / belle / birth). */
+  @keyframes room-card-enter-announce {
+    from {
+      opacity: 0;
+      transform: translateY(10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
   /* Respect reduced-motion preferences: kill the staggered entrance and the
      tap-scale so nothing pulses/zooms for users who asked for less motion. */
   @media (prefers-reduced-motion: reduce) {
@@ -250,6 +337,14 @@ button, a {
     }
     .tap-active:active {
       transform: none;
+    }
+    /* v62 - the event-card entrances above are decorative too. */
+    .room-card-enter-action,
+    .room-card-enter-challenge,
+    .room-card-enter-fight,
+    .room-card-enter-duel,
+    .room-card-enter-announce {
+      animation: none;
     }
   }
 }
