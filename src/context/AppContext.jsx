@@ -792,73 +792,14 @@ export function AppProvider({ children }) {
     }
   }, [session, smartCoins]);
 
-  // ---- Competitive matches (migration v38) — server-authoritative NMCN arena ----
-  // The client NEVER picks battle questions, never grades answers, and never
-  // declares a winner. create/get/submit/complete are SECURITY DEFINER RPCs:
-  //   - create_competitive_match  selects the question sequence SERVER-side from
-  //     questions WHERE exam_framework='NMCN' (a client cannot pass a framework
-  //     or question ids at all — there are no such parameters), pins the match
-  //     to a shared sequence for every player, and de-duplicates the racing
-  //     pair so BOTH human clients get the SAME match id and SAME questions.
-  //   - get_competitive_match     re-verifies every stored question id is still
-  //     NMCN + schema-valid at serving time and never returns correct_answer.
-  //   - submit_competitive_answer grades server-side (first answer wins).
-  //   - complete_competitive_match resolves the winner from the stored answers,
-  //     settles SC via _sc_apply with a per-player unique ref (no double pay),
-  //     writes duels history + competitive_stats, and is replay-safe.
-  // All helpers fail SOFT (return null) so a not-yet-migrated DB degrades to
-  // "match could not start" instead of crashing.
-  const createCompetitiveMatch = useCallback(async ({ mode, stake, opponentId, format, bot }) => {
-    if (!session) return null;
-    try {
-      const { data, error } = await supabase.rpc('create_competitive_match', {
-        p_mode: mode,
-        p_stake: Number(stake) || 0,
-        p_opponent_id: opponentId || null,
-        p_format: format || 'sudden_death',
-        // v60 tutor bots (non-blitz 1v1 only): the server grades the tutor and
-        // settles; opponent_id is forced NULL server-side. Omit -> NULL.
-        p_bot: bot || null,
-      });
-      if (error || !data?.ok) {
-        console.warn('Competitive match create failed:', error?.message || data?.error);
-        return null;
-      }
-      return data;
-    } catch (err) {
-      console.warn('Competitive match create failed:', err?.message);
-      return null;
-    }
-  }, [session]);
-
-  // Duel roster (v60): live, eligible (activated + premium + solvent) scholars
-  // waiting for this mode/format. Server-authoritative list for the betting
-  // screen's "challenge a scholar" section. Fails soft (empty list).
-  const fetchDuelRoster = useCallback(async ({ mode = 'duel', stake = 0, format = 'sudden_death' } = {}) => {
-    if (!session) return [];
-    try {
-      const { data, error } = await supabase.rpc('duel_roster', {
-        p_mode: mode,
-        p_stake: Number(stake) || 0,
-        p_format: format,
-      });
-      if (error || !data?.ok) {
-        console.warn('Duel roster fetch failed:', error?.message || data?.error);
-        return [];
-      }
-      return Array.isArray(data.players) ? data.players : [];
-    } catch (err) {
-      console.warn('Duel roster fetch failed:', err?.message);
-      return [];
-    }
-  }, [session]);
-
   // ==========================================================================
-  // 1v1 ARENA (migration v63) — ONE blitz format for humans AND bots, with a
-  // two-sided escrow economy and a full match lifecycle.
+  // 1v1 ARENA (migrations v63 + v64) — ONE blitz format for humans AND bots,
+  // with a two-sided escrow economy and a full match lifecycle.
   //
-  // These replace the v58/v60 blitz wrappers. Sudden-death is no longer an
-  // option for 1v1 (Triple Threat still uses create_competitive_match).
+  // These replaced the v38/v58/v60 wrappers. Sudden death is gone from 1v1: the
+  // legacy `create_competitive_match` / `submit_competitive_answer` /
+  // `complete_competitive_match` trio has NO client wrapper any more, so the
+  // old Triple-Threat screen could only ever have thrown and settled nothing.
   // Every call goes to a SECURITY DEFINER RPC: the server owns the board, the
   // grading, the wager and the verdict. The client never sends a score, a
   // winner, or a payout.
@@ -878,23 +819,53 @@ export function AppProvider({ children }) {
     }
   }, [session]);
 
-  // The server deducts nothing locally, so a settle refreshes the balance from
-  // the authoritative per-player breakdown the settlement returns.
-  const syncArenaBalance = useCallback((result) => {
-    const rows = Array.isArray(result?.breakdown) ? result.breakdown : [];
-    const me = rows.find((r) => r.playerId && r.playerId === session?.user?.id);
-    if (me && me.balance !== null && me.balance !== undefined) {
-      setSmartCoins(Number(me.balance));
+  // Authoritative balance straight from the wallet column. This is the fallback
+  // the arena needs: a LOSS releases 0 coins, so a settlement that only reports
+  // the release leaves the header showing the pre-match number ("my history says
+  // -2 SC but my wallet never moved").
+  const refreshSmartCoins = useCallback(async () => {
+    if (!session?.user?.id) return null;
+    try {
+      const { data, error } = await supabase
+        .from('profiles').select('smart_coins').eq('id', session.user.id).maybeSingle();
+      if (error || data?.smart_coins == null) return null;
+      const bal = Number(data.smart_coins) || 0;
+      setSmartCoins(bal);
+      return bal;
+    } catch (err) {
+      console.warn('Smart Coins refresh failed:', err?.message);
+      return null;
     }
   }, [session]);
 
-  const arenaCreateMatch = useCallback(async ({ stake, opponentId = null, bot = null }) =>
-    arenaRpc('arena_create_match', {
+  // Every arena call now carries the post-transaction balance (v64), so the SC
+  // pill tracks the escrow debit at match start AND the release at the end. The
+  // breakdown row is the older shape and the profile read is the last resort.
+  const syncArenaBalance = useCallback((result) => {
+    if (!result) return;
+    const me = session?.user?.id;
+    const rows = Array.isArray(result?.breakdown) ? result.breakdown : [];
+    const row = rows.find((r) => r?.playerId && r.playerId === me);
+    const candidate = result.balance ?? row?.balance ?? null;
+    if (candidate != null && Number.isFinite(Number(candidate))) {
+      setSmartCoins(Number(candidate));
+      return;
+    }
+    refreshSmartCoins();
+  }, [session, refreshSmartCoins]);
+
+  // `practice` is the free tutor duel: no escrow, no history row, no stats.
+  const arenaCreateMatch = useCallback(async ({ stake, opponentId = null, bot = null, practice = false }) => {
+    const res = await arenaRpc('arena_create_match', {
       p_mode: 'duel',
       p_stake: Number(stake) || 0,
       p_opponent_id: opponentId,
       p_bot: bot,
-    }), [arenaRpc]);
+      p_practice: !!practice,
+    });
+    syncArenaBalance(res);
+    return res;
+  }, [arenaRpc, syncArenaBalance]);
 
   const arenaReady = useCallback((matchId) =>
     arenaRpc('arena_ready', { p_match_id: matchId }), [arenaRpc]);
@@ -911,18 +882,28 @@ export function AppProvider({ children }) {
       p_skipped: !!skipped,
     }), [arenaRpc]);
 
-  const arenaHeartbeat = useCallback((matchId) =>
-    arenaRpc('arena_heartbeat', { p_match_id: matchId }), [arenaRpc]);
+  const arenaHeartbeat = useCallback(async (matchId) => {
+    const res = await arenaRpc('arena_heartbeat', { p_match_id: matchId });
+    // The heartbeat carries the balance, so the pill cannot drift mid-match.
+    if (res?.balance != null) setSmartCoins(Number(res.balance));
+    return res;
+  }, [arenaRpc]);
 
-  const arenaForfeit = useCallback((matchId) =>
-    arenaRpc('arena_forfeit', { p_match_id: matchId }), [arenaRpc]);
+  const arenaForfeit = useCallback(async (matchId) => {
+    const res = await arenaRpc('arena_forfeit', { p_match_id: matchId });
+    syncArenaBalance(res);
+    return res;
+  }, [arenaRpc, syncArenaBalance]);
 
-  const arenaCancel = useCallback((matchId) =>
-    arenaRpc('arena_cancel', { p_match_id: matchId }), [arenaRpc]);
+  const arenaCancel = useCallback(async (matchId) => {
+    const res = await arenaRpc('arena_cancel', { p_match_id: matchId });
+    syncArenaBalance(res);
+    return res;
+  }, [arenaRpc, syncArenaBalance]);
 
   const arenaSettle = useCallback(async (matchId) => {
     const res = await arenaRpc('arena_settle', { p_match_id: matchId });
-    if (res?.ok) syncArenaBalance(res);
+    syncArenaBalance(res);
     return res;
   }, [arenaRpc, syncArenaBalance]);
 
@@ -932,16 +913,25 @@ export function AppProvider({ children }) {
   const arenaOutcome = useCallback((matchId) =>
     arenaRpc('arena_outcome', { p_match_id: matchId }), [arenaRpc]);
 
-  const arenaEnqueue = useCallback(({ stake }) =>
-    arenaRpc('arena_enqueue', { p_mode: 'duel', p_stake: Number(stake) || 0, p_format: 'blitz' }),
-    [arenaRpc]);
+  const arenaEnqueue = useCallback(async ({ stake }) => {
+    const res = await arenaRpc('arena_enqueue', { p_mode: 'duel', p_stake: Number(stake) || 0, p_format: 'blitz' });
+    syncArenaBalance(res);
+    return res;
+  }, [arenaRpc, syncArenaBalance]);
 
   const arenaLeaveQueue = useCallback(() =>
     arenaRpc('arena_leave_queue', {}), [arenaRpc]);
 
+  // The scholars list. v64 returns EVERY activated scholar with a derived
+  // status (available / in_match / offline) plus `canChallenge`, rather than
+  // only the people already sitting in the queue.
   const arenaRoster = useCallback(async ({ stake = 0 } = {}) => {
     const res = await arenaRpc('arena_roster', { p_stake: Number(stake) || 0, p_format: 'blitz' });
-    return Array.isArray(res?.players) ? res.players : [];
+    return {
+      players: Array.isArray(res?.players) ? res.players : [],
+      online: Number(res?.online) || 0,
+      windowSeconds: Number(res?.windowSeconds) || 90,
+    };
   }, [arenaRpc]);
 
   // Viral growth (migration v35): challenges / referrals / squads / party rooms
@@ -2381,10 +2371,9 @@ export function AppProvider({ children }) {
       addFlashcard, updateFlashcard, deleteFlashcard, importFlashcards,
       smartCoins, scLedger, claimDailySC, spendSC, recordStreakBreak, recordQuizFailPenalty,
       finalizeDuel,
-      createCompetitiveMatch, fetchDuelRoster,
       arenaCreateMatch, arenaReady, arenaStart, arenaAnswer, arenaHeartbeat,
       arenaForfeit, arenaCancel, arenaSettle, arenaState, arenaOutcome,
-      arenaEnqueue, arenaLeaveQueue, arenaRoster,
+      arenaEnqueue, arenaLeaveQueue, arenaRoster, refreshSmartCoins,
       claimChallengeReward, getMyReferral, applyReferral,
       createSquad, joinSquad, leaveSquad, getMySquad, claimSquadReward,
       createRoom, joinRoom, leaveRoom, getActiveRooms, getMyRoom,

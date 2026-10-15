@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Volume2, Settings, Award, Users, Search, Brain, FileUp, Shield, ShieldCheck, Coins, Target, Trophy, Sparkles } from './Icons';
+import { LayoutDashboard, BookOpen, Volume2, Settings, Award, Users, Search, Brain, FileUp, Shield, ShieldCheck, Coins, Target, Trophy, Sparkles, Swords } from './Icons';
 import { useAppContext } from '../context/AppContext';
 import BrandLogo from './BrandLogo';
 
@@ -12,6 +12,9 @@ const Sidebar = () => {
     { name: 'Flashcards', icon: BookOpen, path: '/flashcards' },
     { name: 'Quiz Mode', icon: Brain, path: '/quiz' },
     { name: 'Weakness Drill', icon: Target, path: '/weakness-drill' },
+    // The SC War Hall is a real hub now, not a hidden 5-tap easter egg on the
+    // Quiz page. The easter egg still routes here, so both paths work.
+    { name: 'SC War Hall', icon: Swords, path: '/rumble' },
     { name: 'Achievements', icon: Award, path: '/achievements' },
     { name: 'Nursing License', icon: ShieldCheck, path: '/license' },
     { name: 'Loan Shark', icon: Coins, path: '/loans' },

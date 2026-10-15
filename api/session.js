@@ -81,6 +81,27 @@ const touch = async (req, res) => {
     if (supabase) {
       try { await supabase.rpc('touch_session', { p_user_id: user.id, p_session_id: sessionId }); }
       catch (err) { console.error('Session touch error:', err.message); }
+
+      // ---- 1v1 arena heartbeat (migration v64) ---------------------------
+      // The arena sweep only ever ran when an arena RPC was called, so a match
+      // whose BOTH players closed their tab stayed `active` for ever and its
+      // pot stayed escrowed. This endpoint is the one traffic source that keeps
+      // flowing with no arena tab open (every signed-in user hits it every
+      // 60s), so the sweep runs here too. Both calls are best-effort and must
+      // never fail the session heartbeat.
+      //
+      // `_arena_sweep` is service-role only and takes no arguments;
+      // `_arena_touch_presence` is what makes a scholar show as "Available" in
+      // the online list. Both are absent before v64 is applied, in which case
+      // the RPC errors are swallowed below.
+      try {
+        await Promise.allSettled([
+          supabase.rpc('_arena_sweep'),
+          supabase.rpc('_arena_touch_presence', { p_user: user.id }),
+        ]);
+      } catch (err) {
+        console.error('Arena sweep error:', err.message);
+      }
     }
     return res.status(200).json({ success: true });
   } catch (err) {

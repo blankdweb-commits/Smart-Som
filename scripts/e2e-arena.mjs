@@ -74,7 +74,21 @@ async function adminSql(sql) {
     headers: { Authorization: `Bearer ${MGMT_TOKEN}`, 'Content-Type': 'application/json' },
     body: JSON.stringify({ query: sql }),
   });
-  if (!res.ok) throw new Error(`adminSql ${res.status}: ${(await res.text()).slice(0, 300)}`);
+  if (!res.ok) {
+    const body = await res.text();
+    // A stale personal access token is the single most common cause and it is
+    // easy to mistake for a test failure. Say so, and say how to fix it.
+    if (res.status === 401 || res.status === 403) {
+      throw new Error(
+        'MANAGEMENT_TOKEN_INVALID — SUPABASE_ACCESS_TOKEN is rejected by the '
+        + 'Supabase Management API, so the clock fast-forward cannot run and the '
+        + 'settlement/lifecycle tests below cannot execute. Paste a fresh sbp_ '
+        + 'token into .env (Supabase dashboard -> Account -> Access Tokens), then '
+        + 're-run. Nothing in the app is wrong.'
+      );
+    }
+    throw new Error(`adminSql ${res.status}: ${body.slice(0, 300)}`);
+  }
   return (await res.json()) || [];
 }
 
@@ -751,6 +765,159 @@ try {
   log('K8 every escrow lifecycle step is auditable',
     kinds.includes('created') && kinds.includes('forfeit') && kinds.includes('settled'),
     kinds.join(','));
+
+  // ================================================================
+  // L. v64 — WALLET TRUTH, FREE PRACTICE, PRESENCE
+  //
+  // The reported bug: "history says +2 / -2 SC but the wallet never moved".
+  // Root cause was v63 returning `balance` only when the release was non-zero,
+  // and a LOSS releases 0, so the client kept the pre-match number.
+  // ================================================================
+  const W1 = await makeUser('w1', 100);
+  const W2 = await makeUser('w2', 100);
+  users.push(W1, W2);
+  const wc = await rpc(W1, 'arena_create_match',
+    { p_mode: 'duel', p_stake: 2, p_opponent_id: W2.id });
+  const WM = wc.data?.matchId;
+  if (WM) createdMatchIds.add(WM);
+
+  log('L1 create returns the post-hold balance (the pill is right from the first second)',
+    wc.data?.balance === 98 && await balanceOf(W1.id) === 98,
+    `returned=${wc.data?.balance} actual=${await balanceOf(W1.id)}`);
+
+  await rpc(W1, 'arena_ready', { p_match_id: WM });
+  await rpc(W2, 'arena_ready', { p_match_id: WM });
+  await rpc(W1, 'arena_start', { p_match_id: WM });
+
+  // W1 answers everything correctly, W2 nothing: an unambiguous win for W1.
+  const wRow = await matchRow(WM);
+  for (let i = 0; i < wRow.question_count; i += 1) {
+    const { data: qd } = await admin.from('questions')
+      .select('correct_answer').eq('id', wRow.question_ids[i]).maybeSingle();
+    await rpc(W1, 'arena_answer',
+      { p_match_id: WM, p_question_index: i, p_selected: qd?.correct_answer });
+  }
+  await fastForward(WM);
+  const wSettleLoser = await rpc(W2, 'arena_settle', { p_match_id: WM });
+  const wSettleWinner = await rpc(W1, 'arena_settle', { p_match_id: WM });
+
+  const loserRow = (wSettleLoser.data?.breakdown || []).find((b) => b.playerId === W2.id);
+  log('L2 the LOSER gets a real balance back (a loss releases 0, so v63 returned null)',
+    loserRow?.balance != null && loserRow.balance === 98
+      && await balanceOf(W2.id) === 98,
+    `breakdownBalance=${loserRow?.balance} actual=${await balanceOf(W2.id)}`);
+
+  log('L3 balances settle exactly: winner +stake, loser -stake',
+    await balanceOf(W1.id) === 102 && await balanceOf(W2.id) === 98,
+    `w1=${await balanceOf(W1.id)} w2=${await balanceOf(W2.id)}`);
+
+  const { data: wHist } = await admin.from('duels')
+    .select('outcome, delta, stake, transaction_type')
+    .eq('user_id', W1.id);
+  const { data: wHistL } = await admin.from('duels')
+    .select('outcome, delta, stake, transaction_type')
+    .eq('user_id', W2.id);
+  const winRow = (wHist || [])[0];
+  const lossRow = (wHistL || [])[0];
+  log('L4 net delta: a win records +stake, not the gross release',
+    winRow?.outcome === 'win' && winRow?.delta === 2 && winRow?.stake === 2,
+    `outcome=${winRow?.outcome} delta=${winRow?.delta}`);
+  log('L5 net delta: a loss records -stake (it used to record 0, so the row rendered red + green "0 SC")',
+    lossRow?.outcome === 'loss' && lossRow?.delta === -2,
+    `outcome=${lossRow?.outcome} delta=${lossRow?.delta}`);
+  log('L6 transaction_type agrees with the outcome',
+    winRow?.transaction_type === 'duel_win' && lossRow?.transaction_type === 'duel_loss',
+    `${winRow?.transaction_type}/${lossRow?.transaction_type}`);
+
+  // ---- free practice -----------------------------------------------------
+  const PR = await makeUser('pr', 40);
+  users.push(PR);
+  const noBot = await rpc(PR, 'arena_create_match',
+    { p_mode: 'duel', p_stake: 0, p_opponent_id: W2.id, p_practice: true });
+  log('L7 practice is refused without a tutor (it can never make a coinless human duel)',
+    noBot.data?.ok === false && noBot.data?.error === 'PRACTICE_NEEDS_BOT',
+    `error=${noBot.data?.error}`);
+
+  const prCreate = await rpc(PR, 'arena_create_match',
+    { p_mode: 'duel', p_stake: 0, p_bot: 'apollo', p_practice: true });
+  const PRM = prCreate.data?.matchId;
+  if (PRM) createdMatchIds.add(PRM);
+  log('L8 a practice match moves ZERO coins and escrows nothing',
+    prCreate.data?.ok === true && prCreate.data?.practice === true
+      && prCreate.data?.escrowed === 0 && await balanceOf(PR.id) === 40,
+    `practice=${prCreate.data?.practice} escrowed=${prCreate.data?.escrowed} balance=${await balanceOf(PR.id)}`);
+
+  const prRow = PRM ? await matchRow(PRM) : null;
+  log('L9 a practice match is still arena-owned despite escrow_amount = 0',
+    prRow?.escrow_amount === 0 && prRow?.format === 'blitz',
+    `escrow=${prRow?.escrow_amount} format=${prRow?.format}`);
+
+  const legacyOnPractice = await rpc(PR, 'complete_competitive_match', { p_match_id: PRM });
+  log('L10 the seal covers a 0-stake practice match (escrow_amount>0 would have skipped it)',
+    /ARENA_REQUIRES_ARENA_RPC|BLITZ_REQUIRES_ARENA/.test(legacyOnPractice.msg || ''),
+    `msg=${(legacyOnPractice.msg || '').slice(0, 80)}`);
+
+  if (PRM) {
+    await rpc(PR, 'arena_ready', { p_match_id: PRM });
+    await rpc(PR, 'arena_start', { p_match_id: PRM });
+    const prRow2 = await matchRow(PRM);
+    for (let i = 0; i < Math.min(4, prRow2.question_count); i += 1) {
+      const { data: qd } = await admin.from('questions')
+        .select('correct_answer').eq('id', prRow2.question_ids[i]).maybeSingle();
+      await rpc(PR, 'arena_answer',
+        { p_match_id: PRM, p_question_index: i, p_selected: qd?.correct_answer });
+    }
+    await fastForward(PRM);
+    await rpc(PR, 'arena_settle', { p_match_id: PRM });
+  }
+  const { data: prHist } = await admin.from('duels').select('id').eq('user_id', PR.id);
+  log('L11 practice writes NO duel history row and moves no coins',
+    (prHist || []).length === 0 && await balanceOf(PR.id) === 40,
+    `historyRows=${(prHist || []).length} balance=${await balanceOf(PR.id)}`);
+
+  // ---- a match whose opponent never readied ------------------------------
+  const S1 = await makeUser('s1', 50);
+  const S2 = await makeUser('s2', 50);
+  users.push(S1, S2);
+  const sc = await rpc(S1, 'arena_create_match',
+    { p_mode: 'duel', p_stake: 5, p_opponent_id: S2.id });
+  const SM = sc.data?.matchId;
+  if (SM) createdMatchIds.add(SM);
+  // Age it past the invite TTL WITHOUT ready_at ever being set (v63 could only
+  // expire a match once BOTH sides had readied, so this froze both stakes).
+  await adminSql(`select set_config('arena.write','1',true);
+                  update public.competitive_matches
+                     set created_at = now() - interval '10 minutes'
+                   where id = '${SM}'`);
+  await rpc(S1, 'arena_state', { p_match_id: SM });
+  const sRow = await matchRow(SM);
+  log('L12 a match whose opponent never readied is expired and BOTH stakes refunded',
+    sRow?.status === 'abandoned' && await balanceOf(S1.id) === 50
+      && await balanceOf(S2.id) === 50,
+    `status=${sRow?.status} s1=${await balanceOf(S1.id)} s2=${await balanceOf(S2.id)}`);
+
+  // ---- scholars list ------------------------------------------------------
+  const rosterRes = await rpc(PR, 'arena_roster', { p_stake: 2, p_format: 'blitz' });
+  const players = rosterRes.data?.players || [];
+  const statuses = [...new Set(players.map((p) => p.status))];
+  log('L13 the scholars list returns a status per player and never lists the caller',
+    rosterRes.data?.ok === true
+      && Array.isArray(players)
+      && !players.some((p) => p.userId === PR.id)
+      && players.every((p) => ['available', 'in_match', 'offline'].includes(p.status))
+      && typeof rosterRes.data?.online === 'number',
+    `players=${players.length} statuses=${statuses.join('/')} online=${rosterRes.data?.online}`);
+  log('L14 a busy or offline scholar is never challengeable',
+    players.filter((p) => p.status !== 'available').every((p) => p.canChallenge === false),
+    `nonChallengeableWrongly=${players.filter((p) => p.status !== 'available' && p.canChallenge).length}`);
+
+  const anonRoster = await anon.rpc('arena_roster', { p_stake: 2 });
+  log('L15 an anonymous caller cannot read the scholars list',
+    !!anonRoster.error, `error=${anonRoster.error?.message?.slice(0, 60)}`);
+
+  const anonSweep = await anon.rpc('_arena_sweep');
+  log('L16 the internal sweep is service-role only (anon cannot reap matches)',
+    !!anonSweep.error, `error=${anonSweep.error?.message?.slice(0, 60)}`);
 
 } catch (err) {
   log('SUITE ERROR — ' + (err?.message || err), false);

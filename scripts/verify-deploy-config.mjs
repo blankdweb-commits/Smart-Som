@@ -2534,13 +2534,12 @@ checks.push(
   );
   checks.push(
     /useMatchRealtime/.test(hall)
-      && /phase === "blitz-waiting"/.test(hall)
-      && /phase === "blitz-countdown"/.test(hall)
-      && /phase === "blitz-play"/.test(hall)
-      && /phase === "blitz-result"/.test(hall)
+      && /phase === 'blitz-waiting'/.test(hall)
+      && /phase === 'blitz-countdown'/.test(hall)
+      && /phase === 'blitz-play'/.test(hall)
+      && /phase === 'blitz-result'/.test(hall)
       && /apex_active_arena/.test(hall)
       && /fmtBlitzTime/.test(hall)
-      && /lobbyOnline/.test(hall)
       && /arenaReview/.test(hall)
       && /forfeitArena/.test(hall)
       ? ok('Rumble arena UI: waiting/countdown/play/result + resume key + review + forfeit')
@@ -2643,22 +2642,24 @@ checks.push(
       : fail('v60 RPC ACLs / schema reload missing'),
   );
   checks.push(
-    /p_bot: bot \|\| null/.test(app)
-      && /const fetchDuelRoster = useCallback/.test(app)
-      && /supabase\.rpc\('duel_roster'/.test(app)
-      && /fetchDuelRoster,/.test(app)
-      ? ok('AppContext wire-up: createCompetitiveMatch(p_bot) + fetchDuelRoster(rpc duel_roster) exported')
-      : fail('AppContext WS5 helpers missing'),
+    // v64: the legacy sudden-death wrappers are GONE from the client. They used
+    // to remain exported while the only screen that called them (Triple Threat)
+    // had already been removed, so nothing could settle a sudden-death duel.
+    !/createCompetitiveMatch/.test(app)
+      && !/fetchDuelRoster/.test(app)
+      && !/supabase\.rpc\('duel_roster'/.test(app)
+      && !/supabase\.rpc\('create_competitive_match'/.test(app)
+      ? ok('AppContext: the dead v38/v60 sudden-death wrappers are removed (no createCompetitiveMatch / fetchDuelRoster)')
+      : fail('AppContext still wires the removed sudden-death wrappers'),
   );
   checks.push(
     /const BOT_OPPONENTS = \[/.test(hall)
       && /const startVsBot = useCallback/.test(hall)
       && /const challengeScholar = useCallback/.test(hall)
       && /const startQuickMatch = useCallback/.test(hall)
-      && /arenaRoster\(\{ stake \}\)/.test(hall)
+      && /arenaRoster\(\{ stake: ARENA_STAKE \}\)/.test(hall)
       && /finding === 'bot'/.test(hall)
-      && /setConfirmHighWager/.test(hall)
-      ? ok('Rumble bot/roster UI: instant tutors + live-scholar roster + Quick Match (all arena-backed)')
+      ? ok('Rumble bot/roster UI: free tutors + scholars list + Quick Match (all arena-backed)')
       : fail('Rumble bot/roster UI missing'),
   );
   checks.push(
@@ -3204,6 +3205,177 @@ checks.push(
       && !/arena_/.test(heldSet)
       ? ok('audio: arena one-shot cues exist, reuse the clip library, and are NOT held across questions')
       : fail('audio: arena cues missing or wrongly held'),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PART Q - ARENA WALLET / PRACTICE / PRESENCE (v64). Four live defects from
+// browser QA plus the two pieces the new War Hall UI needs.
+//
+//   1. The wallet pill never moved on a LOSS. v63 only returned
+//      `breakdown[].balance` when the release was non-zero, and a loss releases
+//      0, so the client silently kept the pre-match number. Balance must ALWAYS
+//      be returned, and the client must have a real fallback.
+//   2. `duels.delta` stored the RELEASE, so a timed loss wrote
+//      outcome='loss' delta=0 while a draw wrote delta=+stake. Net delta +
+//      a backfill is the fix, and `outcome` must drive the colour.
+//   3. `_arena_sweep` only ran from arena RPCs, so a both-players-gone match
+//      stayed active and its pot stayed escrowed. The session heartbeat now
+//      sweeps (the one traffic source that runs with no arena tab open).
+//   4. The "All questions answered" check compared an index against a total
+//      that could be 0, so it fired on an unloaded board.
+//   5. Free tutor practice needs stake 0, which the v38 CHECK forbade - and
+//      which would have put a 0-stake match OUTSIDE the escrow seal, because
+//      the seal keyed off `escrow_amount > 0`.
+// ---------------------------------------------------------------------------
+{
+  const v64 = read('scripts/migration-v64-arena-wallet-practice-presence.sql');
+  const v64Hall = read(resolve(ROOT, 'src/pages/Rumble.jsx'));
+  const v64App = read(resolve(ROOT, 'src/context/AppContext.jsx'));
+  const v64Session = read(resolve(ROOT, 'api/session.js'));
+  const v64E2e = read('scripts/e2e-arena.mjs');
+  const v64Sidebar = read(resolve(ROOT, 'src/components/Sidebar.jsx'));
+
+  checks.push(
+    existsSync(resolve(ROOT, 'scripts/migration-v64-arena-wallet-practice-presence.sql'))
+      && /v_delta := v_release - v_stake/.test(v64)
+      && /'balance', \(select smart_coins from public\.profiles where id = v_user\)/.test(v64)
+      ? ok('v64: settlement returns NET deltas and an ALWAYS-present balance (a loss releases 0, so it used to be null)')
+      : fail('v64: net delta / always-present balance missing'),
+  );
+  checks.push(
+    /arena:history:/.test(v64)
+      && /set delta = coalesce\(\(v_b\.el ->> 'delta'\)::int, 0\) - v_m\.stake/.test(v64)
+      ? ok('v64: the existing arena history rows are backfilled to net delta via the deterministic client_request_id')
+      : fail('v64: history backfill missing'),
+  );
+  checks.push(
+    /check \(stake > 0 or \(stake = 0 and format = 'blitz'\)\)/.test(v64)
+      ? ok('v64: stake 0 is legal for an arena practice match but still forbidden on the legacy sudden-death path')
+      : fail('v64: the v38 stake CHECK was not widened for practice'),
+  );
+  checks.push(
+    /coalesce\(old\.format, 'sudden_death'\) = 'blitz'/.test(v64)
+      && /coalesce\(v_format, 'sudden_death'\) = 'blitz'/.test(v64)
+      && !/coalesce\(old\.escrow_amount, 0\) > 0/.test(v64)
+      ? ok("v64: the arena seal keys off format='blitz', not escrow_amount>0 (a 0-stake practice match would fall OUTSIDE it)")
+      : fail('v64: the seal still keys off escrow_amount, so a practice match is unsealed'),
+  );
+  checks.push(
+    /p_practice\s+boolean\s+default false/.test(v64)
+      && /drop function if exists public\.arena_create_match\(text, integer, uuid, text\)/.test(v64)
+      && /PRACTICE_NEEDS_BOT/.test(v64)
+      && /PRACTICE_IS_SOLO/.test(v64)
+      ? ok('v64: free practice is a REPLACED create signature (the dropped 4-arg avoids the PGRST203 overload trap) and is tutor-only')
+      : fail('v64: free practice create path missing or overload-unsafe'),
+  );
+  checks.push(
+    /create table if not exists public\.arena_presence/.test(v64)
+      && /_arena_touch_presence/.test(v64)
+      && /'status', status,/.test(v64)
+      && /'canChallenge'/.test(v64)
+      && /'lastSeenAt'/.test(v64)
+      ? ok('v64: arena_presence gives the scholars list a real available / in_match / offline signal')
+      : fail('v64: presence / roster status missing'),
+  );
+  checks.push(
+    /grace_seconds', 15/.test(v64)
+      && /invite_ttl_seconds/.test(v64)
+      && /ready_at is null/.test(v64)
+      && /'no_show', null, null, true\)/.test(v64)
+      ? ok('v64: grace is 15s and a match whose opponent never readied (ready_at NULL) is now expired, so both stakes cannot freeze forever')
+      : fail('v64: grace window / never-readied expiry missing'),
+  );
+  checks.push(
+    /_arena_sweep/.test(v64Session)
+      && /_arena_touch_presence/.test(v64Session)
+      && /Promise\.allSettled/.test(v64Session)
+      ? ok('v64: the session heartbeat sweeps the arena, so a both-players-gone match cannot stay alive')
+      : fail('v64: api/session.js touch does not sweep the arena'),
+  );
+
+  // ---- client ------------------------------------------------------------
+  checks.push(
+    /const refreshSmartCoins = useCallback/.test(v64App)
+      && /result\.balance \?\? row\?\.balance/.test(v64App)
+      && /refreshSmartCoins\(\)/.test(v64App)
+      && /p_practice: !!practice/.test(v64App)
+      ? ok('AppContext: the balance falls back to a profiles read (never a silent no-op), and create accepts practice')
+      : fail('AppContext: balance fallback / practice flag missing'),
+  );
+  checks.push(
+    /const allAnswered = boardSize > 0 && myCard\.answers >= boardSize/.test(v64Hall)
+      && !/blitzIndex >= blitzMatch\.questionCount/.test(v64Hall)
+      && /const boardMissing = boardSize > 0 && blitzQuestions\.length === 0/.test(v64Hall)
+      ? ok('Rumble: "All questions answered" needs a positive total AND the server-reported graded count')
+      : fail('Rumble: the all-answered predicate is still unguarded'),
+  );
+  checks.push(
+    /window\.history\?\.state\?\.idx/.test(v64Hall)
+      && /navigate\(-1\)/.test(v64Hall)
+      && !/navigate\("\/quiz"\)/.test(v64Hall)
+      && /const showBack = phase !== 'blitz-waiting'/.test(v64Hall)
+      ? ok('Rumble: Back goes to the previous screen (with a /dashboard fallback) and is hidden while a stake is held')
+      : fail('Rumble: Back is still hardcoded, or is still shown during a search'),
+  );
+  checks.push(
+    /await arenaLeaveQueue\(\);/.test(v64Hall)
+      && /if \(!mid\) \{ resetToPicker/.test(v64Hall)
+      ? ok('Rumble: Cancel ALWAYS leaves the matchmaking queue (the queued path used to leak the slot)')
+      : fail('Rumble: Cancel does not release the queue slot'),
+  );
+  checks.push(
+    /const HISTORY_LIMIT = 5/.test(v64Hall)
+      && /\.limit\(HISTORY_LIMIT\)/.test(v64Hall)
+      && /outcomeMeta\(d\.outcome\)/.test(v64Hall)
+      && !/d\.delta >= 0/.test(v64Hall)
+      ? ok('Rumble: duel history is the LAST 5 and the colour follows the OUTCOME, never the delta sign')
+      : fail('Rumble: history cap / outcome-driven colour missing'),
+  );
+  checks.push(
+    /Coming soon/.test(v64Hall)
+      && /cursor-not-allowed/.test(v64Hall)
+      && /aria-disabled="true"/.test(v64Hall)
+      && !/Triple Threat/.test(v64Hall)
+      && !/sudden_death/.test(v64Hall)
+      ? ok('Rumble: Triple Threat is gone (its client could never settle) and Tournament is a non-tappable "Coming soon" card')
+      : fail('Rumble: Triple Threat still present, or the Tournament card is tappable'),
+  );
+  checks.push(
+    /const ARENA_STAKE = 2/.test(v64Hall)
+      && !/SC_STAKES/.test(v64Hall)
+      && !/confirmHighWager/.test(v64Hall)
+      && /Practise vs a Bot/.test(v64Hall)
+      && /practice: true/.test(v64Hall)
+      ? ok('Rumble: the stake is fixed at 2 SC (no wager selector, no high-wager modal) and tutor practice is free')
+      : fail('Rumble: wager selector / high-wager modal / free practice missing'),
+  );
+  checks.push(
+    /const ARENA_DEBUG_KEY = "apex_arena_debug"/.test(v64Hall)
+      && /const goPhase = useCallback/.test(v64Hall)
+      && /arenaTrace\('phase'/.test(v64Hall)
+      ? ok('Rumble: every phase change records its trigger (arenaTrace) so an unexpected transition is diagnosable')
+      : fail('Rumble: phase tracing missing'),
+  );
+  checks.push(
+    /SC War Hall/.test(v64Sidebar) && /path: '\/rumble'/.test(v64Sidebar)
+      ? ok('Sidebar: the SC War Hall is a real nav item (it used to be reachable only via a hidden 5-tap easter egg)')
+      : fail('Sidebar: no War Hall entry'),
+  );
+
+  // ---- e2e ---------------------------------------------------------------
+  checks.push(
+    /balance/.test(v64E2e)
+      && /practice/.test(v64E2e)
+      && /net delta|netDelta/.test(v64E2e)
+      ? ok('e2e-arena covers the v64 contract: loss balance, free practice and net deltas')
+      : fail('e2e-arena does not cover the v64 contract'),
+  );
+  checks.push(
+    /cleanup-test-users/.test(read(resolve(ROOT, 'scripts/cleanup-test-users.mjs')))
+      && /apextest\.local/.test(read(resolve(ROOT, 'scripts/cleanup-test-users.mjs')))
+      ? ok('cleanup-test-users classifies ONLY by the three throwaway e2e domains (real accounts survive by construction)')
+      : fail('cleanup-test-users is missing or does not key on the test domains'),
   );
 }
 
