@@ -78,6 +78,8 @@ import {
   handleGroupFeed,
   handleAnonRoom,
   handleAnonPreview,
+  handleGuestPreviewStart,
+  handleGuestPreviewStream,
   handleAnonRooms,
   handleAnonFeed,
   handleAnonMembers,
@@ -124,6 +126,8 @@ const HANDLERS = [
   { re: /\/anonymous\/gift-claim$/, fn: handleAnonGiftClaim },
   { re: /\/anonymous\/room$/, fn: handleAnonRoom },
   { re: /\/anonymous\/preview$/, fn: handleAnonPreview },
+  { re: /\/anonymous\/guest-preview-stream$/, fn: handleGuestPreviewStream },
+  { re: /\/anonymous\/guest-preview-start$/, fn: handleGuestPreviewStart },
   { re: /\/anonymous\/spectate-free$/, fn: handleAnonSpectateFree },
   { re: /\/anonymous\/feed$/, fn: handleAnonFeed },
   { re: /\/anonymous\/members$/, fn: handleAnonMembers },
@@ -185,6 +189,22 @@ export default async function handler(req, res) {
     }
     try {
       return await handleAnonPreview(req, res);
+    } catch (error) {
+      console.error(`[community ${path}]`, error?.stack || error?.message || error);
+      return res.status(500).json({ error: 'Internal Server Error' });
+    }
+  }
+
+  // Phase 1 — the ONE-TIME guest preview (start + read-only stream). Also
+  // pre-authorization: there is no session to check, by design. Every write
+  // route in the room stays behind authorizeRequest, so a guest token buys
+  // exactly two read-only endpoints and nothing else.
+  if (entry.fn === handleGuestPreviewStart || entry.fn === handleGuestPreviewStream) {
+    if (req.method !== 'POST') {
+      return res.status(405).json({ error: 'Method not allowed' });
+    }
+    try {
+      return await entry.fn(req, res);
     } catch (error) {
       console.error(`[community ${path}]`, error?.stack || error?.message || error);
       return res.status(500).json({ error: 'Internal Server Error' });

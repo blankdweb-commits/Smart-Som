@@ -51,13 +51,13 @@ const CookieConsentBanner = () => {
           <div className="flex items-center gap-2 shrink-0">
             <button
               onClick={() => decide(false)}
-              className="px-4 py-2.5 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-slate-300 text-xs font-bold uppercase tracking-wider transition-colors"
+              className="min-h-[44px] px-4 py-2.5 rounded-xl text-slate-500 hover:bg-slate-100 dark:hover:bg-slate-700 dark:text-slate-300 text-xs font-bold uppercase tracking-wider transition-colors motion-reduce:transition-none"
             >
               Decline
             </button>
             <button
               onClick={() => decide(true)}
-              className="px-5 py-2.5 rounded-xl bg-medical-600 hover:bg-medical-700 text-white text-xs font-bold uppercase tracking-wider transition-all active:scale-95"
+              className="min-h-[44px] px-5 py-2.5 rounded-xl bg-medical-600 hover:bg-medical-700 text-white text-xs font-bold uppercase tracking-wider transition-all active:scale-95 motion-reduce:transition-none motion-reduce:active:scale-100"
             >
               Accept All
             </button>
@@ -66,7 +66,7 @@ const CookieConsentBanner = () => {
           <button
             onClick={() => decide(true)}
             aria-label="Accept and close"
-            className="hidden sm:flex absolute top-3 right-3 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors"
+            className="hidden sm:flex absolute top-1 right-1 min-h-[44px] min-w-[44px] items-center justify-center text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors motion-reduce:transition-none"
           >
             <X size={18} />
           </button>

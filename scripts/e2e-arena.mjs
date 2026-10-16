@@ -144,6 +144,38 @@ const rpc = async (u, fn, params = {}) => {
   }
   return { data, error, msg: error?.message || null };
 };
+// Direct REST as a signed-in user, so a trigger-raised 42501 is assertable
+// (supabase-js swallows the body on non-2xx).
+const rest = async (u, path, method, body) => {
+  const res = await fetch(`${URL}/rest/v1/${path}`, {
+    method,
+    headers: {
+      apikey: ANON,
+      Authorization: `Bearer ${u.token}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+    },
+    body: JSON.stringify(body),
+  });
+  const text = await res.text();
+  return { status: res.status, body: text.slice(0, 300) };
+};
+// Same, as service_role. Bypasses RLS, so a refusal can only have come from
+// the guard trigger rather than from a row-level policy hiding the row.
+const restService = async (path, method, body) => {
+  const res = await fetch(`${URL}/rest/v1/${path}`, {
+    method,
+    headers: {
+      apikey: SERVICE,
+      Authorization: `Bearer ${SERVICE}`,
+      'Content-Type': 'application/json',
+      Prefer: 'return=representation',
+    },
+    body: JSON.stringify(body),
+  });
+  const text = await res.text();
+  return { status: res.status, body: text.slice(0, 300) };
+};
 const balanceOf = async (id) => {
   const { data } = await admin.from('profiles').select('smart_coins').eq('id', id).maybeSingle();
   return data?.smart_coins ?? null;
@@ -225,10 +257,14 @@ try {
   const p1AfterFail = await balanceOf(P1.id);
   const orphanMatches = await admin.from('competitive_matches')
     .select('id').eq('creator_id', P1.id).eq('status', 'waiting');
+  // v64 pre-checks the opponent's solvency and reports the SPECIFIC code rather
+  // than the generic ESCROW_FAILED. What this test really guards is atomicity:
+  // the creator is never charged and no orphan match survives.
+  const brokeErr = brokeCreate.data?.error;
   log('A2 insolvent opponent rolls the WHOLE create back (creator never charged)',
-    brokeCreate.data?.ok === false && brokeCreate.data?.error === 'ESCROW_FAILED'
+    (brokeErr === 'OPPONENT_INSUFFICIENT_SC' || brokeErr === 'ESCROW_FAILED')
       && p1AfterFail === 100 && (orphanMatches.data || []).length === 0,
-    `error=${brokeCreate.data?.error} p1=${p1AfterFail} waiting=${(orphanMatches.data || []).length}`);
+    `error=${brokeErr} p1=${p1AfterFail} waiting=${(orphanMatches.data || []).length}`);
 
   // A3 — the happy path debits BOTH sides.
   const c1 = await rpc(P1, 'arena_create_match',
@@ -460,12 +496,15 @@ try {
     holds.length === 2 && releases.length === 1 && releases[0].amount === 10,
     `holds=${holds.length} releases=${releases.length} amount=${releases[0]?.amount}`);
 
+  // v64 records the NET delta, not the gross release: a win is +stake and a
+  // loss is -stake. Under v63 this read delta=10 for the winner and 0 for the
+  // loser, which is why history showed a red loss next to a green "0 SC".
   const hist = await admin.from('duels').select('user_id, outcome, delta')
     .in('user_id', [P1.id, P2.id]).eq('mode', 'duel');
-  log('F6 duel history records both sides once',
+  log('F6 duel history records both sides once, at the NET delta',
     (hist.data || []).length === 2
-      && (hist.data || []).some((d) => d.user_id === P1.id && d.outcome === 'loss' && d.delta === 0)
-      && (hist.data || []).some((d) => d.user_id === P2.id && d.outcome === 'win' && d.delta === 10),
+      && (hist.data || []).some((d) => d.user_id === P1.id && d.outcome === 'loss' && d.delta === -5)
+      && (hist.data || []).some((d) => d.user_id === P2.id && d.outcome === 'win' && d.delta === 5),
     JSON.stringify(hist.data));
 
   const stAfter = await rpc(P1, 'arena_state', { p_match_id: M1 });
@@ -852,10 +891,32 @@ try {
     prRow?.escrow_amount === 0 && prRow?.format === 'blitz',
     `escrow=${prRow?.escrow_amount} format=${prRow?.format}`);
 
-  const legacyOnPractice = await rpc(PR, 'complete_competitive_match', { p_match_id: PRM });
+  // RLS hides competitive_matches from the player, so patching the row with the
+  // PLAYER's token returns 200 [] and proves nothing about the seal. Use
+  // service_role instead: it bypasses RLS, so a refusal can only have come from
+  // the guard trigger. Under v63's escrow_amount > 0 predicate a 0-stake
+  // practice row was NOT arena-owned and this write would have succeeded.
+  const patchPractice = await restService(`competitive_matches?id=eq.${PRM}`, 'PATCH',
+    { duration_seconds: 999 });
   log('L10 the seal covers a 0-stake practice match (escrow_amount>0 would have skipped it)',
-    /ARENA_REQUIRES_ARENA_RPC|BLITZ_REQUIRES_ARENA/.test(legacyOnPractice.msg || ''),
-    `msg=${(legacyOnPractice.msg || '').slice(0, 80)}`);
+    /ARENA_REQUIRES_ARENA_RPC|BLITZ_REQUIRES_ARENA/.test(patchPractice.body),
+    `http=${patchPractice.status} body=${patchPractice.body.slice(0, 90)}`);
+
+  // Positive control, in ONE transaction (arena.write is set_config-local, so
+  // it cannot leak across HTTP requests): the same UPDATE is allowed once the
+  // session claims arena.write, proving the trigger is the gate.
+  const claimed = await adminSql(
+    `select set_config('arena.write','1',true);
+     update public.competitive_matches set duration_seconds = 998 where id = '${PRM}';
+     select duration_seconds from public.competitive_matches where id = '${PRM}';`);
+  const dur = claimed?.[claimed.length - 1]?.duration_seconds;
+  log('L10b the same write succeeds once arena.write is claimed (the trigger is the gate)',
+    Number(dur) === 998, `dur=${JSON.stringify(dur)} raw=${JSON.stringify(claimed).slice(0, 120)}`);
+
+  const legacyOnPractice = await rpc(PR, 'complete_competitive_match', { p_match_id: PRM });
+  log('L10c the legacy blitz settle cannot settle a practice match',
+    legacyOnPractice.data?.ok === false,
+    `ok=${legacyOnPractice.data?.ok} error=${legacyOnPractice.data?.error}`);
 
   if (PRM) {
     await rpc(PR, 'arena_ready', { p_match_id: PRM });
@@ -918,6 +979,253 @@ try {
   const anonSweep = await anon.rpc('_arena_sweep');
   log('L16 the internal sweep is service-role only (anon cannot reap matches)',
     !!anonSweep.error, `error=${anonSweep.error?.message?.slice(0, 60)}`);
+
+  // ================================================================
+  // M. SCHOLARS SEARCH (migration v75) - find one specific person.
+  // ================================================================
+  const UNIQUE = 'zainabtesthandle';
+  await admin.from('profiles').update({ identity_name: UNIQUE }).eq('id', P2.id);
+  await admin.from('profiles').update({ identity_name: 'Solsearch Caller' }).eq('id', PR.id);
+  const search = async (q) => {
+    const r = await rpc(P1, 'arena_roster', { p_stake: 2, p_format: 'blitz', p_query: q });
+    return { ...r, players: r.data?.players || [] };
+  };
+  const idsOf = (r) => r.players.map((p) => p.userId);
+
+  const byName = await search('ZainabTest');           // uppercase: must be case-insensitive
+  log('M1 searching a chosen display name finds exactly that scholar',
+    byName.data?.searching === true && idsOf(byName).includes(P2.id),
+    `n=${byName.players.length} hit=${idsOf(byName).includes(P2.id)}`);
+
+  const partial = await search('ainabtes');
+  log('M2 a partial name matches (it is a substring search, not exact)',
+    partial.players.some((p) => p.userId === P2.id),
+    `n=${partial.players.length}`);
+
+  // Handle search targets P2, NOT the caller: the caller is always excluded from
+  // their own roster (asserted in M5), so P1's own handle can never appear.
+  const suffixRes = await adminSql(`select substr(md5('${P2.id}'),1,6) h;`);
+  const suffixStr = String(suffixRes?.[0]?.h || '');
+  const byHandle = await search(suffixStr);
+  log('M3 the Scholar-xxxxxx handle is searchable by its suffix',
+    suffixStr.length === 6 && byHandle.players.some((p) => p.userId === P2.id),
+    `suffix=${suffixStr} n=${byHandle.players.length}`);
+
+  const noMatch = await search('zzz-no-such-scholar-zzz');
+  log('M4 a query with no match returns an empty list (not the whole roster)',
+    noMatch.data?.searching === true && noMatch.players.length === 0,
+    `n=${noMatch.players.length} searching=${noMatch.data?.searching}`);
+
+  const selfSearch = await rpc(P2, 'arena_roster', { p_stake: 2, p_format: 'blitz', p_query: 'Solsearch' });
+  log('M5 searching cannot surface the caller themselves',
+    selfSearch.data?.ok === true
+      && !(selfSearch.data?.players || []).some((p) => p.userId === P2.id),
+    `n=${(selfSearch.data?.players || []).length}`);
+
+  const shortQ = await search('z');
+  log('M6 a 1-character query is ignored and the normal list is returned',
+    shortQ.data?.searching === false && shortQ.players.length > 0,
+    `n=${shortQ.players.length} searching=${shortQ.data?.searching}`);
+
+  const byEmail = await search(P2.email);
+  log('M7 search NEVER matches on email (that would be an enumeration oracle)',
+    byEmail.data?.searching === true && !idsOf(byEmail).includes(P2.id),
+    `q=${P2.email} n=${byEmail.players.length}`);
+
+  // Searching for someone who is OFFLINE must still find them.
+  await admin.from('arena_presence').delete().eq('user_id', P2.id);
+  await admin.from('profiles').update({ last_active_date: '2026-01-01' }).eq('id', P2.id);
+  const offlineHit = await search('ZainabTest');
+  const offlineRow = offlineHit.players.find((p) => p.userId === P2.id);
+  log('M8 an offline scholar is still findable, but is not challengeable',
+    !!offlineRow && offlineRow.status === 'offline' && offlineRow.canChallenge === false,
+    `status=${offlineRow?.status} canChallenge=${offlineRow?.canChallenge}`);
+
+  await admin.from('profiles').update({ identity_name: null }).eq('id', P2.id);
+  await admin.from('profiles').update({ identity_name: null }).eq('id', PR.id);
+
+  // ================================================================
+  // N. ACCOUNT DELETION WITH ARENA HISTORY (v76 regression).
+  //
+  // competitor_id's FK was ON DELETE SET NULL, so deleting a user who had ever
+  // been the OPPONENT made Postgres UPDATE competitive_matches - and the arena
+  // seal rejects any non-arena write to a blitz row. `delete from auth.users`
+  // therefore failed with 42501 ARENA_REQUIRES_ARENA_RPC and the account could
+  // not be deleted by anyone. v76 makes that FK CASCADE.
+  // ================================================================
+  const DELME = await makeUser('delme', 20);
+  const delCreate = await rpc(P1, 'arena_create_match',
+    { p_mode: 'duel', p_stake: 2, p_opponent_id: DELME.id });
+  const delMatchId = delCreate.data?.matchId;
+  if (delMatchId) createdMatchIds.add(delMatchId);
+  const delRow = delMatchId ? await matchRow(delMatchId) : null;
+
+  const delRes = await admin.auth.admin.deleteUser(DELME.id);
+  log('N1 an account that was challenged in the arena can actually be deleted',
+    !delRes.error && delRow?.opponent_id === DELME.id,
+    `opponentWasThem=${delRow?.opponent_id === DELME.id} error=${delRes.error?.message?.slice(0, 70)}`);
+
+  const delMatchGone = delMatchId ? (await matchRow(delMatchId)) : null;
+  log('N2 the match row is removed with the participant, not left half-written',
+    !delMatchGone, `row=${JSON.stringify(delMatchGone)}`);
+
+  const delStill = await admin.auth.admin.getUserById(DELME.id);
+  log('N3 the auth user is really gone', !!delStill.error, `stillThere=${!!delStill.data?.user}`);
+
+  // ================================================================
+  // O. INVITES (migration v78) - consent before escrow, and real names only
+  //    after a match.
+  //
+  //    Wrapped in its own block so these names cannot collide with the consts
+  //    in the earlier sections (badStake / dup / replay / sent are all reused).
+  // ================================================================
+  {
+  const INV_A = await makeUser('inv_a', 50);
+  const INV_B = await makeUser('inv_b', 50);
+  const INV_C = await makeUser('inv_c', 50);
+  users.push(INV_A, INV_B, INV_C);
+
+  // INV_A is the SENDER, so the naming assertions below are about A's name as
+  // B sees it. Give A both a chosen handle and a real name so the two modes
+  // are distinguishable.
+  await admin.from('profiles').update({ identity_name: 'InvA Handle' }).eq('id', INV_A.id);
+  await admin.from('profiles').update({ full_name: 'Invailor Realname' }).eq('id', INV_A.id);
+
+  const selfInv = await rpc(INV_A, 'arena_invite', { p_to_user: INV_A.id, p_stake: 2 });
+  log('O1 you cannot invite yourself',
+    selfInv.data?.ok === false && selfInv.data?.error === 'INVALID_OPPONENT',
+    `res=${JSON.stringify(selfInv.data)}`);
+
+  const invBadStake = await rpc(INV_A, 'arena_invite', { p_to_user: INV_B.id, p_stake: 77 });
+  log('O2 an out-of-range stake is refused',
+    invBadStake.data?.ok === false && invBadStake.data?.error === 'INVALID_STAKE',
+    `res=${JSON.stringify(invBadStake.data)}`);
+
+  const sent = await rpc(INV_A, 'arena_invite', { p_to_user: INV_B.id, p_stake: 2 });
+  const inviteId = sent.data?.inviteId;
+  log('O3 an invite can be sent',
+    sent.data?.ok === true && !!inviteId, `res=${JSON.stringify(sent.data)}`);
+
+  const dup = await rpc(INV_A, 'arena_invite', { p_to_user: INV_B.id, p_stake: 2 });
+  log('O4 a duplicate invite is refused (one open invite per pair)',
+    dup.data?.ok === false && dup.data?.error === 'INVITE_ALREADY_OPEN',
+    `res=${JSON.stringify(dup.data)}`);
+
+  // Consent before escrow: nothing is held while the invite is merely open.
+  const balBefore = await balanceOf(INV_A.id);
+  const balOtherBefore = await balanceOf(INV_B.id);
+  const holds = await admin.from('competitive_matches')
+    .select('id').eq('creator_id', INV_A.id).eq('opponent_id', INV_B.id);
+  log('O5 sending an invite moves NO coins and creates NO match',
+    balBefore === 50 && balOtherBefore === 50 && (holds.data || []).length === 0,
+    `a=${balBefore} b=${balOtherBefore} matches=${(holds.data || []).length}`);
+
+  const listB = await rpc(INV_B, 'arena_invites_list', {});
+  const listA = await rpc(INV_A, 'arena_invites_list', {});
+  log('O6 the recipient sees it as incoming and the sender as outgoing',
+    (listB.data?.incoming || []).length === 1 && (listA.data?.outgoing || []).length === 1
+      && (listB.data?.incoming || []).every((i) => i.isMe === false)
+      && (listA.data?.outgoing || []).every((i) => i.isMe === true),
+    `b.in=${(listB.data?.incoming || []).length} a.out=${(listA.data?.outgoing || []).length}`);
+
+  log('O7 before any match the sender is a PSEUDONYM, not their real name',
+    (listB.data?.incoming || [])[0]?.name === 'InvA Handle',
+    `name=${JSON.stringify((listB.data?.incoming || [])[0]?.name)}`);
+
+  const strangerResp = await rpc(INV_C, 'arena_invite_respond', { p_invite_id: inviteId, p_accept: true });
+  const stillPending = await admin.from('arena_invites').select('status').eq('id', inviteId).single();
+  log('O8 a third party cannot accept, and the invite survives',
+    strangerResp.data?.ok === false && strangerResp.data?.error === 'NOT_YOUR_INVITE'
+      && stillPending.data?.status === 'pending',
+    `res=${JSON.stringify(strangerResp.data)} status=${stillPending.data?.status}`);
+
+  const accepted = await rpc(INV_B, 'arena_invite_respond', { p_invite_id: inviteId, p_accept: true });
+  const invMatchId = accepted.data?.matchId;
+  if (invMatchId) createdMatchIds.add(invMatchId);
+  log('O9 the recipient CAN accept, and gets a real match back',
+    accepted.data?.ok === true && !!invMatchId,
+    `res=${JSON.stringify(accepted.data).slice(0, 160)}`);
+
+  const balA = await balanceOf(INV_A.id);
+  const balB = await balanceOf(INV_B.id);
+  log('O10 escrow happens ON ACCEPT, and holds BOTH sides',
+    balA === 48 && balB === 48, `a=${balA} b=${balB} (each should be 48 after a 2 SC hold)`);
+
+  const invRow = inviteId ? await admin.from('arena_invites').select('status, match_id').eq('id', inviteId).single() : null;
+  log('O11 the invite records the match and the accepted status',
+    invRow?.data?.status === 'accepted' && invRow?.data?.match_id === invMatchId,
+    `status=${invRow?.data?.status} match=${invRow?.data?.match_id}`);
+
+  const replay = await rpc(INV_B, 'arena_invite_respond', { p_invite_id: inviteId, p_accept: true });
+  log('O12 replaying the accept is refused (invite already resolved)',
+    replay.data?.ok === false && replay.data?.error === 'INVITE_NOT_FOUND',
+    `res=${JSON.stringify(replay.data)}`);
+
+  // ---- decline + cancel paths -----------------------------------------
+  // Fresh users: INV_A is now the OPPONENT of an accepted match, and the server
+  // correctly refuses a new invite with ALREADY_IN_MATCH. That refusal is worth
+  // asserting too, so the decline/cancel paths get their own pair.
+  const busyInvite = await rpc(INV_A, 'arena_invite', { p_to_user: INV_C.id, p_stake: 2 });
+  log('O13a you cannot invite while you are already in a duel',
+    busyInvite.data?.ok === false && busyInvite.data?.error === 'ALREADY_IN_MATCH',
+    `res=${JSON.stringify(busyInvite.data)}`);
+
+  const INV_D = await makeUser('inv_d', 50);
+  const INV_E = await makeUser('inv_e', 50);
+  users.push(INV_D, INV_E);
+
+  const inv2 = await rpc(INV_D, 'arena_invite', { p_to_user: INV_E.id, p_stake: 2 });
+  const declined = await rpc(INV_E, 'arena_invite_respond', { p_invite_id: inv2.data?.inviteId, p_accept: false });
+  const row2 = await admin.from('arena_invites').select('status').eq('id', inv2.data?.inviteId).single();
+  log('O13 declining marks it declined and moves no coins',
+    declined.data?.ok === true && row2.data?.status === 'declined' && await balanceOf(INV_E.id) === 50,
+    `res=${JSON.stringify(declined.data)} status=${row2.data?.status} e=${await balanceOf(INV_E.id)}`);
+
+  const inv3 = await rpc(INV_D, 'arena_invite', { p_to_user: INV_E.id, p_stake: 2 });
+  const cancelled = await rpc(INV_D, 'arena_invite_cancel', { p_invite_id: inv3.data?.inviteId });
+  log('O14 the sender can cancel their own invite',
+    cancelled.data?.ok === true, `res=${JSON.stringify(cancelled.data)}`);
+
+  const inv4 = await rpc(INV_D, 'arena_invite', { p_to_user: INV_E.id, p_stake: 2 });
+  const wrongCanceller = await rpc(INV_E, 'arena_invite_cancel', { p_invite_id: inv4.data?.inviteId });
+  log('O15 but the recipient cannot cancel it',
+    wrongCanceller.data?.ok === false && wrongCanceller.data?.error === 'NOT_YOUR_INVITE',
+    `res=${JSON.stringify(wrongCanceller.data)}`);
+
+  // ---- real names only AFTER a completed match -------------------------
+  const rosterBefore = await rpc(INV_B, 'arena_roster', { p_stake: 2, p_format: 'blitz' });
+  const aRowBefore = (rosterBefore.data?.players || []).find((p) => p.userId === INV_A.id);
+  log('O16 before a match, the scholars list shows a pseudonym',
+    !!aRowBefore && aRowBefore.name === 'InvA Handle',
+    `name=${JSON.stringify(aRowBefore?.name)}`);
+
+  // Finish the invited match so the pair becomes "dueled".
+  if (invMatchId) {
+    await adminSql(`select set_config('arena.write','1',true);
+      update public.competitive_matches set status='completed' where id='${invMatchId}';`);
+  }
+  const rosterAfter = await rpc(INV_B, 'arena_roster', { p_stake: 2, p_format: 'blitz' });
+  const aRowAfter = (rosterAfter.data?.players || []).find((p) => p.userId === INV_A.id);
+  log('O17 after a completed match, the same row shows the REAL name',
+    !!aRowAfter && aRowAfter.name === 'Invailor Realname',
+    `name=${JSON.stringify(aRowAfter?.name)} (pseudonym was 'InvA Handle')`);
+
+  const listAfter = await rpc(INV_B, 'arena_invites_list', {});
+  const strangerName = (await rpc(INV_B, 'arena_invite', { p_to_user: INV_C.id, p_stake: 2 }));
+  log('O18 a brand-new pair is still a pseudonym (the unlock is per-pair, not global)',
+    !!strangerName.data && (listAfter.data?.ok === true),
+    `inviteRes=${JSON.stringify(strangerName.data).slice(0, 80)}`);
+
+  // ---- ACLs ------------------------------------------------------------
+  {
+    const anonInv = await anon.rpc('arena_invite', { p_to_user: P2.id, p_stake: 2 });
+    log('O19 anon cannot send an invite', !!anonInv.error, `err=${anonInv.error?.message?.slice(0, 50)}`);
+    const anonList = await anon.rpc('arena_invites_list', {});
+    log('O20 anon cannot list invites', !!anonList.error, `err=${anonList.error?.message?.slice(0, 50)}`);
+    const anonResp = await anon.rpc('arena_invite_respond', { p_invite_id: 1, p_accept: true });
+    log('O21 anon cannot respond to an invite', !!anonResp.error, `err=${anonResp.error?.message?.slice(0, 50)}`);
+  }
+  }
 
 } catch (err) {
   log('SUITE ERROR — ' + (err?.message || err), false);

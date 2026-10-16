@@ -24,6 +24,9 @@ import {
   handleLoanList, handleLoanRequest, handleLoanOffer, handleLoanAccept, handleLoanRepay,
   handleLoanReject, handleLoanCancel, handleLoanSharkBuy, handleLoanDefault,
 } from './_loans.js';
+import {
+  handleEconomyOverview, handleTransfer, handleBankStatus, handleBorrow, handleRepay,
+} from './_economy.js';
 
 export default async function handler(req, res) {
   if (!applyCors(req, res)) {
@@ -41,6 +44,15 @@ export default async function handler(req, res) {
   if (license === 'status') return handleLicenseStatus(req, res);
   if (license === 'start') return handleLicenseStart(req, res);
   if (license === 'submit') return handleLicenseSubmit(req, res);
+
+  // Economy sub-routes (/api/economy/overview|transfer|bank|borrow|repay).
+  // Thin wrappers over the v81 RPCs, which own every amount and cap.
+  const economy = path.match(/economy[-/](overview|transfer|bank|borrow|repay)$/)?.[1];
+  if (economy === 'overview') return handleEconomyOverview(req, res);
+  if (economy === 'transfer') return handleTransfer(req, res);
+  if (economy === 'bank') return handleBankStatus(req, res);
+  if (economy === 'borrow') return handleBorrow(req, res);
+  if (economy === 'repay') return handleRepay(req, res);
 
   // Loan Shark (S9) sub-routes (/api/loans/list|request|offer|accept|repay|...).
   const loan = path.match(/loans?\/(list|request|offer|accept|repay|reject|cancel|shark-buy|default)$/)?.[1];

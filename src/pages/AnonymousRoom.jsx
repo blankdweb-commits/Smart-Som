@@ -39,8 +39,9 @@ import {
   Check,
   Copy,
   Compass,
+  Clock,
 } from '../components/Icons';
-import { communityApi, communityPreview } from '../utils/communityApi';
+import { communityApi, guestPreviewStart, guestPreviewStream } from '../utils/communityApi';
 import { clearAnonVisitKey } from '../utils/anonVisit';
 import { authHeaders } from '../utils/apiHeaders';
 import { useAnonymousRoomRealtime } from '../hooks/useAnonymousRoomRealtime';
@@ -595,84 +596,335 @@ const GateCard = ({ children }) => (
   </div>
 );
 
-// WS4 — logged-out preview of a deep-linked Anonymous room (/anonymous/:id).
-// Rendered ONLY while there is no session: the room's public metadata + a
-// sign-in CTA. Nothing private is shown (no messages, aliases, or roster). The
-// seat counts come from the server's public preview endpoint which runs with
-// the service role, so even these numbers are not exposed to the anon DB role.
-const RoomPreview = ({ preview, error, locationPath }) => {
+// ============================================================================
+// Phase 1 — ONE-TIME GUEST PREVIEW (5 minutes, read-only)
+//
+// Rendered ONLY while there is no session, for /anonymous and /anonymous/:id.
+//
+// What this screen is:
+//   * a REAL, server-authoritative slice of the room — actual live messages with
+//     their real Anonymous #NN labels and real timestamps, fetched from
+//     /anonymous/guest-preview-stream behind a signed server token;
+//   * a hard 5-minute window measured on the SERVER clock;
+//   * strictly READ-ONLY — there is deliberately no composer, no reaction
+//     control, no vote, no join, no room-create affordance anywhere in here.
+//
+// What this screen is NOT allowed to become: a place where activity is faked.
+// When the room has no live messages (they expire after 10 minutes, and both
+// rooms are currently dormant) we say so honestly. Nothing is simulated.
+// ============================================================================
+
+const GUEST_PREVIEW_STORAGE_KEY = 'apex:guestPreview';
+// Sign-up nudges, in seconds remaining. 5-minute window.
+const GUEST_NUDGE_STEPS = [240, 120, 60, 30, 10];
+
+const readStoredGuestToken = () => {
+  try {
+    return localStorage.getItem(GUEST_PREVIEW_STORAGE_KEY) || null;
+  } catch {
+    return null;
+  }
+};
+const storeGuestToken = (token) => {
+  try {
+    localStorage.setItem(GUEST_PREVIEW_STORAGE_KEY, token);
+  } catch {
+    /* storage unavailable — the in-memory token still works for this tab */
+  }
+};
+
+const fmtCountdown = (ms) => {
+  const total = Math.max(0, Math.ceil(ms / 1000));
+  const m = Math.floor(total / 60);
+  const s = total % 60;
+  return `${m}:${String(s).padStart(2, '0')}`;
+};
+
+const agoLabel = (iso) => {
+  const then = Date.parse(iso);
+  if (!Number.isFinite(then)) return '';
+  const secs = Math.max(0, Math.round((Date.now() - then) / 1000));
+  if (secs < 45) return 'just now';
+  if (secs < 3600) return `${Math.round(secs / 60)} min ago`;
+  if (secs < 86400) return `${Math.round(secs / 3600)} h ago`;
+  return `${Math.round(secs / 86400)} d ago`;
+};
+
+// The value explainer. A sheet, not a modal — it must never hide the room.
+const GuestValueSheet = ({ onClose }) => (
+  <div className="rounded-2xl border border-apex-500/25 bg-apex-500/5 p-4">
+    <div className="flex items-start justify-between gap-3">
+      <p className="text-xs font-black uppercase tracking-widest text-apex-300">After you sign up</p>
+      <button
+        onClick={onClose}
+        aria-label="Hide"
+        className="shrink-0 min-h-[44px] min-w-[44px] -my-2 -mr-2 flex items-center justify-center text-slate-500 hover:text-slate-300 text-lg leading-none rounded-lg transition-colors motion-reduce:transition-none"
+      >
+        &times;
+      </button>
+    </div>
+    <ul className="mt-2.5 space-y-1.5 text-[13px] text-slate-300 leading-snug">
+      <li>· Post and reply in the room under a private Anonymous #NN identity</li>
+      <li>· React, vote and challenge other members to a duel</li>
+      <li>· Keep your seat while you are active, earn Smart Coins</li>
+    </ul>
+    <p className="mt-2.5 text-[11px] text-slate-500 leading-snug">
+      Seats are limited and membership still has to be open — signing up does not skip the room rules.
+    </p>
+  </div>
+);
+
+// The post-preview gate. Shown for expired / already-used / error states.
+const GuestSignupGate = ({ mode, room, locationPath, onRetry, errorText }) => {
   const navigate = useNavigate();
-  const group = preview?.room;
-  const seats = preview?.capacity;
-  const showSeats = typeof seats?.total_capacity === 'number';
-  const ended = group?.group_state === 'wiped';
-  const stateLabel = ended ? 'This round has ended'
-    : group?.group_state === 'active'
-      ? 'Open now'
-      : 'Opens soon · waiting';
+  const signUp = () => navigate('/signup', { state: { from: locationPath || '/anonymous' } });
   const signIn = () => navigate('/login', { state: { from: locationPath || '/anonymous' } });
 
+  const copy = {
+    expired: {
+      icon: '⏱',
+      title: 'Your 5-minute preview has ended',
+      body: 'You have seen what the Anonymous Room looks like. Create a free account to post, reply and take part — subject to the room being open and seats being available.',
+    },
+    used: {
+      icon: '✓',
+      title: 'You have already used your guest preview',
+      body: 'Each visitor gets one preview so the room cannot be farmed by refreshing. Create a free account, or sign in if you already have one.',
+    },
+    error: {
+      icon: '!',
+      title: 'We could not start your preview',
+      body: 'Something went wrong on our side and we have kept the room closed rather than show you a partial preview. Try again, or create a free account.',
+    },
+  }[mode];
+
   return (
-    <div className="h-[100dvh] bg-slate-950 text-slate-200">
-      <GateCard>
-        <MessageCircle size={38} className="mx-auto mb-3 text-apex-400" />
-        <h1 className="text-xl font-black text-white">{group?.name || 'Anonymous Room'}</h1>
+    <div className="h-[100dvh] bg-slate-950 text-slate-200 overflow-y-auto">
+      <div className="max-w-lg mx-auto px-5 pt-16 pb-10 text-center">
+        <div className="bg-slate-900 border border-slate-700/70 rounded-[2rem] p-8 shadow-2xl">
+          <span className="text-3xl block mb-2" aria-hidden="true">{copy.icon}</span>
+          <h1 className="text-xl font-black text-white leading-snug">{copy.title}</h1>
+          {room?.name && (
+            <p className="text-[11px] font-black uppercase tracking-widest text-slate-500 mt-2">{room.name}</p>
+          )}
+          <p className="text-sm text-slate-400 font-medium mt-4 leading-relaxed">{copy.body}</p>
+          {errorText && (
+            <p className="text-xs text-red-300 mt-3 leading-relaxed">{errorText}</p>
+          )}
 
-        {!error && group && (
-          <>
-            <span
-              className={`inline-block mt-3 px-3 py-1 rounded-full text-[11px] font-black uppercase tracking-widest ${
-                ended ? 'bg-red-500/15 text-red-300' : 'bg-apex-500/15 text-apex-300'
-              }`}
+          <div className="mt-7 flex flex-col gap-2.5">
+            <button
+              onClick={signUp}
+              className="w-full min-h-[44px] px-5 py-3 rounded-xl bg-apex-600 text-white font-black text-xs uppercase tracking-widest hover:bg-apex-500 transition"
             >
-              {stateLabel}
-            </span>
-            <div className="text-sm text-slate-400 font-medium mt-4 space-y-1.5">
-              <p>
-                {showSeats
-                  ? `${seats.member_count ?? 0}/${seats.total_capacity} spots taken · ${seats.spectator_count ?? 0} watching`
-                  : `${seats?.member_count ?? 0} spots taken`}
-              </p>
-              {seats?.member_paid_required && typeof seats.member_price === 'number' && (
-                <p>Member seat ₦{seats.member_price}</p>
-              )}
-              {typeof seats?.spectator_price === 'number' && !ended && (
-                <p>Spectator pass ₦{seats.spectator_price}</p>
-              )}
-              <p className="italic text-slate-500">Everyone stays Anonymous in here.</p>
-            </div>
-          </>
-        )}
-
-        {error && !group && (
-          <>
-            <p className="text-sm text-red-300 font-medium mt-4">{error}</p>
-            <div className="flex items-center justify-center gap-3 mt-6">
+              Create free account
+            </button>
+            <button
+              onClick={signIn}
+              className="w-full min-h-[44px] px-5 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black text-xs uppercase tracking-widest hover:border-slate-600 transition"
+            >
+              Already have an account? Sign in
+            </button>
+            {mode === 'error' && onRetry && (
               <button
-                onClick={() => navigate(0)}
-                className="px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 font-black text-xs uppercase tracking-widest"
+                onClick={onRetry}
+                className="w-full min-h-[44px] px-5 py-3 rounded-xl text-slate-400 font-black text-xs uppercase tracking-widest hover:text-slate-200 transition"
               >
-                Retry
+                Try again
               </button>
-            </div>
-          </>
-        )}
+            )}
+          </div>
 
-        <div className="flex items-center justify-center gap-3 mt-6">
           <button
             onClick={() => navigate('/study-groups')}
-            className="px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 font-black text-xs uppercase tracking-widest"
+            className="mt-5 min-h-[44px] text-slate-500 hover:text-slate-300 text-xs font-black uppercase tracking-widest transition"
           >
-            Browse groups
+            Browse groups instead
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+const RoomPreview = ({ guest, locationPath, onRetry }) => {
+  const navigate = useNavigate();
+  const [sheetOpen, setSheetOpen] = useState(true);
+
+  const room = guest.room;
+  const ended = room?.group_state === 'wiped';
+  const remaining = Math.max(0, guest.expiresAt - guest.now);
+
+  // Anything that is not a live window goes straight to the gate. Messages are
+  // dropped by the parent the moment the window closes, so nothing readable is
+  // ever left behind the gate.
+  if (guest.status === 'expired') {
+    return <GuestSignupGate mode="expired" room={room} locationPath={locationPath} />;
+  }
+  if (guest.status === 'used') {
+    return <GuestSignupGate mode="used" room={room} locationPath={locationPath} />;
+  }
+  if (guest.status === 'error') {
+    return (
+      <GuestSignupGate
+        mode="error"
+        room={room}
+        locationPath={locationPath}
+        onRetry={onRetry}
+        errorText={guest.error}
+      />
+    );
+  }
+  if (guest.status !== 'live' && guest.status !== 'starting') {
+    return (
+      <div className="h-[100dvh] bg-slate-950 flex items-center justify-center">
+        <Loader2 className="animate-spin text-apex-500" size={30} />
+      </div>
+    );
+  }
+
+  const stateLabel = ended ? 'This round has ended'
+    : room?.group_state === 'active' ? 'Open now' : 'Opens soon · waiting';
+  const low = remaining <= 60_000;
+  const critical = remaining <= 20_000;
+  const nudgeText = (() => {
+    if (remaining <= 10_000) return 'Almost up — create an account to keep talking.';
+    if (remaining <= 30_000) return '30 seconds left. Signing up takes about a minute.';
+    if (remaining <= 60_000) return '1 minute left in your preview.';
+    if (remaining <= 120_000) return '2 minutes left in your preview.';
+    if (remaining <= 240_000) return 'This preview is temporary.';
+    return '';
+  })();
+
+  const signUp = () => navigate('/signup', { state: { from: locationPath || '/anonymous' } });
+  const signIn = () => navigate('/login', { state: { from: locationPath || '/anonymous' } });
+  const messages = guest.messages || [];
+
+  return (
+    <div className="min-h-[100dvh] bg-slate-950 text-slate-200 flex flex-col">
+      {/* Header: identity + the countdown that governs the whole screen. */}
+      <header className="sticky top-0 z-20 bg-slate-950/95 backdrop-blur border-b border-slate-800">
+        <div className="max-w-2xl mx-auto px-4 py-3">
+          <div className="flex items-center justify-between gap-3">
+            <div className="min-w-0">
+              <h1 className="text-sm font-black text-white truncate">
+                {room?.name || 'Anonymous Room'}
+              </h1>
+              <p className="text-[10px] font-black uppercase tracking-widest text-slate-500 mt-0.5">
+                {stateLabel} · preview only
+              </p>
+            </div>
+            <div
+              role="timer"
+              aria-live="off"
+              className={`shrink-0 flex items-center gap-1.5 rounded-xl px-3 py-2 text-sm font-black tabular-nums ${
+                critical ? 'bg-red-500/15 text-red-300'
+                  : low ? 'bg-amber-500/15 text-amber-300'
+                    : 'bg-slate-800 text-slate-300'
+              }`}
+            >
+              <Clock size={13} aria-hidden="true" />
+              {fmtCountdown(remaining)}
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <main className="flex-1 w-full max-w-2xl mx-auto px-4 py-4 pb-40">
+        {/* Nudges. Inline only — never a full-screen interrupt before expiry. */}
+        {nudgeText && (
+          <p
+            aria-live="polite"
+            className={`mb-3 rounded-xl px-3.5 py-2.5 text-xs font-bold text-center ${
+              remaining <= 30_000
+                ? 'bg-amber-500/10 text-amber-200 border border-amber-500/25'
+                : 'bg-slate-900 text-slate-400 border border-slate-800'
+            }`}
+          >
+            {nudgeText}
+          </p>
+        )}
+
+        {sheetOpen && !ended && (
+          <div className="mb-4">
+            <GuestValueSheet onClose={() => setSheetOpen(false)} />
+          </div>
+        )}
+
+        {/* The live stream. Real messages, or an honest empty state. */}
+        <div className="rounded-2xl border border-slate-800 bg-slate-900/40 overflow-hidden">
+          <div className="flex items-center justify-between px-4 py-2.5 border-b border-slate-800">
+            <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+              Live in the room
+            </span>
+            <span className="flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-slate-500">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500" aria-hidden="true" />
+              {typeof room?.member_count === 'number' ? `${room.member_count} here now` : 'Live'}
+            </span>
+          </div>
+
+          {ended ? (
+            <p className="px-4 py-8 text-center text-sm text-slate-500">
+              This round has ended and every message in it has been wiped.
+            </p>
+          ) : guest.loading && !messages.length ? (
+            <div className="px-4 py-10 flex justify-center">
+              <Loader2 size={20} className="animate-spin text-apex-500" />
+            </div>
+          ) : messages.length === 0 ? (
+            <div className="px-4 py-8 text-center">
+              <MessageCircle size={26} className="mx-auto mb-2.5 text-slate-700" aria-hidden="true" />
+              <p className="text-sm font-bold text-slate-400">No messages live right now</p>
+              <p className="text-xs text-slate-500 mt-1.5 leading-relaxed max-w-xs mx-auto">
+                Every message here deletes itself 10 minutes after it is sent, and this room is
+                {room?.group_state === 'waiting' ? ' still gathering members' : ' quiet at the moment'}.
+                The preview is showing the room exactly as it is.
+              </p>
+            </div>
+          ) : (
+            <ul className="divide-y divide-slate-800/70">
+              {messages.map((m) => (
+                <li key={m.id} className="px-4 py-3">
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-black text-apex-300">{m.author}</span>
+                    <span className="text-[10px] text-slate-600">{agoLabel(m.created_at)}</span>
+                    {m.state === 'cold' && (
+                      <span className="text-[9px] font-black uppercase tracking-widest text-slate-600">
+                        cooling
+                      </span>
+                    )}
+                  </div>
+                  <p className="text-sm text-slate-300 leading-snug break-words whitespace-pre-wrap">
+                    {m.content}
+                  </p>
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+
+        <p className="mt-4 text-center text-[11px] text-slate-600 leading-relaxed">
+          Read-only preview. You cannot post, react, vote or take a seat until you create an account.
+        </p>
+      </main>
+
+      {/* Sticky actions — clear, thumb-reachable, never covering the stream. */}
+      <div className="fixed bottom-0 inset-x-0 z-20 bg-slate-950/95 backdrop-blur border-t border-slate-800">
+        <div className="max-w-2xl mx-auto px-4 py-3 flex flex-col sm:flex-row gap-2.5">
+          <button
+            onClick={signUp}
+            className="flex-1 min-h-[44px] px-5 py-3 rounded-xl bg-apex-600 text-white font-black text-xs uppercase tracking-widest hover:bg-apex-500 active:scale-[0.99] transition"
+          >
+            Create free account
           </button>
           <button
             onClick={signIn}
-            className="px-5 py-2.5 rounded-xl bg-apex-600 text-white font-black text-xs uppercase tracking-widest"
+            className="flex-1 min-h-[44px] px-5 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-200 font-black text-xs uppercase tracking-widest hover:border-slate-600 active:scale-[0.99] transition"
           >
-            {ended ? 'Start a new round' : 'Sign in to join'}
+            Already have an account? Sign in
           </button>
         </div>
-      </GateCard>
+      </div>
     </div>
   );
 };
@@ -685,8 +937,6 @@ const AnonymousRoom = () => {
 
   const [booting, setBooting] = useState(true);
   const [bootError, setBootError] = useState('');
-  const [preview, setPreview] = useState(null);
-  const [previewError, setPreviewError] = useState('');
   const [room, setRoom] = useState(null);
   const [messages, setMessages] = useState([]);
   const [systemEvents, setSystemEvents] = useState([]);
@@ -1193,27 +1443,140 @@ const AnonymousRoom = () => {
   }, [bootstrap]);
 
   // WS4 — logged-out preview: fetch the room's public metadata once. Only runs
-  // without a session; the moment the user signs in the bootstrap effect takes
-  // over and loads the real room.
+  // -------------------------------------------------------------------------
+  // Phase 1 — one-time guest preview state machine.
+  //
+  // idle -> starting -> live -> expired
+  //   \-> used   (a previous preview was already spent on this browser)
+  //   \-> error  (503 / network — fail CLOSED, never a silent empty preview)
+  //
+  // The window is decided by the server. We store `expires_at` and a clock
+  // offset (server_now - browser_now) so the countdown is anchored to the
+  // server, and the local `now` tick only drives re-rendering. The browser clock
+  // is never the authority.
+  // -------------------------------------------------------------------------
+  const [guest, setGuest] = useState({
+    status: 'idle',
+    room: null,
+    messages: [],
+    expiresAt: 0,
+    now: Date.now(),
+    offset: 0,
+    loading: false,
+    error: '',
+  });
+  const guestTokenRef = useRef(null);
+
+  // Re-render once a second so the countdown moves.
+  useEffect(() => {
+    if (guest.status !== 'live') return undefined;
+    const t = setInterval(() => setGuest((g) => ({ ...g, now: Date.now() })), 1000);
+    return () => clearInterval(t);
+  }, [guest.status]);
+
+  const endGuestPreview = useCallback((status) => {
+    // Drop the messages with the window: nothing readable survives the gate.
+    setGuest((g) => ({ ...g, status, messages: [], expiresAt: 0 }));
+  }, []);
+
+  const openGuestPreview = useCallback(async () => {
+    const roomId = typeof id === 'string' && Number.isFinite(Number(id)) ? Number(id) : null;
+    const stored = readStoredGuestToken();
+    const token = guestTokenRef.current || stored;
+    setGuest((g) => ({ ...g, status: 'starting', loading: true, error: '' }));
+    try {
+      const data = await guestPreviewStart(roomId, token);
+      guestTokenRef.current = data.token;
+      storeGuestToken(data.token);
+      const serverNow = Date.parse(data.server_now);
+      setGuest((g) => ({
+        ...g,
+        status: 'live',
+        loading: false,
+        room: data.room || null,
+        expiresAt: Date.parse(data.expires_at),
+        now: Date.now(),
+        offset: Number.isFinite(serverNow) ? serverNow - Date.now() : 0,
+        error: '',
+      }));
+    } catch (err) {
+      const code = err?.data?.error || err?.code || '';
+      if (code === 'PREVIEW_ALREADY_USED') {
+        endGuestPreview('used');
+      } else {
+        setGuest((g) => ({
+          ...g,
+          status: 'error',
+          loading: false,
+          error: err?.data?.message || err?.message || 'Could not start your preview.',
+        }));
+      }
+    }
+  }, [id, endGuestPreview]);
+
+  // Kick the preview once, for signed-out visitors only.
   useEffect(() => {
     if (session) return undefined;
+    openGuestPreview();
+    return undefined;
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session]);
+
+  // Poll the read-only stream while the window is live. 10s is a good fit for a
+  // slow connection and a room whose messages live only 10 minutes anyway.
+  useEffect(() => {
+    if (session || guest.status !== 'live') return undefined;
     let cancelled = false;
-    setPreview(null);
-    setPreviewError('');
-    const roomId = typeof id === 'string' && Number.isFinite(Number(id)) ? Number(id) : null;
-    communityPreview(roomId)
-      .then((data) => {
-        if (!cancelled) setPreview(data && data.room ? data : null);
-      })
-      .catch((err) => {
-        if (!cancelled) setPreviewError(err?.message || 'Could not load this room.');
-      });
+    const tick = async () => {
+      const token = guestTokenRef.current;
+      if (!token) return;
+      try {
+        const data = await guestPreviewStream(
+          guest.room?.id ?? (typeof id === 'string' ? Number(id) : null),
+          token,
+        );
+        if (cancelled) return;
+        // The server is the authority on the deadline: if it says the preview is
+        // over, stop immediately rather than trusting the local countdown.
+        const exp = Date.parse(data.expires_at);
+        if (Number.isFinite(exp) && exp <= Date.now() + (data.server_now ? Date.parse(data.server_now) - Date.now() : 0)) {
+          endGuestPreview('expired');
+          return;
+        }
+        setGuest((g) => ({
+          ...g,
+          messages: Array.isArray(data.messages) ? data.messages : [],
+          room: data.room || g.room,
+        }));
+      } catch (err) {
+        if (cancelled) return;
+        const code = err?.data?.error || err?.code || '';
+        if (code === 'PREVIEW_ALREADY_USED' || code === 'PREVIEW_ROOM_MISMATCH') {
+          endGuestPreview('expired');
+        }
+        // A transient network failure keeps the last good page on screen and
+        // retries on the next tick — but a server error must not look like
+        // "the room went quiet", so only swallow it silently when we already
+        // have something to show.
+      }
+    };
+    tick();
+    const timer = setInterval(tick, 10_000);
     return () => {
       cancelled = true;
+      clearInterval(timer);
     };
-  }, [session, id]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [session, guest.status, guest.room?.id, id, endGuestPreview]);
 
-  // P3 — a shared gift deep link (/anonymous/{id}?gift=CODE) prefills the claim
+  // Local deadline -> same gate the server would apply.
+  useEffect(() => {
+    if (guest.status !== 'live') return undefined;
+    if (guest.expiresAt && guest.now >= guest.expiresAt) endGuestPreview('expired');
+    return undefined;
+  }, [guest.status, guest.now, guest.expiresAt, endGuestPreview]);
+
+  // A guest deep link (/anonymous/{id}?gift=CODE) prefills the claim
   // box. Only opens the claim UI for a visitor who is NOT already seated.
   useEffect(() => {
     if (resolvedGiftParam) return;
@@ -2444,9 +2807,9 @@ if (type === 'fight') {
   if (!session) {
     return (
       <RoomPreview
-        preview={preview}
-        error={previewError}
+        guest={guest}
         locationPath={location.pathname + location.search}
+        onRetry={openGuestPreview}
       />
     );
   }

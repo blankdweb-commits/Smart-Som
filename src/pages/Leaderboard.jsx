@@ -4,11 +4,14 @@ import { useAppContext } from '../context/AppContext';
 import { Trophy, Coins, Award, RefreshCw, Loader2, ArrowLeft } from '../components/Icons';
 import BrandLogo from '../components/BrandLogo';
 
-const PAGE_SIZE = 30;
+// Every ranked scholar should be visible without clicking "Load more", so the
+// first page is large enough for any realistic cohort. The RPC clamps a page
+// to 500 (migration-v74) and "Load more" still handles anything beyond this.
+const PAGE_SIZE = 100;
 
 const Leaderboard = () => {
   const navigate = useNavigate();
-  const { supabase, session, fetchGlobalRank } = useAppContext();
+  const { supabase, session, fetchGlobalRank, userProfile } = useAppContext();
 
   const [rows, setRows] = useState([]);
   const [myId] = useState(session?.user?.id || null);
@@ -78,6 +81,12 @@ const Leaderboard = () => {
     return 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400';
   };
 
+  // Nobody had set identity_name before migration-v74, so without this nudge
+  // every row on the board is an anonymous `Scholar-xxxxxx` handle. Setting one
+  // is voluntary, already public by design, and is also what the friend/rival
+  // cards will show, so point people at it once.
+  const needsIdentityName = !String(userProfile?.identityName || '').trim();
+
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
       <div className="flex items-center justify-between mb-6">
@@ -123,6 +132,21 @@ const Leaderboard = () => {
         </div>
       )}
 
+      {needsIdentityName && !loading && (
+        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-polynurse-200 dark:border-polynurse-700 bg-polynurse-50 dark:bg-slate-800/60 px-4 py-3">
+          <p className="flex-1 min-w-[14rem] text-xs font-bold text-slate-600 dark:text-slate-300">
+            You appear here as an anonymous handle. Pick a display name so rivals
+            and friends recognise you on the board.
+          </p>
+          <button
+            onClick={() => navigate('/settings')}
+            className="rounded-xl bg-polynurse-700 px-4 py-2 text-xs font-black uppercase tracking-widest text-white transition hover:bg-polynurse-800"
+          >
+            Set display name
+          </button>
+        </div>
+      )}
+
       {loading ? (
         <div className="flex justify-center py-16">
           <Loader2 size={28} className="animate-spin text-polynurse-600" />
@@ -158,8 +182,19 @@ const Leaderboard = () => {
                       {isMe && <span className="ml-2 text-[9px] font-black uppercase tracking-widest text-polynurse-600 dark:text-polynurse-300">You</span>}
                     </p>
                     <p className="text-[10px] font-bold text-slate-400 truncate">
-                      {Number(row.playerScore || 0).toLocaleString()} scholar pts ·{' '}
-                      {Number(row.totalAnswers || 0).toLocaleString()} answers
+                      {/* playerScore / totalAnswers are NULL when the user has no
+                          player_stats row yet. Coercing that to 0 (the old
+                          `Number(row.playerScore || 0)`) printed a real-looking
+                          "0 pts / 0 answers" for 47 of 54 users. Distinguish
+                          "no data yet" from a genuine zero. */}
+                      {row.playerScore == null && row.totalAnswers == null ? (
+                        'No graded rounds yet'
+                      ) : (
+                        <>
+                          {Number(row.playerScore || 0).toLocaleString()} scholar pts ·{' '}
+                          {Number(row.totalAnswers || 0).toLocaleString()} answers
+                        </>
+                      )}
                     </p>
                   </div>
                   <div className="flex items-center gap-2">

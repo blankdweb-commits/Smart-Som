@@ -40,3 +40,30 @@ export async function communityPreview(groupId) {
     body: { group_id: groupId },
   });
 }
+
+// ---------------------------------------------------------------------------
+// Phase 1 — ONE-TIME GUEST PREVIEW
+//
+// Both calls are unauthenticated on purpose (no bearer token, retryOnAuth off),
+// exactly like communityPreview above. A guest token buys these two READ-ONLY
+// endpoints and nothing else — every write route in the room still 401s.
+//
+// `start` is the single mint point. Passing the previously stored token back
+// never extends the window: the server honours the ORIGINAL expiry or refuses
+// with PREVIEW_ALREADY_USED. It is not a resume, it is a re-presentation.
+// ---------------------------------------------------------------------------
+export async function guestPreviewStart(groupId, token) {
+  return apiFetch('/community/anonymous/guest-preview-start', {
+    method: 'POST',
+    retryOnAuth: false,
+    body: { group_id: groupId, token: token || undefined },
+  });
+}
+
+export async function guestPreviewStream(groupId, token, before) {
+  return apiFetch('/community/anonymous/guest-preview-stream', {
+    method: 'POST',
+    retryOnAuth: false,
+    body: { group_id: groupId, token, before: before || undefined },
+  });
+}

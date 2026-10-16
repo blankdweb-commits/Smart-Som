@@ -20,6 +20,7 @@
 //   - All writes are done with the service role; clients are locked out of
 //     direct community_posts/comments/likes writes by migration v29 RLS.
 
+import crypto from 'crypto';
 import { getSupabaseAdmin } from './_utils.js';
 import { sendRoomPush } from './_push.js';
 
@@ -2121,11 +2122,362 @@ export async function handleAnonPreview(req, res) {
   });
 }
 
-// POST /api/community/anonymous/members  { group_id? }
-// The room roster — every CURRENT member's Anonymous #NN identity plus a live
-// online flag — so an action can be aimed at anyone present, not just people
-// who have already spoken. Members only (spectators cannot use actions, and
-// the roster is a member surface). User ids never leave the api.
+// ============================================================
+// GUEST PREVIEW (Phase 1) — a signed, read-only, time-boxed window
+// onto the Anonymous Room for visitors with no account.
+//
+// WHY AN ENDPOINT AND NOT A CLIENT READ: every query in this file runs on the
+// service role (getDb() === getSupabaseAdmin()), which bypasses RLS entirely.
+// The room's read gate is therefore application-level (roomAccess), and
+// community_posts is NOT readable by the anon role. Widening RLS to let guests
+// read posts directly would hand out every anonymous message in every room to
+// anyone with the publishable key. So the preview is served HERE, from the
+// service role, behind a signature the client cannot forge, and it emits a
+// deliberately minimal projection of each message.
+//
+// THE RULES THIS ENFORCES:
+//   * 5 minutes, measured on the SERVER clock (GUEST_PREVIEW_MS). The browser
+//     clock is never trusted; the client gets expires_at + server_now and
+//     renders a countdown from the difference.
+//   * ONE preview per guest. Starting it spends the allowance immediately —
+//     closing the tab early does not give it back. The spent token lives in the
+//     visitor's localStorage and is presented on every later visit; the server
+//     answers PREVIEW_ALREADY_USED and the client routes to /signup. The
+//     client cannot re-mint, because minting requires the server and the server
+//     has no way to know it already did (see LIMITATIONS in the report).
+//   * STRICTLY READ-ONLY. The hydrator below never calls ensureRoomAlias (a
+//     write) and never calls revealDueAnnouncements (also a write). It reads
+//     aliases that already exist and DROPS any message whose author has none,
+//     rather than creating a row to render it.
+//   * MINIMAL FIELDS. No author_id, no email, no score, no reaction counts, no
+//     encoded bodies, no expiry internals beyond lives_until. Encoded messages
+//     always render as a placeholder for a guest — the reveal path is member
+//     only and is never exercised here.
+//   * FAIL CLOSED. Any verify/DB problem is a 503 with a retry affordance, never
+//     a silent empty success that would look like "the room is quiet".
+// ============================================================
+
+export const GUEST_PREVIEW_MS = 5 * 60 * 1000; // 5 minutes, server-authoritative
+const GUEST_PREVIEW_PAGE = 12; // small first page; guests never need the backlog
+const GUEST_PREVIEW_MAX_LIMIT = 20;
+const GUEST_PREVIEW_START_THROTTLE_MS = 3_000; // per caller-key, best effort
+
+// Minting starts. This is ONLY an abuse brake on the mint endpoint — the
+// one-preview rule itself is enforced by the signed token in localStorage, not
+// by IP, so this limit can be generous without weakening the product.
+//
+// It is deliberately NOT tight, because the target audience shares IP space:
+// carrier NAT in Nigeria means dozens of unrelated visitors can present the
+// same public address. At 10/hour a single busy network would have locked out
+// real people. 60/hour still stops a scripted mint loop (a loop needs 60
+// requests to be useful, and each one only buys a 5-minute read) while leaving
+// a whole NAT'd neighbourhood room to browse.
+//
+// Weakness, stated plainly: a per-instance Map is best-effort on Vercel
+// (functions are not shared), so this is a floor rather than a wall. Clearing
+// browser storage defeats the one-preview rule; that is inherent to binding a
+// pre-account session to a browser and is why the token is signed.
+const guestPreviewMints = new Map();
+const guestPreviewMintCount = new Map();
+const GUEST_PREVIEW_MINT_LIMIT = 60; // per caller-key within the window below
+const GUEST_PREVIEW_MINT_WINDOW_MS = 60 * 60 * 1000; // 1 hour
+
+// The signing secret. ANON_PREVIEW_SECRET is preferred; the service-role key is
+// an acceptable server-only fallback because it never leaves the server and is
+// already required for this function to do anything. If neither exists we fail
+// CLOSED rather than fall back to an unsigned/guessable token.
+const guestPreviewSecret = () =>
+  process.env.ANON_PREVIEW_SECRET || process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+
+const b64url = (buf) =>
+  Buffer.from(buf).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+const unb64url = (str) => Buffer.from(String(str).replace(/-/g, '+').replace(/_/g, '/'), 'base64');
+
+// Signature comparison that does not leak length/position through timing.
+function safeEqual(a, b) {
+  const bufA = Buffer.from(a);
+  const bufB = Buffer.from(b);
+  if (bufA.length !== bufB.length) return false;
+  return crypto.timingSafeEqual(bufA, bufB);
+}
+
+/**
+ * Mint a preview token bound to one room and one absolute expiry.
+ * Format: v1.<base64url(payload)>.<base64url(hmac-sha256)>
+ */
+function issueGuestPreviewToken(groupId, nowMs) {
+  const secret = guestPreviewSecret();
+  if (!secret) return null;
+  const iat = Math.floor(nowMs / 1000);
+  const payload = { g: Number(groupId), i: iat, e: iat + Math.floor(GUEST_PREVIEW_MS / 1000), n: crypto.randomBytes(8).toString('hex') };
+  const body = b64url(JSON.stringify(payload));
+  const sig = b64url(crypto.createHmac('sha256', secret).update(body).digest());
+  return `v1.${body}.${sig}`;
+}
+
+/**
+ * Verify a token. Returns
+ *   { ok:true,  groupId, issuedAt, expiresAt }
+ *   { ok:false, reason:'MALFORMED' | 'BAD_SIGNATURE' | 'EXPIRED' | 'NOT_CONFIGURED' }
+ */
+export function verifyGuestPreviewToken(token, nowMs = Date.now()) {
+  const secret = guestPreviewSecret();
+  if (!secret) return { ok: false, reason: 'NOT_CONFIGURED' };
+  const raw = typeof token === 'string' ? token.trim() : '';
+  if (!raw) return { ok: false, reason: 'MALFORMED' };
+  const parts = raw.split('.');
+  if (parts.length !== 3 || parts[0] !== 'v1') return { ok: false, reason: 'MALFORMED' };
+  const [, body, sig] = parts;
+  const expected = b64url(crypto.createHmac('sha256', secret).update(body).digest());
+  if (!safeEqual(sig, expected)) return { ok: false, reason: 'BAD_SIGNATURE' };
+  let payload;
+  try {
+    payload = JSON.parse(unb64url(body).toString('utf8'));
+  } catch {
+    return { ok: false, reason: 'MALFORMED' };
+  }
+  if (!payload || !Number.isFinite(Number(payload.g)) || !Number.isFinite(Number(payload.e))) {
+    return { ok: false, reason: 'MALFORMED' };
+  }
+  if (Number(payload.e) * 1000 <= nowMs) return { ok: false, reason: 'EXPIRED' };
+  return { ok: true, groupId: Number(payload.g), issuedAt: Number(payload.i) * 1000, expiresAt: Number(payload.e) * 1000 };
+}
+
+// A cheap, non-fingerprinting caller key. x-forwarded-for's first hop is the
+// Vercel edge's view of the client; it is only ever used to slow down mint
+// spam, never stored, and never sent anywhere.
+function previewCallerKey(req) {
+  const fwd = req?.headers?.['x-forwarded-for'];
+  if (typeof fwd === 'string' && fwd.length) return fwd.split(',')[0].trim().slice(0, 64);
+  return 'unknown';
+}
+
+// Read-only alias lookup. Returns authors that ALREADY have an identity row;
+// the caller drops anything missing so this path never creates one.
+async function loadExistingAliases(groupId, userIds) {
+  const map = new Map();
+  const ids = [...new Set((userIds || []).filter(Boolean))];
+  if (!ids.length) return map;
+  const supabase = getDb();
+  if (!supabase) return map;
+  const { data } = await supabase
+    .from('anonymous_room_identities')
+    .select('user_id, alias')
+    .eq('group_id', groupId)
+    .in('user_id', ids);
+  for (const row of data || []) map.set(row.user_id, row.alias);
+  return map;
+}
+
+/**
+ * Minimal, read-only projection of room messages for a guest preview.
+ * Deliberately NOT hydrateRoomMessages(): that one calls ensureRoomAlias (a
+ * write) and emits score / reactions / my_vote / encoded bodies. This returns
+ * only what a visitor needs to see that the room is real.
+ */
+async function hydrateGuestMessages(group, rows, nowMs) {
+  if (!rows.length) return [];
+  const aliasMap = await loadExistingAliases(group.id, rows.map((r) => r.author_id));
+  const metaByPost = await loadMessageMeta(rows.map((r) => r.id));
+  const out = [];
+  for (const row of rows) {
+    const alias = aliasMap.get(row.author_id);
+    // No identity row yet -> do NOT create one. The message is simply not
+    // showable to an anonymous visitor until its author has been identified.
+    if (alias == null || alias === undefined) continue;
+    const meta = metaByPost.get(row.id) || null;
+    const isEncoded = !!meta?.is_encoded;
+    out.push({
+      id: row.id,
+      alias,
+      author: aliasLabel(alias),
+      // An Encoded Message never reveals its body to a guest, even if a member
+      // has revealed it to the room — the reveal path is member-only.
+      content: isEncoded ? '🔒 Encoded message' : row.content,
+      encoded: isEncoded,
+      created_at: row.created_at,
+      state: computePostState(row, nowMs),
+      lives_until: new Date(computeLivesUntil(row)).toISOString(),
+    });
+  }
+  return out;
+}
+
+// POST /api/community/anonymous/guest-preview-start  { group_id?, token? }
+//
+// One mint per guest, ever. If a token comes back in the body we honour the
+// EXISTING window (never extend it): a live token returns the remaining time, an
+// expired/garbage token is refused as already-used.
+export async function handleGuestPreviewStart(req, res) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+  if (!guestPreviewSecret()) {
+    return res.status(503).json({
+      error: 'GUEST_PREVIEW_UNAVAILABLE',
+      message: 'The guest preview is not available right now. Please create a free account or sign in.',
+    });
+  }
+
+  const nowMs = Date.now();
+  const presented = req?.body?.token;
+
+  // --- Returning visitor: never mint a second window. -------------------
+  // NOTE the `!= null` test rather than `.trim()`: a client that sends
+  // token:" " has PRESENTED a token, and a blank presentation must fail
+  // closed rather than fall through to the mint path. Only a genuinely
+  // absent token is a first visit.
+  if (presented !== undefined && presented !== null) {
+    const check = verifyGuestPreviewToken(presented, nowMs);
+    if (check.ok) {
+      const group = await resolveAnonGroup(req?.body?.group_id ?? check.groupId);
+      if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND', message: 'No Anonymous room found.' });
+      if (Number(group.id) !== Number(check.groupId)) {
+        // Token is bound to one room; it cannot be pointed at another.
+        return res.status(403).json({ error: 'PREVIEW_ROOM_MISMATCH', message: 'That preview was for a different room.' });
+      }
+      return res.status(200).json({
+        ok: true,
+        already_used: true,
+        token: presented,
+        expires_at: new Date(check.expiresAt).toISOString(),
+        server_now: new Date(nowMs).toISOString(),
+        room: await guestRoomSummary(group),
+      });
+    }
+    // Expired, tampered or corrupt -> treated as spent. Fail closed.
+    return res.status(403).json({
+      error: 'PREVIEW_ALREADY_USED',
+      message: 'You have already used your one-time guest preview. Create a free account to join the room.',
+    });
+  }
+
+  // --- First visit: mint once, spending the allowance immediately. ------
+  const caller = previewCallerKey(req);
+  const windowStart = Date.now();
+  const seen = (guestPreviewMintCount.get(caller) || []).filter((t) => windowStart - t < GUEST_PREVIEW_MINT_WINDOW_MS);
+  if (seen.length >= GUEST_PREVIEW_MINT_LIMIT) {
+    return res.status(429).json({
+      error: 'GUEST_PREVIEW_RATE_LIMITED',
+      message: 'Too many preview requests. Please create a free account or sign in.',
+    });
+  }
+  seen.push(windowStart);
+  guestPreviewMintCount.set(caller, seen);
+
+  const last = guestPreviewMints.get(caller) || 0;
+  if (nowMs - last < GUEST_PREVIEW_START_THROTTLE_MS) {
+    return res.status(429).json({
+      error: 'GUEST_PREVIEW_THROTTLED',
+      message: 'Give it a moment before starting another preview.',
+    });
+  }
+  guestPreviewMints.set(caller, nowMs);
+
+  const group = await resolveAnonGroup(req?.body?.group_id);
+  if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND', message: 'No Anonymous room found.' });
+
+  const token = issueGuestPreviewToken(group.id, nowMs);
+  if (!token) {
+    return res.status(503).json({ error: 'GUEST_PREVIEW_UNAVAILABLE', message: 'The guest preview is not available right now.' });
+  }
+
+  const summary = await guestRoomSummary(group);
+
+  // Derive the advertised expiry from the SAME second-truncated value that is
+  // signed into the token, so the countdown can never promise more time than
+  // the stream will actually honour.
+  const expiresAtMs = Math.floor(nowMs / 1000) * 1000 + GUEST_PREVIEW_MS;
+
+  return res.status(200).json({
+    ok: true,
+    already_used: false,
+    token,
+    expires_at: new Date(expiresAtMs).toISOString(),
+    server_now: new Date(nowMs).toISOString(),
+    room: summary,
+  });
+}
+
+// The non-sensitive room header the preview needs. Same shape the existing
+// metadata preview exposes — no counts of anything private.
+async function guestRoomSummary(group) {
+  const seatMemberCount = await roomMemberCount(group.id);
+  const seatSpectatorCount = await roomSpectatorCount(group.id);
+  return {
+    id: group.id,
+    name: group.name,
+    group_state: group.group_state,
+    member_count: typeof seatMemberCount === 'number' ? seatMemberCount : null,
+    spectator_count: typeof seatSpectatorCount === 'number' ? seatSpectatorCount : null,
+  };
+}
+
+// POST /api/community/anonymous/guest-preview-stream  { group_id?, token, before? }
+//
+// The live read. Requires a VALID, UNEXPIRED token bound to this room.
+export async function handleGuestPreviewStream(req, res) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+
+  const nowMs = Date.now();
+  const check = verifyGuestPreviewToken(req?.body?.token, nowMs);
+  if (!check.ok) {
+    // One shape for every failure so the client cannot probe which it was.
+    const status = check.reason === 'NOT_CONFIGURED' ? 503 : 403;
+    return res.status(status).json({
+      error: check.reason === 'NOT_CONFIGURED' ? 'GUEST_PREVIEW_UNAVAILABLE' : 'PREVIEW_ALREADY_USED',
+      message: 'Your guest preview has ended. Create a free account to join the room.',
+      server_now: new Date(nowMs).toISOString(),
+    });
+  }
+
+  const group = await resolveAnonGroup(req?.body?.group_id ?? check.groupId);
+  if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND', message: 'No Anonymous room found.' });
+  if (Number(group.id) !== Number(check.groupId)) {
+    return res.status(403).json({ error: 'PREVIEW_ROOM_MISMATCH', message: 'That preview was for a different room.' });
+  }
+
+  const limit = Math.max(1, Math.min(GUEST_PREVIEW_MAX_LIMIT, Number(req?.body?.limit) || GUEST_PREVIEW_PAGE));
+  const before = typeof req?.body?.before === 'string' && req.body.before ? req.body.before : null;
+
+  let query = supabase
+    .from('community_posts')
+    .select(ROOM_POST_COLUMNS)
+    .eq('group_id', group.id)
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
+    .limit(limit);
+  if (before) query = query.lt('created_at', before);
+
+  const { data, error } = await query;
+  if (error) {
+    console.error('[guest preview stream]', error);
+    return res.status(503).json({
+      error: 'GUEST_PREVIEW_UNAVAILABLE',
+      message: 'We could not load the room right now. Please retry, or create a free account.',
+    });
+  }
+
+  // Only LIVE messages. An all-expired page still yields a usable cursor so
+  // "older" cannot dead-end.
+  const alive = (data || []).filter((row) => isPostAlive(row, nowMs));
+  const messages = (await hydrateGuestMessages(group, alive, nowMs)).reverse(); // oldest first
+  const cursorBase = (data || [])[0]?.created_at || null;
+  const oldest = messages.length ? messages[0].created_at : null;
+
+  return res.status(200).json({
+    ok: true,
+    access: 'guest_preview',
+    read_only: true,
+    room: await guestRoomSummary(group),
+    messages,
+    next_before: cursorBase,
+    expires_at: new Date(check.expiresAt).toISOString(),
+    server_now: new Date(nowMs).toISOString(),
+    oldest_alive_at: oldest,
+  });
+}
 export async function handleAnonMembers(req, res, user) {
   const supabase = getDb();
   if (!supabase) return res.status(500).json({ error: 'Server configuration error' });

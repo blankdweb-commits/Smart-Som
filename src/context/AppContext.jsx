@@ -225,6 +225,10 @@ export function AppProvider({ children }) {
   // Wallet is persisted on profiles.smart_coins; daily payout and the
   // once-per-day fail penalty are tracked so each is awarded/deducted once/day.
   const [smartCoins, setSmartCoins] = useState(0);
+// Lifetime Smart Coins ever EARNED (credits only), server-computed from the
+// ledger by sc_earned_total(). Distinct from the balance above, which goes down
+// when you spend. Migration v80.
+const [scEarnedTotal, setScEarnedTotal] = useState(0);
   const [scLastPayout, setScLastPayout] = useState(null);   // ISO timestamptz
   const [scLastFailDate, setScLastFailDate] = useState(null); // YYYY-MM-DD
   const [scLedger, setScLedger] = useState([]);
@@ -831,6 +835,13 @@ export function AppProvider({ children }) {
       if (error || data?.smart_coins == null) return null;
       const bal = Number(data.smart_coins) || 0;
       setSmartCoins(bal);
+      // Lifetime earned moves independently of the balance, so it needs its own
+      // read. Fail-soft: the identity tiers just fall back to 0 rather than
+      // breaking the card.
+      try {
+        const earned = await supabase.rpc('sc_earned_total', { p_user: session.user.id });
+        if (!earned.error && earned.data != null) setScEarnedTotal(Number(earned.data) || 0);
+      } catch { /* leave the previous value */ }
       return bal;
     } catch (err) {
       console.warn('Smart Coins refresh failed:', err?.message);
@@ -922,15 +933,55 @@ export function AppProvider({ children }) {
   const arenaLeaveQueue = useCallback(() =>
     arenaRpc('arena_leave_queue', {}), [arenaRpc]);
 
+  // ---- invites (migration v78) -------------------------------------------
+  // Consent comes BEFORE escrow: sending an invite moves nothing, and the stakes
+  // are only held when the recipient accepts (server-side, inside
+  // arena_invite_respond, which then builds the match through the same canonical
+  // arena_create_match a direct challenge uses).
+  const arenaInvite = useCallback(async ({ userId, stake = 0 }) =>
+    arenaRpc('arena_invite', { p_to_user: userId, p_stake: Number(stake) || 0 }),
+  [arenaRpc]);
+
+  const arenaInvites = useCallback(async () => {
+    const res = await arenaRpc('arena_invites_list', {});
+    return {
+      incoming: Array.isArray(res?.incoming) ? res.incoming : [],
+      outgoing: Array.isArray(res?.outgoing) ? res.outgoing : [],
+      windowSeconds: Number(res?.windowSeconds) || 600,
+    };
+  }, [arenaRpc]);
+
+  // Accept returns the create result (matchId, questions, balance), so the
+  // caller can adopt the match without a second round trip. Decline returns
+  // just the acknowledgement.
+  const arenaInviteRespond = useCallback(async ({ inviteId, accept }) => {
+    const res = await arenaRpc('arena_invite_respond',
+      { p_invite_id: inviteId, p_accept: !!accept });
+    if (accept) syncArenaBalance(res);
+    return res;
+  }, [arenaRpc, syncArenaBalance]);
+
+  const arenaInviteCancel = useCallback(async ({ inviteId }) =>
+    arenaRpc('arena_invite_cancel', { p_invite_id: inviteId }), [arenaRpc]);
+
   // The scholars list. v64 returns EVERY activated scholar with a derived
   // status (available / in_match / offline) plus `canChallenge`, rather than
   // only the people already sitting in the queue.
-  const arenaRoster = useCallback(async ({ stake = 0 } = {}) => {
-    const res = await arenaRpc('arena_roster', { p_stake: Number(stake) || 0, p_format: 'blitz' });
+  // `query` is the scholars search box (migration v75). It matches on
+  // identity_name / full_name / the Scholar-xxxxxx handle, NEVER email.
+  const arenaRoster = useCallback(async ({ stake = 0, query = '' } = {}) => {
+    const trimmed = String(query || '').trim();
+    const res = await arenaRpc('arena_roster', {
+      p_stake: Number(stake) || 0,
+      p_format: 'blitz',
+      p_query: trimmed || null,
+    });
     return {
       players: Array.isArray(res?.players) ? res.players : [],
       online: Number(res?.online) || 0,
       windowSeconds: Number(res?.windowSeconds) || 90,
+      searching: res?.searching === true,
+      query: res?.query || null,
     };
   }, [arenaRpc]);
 
@@ -1936,10 +1987,13 @@ export function AppProvider({ children }) {
       quizStreak: studyStats.quizStreak || 0,
       cardsStudied: studyStats.cardsStudied || 0,
       accuracy: totalQ > 0 ? Math.round((correctQ / totalQ) * 100) : 0,
-      scEarned: smartCoins || 0,
+      // LIFETIME earnings from the ledger (migration v80). This used to be
+      // `smartCoins`, i.e. the CURRENT BALANCE, so it dropped every time the
+      // user spent and the 200/500/1000 identity tiers were unreachable.
+      scEarned: scEarnedTotal || 0,
       speedRuns: 0
     };
-  }, [quizHistory, learningAnalytics.totalAttempts, studyStats.quizStreak, studyStats.cardsStudied, smartCoins]);
+  }, [quizHistory, learningAnalytics.totalAttempts, studyStats.quizStreak, studyStats.cardsStudied, scEarnedTotal]);
 
   const identity = useMemo(() => computeCurrentIdentity(identityStats), [identityStats]);
 
@@ -2373,7 +2427,8 @@ export function AppProvider({ children }) {
       finalizeDuel,
       arenaCreateMatch, arenaReady, arenaStart, arenaAnswer, arenaHeartbeat,
       arenaForfeit, arenaCancel, arenaSettle, arenaState, arenaOutcome,
-      arenaEnqueue, arenaLeaveQueue, arenaRoster, refreshSmartCoins,
+      arenaEnqueue, arenaLeaveQueue, arenaRoster, refreshSmartCoins, scEarnedTotal,
+    arenaInvite, arenaInvites, arenaInviteRespond, arenaInviteCancel,
       claimChallengeReward, getMyReferral, applyReferral,
       createSquad, joinSquad, leaveSquad, getMySquad, claimSquadReward,
       createRoom, joinRoom, leaveRoom, getActiveRooms, getMyRoom,

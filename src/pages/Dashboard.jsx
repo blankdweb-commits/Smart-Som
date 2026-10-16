@@ -18,7 +18,7 @@ import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
 const Dashboard = () => {
   const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
-  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics, quizHistory, smartCoins, scLedger, claimDailySC, identity, identityUnlock, dismissIdentityUnlock, SC_FEATURE_LOCKED, userAchievements, achievementCatalog, fetchAchievementCatalog, fetchGlobalRank } = useAppContext();
+  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics, quizHistory, smartCoins, scEarnedTotal, scLedger, claimDailySC, identity, identityUnlock, dismissIdentityUnlock, SC_FEATURE_LOCKED, userAchievements, achievementCatalog, fetchAchievementCatalog, fetchGlobalRank } = useAppContext();
   const navigate = useNavigate();
 
   // Server-authoritative global player score rank (migration v30). RPC-based;
@@ -346,7 +346,8 @@ const Dashboard = () => {
              quizStreak: studyStats.quizStreak || 0,
              cardsStudied: studyStats.cardsStudied || 0,
              accuracy: todayStats.accuracy,
-             scEarned: smartCoins || 0,
+             // Lifetime earned, not the balance (migration v80).
+             scEarned: scEarnedTotal || 0,
              speedRuns: 0
            }} />
 

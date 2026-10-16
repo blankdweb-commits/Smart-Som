@@ -22,6 +22,8 @@ const Settings = lazy(() => import('./pages/Settings'));
 const Community = lazy(() => import('./pages/Community'));
 const PronunciationHelper = lazy(() => import('./pages/PronunciationHelper'));
 const Rumble = lazy(() => import('./pages/Rumble'));
+const Rivals = lazy(() => import('./pages/Rivals'));
+const Wallet = lazy(() => import('./pages/Wallet'));
   const Leaderboard = lazy(() => import('./pages/Leaderboard'));
 const Challenges = lazy(() => import('./pages/Challenges'));
 const Squads = lazy(() => import('./pages/Squads'));
@@ -34,6 +36,7 @@ const AdminMarketplace = lazy(() => import('./pages/AdminMarketplace'));
 const LicenseRenewal = lazy(() => import('./pages/LicenseRenewal'));
 const LoanShark = lazy(() => import('./pages/LoanShark'));
 const Voting = lazy(() => import('./pages/Voting'));
+const Tutorials = lazy(() => import('./pages/Tutorials'));
 const Reviews = lazy(() => import('./pages/Reviews'));
 const WeaknessDrill = lazy(() => import('./pages/WeaknessDrill'));
 const Achievements = lazy(() => import('./pages/Achievements'));
@@ -90,6 +93,7 @@ const AppRouter = () => (
         <Route path="/marketplace" element={<RequireAuth><Marketplace /></RequireAuth>} />
         <Route path="/admin/marketplace" element={<RequireAuth><AdminMarketplace /></RequireAuth>} />
         <Route path="/voting" element={<RequireAuth><Voting /></RequireAuth>} />
+        <Route path="/tutorials" element={<RequireAuth><Tutorials /></RequireAuth>} />
         <Route path="/reviews" element={<RequireAuth><Reviews /></RequireAuth>} />
         <Route path="/payments" element={<RequireAuth><Payments /></RequireAuth>} />
         <Route path="/payments/verify" element={<RequireAuth><PaymentVerify /></RequireAuth>} />
@@ -107,6 +111,8 @@ const AppRouter = () => (
       <Route path="/login" element={<Auth />} />
       <Route path="/signup" element={<Auth />} />
       <Route path="/rumble" element={<Rumble />} />
+      <Route path="/rivals" element={<Rivals />} />
+      <Route path="/wallet" element={<Wallet />} />
       <Route path="/xp-hall" element={<Navigate to="/rumble" replace />} />
       {/* Anonymous room: immersive full-screen (no sidebar/bottom nav),
           direct entry at /anonymous and deep link at /anonymous/:id. PUBLIC —

@@ -21,6 +21,7 @@ import {
 import { useAppContext } from '../context/AppContext';
 import Toast from '../components/Toast';
 import { pushSupported, getPushState, enablePush, disablePush, savePreferences } from '../utils/push';
+import { TUTORIALS } from '../data/tutorials';
 
 const NURSING_YEARS = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'];
 const DEPARTMENTS = [
@@ -520,6 +521,38 @@ export default function Settings() {
             {referralToast.message}
           </p>
         )}
+      </motion.div>
+
+      {/* Guided tours — replayable at any time. */}
+      <motion.div
+        initial={{ y: 10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.16 }}
+        className="bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-100 dark:border-slate-700 p-6 sm:p-8 shadow-clinical"
+      >
+        <div className="flex items-center justify-between gap-3 mb-1">
+          <h2 className="text-sm font-black uppercase tracking-widest text-slate-400">Guides</h2>
+          <Link
+            to="/tutorials"
+            className="text-[11px] font-black uppercase tracking-widest text-medical-600 dark:text-medical-400 hover:underline"
+          >
+            All tours
+          </Link>
+        </div>
+        <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">
+          Replay any walkthrough whenever you need it. Completing a tour is never required.
+        </p>
+        <div className="flex flex-col sm:flex-row gap-2">
+          {TUTORIALS.map(t => (
+            <Link
+              key={t.key}
+              to={`/tutorials?t=${t.key}`}
+              className="flex-1 px-4 py-3 min-h-[44px] flex items-center justify-center bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl text-sm font-bold text-slate-600 dark:text-slate-300 hover:text-medical-600 hover:border-medical-500 transition-colors text-center"
+            >
+              {t.title}
+            </Link>
+          ))}
+        </div>
       </motion.div>
 
       {/* Legal */}

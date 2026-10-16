@@ -41,10 +41,14 @@
       "destination": "/api/quiz"
     },
     {
-      "source": "/api/loans/:path*",
-      "destination": "/api/quiz"
-    },
-    {
+"source": "/api/loans/:path*",
+   "destination": "/api/quiz"
+   },
+   {
+   "source": "/api/economy/:path*",
+   "destination": "/api/quiz"
+   },
+   {
       "source": "/api/matches/create",
       "destination": "/api/matches-create"
     },

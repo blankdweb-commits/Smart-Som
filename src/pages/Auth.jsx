@@ -3,7 +3,7 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { supabase } from '../utils/supabase';
 import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
-import { Mail, Lock, User, Phone, ArrowRight, Loader2, ShieldCheck, Gift } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
 import Toast from '../components/Toast';
 import BrandLogo from '../components/BrandLogo';
 
@@ -42,18 +42,17 @@ export default function Auth() {
     }
   }, [location.search]);
 
+  // Registration is deliberately 4 fields (name, email, password, confirm).
+  // Phone / nursing year / role used to be collected here but nothing required
+  // them at signup — the profiles trigger fills them with '' — and they added
+  // friction to the one flow we most need to keep short. Referral codes still
+  // arrive via the ?referral= deep link above, not as a form field.
   const [formData, setFormData] = useState({
     email: '',
     password: '',
     confirmPassword: '',
-    fullName: '',
-    phone: '',
-    nursingYear: '',
-    role: 'student',
-    inviteCode: ''
+    fullName: ''
   });
-
-  const NURSING_YEARS = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'];
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -95,10 +94,7 @@ export default function Auth() {
           password: formData.password,
           options: {
             data: {
-              full_name: formData.fullName,
-              phone: formData.phone,
-              nursing_year: formData.nursingYear,
-              role: formData.role
+              full_name: formData.fullName
             }
           }
         });
@@ -198,49 +194,6 @@ export default function Auth() {
                     className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
                     value={formData.fullName}
                     onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-                  />
-                </div>
-                <div className="relative">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-                  <input
-                    type="tel"
-                    placeholder="Phone Number (optional)"
-                    autoComplete="tel"
-                    className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({...formData, phone: e.target.value})}
-                  />
-                </div>
-                <div className="relative">
-                  <select
-                    className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 px-4 text-white focus:outline-none focus:border-medical-500 transition-colors appearance-none"
-                    value={formData.nursingYear}
-                    onChange={(e) => setFormData({...formData, nursingYear: e.target.value})}
-                  >
-                    <option value="" className="text-slate-500">Select Nursing Year (optional)</option>
-                    {NURSING_YEARS.map(yr => (
-                      <option key={yr} value={yr} className="text-slate-900">{yr}</option>
-                    ))}
-                  </select>
-                </div>
-                <div className="relative">
-                  <Gift className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-                  <input
-                    type="text"
-                    placeholder="Invite Code (optional) — earn 15 Smart Coins"
-                    autoComplete="off"
-                    maxLength={16}
-                    className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors uppercase tracking-wider"
-                    value={formData.inviteCode}
-                    onChange={(e) => {
-                      const inviteCode = e.target.value.toUpperCase().replace(/[^A-Z0-9]/g, '');
-                      setFormData({...formData, inviteCode});
-                      if (inviteCode.length >= 4) {
-                        try { localStorage.setItem('apex_pending_referral', inviteCode); } catch (err) { console.warn('Referral capture failed:', err?.message); }
-                      } else {
-                        try { localStorage.removeItem('apex_pending_referral'); } catch (err) { console.warn('Referral clear failed:', err?.message); }
-                      }
-                    }}
                   />
                 </div>
               </>

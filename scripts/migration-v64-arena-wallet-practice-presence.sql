@@ -101,6 +101,49 @@ end;
 $$;
 
 -- ============================================================================
+-- 3b. SHARED IDENTITY HELPER - one source of truth for "what to call a user".
+--
+-- The arena scholars list, the global leaderboard and (later) the friend/rival
+-- cards all need the SAME rules, so they all call this. Defined here AND in
+-- v74 with an identical `create or replace`, which makes the apply order of
+-- v64/v74 irrelevant.
+--
+--   'pseudonym' -> identity_name when the user set one, else a STABLE handle
+--                  ('Scholar-a1b2c3', md5 of the uuid). This is the public,
+--                  always-safe label: identity_name is already readable by
+--                  design via community_profiles, and is voluntary.
+--   'real'      -> full_name first, falling back to the pseudonym.
+--
+-- There is deliberately NO 'list' mode here. "Show the real name once two
+-- people have dueled" is context-dependent (it needs a duels lookup), so it
+-- belongs in the invite / friend-rival migration, not in a stateless helper.
+--
+-- SECURITY DEFINER because profiles.identity_name / full_name are NOT readable
+-- cross-user by the client; the definer RPCs are the only intended audience.
+-- No EXECUTE grant to anon/authenticated on purpose - this is internal.
+-- ============================================================================
+create or replace function public._person_name(p_user uuid, p_mode text default 'pseudonym')
+returns text
+language sql
+stable
+security definer set search_path = public
+as $$
+  select case p_mode
+           when 'real' then coalesce(
+             nullif(btrim(p.full_name), ''),
+             nullif(btrim(p.identity_name), ''),
+             'Scholar-' || substr(md5(p.id::text), 1, 6))
+           else coalesce(
+             nullif(btrim(p.identity_name), ''),
+             'Scholar-' || substr(md5(p.id::text), 1, 6))
+         end
+    from public.profiles p
+   where p.id = p_user;
+$$;
+
+revoke all on function public._person_name(uuid, text) from public, anon, authenticated;
+
+-- ============================================================================
 -- 4. PRESENCE — the signal the scholars list needs.
 --
 -- One row per scholar, touched by the arena RPCs, by the roster poll itself
@@ -851,7 +894,7 @@ begin
 
   with rows as (
     select p.id,
-           coalesce(cp.display_name, 'Scholar') as name,
+           public._person_name(p.id, 'pseudonym') as name,
            coalesce(ap.last_seen_at, p.last_active_date::timestamptz) as seen,
            coalesce(p.smart_coins, 0) as coins,
            (public._arena_in_active_match(p.id) is not null) as busy,
@@ -861,7 +904,6 @@ begin
              then 1 else 0
            end as seen_recently
       from public.profiles p
-      left join public.community_profiles cp on cp.id = p.id
       left join public.arena_presence ap on ap.user_id = p.id
      where p.id <> v_user
        and p.is_activated

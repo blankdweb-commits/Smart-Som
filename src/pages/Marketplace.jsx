@@ -23,6 +23,7 @@ import {
   Wallet
 } from './../components/Icons';
 import { useAppContext } from '../context/AppContext';
+import TutorialTip from '../components/TutorialTip';
 import { supabase } from '../utils/supabase';
 
 const PLATFORM_SELLER = 'polynurse';
@@ -222,6 +223,9 @@ export default function Marketplace() {
 
   return (
     <div className="max-w-md mx-auto px-4 pt-6 pb-28">
+      <TutorialTip tutorialKey="marketplace">
+        First time? The Marketplace tour shows which listings you can actually buy.
+      </TutorialTip>
       <motion.div
         initial={{ opacity: 0, y: 14 }}
         animate={{ opacity: 1, y: 0 }}

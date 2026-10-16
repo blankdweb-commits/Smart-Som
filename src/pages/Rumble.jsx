@@ -1,21 +1,12 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
+import TutorialTip from '../components/TutorialTip';
 import { supabase } from "../utils/supabase";
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
-import { Brain, Zap, Star, ChevronLeft, ArrowRight, Users, AlertCircle, RefreshCw, Trophy, Award, Shield, User, SkipForward, Check, X } from "../components/Icons";
+import { Brain, Zap, Star, ChevronLeft, ArrowRight, Users, AlertCircle, RefreshCw, Trophy, Award, Shield, User, SkipForward, Check, X, Search } from "../components/Icons";
 import { useMatchRealtime } from "../hooks/useMatchRealtime";
-import { audioManager } from "../utils/audio";
-
-// ---------------------------------------------------------------------------
-// One-shot arena cues. Every call is safe when sound is disabled (the manager
-// no-ops) and never blocks the UI.
-// ---------------------------------------------------------------------------
-const playArenaSfx = (cue) => {
-  try { audioManager.play(`arena_${cue}`); } catch { /* ignore */ }
-};
-
 // ---------------------------------------------------------------------------
 // Constants. The stake is FIXED and shown upfront: no wager selector, so nobody
 // can be surprised and the >=10 SC high-wager confirmation can never fire.
@@ -25,10 +16,36 @@ const BLITZ_DURATION_MS = 90 * 1000;   // one shared 90s wall-clock
 const ARENA_POLL_MS = 1500;
 const ARENA_HEARTBEAT_MS = 5000;
 const SCHOLARS_POLL_MS = 4000;
+// Typing a name should not fire a request per keystroke.
+const SCHOLARS_SEARCH_DEBOUNCE_MS = 350;
+// Invites are driven by the OTHER player's action, so they get their own, faster
+// poll than the 4s scholars list.
+const INVITES_POLL_MS = 2500;
+// The server ignores a query shorter than this (1 char matches most of the
+// roster), so mirror that here and say so instead of silently ignoring it.
+const SCHOLAR_SEARCH_MIN = 2;
+// How long to sit in the matchmaking queue before giving the player their stake
+// back and telling them why. Without this, a failed enqueue (or an opponent who
+// never readies) leaves the screen spinning with coins held.
+const MATCHMAKING_TIMEOUT_MS = 45 * 1000;
 const HISTORY_LIMIT = 5;
 const ACTIVE_ARENA_KEY = "apex_active_arena";
 const ARENA_DEBUG_KEY = "apex_arena_debug";
 const EMPTY_CARD = { answers: 0, correct: 0, wrong: 0, skipped: 0, points: 0 };
+
+// Server error code -> something a player can act on. Anything unlisted falls
+// back to a generic line, so a new server-side code can never render as "null".
+const ARENA_ERROR_COPY = {
+  NO_OPPONENT_FOUND: 'Nobody joined the arena in time. Your stake has been returned - pick someone below to challenge.',
+  INSUFFICIENT_SC: 'You need at least 2 Smart Coins to enter the arena.',
+  OPPONENT_INSUFFICIENT_SC: 'That scholar cannot cover a 2 SC stake right now.',
+  OPPONENT_REQUIRED: 'Pick someone to challenge first.',
+  INVALID_STAKE: 'That stake is not allowed.',
+  PRACTICE_NEEDS_BOT: 'Free practice is only available against a tutor bot.',
+  NOT_ACTIVATED: 'Activate your account before entering the arena.',
+  ALREADY_IN_MATCH: 'You are already in a duel. Finish or cancel it first.',
+  NETWORK_OR_RPC: 'Could not reach the arena. Check your connection and try again.',
+};
 
 // Tutor bots. Practice is FREE (stake 0): no escrow, no history row, no verified
 // stats. They play the same 40-question board on the same clock with the same
@@ -130,6 +147,7 @@ const Rumble = () => {
     smartCoins, syncAchievements, refreshSmartCoins,
     arenaCreateMatch, arenaReady, arenaStart, arenaAnswer, arenaHeartbeat,
     arenaForfeit, arenaCancel, arenaSettle, arenaState, arenaEnqueue,
+    arenaInvite, arenaInvites, arenaInviteRespond, arenaInviteCancel,
     arenaLeaveQueue, arenaRoster,
   } = useAppContext();
 
@@ -140,12 +158,24 @@ const Rumble = () => {
   const [duelHistory, setDuelHistory] = useState([]);
 
   // ---- lobby --------------------------------------------------------------
-  const [roster, setRoster] = useState({ players: [], online: 0 });
+  const [roster, setRoster] = useState({ players: [], online: 0, searching: false });
   const [rosterLoading, setRosterLoading] = useState(false);
+  // Scholars search (migration v75). `scholarQuery` is what the box holds;
+  // `activeQuery` is the debounced value actually sent to the server, so the
+  // 4s poll cannot fire mid-keystroke.
+  const [scholarQuery, setScholarQuery] = useState('');
+  const [activeQuery, setActiveQuery] = useState('');
 
   // ---- match --------------------------------------------------------------
   const [opponent, setOpponent] = useState('Rival Scholar');
   const [finding, setFinding] = useState(null);   // 'human' | 'bot' | null
+  // Why the last attempt failed. null means "nothing went wrong yet". Populated
+  // by arenaFailure so a refused start explains itself instead of hanging.
+  const [phaseError, setPhaseError] = useState(null);
+  // Pending invites (migration v78). Both directions, so the sender can cancel
+  // and the recipient can accept/decline without leaving the page.
+  const [invites, setInvites] = useState({ incoming: [], outgoing: [], windowSeconds: 600 });
+  const [inviteBusy, setInviteBusy] = useState(null);
   const [countdown, setCountdown] = useState(3);
   const [blitzMatch, setBlitzMatch] = useState(null);
   const [blitzQuestions, setBlitzQuestions] = useState([]);
@@ -319,46 +349,86 @@ const Rumble = () => {
   // ---- entry points -------------------------------------------------------
   const enterArena = useCallback(() => goPhase('scholars', 'enter-arena'), [goPhase]);
 
-  const startQuickMatch = useCallback(async () => {
-    if (ARENA_STAKE > smartCoins) return;
-    setFinding('human');
-    setOpponent('Rival Scholar');
-    goPhase('blitz-waiting', 'quick-match');
-    const res = await arenaEnqueue({ stake: ARENA_STAKE });
-    if (res?.matchId) await adoptArena(res);
-    else if (res?.error === 'ALREADY_IN_MATCH' && res.matchId) await resumeArena(res.matchId);
-    else arenaTrace('quick-match', { queued: !!res?.queued, error: res?.error });
-  }, [smartCoins, arenaEnqueue, adoptArena, resumeArena, goPhase]);
+  // ONE failure path for every arena entry point. `arenaRpc` returns null when
+  // the RPC itself fails (a missing/renamed signature surfaces as PGRST202) and
+  // `{ok:false,error}` when the server refuses, so a bare `else` used to leave
+  // the player sitting on "Waiting for an opponent..." forever with coins held.
+  // Every caller now lands back on a real screen with a readable reason.
+  const arenaFailure = useCallback((trigger, res, backTo) => {
+    const code = res?.error || (res === null ? 'NETWORK_OR_RPC' : 'UNKNOWN');
+    arenaTrace(trigger, { error: code });
+    setPhaseError(code);
+    if (backTo) goPhase(backTo, `${trigger}-failed`);
+  }, [goPhase]);
 
+  // Practice vs a tutor. stake 0 / p_practice: the server forces it, so no
+  // coins are held, no history row is written and no verified stat is recorded.
   const startVsBot = useCallback(async (botKey, botName) => {
+    setPhaseError(null);
     setFinding('bot');
     setOpponent(botName);
     goPhase('blitz-waiting', 'practice');
-    // practice: the server forces stake 0, so no coins are held or moved.
     const res = await arenaCreateMatch({ stake: 0, bot: botKey, practice: true });
-    if (res?.matchId) await adoptArena(res, botName);
-    else if (res?.error === 'ALREADY_IN_MATCH' && res.matchId) await resumeArena(res.matchId);
-    else arenaTrace('practice', { error: res?.error });
-  }, [arenaCreateMatch, adoptArena, resumeArena, goPhase]);
-
-  const challengeScholar = useCallback(async (scholar) => {
-    if (ARENA_STAKE > smartCoins) return;
-    setFinding('human');
-    setOpponent(scholar.name || 'Rival Scholar');
-    goPhase('blitz-waiting', 'challenge');
-    const res = await arenaCreateMatch({ stake: ARENA_STAKE, opponentId: scholar.userId });
-    if (res?.matchId) await adoptArena(res, scholar.name);
-    else if (res?.error === 'ALREADY_IN_MATCH' && res.matchId) await resumeArena(res.matchId);
-    else {
-      arenaTrace('challenge', { error: res?.error });
-      goPhase('scholars', 'challenge-failed');
-    }
-  }, [smartCoins, arenaCreateMatch, adoptArena, resumeArena, goPhase]);
+    if (res?.matchId) { await adoptArena(res, botName); return; }
+    if (res?.error === 'ALREADY_IN_MATCH' && res.matchId) { await resumeArena(res.matchId); return; }
+    arenaFailure('practice', res, 'bots');
+  }, [arenaCreateMatch, adoptArena, resumeArena, goPhase, arenaFailure]);
 
   // Cancel is the ONLY exit while a stake is held. It ALWAYS leaves the
   // matchmaking queue first: the queued path used to call resetToBetting,
   // which left the arena_queue row behind and could auto-pair the player into a
   // match they had walked away from.
+
+  // ---- invitations (migration v78) ---------------------------------------
+  const refreshInvites = useCallback(async () => {
+    const r = await arenaInvites();
+    setInvites(r);
+    return r;
+  }, [arenaInvites]);
+
+  // Sending an invite moves NO coins. That is the whole point of the flow: the
+  // stake is held only when the other player accepts.
+  const inviteScholar = useCallback(async (scholar) => {
+    if (ARENA_STAKE > smartCoins) {
+      setPhaseError('INSUFFICIENT_SC');
+      return;
+    }
+    setPhaseError(null);
+    setInviteBusy(scholar.userId);
+    const res = await arenaInvite({ userId: scholar.userId, stake: ARENA_STAKE });
+    setInviteBusy(null);
+    if (res?.ok) { await refreshInvites(); return; }
+    arenaFailure('invite', res, null);
+  }, [smartCoins, arenaInvite, refreshInvites, arenaFailure]);
+
+  const answerInvite = useCallback(async (invite, accept) => {
+    setPhaseError(null);
+    setInviteBusy(invite.inviteId);
+    const res = await arenaInviteRespond({ inviteId: invite.inviteId, accept });
+    if (!res?.ok && accept) {
+      setInviteBusy(null);
+      await refreshInvites();
+      arenaFailure('invite-accept', res, null);
+      return;
+    }
+    setInviteBusy(null);
+    await refreshInvites();
+    // Accepting returns the create result, so the match can be adopted without
+    // another round trip. Escrow has already happened server-side.
+    if (accept && res?.matchId) {
+      setFinding('human');
+      setOpponent(invite.name || 'Rival Scholar');
+      await adoptArena(res, invite.name);
+    }
+  }, [arenaInviteRespond, refreshInvites, arenaFailure, adoptArena]);
+
+  const cancelInvite = useCallback(async (invite) => {
+    setInviteBusy(invite.inviteId);
+    await arenaInviteCancel({ inviteId: invite.inviteId });
+    setInviteBusy(null);
+    await refreshInvites();
+  }, [arenaInviteCancel, refreshInvites]);
+
   const cancelArena = useCallback(async () => {
     const mid = matchIdRef.current;
     await arenaLeaveQueue();
@@ -417,6 +487,9 @@ const Rumble = () => {
       if (stopped) return;
       if (res?.matchId) { await adoptArena(res); return; }
       if (res?.error === 'ALREADY_IN_MATCH' && res.matchId) { await resumeArena(res.matchId); return; }
+      // A refused enqueue must NOT be retried forever: report it and get the
+      // player (and their stake) back to a real screen.
+      if (res && res.ok === false) { arenaFailure('enqueue', res, 'scholars'); return; }
       // Still queued - keep the slot warm.
       const r = await arenaRoster({ stake: ARENA_STAKE });
       if (!stopped) setRoster(r);
@@ -425,22 +498,77 @@ const Rumble = () => {
     pump();
     const iv = setInterval(pump, ARENA_POLL_MS);
     return () => { stopped = true; clearInterval(iv); };
-  }, [phase, meId, pollArena, arenaEnqueue, arenaRoster, adoptArena, resumeArena, arenaSettle, goPhase]);
+  }, [phase, meId, pollArena, arenaEnqueue, arenaRoster, adoptArena, resumeArena, arenaSettle, goPhase, arenaFailure]);
+
+  // Nobody-pairing watchdog. A queued player whose stake is escrowed must not
+  // sit on "Waiting for an opponent..." indefinitely: after the window we leave
+  // the queue (which refunds), say so plainly, and send them back to the list.
+  // The server has its own never-readied sweep; this is the client-side half so
+  // the player is told immediately rather than discovering it on the next poll.
+  useEffect(() => {
+    if (phase !== 'blitz-waiting') return;
+    const startedAt = Date.now();
+    const t = setInterval(() => {
+      // A matched opponent who is merely slow is not a failure - only give up
+      // while we are still just a queue slot.
+      if (matchIdRef.current) return;
+      if (Date.now() - startedAt < MATCHMAKING_TIMEOUT_MS) return;
+      arenaLeaveQueue().then(() => {
+        arenaFailure('matchmaking-timeout', { error: 'NO_OPPONENT_FOUND' }, 'scholars');
+      });
+    }, 2000);
+    return () => clearInterval(t);
+  }, [phase, arenaLeaveQueue, arenaFailure]);
+
+  // Scholars search box -> debounced query actually sent to the server.
+  // A query shorter than SCHOLAR_SEARCH_MIN is dropped (the server would
+  // ignore it anyway, so this keeps the UI honest about what is filtered).
+  useEffect(() => {
+    const trimmed = scholarQuery.trim();
+    if (trimmed.length < SCHOLAR_SEARCH_MIN) {
+      setActiveQuery('');
+      return;
+    }
+    const t = setTimeout(() => setActiveQuery(trimmed), SCHOLARS_SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(t);
+  }, [scholarQuery]);
+
+  // Leaving the scholars page clears the box, so returning starts unfiltered.
+  useEffect(() => {
+    if (phase !== 'scholars' && (scholarQuery || activeQuery)) {
+      setScholarQuery('');
+      setActiveQuery('');
+    }
+  }, [phase, scholarQuery, activeQuery]);
 
   // Scholars list poll. The server stamps presence on every call, so browsing
-  // this page is itself what makes you show up as Available.
+  // this page is itself what makes you show up as Available. It re-runs
+  // whenever the debounced query changes, so results appear without waiting
+  // for the next 4s tick.
   useEffect(() => {
     if (phase !== 'scholars') return;
     let stopped = false;
     const load = async () => {
       setRosterLoading(true);
-      const r = await arenaRoster({ stake: ARENA_STAKE });
+      const r = await arenaRoster({ stake: ARENA_STAKE, query: activeQuery });
       if (!stopped) { setRoster(r); setRosterLoading(false); }
     };
     load();
-    const iv = setInterval(load, SCHOLARS_POLL_MS);
-    return () => { stopped = true; clearInterval(iv); };
-  }, [phase, arenaRoster]);
+    const invLoad = async () => {
+      const r = await arenaInvites();
+      if (!stopped) setInvites(r);
+    };
+    invLoad();
+    // While searching, poll less aggressively: the list is filtered and a
+    // single target rarely changes status, and presence is still stamped on
+    // the first call.
+    const period = activeQuery ? SCHOLARS_POLL_MS * 3 : SCHOLARS_POLL_MS;
+    const iv = setInterval(load, period);
+    // Invites move on the OTHER player's action, so they are polled on their own
+    // faster tick - a 4s wait to notice an invite feels broken.
+    const iv2 = setInterval(invLoad, INVITES_POLL_MS);
+    return () => { stopped = true; clearInterval(iv); clearInterval(iv2); };
+  }, [phase, arenaRoster, arenaInvites, activeQuery]);
 
   // Countdown -> open the shared clock (requires BOTH players ready server-side).
   useEffect(() => {
@@ -496,11 +624,11 @@ const Rumble = () => {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [phase, blitzMatch]);
 
-  // A single disconnect edge fires the alert tone once (not on every poll).
-  const wasDownRef = useRef(false);
+  // Opponent connection state is tracked for the UI only. (Gameplay sound was
+  // removed: the arena is a timed 90-second duel and the cues bled across
+  // questions.)
   useEffect(() => {
-    if (oppDown && !wasDownRef.current) playArenaSfx('disconnect');
-    wasDownRef.current = oppDown;
+    if (oppDown) arenaTrace('opponent-disconnected');
   }, [oppDown]);
 
   const finishArena = useCallback(async (res) => {
@@ -627,7 +755,6 @@ const Rumble = () => {
     setUserAnswerState(isSkip ? 'timeout' : 'answered');
     lastOptionRef.current = isSkip ? null : option;
     setTxState('pending');
-    if (armed) playArenaSfx('double');
 
     let res = null;
     try {
@@ -647,15 +774,13 @@ const Rumble = () => {
     }
 
     if (res.multiplier === 2) setDoubleUsed(true);
-    if (isSkip) playArenaSfx('skip');
-    else if (!res.replay) playArenaSfx(res.isCorrect ? 'correct' : 'wrong');
 
     setMyCard(cardFrom(res.myScore));
     setBlitzAnswers((prev) => [...prev, {
       index: idx, correct: isSkip ? null : !!res.isCorrect,
       multiplier: res.multiplier, delta: res.points ?? 0, skipped: isSkip,
     }]);
-    if (res.botTurn) playArenaSfx('opponent');
+    if (res.botTurn) arenaTrace('bot-turn');
 
     setTxState('done');
     setTimeout(() => {
@@ -773,6 +898,13 @@ const Rumble = () => {
       </div>
 
       <div className="relative z-10 max-w-2xl mx-auto px-4 pt-10 pb-32">
+        {phase === 'hub' && (
+          <div className="mb-6">
+            <TutorialTip tutorialKey="arena">
+              Never played? The 1v1 tour covers the 90-second clock, how scoring works, and what your Smart Coins are doing.
+            </TutorialTip>
+          </div>
+        )}
         <div className="flex items-center justify-between mb-10">
           {showBack ? (
             <button onClick={goBack} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors font-bold text-sm px-4 py-2 bg-white/5 rounded-2xl active:scale-95">
@@ -978,10 +1110,50 @@ const Rumble = () => {
                 </span>
               </div>
 
+              {/* Scholars search. Matches the name a user chose, their real
+                  name, or the Scholar-xxxxxx handle. Never email. */}
+              <div className="relative">
+                <Search size={16} className="absolute left-3.5 top-1/2 -translate-y-1/2 text-white/30 pointer-events-none" />
+                <input
+                  type="search"
+                  value={scholarQuery}
+                  onChange={(e) => setScholarQuery(e.target.value)}
+                  placeholder="Find a scholar by name…"
+                  aria-label="Find a scholar by name"
+                  className="w-full rounded-xl border border-white/10 bg-white/5 py-3 pl-10 pr-10 text-sm font-bold text-white placeholder:text-white/25 focus:outline-none focus:border-purple-400/60 focus:bg-white/[0.07] transition"
+                />
+                {scholarQuery && (
+                  <button
+                    onClick={() => setScholarQuery('')}
+                    aria-label="Clear search"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-white/30 hover:text-white transition-colors"
+                  >
+                    <X size={16} />
+                  </button>
+                )}
+              </div>
+
+              {activeQuery && (
+                <p className="text-[10px] font-black uppercase tracking-widest text-purple-300/80 -mt-2">
+                  {rosterLoading
+                    ? 'Searching…'
+                    : `${roster.players.length} ${roster.players.length === 1 ? 'match' : 'matches'} for "${activeQuery}"`}
+                </p>
+              )}
+              {scholarQuery.trim() && scholarQuery.trim().length < SCHOLAR_SEARCH_MIN && (
+                <p className="text-[10px] font-bold text-white/30 -mt-2">
+                  Type at least {SCHOLAR_SEARCH_MIN} characters to search.
+                </p>
+              )}
+
               <div className="space-y-2">
                 {roster.players.length === 0 ? (
                   <p className="text-slate-500 text-sm font-medium text-center py-6">
-                    {rosterLoading ? 'Looking for scholars…' : 'No scholars signed in right now.'}
+                    {rosterLoading
+                      ? 'Looking for scholars…'
+                      : activeQuery
+                        ? `No scholar matches "${activeQuery}". Try part of their name or their Scholar-xxxxxx handle.`
+                        : 'No scholars signed in right now.'}
                   </p>
                 ) : (
                   roster.players.map((p) => {
@@ -1002,11 +1174,14 @@ const Rumble = () => {
                           </div>
                         </div>
                         <button
-                          disabled={p.status !== 'available' || !p.canChallenge}
-                          onClick={() => challengeScholar(p)}
+                          disabled={p.status !== 'available' || !p.canChallenge || inviteBusy === p.userId}
+                          onClick={() => inviteScholar(p)}
+                          title={`Invite ${p.name || 'this scholar'} to a ${ARENA_STAKE} SC duel. Nothing is held until they accept.`}
                           className={`rounded-full px-4 py-2 text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all disabled:pointer-events-none ${st.buttonClass}`}
                         >
-                          {p.status === 'available' && !p.canChallenge ? 'Too Low' : st.button}
+                          {p.status === 'available' && !p.canChallenge
+                            ? 'Too Low'
+                            : inviteBusy === p.userId ? 'Sending…' : 'Invite'}
                         </button>
                       </div>
                     );
@@ -1014,12 +1189,79 @@ const Rumble = () => {
                 )}
               </div>
 
+              {/* Pending invites (migration v78). Consent happens HERE, and the stakes are
+                  only held server-side once the recipient accepts. */}
+              {(invites.incoming.length > 0 || invites.outgoing.length > 0) && (
+                <div className="space-y-2">
+                  {invites.incoming.map((iv) => (
+                    <div key={`in-${iv.inviteId}`} className="flex items-center justify-between gap-3 rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3">
+                      <div className="min-w-0">
+                        <span className="block text-[10px] font-black uppercase tracking-widest text-emerald-300">
+                          Duel invite
+                        </span>
+                        <span className="block truncate text-sm font-bold text-white">
+                          {iv.name || 'A scholar'} wants a {iv.stake} SC duel
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          onClick={() => answerInvite(iv, false)}
+                          disabled={inviteBusy === iv.inviteId}
+                          className="rounded-full border border-white/15 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white/60 active:scale-95 transition-all disabled:opacity-40"
+                        >
+                          Decline
+                        </button>
+                        <button
+                          onClick={() => answerInvite(iv, true)}
+                          disabled={inviteBusy === iv.inviteId}
+                          className="rounded-full bg-emerald-500 px-4 py-2 text-[10px] font-black uppercase tracking-widest text-white active:scale-95 transition-all disabled:opacity-40"
+                        >
+                          {inviteBusy === iv.inviteId ? 'Starting…' : `Accept · ${iv.stake} SC`}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                  {invites.outgoing.map((iv) => (
+                    <div key={`out-${iv.inviteId}`} className="flex items-center justify-between gap-3 rounded-xl border border-white/10 bg-white/[0.03] p-3">
+                      <div className="min-w-0">
+                        <span className="block text-[10px] font-black uppercase tracking-widest text-white/40">
+                          Waiting for a reply
+                        </span>
+                        <span className="block truncate text-sm font-bold text-white/80">
+                          Invited {iv.name || 'a scholar'} to {iv.stake} SC
+                        </span>
+                      </div>
+                      <button
+                        onClick={() => cancelInvite(iv)}
+                        disabled={inviteBusy === iv.inviteId}
+                        className="rounded-full border border-white/15 px-3 py-2 text-[10px] font-black uppercase tracking-widest text-white/60 active:scale-95 transition-all disabled:opacity-40 shrink-0"
+                      >
+                        Cancel
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+
+              {/* Quick Match is gone: it dropped the player into an open queue
+                  where a refusal or an empty roster left them waiting forever
+                  with coins escrowed. Challenges are explicit, and tutor
+                  practice is the guaranteed fallback. */}
+              {phaseError && (
+                <div className="rounded-xl border border-amber-400/30 bg-amber-400/10 px-4 py-3 text-[11px] font-bold text-amber-200">
+                  {ARENA_ERROR_COPY[phaseError] || 'That did not go through.'}
+                  {phaseError !== 'NO_OPPONENT_FOUND' && (
+                    <button
+                      onClick={() => setPhaseError(null)}
+                      className="ml-2 underline underline-offset-2 hover:text-white"
+                    >
+                      Dismiss
+                    </button>
+                  )}
+                </div>
+              )}
+
               <div className="flex items-center justify-center gap-3 pt-2 flex-wrap">
-                <button onClick={startQuickMatch}
-                  className="px-4 py-2.5 rounded-full border border-emerald-400/40 bg-emerald-400/10 text-[10px] font-black uppercase tracking-widest text-emerald-300 active:scale-95 transition-all flex items-center gap-1.5">
-                  <Zap size={12} /> Quick match
-                </button>
-                <span className="text-white/20 text-xs">·</span>
                 <button onClick={() => goPhase('bots', 'scholars-bot')}
                   className="px-4 py-2.5 rounded-full border border-white/10 bg-white/5 text-[10px] font-black uppercase tracking-widest text-white/50 active:scale-95 transition-all">
                   Nobody around? Practise vs a bot

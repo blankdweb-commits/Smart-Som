@@ -1794,10 +1794,12 @@ let passed = 0;
   );
   checks.push(
     /if \(!session\) \{\s*return \(\s*<RoomPreview/.test(roomSrc)
-      && /communityPreview\(roomId\)/.test(roomSrc)
-      && /const RoomPreview = \(\{ preview, error, locationPath \}\) =>/.test(roomSrc)
+      && /const RoomPreview = \(\{ guest, locationPath, onRetry \}\) =>/.test(roomSrc)
+      && /guestPreviewStart\(roomId, token\)/.test(roomSrc)
+      && /guestPreviewStream\(/.test(roomSrc)
       && /navigate\('\/login', \{ state: \{ from: locationPath/.test(roomSrc)
-      ? ok('AnonymousRoom renders a logged-out RoomPreview (public metadata + sign-in CTA)')
+      && /navigate\('\/signup', \{ state: \{ from: locationPath/.test(roomSrc)
+      ? ok('AnonymousRoom renders the logged-out RoomPreview (live read-only stream + sign-in AND sign-up CTAs, both preserving location.state)')
       : fail('AnonymousRoom preview screen / CTA missing'),
   );
   checks.push(
@@ -1806,6 +1808,291 @@ let passed = 0;
       && /previewWiped\.body\?\.room\?\.group_state === 'wiped'/.test(e2eSrc)
       ? ok('WS4 preview is covered by the anonymous lifecycle e2e (logged-out preview + bogus id + wiped state)')
       : fail('WS4 e2e coverage missing'),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PART E4 — ONE-TIME GUEST PREVIEW (Phase 1).
+// A signed-out visitor gets ONE 5-minute, strictly read-only slice of the room
+// behind a server-issued HMAC token. The rules these gates defend:
+//   * the window is minted and expired by the SERVER (GUEST_PREVIEW_MS), and a
+//     returning token is never re-minted or extended;
+//   * the read path NEVER widens RLS — it stays a service-role endpoint;
+//   * the read path NEVER writes (no ensureRoomAlias, no revealDueAnnouncements)
+//     and NEVER emits an author id, email, score or encoded body;
+//   * the token buys exactly two read endpoints and cannot open a write route.
+// ---------------------------------------------------------------------------
+{
+  const guestServerSrc = read(resolve(ROOT, 'api/_community.js'));
+  const guestRouterSrc = read(resolve(ROOT, 'api/community.js'));
+  const guestRoomSrc = read(resolve(ROOT, 'src/pages/AnonymousRoom.jsx'));
+  const guestApiSrc = read(resolve(ROOT, 'src/utils/communityApi.js'));
+
+  checks.push(
+    /export const GUEST_PREVIEW_MS = 5 \* 60 \* 1000/.test(guestServerSrc)
+      && /export async function handleGuestPreviewStart\(req, res\)/.test(guestServerSrc)
+      && /export async function handleGuestPreviewStream\(req, res\)/.test(guestServerSrc)
+      ? ok('Phase 1: a 5-minute server-side guest preview window with start + read-only stream handlers')
+      : fail('Phase 1: guest preview handlers / 5-minute window missing'),
+  );
+  checks.push(
+    /crypto\.createHmac\('sha256'/.test(guestServerSrc)
+      && /crypto\.timingSafeEqual/.test(guestServerSrc)
+      && /ANON_PREVIEW_SECRET/.test(guestServerSrc)
+      && /guestPreviewSecret\(\)/.test(guestServerSrc)
+      ? ok('Phase 1: the preview token is HMAC-signed and compared in constant time (secret is server-only)')
+      : fail('Phase 1: preview token is not signed with a constant-time compare'),
+  );
+  checks.push(
+    /PREVIEW_ALREADY_USED/.test(guestServerSrc)
+      // A blank/whitespace token must fail CLOSED, not fall through to the mint
+      // path — that fall-through was a real hole found by e2e-guest-preview.
+      && /if \(presented !== undefined && presented !== null\)/.test(guestServerSrc)
+      && /!safeEqual\(sig, expected\)/.test(guestServerSrc)
+      && /expired, tampered or corrupt -> treated as spent/i.test(guestServerSrc)
+      ? ok('Phase 1: one preview per guest — a spent / blank / tampered / malformed token is refused, never re-minted')
+      : fail('Phase 1: the one-preview rule is not enforced server-side'),
+  );
+  checks.push(
+    /const check = verifyGuestPreviewToken\(req\?\.body\?\.token, nowMs\)/.test(guestServerSrc)
+      && /expires_at: new Date\(check\.expiresAt\)/.test(guestServerSrc)
+      && /server_now: new Date\(nowMs\)/.test(guestServerSrc)
+      ? ok('Phase 1: the stream validates the signed token and returns a server-anchored expiry (browser clock is not the authority)')
+      : fail('Phase 1: stream does not enforce the signed deadline server-side'),
+  );
+  // Isolate the guest hydrator's OWN body so the read-only assertion cannot be
+  // satisfied (or broken) by unrelated code further down the file.
+  const hydratorMatch = guestServerSrc.match(/async function hydrateGuestMessages\([\s\S]*?\r?\n  return out;\r?\n}/);
+  const hydrator = hydratorMatch ? hydratorMatch[0] : '';
+
+  checks.push(
+    !!hydrator
+      && /isEncoded \? '🔒 Encoded message' : row\.content/.test(hydrator)
+      && /if \(alias == null \|\| alias === undefined\) continue;/.test(hydrator)
+      && !/ensureRoomAlias\(/.test(hydrator)
+      && !/revealDueAnnouncements\(/.test(hydrator)
+      && !/author_id:/.test(hydrator)
+      && !/\bscore\b|\breactions\b|my_vote|encoded_for_me|can_unreveal/.test(hydrator)
+      ? ok('Phase 1: the guest hydrator is read-only and minimal — no alias writes, no gag reveal, no author id / score / encoded body')
+      : fail('Phase 1: the guest read path writes, or leaks more than the minimal projection'),
+  );
+  checks.push(
+    /entry\.fn === handleGuestPreviewStart \|\| entry\.fn === handleGuestPreviewStream/.test(guestRouterSrc)
+      && /\{ re: \/\\\/anonymous\\\/guest-preview-stream\$\/, fn: handleGuestPreviewStream \}/.test(guestRouterSrc)
+      && /\{ re: \/\\\/anonymous\\\/guest-preview-start\$\/, fn: handleGuestPreviewStart \}/.test(guestRouterSrc)
+      ? ok('Phase 1: both guest routes are registered and special-cased before authorizeRequest (read-only, no session)')
+      : fail('Phase 1: guest preview routes not registered pre-auth'),
+  );
+  checks.push(
+    /GUEST_PREVIEW_MAX_LIMIT = 20/.test(guestServerSrc)
+      && /const GUEST_PREVIEW_PAGE = 12/.test(guestServerSrc)
+      && /async function guestPreviewStream/.test(guestApiSrc)
+      ? ok('Phase 1: the stream is bounded (12 by default, hard max 20 per batch) rather than dumping the whole conversation')
+      : fail('Phase 1: guest stream is not bounded'),
+  );
+  checks.push(
+    /export async function guestPreviewStart\(groupId, token\)/.test(guestApiSrc)
+      && /export async function guestPreviewStream\(groupId, token, before\)/.test(guestApiSrc)
+      && /GUEST_PREVIEW_STORAGE_KEY = 'apex:guestPreview'/.test(guestRoomSrc)
+      && /role="timer"/.test(guestRoomSrc)
+      ? ok('Phase 1: the client persists the one-shot token in localStorage and renders a real countdown')
+      : fail('Phase 1: client one-shot persistence or countdown missing'),
+  );
+  checks.push(
+    /if \(guest\.status === 'expired'\)/.test(guestRoomSrc)
+      && /endGuestPreview = useCallback\(\(status\) => \{[\s\S]{0,200}messages: \[\]/.test(guestRoomSrc)
+      ? ok('Phase 1: expiry purges the messages from state, so nothing readable survives the sign-up gate')
+      : fail('Phase 1: expiry does not clear the message buffer'),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PART E5 — TUTORIAL CENTRE + CONTEXTUAL TIPS (Phase 4).
+// Three tours, reachable from the sidebar, the Dashboard and Settings, with
+// completion + dismissal stored in the app's EXISTING localStorage convention
+// (apex:* keys) rather than a new profile table. The gates that matter most are
+// the content-truth ones: the copy must describe behaviour the app actually
+// has, so a future change to the Arena or the Marketplace cannot silently
+// leave the tutorial lying.
+// ---------------------------------------------------------------------------
+{
+  const tutData = read(resolve(ROOT, 'src/data/tutorials.js'));
+  const tutPage = read(resolve(ROOT, 'src/pages/Tutorials.jsx'));
+  const tutTip = read(resolve(ROOT, 'src/components/TutorialTip.jsx'));
+  const appSrc2 = read(resolve(ROOT, 'src/App.jsx'));
+  const sideSrc = read(resolve(ROOT, 'src/components/Sidebar.jsx'));
+  const settingsSrc = read(resolve(ROOT, 'src/pages/Settings.jsx'));
+
+  checks.push(
+    /key: 'arena'/.test(tutData) && /key: 'voting'/.test(tutData) && /key: 'marketplace'/.test(tutData)
+      ? ok('Phase 4: exactly three tutorials — 1v1 Arena, Voting & Campaigns, Marketplace')
+      : fail('Phase 4: the three required tutorials are not all present'),
+  );
+  checks.push(
+    /DONE_KEY = 'apex:tutorials:v1'/.test(tutData)
+      && /export const readTutorialProgress/.test(tutData)
+      && /export const markTutorialDone/.test(tutData)
+      && /export const resetTutorialProgress/.test(tutData)
+      && !/create table/i.test(tutData)
+      ? ok('Phase 4: completion state uses the existing apex:* localStorage convention — no new profile table')
+      : fail('Phase 4: tutorial completion is not using the existing preference mechanism'),
+  );
+  checks.push(
+    /role="progressbar"/.test(tutPage)
+      && /Got it/.test(tutPage)
+      && /Skip/.test(tutPage)
+      && /Finish tour/.test(tutPage)
+      && /aria-current=\{i === step \? 'step' : undefined\}/.test(tutPage)
+      && /aria-live="polite"/.test(tutPage)
+      ? ok('Phase 4: the step player has a progress bar, next/back, skip, "Got it" and screen-reader announcements')
+      : fail('Phase 4: tutorial player is missing progress / navigation / skip / completion affordances'),
+  );
+  checks.push(
+    /lazy\(\(\) => import\('\.\/pages\/Tutorials'\)\)/.test(appSrc2)
+      && /<Route path="\/tutorials"/.test(appSrc2)
+      && /path: '\/tutorials'/.test(sideSrc)
+      && /to="\/tutorials"/.test(settingsSrc)
+      ? ok('Phase 4: the tutorial centre is reachable from the route, the sidebar and Settings (replay)')
+      : fail('Phase 4: tutorial centre is not wired into routes / sidebar / Settings'),
+  );
+  checks.push(
+    /tutorialKey="arena"/.test(read(resolve(ROOT, 'src/pages/Rumble.jsx')))
+      && /tutorialKey="voting"/.test(read(resolve(ROOT, 'src/pages/Voting.jsx')))
+      && /tutorialKey="marketplace"/.test(read(resolve(ROOT, 'src/pages/Marketplace.jsx')))
+      && /dismissTip\(tutorialKey\)/.test(tutTip)
+      && /return null;/.test(tutTip)
+      ? ok('Phase 4: dismissible first-use tips on the Arena, Voting and Marketplace pages')
+      : fail('Phase 4: contextual first-use tips missing or not dismissible'),
+  );
+  // --- CONTENT TRUTH: the tutorial must not describe behaviour that does not
+  // exist. These mirror the v63 arena rules and the marketplace platform gate.
+  checks.push(
+    /points DESC, then correct count DESC, then DRAW|most POINTS wins/.test(tutData)
+      && /correct answer scores 1 point/.test(tutData)
+      && /incorrect answer scores 0/.test(tutData)
+      && /it is not a speed race/.test(tutData)
+      && !/fastest|speed race wins|first to answer/.test(tutData)
+      ? ok('Phase 4: the Arena tour teaches the REAL rules (points, not speed; 1/2/0 scoring; ties are a draw)')
+      : fail('Phase 4: the Arena tour teaches behaviour the arena does not implement'),
+  );
+  checks.push(
+    /40 NMCN questions/.test(tutData)
+      && /90-second/.test(tutData)
+      && /Practise vs a Bot/.test(tutData)
+      && /free/.test(tutData)
+      ? ok('Phase 4: the Arena tour states the real 40-question / 90-second format and that bot practice is free')
+      : fail('Phase 4: the Arena tour states the wrong format or bot-practice cost'),
+  );
+  checks.push(
+    /informational/i.test(tutData)
+      && /we cannot take payment for it|does not sell it/.test(tutData)
+      && /total payable/i.test(tutData)
+      && !/was ₦|now ₦|\d+%\s*off|limited time only|save ₦|best price/i.test(tutData)
+      ? ok('Phase 4: the Marketplace tour is honest about third-party listings and invents no discounts')
+      : fail('Phase 4: the Marketplace tour overpromises checkout or invents pricing claims'),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PART E6 — VOTING PLATFORM (Phase 3). Service feedback and individual
+// campaigns must stay SEPARATE in storage, in the RPCs and in the UI, and the
+// integrity rules must live in the database rather than in disabled buttons.
+// ---------------------------------------------------------------------------
+{
+  const v82 = read(resolve(ROOT, 'scripts/migration-v82-voting-campaigns.sql'));
+  const votingSrc = read(resolve(ROOT, 'src/pages/Voting.jsx'));
+
+  checks.push(
+    /create table if not exists public\.service_ratings/.test(v82)
+      && /create table if not exists public\.voting_campaigns/.test(v82)
+      && /create table if not exists public\.voting_candidates/.test(v82)
+      && /create table if not exists public\.campaign_votes/.test(v82)
+      && /create table if not exists public\.campaign_totals/.test(v82)
+      ? ok('Phase 3: service feedback and campaigns have separate tables — a rating can never be a candidate vote')
+      : fail('Phase 3: the voting schema is missing or the two surfaces are not separated'),
+  );
+  checks.push(
+    /create or replace function public\.cast_service_rating\(/.test(v82)
+      && /create or replace function public\.cast_campaign_vote\(/.test(v82)
+      && /v_user uuid := auth\.uid\(\)/.test(v82)
+      && !/p_user_id uuid/.test(v82)
+      && !/cast_campaign_vote\([^)]*p_user/.test(v82)
+      ? ok('Phase 3: both vote RPCs derive the voter from auth.uid() — no client can vote as somebody else')
+      : fail('Phase 3: a vote RPC accepts a user id from the client'),
+  );
+  checks.push(
+    /revoke all on function public\.cast_campaign_vote\(bigint, bigint, uuid\) from public, anon/.test(v82)
+      && /revoke all on function public\.cast_service_rating\(text, integer, text\[\], text, uuid\) from public, anon/.test(v82)
+      && /revoke all on function public\.void_campaign_vote\(bigint, text\) from public, anon/.test(v82)
+      ? ok('Phase 3: every voting RPC is revoked from public + anon (this project auto-grants EXECUTE to anon by default)')
+      : fail('Phase 3: a voting RPC is still executable by anon'),
+  );
+  checks.push(
+    /unique \(campaign_id, user_id\)/.test(v82)
+      && /constraint campaign_votes_request_id_key unique \(client_request_id\)/.test(v82)
+      && /CAMPAIGN_ENDED/.test(v82)
+      && /CAMPAIGN_NOT_STARTED/.test(v82)
+      && /INVALID_CANDIDATE/.test(v82)
+      ? ok('Phase 3: one vote per user per campaign, replay-safe request ids, and server-side status/window/candidate validation')
+      : fail('Phase 3: duplicate-vote or campaign-window validation is missing'),
+  );
+  checks.push(
+    /alter publication supabase_realtime add table public\.campaign_totals/.test(v82)
+      && /drop policy if exists "campaign_votes_select_own"/.test(v82)
+      && /auth\.uid\(\) = user_id or public\.is_admin\(\)/.test(v82)
+      ? ok('Phase 3: live updates ride the aggregate campaign_totals table; raw votes stay select-own so a broadcast cannot leak who voted for whom')
+      : fail('Phase 3: realtime is wired to raw vote rows, or votes are not select-own'),
+  );
+  checks.push(
+    /results_public/.test(v82)
+      && /'results_visible', false/.test(v82)
+      && /c\.results_public or c\.status = 'ended'/.test(v82)
+      ? ok('Phase 3: a campaign that hides its results exposes no totals at all, not even to people who voted')
+      : fail('Phase 3: restricted campaign results can leak'),
+  );
+  checks.push(
+    /create table if not exists public\.campaign_vote_audit/.test(v82)
+      && /create or replace function public\.void_campaign_vote\(/.test(v82)
+      && /CANNOT_VOID_OWN_VOTE/.test(v82)
+      ? ok('Phase 3: an admin can void a fraudulent vote, but the correction is written to an append-only audit trail')
+      : fail('Phase 3: no audited path for correcting fraudulent votes'),
+  );
+  checks.push(
+    /revoke all on function public\.cast_vote\(uuid, bigint, bigint\) from public, anon/.test(v82)
+      && /revoke all on function public\.cast_vote\(uuid, bigint, bigint\) from authenticated/.test(v82)
+      && /drop policy if exists "voting_responses_insert_authed"/.test(v82)
+      ? ok('Phase 3: the legacy cast_vote vote-as-anyone hole is revoked and the legacy client write policies are dropped')
+      : fail('Phase 3: the legacy cast_vote anon-executable / vote-as-anyone defect is still open'),
+  );
+  checks.push(
+    /supabase\.rpc\('cast_campaign_vote'/.test(votingSrc)
+      && /supabase\.rpc\('cast_service_rating'/.test(votingSrc)
+      && !/\.from\('campaign_votes'\)[\s\S]{0,120}\.insert/.test(votingSrc)
+      && !/\.from\('service_ratings'\)[\s\S]{0,120}\.insert/.test(votingSrc)
+      && /Recording…/.test(votingSrc)
+      ? ok('Phase 3: the client writes votes ONLY through the RPCs and shows a pending state until the server confirms')
+      : fail('Phase 3: the client writes votes directly, or claims success before the server confirms'),
+  );
+  checks.push(
+    /channel\(`campaign_totals_/.test(votingSrc)
+      && /table: 'campaign_totals'/.test(votingSrc)
+      && /setInterval\(\(\) => refreshResults\(openCampaign\.id\), 20000\)/.test(votingSrc)
+      && /window\.addEventListener\('focus'/.test(votingSrc)
+      ? ok('Phase 3: live aggregate subscription + a bounded 20s fallback poll + reconcile on focus/reconnect')
+      : fail('Phase 3: voting has no bounded fallback or reconnect reconcile'),
+  );
+  checks.push(
+    /are level on/.test(votingSrc)
+      && /not a win/.test(votingSrc)
+      && /results_visible/.test(votingSrc)
+      ? ok('Phase 3: tied candidates are shown as tied and a small lead is never presented as a win')
+      : fail('Phase 3: ties or restricted results are misrepresented'),
+  );
+  checks.push(
+    !/\.from\('voting_polls'\)[\s\S]{0,300}insert\(\{[^}]*\btype:/.test(votingSrc)
+      && /has never existed/.test(votingSrc)
+      ? ok('Phase 3: the dead 42703 poll-request flow is gone and the reason is recorded in the file')
+      : fail('Phase 3: the broken poll-request insert is back'),
   );
 }
 
@@ -2655,12 +2942,39 @@ checks.push(
   checks.push(
     /const BOT_OPPONENTS = \[/.test(hall)
       && /const startVsBot = useCallback/.test(hall)
-      && /const challengeScholar = useCallback/.test(hall)
-      && /const startQuickMatch = useCallback/.test(hall)
-      && /arenaRoster\(\{ stake: ARENA_STAKE \}\)/.test(hall)
+      && /const inviteScholar = useCallback/.test(hall)
+      && /arenaRoster\(\{ stake: ARENA_STAKE, query: activeQuery \}\)/.test(hall)
       && /finding === 'bot'/.test(hall)
-      ? ok('Rumble bot/roster UI: free tutors + scholars list + Quick Match (all arena-backed)')
+      ? ok('Rumble bot/roster UI: free tutors + a searchable scholars list (all arena-backed)')
       : fail('Rumble bot/roster UI missing'),
+  );
+  // Quick Match was REMOVED: it dropped the player into an open queue where a
+  // refusal or an empty roster left them waiting forever with coins escrowed.
+  checks.push(
+    !/startQuickMatch/.test(hall)
+      && !/Quick match/.test(hall)
+      ? ok('Rumble: Quick Match is gone (it could strand a player on "Waiting for an opponent" with their stake held)')
+      : fail('Rumble: Quick Match still present'),
+  );
+  // Every arena entry point must have a failure path. startVsBot used to have
+  // none, so a rejected practice create (e.g. PGRST202 after a signature
+  // change) left the player on the waiting screen indefinitely.
+  checks.push(
+    /const arenaFailure = useCallback/.test(hall)
+      && /arenaFailure\('practice', res, 'bots'\)/.test(hall)
+      && /arenaFailure\('invite', res, null\)/.test(hall)
+      && /arenaFailure\('invite-accept', res, null\)/.test(hall)
+      && /MATCHMAKING_TIMEOUT_MS/.test(hall)
+      && /ARENA_ERROR_COPY/.test(hall)
+      ? ok('Rumble: practice/invite/accept all funnel through one failure path with readable copy, plus a matchmaking timeout')
+      : fail('Rumble: an arena entry point can still hang without an error'),
+  );
+  // Gameplay sound was removed from the arena.
+  checks.push(
+    !/playArenaSfx/.test(hall)
+      && !/audioManager/.test(hall)
+      ? ok('Rumble: gameplay sound effects are gone (no playArenaSfx / audioManager)')
+      : fail('Rumble: arena sound effects still wired'),
   );
   checks.push(
     /INVALID_BOT/.test(e2eSrc)
@@ -3199,12 +3513,14 @@ checks.push(
       : fail('Rumble still routes 1v1 through the legacy blitz client path'),
   );
   const heldSet = (arenaAudio.match(/HELD_SOUND_TYPES = new Set\(\[([^\]]*)\]\)/) || [, ''])[1];
+  // The arena one-shot cues were REMOVED at the operator's request: a timed
+  // 90-second duel with a cue per question bled across questions and read as a
+  // glitch. Quiz answer sounds are untouched and must stay out of HELD.
   checks.push(
-    /AUDIO_PATHS\.arena_correct/.test(arenaAudio)
-      && /AUDIO_PATHS\.arena_forfeit/.test(arenaAudio)
+    !/AUDIO_PATHS\.arena_/.test(arenaAudio)
       && !/arena_/.test(heldSet)
-      ? ok('audio: arena one-shot cues exist, reuse the clip library, and are NOT held across questions')
-      : fail('audio: arena cues missing or wrongly held'),
+      ? ok('audio: the arena one-shot cues are gone, and nothing arena-related is held across a question')
+      : fail('audio: arena cues still defined, or an arena cue is held across questions'),
   );
 }
 
@@ -3376,6 +3692,355 @@ checks.push(
       && /apextest\.local/.test(read(resolve(ROOT, 'scripts/cleanup-test-users.mjs')))
       ? ok('cleanup-test-users classifies ONLY by the three throwaway e2e domains (real accounts survive by construction)')
       : fail('cleanup-test-users is missing or does not key on the test domains'),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PART R - PREMIUM GRANT + "EVERY USER IS RANKED AND FINDABLE" (v73/v74/v75)
+// ---------------------------------------------------------------------------
+//
+// v73 - the blankdweb@gmail.com grant. The guards are the point: a second run
+//       must not double-grant, and the migration must NOT write
+//       `is_activated`, because `trg_referral_credit_on_activation` is
+//       `AFTER UPDATE OF is_activated` and fires even when the value is
+//       unchanged, which would silently pay a +15 SC referral bonus.
+{
+  const v73 = read('scripts/migration-v73-premium-grant-blankdweb-gmail.sql');
+  checks.push(
+    existsSync(resolve(ROOT, 'scripts/migration-v73-premium-grant-blankdweb-gmail.sql'))
+      && /now\(\) \+ interval '30 days'/.test(v73)
+      && /now\(\) \+ interval '32 days'/.test(v73)
+      && /1de5bb28-85c4-4572-90d1-96040e9e7de3/.test(v73)
+      ? ok('v73: grants blankdweb@gmail.com one monthly sub (+30d / grace +32d)')
+      : fail('v73: the premium grant is missing or has the wrong window/account'),
+  );
+  checks.push(
+    /where not exists \([\s\S]*coalesce\(s\.expires_at, s\.grace_until\) > now\(\)/.test(v73)
+      && /on conflict \(reference\) do nothing/.test(v73)
+      ? ok('v73: guarded insert (no live sub) + reference uniqueness, so re-running is a no-op')
+      : fail('v73: the grant is not idempotent'),
+  );
+  // Strip `--` comments first: the migration *explains* why it must not touch
+  // is_activated, and a naive substring test would match its own comment.
+  const v73Code = v73.split('\n').map((l) => l.replace(/--.*$/, '')).join('\n');
+  checks.push(
+    !/is_activated/i.test(v73Code)
+      && /trg_referral_credit_on_activation/.test(v73)
+      ? ok('v73: never writes is_activated (that trigger would fire on an unchanged value and pay a referral bonus)')
+      : fail('v73: writes is_activated, which fires the referral-credit trigger'),
+  );
+}
+
+// v74/v75 - the shared identity helper, the leaderboard that shows everyone,
+// and the scholars search box. The helper is defined in BOTH v64 and v74 with
+// `create or replace`, so the apply order cannot matter; and arena_roster's
+// 2-arg form must be dropped before the 3-arg one is created (the PGRST203
+// "Multiple Choices" trap).
+{
+  const v74 = read('scripts/migration-v74-leaderboard-all-users.sql');
+  const v75 = read('scripts/migration-v75-arena-roster-search.sql');
+  const v64 = read('scripts/migration-v64-arena-wallet-practice-presence.sql');
+  const lb = read(resolve(ROOT, 'src/pages/Leaderboard.jsx'));
+  const rumble = read(resolve(ROOT, 'src/pages/Rumble.jsx'));
+  const app = read(resolve(ROOT, 'src/context/AppContext.jsx'));
+  const arenaE2e = read('scripts/e2e-arena.mjs');
+
+  const personName = /create or replace function public\._person_name\(p_user uuid, p_mode text default 'pseudonym'\)/;
+  checks.push(
+    personName.test(v74) && personName.test(v64)
+      && /'Scholar-' \|\| substr\(md5\(p\.id::text\), 1, 6\)/.test(v74)
+      && /revoke all on function public\._person_name\(uuid, text\) from public, anon, authenticated/.test(v74)
+      ? ok('_person_name is one shared, stable, security-definer helper defined identically in v64 and v74 (so apply order is irrelevant) and revoked from anon')
+      : fail('_person_name is missing, inconsistent between migrations, or exposed to anon'),
+  );
+  checks.push(
+    /least\(coalesce\(p_limit, 50\), 500\)/.test(v74)
+      && /'displayName', public\._person_name\(b\.user_id, 'pseudonym'\)/.test(v74)
+      ? ok('v74: the leaderboard page fits every user and labels rows with a real identity, not the literal "Scholar"')
+      : fail('v74: leaderboard clamp or displayName is wrong'),
+  );
+  checks.push(
+    /const PAGE_SIZE = 100/.test(lb)
+      && /'No graded rounds yet'/.test(lb)
+      ? ok('Leaderboard: one page shows all users, and a missing player_stats row renders "No graded rounds yet" instead of a fake 0')
+      : fail('Leaderboard: page size or null-stat rendering regressed'),
+  );
+  checks.push(
+    /drop function if exists public\.arena_roster\(integer, text\);/.test(v75)
+      && /p_query text default null/.test(v75)
+      && /public\.arena_roster\(integer, text, text\)/.test(v75)
+      ? ok('v75: arena_roster gains p_query, and the 2-arg form is dropped first (no PGRST203 overload)')
+      : fail('v75: the arena_roster search parameter is missing or the old overload was not dropped'),
+  );
+  checks.push(
+    /p\.identity_name ilike/.test(v75)
+      && /p\.full_name ilike/.test(v75)
+      && /substr\(md5\(p\.id::text\), 1, 6\) ilike/.test(v75)
+      && !/email ilike/.test(v75)
+      ? ok('v75: search matches display name / real name / Scholar-xxxxxx handle, and never email')
+      : fail('v75: the search predicate is wrong (or matches email, which would be an enumeration oracle)'),
+  );
+  checks.push(
+    /p_query: trimmed \|\| null/.test(app)
+      && /query: activeQuery/.test(rumble)
+      && /SCHOLARS_SEARCH_DEBOUNCE_MS/.test(rumble)
+      && /Find a scholar by name/.test(rumble)
+      && /SCHOLAR_SEARCH_MIN/.test(rumble)
+      ? ok('Scholars search: the box is debounced, threads p_query, and states the minimum length')
+      : fail('Scholars search: the client search wiring is incomplete'),
+  );
+  checks.push(
+    /M7 search NEVER matches on email/.test(arenaE2e)
+      && /M8 an offline scholar is still findable/.test(arenaE2e)
+      && /M3 the Scholar-xxxxxx handle is searchable/.test(arenaE2e)
+      ? ok('e2e-arena covers scholar search: name, partial, handle, no-match, self-exclusion, short query, no-email, offline')
+      : fail('e2e-arena does not cover the scholar search contract'),
+  );
+
+  // v76 - the arena seal vs referential integrity. `opponent_id ON DELETE SET
+  // NULL` made Postgres UPDATE a blitz row, which the seal rejects, so any
+  // account that had been challenged could not be deleted at all. The FK must
+  // CASCADE (no UPDATE is issued), and it must stay CASCADE.
+  const v76 = read('scripts/migration-v76-arena-opponent-fk-cascade.sql');
+  checks.push(
+    existsSync(resolve(ROOT, 'scripts/migration-v76-arena-opponent-fk-cascade.sql'))
+      && /drop constraint if exists competitive_matches_opponent_id_fkey/.test(v76)
+      && /references auth\.users\(id\) on delete cascade/.test(v76)
+      && /ARENA_REQUIRES_ARENA_RPC/.test(v76)
+      ? ok('v76: opponent_id is ON DELETE CASCADE, so deleting a participant cannot be blocked by the arena seal (a SET NULL would UPDATE a sealed row)')
+      : fail('v76: the opponent_id FK is not CASCADE, so account deletion can fail with ARENA_REQUIRES_ARENA_RPC'),
+  );
+  checks.push(
+    /N1 an account that was challenged in the arena can actually be deleted/.test(arenaE2e)
+      && /N2 the match row is removed with the participant/.test(arenaE2e)
+      ? ok('e2e-arena covers account deletion with arena history (the v76 regression)')
+      : fail('e2e-arena does not cover deleting an account that has arena history'),
+  );
+
+  // v77 - relationship authorization. The bypass was `rel.target_id <> auth.uid()`:
+  // for an anonymous caller auth.uid() is NULL, the comparison is NULL rather
+  // than TRUE, so the guard was skipped and a logged-out client could accept (or
+  // delete) anyone's pending friend request. Confirmed live before the fix.
+  const v77 = read('scripts/migration-v77-relationship-authz.sql');
+  // Strip `--` comments: the migration QUOTES the buggy `rel.target_id <>
+  // auth.uid()` in its explanation, so a naive test would flag that comment.
+  const v77Code = v77.split('\n').map((l) => l.replace(/--.*$/, '')).join('\n');
+  checks.push(
+    /if v_me is null then\s*\n\s*return jsonb_build_object\('ok', false, 'error', 'unauthenticated'\)/.test(v77Code)
+      && /rel\.target_id <> v_me/.test(v77Code)
+      && !/rel\.target_id <> auth\.uid\(\)/.test(v77Code)
+      ? ok('v77: respond_relationship tests a NULL uid FIRST (the <> auth.uid() guard was a NULL trap, so an anon caller could accept any request)')
+      : fail('v77: the respond_relationship NULL-uid guard is missing'),
+  );
+  checks.push(
+    /revoke all on function public\.respond_relationship\(bigint, boolean\) from public, anon/.test(v77)
+      && /revoke all on function public\.request_relationship\(uuid, text\) from public, anon/.test(v77)
+      && /revoke all on function public\.remove_relationship\(uuid\) from public, anon/.test(v77)
+      && /revoke all on function public\.get_user_achievements\(uuid\) from public, anon/.test(v77)
+      ? ok('v77: every relationship + achievement RPC is revoked from anon (this project auto-grants it by default)')
+      : fail('v77: a relationship/achievement RPC is still executable by anon'),
+  );
+  checks.push(
+    /not your achievements/.test(v77)
+      && /get_user_achievements/.test(v77)
+      ? ok('v77: get_user_achievements is self-only (it was SECURITY DEFINER on an arbitrary user id)')
+      : fail('v77: get_user_achievements still reads an arbitrary user id'),
+  );
+  checks.push(
+    existsSync(resolve(ROOT, 'scripts/e2e-relationships.mjs'))
+      && /e2e:relationships/.test(read(resolve(ROOT, 'package.json')))
+      && /the confirmed bypass/.test(read(resolve(ROOT, 'scripts/e2e-relationships.mjs')))
+      && /cannot read someone else/.test(read(resolve(ROOT, 'scripts/e2e-relationships.mjs')))
+      ? ok('e2e-relationships covers the anon bypass, cross-user access, ownership, and the achievement leak')
+      : fail('e2e-relationships is missing or not wired to an npm script'),
+  );
+
+  // v78 - invites. Consent must come BEFORE escrow, and the pair predicate is
+  // what unlocks a real name (never the invite itself).
+  const v78 = read('scripts/migration-v78-arena-invites.sql');
+  checks.push(
+    existsSync(resolve(ROOT, 'scripts/migration-v78-arena-invites.sql'))
+      && /create table if not exists public\.arena_invites/.test(v78)
+      && /where status = 'pending'/.test(v78)
+      && /revoke all on public\.arena_invites from public, anon, authenticated/.test(v78)
+      ? ok('v78: arena_invites exists, allows one open invite per pair, and is service-role only')
+      : fail('v78: the invites table is missing, unbounded, or client-readable'),
+  );
+  checks.push(
+    /create or replace function public\.arena_invite_respond/.test(v78)
+      && /v_res := public\.arena_create_match\(/.test(v78)
+      && /match_id = \(v_res ->> 'matchId'\)::uuid/.test(v78)
+      ? ok('v78: accepting an invite builds the match through arena_create_match, so escrow/seal/settlement are the proven path')
+      : fail('v78: invite acceptance does not reuse the canonical match creation'),
+  );
+  checks.push(
+    /v_inv\.to_user is null or v_inv\.to_user <> v_user/.test(v78)
+      && /NOT_YOUR_INVITE/.test(v78)
+      && /v_inv\.from_user is null or v_inv\.from_user <> v_user/.test(v78)
+      ? ok('v78: invite respond/cancel use NULL-safe ownership checks (the v77 trap, closed from the start)')
+      : fail('v78: an invite RPC compares against auth.uid() without a NULL guard'),
+  );
+  checks.push(
+    /create or replace function public\._arena_pair_dueled/.test(v78)
+      && /cm\.status = 'completed'/.test(v78)
+      && /when public\._arena_pair_dueled\(v_user, p\.id\)\s*\n\s*then public\._person_name\(p\.id, 'real'\)/.test(v78)
+      && /drop function if exists public\.arena_roster\(integer, text, text\)/.test(v78)
+      ? ok('v78: a real name appears only after a COMPLETED match between the pair; the roster is replaced (old arity dropped first)')
+      : fail('v78: real names are not gated on a completed match, or the roster overload was not dropped'),
+  );
+  checks.push(
+    /arenaInvite, arenaInvites, arenaInviteRespond, arenaInviteCancel/.test(read(resolve(ROOT, 'src/context/AppContext.jsx')))
+      && /INVITES_POLL_MS/.test(read(resolve(ROOT, 'src/pages/Rumble.jsx')))
+      && /answerInvite/.test(read(resolve(ROOT, 'src/pages/Rumble.jsx')))
+      && /Duel invite/.test(read(resolve(ROOT, 'src/pages/Rumble.jsx')))
+      && !/challengeScholar/.test(read(resolve(ROOT, 'src/pages/Rumble.jsx')))
+      ? ok('Rumble: the scholars list now sends invites (no instant challenge), and incoming invites are polled and answerable')
+      : fail('Rumble: the invite UI is not wired, or an instant-challenge path remains'),
+  );
+  checks.push(
+    /O5 sending an invite moves NO coins/.test(arenaE2e)
+      && /O10 escrow happens ON ACCEPT, and holds BOTH sides/.test(arenaE2e)
+      && /O17 after a completed match, the same row shows the REAL name/.test(arenaE2e)
+      && /O8 a third party cannot accept/.test(arenaE2e)
+      ? ok('e2e-arena covers invites: no escrow on send, escrow on accept, ownership, decline/cancel, and the real-name unlock')
+      : fail('e2e-arena does not cover the invite contract'),
+  );
+
+  // v79 - the friend/rival READ side. v77 locked the writes down but there was no
+  // way to list or search, so the whole feature was unreachable.
+  const v79 = read('scripts/migration-v79-friend-rival-ui.sql');
+  const rivals = read(resolve(ROOT, 'src/pages/Rivals.jsx'));
+  checks.push(
+    existsSync(resolve(ROOT, 'scripts/migration-v79-friend-rival-ui.sql'))
+      && /create or replace function public\.friend_list\(\)/.test(v79)
+      && /create or replace function public\.friend_search\(p_query text default null\)/.test(v79)
+      && /revoke all on function public\.friend_list\(\) from public, anon/.test(v79)
+      && /revoke all on function public\.friend_search\(text\) from public, anon/.test(v79)
+      ? ok('v79: friend_list + friend_search exist and are revoked from anon')
+      : fail('v79: the friend/rival read RPCs are missing or anon-readable'),
+  );
+  checks.push(
+    /create or replace function public\._person_pair_name/.test(v79)
+      && /when public\._arena_pair_dueled\(p_viewer, p_other\)/.test(v79)
+      && /public\._person_pair_name\(v_user, p\.id\)/.test(v79)
+      ? ok('v79: friend/rival naming reuses the arena pair rule (a real name only after a completed duel), so adding a friend does not leak a name')
+      : fail('v79: friend/rival naming is not gated on the pair-duel predicate'),
+  );
+  checks.push(
+    existsSync(resolve(ROOT, 'src/pages/Rivals.jsx'))
+      && /path="\/rivals"/.test(read(resolve(ROOT, 'src/App.jsx')))
+      && /path: '\/rivals'/.test(read(resolve(ROOT, 'src/components/Sidebar.jsx')))
+      && /request_relationship/.test(rivals)
+      && /respond_relationship/.test(rivals)
+      && /remove_relationship/.test(rivals)
+      && /friend_search/.test(rivals)
+      ? ok('Friends & Rivals page is routed, in the sidebar, and wires all three write RPCs plus search')
+      : fail('Friends & Rivals page is not routed/sidebar-ed, or does not use the relationship RPCs'),
+  );
+
+  // v80 - lifetime earnings + the passive-faucet shutdown + a reachable licence.
+  const v80 = read('scripts/migration-v80-economy-sc-earn-faucets-loan.sql');
+  const v80Code = v80.split('\n').map((l) => l.replace(/--.*$/, '')).join('\n');
+  const econE2e = read('scripts/e2e-economy.mjs');
+  checks.push(
+    existsSync(resolve(ROOT, 'scripts/migration-v80-economy-sc-earn-faucets-loan.sql'))
+      && /create or replace function public\.sc_earned_total/.test(v80)
+      && /sum\(greatest\(l\.amount, 0\)\)/.test(v80Code)
+      ? ok('v80: sc_earned_total sums positive ledger amounts (lifetime earned, which cannot shrink when you spend)')
+      : fail('v80: sc_earned_total is missing or does not sum only credits'),
+  );
+  checks.push(
+    !/scEarned: smartCoins \|\| 0/.test(read(resolve(ROOT, 'src/context/AppContext.jsx')))
+      && !/scEarned: smartCoins \|\| 0/.test(read(resolve(ROOT, 'src/pages/Dashboard.jsx')))
+      && /scEarned: scEarnedTotal \|\| 0/.test(read(resolve(ROOT, 'src/context/AppContext.jsx')))
+      && /scEarned: scEarnedTotal \|\| 0/.test(read(resolve(ROOT, 'src/pages/Dashboard.jsx')))
+      ? ok('the client no longer feeds the CURRENT BALANCE into the identity tiers (both call sites updated)')
+      : fail('scEarned is still the balance in the client'),
+  );
+  checks.push(
+    /passive_faucets_enabled/.test(v80)
+      && /create or replace function public\._sc_faucets_enabled/.test(v80)
+      && /'economy'/.test(v80)
+      ? ok('v80: the faucet shutdown is a single config flag consulted by _sc_faucets_enabled (reversible, one place to reason about)')
+      : fail('v80: the faucet shutdown is not driven by one shared flag'),
+  );
+  // Signatures were read from pg_proc; getting them wrong creates an overload
+  // instead of replacing the live function (and drops defaults -> 42P13).
+  checks.push(
+    /sc_record_fail_penalty\(p_ref_type text default null, p_ref_id text default null\)/.test(v80)
+      && /claim_challenge_reward\(p_challenge_key text, p_client_request_id uuid default null\)/.test(v80)
+      && /create or replace function public\.claim_squad_reward\(\)/.test(v80)
+      ? ok('v80: faucet replacements keep the live signatures AND their parameter defaults')
+      : fail('v80: a faucet replacement changed its signature or dropped a parameter default'),
+  );
+  checks.push(
+    /shark_require_balance_sc.*'250'/s.test(v80)
+      && /the lender licence gate is affordable/.test(econE2e)
+      && /spending reduces the BALANCE but not lifetime earned/.test(econE2e)
+      ? ok('v80 + e2e: the lender licence is reachable (250 SC) and earned/balance are proven distinct')
+      : fail('v80 licence gate or the earned-vs-balance assertion is missing'),
+  );
+
+  // v81 - transfers + World Bank, routed through api/quiz.js (12-fn cap).
+  const v81 = read('scripts/migration-v81-transfers-world-bank.sql');
+  const econApi = read(resolve(ROOT, 'api/_economy.js'));
+  const quizApi = read(resolve(ROOT, 'api/quiz.js'));
+  checks.push(
+    existsSync(resolve(ROOT, 'scripts/migration-v81-transfers-world-bank.sql'))
+      && /create table if not exists public\.worldbank_loans/.test(v81)
+      && /revoke all on public\.worldbank_loans from public, anon, authenticated/.test(v81)
+      ? ok('v81: worldbank_loans exists and is service-role only')
+      : fail('v81: the loans table is missing or client-readable'),
+  );
+  checks.push(
+    /revoke all on function public\.sc_transfer\(uuid, integer, uuid\) from public, anon/.test(v81)
+      && /revoke all on function public\.worldbank_borrow\(integer, uuid\) from public, anon/.test(v81)
+      && /revoke all on function public\.worldbank_repay\(bigint, uuid\) from public, anon/.test(v81)
+      && /DAILY_CAP_REACHED/.test(v81)
+      && /HOURLY_CAP_REACHED/.test(v81)
+      ? ok('v81: transfers enforce the daily + hourly caps and every money RPC is revoked from anon')
+      : fail('v81: transfer caps or ACLs are missing'),
+  );
+  // The bug the e2e caught: the bank was debited and the borrower never
+  // credited, which destroyed the principal.
+  checks.push(
+    /THE BORROWER MUST BE CREDITED/.test(v81)
+      && /v_disburse := public\._sc_apply\(v_me, p_amount, 'worldbank_loan'/.test(v81)
+      && /borrowing 200 credits the principal/.test(econE2e)
+      && /the principal came OUT of the bank wallet/.test(econE2e)
+      && /the bank is made whole plus interest/.test(econE2e)
+      ? ok('v81: borrowing credits the borrower as well as debiting the bank, and the e2e proves coins are conserved')
+      : fail('v81: the borrower is not credited, or the conservation assertions are missing'),
+  );
+  checks.push(
+    /worldbank_loan_request unique \(user_id, client_request_id\)/.test(v81)
+      && /WORLD_BANK_REPLAY/.test(v81)
+      && /LOAN_LIMIT_REACHED/.test(v81)
+      && /OUTSTANDING_CAP_REACHED/.test(v81)
+      ? ok('v81: loans are idempotent per requestId, one at a time, with an outstanding cap')
+      : fail('v81: loan idempotency / limits are missing'),
+  );
+  checks.push(
+    existsSync(resolve(ROOT, 'api/_economy.js'))
+      && /MISSING_REQUEST_ID/.test(econApi)
+      && /p_request: body\.requestId/.test(econApi)
+      && /from '\.\/_economy\.js'/.test(quizApi)
+      && /economy === 'overview'/.test(quizApi)
+      && /economy === 'transfer'/.test(quizApi)
+      && /economy === 'borrow'/.test(quizApi)
+      && /economy === 'repay'/.test(quizApi)
+      && /\/api\/economy\/:path\*/.test(read(resolve(ROOT, 'vercel.json')))
+      && /\/api\/economy\/:path\*/.test(read(resolve(ROOT, 'scripts/serve-api.mjs')))
+      ? ok('transfers + bank are reachable via /api/economy/* on api/quiz.js, and requestId is mandatory (no new Vercel function)')
+      : fail('the economy API is not routed, or does not require requestId'),
+  );
+  checks.push(
+    existsSync(resolve(ROOT, 'src/pages/Wallet.jsx'))
+      && /path="\/wallet"/.test(read(resolve(ROOT, 'src/App.jsx')))
+      && /path: '\/wallet'/.test(read(resolve(ROOT, 'src/components/Sidebar.jsx')))
+      && /e2e:economy/.test(read(resolve(ROOT, 'package.json')))
+      ? ok('the Wallet page is routed + in the sidebar, and e2e:economy is wired')
+      : fail('the Wallet page is not routed/sidebar-ed, or e2e:economy is missing'),
   );
 }
 

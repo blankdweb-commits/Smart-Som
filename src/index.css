@@ -332,6 +332,25 @@ button, a {
   /* Respect reduced-motion preferences: kill the staggered entrance and the
      tap-scale so nothing pulses/zooms for users who asked for less motion. */
   @media (prefers-reduced-motion: reduce) {
+    /* Phase 5 — global reduced-motion net.
+       The rules above handle the bespoke keyframes. This handles every
+       ordinary Tailwind `transition-*` utility used anywhere in the app, which
+       would otherwise still animate (the guest preview, the vote progress
+       bars, the tutorial progress bar, hover states). Implemented once here
+       rather than by editing `motion-reduce:` onto hundreds of class strings,
+       and it composes with framer-motion's MotionConfig reducedMotion="user",
+       which drives transforms from JS and is unaffected by CSS durations.
+       0.001ms rather than 0s so nothing that relies on a transitionend event
+       stops firing. */
+    *,
+    *::before,
+    *::after {
+      animation-duration: 0.001ms !important;
+      animation-iteration-count: 1 !important;
+      transition-duration: 0.001ms !important;
+      scroll-behavior: auto !important;
+    }
+
     .quiz-card-entrance {
       animation: none;
     }

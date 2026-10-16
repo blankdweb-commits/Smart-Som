@@ -40,6 +40,8 @@ const REWRITES = [
   { source: '/api/license/:path*', destination: '/api/quiz', prefix: true },
   // /api/loans/* -> /api/quiz (Loan Shark sub-router, S9)
   { source: '/api/loans/:path*', destination: '/api/quiz', prefix: true },
+// /api/economy/* -> /api/quiz (transfers + World Bank sub-router, v81)
+{ source: '/api/economy/:path*', destination: '/api/quiz', prefix: true },
   { source: '/api/matches/create', destination: '/api/matches-create' },
   { source: '/api/payments/webhook', destination: '/api/payments-webhook' },
   // /api/community/* -> /api/community (sub-path router like api/quiz.js)
