@@ -106,7 +106,8 @@ import {
   handleAnonEvent,
   handleAnonEventReact,
   handleAnonEventRespond,
-  handleAnonReact,
+handleAnonReact,
+  handleAnonPresence,
   handleAnonPrefs,
   handleVote,
   handleCreateAnonRoom,
@@ -127,7 +128,15 @@ const admin = createClient(env.VITE_SUPABASE_URL, env.SUPABASE_SERVICE_ROLE_KEY)
 const CAPACITY = 4;
 const ACTIVATE = 3;
 const SURVIVE = 2;
-const SPECTATOR_PRICE = 299;
+// v87 changed the seeded room's pass to NGN 190 (was 299). This is the REAL
+// canonical room, whose price comes from the study_groups row, so this constant
+// is the assertion on the operator price change. Rooms created INSIDE this suite
+// (the P2 block) set their own explicit prices and still use 499/299 - those are
+// fixture values, not the live price.
+const SPECTATOR_PRICE = 190;
+// v87: the canonical member seat is NGN 299 (was 499). Asserted against the live
+// seeded room, which v87 updated along with the column default.
+const MEMBER_PRICE = 299;
 
 const results = [];
 const log = (step, ok, detail = '') => {
@@ -141,6 +150,7 @@ const password = 'testpass123';
 let users = [];
 let scratchGroupId = null;
 let pageGroupId = null;
+let gateGroupId = null;
 let lockGroupId = null;
 let p2GroupId = null;
 let p3GroupId = null;
@@ -190,7 +200,7 @@ try {
     .maybeSingle();
   log('seeded Anonymous room exists', !!seeded,
     seeded ? `state=${seeded.group_state} activate=${seeded.minimum_members_to_activate} capacity=${seeded.member_limit} price=${seeded.spectator_price}` : 'MISSING');
-  log('seeded spectator price is ₦299',
+  log('v87: the seeded spectator pass is ₦190 (was ₦299)',
     Number(seeded?.spectator_price) === SPECTATOR_PRICE, `price=${seeded?.spectator_price}`);
   log('v41: anonymous room capacity is separated from activation (member_limit >= 100)',
     Number(seeded?.member_limit) >= 100 && Number(seeded?.minimum_members_to_activate) < Number(seeded?.member_limit),
@@ -248,6 +258,16 @@ try {
     joinerIds.push(uid);
     const { data: join } = await admin.rpc('community_anonymous_join', { p_group: scratchGroupId, p_user: uid });
     if (!join?.ok) throw new Error(`join #${i} failed: ${JSON.stringify(join)}`);
+    // v6: acknowledge the notice (and its 18+ tick) for every member as soon as
+    // they are seated. The ack is global - PK is (user_id, notice_key) with no
+    // group_id - so this covers the whole suite. Later sections read the feed as
+    // these users and would otherwise get 403 NOTICE_REQUIRED. The UNACKED path
+    // is asserted separately, with its own throwaway user.
+    //
+    // joinerIds[0] is EXCLUDED: it is memberId, and section 9 asserts that an
+    // unacknowledged member cannot post. Acking it here would make that test
+    // assert nothing.
+    if (i > 1) await callHandler(handleAnonAck, { id: uid }, { group_id: scratchGroupId });
     if (join.group_state === 'active' && activatedCount === null) {
       activatedCount = join.member_count;
       activatedJoinIndex = i;
@@ -515,7 +535,7 @@ try {
       .select('type, group_state, spectator_price, membership_locked, name')
       .eq('id', newRoomId)
       .maybeSingle();
-    log('new room is anonymous + waiting with server-default price ₦299',
+    log('v87: a new room inherits the server default price ₦190 (a bare INSERT, so this is the column default)',
       newRoom?.type === 'anonymous' && newRoom?.group_state === 'waiting' && Number(newRoom?.spectator_price) === SPECTATOR_PRICE,
       JSON.stringify(newRoom));
     log('new room is unlocked and has a non-empty name',
@@ -586,6 +606,13 @@ try {
   const thirdId = joinerIds[2]; // lockjoin — a member who must NOT decode
   const authorAlias = await ensureRoomAlias(scratchGroupId, memberId);
   const recipAlias = await ensureRoomAlias(scratchGroupId, recipId);
+  // v6: every member here goes on to READ the feed, so each must acknowledge
+  // the current notice (and its 18+ tick) first, exactly as the client does
+  // after the gate is accepted. Without this the reads below are 403 and the
+  // assertions test nothing.
+  for (const who of [recipId, thirdId]) {
+    await callHandler(handleAnonAck, { id: who }, { group_id: scratchGroupId });
+  }
   const encText = `secret ${stamp}`;
   const prec = await admin.from('subscriptions').insert({
     user_id: memberId,
@@ -1126,6 +1153,9 @@ try {
     v54Tag[tag] = u;
     const jr = await admin.rpc('community_anonymous_join', { p_group: lockGroupId, p_user: u });
     if (jr.error || jr.data?.ok !== true) throw new Error(`v54 join ${tag} failed: ${jr.error?.message || JSON.stringify(jr.data)}`);
+    // v6: the ack is global (PK is user_id + notice_key), so once per user is
+    // enough for every room. These actors read the feed below.
+    await callHandler(handleAnonAck, { id: u }, { group_id: lockGroupId });
   }
 
   // punch/fuckoff/waka: distinct fresh actors each act once; 'slap' is refused.
@@ -1202,15 +1232,15 @@ try {
     `state=${lockState.data?.group_state} locked=${lockState.data?.membership_locked} count=${lockCount}`);
   const lockProbeUser = await makeUser(`v54lock${stamp}c`);
   const lockProbe = await admin.rpc('community_anonymous_join', { p_group: lockGroupId, p_user: lockProbeUser });
-  log('v56: the 21st join reports MEMBERSHIP_PAYMENT_REQUIRED (₦499 fee + capacity numbers)',
+  log('v56: the 21st join reports MEMBERSHIP_PAYMENT_REQUIRED (₦299 fee + capacity numbers)',
     lockProbe.data?.code === 'MEMBERSHIP_PAYMENT_REQUIRED' &&
-      Number(lockProbe.data?.member_price) === 499 && Number(lockProbe.data?.founding_member_cap) === 20,
+      Number(lockProbe.data?.member_price) === MEMBER_PRICE && Number(lockProbe.data?.founding_member_cap) === 20,
     JSON.stringify(lockProbe.data));
 
-  const grant = await admin.rpc('community_anonymous_grant_membership', { p_group: lockGroupId, p_user: lockProbeUser, p_reference: `e2e-p2-${stamp}`, p_amount: 499, p_tier: 'paid' });
+  const grant = await admin.rpc('community_anonymous_grant_membership', { p_group: lockGroupId, p_user: lockProbeUser, p_reference: `e2e-p2-${stamp}`, p_amount: MEMBER_PRICE, p_tier: 'paid' });
   const grantedCount = Number((await admin.rpc('community_member_count', { p_group: lockGroupId })).data);
   const rejoin = await admin.rpc('community_anonymous_join', { p_group: lockGroupId, p_user: lockProbeUser });
-  log('v56: the paid grant fulfils the member seat (₦499) and the payer re-joins as a member',
+  log('v56: the paid grant fulfils the member seat (₦299) and the payer re-joins as a member',
     grant.data?.ok === true && grantedCount === 21 && rejoin.data?.already_member === true,
     `grant=${JSON.stringify(grant.data)} count=${grantedCount} rejoin=${JSON.stringify(rejoin.data)}`);
 
@@ -1234,6 +1264,59 @@ try {
   // aimable even before they have ever spoken. Members-only.
   const ownerAlias = Number(await ensureRoomAlias(scratchGroupId, ownerId));
   await admin.rpc('community_presence_heartbeat', { p_group: scratchGroupId, p_user: recipId, p_session: `e2e-p1-${stamp}` });
+
+  // ---------- v6: THE 18+ GATE IS SERVER-ENFORCED ON EVERY CONTENT READ ----------
+  // The client overlay is the friendly half. This is the half that holds: a
+  // seated member who has NOT acknowledged the current notice version (which
+  // now includes the 18+ confirmation) gets nothing from the room.
+  //
+  // A dedicated throwaway member, because every other member in this room was
+  // acknowledged on the way in and reusing one would assert nothing.
+  // A dedicated room, because the scratch room is at capacity (4/4) and a
+  // non-member there reads as CLOSED rather than as notice-gated - which would
+  // make these assertions pass for entirely the wrong reason.
+  const { data: gateGrp } = await admin
+    .from('study_groups')
+    .insert({
+      name: `Anon v6 Gate ${stamp}`, creator_id: ownerId, is_verified: true, member_limit: 10,
+      is_active: true, type: 'anonymous', privacy: 'restricted', spectator_price: SPECTATOR_PRICE,
+      minimum_members_to_activate: 1, minimum_members_to_remain_active: 1, group_state: 'active',
+    })
+    .select('id')
+    .single();
+  gateGroupId = gateGrp?.id || null;
+  await admin.from('study_group_members').insert({ group_id: gateGroupId, user_id: ownerId, role: 'owner' });
+  await callHandler(handleAnonAck, { id: ownerId }, { group_id: gateGroupId });
+  const gateUser = await makeUser(`v6gate${stamp}`);
+  const gateJoin = await admin.rpc('community_anonymous_join', { p_group: gateGroupId, p_user: gateUser });
+  await ensureRoomAlias(gateGroupId, gateUser);
+  log('v6: setup - the throwaway gate member is seated (otherwise the gate test proves nothing)',
+    gateJoin.data?.ok === true, JSON.stringify(gateJoin.data || gateJoin.error));
+  const rosterUnacked = await callHandler(handleAnonMembers, { id: gateUser }, { group_id: gateGroupId });
+  log('v6: the roster is 403 NOTICE_REQUIRED until the notice (with its 18+ tick) is acknowledged',
+    rosterUnacked.status === 403 && rosterUnacked.body?.error === 'NOTICE_REQUIRED',
+    `status=${rosterUnacked.status} error=${rosterUnacked.body?.error}`);
+  log('v6: the refusal names the minimum age and the notice version, so the client can render the gate',
+    rosterUnacked.body?.minimumAge === 18 && rosterUnacked.body?.notice?.version === 6,
+    JSON.stringify({ age: rosterUnacked.body?.minimumAge, notice: rosterUnacked.body?.notice }));
+  const feedUnacked = await callHandler(handleAnonFeed, { id: gateUser }, { group_id: gateGroupId, limit: 10 });
+  log('v6: the message feed is refused for an unacknowledged member too',
+    feedUnacked.status === 403 && feedUnacked.body?.error === 'NOTICE_REQUIRED',
+    `status=${feedUnacked.status} error=${feedUnacked.body?.error}`);
+  const presenceUnacked = await callHandler(handleAnonPresence, { id: gateUser }, { group_id: gateGroupId, session: `e2e-gate-${stamp}` });
+  log('v6: presence is NOT gated - otherwise a member reading the gate would lose their seat to the reconcile sweep',
+    presenceUnacked.status !== 403,
+    `status=${presenceUnacked.status} error=${presenceUnacked.body?.error}`);
+  const ackThird = await callHandler(handleAnonAck, { id: gateUser }, { group_id: gateGroupId });
+  log('v6: acknowledging records the CURRENT notice version and re-opens the room',
+    ackThird.status === 200 && ackThird.body?.version === 6,
+    JSON.stringify(ackThird.body));
+  const rosterAfterAck = await callHandler(handleAnonMembers, { id: gateUser }, { group_id: gateGroupId });
+  log('v6: the roster opens once acknowledged',
+    rosterAfterAck.status === 200 && rosterAfterAck.body?.ok === true,
+    `status=${rosterAfterAck.status}`);
+  // This room exists only for the gate test, so nothing downstream counts it.
+
   const rosterResp = await callHandler(handleAnonMembers, { id: thirdId }, { group_id: scratchGroupId });
   const rosterMembers = rosterResp.body?.members || [];
   const rosterByAlias = new Map(rosterMembers.map((m) => [m.alias, m]));
@@ -1545,6 +1628,16 @@ try {
       await admin.from('community_posts').delete().eq('group_id', pageGroupId);
       await admin.from('study_group_members').delete().eq('group_id', pageGroupId);
       await admin.from('study_groups').delete().eq('id', pageGroupId);
+    }
+    // v6 gate room. community_posts are deleted first on purpose: that column is
+    // `on delete set null` off study_groups, and a bare group delete would leave
+    // the messages behind with a null group_id, which the PUBLIC community_feed
+    // view then admits (p.group_id is null -> included).
+    if (gateGroupId) {
+      await admin.from('community_posts').delete().eq('group_id', gateGroupId);
+      await admin.from('anonymous_spectators').delete().eq('group_id', gateGroupId);
+      await admin.from('study_group_members').delete().eq('group_id', gateGroupId);
+      await admin.from('study_groups').delete().eq('id', gateGroupId);
     }
     if (lockGroupId) {
       await admin.from('community_posts').delete().eq('group_id', lockGroupId);

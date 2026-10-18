@@ -6,6 +6,7 @@ import FeeBanner from './FeeBanner';
 import ErrorBoundary from './ErrorBoundary';
 
 import NotificationBell from './NotificationBell';
+import ChallengeBell from './ChallengeBell';
 import AchievementToast from './AchievementToast';
 import BrandLogo from './BrandLogo';
 import { Sun, Moon, Calendar, Menu, Settings } from './Icons';
@@ -32,6 +33,11 @@ const Layout = ({ children }) => {
 
           <div className="flex items-center gap-1 sm:gap-2">
             <NotificationBell />
+
+            {/* Duel challenges. Lives here rather than in BottomNav because
+                BottomNav returns null while a quiz is active — a challenge
+                must never depend on which page the user happens to be on. */}
+            <ChallengeBell />
 
             <Link
               to="/settings"

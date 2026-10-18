@@ -12,7 +12,7 @@
 //   F. unparseable aliases get a distinct colour swatch
 import { createClient } from '@supabase/supabase-js';
 import { loadEnv } from './e2e-utils.mjs';
-import { handleAnonFeed, handleAnonEventRespond } from '../api/_community.js';
+import { handleAnonFeed, handleAnonEventRespond, handleAnonAck } from '../api/_community.js';
 
 const results = [];
 const log = (step, ok, detail = '') => {
@@ -186,6 +186,19 @@ try {
     carrier != null && denier != null && carrier !== denier, `carrier=#${carrier} denier=#${denier}`);
 
   // ---- C. the feed hides future steps but shows the t+0 card -------------------
+  // v6: the feed is 403 NOTICE_REQUIRED until the current notice (which now
+  // carries the 18+ tick) is acknowledged. Ack first, exactly as the client does
+  // after the gate is accepted, then read.
+  {
+    const ar = mockRes();
+    await handleAnonAck(
+      { method: 'POST', url: '/x', headers: {}, body: { group_id: roomId } },
+      ar,
+      { id: toaster, email: 'v62@apextest.local' },
+    );
+    log('v6: the gag reader acknowledges the notice before reading the feed',
+      ar.statusCode === 200 && ar.bodySent?.version === 6, JSON.stringify(ar.bodySent));
+  }
   const feed = async () => {
     const r = mockRes();
     await handleAnonFeed(

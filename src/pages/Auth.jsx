@@ -3,15 +3,29 @@ import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { supabase } from '../utils/supabase';
 import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
-import { Mail, Lock, User, ArrowRight, Loader2, ShieldCheck } from 'lucide-react';
+import { Mail, Lock, User, ArrowRight, Loader2, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import Toast from '../components/Toast';
 import BrandLogo from '../components/BrandLogo';
+
+// The sign-in password field and the sign-up password field are the SAME input
+// (one `view !== 'forgot'` block), so its copy has to be true in both. The rule
+// only applies when choosing one, so the helper branches and the placeholder
+// stays neutral.
+const PASSWORD_HINT = {
+  signin: 'The password you set when you signed up.',
+  signup: 'Six characters minimum. A short phrase you will remember beats a short word.',
+};
 
 export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
   const [toast, setToast] = useState(null);
+  // Show/hide on the password fields. CommunityAuthModal already had these; the
+  // main page did not, so a mistyped character was invisible and the only
+  // symptom was a bare "Invalid login credentials" from Supabase.
+  const [showPassword, setShowPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
   // Route-aware initial view: /signup opens the registration form directly.
@@ -149,7 +163,11 @@ export default function Auth() {
   if (session) return null;
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 p-4 relative overflow-hidden">
+    <div className="min-h-screen flex items-start sm:items-center justify-center bg-slate-950 p-4 py-6 sm:py-8 relative overflow-hidden">
+      {/* items-start + py on small screens, not items-center: the four helper
+          lines make this card tall enough to exceed a short phone viewport, and
+          a centred over-tall flex child clips the top AND bottom with no way to
+          scroll to either. */}
       {/* Background decoration */}
       <div className="absolute top-0 left-0 w-full h-full">
         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-medical-500/10 rounded-full blur-[120px]"></div>
@@ -184,61 +202,105 @@ export default function Auth() {
           <form onSubmit={handleSubmit} className="space-y-4">
             {view === 'signup' && (
               <>
-                <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-                  <input
-                    type="text"
-                    placeholder="Full Name"
-                    autoComplete="name"
-                    required
-                    className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
-                    value={formData.fullName}
-                    onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-                  />
+                <div>
+                  <div className="relative">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                    <input
+                      type="text"
+                      placeholder="e.g. Amaka Okonkwo"
+                      aria-label="Full name"
+                      autoComplete="name"
+                      required
+                      className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-slate-400 focus:outline-none focus:border-medical-500 transition-colors"
+                      value={formData.fullName}
+                      onChange={(e) => setFormData({...formData, fullName: e.target.value})}
+                    />
+                  </div>
+                  <p className="mt-1.5 text-[11px] font-medium text-slate-500">
+                    Your legal name. You can set a different display name later in Settings.
+                  </p>
                 </div>
               </>
             )}
 
-            <div className="relative">
-              <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-              <input
-                type="email"
-                placeholder="Email Address"
-                autoComplete="email"
-                required
-                className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
-                value={formData.email}
-                onChange={(e) => setFormData({...formData, email: e.target.value})}
-              />
+            <div>
+              <div className="relative">
+                <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                <input
+                  type="email"
+                  placeholder="e.g. amaka@gmail.com"
+                  aria-label="Email address"
+                  autoComplete="email"
+                  required
+                  className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-slate-400 focus:outline-none focus:border-medical-500 transition-colors"
+                  value={formData.email}
+                  onChange={(e) => setFormData({...formData, email: e.target.value})}
+                />
+              </div>
+              <p className="mt-1.5 text-[11px] font-medium text-slate-500">
+                Use an address you can actually open on this device.
+              </p>
             </div>
 
             {view !== 'forgot' && (
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-                <input
-                  type="password"
-                  placeholder="Password"
-                  autoComplete={view === 'signup' ? 'new-password' : 'current-password'}
-                  required
-                  className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
-                  value={formData.password}
-                  onChange={(e) => setFormData({...formData, password: e.target.value})}
-                />
+              <div>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                  <input
+                    type={showPassword ? 'text' : 'password'}
+                    placeholder="Your password"
+                    aria-label="Password"
+                    autoComplete={view === 'signup' ? 'new-password' : 'current-password'}
+                    required
+                    className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-12 text-white placeholder:text-slate-400 focus:outline-none focus:border-medical-500 transition-colors"
+                    value={formData.password}
+                    onChange={(e) => setFormData({...formData, password: e.target.value})}
+                  />
+                  {/* type="button" is essential: the form has no other guard, so a
+                      submit-by-default eye would fire handleSubmit. */}
+                  <button
+                    type="button"
+                    onClick={() => setShowPassword((v) => !v)}
+                    aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    aria-pressed={showPassword}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                  >
+                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+                <p className="mt-1.5 text-[11px] font-medium text-slate-500">
+                  {PASSWORD_HINT[view] || PASSWORD_HINT.signin}
+                </p>
               </div>
             )}
 
             {view === 'signup' && (
-              <div className="relative">
-                <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-                <input
-                  type="password"
-                  placeholder="Confirm Password"
-                  autoComplete="new-password"
-                  required
-                  className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white focus:outline-none focus:border-medical-500 transition-colors"
-                  value={formData.confirmPassword}
-                  onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                />
+              <div>
+                <div className="relative">
+                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
+                  <input
+                    type={showConfirmPassword ? 'text' : 'password'}
+                    placeholder="Type it again"
+                    aria-label="Confirm password"
+                    autoComplete="new-password"
+                    required
+                    className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-12 text-white placeholder:text-slate-400 focus:outline-none focus:border-medical-500 transition-colors"
+                    value={formData.confirmPassword}
+                    onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowConfirmPassword((v) => !v)}
+                    aria-label={showConfirmPassword ? 'Hide password confirmation' : 'Show password confirmation'}
+                    aria-pressed={showConfirmPassword}
+                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
+                  >
+                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
+                  </button>
+                </div>
+                <p className="mt-1.5 text-[11px] font-medium text-slate-500">
+                  Must match the password above.
+                </p>
               </div>
             )}
 
@@ -267,7 +329,12 @@ export default function Auth() {
           <div className="mt-8 text-center space-y-4">
             {view === 'signin' && (
               <button
-                onClick={() => setView('forgot')}
+                onClick={() => {
+                  setView('forgot');
+                  setError(null);
+                  setSuccessMsg(null);
+                  setShowPassword(false);
+                }}
                 className="block w-full text-slate-400 hover:text-white transition-colors text-sm mb-2"
               >
                 Forgot your password?
@@ -276,9 +343,19 @@ export default function Auth() {
 
             <button
               onClick={() => {
-                setView(view === 'signin' ? 'signup' : 'signin');
+                const next = view === 'signin' ? 'signup' : 'signin';
+                setView(next);
                 setError(null);
                 setSuccessMsg(null);
+                // A password typed into Sign In was still sitting in formData when
+                // the Sign Up form appeared, so the new-account form opened
+                // pre-filled with it. With the show/hide toggle above that is now
+                // plainly visible, and it is a real leak on a shared device.
+                setShowPassword(false);
+                setShowConfirmPassword(false);
+                setFormData((f) => ({ ...f, password: '', confirmPassword: '' }));
+                // land on the top of the new form, not wherever the old one was
+                window.scrollTo({ top: 0 });
               }}
               className="block w-full text-slate-400 hover:text-white transition-colors text-sm font-medium"
             >

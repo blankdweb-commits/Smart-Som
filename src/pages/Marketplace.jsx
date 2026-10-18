@@ -96,6 +96,13 @@ export default function Marketplace() {
           .select('*, marketplace_sellers(business_name, is_verified, contact_email)')
           .eq('is_published', true)
           .eq('is_archived', false)
+          // Cosmetics live in the hub's Cosmetics tab and are bought with Smart
+          // Coins. Listing them here would offer a Buy button that all three
+          // payment endpoints now refuse, and a Free/Premium self-entitlement
+          // path that would write a purchase row for an item whose real
+          // entitlement is in user_cosmetics. Filtered at the QUERY, not in
+          // JSX, so they cannot appear even for one render.
+          .neq('kind', 'cosmetic')
           .order('created_at', { ascending: false })
       ]);
       const catError = catRes.error ? 'storefront' : null;

@@ -5,6 +5,8 @@ import Layout from './components/Layout';
 import RequireAuth from './components/RequireAuth';
 import CookieConsentBanner from './components/CookieConsentBanner';
 import AdSenseManager from './components/ads/AdSenseManager';
+import ChallengeProvider from './context/ChallengeContext';
+import ErrorBoundary from './components/ErrorBoundary';
 import { MotionConfig } from 'framer-motion';
 
 // Lazy load pages
@@ -161,14 +163,28 @@ const PushNavigationListener = () => {
 function App() {
   return (
     <AppProvider>
+      {/* ChallengeProvider is inside <Router> (the bell reads the location) and
+          inside <AppProvider> (it calls the arena invite wrappers). It owns a
+          2.5s invite poll app-wide, which is exactly why it is NOT part of
+          AppContext — that would re-render every consumer four times a minute. */}
       <MotionConfig reducedMotion="user">
         <Router>
-          <PushNavigationListener />
-          <AdSenseManager>
-            <AppRouter />
-            <CelebrationHost />
-          </AdSenseManager>
-          <CookieConsentBanner />
+          <ChallengeProvider>
+            <PushNavigationListener />
+            {/* AdSenseManager sits ABOVE <AppRouter>, so a throw inside it used to
+                take down the entire tree: the only ErrorBoundary lived in
+                Layout, BELOW this point, and therefore could never catch it.
+                That is how a single context destructure ("Cannot destructure
+                property 'isPremium'") blanked every page at once. Wrapping here
+                contains any such fault to a recovery screen instead. */}
+            <ErrorBoundary>
+              <AdSenseManager>
+                <AppRouter />
+                <CelebrationHost />
+              </AdSenseManager>
+            </ErrorBoundary>
+            <CookieConsentBanner />
+          </ChallengeProvider>
         </Router>
       </MotionConfig>
     </AppProvider>

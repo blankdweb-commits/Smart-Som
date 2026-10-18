@@ -101,7 +101,7 @@ export const TUTORIALS = [
       {
         icon: 'star',
         title: 'Rate a service',
-        body: 'Choose a category, pick a rating, optionally tick structured options and leave a written comment if you want to. One rating per category per account — you can come back and change yours, but you always see the current result you are changing.',
+        body: 'Choose a category, pick a rating, optionally tick structured options and leave a written comment if you want to. Each of the five services is reviewed once per account — the server records your first answer and refuses a second one, so the averages cannot be quietly edited.',
       },
       {
         icon: 'trophy',
@@ -124,9 +124,19 @@ export const TUTORIALS = [
         body: 'Voting is limited by each campaign\'s own rules — by default one vote per account per campaign. Votes are recorded atomically and totals are computed on the server, so nobody can inflate a count by spamming the button. Votes must be your genuine choice; duplicate accounts to vote twice is not something we support or tolerate.',
       },
       {
+        icon: 'file',
+        title: 'Try the sample campaign',
+        body: 'The Campaigns tab ships with one campaign labelled "SAMPLE - How voting works". It is there so you can see the whole thing working before anything real happens, and its description says so plainly. Every vote on it is a real vote cast by a real account — we have not invented a turnout.',
+      },
+      {
+        icon: 'star',
+        title: 'One review per service, once',
+        body: 'Each of the five service categories is rated separately and never merged into one number. All five are one-time: your first answer is recorded and locked, and the server refuses any different second answer for the same service. If your view changes, that is what the free-text comment and the reviews inbox are for — not editing the number.',
+      },
+      {
         icon: 'flag',
-        title: 'Report something odd',
-        body: 'If a campaign or a result looks wrong, use Report on the campaign. That raises it with the team, who can void individual fraudulent votes — the correction is recorded rather than quietly rewritten.',
+        title: 'If a result looks wrong',
+        body: 'Tell us through Reviews and we will check the vote records against your account. Corrections are recorded rather than quietly rewritten, so a total never changes without a trace. We do not publish a Report button on a campaign because we do not yet have one — we would rather say that than send you looking for something that is not there.',
       },
     ],
   },

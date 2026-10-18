@@ -34,11 +34,11 @@ try {
   // ---------- 1. SIGNUP ----------
   await page.goto(`${BASE}/signup`, { waitUntil: 'networkidle' });
 
-  await page.fill('input[placeholder="Full Name"]', TEST_USER.name);
+  await page.fill('input[aria-label="Full name"]', TEST_USER.name);
   await page.selectOption('select', { index: 2 }).catch(() => {}); // nursing year optional
-  await page.fill('input[placeholder="Email Address"]', TEST_USER.email);
-  await page.fill('input[placeholder="Password"]', TEST_USER.password);
-  await page.fill('input[placeholder="Confirm Password"]', TEST_USER.password);
+  await page.fill('input[aria-label="Email address"]', TEST_USER.email);
+  await page.fill('input[aria-label="Password"]', TEST_USER.password);
+  await page.fill('input[aria-label="Confirm password"]', TEST_USER.password);
   await page.click('button[type="submit"]');
 
   // Either auto-session -> redirected, or success message asking to sign in.
@@ -51,8 +51,8 @@ try {
 
   if (needsSignIn) {
     log('signup', true, `email confirmation enabled; signing in as ${TEST_USER.email}`);
-    await page.fill('input[placeholder="Email Address"]', TEST_USER.email);
-    await page.fill('input[placeholder="Password"]', TEST_USER.password);
+    await page.fill('input[aria-label="Email address"]', TEST_USER.email);
+    await page.fill('input[aria-label="Password"]', TEST_USER.password);
     await page.click('button[type="submit"]');
     await page.waitForTimeout(3000);
   } else {

@@ -597,9 +597,9 @@ let passed = 0;
       : fail('api/_community.js missing message_lifetime_seconds / expires_at'),
   );
   checks.push(
-    /ROOM_NOTICE = \{ key: 'anonymous_room_safety', version: [45] \}/.test(apiCommunitySrc)
-      ? ok('ROOM_NOTICE bumped (10-minute lifetime copy; v5 for the consent-gated actions)')
-      : fail('ROOM_NOTICE not bumped for the new lifetime'),
+    /ROOM_NOTICE = \{ key: 'anonymous_room_safety', version: [456] \}/.test(apiCommunitySrc)
+      ? ok('ROOM_NOTICE bumped (10-minute lifetime; v5 consent-gated actions; v6 the 18+ confirmation)')
+      : fail('ROOM_NOTICE not bumped'),
   );
   checks.push(
     /fmtMSS/.test(anon) && /Expires in \{fmtMSS\(remaining\)\}/.test(anon) &&
@@ -3302,9 +3302,9 @@ checks.push(
       : fail('event queries would break (empty feed) before v62 is applied'),
   );
   checks.push(
-    /ROOM_NOTICE = \{ key: 'anonymous_room_safety', version: 5 \}/.test(comm)
-      ? ok('ROOM_NOTICE bumped to v5 so the notice re-discloses the consent-gated actions')
-      : fail('ROOM_NOTICE was not bumped to v5'),
+    /ROOM_NOTICE = \{ key: 'anonymous_room_safety', version: 6 \}/.test(comm)
+      ? ok('ROOM_NOTICE bumped to v6 so everyone re-acknowledges the 18+ confirmation')
+      : fail('ROOM_NOTICE was not bumped to v6'),
   );
   checks.push(
     /handleAnonDuel/.test(router)
@@ -3741,6 +3741,11 @@ checks.push(
   const v75 = read('scripts/migration-v75-arena-roster-search.sql');
   const v64 = read('scripts/migration-v64-arena-wallet-practice-presence.sql');
   const lb = read(resolve(ROOT, 'src/pages/Leaderboard.jsx'));
+  // The board's rows and paging moved out of pages/Leaderboard.jsx when it
+  // became the five-tab social hub shell. Gates that assert on the BOARD read
+  // this instead, so moving the markup again cannot silently turn them into
+  // no-ops that always pass.
+  const lbBoard = read(resolve(ROOT, 'src/components/RankingBoard.jsx'));
   const rumble = read(resolve(ROOT, 'src/pages/Rumble.jsx'));
   const app = read(resolve(ROOT, 'src/context/AppContext.jsx'));
   const arenaE2e = read('scripts/e2e-arena.mjs');
@@ -3760,8 +3765,8 @@ checks.push(
       : fail('v74: leaderboard clamp or displayName is wrong'),
   );
   checks.push(
-    /const PAGE_SIZE = 100/.test(lb)
-      && /'No graded rounds yet'/.test(lb)
+    /const PAGE_SIZE = 100/.test(lbBoard)
+      && /'No graded rounds yet'/.test(lbBoard)
       ? ok('Leaderboard: one page shows all users, and a missing player_stats row renders "No graded rounds yet" instead of a fake 0')
       : fail('Leaderboard: page size or null-stat rendering regressed'),
   );
@@ -3888,14 +3893,61 @@ checks.push(
       ? ok('v78: a real name appears only after a COMPLETED match between the pair; the roster is replaced (old arity dropped first)')
       : fail('v78: real names are not gated on a completed match, or the roster overload was not dropped'),
   );
+  // Rewritten for the challenge handoff. The old gate required
+  // `INVITES_POLL_MS` and the literal string 'Duel invite' in Rumble.jsx.
+  // Both are now deliberately false: the duplicate 2.5s invite poll was removed
+  // (ChallengeContext owns it app-wide, from a provider ABOVE the Arena) and
+  // the user-facing word is "Challenge", not "Invite".
+  //
+  // Deleting the gate would have lost four real properties, so they are
+  // re-asserted explicitly below - including the two that caused the bug this
+  // fixes: that the accepted-match handoff is actually CONSUMED by the Arena,
+  // and that the inviter declares readiness so the clock can open.
   checks.push(
     /arenaInvite, arenaInvites, arenaInviteRespond, arenaInviteCancel/.test(read(resolve(ROOT, 'src/context/AppContext.jsx')))
-      && /INVITES_POLL_MS/.test(read(resolve(ROOT, 'src/pages/Rumble.jsx')))
-      && /answerInvite/.test(read(resolve(ROOT, 'src/pages/Rumble.jsx')))
-      && /Duel invite/.test(read(resolve(ROOT, 'src/pages/Rumble.jsx')))
-      && !/challengeScholar/.test(read(resolve(ROOT, 'src/pages/Rumble.jsx')))
-      ? ok('Rumble: the scholars list now sends invites (no instant challenge), and incoming invites are polled and answerable')
-      : fail('Rumble: the invite UI is not wired, or an instant-challenge path remains'),
+      && /answerInvite/.test(rumble)
+      && /Duel challenge/.test(rumble)
+      && !/challengeScholar/.test(rumble)
+      ? ok('Rumble: the scholars list sends challenges (no instant-challenge path), and incoming challenges are answerable')
+      : fail('Rumble: the challenge UI is not wired, or an instant-challenge path remains'),
+  );
+  checks.push(
+    !/INVITES_POLL_MS/.test(rumble)
+      && !/setInterval\(invLoad/.test(rumble)
+      ? ok('Rumble: the duplicate arena_invites_list poll is gone (ChallengeContext owns it app-wide, so the load is halved)')
+      : fail('Rumble: Rumble is polling invites again, duplicating the app-wide ChallengeContext poll'),
+  );
+  checks.push(
+    /consumeAdopt/.test(rumble)
+      && /const joinAdopted/.test(rumble)
+      && /await arenaReady\(mid\)/.test(rumble)
+      && /await resumeArena\(mid\)/.test(rumble)
+      && /setMatchLive/.test(rumble)
+      ? ok('Rumble: the accepted-challenge handoff is consumed (ready + resume), so an inviter actually enters the duel')
+      : fail('Rumble: consumeAdopt/joinAdopted is missing - an accepted challenge would never open (the original v84 bug)'),
+  );
+  // Comments are stripped before testing: ChallengePopup's header documents the
+  // OLD `useState(windowSeconds * 1000)` it replaced, so a raw text match would
+  // fail forever on the very file that fixed it.
+  const popupSrc = read(resolve(ROOT, 'src/components/ChallengePopup.jsx'))
+    .replace(/\/\*[\s\S]*?\*\//g, '')
+    .split('\n')
+    .map((l) => l.replace(/\/\/.*$/, ''))
+    .join('\n');
+  checks.push(
+    /expiresAt/.test(popupSrc)
+      && /parseDeadline/.test(popupSrc)
+      && !/useState\(windowSeconds \* 1000\)/.test(popupSrc)
+      && /deadline - now/.test(popupSrc)
+      ? ok('ChallengePopup: the countdown runs to the server\'s per-invite expiresAt, not a freshly reseeded global window')
+      : fail('ChallengePopup: the countdown is still a fresh local windowSeconds, so it over-promises time'),
+  );
+  checks.push(
+    /useSearchParams/.test(rumble)
+      && /challengeTargetId/.test(rumble)
+      && /challenge=\$\{userId\}/.test(lb)
+      ? ok('Arena deep link: the hub sends /rumble?challenge=<userId> and Rumble resolves it against the live invite list')
+      : fail('Arena deep link: ?challenge= is not wired from the hub into Rumble'),
   );
   checks.push(
     /O5 sending an invite moves NO coins/.test(arenaE2e)
@@ -3926,16 +3978,188 @@ checks.push(
       ? ok('v79: friend/rival naming reuses the arena pair rule (a real name only after a completed duel), so adding a friend does not leak a name')
       : fail('v79: friend/rival naming is not gated on the pair-duel predicate'),
   );
+  // Rewritten for the hub. The four RPC calls moved from pages/Rivals.jsx into
+  // components/SocialPanel.jsx when /rivals became a redirect into the
+  // Leaderboard hub. The properties are unchanged - still routed, still in the
+  // sidebar, still wired to the same four RPCs - so they are asserted against
+  // the file that now holds them, plus the redirect itself.
+  const socialPanel = read(resolve(ROOT, 'src/components/SocialPanel.jsx'));
   checks.push(
     existsSync(resolve(ROOT, 'src/pages/Rivals.jsx'))
+      && /Navigate to="\/leaderboard\?tab=friends" replace/.test(rivals)
       && /path="\/rivals"/.test(read(resolve(ROOT, 'src/App.jsx')))
       && /path: '\/rivals'/.test(read(resolve(ROOT, 'src/components/Sidebar.jsx')))
-      && /request_relationship/.test(rivals)
-      && /respond_relationship/.test(rivals)
-      && /remove_relationship/.test(rivals)
-      && /friend_search/.test(rivals)
-      ? ok('Friends & Rivals page is routed, in the sidebar, and wires all three write RPCs plus search')
-      : fail('Friends & Rivals page is not routed/sidebar-ed, or does not use the relationship RPCs'),
+      && /request_relationship/.test(socialPanel)
+      && /respond_relationship/.test(socialPanel)
+      && /remove_relationship/.test(socialPanel)
+      && /friend_search/.test(socialPanel)
+      && /friend_list/.test(socialPanel)
+      ? ok('Friends & Rivals: /rivals redirects into the hub, the tab is routed and sidebar-ed, and it wires all three write RPCs plus both read RPCs')
+      : fail('Friends & Rivals: the route/redirect is missing, or the panel does not use the relationship RPCs'),
+  );
+  // v89 - the READ side was dead. friend_list() referenced arena_invites'
+  // column names (from_user/to_user) on a table that has user_id/target_id, so
+  // it raised 42703 and returned nothing at all. These gates exist so that
+  // exact mistake cannot be reintroduced.
+  const v89 = read('scripts/migration-v89-relationship-repair.sql');
+  const v89Code = v89.split('\n').map((l) => l.replace(/--.*$/, '')).join('\n');
+  // Scoped to the friend_list BODY, not the whole file. v89 also recreates
+  // arena_challenge_targets and arena_invites_list, and `arena_invites` really
+  // does have from_user/to_user - a file-wide ban would be both wrong and
+  // tempt someone into "fixing" working arena code.
+  const friendListBody = (() => {
+    const start = v89Code.indexOf('create or replace function public.friend_list()');
+    if (start < 0) return '';
+    const end = v89Code.indexOf('revoke all on function public.friend_list()', start);
+    return v89Code.slice(start, end < 0 ? undefined : end);
+  })();
+  checks.push(
+    friendListBody.length > 0
+      && /i\.user_id/.test(friendListBody)
+      && /i\.target_id/.test(friendListBody)
+      && !/i\.from_user/.test(friendListBody)
+      && !/i\.to_user/.test(friendListBody)
+      ? ok('v89: friend_list reads user_id/target_id (v79\'s i.from_user/i.to_user raised 42703 and killed the whole feature)')
+      : fail('v89: friend_list still references arena_invites column names, so it will raise undefined_column again'),
+  );
+  checks.push(
+    /drop policy if exists "relationships_insert_own"/.test(v89)
+      && /drop policy if exists "relationships_update_target"/.test(v89)
+      && /alter table public\.user_relationships\s+drop constraint if exists user_relationships_unique/.test(v89)
+      && /user_relationships_pair_unique/.test(v89)
+      && /pg_advisory_xact_lock\(hashtext\('relationship:'/.test(v89)
+      ? ok('v89: the client INSERT/UPDATE policies are dropped, one row per unordered pair is enforced, and writes take the pair advisory lock')
+      : fail('v89: the relationship write policies, pair uniqueness or advisory lock are missing'),
+  );
+  checks.push(
+    /create table if not exists public\.user_blocks/.test(v89)
+      && /constraint user_blocks_no_self/.test(v89)
+      && /create or replace function public\._blocked_between/.test(v89)
+      // `_blocked_between` must be symmetric (either direction hides the pair)
+      // AND must actually gate the three read paths: friend_list friends,
+      // friend_search results, and the challenge target list.
+      && /\(blocker_id = p_a and blocked_id = p_b\)\s*\n?\s*or \(blocker_id = p_b and blocked_id = p_a\)/.test(v89Code)
+      && (v89Code.match(/not public\._blocked_between\(/g) || []).length >= 4
+      && /as blocked/.test(v89)
+      ? ok('v89: user_blocks is symmetric in both directions and gates friend_list, friend_search and the challenge targets')
+      : fail('v89: user_blocks is missing, asymmetric, or not applied across the read RPCs'),
+  );
+  checks.push(
+    /revoke all on function public\.push_notification\(uuid, text, uuid, jsonb\)\s+from public, anon, authenticated/.test(v89)
+      && /'expiresAt', i\.created_at \+ make_interval\(secs => v_window\)/.test(v89)
+      ? ok('v89: push_notification is closed to anon (it had no auth.uid() check at all), and invites carry a real per-invite expiresAt')
+      : fail('v89: push_notification ACL or the invite expiresAt is missing'),
+  );
+
+  // v90 - the agreed 30s fail-safe, measured from BOTH players ready.
+  const v90 = read('scripts/migration-v90-arena-no-activity.sql');
+  checks.push(
+    /create or replace function public\._arena_no_activity_sweep\(\)/.test(v90)
+      && /no_activity_seconds/.test(v90)
+      && /m\.status = 'ready'/.test(v90)
+      && /m\.ready_at is not null/.test(v90)
+      && /m\.starts_at is null/.test(v90)
+      && /m\.opponent_bot is null/.test(v90)
+      && /not exists \(/.test(v90)
+      && /perform public\._arena_resolve\(v_row\.id, 'no_show', null, null, true\)/.test(v90)
+      && /v_voided := public\._arena_no_activity_sweep\(\)/.test(v90)
+      ? ok('v90: 30s no-activity voids and refunds both sides, measured from ready_at with zero answers, practice and bots excluded')
+      : fail('v90: the 30s no-activity sweep is missing or is not correctly scoped'),
+  );
+
+  // v91 - profile views + activity.
+  const v91 = read('scripts/migration-v91-profile-views-activity.sql');
+  checks.push(
+    /create table if not exists public\.profile_privacy/.test(v91)
+      && /show_profile_views\s+boolean not null default false/.test(v91)
+      && /share_visitor_identity boolean not null default false/.test(v91)
+      && /create table if not exists public\.profile_views/.test(v91)
+      && /no policies\. See section 2/.test(v91)
+      && /create or replace function public\.social_activity_feed/.test(v91)
+      ? ok('v91: profile views + activity exist, both consents default OFF, and profile_views has zero client policies')
+      : fail('v91: profile-view privacy, the locked-down views table, or the activity feed is missing'),
+  );
+
+  // v92 - cosmetics (SC-only) + the marketplace self-grant fix.
+  const v92 = read('scripts/migration-v92-cosmetics-crown.sql');
+  checks.push(
+    /create table if not exists public\.user_cosmetics/.test(v92)
+      && /create unique index if not exists user_cosmetics_one_equipped_per_slot/.test(v92)
+      && /create or replace function public\.cosmetic_purchase/.test(v92)
+      && /public\._sc_apply\(/.test(v92)
+      && /md5\('cosmetic:'/.test(v92)
+      && /'crown_purchase'/.test(v92)
+      && /\b40\b/.test(v92)
+      ? ok('v92: cosmetics are Smart-Coin only, idempotent on a deterministic key, one equipped item per slot, Crown seeded at 40 SC')
+      : fail('v92: the cosmetic purchase path, one-per-slot index, or the 40 SC Crown seed is missing'),
+  );
+  checks.push(
+    /drop policy if exists "marketplace_purchases_all_own"/.test(v92)
+      && /create policy "marketplace_purchases_read_own"[\s\S]*for select/.test(v92)
+      && /create policy "marketplace_purchases_insert_own"[\s\S]*for insert/.test(v92)
+      && !/for\s+all\s+on public\.marketplace_purchases/.test(v92)
+      && /marketplace_purchases_unique/.test(v92)
+      ? ok('v92: marketplace_purchases is no longer FOR ALL (a client could rewrite its own payment records); the (user_id, product_id) unique is kept')
+      : fail('v92: the marketplace_purchases FOR ALL hole is still open, or the per-product unique was dropped'),
+  );
+  checks.push(
+    /has_crown/.test(v92)
+      && /coalesce\(cp\.has_crown, false\) as has_crown/.test(v92)
+      && /'hasCrown', coalesce\(cp\.has_crown, false\)/.test(v92)
+      && !/order by[\s\S]{0,400}has_crown/.test(v92)
+      ? ok('v92: has_crown is exposed on community_profiles, community_feed, the leaderboard and the profile object, and never in an ORDER BY')
+      : fail('v92: has_crown is not exposed everywhere, or it leaked into an ordering'),
+  );
+  // A plain view runs with the CALLER's privileges, so it needs EXECUTE on every
+  // function it calls. Revoking _has_crown from anon/authenticated - the tidy
+  // default, and what v92 originally did - made every read of community_feed
+  // and community_profiles fail with 42501, which presents to users as an
+  // EMPTY COMMUNITY FEED rather than a permissions error, and is invisible to
+  // any check that runs as postgres. Caught by e2e-community-ephemeral.
+  checks.push(
+    /grant execute on function public\._has_crown\(uuid\) to anon, authenticated, service_role/.test(v92)
+      && !/revoke all on function public\._has_crown\(uuid\) from public, anon, authenticated/.test(v92)
+      ? ok('v92: _has_crown is executable by anon/authenticated, because community_profiles and community_feed call it as a plain view')
+      : fail('v92: _has_crown is revoked from anon/authenticated - that 42501s the whole community feed'),
+  );
+  // The NGN path must refuse cosmetics in ALL THREE entry points. Checking only
+  // initiate-payment would leave verify-payment (reachable directly) and the
+  // webhook (attacker-reachable) able to charge for an item that grants nothing.
+  checks.push(
+    /COSMETIC_NOT_CARD_PURCHASABLE/.test(read(resolve(ROOT, 'api/initiate-payment.js')))
+      && /COSMETIC_NOT_CARD_PURCHASABLE/.test(read(resolve(ROOT, 'api/verify-payment.js')))
+      && /kind === 'cosmetic'/.test(read(resolve(ROOT, 'api/payments-webhook.js')))
+      && /\.neq\('kind', 'cosmetic'\)/.test(read(resolve(ROOT, 'src/pages/Marketplace.jsx')))
+      ? ok('Cosmetics are refused by initiate-payment, verify-payment and the webhook, and filtered out of the card storefront')
+      : fail('Cosmetics can still reach a card payment path, or appear in the NGN storefront'),
+  );
+
+  // The hub shell itself.
+  const activityPanel = read(resolve(ROOT, 'src/components/ActivityPanel.jsx'));
+  const cosmeticsPanel = read(resolve(ROOT, 'src/components/CosmeticsPanel.jsx'));
+  checks.push(
+    /useSearchParams/.test(lb)
+      && /key: 'ranking'/.test(lb)
+      && /key: 'friends'/.test(lb)
+      && /key: 'rivals'/.test(lb)
+      && /key: 'activity'/.test(lb)
+      && /key: 'cosmetics'/.test(lb)
+      && /RankingBoard/.test(lb)
+      && /SocialPanel/.test(lb)
+      && /ActivityPanel/.test(lb)
+      && /CosmeticsPanel/.test(lb)
+      && /social_activity_feed/.test(activityPanel)
+      && /cosmetic_catalog/.test(cosmeticsPanel)
+      && /cosmetic_purchase/.test(cosmeticsPanel)
+      ? ok('Social hub: /leaderboard carries all five tabs and each panel calls its own server RPC')
+      : fail('Social hub: a tab, panel or RPC is missing from the hub shell'),
+  );
+  checks.push(
+    /no-unused-vars/.test(read(resolve(ROOT, 'src/data/challengeCopy.js'))) === false
+      && /BLOCKED_COPY/.test(lbBoard)
+      && /BLOCKED_COPY/.test(lb)
+      ? ok('Challenge refusal copy lives in one module, shared by the board and the hub shell')
+      : fail('Challenge refusal copy has been duplicated or lost'),
   );
 
   // v80 - lifetime earnings + the passive-faucet shutdown + a reachable licence.
@@ -4041,6 +4265,196 @@ checks.push(
       && /e2e:economy/.test(read(resolve(ROOT, 'package.json')))
       ? ok('the Wallet page is routed + in the sidebar, and e2e:economy is wired')
       : fail('the Wallet page is not routed/sidebar-ed, or e2e:economy is missing'),
+  );
+}
+
+// ===========================================================================
+// PART R - ANONYMOUS ROOM: 18+ GATE, HOST DELETE, NO PRE-JOIN PRICE (v86-v88)
+// ===========================================================================
+{
+  const anonRoom = read(resolve(ROOT, 'src/pages/AnonymousRoom.jsx'));
+  const comm = read(resolve(ROOT, 'api/_community.js'));
+  const v88 = read(resolve(ROOT, 'scripts/migration-v88-anonymous-host-room-delete.sql'));
+  const v87 = read(resolve(ROOT, 'scripts/migration-v87-anonymous-price-299-190.sql'));
+  const v82 = read(resolve(ROOT, 'scripts/migration-v82-voting-campaigns.sql'));
+
+  // --- the 18+ gate is BLOCKING, not merely present ---
+  checks.push(
+    /const AgeGate = \(\{/.test(anonRoom)
+      && /role="dialog"/.test(anonRoom)
+      && /aria-modal="true"/.test(anonRoom)
+      // The confirm button must be gated on the tick.
+      && /disabled=\{!confirmed \|\| busy\}/.test(anonRoom)
+      // A real checkbox, not a styled div.
+      && /type="checkbox"/.test(anonRoom)
+      ? ok('18+ gate: a real modal dialog with a real checkbox whose confirm is disabled until ticked')
+      : fail('the 18+ gate is missing, or its confirm button is not gated on the tick'),
+  );
+  // A Modal closes on a backdrop click, so the gate must NOT be one.
+  checks.push(
+    /showNotice && isMember/.test(anonRoom) || !/const AgeGate[\s\S]{0,4000}<Modal/.test(anonRoom)
+      ? ok('18+ gate is not built on the backdrop-dismissible Modal component')
+      : fail('the 18+ gate renders inside <Modal>, which closes on a backdrop click'),
+  );
+  // Server-side enforcement, not just a UI block.
+  checks.push(
+    /export async function requireNoticeAck/.test(comm)
+      && (comm.match(/await requireNoticeAck\(req, res, user\)/g) || []).length >= 6
+      ? ok('requireNoticeAck exists and gates feed/members/message/send/event/duel server-side')
+      : fail('the notice gate is client-only, or is applied to fewer than the 6 content endpoints'),
+  );
+  // Presence MUST stay ungated or a member loses their seat while reading the box.
+  checks.push(
+    /requireNoticeAck[\s\S]*?handleAnonPresence/.test(comm)
+      || !/export async function handleAnonPresence[\s\S]{0,900}requireNoticeAck/.test(comm)
+      ? ok('presence is deliberately NOT notice-gated (a gated heartbeat would cost the seat)')
+      : fail('handleAnonPresence is notice-gated - a member reading the gate would lose their seat'),
+  );
+  // Spectators are covered from v6.
+  checks.push(
+    /access === 'member' \|\| access === 'spectator' \? await hasNoticeAck/.test(comm)
+      ? ok('spectators must acknowledge the notice too (they can read the whole room)')
+      : fail('noticeAccepted still hard-codes spectators as accepted'),
+  );
+
+  // --- host leave deletes the room, posts FIRST ---
+  checks.push(
+    /anonymous_room_delete_host/.test(comm) && /anonymous_room_delete_host/.test(v88)
+      ? ok('host leave routes through the anonymous_room_delete_host RPC')
+      : fail('host leave does not use the delete RPC'),
+  );
+  checks.push(
+    // Ordering is the confidentiality property: community_posts is set-null and
+    // community_feed admits any post with a null group_id.
+    /delete from public\.community_posts where group_id = p_group/.test(v88)
+      && v88.indexOf('delete from public.community_posts') < v88.indexOf('delete from public.study_groups')
+      ? ok('v88 deletes community_posts BEFORE study_groups (prevents the public-feed leak)')
+      : fail('v88 does not delete posts before the group - the room history would be published'),
+  );
+  checks.push(
+    /revoke all on function public\.anonymous_room_delete_host\(bigint, uuid\) from public, anon, authenticated/.test(v88)
+      && /grant  execute on function public\.anonymous_room_delete_host\(bigint, uuid\) to service_role/.test(v88)
+      ? ok('anonymous_room_delete_host is service-role only')
+      : fail('anonymous_room_delete_host is reachable by a client'),
+  );
+
+  // --- no price before a refused join ---
+  // The 6 remaining sites are all post-refusal checkout surfaces.
+  const priceSites = [...anonRoom.matchAll(/₦\{(memberPrice|price|bundleTotal)/g)].map((m) => m.index);
+  checks.push(
+    priceSites.length <= 6
+      ? ok(`no price before a refused join (${priceSites.length} amount sites left, all in the two checkout modals)`)
+      : fail(`${priceSites.length} price sites remain in AnonymousRoom.jsx - some are pre-join`),
+  );
+  checks.push(
+    /then ₦\{memberPrice/.test(anonRoom) || /then ₦\{price/.test(anonRoom)
+      ? fail('a pre-join surface still names an amount (the "then ₦X" phrasing)')
+      : ok('no pre-join surface uses the "then ₦X" phrasing'),
+  );
+
+  // --- dynamic pre-join screens ---
+  checks.push(
+    /PREJOIN_POLL_MS/.test(anonRoom) && /isSeated/.test(anonRoom)
+      && /This room is empty/.test(anonRoom)
+      ? ok('the join gate polls live and has a distinct empty-room state')
+      : fail('the pre-join screens are still a static snapshot with no empty state'),
+  );
+
+  // --- prices are DB-resolved, never hardcoded ---
+  checks.push(
+    /member_price\s*=\s*299\.00/.test(v87) && /spectator_price\s*=\s*190\.00/.test(v87)
+      && /alter column member_price    set default 299/.test(v87)
+      && /alter column spectator_price set default 190/.test(v87)
+      ? ok('v87 sets 299/190 on every anonymous room AND on both column defaults')
+      : fail('v87 does not set both the rows and the column defaults'),
+  );
+
+  // --- one review per service, all five ---
+  checks.push(
+    /ALREADY_RATED/.test(v82)
+      && !/v_cat = 'overall' and exists/.test(v82)
+      && /v_replay/.test(v82)
+      ? ok('cast_service_rating refuses a second DIFFERING rating for every category, replay-safe')
+      : fail('cast_service_rating is still overall-only, or the identical-replay path is missing'),
+  );
+  checks.push(
+    /ONE_TIME_CATEGORIES = new Set\(SERVICE_CATEGORIES\.map/.test(read(resolve(ROOT, 'src/pages/Voting.jsx')))
+      ? ok('the Voting UI locks all five categories once a rating exists')
+      : fail('the Voting UI still only locks some categories'),
+  );
+
+  // --- the honest-error fixes ---
+  checks.push(
+    /statsError/.test(read(resolve(ROOT, 'src/pages/Voting.jsx')))
+      && /'open', 'reviewing', 'resolved', 'ignored'/.test(read(resolve(ROOT, 'src/pages/Reviews.jsx')))
+      ? ok('Voting surfaces load failures instead of claiming zero ratings; Reviews uses legal status values')
+      : fail('the silent-error / illegal-status fixes are missing'),
+  );
+
+  // --- console-error fixes ---
+  checks.push(
+    /createContext\(\{\}\)/.test(read(resolve(ROOT, 'src/context/AppContext.jsx')))
+      ? ok('AppContext has a default value, so an out-of-provider render degrades instead of throwing')
+      : fail('AppContext is createContext() with no default - AdSenseManager crashed on this'),
+  );
+  checks.push(
+    /<ErrorBoundary>\s*<AdSenseManager>/.test(read(resolve(ROOT, 'src/App.jsx')))
+      ? ok('an ErrorBoundary now sits ABOVE AdSenseManager, so a fault cannot blank the whole tree')
+      : fail('AdSenseManager is still above the only ErrorBoundary'),
+  );
+  checks.push(
+    /body: \{ score, total, question_ids: ids \}/.test(read(resolve(ROOT, 'src/components/DailyChallengeWidget.jsx')))
+      ? ok('daily-challenge/complete sends an object (it was double-stringified and stored score 0)')
+      : fail('daily-challenge/complete still pre-stringifies its body'),
+  );
+
+  // --- auth exemplar text ---
+  const auth = read(resolve(ROOT, 'src/pages/Auth.jsx'));
+  const cam = read(resolve(ROOT, 'src/components/CommunityAuthModal.jsx'));
+  checks.push(
+    /e\.g\. Amaka Okonkwo/.test(auth) && /e\.g\. amaka@gmail\.com/.test(auth)
+      && /placeholder:text-slate-400/.test(auth)
+      ? ok('Auth.jsx has exemplar placeholders with visible placeholder colour')
+      : fail('Auth.jsx is missing exemplar text or its placeholder colour class'),
+  );
+  checks.push(
+    /setShowPassword/.test(auth) && /type="button"/.test(auth)
+      && /placeholder="Type it again"/.test(auth)
+      ? ok('Auth.jsx has a show/hide password toggle and a confirm hint')
+      : fail('Auth.jsx is missing the show/hide toggle or the confirm hint'),
+  );
+  checks.push(
+    /e\.g\. Amaka Okonkwo/.test(cam) && /e\.g\. 0803 123 4567/.test(cam)
+      && /placeholder:text-slate-400/.test(cam)
+      ? ok('CommunityAuthModal has exemplar text on every signup field')
+      : fail('CommunityAuthModal is missing exemplar text'),
+  );
+
+  // --- the visible pts are gone, the ranking maths is not ---
+  const dash = read(resolve(ROOT, 'src/pages/Dashboard.jsx'));
+  const quiz = read(resolve(ROOT, 'src/pages/Quiz.jsx'));
+  const lb = read(resolve(ROOT, 'src/pages/Leaderboard.jsx'));
+  // Match a rendered "N pts" TEXT NODE only - ` pts'` / " pts`" / ' pts<'.
+  // A bare /pts/ would false-positive on `weakConcepts` (Con**cepts**) and on
+  // the explanatory comment above, which is how the first version of this gate
+  // failed on code that was already correct.
+  const PTS_TEXT = /\spts['`<]/;
+  checks.push(
+    !PTS_TEXT.test(dash) && !PTS_TEXT.test(quiz) && !PTS_TEXT.test(lb)
+      ? ok('no visible "N pts" score on the Dashboard, Quiz header or Leaderboard rows')
+      : fail('a visible pts label is still rendered'),
+  );
+  checks.push(
+    /playerScore/.test(read(resolve(ROOT, 'src/context/AppContext.jsx')))
+      ? ok('the underlying score still exists and still decides the ranking (only the label was removed)')
+      : fail('the ranking signal itself was removed, not just its display'),
+  );
+
+  // --- the static mock is gone ---
+  checks.push(
+    !existsSync(resolve(ROOT, 'Join the room.html'))
+      ? ok('the standalone Join the room.html mock has been removed')
+      : fail('Join the room.html still exists - it is an unwired static mock with a hardcoded taken=7'),
   );
 }
 

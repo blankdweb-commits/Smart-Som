@@ -32,22 +32,28 @@ export default function Reviews() {
   const [allSubmissions, setAllSubmissions] = useState([]);
   const [filter, setFilter] = useState('all');
   const [loading, setLoading] = useState(false);
+  const [loadError, setLoadError] = useState('');
+  const [statusError, setStatusError] = useState('');
 
   const loadAll = useCallback(async () => {
     if (!supabase || !session) return;
     setLoading(true);
-    try {
-      const { data } = await supabase
-        .from('feedback_submissions')
-        .select('*, profiles(identity_name)')
-        .order('created_at', { ascending: false })
-        .limit(200);
+    // supabase-js RESOLVES with { error } rather than throwing, so the old
+    // try/catch around this could never fire: every failed admin load was
+    // silent and the inbox rendered as permanently empty.
+    const { data, error } = await supabase
+      .from('feedback_submissions')
+      .select('*, profiles(identity_name)')
+      .order('created_at', { ascending: false })
+      .limit(200);
+    if (error) {
+      setLoadError('Could not load the feedback inbox.');
+      setAllSubmissions([]);
+    } else {
+      setLoadError('');
       setAllSubmissions(data || []);
-    } catch (err) {
-      console.warn('Load reviews failed:', err.message);
-    } finally {
-      setLoading(false);
     }
+    setLoading(false);
   }, [session]);
 
   useEffect(() => {
@@ -84,23 +90,29 @@ export default function Reviews() {
   };
 
   const updateStatus = async (id, status) => {
-    try {
-      await supabase.from('feedback_submissions').update({ status }).eq('id', id);
-      loadAll();
-    } catch (err) {
-      console.warn('Status update failed:', err.message);
-    }
+    const { error } = await supabase.from('feedback_submissions').update({ status }).eq('id', id);
+    // The column carries a CHECK constraint of ('open','reviewing','resolved',
+    // 'ignored'). The old UI wrote 'new' and 'archived', which are NOT in that
+    // list, so every write was rejected by Postgres - while the RLS-select-own
+    // policy made the failure invisible. Hence the vocabulary below.
+    if (error) setStatusError(error.message || 'Could not update that item.');
+    else setStatusError('');
+    loadAll();
   };
 
   const filtered = allSubmissions.filter(s =>
     filter === 'all' ? true : s.status === filter
   );
 
+  // These keys MUST match feedback_submissions_status_check in
+  // migration-v10-upgrade.sql: ('open','reviewing','resolved','ignored').
+  // 'new' and 'archived' were never legal values, which is why the Inbox badge
+  // was permanently 0 and two of the four filter chips were always empty.
   const statusMeta = {
-    new: { label: 'New', color: 'bg-blue-100 text-blue-700', icon: Clock },
-    reviewed: { label: 'Reviewed', color: 'bg-amber-100 text-amber-700', icon: AlertCircle },
+    open: { label: 'Open', color: 'bg-blue-100 text-blue-700', icon: Clock },
+    reviewing: { label: 'Reviewing', color: 'bg-amber-100 text-amber-700', icon: AlertCircle },
     resolved: { label: 'Resolved', color: 'bg-emerald-100 text-emerald-700', icon: CheckCircle },
-    archived: { label: 'Archived', color: 'bg-slate-100 text-slate-500', icon: Inbox }
+    ignored: { label: 'Ignored', color: 'bg-slate-100 text-slate-500', icon: Inbox }
   };
 
   return (
@@ -122,7 +134,7 @@ export default function Reviews() {
             onClick={() => setTab('inbox')}
             className={`flex-1 py-2.5 rounded-xl text-xs font-bold transition-all ${tab === 'inbox' ? 'bg-white dark:bg-slate-700 text-teal-600 shadow-sm' : 'text-slate-500'}`}
           >
-            Inbox ({allSubmissions.filter(s => s.status === 'new').length})
+            Inbox ({allSubmissions.filter(s => s.status === 'open').length})
           </button>
         </div>
       )}
@@ -201,8 +213,13 @@ export default function Reviews() {
         </motion.div>
       ) : (
         <div>
+          {statusError && (
+            <p className="mb-3 rounded-xl bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 px-3 py-2 text-xs font-bold text-red-600 dark:text-red-400">
+              {statusError}
+            </p>
+          )}
           <div className="flex flex-wrap gap-2 mb-4">
-            {['all', 'new', 'reviewed', 'resolved'].map(f => (
+            {['all', 'open', 'reviewing', 'resolved', 'ignored'].map(f => (
               <button
                 key={f}
                 onClick={() => setFilter(f)}
@@ -217,7 +234,17 @@ export default function Reviews() {
             ))}
           </div>
 
-          {loading ? (
+          {loadError ? (
+            <div className="rounded-2xl border border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20 p-4 text-center">
+              <p className="text-sm font-bold text-red-600 dark:text-red-400">{loadError}</p>
+              <button
+                onClick={loadAll}
+                className="mt-3 px-4 py-2 rounded-xl bg-red-600 text-white text-xs font-bold uppercase tracking-widest"
+              >
+                Try again
+              </button>
+            </div>
+          ) : loading ? (
             <div className="space-y-3">
               {[1, 2, 3].map(i => (
                 <div key={i} className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4 animate-pulse">
@@ -234,7 +261,7 @@ export default function Reviews() {
           ) : (
             <div className="space-y-3">
               {filtered.map(s => {
-                const meta = statusMeta[s.status] || statusMeta.new;
+                const meta = statusMeta[s.status] || statusMeta.open;
                 return (
                   <div key={s.id} className="rounded-2xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 p-4">
                     <div className="flex items-center justify-between mb-2">

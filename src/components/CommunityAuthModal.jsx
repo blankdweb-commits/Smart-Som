@@ -20,6 +20,16 @@ import {
 
 const NURSING_YEARS = ['Year 1', 'Year 2', 'Year 3', 'Year 4', 'Year 5'];
 
+// Exemplar + hint copy, shared by the signin and signup forms so the two can
+// never drift apart. The password RULE only applies when choosing one, so
+// sign-in gets a different string (see PASSWORD_HINT).
+const EMAIL_PLACEHOLDER = 'e.g. amaka@gmail.com';
+const EMAIL_HINT = 'Use an address you can actually open on this device.';
+const PASSWORD_HINT = {
+  signin: 'The password you set when you signed up.',
+  signup: 'Six characters minimum. A short phrase you will remember beats a short word.',
+};
+
 const CommunityAuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
   // Views: 'gate' | 'signin' | 'signup' | 'forgot'
   const [view, setView] = useState('gate');
@@ -287,35 +297,47 @@ const CommunityAuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
               )}
 
               <form onSubmit={handleSignIn} className="space-y-4">
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="email"
-                    placeholder="Email Address"
-                    required
-                    className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-11 pr-4 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-medical-500 focus:ring-1 focus:ring-medical-500/30 transition-all"
-                    value={formData.email}
-                    onChange={(e) => updateField('email', e.target.value)}
-                  />
+                <div>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="email"
+                      placeholder={EMAIL_PLACEHOLDER}
+                      aria-label="Email address"
+                      autoComplete="email"
+                      required
+                      className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-11 pr-4 text-slate-900 dark:text-white text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-medical-500 focus:ring-1 focus:ring-medical-500/30 transition-all"
+                      value={formData.email}
+                      onChange={(e) => updateField('email', e.target.value)}
+                    />
+                  </div>
+                  <p className="mt-1.5 text-[11px] font-medium text-slate-400">{EMAIL_HINT}</p>
                 </div>
 
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Password"
-                    required
-                    className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-11 pr-11 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-medical-500 focus:ring-1 focus:ring-medical-500/30 transition-all"
-                    value={formData.password}
-                    onChange={(e) => updateField('password', e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
+                <div>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="Your password"
+                      aria-label="Password"
+                      autoComplete="current-password"
+                      required
+                      className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-11 pr-11 text-slate-900 dark:text-white text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-medical-500 focus:ring-1 focus:ring-medical-500/30 transition-all"
+                      value={formData.password}
+                      onChange={(e) => updateField('password', e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      aria-pressed={showPassword}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                  <p className="mt-1.5 text-[11px] font-medium text-slate-400">{PASSWORD_HINT.signin}</p>
                 </div>
 
                 {error && (
@@ -373,88 +395,129 @@ const CommunityAuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
               </div>
 
               <form onSubmit={handleSignUp} className="space-y-3">
-                <div className="relative">
-                  <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="text"
-                    placeholder="Full Name *"
-                    required
-                    className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-11 pr-4 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-medical-500 focus:ring-1 focus:ring-medical-500/30 transition-all"
-                    value={formData.fullName}
-                    onChange={(e) => updateField('fullName', e.target.value)}
-                  />
+                <div>
+                  <div className="relative">
+                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="text"
+                      placeholder="e.g. Amaka Okonkwo"
+                      aria-label="Full name"
+                      autoComplete="name"
+                      required
+                      className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-11 pr-4 text-slate-900 dark:text-white text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-medical-500 focus:ring-1 focus:ring-medical-500/30 transition-all"
+                      value={formData.fullName}
+                      onChange={(e) => updateField('fullName', e.target.value)}
+                    />
+                  </div>
+                  <p className="mt-1.5 text-[11px] font-medium text-slate-400">
+                    Your legal name. You can set a different display name later in Settings.
+                  </p>
                 </div>
 
-                <div className="relative">
-                  <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="email"
-                    placeholder="Email Address *"
-                    required
-                    className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-11 pr-4 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-medical-500 focus:ring-1 focus:ring-medical-500/30 transition-all"
-                    value={formData.email}
-                    onChange={(e) => updateField('email', e.target.value)}
-                  />
+                <div>
+                  <div className="relative">
+                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="email"
+                      placeholder={EMAIL_PLACEHOLDER}
+                      aria-label="Email address"
+                      autoComplete="email"
+                      required
+                      className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-11 pr-4 text-slate-900 dark:text-white text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-medical-500 focus:ring-1 focus:ring-medical-500/30 transition-all"
+                      value={formData.email}
+                      onChange={(e) => updateField('email', e.target.value)}
+                    />
+                  </div>
+                  <p className="mt-1.5 text-[11px] font-medium text-slate-400">{EMAIL_HINT}</p>
                 </div>
 
-                <div className="relative">
-                  <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type="tel"
-                    placeholder="Phone Number (optional)"
-                    className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-11 pr-4 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-medical-500 focus:ring-1 focus:ring-medical-500/30 transition-all"
-                    value={formData.phone}
-                    onChange={(e) => updateField('phone', e.target.value)}
-                  />
+                <div>
+                  <div className="relative">
+                    <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type="tel"
+                      placeholder="e.g. 0803 123 4567"
+                      aria-label="Phone number (optional)"
+                      autoComplete="tel"
+                      className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-11 pr-4 text-slate-900 dark:text-white text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-medical-500 focus:ring-1 focus:ring-medical-500/30 transition-all"
+                      value={formData.phone}
+                      onChange={(e) => updateField('phone', e.target.value)}
+                    />
+                  </div>
+                  <p className="mt-1.5 text-[11px] font-medium text-slate-400">
+                    Optional. You can add or change it in Settings.
+                  </p>
                 </div>
 
-                <select
-                  value={formData.nursingYear}
-                  onChange={(e) => updateField('nursingYear', e.target.value)}
-                  className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-medical-500 focus:ring-1 focus:ring-medical-500/30 transition-all appearance-none"
-                >
-                  <option value="">Select Nursing Year (optional)</option>
-                  {NURSING_YEARS.map((yr) => (
-                    <option key={yr} value={yr}>{yr}</option>
-                  ))}
-                </select>
-
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type={showPassword ? 'text' : 'password'}
-                    placeholder="Password * (min 6 characters)"
-                    required
-                    className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-11 pr-11 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-medical-500 focus:ring-1 focus:ring-medical-500/30 transition-all"
-                    value={formData.password}
-                    onChange={(e) => updateField('password', e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                <div>
+                  <select
+                    aria-label="Nursing year (optional)"
+                    value={formData.nursingYear}
+                    onChange={(e) => updateField('nursingYear', e.target.value)}
+                    className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl py-3 px-4 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-medical-500 focus:ring-1 focus:ring-medical-500/30 transition-all appearance-none"
                   >
-                    {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
+                    <option value="">Select Nursing Year (optional)</option>
+                    {NURSING_YEARS.map((yr) => (
+                      <option key={yr} value={yr}>{yr}</option>
+                    ))}
+                  </select>
+                  <p className="mt-1.5 text-[11px] font-medium text-slate-400">
+                    Optional. It only tailors your course suggestions.
+                  </p>
                 </div>
 
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                  <input
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    placeholder="Confirm Password *"
-                    required
-                    className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-11 pr-11 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-medical-500 focus:ring-1 focus:ring-medical-500/30 transition-all"
-                    value={formData.confirmPassword}
-                    onChange={(e) => updateField('confirmPassword', e.target.value)}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
-                  >
-                    {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                  </button>
+                <div>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      placeholder="e.g. 6 or more characters"
+                      aria-label="Password"
+                      autoComplete="new-password"
+                      required
+                      className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-11 pr-11 text-slate-900 dark:text-white text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-medical-500 focus:ring-1 focus:ring-medical-500/30 transition-all"
+                      value={formData.password}
+                      onChange={(e) => updateField('password', e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      aria-pressed={showPassword}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                  <p className="mt-1.5 text-[11px] font-medium text-slate-400">{PASSWORD_HINT.signup}</p>
+                </div>
+
+                <div>
+                  <div className="relative">
+                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                    <input
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      placeholder="Type it again"
+                      aria-label="Confirm password"
+                      autoComplete="new-password"
+                      required
+                      className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-11 pr-11 text-slate-900 dark:text-white text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-medical-500 focus:ring-1 focus:ring-medical-500/30 transition-all"
+                      value={formData.confirmPassword}
+                      onChange={(e) => updateField('confirmPassword', e.target.value)}
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      aria-label={showConfirmPassword ? 'Hide password confirmation' : 'Show password confirmation'}
+                      aria-pressed={showConfirmPassword}
+                      className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    >
+                      {showConfirmPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                  <p className="mt-1.5 text-[11px] font-medium text-slate-400">
+                    Must match the password above.
+                  </p>
                 </div>
 
                 {error && (
@@ -515,16 +578,23 @@ const CommunityAuthModal = ({ isOpen, onClose, onAuthSuccess }) => {
                 </div>
               ) : (
                 <form onSubmit={handleForgotPassword} className="space-y-4">
-                  <div className="relative">
-                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
-                    <input
-                      type="email"
-                      placeholder="Email Address"
-                      required
-                      className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-11 pr-4 text-slate-900 dark:text-white text-sm focus:outline-none focus:border-medical-500 focus:ring-1 focus:ring-medical-500/30 transition-all"
-                      value={formData.email}
-                      onChange={(e) => updateField('email', e.target.value)}
-                    />
+                  <div>
+                    <div className="relative">
+                      <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                      <input
+                        type="email"
+                        placeholder={EMAIL_PLACEHOLDER}
+                        aria-label="Email address"
+                        autoComplete="email"
+                        required
+                        className="w-full bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 rounded-xl py-3 pl-11 pr-4 text-slate-900 dark:text-white text-sm placeholder:text-slate-400 dark:placeholder:text-slate-500 focus:outline-none focus:border-medical-500 focus:ring-1 focus:ring-medical-500/30 transition-all"
+                        value={formData.email}
+                        onChange={(e) => updateField('email', e.target.value)}
+                      />
+                    </div>
+                    <p className="mt-1.5 text-[11px] font-medium text-slate-400">
+                      We will send the reset link to this address.
+                    </p>
                   </div>
 
                   {error && (

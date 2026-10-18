@@ -30,6 +30,7 @@ import {
   Crown,
   BellOff,
   Shield,
+  ShieldAlert,
   Bell,
   Volume2,
   VolumeX,
@@ -64,6 +65,12 @@ const SWIPE_REPLY_THRESHOLD = 64;
 // v54 — action/challenge/fight event cards die at the same 10 minutes as
 // messages. Mirrors the server's EVENT_LIFETIME_MS (config.event_lifetime_seconds).
 const EVENT_LIFETIME_SECONDS = 600;
+
+// How often the pre-join screens re-read the room so the seat bar and the
+// free-seat count are live rather than a snapshot. Matches the guest preview's
+// 10s cadence; fast enough to feel current, slow enough not to hammer the API
+// from a tab someone has left open on the join screen.
+const PREJOIN_POLL_MS = 10000;
 
 const REPORT_CATEGORIES = [
   { value: 'harassment', label: 'Harassment or bullying' },
@@ -561,6 +568,131 @@ const RoomEventCard = ({ ev, canReact, canDuel, busy, onReact, onRespond, onMent
   );
 };
 
+// ---------------------------------------------------------------------------
+// AgeGate - the v6 blocking 18+ confirmation.
+//
+// NOT a Modal, and that is the whole point. `Modal` closes on a backdrop click,
+// which would make this "dismissible", and a dismissible age gate is not a gate.
+// This is a raw overlay with no backdrop handler, no Escape handling and no
+// close button, so the only ways out are the tick or the explicit Leave link.
+//
+// It is also only half the enforcement. `requireNoticeAck` in api/_community.js
+// 403s the feed / roster / message / event / duel endpoints until the ack is
+// recorded, so someone who ignores this box still reads nothing.
+// ---------------------------------------------------------------------------
+const AgeGate = ({
+  minimumAge = 18,
+  noticeVersion = 6,
+  confirmed,
+  onTick,
+  onAcknowledge,
+  busy,
+  onLeave,
+}) => {
+  // Move focus onto the tick so a keyboard user is never tabbing blind through
+  // the room behind the overlay.
+  const boxRef = useRef(null);
+  useEffect(() => {
+    boxRef.current?.focus();
+  }, []);
+
+  const items = [
+    'Be kind. No harassment, hate speech, threats or discrimination — the room is for nursing studies, not attacks.',
+    'Never share personal details about yourself or anyone else (names, phone numbers, addresses, handles).',
+    'Messages are ephemeral. Every message disappears exactly 10 minutes after it is sent, and a wiped round erases everything.',
+    'Actions are opt-in. Some moves — like a toast or a crack — need the other person to ACCEPT first, and declining ends it there. Nothing happens without a yes.',
+    'Turn on “declining interactions” any time to refuse every incoming action at once.',
+    'If you see something harmful, report it. The team can hide messages and restrict accounts.',
+  ];
+
+  return (
+    <div
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="age-gate-title"
+      aria-describedby="age-gate-desc"
+      className="fixed inset-0 z-[60] bg-slate-950 overflow-y-auto"
+    >
+      <div className="min-h-full flex items-start sm:items-center justify-center p-4 py-8">
+        <div className="w-full max-w-md">
+          <div className="bg-slate-900/80 backdrop-blur-xl border-2 border-red-500/40 rounded-3xl p-6 sm:p-8 shadow-2xl">
+            <div className="text-center">
+              <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-red-500/15 border border-red-500/30 mb-4">
+                <ShieldAlert size={34} className="text-red-400" />
+              </div>
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-red-500/15 border border-red-500/30 mb-3">
+                <span className="text-[10px] font-black uppercase tracking-widest text-red-300">
+                  {minimumAge}+ only
+                </span>
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">
+                  v{noticeVersion}
+                </span>
+              </div>
+              <h1 id="age-gate-title" className="text-2xl font-black text-white">
+                Adults only
+              </h1>
+              <p id="age-gate-desc" className="text-sm font-medium text-slate-400 mt-3">
+                This room carries adult humour and consent-gated comedy gags. You must be{' '}
+                <span className="text-white font-black">{minimumAge} years old or older</span> to enter.
+              </p>
+            </div>
+
+            <ul className="mt-6 space-y-3">
+              {items.map((t, i) => (
+                <li key={t} className="flex gap-2.5 text-xs font-medium text-slate-400">
+                  <span className="text-red-400 font-black shrink-0">{String(i + 1).padStart(2, '0')}</span>
+                  <span>{t}</span>
+                </li>
+              ))}
+            </ul>
+
+            {/* A real checkbox with a real label, not a styled div: keyboard
+                operable, screen-reader announced, and focusable on mount. */}
+            <label className="mt-6 flex items-start gap-3 p-4 rounded-2xl bg-slate-800/60 border-2 border-slate-700 cursor-pointer focus-within:border-red-400 has-[:checked]:border-emerald-500/60 has-[:checked]:bg-emerald-500/5 transition-colors">
+              <input
+                ref={boxRef}
+                type="checkbox"
+                checked={confirmed}
+                onChange={(e) => onTick(e.target.checked)}
+                className="mt-0.5 w-6 h-6 shrink-0 rounded accent-emerald-500"
+              />
+              <span className="text-sm font-black text-white leading-snug">
+                I confirm I am {minimumAge} years old or older.
+              </span>
+            </label>
+
+            <button
+              type="button"
+              onClick={onAcknowledge}
+              disabled={!confirmed || busy}
+              className="mt-4 w-full px-4 py-4 rounded-2xl bg-red-600 hover:bg-red-700 text-white font-black text-xs uppercase tracking-widest disabled:opacity-40 disabled:cursor-not-allowed transition flex items-center justify-center gap-2 min-h-[52px]"
+            >
+              {busy ? <Loader2 size={16} className="animate-spin" /> : <ShieldAlert size={16} />}
+              {confirmed
+                ? `I am ${minimumAge} or older — enter the room`
+                : `Confirm you are ${minimumAge}+ to continue`}
+            </button>
+
+            <p className="mt-3 text-[11px] text-slate-500 text-center">
+              Recorded against your account, so you are only asked again if the rules change.
+            </p>
+
+            {/* A blocking gate with no exit is a trap. Leaving is always
+                available and has no side effect. */}
+            <button
+              type="button"
+              onClick={onLeave}
+              className="mt-4 w-full px-4 py-2.5 rounded-xl bg-transparent border border-slate-800 text-slate-400 font-black text-[10px] uppercase tracking-widest hover:text-white transition"
+            >
+              Leave instead
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const StatusPill = ({ conn }) => {
   if (conn === 'live') {
     return (
@@ -937,6 +1069,10 @@ const AnonymousRoom = () => {
 
   const [booting, setBooting] = useState(true);
   const [bootError, setBootError] = useState('');
+  // v88 - the room a seated viewer was in has been deleted (the host closed it).
+  // A GROUP_NOT_FOUND used to die in a silent catch, leaving them staring at a
+  // stale in-room view that would never update again.
+  const [roomGone, setRoomGone] = useState(false);
   const [room, setRoom] = useState(null);
   const [messages, setMessages] = useState([]);
   const [systemEvents, setSystemEvents] = useState([]);
@@ -967,6 +1103,11 @@ const AnonymousRoom = () => {
   const [showRules, setShowRules] = useState(false);
   const [showNotice, setShowNotice] = useState(false);
   const [noticeBusy, setNoticeBusy] = useState(false);
+  // v6 - the safety notice now carries a REQUIRED 18+ confirmation. The tick
+  // state lives here rather than inside the gate component so it survives the
+  // overlay remounting (a poll or a reconcile re-renders it constantly, and a
+  // remount would silently untick a box the user had already ticked).
+  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [joining, setJoining] = useState(false);
   const [buying, setBuying] = useState(false);
   const [leaving, setLeaving] = useState(false);
@@ -1116,7 +1257,16 @@ const AnonymousRoom = () => {
     typeof spectatorCount === 'number' && typeof freeSpecCap === 'number'
       ? Math.max(freeSpecCap - spectatorCount, 0)
       : null;
-  const noticeAccepted = !isMember || room?.notice?.accepted === true;
+  // v6 - spectators are covered by the notice (and therefore the 18+ tick) too.
+  // Previously `!isMember` short-circuited this to true, which meant anyone could
+  // take a spectator seat and read the whole room with no notice and no age gate.
+  const isSeated = isMember || isSpectator;
+  const noticeAccepted = !isSeated || room?.notice?.accepted === true;
+  // The blocking overlay. Nothing behind it is readable or interactive.
+  const needsAgeGate = isSeated && !noticeAccepted;
+  // Rendered by the gate. Sourced from the server so the number the user reads
+  // is the number the server enforces.
+  const roomMinimumAge = Number(room?.config?.minimum_age) || 18;
   const myAliasNum = room?.my_alias ?? null;
   // P3 — gift seats I bought for THIS room (from handleAnonRoom). Unclaimed ones
   // are shareable; claimed ones show the recipient's claim state.
@@ -1356,7 +1506,12 @@ const AnonymousRoom = () => {
     try {
       const data = await loadRoom();
       detectRelease(data);
-      if (data.access === 'member' || data.access === 'spectator') {
+      setRoomGone(false);
+      // v6: the feed is 403 NOTICE_REQUIRED until the notice (and its 18+ tick)
+      // is accepted. Skip it rather than letting the 403 land in the catch and
+      // report "Could not open the Anonymous room".
+      const seated = data?.access === 'member' || data?.access === 'spectator';
+      if (seated && data?.notice?.accepted === true) {
         const feed = await loadFeed(data.group.id);
         const fetched = feed.messages || [];
         const oldest = fetched.length ? Date.parse(fetched[0].created_at) : Infinity;
@@ -1388,8 +1543,14 @@ const AnonymousRoom = () => {
           olderCursorRef.current = feed.next_before || (fetched[0]?.created_at ?? null);
         }
       }
-    } catch {
+    } catch (err) {
       /* transient — realtime retry / polling will reconcile again */
+      // v88 - except a deleted room, which will never come back on its own.
+      // Without this the viewer sits on a frozen in-room view forever while
+      // reconcile() keeps 404ing into an empty catch.
+      if (err?.data?.error === 'GROUP_NOT_FOUND' || err?.code === 'GROUP_NOT_FOUND') {
+        setRoomGone(true);
+      }
     }
   }, [loadRoom, loadFeed, detectRelease]);
 
@@ -1404,10 +1565,13 @@ const AnonymousRoom = () => {
       else setBooting(true);
       setBootError('');
       try {
-        const data = await loadRoom();
-        detectRelease(data);
-        if (data.access === 'member' || data.access === 'spectator') {
-          const feed = await loadFeed(data.group.id);
+const data = await loadRoom();
+      detectRelease(data);
+      // v6: same gate as bootstrap - an unconfirmed viewer must not reach the
+      // feed, and must not see one get wiped out of state by a 403.
+      const seated = data?.access === 'member' || data?.access === 'spectator';
+      if (seated && data?.notice?.accepted === true) {
+        const feed = await loadFeed(data.group.id);
           setMessages(feed.messages || []);
           setEvents(feed.events || []);
           setHasMore(!!feed.has_more);
@@ -1420,6 +1584,12 @@ const AnonymousRoom = () => {
           setHasMore(false);
         }
       } catch (err) {
+        // v88 - the host deleted the room out from under this viewer. Show the
+        // dedicated screen instead of a generic load failure.
+        if (err?.data?.error === 'GROUP_NOT_FOUND' || err?.code === 'GROUP_NOT_FOUND') {
+          setRoomGone(true);
+          return;
+        }
         setBootError(
           err?.code === 'AUTH_NOT_READY'
             ? 'Sign in to join the Anonymous room.'
@@ -1441,6 +1611,48 @@ const AnonymousRoom = () => {
   useEffect(() => {
     bootstrap(false);
   }, [bootstrap]);
+
+  // ---------------------------------------------------------------------
+  // Pre-join screens are LIVE.
+  //
+  // The join / closed gates used to render a snapshot taken when the page
+  // loaded and then never update: the seat bar said "3 of 20" while three more
+  // people joined behind it, and the free-seat count went stale. Only the
+  // logged-out guest preview polled (10s); an authenticated prospective member
+  // waiting on the "room is filling up" screen got nothing at all, because
+  // bootstrap() runs once and no other path re-fetches for a non-member.
+  //
+  // So: while the viewer is NOT seated, poll the room. The moment they become
+  // a member or spectator the poll tears down, because from that point the
+  // normal heartbeat + realtime reconcile owns it and a second poller would
+  // just double every request.
+  // ---------------------------------------------------------------------
+  useEffect(() => {
+    if (!session) return undefined;
+    if (isSeated) return undefined;
+
+    let cancelled = false;
+    const tick = async () => {
+      try {
+        const data = await communityApi(session, '/anonymous/room', groupId ? { group_id: groupId } : {});
+        if (cancelled) return;
+        if (data) setRoom(data);
+      } catch {
+        // Transient. Keep the last good snapshot on screen and try again.
+      }
+    };
+
+    const timer = setInterval(tick, PREJOIN_POLL_MS);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') tick();
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      cancelled = true;
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [session, isSeated, groupId]);
 
   // WS4 — logged-out preview: fetch the room's public metadata once. Only runs
   // -------------------------------------------------------------------------
@@ -1993,7 +2205,12 @@ if (type === 'fight') {
       markActivity();
     } catch (err) {
       if (err.code === 'NOTICE_REQUIRED') {
-        setShowNotice(true);
+        // The server is the authority on the ack. If it says the notice is not
+        // accepted, drop our optimistic `accepted` flag so `needsAgeGate` goes
+        // true and the BLOCKING overlay takes over. Falling through to the old
+        // dismissible modal here would let a member send again without ever
+        // ticking the 18+ box, because the modal closes on a backdrop click.
+        setRoom((prev) => (prev ? { ...prev, notice: { ...prev.notice, accepted: false } } : prev));
         setComposerError(SEND_ERRORS.NOTICE_REQUIRED);
       } else {
         setComposerError(SEND_ERRORS[err.code] || err.message || 'Message could not be sent.');
@@ -2201,6 +2418,19 @@ if (type === 'fight') {
       setRoom((prev) => (prev ? { ...prev, notice: { accepted: true } } : prev));
       setShowNotice(false);
       setComposerError('');
+      // The room load deliberately skipped the feed while the notice was
+      // unaccepted (the server 403s it), so the messages are not in state yet.
+      // Fetch them now the ack exists, otherwise accepting the gate drops the
+      // user into an empty room that only fills in on the next poll.
+      if (groupId) {
+        const feed = await loadFeed(groupId).catch(() => null);
+        if (feed) {
+          setMessages(feed.messages || []);
+          setEvents(feed.events || []);
+          setHasMore(!!feed.has_more);
+          olderCursorRef.current = feed.next_before || (feed.messages?.[0]?.created_at ?? null);
+        }
+      }
     } catch (err) {
       setComposerError(err.message || 'Could not save your acknowledgement.');
     } finally {
@@ -2432,7 +2662,18 @@ if (type === 'fight') {
     if (!groupId || leaving) return;
     setLeaving(true);
     try {
-      await communityApi(session, '/groups/leave', { group_id: groupId });
+      const res = await communityApi(session, '/groups/leave', { group_id: groupId });
+      // HOST LEAVE DELETES THE ROOM. There is no seat to release and nothing to
+      // rejoin, so the "You have left the room / Rejoin this room" screen would
+      // be a lie - it would offer a re-entry into a room that no longer exists.
+      if (res?.deleted) {
+        leftDeliberatelyRef.current = true;
+        clearAnonVisitKey();
+        setExitOpen(false);
+        setShowRules(false);
+        navigate('/study-groups', { replace: true });
+        return;
+      }
       await communityApi(session, '/anonymous/presence-leave', { group_id: groupId }).catch(() => {});
       // The seat is gone on purpose — stop detectRelease from reporting it as
       // an inactivity release, and drop the visit key so re-entering mints a
@@ -2848,6 +3089,53 @@ if (type === 'fight') {
     );
   }
 
+  // v6 - the blocking 18+ gate. Placed here, AFTER bootError and BEFORE every
+  // other screen, so it wins over the in-room view. It renders for members AND
+  // spectators. There is deliberately no way to dismiss it: the only exits are
+  // the tick (-> acknowledgeNotice) or the "Leave instead" link.
+  if (needsAgeGate) {
+    return (
+      <AgeGate
+        minimumAge={roomMinimumAge}
+        noticeVersion={room?.notice?.version ?? room?.config?.notice_version ?? 6}
+        confirmed={ageConfirmed}
+        onTick={setAgeConfirmed}
+        onAcknowledge={acknowledgeNotice}
+        busy={noticeBusy}
+        onLeave={() => navigate('/study-groups')}
+      />
+    );
+  }
+
+  if (roomGone) {
+    return (
+      <div className="h-[100dvh] bg-slate-950 text-slate-200">
+        <GateCard>
+          <div className="text-4xl mb-3">🚪</div>
+          <h1 className="text-xl font-black text-white">This room was closed</h1>
+          <p className="text-sm text-slate-400 font-medium mt-2">
+            The host closed it, which deleted the room and every message in it. There is nothing to
+            go back to.
+          </p>
+          <div className="flex flex-col items-stretch gap-2.5 mt-6">
+            <button
+              onClick={() => navigate('/study-groups')}
+              className="w-full px-5 py-3 rounded-xl bg-apex-600 text-white font-black text-xs uppercase tracking-widest hover:bg-apex-700"
+            >
+              Find another room
+            </button>
+            <button
+              onClick={() => navigate('/dashboard')}
+              className="px-4 py-2.5 rounded-xl bg-transparent border border-slate-800 text-slate-400 font-black text-xs uppercase tracking-widest hover:text-white transition"
+            >
+              Back to Home
+            </button>
+          </div>
+        </GateCard>
+      </div>
+    );
+  }
+
   if (room && room.access === 'banned') {
     return (
       <div className="h-[100dvh] bg-slate-950 text-slate-200">
@@ -2929,24 +3217,63 @@ if (type === 'fight') {
   }
 
   if (room && room.access === 'join') {
+    // The room has not reached its activation threshold yet. Two distinct
+    // states, because "nobody is here yet" and "half full" need different words:
+    // an empty room is waiting FOR people, a filling room is waiting on a
+    // threshold. Both are driven by the 10s poll so the numbers below are live.
     const target = thresholds.activate ?? memberLimit ?? 0;
-    const pct = Math.min(100, Math.round(((memberCount || 0) / target) * 100));
+    const seats = typeof seatMemberCount === 'number' ? seatMemberCount : (memberCount ?? 0);
+    const isEmpty = seats === 0;
+    const pct = Math.min(100, Math.round((seats / (target || 1)) * 100));
+    const stillNeeded = Math.max(0, target - seats);
+    const joinCta = freeMemberSeatsLeft > 0
+      ? `Join as member · Free${freeMemberSeatsLeft ? ` · ${freeMemberSeatsLeft} left` : ''}`
+      : 'Join as member';
+
     return (
       <div className="h-[100dvh] bg-slate-950 text-slate-200 overflow-y-auto">
         <GateCard>
-          <div className="text-4xl mb-3">⏳</div>
-          <h1 className="text-xl font-black text-white">The room is filling up.</h1>
-          <p className="text-sm text-slate-400 font-medium mt-2">
-            Messages open at <span className="text-amber-400 font-black">{target} members</span>. The first{' '}
-            <span className="text-white font-black">{foundingCap ?? '…'}</span> member seats are free; after that
-            a member seat is <span className="text-white font-black">₦{memberPrice ?? '…'}</span>. Total capacity
-            is {memberLimit ?? '—'}, so join now to guarantee your spot.
-          </p>
+          {isEmpty ? (
+            <>
+              <div className="text-4xl mb-3">🪑</div>
+              <h1 className="text-xl font-black text-white">This room is empty.</h1>
+              <p className="text-sm text-slate-400 font-medium mt-2">
+                Nobody is in here right now. It opens at{' '}
+                <span className="text-amber-400 font-black">{target} members</span>, and the first{' '}
+                <span className="text-white font-black">{foundingCap ?? '…'}</span> member seats are free.
+              </p>
+              <p className="text-sm text-slate-400 font-medium mt-3">
+                If you take the first seat it will be waiting here for you.{' '}
+                <span className="text-slate-500">
+                  This page updates on its own — you do not need to refresh it.
+                </span>
+              </p>
+            </>
+          ) : (
+            <>
+              <div className="text-4xl mb-3">⏳</div>
+              <h1 className="text-xl font-black text-white">The room is filling up.</h1>
+              <p className="text-sm text-slate-400 font-medium mt-2">
+                Messages open at <span className="text-amber-400 font-black">{target} members</span>.{' '}
+                {stillNeeded === 1
+                  ? 'One more member and it goes live.'
+                  : `${stillNeeded} more members and it goes live.`}
+              </p>
+              {freeMemberSeatsLeft > 0 && (
+                <p className="text-sm text-slate-400 font-medium mt-3">
+                  <span className="text-white font-black">{freeMemberSeatsLeft}</span> of the first{' '}
+                  <span className="text-white font-black">{foundingCap ?? '…'}</span> member seats are
+                  still free.
+                </p>
+              )}
+            </>
+          )}
+
           <div className="mt-5">
             <div className="flex items-center justify-between text-[10px] font-black uppercase tracking-widest text-slate-500 mb-1.5">
-              <span>Joined</span>
+              <span>{isEmpty ? 'Waiting for members' : 'Joined'}</span>
               <span className="text-amber-400">
-                {memberCount ?? '…'} / {target}
+                {seats} / {target}
               </span>
             </div>
             <div className="h-2 rounded-full bg-slate-800 overflow-hidden">
@@ -2967,12 +3294,10 @@ if (type === 'fight') {
             <button
               onClick={joinRoom}
               disabled={joining}
-              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-apex-600 text-white font-black text-xs uppercase tracking-widest hover:bg-apex-700 disabled:opacity-50 transition"
+              className="inline-flex items-center gap-2 px-5 py-2.5 rounded-xl bg-apex-600 text-white font-black text-xs uppercase tracking-widest hover:bg-apex-700 disabled:opacity-50 transition min-h-[48px]"
             >
               {joining ? <Loader2 size={14} className="animate-spin" /> : <Users size={14} />}
-              {typeof freeMemberSeatsLeft === 'number' && freeMemberSeatsLeft > 0
-                ? `Join · Free (${freeMemberSeatsLeft} left)`
-                : `Join · ₦${memberPrice ?? '…'}`}
+              {joining ? 'Joining…' : isEmpty ? 'Take the first seat' : joinCta}
             </button>
           </div>
         </GateCard>
@@ -2991,10 +3316,10 @@ if (type === 'fight') {
     const spectateFree = typeof freeSpectatorSeatsLeft === 'number' && freeSpectatorSeatsLeft > 0;
     const joinLabel = memberFree
       ? `Join as member · Free${freeMemberSeatsLeft ? ` (${freeMemberSeatsLeft} left)` : ''}`
-      : `Join as member · ₦${memberPrice ?? '…'}`;
+      : 'Join as member';
     const spectateLabel = spectateFree
       ? `Watch as spectator · Free${freeSpectatorSeatsLeft ? ` (${freeSpectatorSeatsLeft} left)` : ''}`
-      : `Watch as spectator · ₦${price ?? '…'}`;
+      : 'Watch as spectator';
     const reason = membershipLocked
       ? 'The host has closed membership for this round.'
       : capacityFull
@@ -3015,16 +3340,12 @@ if (type === 'fight') {
             {reason}{' '}
             {canJoin ? (
               <>
-                Founding member seats are free while they last (then{' '}
-                <span className="text-white font-black">₦{memberPrice ?? '…'}</span>); spectator slots are free
-                for the first {freeSpecCap ?? '…'} (then <span className="text-white font-black">₦{price ?? '…'}</span>).
+                Founding member seats are free while they last, and the first {freeSpecCap ?? '…'}{' '}
+                spectator slots are free. Once those run out a seat has a cost — you are only told
+                the amount when you try to take one and there are none left.
               </>
             ) : (
-              <>
-                You can watch it anonymously with a one-time{' '}
-                <span className="text-white font-black">₦{price ?? '…'}</span> spectator pass — read and react,
-                never post.
-              </>
+              <>You can watch it anonymously with a one-time spectator pass — read and react, never post.</>
             )}{' '}
             Or open your own room.
           </p>
@@ -3283,22 +3604,16 @@ if (type === 'fight') {
               {joining ? <Loader2 size={11} className="animate-spin" /> : <Crown size={11} />}
               {typeof freeMemberSeatsLeft === 'number' && freeMemberSeatsLeft > 0
                 ? 'Become a member · Free'
-                : `Become a member · ₦${memberPrice ?? '…'}`}
+                : 'Become a member'}
             </button>
           )}
         </div>
       )}
 
-      {isMember && !noticeAccepted && (
-        <button
-          onClick={() => setShowNotice(true)}
-          className="shrink-0 px-4 py-2 bg-apex-500/10 border-b border-apex-500/25 text-[11px] font-bold text-apex-300 flex items-center gap-2 text-left"
-        >
-          <Shield size={13} className="shrink-0" />
-          Accept the room safety notice to speak.
-          <span className="ml-auto font-black uppercase tracking-widest">Review</span>
-        </button>
-      )}
+      {/* v6: this banner is now unreachable. `needsAgeGate` returns the whole page
+          as a blocking overlay before the room ever renders, so a seated viewer
+          can never reach this state - a seated viewer without an ack does not
+          see the room at all. Removed rather than left as a dead branch. */}
 
       <main ref={scrollRef} onScroll={onScroll} className="flex-1 overflow-y-auto px-4 py-4 space-y-1">
         {hasMore && (
@@ -4068,15 +4383,21 @@ if (type === 'fight') {
               <span className="text-apex-400 font-black">04</span>
               The room opens at {thresholds.activate ?? '—'} members and is wiped if it drops below{' '}
               {thresholds.survive ?? '—'}. Total capacity is {memberLimit ?? '—'}: the first{' '}
-              {foundingCap ?? '—'} member seats and first {freeSpecCap ?? '—'} spectator slots are free,
-              after which member seats cost ₦{memberPrice ?? '—'} and spectator passes ₦{price ?? '—'}.
+              {foundingCap ?? '—'} member seats and first {freeSpecCap ?? '—'} spectator slots are free.
+              Once those run out, a seat has a cost — you are only told the amount when you try to
+              take one and there are none left.
             </li>
             <li className="flex gap-2">
               <span className="text-apex-400 font-black">05</span>
-              Report harmful messages. You can also mute any Anonymous member locally.
+              This room is {roomMinimumAge}+. You must confirm you are {roomMinimumAge} or older before
+              you can read it, and the confirmation is recorded against your account.
             </li>
             <li className="flex gap-2">
               <span className="text-apex-400 font-black">06</span>
+              Report harmful messages. You can also mute any Anonymous member locally.
+            </li>
+            <li className="flex gap-2">
+              <span className="text-apex-400 font-black">07</span>
               Seats are live. Interact (send, reply, react, vote or use an action) at least once every{' '}
               {Math.round((room?.config?.membership?.activity_seconds ?? 900) / 60)} minutes or your seat is
               released so someone else can join. A heartbeat or open tab does not count — being present is not
@@ -4090,9 +4411,13 @@ if (type === 'fight') {
                 setExitOpen(true);
               }}
               disabled={leaving}
-              className="mt-5 w-full px-4 py-2.5 rounded-xl bg-slate-800 border border-slate-700 text-slate-400 font-black text-xs uppercase tracking-widest hover:text-white disabled:opacity-50"
+              className={`mt-5 w-full px-4 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest disabled:opacity-50 transition ${
+                isHost
+                  ? 'bg-red-600/15 border border-red-500/40 text-red-300 hover:bg-red-600/25'
+                  : 'bg-slate-800 border border-slate-700 text-slate-400 hover:text-white'
+              }`}
             >
-              Leave the room
+              {isHost ? 'Close this room for everyone' : 'Leave the room'}
             </button>
           )}
         </Modal>
@@ -4128,15 +4453,51 @@ if (type === 'fight') {
       )}
 
       {exitOpen && (
-        <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur flex items-center justify-center p-5">
-          <div className="w-full max-w-sm text-center">
+        <div className="fixed inset-0 z-50 bg-slate-950/95 backdrop-blur flex items-center justify-center p-5 overflow-y-auto">
+          <div className="w-full max-w-sm text-center my-auto">
             {leaving ? (
               <>
                 <Loader2 size={40} className="mx-auto text-apex-400 animate-spin mb-4" />
-                <h2 className="text-xl font-black text-white">Leaving Anonymous Room…</h2>
+                <h2 className="text-xl font-black text-white">
+                  {isHost ? 'Closing the room…' : 'Leaving Anonymous Room…'}
+                </h2>
                 <p className="text-sm font-medium text-slate-400 mt-2">
-                  Releasing your seat. Hold on a moment.
+                  {isHost ? 'Deleting the room and every message in it.' : 'Releasing your seat. Hold on a moment.'}
                 </p>
+              </>
+            ) : isHost ? (
+              // Host branch: this DELETES the room. It is irreversible, it
+              // affects everyone currently in it, and their messages go with
+              // it - so the copy says exactly that and names the room.
+              <>
+                <div className="text-5xl mb-4">⚠️</div>
+                <h2 className="text-xl font-black text-white">Close this room for everyone?</h2>
+                <p className="text-sm font-medium text-slate-400 mt-3">
+                  You host <span className="text-white font-black">{room?.group?.name || 'this room'}</span>.
+                  Closing it <span className="text-red-300 font-black">deletes it permanently</span> — every
+                  message in it, and the room itself. Anyone in there right now will be told it was
+                  closed.
+                </p>
+                <p className="text-xs font-medium text-slate-500 mt-3">
+                  This cannot be undone and there is no backup. If you only want to stop new people
+                  joining, close membership instead.
+                </p>
+                <div className="flex flex-col gap-2.5 mt-6">
+                  <button
+                    onClick={leaveRoom}
+                    disabled={leaving}
+                    className="w-full px-4 py-3 rounded-xl bg-red-600 text-white font-black text-xs uppercase tracking-widest hover:bg-red-700 disabled:opacity-50 inline-flex items-center justify-center gap-2 min-h-[48px]"
+                  >
+                    <Trash2 size={14} />
+                    Yes, delete this room
+                  </button>
+                  <button
+                    onClick={() => setExitOpen(false)}
+                    className="w-full px-4 py-3 rounded-xl bg-slate-800 border border-slate-700 text-slate-300 font-black text-xs uppercase tracking-widest hover:text-white min-h-[48px]"
+                  >
+                    Keep the room
+                  </button>
+                </div>
               </>
             ) : (
               <>
@@ -4248,7 +4609,7 @@ if (type === 'fight') {
               {spectating ? <Loader2 size={14} className="animate-spin" /> : <Eye size={14} />}
               {typeof freeSpectatorSeatsLeft === 'number' && freeSpectatorSeatsLeft > 0
                 ? `Watch as spectator · Free (${freeSpectatorSeatsLeft} left)`
-                : `Watch as spectator · ₦${price ?? '…'}`}
+                : 'Watch as spectator'}
             </button>
             <button
               onClick={() => {
@@ -4467,9 +4828,8 @@ if (type === 'fight') {
             <h2 className="font-black text-white text-lg">Claim a gift seat</h2>
           </div>
           <p className="text-sm font-medium text-slate-400 mt-1">
-            A member seat paid for you. It's worth{' '}
-            <span className="text-white font-black">₦{memberPrice ?? '…'}</span> — and only counts if the room has
-            a free slot.
+            A member seat has been paid for you. It only counts if the room still has a free slot —
+            gifts never add capacity.
           </p>
           {claimResult && (
             <p
@@ -4515,9 +4875,8 @@ if (type === 'fight') {
             <h2 className="font-black text-white text-lg">Join an active room</h2>
           </div>
           <p className="text-sm font-medium text-slate-400 mt-1">
-            Rooms stay open while they have seats. Founding member seats are free until{' '}
-            {foundingCap ?? '…'} members, then ₦{memberPrice ?? '…'}; the first {freeSpecCap ?? '…'} spectators
-            are free, then ₦{price ?? '…'}.
+            Rooms stay open while they have seats. The first {foundingCap ?? '…'} member seats in each
+            room are free, as are the first {freeSpecCap ?? '…'} spectator slots.
           </p>
           {browseBusy ? (
             <div className="flex justify-center py-8">
@@ -4550,7 +4909,10 @@ if (type === 'fight') {
                         {r.total_capacity != null ? ` · ${r.total_capacity} total` : ''}
                       </p>
                     </div>
-                    {seatsLeft != null && seatsLeft > 0 && !r.membership_locked && (
+                    {/* Seat availability only. The amount is deliberately absent: a prospective
+                          joiner is told a seat has a cost, never how much, until
+                          the server actually refuses their join. */}
+                      {seatsLeft != null && seatsLeft > 0 && !r.membership_locked && (
                       <span
                         className={`shrink-0 px-2 py-1 rounded-full text-[9px] font-black uppercase tracking-widest ${
                           joinFree
@@ -4558,7 +4920,7 @@ if (type === 'fight') {
                             : 'bg-amber-500/15 text-amber-300 border border-amber-500/30'
                         }`}
                       >
-                        {joinFree ? 'Join free' : `₦${r.member_price ?? '…'}`}
+                        {joinFree ? 'Join free' : 'Seats open'}
                       </span>
                     )}
                   </button>

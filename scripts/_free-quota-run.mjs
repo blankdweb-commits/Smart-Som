@@ -93,19 +93,19 @@ let userId = null;
 try {
   // 1. Fresh free signup (inline — networkidle never settles on this WebGL app)
   await page.goto(`${BASE}/signup`, { waitUntil: 'domcontentloaded', timeout: 120000 }).catch(() => {});
-  await page.waitForSelector('input[placeholder="Email Address"]', { timeout: 90000 });
-  await page.fill('input[placeholder="Full Name"]', 'Free Quota Tester');
-  await page.fill('input[placeholder="Email Address"]', EMAIL);
-  await page.fill('input[placeholder="Password"]', PASS);
-  await page.fill('input[placeholder="Confirm Password"]', PASS);
+  await page.waitForSelector('input[aria-label="Email address"]', { timeout: 90000 });
+  await page.fill('input[aria-label="Full name"]', 'Free Quota Tester');
+  await page.fill('input[aria-label="Email address"]', EMAIL);
+  await page.fill('input[aria-label="Password"]', PASS);
+  await page.fill('input[aria-label="Confirm password"]', PASS);
   await page.click('button[type="submit"]');
   await page.waitForTimeout(3000);
   const urlNow = page.url();
   const afterBody = ((await page.textContent('body').catch(() => '')) || '');
   const needsSignIn = urlNow.includes('/signup') && /account created/i.test(afterBody);
   if (needsSignIn) {
-    await page.fill('input[placeholder="Email Address"]', EMAIL);
-    await page.fill('input[placeholder="Password"]', PASS);
+    await page.fill('input[aria-label="Email address"]', EMAIL);
+    await page.fill('input[aria-label="Password"]', PASS);
     await page.click('button[type="submit"]');
     await page.waitForTimeout(3000);
   }

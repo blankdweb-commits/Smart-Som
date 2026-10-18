@@ -28,10 +28,10 @@ try {
   const stamp = Date.now().toString().slice(-8);
   const u = { name: `Flow ${stamp}`, email: `flow${stamp}@apextest.local`, password: 'testpass123' };
   await page.goto(`${BASE}/signup`, { waitUntil: 'networkidle' });
-  await page.fill('input[placeholder="Full Name"]', u.name);
-  await page.fill('input[placeholder="Email Address"]', u.email);
-  await page.fill('input[placeholder="Password"]', u.password);
-  await page.fill('input[placeholder="Confirm Password"]', u.password);
+  await page.fill('input[aria-label="Full name"]', u.name);
+  await page.fill('input[aria-label="Email address"]', u.email);
+  await page.fill('input[aria-label="Password"]', u.password);
+  await page.fill('input[aria-label="Confirm password"]', u.password);
   await page.click('button[type="submit"]');
   await page.waitForTimeout(3500);
   const sessOk = await page.evaluate(async () => {

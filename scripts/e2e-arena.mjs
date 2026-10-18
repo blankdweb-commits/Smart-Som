@@ -1132,6 +1132,27 @@ try {
     (listB.data?.incoming || [])[0]?.name === 'InvA Handle',
     `name=${JSON.stringify((listB.data?.incoming || [])[0]?.name)}`);
 
+  // v89. ChallengePopup used to draw a FRESH `windowSeconds` countdown (the
+  // global 600s lifetime) whenever the popup opened, so a challenge that had
+  // been sitting for nine minutes still showed "10:00". It could only count to
+  // something real once the server sent this invite's actual deadline.
+  const inRow = (listB.data?.incoming || [])[0] || {};
+  const outRow = (listA.data?.outgoing || [])[0] || {};
+  const inExp = inRow.expiresAt ? Date.parse(inRow.expiresAt) : NaN;
+  const outExp = outRow.expiresAt ? Date.parse(outRow.expiresAt) : NaN;
+  log('O7a every invite carries a parseable per-invite expiresAt (v89)',
+    !Number.isNaN(inExp) && !Number.isNaN(outExp) && inExp > Date.now(),
+    `in=${inRow.expiresAt || 'missing'} out=${outRow.expiresAt || 'missing'}`);
+
+  // It must be THIS invite's deadline, not the global window restamped: it is
+  // derived from created_at, so it must be in the future but no later than the
+  // invite lifetime.
+  const window = Number(listB.data?.windowSeconds || 600);
+  const created = Date.parse(inRow.createdAt || '');
+  log('O7b the deadline is derived from created_at + invite_expiry_seconds',
+    !Number.isNaN(created) && Math.abs((inExp - created) - window * 1000) < 2000,
+    `delta=${!Number.isNaN(created) ? (inExp - created) / 1000 : '?'}s expected=${window}s`);
+
   const strangerResp = await rpc(INV_C, 'arena_invite_respond', { p_invite_id: inviteId, p_accept: true });
   const stillPending = await admin.from('arena_invites').select('status').eq('id', inviteId).single();
   log('O8 a third party cannot accept, and the invite survives',

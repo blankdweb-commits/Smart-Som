@@ -18,10 +18,10 @@ const log = (s, ok, d = '') => { results.push(ok); console.log(`${ok ? 'PASS' : 
 
 try {
   await page.goto('http://localhost:5173/signup', { waitUntil: 'networkidle' });
-  await page.fill('input[placeholder="Full Name"]', 'Pay Check');
-  await page.fill('input[placeholder="Email Address"]', `pk${Date.now().toString().slice(-6)}@apextest.local`);
-  await page.fill('input[placeholder="Password"]', 'testpass123');
-  await page.fill('input[placeholder="Confirm Password"]', 'testpass123');
+  await page.fill('input[aria-label="Full name"]', 'Pay Check');
+  await page.fill('input[aria-label="Email address"]', `pk${Date.now().toString().slice(-6)}@apextest.local`);
+  await page.fill('input[aria-label="Password"]', 'testpass123');
+  await page.fill('input[aria-label="Confirm password"]', 'testpass123');
   await page.click('button[type="submit"]');
   await page.waitForTimeout(3500);
   const sess = await page.evaluate(async () => {

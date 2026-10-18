@@ -274,10 +274,18 @@ async function grantMarketplaceProduct(supabase, paidAmount, metadata) {
   // Server-side price/platform resolution — never trust payment metadata alone.
   const { data: product } = await supabase
     .from('marketplace_products')
-    .select('id, price, access_type, is_published, is_archived, marketplace_sellers(business_name)')
+    .select('id, price, access_type, kind, is_published, is_archived, marketplace_sellers(business_name)')
     .eq('id', productId)
     .maybeSingle();
   if (!product || !product.is_published || product.is_archived) {
+    return { status: 200, body: { status: 'ignored' } };
+  }
+  // Cosmetics are Smart-Coin only (see initiate-payment.js). A webhook for one
+  // can only arrive from a forged or hand-crafted charge, and granting it would
+  // write a marketplace_purchases row for an item whose real entitlement lives
+  // in user_cosmetics - i.e. the payer gets charged for nothing. Ignore.
+  if (product.kind === 'cosmetic' || product.access_type === 'cosmetic') {
+    console.error(`Webhook refused cosmetic product ${productId} (ref ${metadata.reference}): cosmetics are Smart-Coin only.`);
     return { status: 200, body: { status: 'ignored' } };
   }
   const seller = product.marketplace_sellers;

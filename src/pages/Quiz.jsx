@@ -447,17 +447,18 @@ const Quiz = () => {
 const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchGlobalRank, studyStats, session, fetchQuestionHistory, isPremium, fetchCourseQuotaStatus, courseQuota, quotaFetchStatus } = useAppContext();
 
   const [globalRank, setGlobalRank] = useState(null);
-  const [globalScore, setGlobalScore] = useState(null);
 
   // Load the server-authoritative player score rank once (lightweight,
   // non-blocking). Falls back to '—' until the v30 migration is applied.
+  // Only the POSITION is kept. The score behind it still decides the ordering
+  // server-side, but it is no longer printed anywhere in the app, so there is
+  // no reason to hold a copy of it here.
   React.useEffect(() => {
     let active = true;
     fetchGlobalRank().then(res => {
       if (!active) return;
       if (res) {
         setGlobalRank(res.globalRank);
-        setGlobalScore(res.playerScore);
       }
     });
     return () => { active = false; };
@@ -1274,7 +1275,9 @@ const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, lo
 
   // Mode selection
   const statCells = [
-    { label: 'Global Rank', value: globalRank ? `#${globalRank}` : '—', sub: globalScore != null ? `${globalScore} pts` : null, className: 'text-indigo-600' },
+    // No score sub-label: the rank is the fact, the number behind it is not
+    // shown anywhere in the app any more (see Dashboard GlobalRankCard).
+    { label: 'Global Rank', value: globalRank ? `#${globalRank}` : '—', sub: globalRank ? 'on the leaderboard' : null, className: 'text-indigo-600' },
     { label: 'Smart Coins', value: Number(smartCoins || 0).toLocaleString(undefined, { maximumFractionDigits: 1 }), className: 'text-emerald-500' },
     { label: 'Quiz Streak', value: `${studyStats?.quizStreak || 0}`, className: 'text-amber-500' }
   ];

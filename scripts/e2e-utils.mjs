@@ -34,12 +34,24 @@ export const createLogger = () => {
   };
 };
 
+// Selectors for the auth form.
+//
+// These used to key on the placeholder TEXT ("Email Address", "Password", ...).
+// That is display copy, and it is now exemplar copy ("e.g. amaka@gmail.com",
+// "Your password") - so a copy change silently broke every browser suite. The
+// inputs carry stable aria-labels; use those instead. Page.getByLabel would also
+// work but the CSS form is cheaper and needs no accessible-name computation.
+export const AUTH_EMAIL = 'input[aria-label="Email address"]';
+export const AUTH_PASSWORD = 'input[aria-label="Password"]';
+export const AUTH_NAME = 'input[aria-label="Full name"]';
+export const AUTH_CONFIRM = 'input[aria-label="Confirm password"]';
+
 export async function signupFlow(page, base, name, email, password) {
   await page.goto(`${base}/signup`, { waitUntil: 'networkidle' });
-  await page.fill('input[placeholder="Full Name"]', name);
-  await page.fill('input[placeholder="Email Address"]', email);
-  await page.fill('input[placeholder="Password"]', password);
-  await page.fill('input[placeholder="Confirm Password"]', password);
+  await page.fill(AUTH_NAME, name);
+  await page.fill(AUTH_EMAIL, email);
+  await page.fill(AUTH_PASSWORD, password);
+  await page.fill(AUTH_CONFIRM, password);
   await page.click('button[type="submit"]');
 
   await page.waitForTimeout(3000);
@@ -47,8 +59,8 @@ export async function signupFlow(page, base, name, email, password) {
   const bodyText = await page.textContent('body').catch(() => '');
   const needsSignIn = urlNow.includes('/signup') && /account created/i.test(bodyText);
   if (needsSignIn) {
-    await page.fill('input[placeholder="Email Address"]', email);
-    await page.fill('input[placeholder="Password"]', password);
+    await page.fill(AUTH_EMAIL, email);
+    await page.fill(AUTH_PASSWORD, password);
     await page.click('button[type="submit"]');
     await page.waitForTimeout(3000);
   }
@@ -57,8 +69,8 @@ export async function signupFlow(page, base, name, email, password) {
 
 export async function loginFlow(page, base, email, password) {
   await page.goto(`${base}/login`, { waitUntil: 'networkidle' });
-  await page.fill('input[placeholder="Email Address"]', email);
-  await page.fill('input[placeholder="Password"]', password);
+  await page.fill(AUTH_EMAIL, email);
+  await page.fill(AUTH_PASSWORD, password);
   await page.click('button[type="submit"]');
   await page.waitForTimeout(3500);
 }

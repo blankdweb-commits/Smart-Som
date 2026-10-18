@@ -26,6 +26,10 @@ const Sidebar = () => {
     { name: 'Party Rooms', icon: Sparkles, path: '/rooms' },
     { name: 'Marketplace', icon: FileUp, path: '/marketplace' },
     { name: 'Voting', icon: Award, path: '/voting' },
+    // /reviews was reachable only by typing the URL - it had no nav entry
+    // anywhere, so the feedback inbox (and the admin triage view on it) was
+    // effectively undiscoverable. Also the place a user rates a service.
+    { name: 'Reviews', icon: FileUp, path: '/reviews' },
     { name: 'How It Works', icon: BookOpen, path: '/tutorials' },
     { name: 'Pronunciation', icon: Volume2, path: '/pronunciation' },
     { name: 'Community', icon: Users, path: '/community' },

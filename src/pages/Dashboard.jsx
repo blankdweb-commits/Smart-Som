@@ -569,9 +569,13 @@ const GlobalRankCard = ({ rank }) => {
         <p className="text-5xl font-black tracking-tighter">
           {hasRank ? `#${rank.globalRank}` : '—'}
         </p>
+        {/* The score NUMBER is deliberately not shown. It still decides the
+            ordering server-side - removing the label does not change the rank -
+            but a visible "998 pts" invited people to optimise the number rather
+            than the thing behind it. The position is what this card is for. */}
         <p className="text-xs font-bold text-white/80 mt-2 max-w-[230px]">
           {hasRank
-            ? `${Number(rank.playerScore || 0).toLocaleString()} pts`
+            ? `out of ${Number(rank.totalPlayers || 0).toLocaleString()} ranked scholars`
             : 'Complete a quiz round to claim your spot on the global leaderboard.'}
         </p>
         {showBreakdown && (

@@ -1,4 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { supabase } from '../utils/supabase';
 import TutorialTip from '../components/TutorialTip';
@@ -70,9 +71,17 @@ const RATING_OPTIONS = {
 
 // Mirrors the option allowlist enforced server-side in cast_service_rating.
 const VALID_OPTION_KEYS = new Set([
-  'fast', 'clear', 'helpful', 'reliable', 'would_recommend', 'needs_work', 'confusing', 'slow',
-  'fair', 'safe', 'slow',
+  'fast', 'clear', 'helpful', 'reliable', 'fair', 'safe',
+  'would_recommend', 'needs_work', 'confusing', 'slow',
 ]);
+
+// Categories that may only ever be answered ONCE per account. All five are
+// write-once: an account that can edit its score of a service can keep editing
+// it until it likes the number it landed on, which makes the average meaningless.
+// Enforced server-side (cast_service_rating raises ALREADY_RATED on any second
+// differing submission; an identical replay is accepted as a no-op) - this set
+// only drives the disabled UI.
+const ONE_TIME_CATEGORIES = new Set(SERVICE_CATEGORIES.map((c) => c.key));
 
 const CAMPAIGN_STATUS = {
   upcoming: { label: 'Upcoming', cls: 'bg-slate-500/15 text-slate-300', icon: Clock },
@@ -102,17 +111,29 @@ const VOTE_ERRORS = {
   INVALID_CANDIDATE: 'That candidate is not part of this campaign.',
   INVALID_CATEGORY: 'That category is not recognised.',
   INVALID_RATING: 'Please choose a rating between 1 and 5.',
+  // 'overall' is a one-time verdict on PolyNurse as a whole; the other four
+  // categories stay re-openable. The server enforces this (cast_service_rating
+  // raises ALREADY_RATED), this is only the message for it.
+  ALREADY_RATED:
+    'You have already reviewed this service. Each service can only be reviewed once per account, so your original rating still stands.',
 };
 const voteErrorText = (err, fallback) =>
   VOTE_ERRORS[err?.message] || err?.message || fallback;
 
 const Voting = () => {
   const { session, userProfile } = useAppContext();
-  const [tab, setTab] = useState('services');
+  // ?tab=campaigns / ?tab=services deep-links straight to a tab. Without it
+  // the seeded sample campaign sat one invisible tap behind the default
+  // 'services' tab, so a first-time visitor never saw the Campaigns screen the
+  // tutorial describes.
+  const [searchParams] = useSearchParams();
+  const requestedTab = searchParams.get('tab');
+  const [tab, setTab] = useState(requestedTab === 'campaigns' ? 'campaigns' : 'services');
 
   // ---------------- Service feedback ----------------
   const [stats, setStats] = useState({});
   const [myRatings, setMyRatings] = useState({});
+  const [myRatingsError, setMyRatingsError] = useState('');
   const [draft, setDraft] = useState({});
   const [ratingBusy, setRatingBusy] = useState('');
   const [ratingNote, setRatingNote] = useState(null);
@@ -132,17 +153,29 @@ const Voting = () => {
   // is safe. It is generated per campaign, not per click.
   const requestIds = useRef({});
 
+  // loadStats / loadMyRatings used to swallow their errors entirely, which meant a
+  // MISSING TABLE was indistinguishable from "nobody has rated anything" and the
+  // page rendered the confident, false "No ratings recorded yet. Be the first."
+  // over a broken query. These carry the failure to the UI instead.
+  const [statsError, setStatsError] = useState('');
   const loadStats = useCallback(async () => {
-    if (!supabase) return;
+    if (!supabase) {
+      setStatsError('Ratings are unavailable right now.');
+      return;
+    }
     const { data, error } = await supabase
       .from('service_rating_stats')
       .select('*')
       .order('category');
-    if (!error && data) {
-      const map = {};
-      for (const row of data) map[row.category] = row;
-      setStats(map);
+    if (error) {
+      setStatsError('We could not load the ratings.');
+      setStats({});
+      return;
     }
+    const map = {};
+    for (const row of data || []) map[row.category] = row;
+    setStats(map);
+    setStatsError('');
   }, []);
 
   const loadMyRatings = useCallback(async () => {
@@ -151,11 +184,17 @@ const Voting = () => {
       .from('service_ratings')
       .select('category, rating, options, comment')
       .eq('user_id', session.user.id);
-    if (!error && data) {
-      const map = {};
-      for (const row of data) map[row.category] = row;
-      setMyRatings(map);
+    if (error) {
+      // Failing soft here would let the user submit a rating the server has
+      // already recorded, and the UI would then show it as unrecorded.
+      setMyRatingsError('We could not check whether you have already rated these services.');
+      setMyRatings({});
+      return;
     }
+    const map = {};
+    for (const row of data || []) map[row.category] = row;
+    setMyRatings(map);
+    setMyRatingsError('');
   }, [session]);
 
   const loadCampaigns = useCallback(async () => {
@@ -188,11 +227,15 @@ const Voting = () => {
       supabase.rpc('get_campaign_results', { p_campaign: campaignId }),
       supabase.rpc('my_campaign_vote', { p_campaign: campaignId }),
     ]);
-    if (resErr) return;
-    if (res) {
-      setResults(res);
-      setLiveState('live');
+    if (resErr) {
+      // Previously `return` with no state change, so the pill sat on
+      // "Connecting" forever and looked like a slow network rather than a
+      // failed query.
+      setLiveState('error');
+      return;
     }
+    setLiveState('live');
+    if (res) setResults(res);
     if (mine) setMyVote(mine.candidate_id ?? null);
   }, [session]);
 
@@ -301,7 +344,7 @@ const Voting = () => {
     setRatingNote(null);
     try {
       const options = (d.options || []).filter((k) => VALID_OPTION_KEYS.has(k));
-      const { error } = await supabase.rpc('cast_service_rating', {
+      const { error, data } = await supabase.rpc('cast_service_rating', {
         p_category: categoryKey,
         p_rating: d.rating,
         p_options: options,
@@ -314,7 +357,15 @@ const Voting = () => {
       }));
       setDraft((prev) => ({ ...prev, [categoryKey]: { ...prev[categoryKey], rating: d.rating } }));
       loadStats();
-      setRatingNote({ ok: true, msg: `Thanks — your ${categoryKey} rating is recorded.` });
+      // The server distinguishes a genuine first submission from an identical
+      // replay (a double-tapped Save, or a retry after a dropped connection),
+      // so do not thank the user for something that changed nothing.
+      setRatingNote({
+        ok: true,
+        msg: data?.replay
+          ? `Your ${categoryKey} rating was already recorded, so nothing changed.`
+          : `Thanks — your ${categoryKey} rating is recorded. It cannot be changed afterwards.`,
+      });
     } catch (err) {
       // Never claim success without the server confirming.
       setRatingNote({ ok: false, msg: voteErrorText(err, 'Could not save your rating. Please try again.') });
@@ -453,6 +504,9 @@ const Voting = () => {
             const d = draft[cat.key] || {};
             const count = Number(stat?.rating_count) || 0;
             const dist = [stat?.r1, stat?.r2, stat?.r3, stat?.r4, stat?.r5].map((n) => Number(n) || 0);
+            // A one-time category is locked the moment it has been saved, so the
+            // UI offers no way to try again — the server would refuse it anyway.
+            const lockedOnce = ONE_TIME_CATEGORIES.has(cat.key) && !!mine;
 
             return (
               <div
@@ -506,7 +560,8 @@ const Voting = () => {
                         onClick={() => setDraft((p) => ({ ...p, [cat.key]: { ...p[cat.key], rating: n } }))}
                         aria-label={`${n} star${n > 1 ? 's' : ''}`}
                         aria-pressed={Number(d.rating || mine?.rating) === n}
-                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg transition active:scale-95"
+                        disabled={lockedOnce}
+                        className="min-h-[44px] min-w-[44px] flex items-center justify-center rounded-lg transition active:scale-95 disabled:pointer-events-none disabled:opacity-60"
                       >
                         <Star
                           size={26}
@@ -515,9 +570,14 @@ const Voting = () => {
                       </button>
                     );
                   })}
-                  {mine && !d.rating && (
+                  {mine && !d.rating && !lockedOnce && (
                     <span className="ml-1 text-[10px] font-black uppercase tracking-widest text-emerald-500">
                       saved
+                    </span>
+                  )}
+                  {lockedOnce && (
+                    <span className="ml-1 inline-flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-teal-600 dark:text-teal-400">
+                      <CheckCircle size={11} /> one-time verdict — recorded
                     </span>
                   )}
                 </div>
@@ -535,7 +595,8 @@ const Voting = () => {
                           return { ...p, [cat.key]: { ...p[cat.key], options: next } };
                         })}
                         aria-pressed={sel}
-                        className={`min-h-[36px] px-3 py-1.5 rounded-full text-[11px] font-bold border transition ${
+                        disabled={lockedOnce}
+                        className={`min-h-[36px] px-3 py-1.5 rounded-full text-[11px] font-bold border transition disabled:pointer-events-none disabled:opacity-60 ${
                           sel
                             ? 'bg-teal-600 text-white border-teal-600'
                             : 'bg-slate-50 dark:bg-slate-900/50 text-slate-600 dark:text-slate-300 border-slate-200 dark:border-slate-700'
@@ -555,25 +616,42 @@ const Voting = () => {
                     placeholder="Add a comment (optional)"
                     aria-label={`Comment about ${cat.label}`}
                     maxLength={500}
-                    className="flex-1 min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400"
+                    readOnly={lockedOnce}
+                    className="flex-1 min-h-[44px] px-3 py-2 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-slate-200 dark:border-slate-700 text-sm text-slate-800 dark:text-slate-100 placeholder:text-slate-400 readOnly:opacity-60"
                   />
                   <button
                     onClick={() => submitRating(cat.key)}
-                    disabled={ratingBusy === cat.key}
+                    disabled={ratingBusy === cat.key || lockedOnce}
                     className="min-h-[44px] shrink-0 px-4 rounded-xl bg-teal-600 text-white text-[11px] font-black uppercase tracking-widest disabled:opacity-50 flex items-center gap-1.5"
                   >
                     {ratingBusy === cat.key && <Loader2 size={13} className="animate-spin" />}
-                    Save
+                    {lockedOnce ? 'Recorded' : 'Save'}
                   </button>
                 </div>
               </div>
             );
           })}
 
-          {totalRatings === 0 && (
+          {statsError ? (
+            // An honest failure. The old copy here claimed nobody had rated
+            // anything, which is a different and false statement when the query
+            // itself failed.
+            <div className="flex flex-col items-center gap-3 py-6 text-center">
+              <p className="text-xs text-red-400 font-bold">{statsError}</p>
+              <button
+                onClick={() => { loadStats(); loadMyRatings(); }}
+                className="min-h-[44px] px-4 rounded-xl bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-200 text-[11px] font-black uppercase tracking-widest hover:bg-slate-200 dark:hover:bg-slate-700"
+              >
+                Try again
+              </button>
+            </div>
+          ) : totalRatings === 0 ? (
             <p className="text-center text-xs text-slate-400 py-6">
               No ratings recorded yet. Be the first.
             </p>
+          ) : null}
+          {myRatingsError && (
+            <p className="text-center text-[11px] font-bold text-amber-500 py-3">{myRatingsError}</p>
           )}
         </section>
       )}
@@ -588,12 +666,18 @@ const Voting = () => {
             <span
               className={`inline-flex items-center gap-1 text-[9px] font-black uppercase tracking-widest px-2 py-1 rounded-full ${
                 liveState === 'live' ? 'bg-emerald-500/15 text-emerald-400'
-                  : liveState === 'offline' ? 'bg-red-500/15 text-red-400'
+                  : liveState === 'offline' || liveState === 'error' ? 'bg-red-500/15 text-red-400'
                     : 'bg-slate-500/15 text-slate-400'
               }`}
             >
               <span className="w-1.5 h-1.5 rounded-full bg-current" aria-hidden="true" />
-              {liveState === 'live' ? 'Live' : liveState === 'offline' ? 'Offline' : 'Connecting'}
+              {liveState === 'live'
+                ? 'Live'
+                : liveState === 'offline'
+                  ? 'Offline'
+                  : liveState === 'error'
+                    ? 'Not updating'
+                    : 'Connecting'}
             </span>
           </div>
 
@@ -725,7 +809,9 @@ const CampaignSheet = ({
           )}
           <p className="flex items-start gap-2 text-slate-500 dark:text-slate-400">
             <Users size={13} className="mt-0.5 shrink-0" />
-            <span>{campaign.votes_per_user} vote per account, per campaign.</span>
+            <span>
+              {campaign.votes_per_user} {campaign.votes_per_user === 1 ? 'vote' : 'votes'} per account, per campaign.
+            </span>
           </p>
         </div>
 

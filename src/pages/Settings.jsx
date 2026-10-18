@@ -112,6 +112,7 @@ export default function Settings() {
 
   const [profileForm, setProfileForm] = useState({
     fullName: userProfile.fullName || '',
+    identityName: userProfile.identityName || '',
     phone: userProfile.phone || '',
     department: userProfile.department || '',
     level: userProfile.level || ''
@@ -131,6 +132,7 @@ export default function Settings() {
     profileSyncedRef.current = true;
     setProfileForm({
       fullName: userProfile.fullName || '',
+      identityName: userProfile.identityName || '',
       phone: userProfile.phone || '',
       department: userProfile.department || '',
       level: userProfile.level || ''
@@ -156,13 +158,20 @@ export default function Settings() {
         .from('profiles')
         .update({
           full_name: profileForm.fullName.trim(),
+          // The name other people see on community posts, group member lists and
+          // the leaderboard. Until this was writable the view fell back to the
+          // literal 'Scholar' for every account. migration-v85 re-granted the
+          // column and enforces the 24-char cap in a CHECK constraint, so the
+          // server still refuses an over-long value even though this writes
+          // straight to the table.
+          identity_name: profileForm.identityName.trim(),
           phone: profileForm.phone.trim(),
           department: profileForm.department,
           level: profileForm.level
         })
         .eq('id', session.user.id);
       if (error) throw error;
-      updateProfile(profileForm);
+      updateProfile({ ...profileForm, identityName: profileForm.identityName.trim() });
       setProfileMsg('Profile updated.');
       setToast({ message: 'Profile saved successfully!', type: 'success' });
     } catch (err) {
@@ -294,6 +303,30 @@ export default function Settings() {
               onChange={(e) => setProfileForm({ ...profileForm, fullName: e.target.value })}
             />
           </div>
+
+          {/* The name OTHER people see — separate from your legal name on
+              purpose. This is what appears next to your posts, on group member
+              lists and on the leaderboard. Leave it blank and you appear as a
+              stable Scholar-xxxxxx handle instead. */}
+          <div className="relative">
+            <User className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              placeholder="Display name (shown to others)"
+              aria-label="Display name shown to others"
+              maxLength={24}
+              className={inputCls}
+              value={profileForm.identityName}
+              onChange={(e) => setProfileForm({ ...profileForm, identityName: e.target.value })}
+            />
+            <span className="absolute right-4 top-1/2 -translate-y-1/2 text-[10px] font-bold text-slate-400 tabular-nums">
+              {profileForm.identityName.length}/24
+            </span>
+          </div>
+          <p className="text-[11px] font-medium text-slate-400 -mt-2">
+            Shown beside your posts and your name on the leaderboard. Blank keeps you as a Scholar handle.
+            Your real name is only revealed to someone once you have completed a duel together.
+          </p>
 
           <div className="relative">
             <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />

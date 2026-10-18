@@ -296,7 +296,7 @@ async function resolveMarketplacePurchase(supabase, user, productIdRaw) {
 
   const { data: product, error: productError } = await supabase
     .from('marketplace_products')
-    .select('id, title, price, access_type, is_published, is_archived, seller_id, marketplace_sellers(business_name)')
+    .select('id, title, price, access_type, kind, sc_price, is_published, is_archived, seller_id, marketplace_sellers(business_name)')
     .eq('id', productId)
     .maybeSingle();
   if (productError) {
@@ -319,6 +319,22 @@ async function resolveMarketplacePurchase(supabase, user, productIdRaw) {
   if (!isPlatform) {
     const e = new Error('This product is listed by a third-party seller and cannot be purchased on PolyNurse.');
     e.code = 'THIRD_PARTY_NOT_PURCHASABLE'; e.status = 403; throw e;
+  }
+
+  // Cosmetics are bought with Smart Coins, never Naira. This has to be refused
+  // HERE, explicitly, rather than falling through to the price guard: the
+  // Crown's `price` is deliberately 0, so the `!(price > 0)` check below would
+  // refuse it anyway — but with the wrong code and a message about a product
+  // nobody can buy, and only by accident.
+  //
+  // The refusal is load-bearing in the other direction too. Cosmetic
+  // entitlement is granted by the cosmetic_purchase() RPC against
+  // user_cosmetics; a Paystack order for a cosmetic would write a
+  // marketplace_purchases row and NOTHING else, so the payer would be charged
+  // for an item they never receive. Refusing is the only safe answer.
+  if (product.kind === 'cosmetic' || product.access_type === 'cosmetic') {
+    const e = new Error('Cosmetics are purchased with Smart Coins in the Cosmetics section, not with card payment.');
+    e.code = 'COSMETIC_NOT_CARD_PURCHASABLE'; e.status = 400; throw e;
   }
 
   if (product.access_type === 'free') {

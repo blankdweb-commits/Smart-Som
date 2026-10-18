@@ -103,10 +103,10 @@ try {
 
   // ---------- 5. SIGNUP WITH SAME EMAIL -> "ALREADY EXISTS" TOAST ----------
   await page.goto(`${BASE}/signup`, { waitUntil: 'networkidle' });
-  await page.fill('input[placeholder="Full Name"]', name);
-  await page.fill('input[placeholder="Email Address"]', email);
-  await page.fill('input[placeholder="Password"]', password);
-  await page.fill('input[placeholder="Confirm Password"]', password);
+  await page.fill('input[aria-label="Full name"]', name);
+  await page.fill('input[aria-label="Email address"]', email);
+  await page.fill('input[aria-label="Password"]', password);
+  await page.fill('input[aria-label="Confirm password"]', password);
   await page.click('button[type="submit"]');
   const duplicateToast = await waitBody('already exists', 15000);
   tester.log('duplicate signup warns "account already exists"', duplicateToast, `url=${page.url()} body: ${await pageBody()}`);

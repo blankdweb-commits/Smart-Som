@@ -5,8 +5,8 @@ const page = await browser.newPage({ viewport: { width: 390, height: 844 } });
 
 try {
   await page.goto('http://localhost:5173/login', { waitUntil: 'networkidle' });
-  await page.fill('input[placeholder="Email Address"]', 'admin@apexscholars.com');
-  await page.fill('input[placeholder="Password"]', 'changeme123');
+  await page.fill('input[aria-label="Email address"]', 'admin@apexscholars.com');
+  await page.fill('input[aria-label="Password"]', 'changeme123');
   await page.click('button[type="submit"]');
   await page.waitForTimeout(4000);
 

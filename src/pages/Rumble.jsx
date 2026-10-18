@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useAppContext } from "../context/AppContext";
+import { useChallenge } from "../context/ChallengeContext";
 import TutorialTip from '../components/TutorialTip';
 import { supabase } from "../utils/supabase";
 // eslint-disable-next-line no-unused-vars
@@ -18,9 +19,6 @@ const ARENA_HEARTBEAT_MS = 5000;
 const SCHOLARS_POLL_MS = 4000;
 // Typing a name should not fire a request per keystroke.
 const SCHOLARS_SEARCH_DEBOUNCE_MS = 350;
-// Invites are driven by the OTHER player's action, so they get their own, faster
-// poll than the 4s scholars list.
-const INVITES_POLL_MS = 2500;
 // The server ignores a query shorter than this (1 char matches most of the
 // roster), so mirror that here and say so instead of silently ignoring it.
 const SCHOLAR_SEARCH_MIN = 2;
@@ -51,10 +49,14 @@ const ARENA_ERROR_COPY = {
 // stats. They play the same 40-question board on the same clock with the same
 // scoring and the same one-time Double - the client sends only the tutor id and
 // the server answers them live, question by question.
+//
+// The win rate below is not decoration. migration-v86 rolls it ONCE per match on
+// the server and then plays the bot's answers into that outcome, so the duel
+// ends roughly as often as it says. The client sends nothing about it.
 const BOT_OPPONENTS = [
-  { key: 'house', name: 'The House', tier: 'Rookie', accent: 'from-slate-600 to-slate-800', icon: '🏛️', blurb: 'The classic. Plays fair — a warm-up duel.' },
-  { key: 'zainab', name: 'Nurse Zainab', tier: 'Intermediate', accent: 'from-emerald-600 to-teal-700', icon: '🩺', blurb: 'Steady hands, sharp recall. A real drill.' },
-  { key: 'apollo', name: 'Prof. Apollo', tier: 'Expert', accent: 'from-rose-600 to-red-700', icon: '🎓', blurb: 'Relentless. Only the sharp survive.' },
+  { key: 'house', name: 'The House', tier: 'Rookie', accent: 'from-slate-600 to-slate-800', icon: '🏛️', blurb: 'Wins about 4 duels in 10. A warm-up before you stake anything real.' },
+  { key: 'zainab', name: 'Nurse Zainab', tier: 'Intermediate', accent: 'from-emerald-600 to-teal-700', icon: '🩺', blurb: 'Wins about 6 duels in 10. Steady hands — a real drill.' },
+  { key: 'apollo', name: 'Prof. Apollo', tier: 'Expert', accent: 'from-rose-600 to-red-700', icon: '🎓', blurb: 'Wins about 9 duels in 10. Relentless. Only the sharp survive.' },
 ];
 
 // Debug trace. The "sudden death pops up out of nowhere" class of bug is
@@ -143,7 +145,9 @@ const ScoreCard = ({ title, card, tone, sub }) => {
 
 const Rumble = () => {
   const navigate = useNavigate();
+  const [searchParams, setSearchParams] = useSearchParams();
   const {
+    session,
     smartCoins, syncAchievements, refreshSmartCoins,
     arenaCreateMatch, arenaReady, arenaStart, arenaAnswer, arenaHeartbeat,
     arenaForfeit, arenaCancel, arenaSettle, arenaState, arenaEnqueue,
@@ -151,11 +155,23 @@ const Rumble = () => {
     arenaLeaveQueue, arenaRoster,
   } = useAppContext();
 
+  // ChallengeContext owns the invite poll, the popup, and the accepted-match
+  // handoff. The Arena is the only thing that can act on that handoff, which is
+  // why these two are wired together rather than each polling on its own.
+  const { consumeAdopt, setMatchLive } = useChallenge();
+
   // ---- shell --------------------------------------------------------------
   const [phase, setPhase] = useState('hub');
   const phaseRef = useRef('hub');
   const [meId, setMeId] = useState(null);
   const [duelHistory, setDuelHistory] = useState([]);
+
+  // Who the player was sent here to challenge, from /rumble?challenge=<userId>.
+  // The hub sends this after a successful arenaInvite so the Arena can confirm
+  // what happened to that specific challenge instead of dropping the player on
+  // a list they now have to find the person on again.
+  const challengeTargetId = searchParams.get('challenge');
+  const [handoffDismissed, setHandoffDismissed] = useState(false);
 
   // ---- lobby --------------------------------------------------------------
   const [roster, setRoster] = useState({ players: [], online: 0, searching: false });
@@ -220,23 +236,24 @@ const Rumble = () => {
   // a stale Back button could strand the pot.
   const showBack = phase !== 'blitz-waiting';
 
+  // The current user's id is already in the auth session, synchronously.
+  // Do NOT call supabase.auth.getUser() here: it takes GoTrue's navigator
+  // lock across a network round-trip, and StrictMode double-invokes this
+  // effect — two effects doing that produced a 4-deep queue that tripped
+  // gotrue's "lock was not released within 5000ms" recovery. Reading the
+  // session costs no network and takes no lock.
   useEffect(() => {
-    let live = true;
-    (async () => {
-      try {
-        const { data } = await supabase.auth.getUser();
-        if (live && data?.user?.id) setMeId(data.user.id);
-      } catch { /* ignore */ }
-    })();
-    return () => { live = false; };
-  }, []);
+    setMeId(session?.user?.id || null);
+  }, [session?.user?.id]);
 
   // ---- duel history: the LAST 5, newest first ---------------------------
   const fetchHistory = useCallback(async () => {
     if (!supabase) return;
     try {
-      let userId = null;
-      try { userId = (await supabase.auth.getUser()).data.user?.id; } catch { /* ignore */ }
+      // `duels` is SELECT-own-only (migration-v33), so the filter below is a
+      // correctness no-op that also keeps the row shape explicit. The userId
+      // comes from the caller — never re-resolved over the network here.
+      let userId = session?.user?.id || null;
       let query = supabase
         .from('duels')
         .select('id, opponent, mode, stake, outcome, delta, created_at')
@@ -246,7 +263,7 @@ const Rumble = () => {
       const { data } = await query;
       if (data) setDuelHistory(data);
     } catch { /* ignore */ }
-  }, []);
+  }, [session?.user?.id]);
 
   useEffect(() => { fetchHistory(); }, [fetchHistory]);
 
@@ -346,6 +363,65 @@ const Rumble = () => {
     }
   }, [arenaState, arenaSettle, applyArenaState, goPhase]);
 
+  // ---- THE ACCEPTED-CHALLENGE HANDOFF -------------------------------------
+  // This is the function that was missing, and its absence is why two players
+  // never actually started together.
+  //
+  // The server half was already correct: migration-v84 gives the inviter a
+  // `ready[]` entry when their challenge is accepted, and ChallengeContext
+  // polls it, acknowledges it with arena_invite_ready, and parks the match id
+  // in a ref. Then... nothing read that ref. `consumeAdopt` and `setMatchLive`
+  // had ZERO callers in the codebase. The inviter was told "Opening the
+  // duel…" and stayed where they were, forever.
+  //
+  // Two things are needed, not one:
+  //   1. READY. The accepter is made `creator_id` by arena_invite_respond and
+  //      readies itself. The clock only opens when the server says BOTH sides
+  //      are ready, so the inviter must declare readiness too. Without this
+  //      the match sits in 'waiting' and the 9.4 never-readied sweep eventually
+  //      refunds both as a no-show.
+  //   2. RESUME. `arenaReady` returns canStart, but the questions and the
+  //      authoritative state come from `arena_state`, so we resume afterwards
+  //      rather than trying to rebuild the board from the ready response.
+  //
+  // Runs on mount AND on every phase change, because the handoff can land while
+  // the player is on the scholars screen, in the picker, or mid-match. Draining
+  // a ref is idempotent (it returns null once empty), so a phase change with
+  // nothing pending is a single cheap null check.
+  const joinAdopted = useCallback(async (mid) => {
+    if (!mid || !arenaReady || !arenaState) return;
+    matchIdRef.current = mid;
+    setPhaseError(null);
+    arenaTrace('adopt-challenge', { matchId: mid });
+    await arenaReady(mid);
+    await resumeArena(mid);
+  }, [arenaReady, arenaState, resumeArena]);
+
+  useEffect(() => {
+    const adopted = consumeAdopt?.();
+    if (adopted) joinAdopted(adopted);
+  }, [phase, consumeAdopt, joinAdopted]);
+
+  // Tell ChallengeContext a duel is running so the incoming-challenge popup
+  // stays suppressed. Derived from the phase rather than set at each call site:
+  // a missed call here means a popup covering a live 90-second duel.
+  useEffect(() => {
+    setMatchLive?.(phase === 'blitz-play');
+  }, [phase, setMatchLive]);
+
+  // One invite read on arrival, to resolve the ?challenge= handoff.
+  //
+  // This used to be a 2.5s interval for as long as the scholars screen was
+  // mounted. It is now a single call, because ChallengeContext already polls
+  // app-wide and the popup is what actually acts on new invites. Net effect on
+  // request count is negative.
+  useEffect(() => {
+    refreshInvites();
+    // Intentionally mount-only: re-running on every invites change would
+    // re-trigger itself, since refreshInvites writes invites.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // ---- entry points -------------------------------------------------------
   const enterArena = useCallback(() => goPhase('scholars', 'enter-arena'), [goPhase]);
 
@@ -385,6 +461,28 @@ const Rumble = () => {
     setInvites(r);
     return r;
   }, [arenaInvites]);
+
+  // The `?challenge=` handoff, resolved against the live invite list rather
+  // than assumed. It renders ONLY the state it can actually prove: that the
+  // invite still exists and is waiting for an answer.
+  //
+  // There is deliberately no "not sent" / "declined" branch here. Inferring one
+  // from an absent row would be guessing, because an absent row has five causes
+  // (never created, accepted, declined, expired, already answered) and this
+  // page cannot tell them apart. Guessing would have meant a banner telling
+  // someone their challenge was declined at the exact moment it was accepted
+  // and the duel was opening.
+  const handoffTarget = useMemo(() => {
+    if (!challengeTargetId || handoffDismissed) return null;
+    const outgoing = (invites?.outgoing || []).find((i) => i.userId === challengeTargetId);
+    return outgoing ? { name: outgoing.name || 'that scholar', stake: outgoing.stake } : null;
+  }, [challengeTargetId, handoffDismissed, invites]);
+
+  const dismissHandoff = useCallback(() => {
+    setHandoffDismissed(true);
+    // Scrub the query so a reload does not resurrect the banner.
+    setSearchParams({}, { replace: true });
+  }, [setSearchParams]);
 
   // Sending an invite moves NO coins. That is the whole point of the flow: the
   // stake is held only when the other player accepts.
@@ -545,6 +643,13 @@ const Rumble = () => {
   // this page is itself what makes you show up as Available. It re-runs
   // whenever the debounced query changes, so results appear without waiting
   // for the next 4s tick.
+  //
+  // It deliberately does NOT poll invites. It used to, on its own faster tick,
+  // and that was pure duplicated load: ChallengeContext already runs
+  // arena_invites_list app-wide every 2.5s from a provider that sits ABOVE the
+  // Arena, so the poll here could never see anything the popup had not already
+  // seen, and two ticks writing the same state is how the "your challenge was
+  // accepted" message and this list used to disagree.
   useEffect(() => {
     if (phase !== 'scholars') return;
     let stopped = false;
@@ -554,21 +659,13 @@ const Rumble = () => {
       if (!stopped) { setRoster(r); setRosterLoading(false); }
     };
     load();
-    const invLoad = async () => {
-      const r = await arenaInvites();
-      if (!stopped) setInvites(r);
-    };
-    invLoad();
     // While searching, poll less aggressively: the list is filtered and a
     // single target rarely changes status, and presence is still stamped on
     // the first call.
     const period = activeQuery ? SCHOLARS_POLL_MS * 3 : SCHOLARS_POLL_MS;
     const iv = setInterval(load, period);
-    // Invites move on the OTHER player's action, so they are polled on their own
-    // faster tick - a 4s wait to notice an invite feels broken.
-    const iv2 = setInterval(invLoad, INVITES_POLL_MS);
-    return () => { stopped = true; clearInterval(iv); clearInterval(iv2); };
-  }, [phase, arenaRoster, arenaInvites, activeQuery]);
+    return () => { stopped = true; clearInterval(iv); };
+  }, [phase, arenaRoster, activeQuery]);
 
   // Countdown -> open the shared clock (requires BOTH players ready server-side).
   useEffect(() => {
@@ -898,6 +995,37 @@ const Rumble = () => {
       </div>
 
       <div className="relative z-10 max-w-2xl mx-auto px-4 pt-10 pb-32">
+        {/* The ?challenge= handoff. Shown on the two screens a player can be
+            sitting on right after the hub sends them here. When they accept,
+            handoffTarget goes null by itself because the invite stops being
+            pending - no extra state to keep in sync. */}
+        {handoffTarget && (phase === 'hub' || phase === 'scholars') && (
+          <div
+            role="status"
+            className="mb-5 flex items-start gap-3 rounded-2xl border border-emerald-500/40 bg-emerald-500/10 px-4 py-3"
+          >
+            <Swords size={16} className="shrink-0 mt-0.5 text-emerald-300" />
+            <div className="min-w-0 flex-1">
+              <p className="text-sm font-black text-white">
+                Challenge sent to {handoffTarget.name}
+              </p>
+              <p className="text-[11px] font-bold text-emerald-200/80 leading-snug">
+                Nothing is held until they accept. You can leave this page — the
+                challenge waits for them{typeof handoffTarget.stake === 'number'
+                  ? `, and the ${handoffTarget.stake} SC is only taken when the duel starts`
+                  : ''}.
+              </p>
+            </div>
+            <button
+              onClick={dismissHandoff}
+              aria-label="Dismiss challenge confirmation"
+              className="shrink-0 text-[10px] font-black uppercase tracking-widest text-emerald-300/80 hover:text-white transition"
+            >
+              Dismiss
+            </button>
+          </div>
+        )}
+
         {phase === 'hub' && (
           <div className="mb-6">
             <TutorialTip tutorialKey="arena">
@@ -1176,12 +1304,12 @@ const Rumble = () => {
                         <button
                           disabled={p.status !== 'available' || !p.canChallenge || inviteBusy === p.userId}
                           onClick={() => inviteScholar(p)}
-                          title={`Invite ${p.name || 'this scholar'} to a ${ARENA_STAKE} SC duel. Nothing is held until they accept.`}
+                          title={`Challenge ${p.name || 'this scholar'} to a ${ARENA_STAKE} SC duel. Nothing is held until they accept.`}
                           className={`rounded-full px-4 py-2 text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all disabled:pointer-events-none ${st.buttonClass}`}
                         >
                           {p.status === 'available' && !p.canChallenge
                             ? 'Too Low'
-                            : inviteBusy === p.userId ? 'Sending…' : 'Invite'}
+                            : inviteBusy === p.userId ? 'Sending…' : 'Challenge'}
                         </button>
                       </div>
                     );
@@ -1197,10 +1325,10 @@ const Rumble = () => {
                     <div key={`in-${iv.inviteId}`} className="flex items-center justify-between gap-3 rounded-xl border border-emerald-400/30 bg-emerald-400/10 p-3">
                       <div className="min-w-0">
                         <span className="block text-[10px] font-black uppercase tracking-widest text-emerald-300">
-                          Duel invite
+                          Duel challenge
                         </span>
                         <span className="block truncate text-sm font-bold text-white">
-                          {iv.name || 'A scholar'} wants a {iv.stake} SC duel
+                          {iv.name || 'A scholar'} challenges you to {iv.stake} SC
                         </span>
                       </div>
                       <div className="flex items-center gap-2 shrink-0">
@@ -1228,7 +1356,7 @@ const Rumble = () => {
                           Waiting for a reply
                         </span>
                         <span className="block truncate text-sm font-bold text-white/80">
-                          Invited {iv.name || 'a scholar'} to {iv.stake} SC
+                          Challenged {iv.name || 'a scholar'} to {iv.stake} SC — nothing held yet
                         </span>
                       </div>
                       <button

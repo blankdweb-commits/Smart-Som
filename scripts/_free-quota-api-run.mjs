@@ -108,16 +108,16 @@ let token = null;
 try {
   // ---------- 1. Run the app + create a FRESH FREE account via the real UI ----------
   await page.goto(`${BASE}/signup`, { waitUntil: 'domcontentloaded', timeout: 120000 }).catch(() => {});
-  await page.waitForSelector('input[placeholder="Email Address"]', { timeout: 90000 });
-  await page.fill('input[placeholder="Full Name"]', 'API Quota Tester');
-  await page.fill('input[placeholder="Email Address"]', EMAIL);
-  await page.fill('input[placeholder="Password"]', PASS);
-  await page.fill('input[placeholder="Confirm Password"]', PASS);
+  await page.waitForSelector('input[aria-label="Email address"]', { timeout: 90000 });
+  await page.fill('input[aria-label="Full name"]', 'API Quota Tester');
+  await page.fill('input[aria-label="Email address"]', EMAIL);
+  await page.fill('input[aria-label="Password"]', PASS);
+  await page.fill('input[aria-label="Confirm password"]', PASS);
   await page.click('button[type="submit"]');
   await page.waitForTimeout(3000);
   if (page.url().includes('/signup') && /account created/i.test((await page.textContent('body').catch(() => '')) || '')) {
-    await page.fill('input[placeholder="Email Address"]', EMAIL);
-    await page.fill('input[placeholder="Password"]', PASS);
+    await page.fill('input[aria-label="Email address"]', EMAIL);
+    await page.fill('input[aria-label="Password"]', PASS);
     await page.click('button[type="submit"]');
     await page.waitForTimeout(3000);
   }

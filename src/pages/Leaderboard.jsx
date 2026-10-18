@@ -1,91 +1,131 @@
-import React, { useCallback, useEffect, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useCallback, useMemo, useState } from 'react';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { Trophy, Coins, Award, RefreshCw, Loader2, ArrowLeft } from '../components/Icons';
+import { usePlayerSheet } from '../hooks/usePlayerSheet';
+import { ArrowLeft, Swords, Trophy, Users, Sparkles, Crown } from '../components/Icons';
 import BrandLogo from '../components/BrandLogo';
+import RankingBoard from '../components/RankingBoard';
+import SocialPanel from '../components/SocialPanel';
+import ActivityPanel from '../components/ActivityPanel';
+import CosmeticsPanel from '../components/CosmeticsPanel';
+import { BLOCKED_COPY } from '../data/challengeCopy';
 
-// Every ranked scholar should be visible without clicking "Load more", so the
-// first page is large enough for any realistic cohort. The RPC clamps a page
-// to 500 (migration-v74) and "Load more" still handles anything beyond this.
-const PAGE_SIZE = 100;
+/**
+ * Leaderboard — the social hub.
+ *
+ * This used to be a bare ranking table. It is now the single surface for
+ * "who else is on here": the ranking you had, plus the people you chose to
+ * know, plus what they have done, plus what you have bought.
+ *
+ * THE TAB IS IN THE URL (`?tab=`), not in local state, for one concrete
+ * reason: /rivals has to keep working. It is a long-standing route in the
+ * sidebar and in players' muscle memory, and pages/Rivals.jsx now redirects
+ * here. A redirect can only land on a tab if the tab is addressable.
+ *
+ * `sendChallenge` lives HERE, not in a panel, because three panels can raise a
+ * challenge (the board, a friend card, a rival card) and they must all obey
+ * the same rule: one in flight at a time, and the same refusal copy. Two
+ * independent implementations is how you get two different bugs.
+ */
+const TABS = [
+  { key: 'ranking', label: 'Ranking', icon: Trophy },
+  { key: 'friends', label: 'Friends', icon: Users },
+  { key: 'rivals', label: 'Rivals', icon: Swords },
+  { key: 'activity', label: 'Activity', icon: Sparkles },
+  { key: 'cosmetics', label: 'Cosmetics', icon: Crown },
+];
+
+const HERO = {
+  ranking: {
+    title: 'Global Leaderboard',
+    sub: 'Position by coins, duels and performance · tap anyone to see their profile',
+  },
+  friends: {
+    title: 'Friends',
+    sub: 'People you have chosen to know · challenge anyone straight from here',
+  },
+  rivals: {
+    title: 'Rivals',
+    sub: 'The ones you mean to beat · a challenge moves no coins until it is accepted',
+  },
+  activity: {
+    title: 'Activity',
+    sub: 'What your scholars have unlocked, newest first',
+  },
+  cosmetics: {
+    title: 'Cosmetics',
+    sub: 'Earned with Smart Coins · profile decoration only, never a gameplay edge',
+  },
+};
 
 const Leaderboard = () => {
   const navigate = useNavigate();
-  const { supabase, session, fetchGlobalRank, userProfile } = useAppContext();
+  const { session, arenaInvite } = useAppContext();
+  const [params, setParams] = useSearchParams();
 
-  const [rows, setRows] = useState([]);
-  const [myId] = useState(session?.user?.id || null);
-  const [myRank, setMyRank] = useState(null);
-  const [total, setTotal] = useState(0);
-  const [loading, setLoading] = useState(true);
-  const [loadingMore, setLoadingMore] = useState(false);
-  const [error, setError] = useState(null);
+  const myId = session?.user?.id || null;
+  const tab = TABS.some((t) => t.key === params.get('tab')) ? params.get('tab') : 'ranking';
 
-  const loadPage = useCallback(async (offset) => {
-    if (!supabase) return null;
-    try {
-      const { data, error: rpcError } = await supabase.rpc('get_player_leaderboard', {
-        p_limit: PAGE_SIZE,
-        p_offset: offset,
-      });
-      if (rpcError) throw rpcError;
-      if (!data || data.ok === false) throw new Error(data?.error || 'Leaderboard error');
-      return data;
-    } catch (err) {
-      console.warn('[leaderboard] load:', err?.message);
-      throw err;
+  const [challengeBusy, setChallengeBusy] = useState(null);
+  const [notice, setNotice] = useState(null);
+
+  const profile = usePlayerSheet({
+    onChallenge: (t) => t?.userId && sendChallenge(t),
+    challengeBusy,
+  });
+
+  const setTab = useCallback((key) => {
+    if (key === 'ranking') setParams({}, { replace: true });
+    else setParams({ tab: key }, { replace: true });
+  }, [setParams]);
+
+  // Sending a challenge moves NO coins - escrow only happens server-side inside
+  // arena_invite_respond when the other person accepts. We send the invite and
+  // send the user to the Arena, where the incoming-invite popup lives.
+  //
+  // The `?challenge=` handoff is how a friend card and the ranking row agree on
+  // a destination: the Arena preselects that scholar instead of dumping the user
+  // on a list they then have to find the person on again.
+  const sendChallenge = useCallback(async (target) => {
+    const userId = target?.userId ?? target?.user_id ?? null;
+    if (!userId || challengeBusy) return;
+    setChallengeBusy(userId);
+    setNotice(null);
+    const res = await arenaInvite({ userId, stake: 2 });
+    setChallengeBusy(null);
+    if (res?.ok) {
+      setNotice(`Challenge sent to ${target.displayName || target.name || 'that scholar'}. It is held only if they accept.`);
+      navigate(`/rumble?challenge=${userId}`);
+      return;
     }
-  }, [supabase]);
+    setNotice(BLOCKED_COPY[res?.error]
+      ? `Cannot challenge right now — ${BLOCKED_COPY[res.error].toLowerCase()}.`
+      : 'That challenge could not be sent right now.');
+  }, [arenaInvite, challengeBusy, navigate]);
 
-  const refresh = useCallback(async () => {
-    if (!supabase) return;
-    setError(null);
-    setLoading(true);
-    try {
-      const page = await loadPage(0);
-      setRows(page.players || []);
-      setTotal(Number(page.totalPlayers) || 0);
-    } catch {
-      setError('Could not load the leaderboard right now.');
-    } finally {
-      setLoading(false);
+  const hero = HERO[tab];
+
+  const panel = useMemo(() => {
+    switch (tab) {
+      case 'friends':
+        return <SocialPanel relType="friend" onOpenProfile={profile.open} onChallenge={sendChallenge} challengeBusy={challengeBusy} />;
+      case 'rivals':
+        return <SocialPanel relType="rival" onOpenProfile={profile.open} onChallenge={sendChallenge} challengeBusy={challengeBusy} />;
+      case 'activity':
+        return <ActivityPanel onOpenProfile={profile.open} />;
+      case 'cosmetics':
+        return <CosmeticsPanel />;
+      default:
+        return (
+          <RankingBoard
+            myId={myId}
+            onOpenProfile={profile.open}
+            onChallenge={sendChallenge}
+            challengeBusy={challengeBusy}
+          />
+        );
     }
-  }, [supabase, loadPage]);
-
-  // Own rank (fresh, server-side)
-  useEffect(() => {
-    fetchGlobalRank().then(res => setMyRank(res && res.globalRank != null ? res : null));
-  }, [fetchGlobalRank]);
-
-  useEffect(() => {
-    refresh();
-  }, [refresh]);
-
-  const loadMore = async () => {
-    if (loadingMore) return;
-    setLoadingMore(true);
-    try {
-      const page = await loadPage(rows.length);
-      setRows(prev => [...prev, ...(page.players || [])]);
-    } catch {
-      setError('Could not load more players.');
-    } finally {
-      setLoadingMore(false);
-    }
-  };
-
-  const medal = (rank) => {
-    if (rank === 1) return 'bg-amber-400 text-amber-900';
-    if (rank === 2) return 'bg-slate-300 text-slate-700';
-    if (rank === 3) return 'bg-orange-300 text-orange-800';
-    return 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400';
-  };
-
-  // Nobody had set identity_name before migration-v74, so without this nudge
-  // every row on the board is an anonymous `Scholar-xxxxxx` handle. Setting one
-  // is voluntary, already public by design, and is also what the friend/rival
-  // cards will show, so point people at it once.
-  const needsIdentityName = !String(userProfile?.identityName || '').trim();
+  }, [tab, profile, sendChallenge, challengeBusy, myId]);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
@@ -96,139 +136,67 @@ const Leaderboard = () => {
         >
           <ArrowLeft size={18} /> Back
         </button>
-        <button
-          onClick={refresh}
-          disabled={loading}
-          className="flex items-center gap-2 text-polynurse-700 dark:text-polynurse-300 font-black text-xs uppercase tracking-widest disabled:opacity-40 transition"
-        >
-          <RefreshCw size={16} className={loading ? 'animate-spin' : ''} /> Refresh
-        </button>
       </div>
 
-      <div className="bg-polynurse-700 rounded-[2.5rem] p-8 text-white shadow-xl relative overflow-hidden mb-6">
+      <div className="bg-polynurse-700 rounded-[2.5rem] p-8 text-white shadow-xl relative overflow-hidden mb-4">
         <div className="absolute top-0 right-0 p-8 opacity-10">
           <Trophy size={120} />
         </div>
-        <h1 className="text-2xl font-black uppercase tracking-tight relative z-10">Global Leaderboard</h1>
+        <h1 className="text-2xl font-black uppercase tracking-tight relative z-10">{hero.title}</h1>
         <p className="text-[10px] uppercase font-black text-white/70 tracking-widest relative z-10 mt-1">
-          Competitive power score · coins + duels + performance
+          {hero.sub}
         </p>
-        {myRank ? (
-          <p className="text-sm font-black text-white/90 relative z-10 mt-3">
-            You're <span className="text-amber-300 text-xl font-black">#{myRank.globalRank}</span> with{' '}
-            <span className="text-amber-300 font-black">{Number(myRank.playerScore || 0).toLocaleString()} pts</span>
-            {' '}· {Number(total).toLocaleString()} ranked scholars
-          </p>
-        ) : (
-          <p className="text-sm font-bold text-white/70 relative z-10 mt-3">
-            Complete a quiz round to claim your spot.
-          </p>
-        )}
       </div>
 
-      {error && (
-        <div className="mb-4 bg-red-50 dark:bg-red-900/20 text-red-600 dark:text-red-400 text-sm font-bold rounded-2xl px-4 py-3">
-          {error}
-        </div>
-      )}
-
-      {needsIdentityName && !loading && (
-        <div className="mb-4 flex flex-wrap items-center gap-3 rounded-2xl border border-polynurse-200 dark:border-polynurse-700 bg-polynurse-50 dark:bg-slate-800/60 px-4 py-3">
-          <p className="flex-1 min-w-[14rem] text-xs font-bold text-slate-600 dark:text-slate-300">
-            You appear here as an anonymous handle. Pick a display name so rivals
-            and friends recognise you on the board.
-          </p>
-          <button
-            onClick={() => navigate('/settings')}
-            className="rounded-xl bg-polynurse-700 px-4 py-2 text-xs font-black uppercase tracking-widest text-white transition hover:bg-polynurse-800"
-          >
-            Set display name
-          </button>
-        </div>
-      )}
-
-      {loading ? (
-        <div className="flex justify-center py-16">
-          <Loader2 size={28} className="animate-spin text-polynurse-600" />
-        </div>
-      ) : rows.length === 0 ? (
-        <div className="bg-white dark:bg-slate-800 rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-700 p-10 text-center">
-          <Award className="mx-auto text-slate-300 dark:text-slate-600 mb-3" size={44} />
-          <p className="text-slate-500 dark:text-slate-400 font-bold">
-            No ranked scholars yet. Be the first — complete a quiz round!
-          </p>
-        </div>
-      ) : (
-        <>
-          <ul className="space-y-2">
-            {rows.map(row => {
-              const isMe = myId && row.userId === myId;
-              const b = row.scoreBreakdown || {};
-              return (
-                <li
-                  key={row.userId}
-                  className={`flex items-center gap-3 bg-white dark:bg-slate-800 rounded-2xl shadow-clinical border px-4 py-3 transition ${
-                    isMe
-                      ? 'border-polynurse-400 ring-2 ring-polynurse-600/20 dark:border-polynurse-500'
-                      : 'border-slate-100 dark:border-slate-700'
-                  }`}
-                >
-                  <span className={`w-9 h-9 flex items-center justify-center rounded-xl font-black text-xs ${medal(row.rank)}`}>
-                    {row.rank}
-                  </span>
-                  <div className="flex-1 min-w-0">
-                    <p className="font-black text-slate-900 dark:text-white truncate">
-                      {row.displayName || 'Scholar'}
-                      {isMe && <span className="ml-2 text-[9px] font-black uppercase tracking-widest text-polynurse-600 dark:text-polynurse-300">You</span>}
-                    </p>
-                    <p className="text-[10px] font-bold text-slate-400 truncate">
-                      {/* playerScore / totalAnswers are NULL when the user has no
-                          player_stats row yet. Coercing that to 0 (the old
-                          `Number(row.playerScore || 0)`) printed a real-looking
-                          "0 pts / 0 answers" for 47 of 54 users. Distinguish
-                          "no data yet" from a genuine zero. */}
-                      {row.playerScore == null && row.totalAnswers == null ? (
-                        'No graded rounds yet'
-                      ) : (
-                        <>
-                          {Number(row.playerScore || 0).toLocaleString()} scholar pts ·{' '}
-                          {Number(row.totalAnswers || 0).toLocaleString()} answers
-                        </>
-                      )}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <span className="hidden sm:flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-slate-400">
-                      <Coins size={12} className="text-amber-500" /> {Number(b.coin || 0).toLocaleString()}
-                    </span>
-                    <span className="hidden sm:flex items-center gap-1 text-[9px] font-black uppercase tracking-widest text-slate-400">
-                      <Award size={12} className="text-polynurse-600" /> {Number(b.duels || 0).toLocaleString()}
-                    </span>
-                    <span className="text-sm font-black text-slate-900 dark:text-white tabular-nums">
-                      {Number(row.competitiveScore || 0).toLocaleString()}
-                    </span>
-                  </div>
-                </li>
-              );
-            })}
-          </ul>
-
-          {rows.length < total && (
+      {/* The tab bar scrolls horizontally on a 360px screen rather than wrapping
+          into two rows, which would push the panel content down on every tab
+          change. */}
+      <div
+        role="tablist"
+        aria-label="Social hub sections"
+        className="flex gap-1.5 overflow-x-auto pb-2 mb-4 -mx-1 px-1 snap-x"
+      >
+        {/* ESLint 9.39's no-unused-vars does not count `<Icon />` as a use of
+            the destructured name, so it reports `Icon` unused at the
+            destructuring site. Same suppression the framer imports use. */}
+        {/* eslint-disable-next-line no-unused-vars */}
+        {TABS.map(({ key, label, icon: Icon }) => {
+          const active = key === tab;
+          return (
             <button
-              onClick={loadMore}
-              disabled={loadingMore}
-              className="mt-5 w-full flex items-center justify-center gap-2 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-2xl py-3 font-black text-xs uppercase tracking-widest text-polynurse-700 dark:text-polynurse-300 hover:border-polynurse-300 disabled:opacity-50 transition"
+              key={key}
+              role="tab"
+              type="button"
+              aria-selected={active}
+              onClick={() => setTab(key)}
+              className={`shrink-0 snap-start inline-flex items-center gap-1.5 rounded-full px-3.5 py-2 text-[10px] font-black uppercase tracking-widest transition ${
+                active
+                  ? 'bg-polynurse-700 text-white'
+                  : 'bg-white dark:bg-slate-800 text-slate-500 dark:text-slate-400 border border-slate-200 dark:border-slate-700'
+              }`}
             >
-              {loadingMore ? <Loader2 size={16} className="animate-spin" /> : null}
-              Load more ({Math.max(0, total - rows.length).toLocaleString()} left)
+              <Icon size={13} /> {label}
             </button>
-          )}
-        </>
+          );
+        })}
+      </div>
+
+      {notice && (
+        <div role="status" className="mb-4 flex items-center gap-2 bg-polynurse-50 dark:bg-slate-800/60 text-polynurse-800 dark:text-polynurse-200 text-sm font-bold rounded-2xl px-4 py-3">
+          <Swords size={15} className="shrink-0" />
+          <span className="flex-1">{notice}</span>
+          <button onClick={() => setNotice(null)} className="underline shrink-0">Dismiss</button>
+        </div>
       )}
+
+      <div role="tabpanel">{panel}</div>
 
       <div className="mt-8 flex justify-center">
         <BrandLogo variant="mark" size="md" />
       </div>
+
+      {/* The profile sheet, mounted once for every tab. */}
+      {profile.sheet}
     </div>
   );
 };

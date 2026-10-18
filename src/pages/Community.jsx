@@ -18,11 +18,12 @@ import {
    Loader2,
    CheckCircle2,
   Lock,
-  ImageIcon
+  ImageIcon,
+  Crown
 } from '../components/Icons';
   // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
-import { supabase, uploadFile, getPublicUrl } from '../utils/supabase';
+import { supabase, uploadFile, getPublicUrl, getAuthUser } from '../utils/supabase';
 import { communityApi } from '../utils/communityApi';
 import { dedupe } from '../utils/cache';
 import { useAppContext } from '../context/AppContext';
@@ -152,7 +153,7 @@ const Community = () => {
   const verifyAuthBeforeWrite = async () => {
     if (!supabase) return false;
     try {
-      const { data: { user } } = await supabase.auth.getUser();
+      const user = await getAuthUser();
       if (!user || user.is_anonymous) {
         setShowAuthModal(true);
         return false;
@@ -499,7 +500,7 @@ const Community = () => {
     try {
       const { data } = await supabase
         .from('community_profiles')
-        .select('id, display_name, avatar_url, year')
+        .select('id, display_name, avatar_url, year, has_crown')
         .in('id', authorIds);
       const map = {};
       (data || []).forEach(p => { map[p.id] = p; });
@@ -526,10 +527,12 @@ const Community = () => {
 
        const formattedComments = (data || []).map(c => ({
          ...c,
-         display_name: profileMap[c.author_id]?.display_name,
-         avatar_url: profileMap[c.author_id]?.avatar_url,
-         year: profileMap[c.author_id]?.year
-       }));
+      display_name: profileMap[c.author_id]?.display_name,
+      avatar_url: profileMap[c.author_id]?.avatar_url,
+      year: profileMap[c.author_id]?.year,
+      // Cosmetic badge. Same column the feed already carries for posts.
+      has_crown: !!profileMap[c.author_id]?.has_crown
+    }));
 
        setComments(formattedComments);
     } catch (err) {
@@ -551,9 +554,10 @@ const Community = () => {
       const profileMap = await fetchProfiles([data.author_id]);
       return {
         ...data,
-        display_name: profileMap[data.author_id]?.display_name,
-        avatar_url: profileMap[data.author_id]?.avatar_url,
-        year: profileMap[data.author_id]?.year
+      display_name: profileMap[data.author_id]?.display_name,
+      avatar_url: profileMap[data.author_id]?.avatar_url,
+      year: profileMap[data.author_id]?.year,
+      has_crown: !!profileMap[data.author_id]?.has_crown
       };
     } catch {
       return null;
@@ -588,9 +592,10 @@ const Community = () => {
        const profileMap = comment.author_id ? await fetchProfiles([comment.author_id]) : {};
        const newComment = {
          ...comment,
-         display_name: profileMap[comment.author_id]?.display_name || 'You',
-         avatar_url: profileMap[comment.author_id]?.avatar_url,
-         year: profileMap[comment.author_id]?.year
+      display_name: profileMap[comment.author_id]?.display_name || 'You',
+      avatar_url: profileMap[comment.author_id]?.avatar_url,
+      year: profileMap[comment.author_id]?.year,
+      has_crown: !!profileMap[comment.author_id]?.has_crown
        };
 
        setComments(prev => prev.some(c => c.id === newComment.id) ? prev : [...prev, newComment]);
@@ -841,6 +846,13 @@ const Community = () => {
                         <div>
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-bold text-slate-900 dark:text-white cursor-pointer hover:underline">{post.display_name || 'Anonymous Scholar'}</p>
+                            {/* Cosmetic badge, carried by community_feed.has_crown
+                                (migration-v92). Decoration only. */}
+                            {post.has_crown && (
+                              <span title="Crown cosmetic — decoration only">
+                                <Crown size={13} className="text-amber-500" aria-label="Has a Crown cosmetic" />
+                              </span>
+                            )}
                             {post.year && (
                               <span className="px-2 py-0.5 bg-blue-100 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 text-[8px] font-black uppercase rounded-md">
                                 YEAR {post.year}
@@ -1034,10 +1046,17 @@ const Community = () => {
                                                    </div>
                                                 ) : (
                                                    <div className="relative bg-slate-50 dark:bg-slate-900/50 p-3 rounded-2xl rounded-tl-none group/comment">
-                                                      <div className="flex items-center gap-2 mb-1 pr-6">
-                                                         <p className="text-xs font-bold text-slate-900 dark:text-white">{comment.display_name || 'Anonymous'}</p>
-                                                         <p className="text-[9px] text-slate-400">{formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}</p>
-                                                      </div>
+                                                       <div className="flex items-center gap-2 mb-1 pr-6">
+                                                          <p className="text-xs font-bold text-slate-900 dark:text-white flex items-center gap-1">
+                                                            {comment.display_name || 'Anonymous'}
+                                                            {comment.has_crown && (
+                                                              <span title="Crown cosmetic — decoration only">
+                                                                <Crown size={11} className="text-amber-500" aria-label="Has a Crown cosmetic" />
+                                                              </span>
+                                                            )}
+                                                          </p>
+                                                          <p className="text-[9px] text-slate-400">{formatDistanceToNow(new Date(comment.created_at), { addSuffix: true })}</p>
+                                                       </div>
                                                       <p className="text-sm text-slate-700 dark:text-slate-300 font-medium whitespace-pre-wrap break-words">{comment.content}</p>
 
                                                       {/* Author-only menu */}

@@ -20,7 +20,16 @@ import {
 } from '../utils/achievementEngine';
 
 
-const AppContext = createContext();
+// A default value, not `undefined`. With `createContext()` any component that
+// renders OUTSIDE <AppProvider> — a stray portal host, a second createRoot, a
+// test harness, or a stale HMR module graph that links a second copy of this
+// module — makes `useContext` return undefined, and the very first
+// `const { isPremium } = useAppContext()` then throws
+// "Cannot destructure property 'isPremium' of 'useAppContext(...)'" and takes
+// the whole tree down (this is what killed <AdSenseManager>). With a default,
+// an out-of-provider render degrades to undefined FIELDS instead of throwing at
+// destructure time, which fails safe rather than fatal.
+const AppContext = createContext({});
 
 // Persisted mirror of the last-known server course-quota map (per-user).
 // DISPLAY-ONLY: it lets used courses render as LOCKED with their countdown
@@ -122,7 +131,20 @@ const callApexApi = async (url, { method = 'GET', headers = {}, body } = {}) => 
         `API returned non-JSON (expected JSON):\n` +
         `  ${method} ${url}\n  Status: ${res.status}\n  Content-Type: ${contentType}\n  Body: ${snippet || '(empty)'}`
       );
-      return { ok: false, status: res.status, contentType, error: 'Non-JSON response', body: snippet };
+      return {
+        ok: false,
+        status: res.status,
+        contentType,
+        // An empty text/plain 500 is Vite's dev proxy reporting that the local
+        // API server was unreachable (ECONNREFUSED on :3001) — every handler
+        // always emits application/json. Flagging it `networkError` lets the
+        // existing retry paths treat it as transient instead of treating a dead
+        // dev server as a real server answer, which is what silently fail-closed
+        // /api/quota/course-status into "every course is locked".
+        networkError: true,
+        error: 'Non-JSON response',
+        body: snippet,
+      };
     }
     let data;
     try {
@@ -933,23 +955,52 @@ const [scEarnedTotal, setScEarnedTotal] = useState(0);
   const arenaLeaveQueue = useCallback(() =>
     arenaRpc('arena_leave_queue', {}), [arenaRpc]);
 
-  // ---- invites (migration v78) -------------------------------------------
-  // Consent comes BEFORE escrow: sending an invite moves nothing, and the stakes
-  // are only held when the recipient accepts (server-side, inside
-  // arena_invite_respond, which then builds the match through the same canonical
-  // arena_create_match a direct challenge uses).
-  const arenaInvite = useCallback(async ({ userId, stake = 0 }) =>
-    arenaRpc('arena_invite', { p_to_user: userId, p_stake: Number(stake) || 0 }),
-  [arenaRpc]);
+// ---- invites (migration v78) -------------------------------------------
+// Consent comes BEFORE escrow: sending an invite moves nothing, and the stakes
+// are only held when the recipient accepts (server-side, inside
+// arena_invite_respond, which then builds the match through the same canonical
+// arena_create_match a direct challenge uses).
+//
+// The stake default is 2, matching ARENA_STAKE on the client and the server's
+// own default. It used to be 0 here, which silently disagreed with the SQL
+// default and with every caller.
+const arenaInvite = useCallback(async ({ userId, stake = 2 }) =>
+  arenaRpc('arena_invite', { p_to_user: userId, p_stake: Number(stake) || 0 }),
+[arenaRpc]);
 
-  const arenaInvites = useCallback(async () => {
-    const res = await arenaRpc('arena_invites_list', {});
-    return {
-      incoming: Array.isArray(res?.incoming) ? res.incoming : [],
-      outgoing: Array.isArray(res?.outgoing) ? res.outgoing : [],
-      windowSeconds: Number(res?.windowSeconds) || 600,
-    };
-  }, [arenaRpc]);
+const arenaInvites = useCallback(async () => {
+  const res = await arenaRpc('arena_invites_list', {});
+  return {
+    incoming: Array.isArray(res?.incoming) ? res.incoming : [],
+    outgoing: Array.isArray(res?.outgoing) ? res.outgoing : [],
+    // migration-v84: invitations I SENT that were accepted and whose match I
+    // have not yet joined. This is the handoff that was missing entirely —
+    // before v84 the inviter could never learn their challenge was accepted.
+    ready: Array.isArray(res?.ready) ? res.ready : [],
+    windowSeconds: Number(res?.windowSeconds) || 600,
+  };
+}, [arenaRpc]);
+
+// The inviter acknowledging an accepted challenge. Marks it joined so `ready`
+// stops offering it, and hands back the matchId to verify through arena_state.
+const arenaInviteReady = useCallback(async ({ inviteId }) =>
+  arenaRpc('arena_invite_ready', { p_invite_id: inviteId }),
+[arenaRpc]);
+
+// Global Ranking eligibility. Returns canChallenge plus the REFUSAL REASON per
+// row, so a dead button can say why ("Busy", "Low coins") instead of lying.
+const arenaChallengeTargets = useCallback(async ({ limit = 100, offset = 0 } = {}) => {
+  const res = await arenaRpc('arena_challenge_targets', {
+    p_limit: Number(limit) || 100,
+    p_offset: Number(offset) || 0,
+  });
+  return {
+    players: Array.isArray(res?.players) ? res.players : [],
+    stake: Number(res?.stake) || 2,
+    totalPlayers: Number(res?.totalPlayers) || 0,
+    callerBlocked: res?.callerBlocked || null,
+  };
+}, [arenaRpc]);
 
   // Accept returns the create result (matchId, questions, balance), so the
   // caller can adopt the match without a second round trip. Decline returns
@@ -2429,6 +2480,7 @@ const [scEarnedTotal, setScEarnedTotal] = useState(0);
       arenaForfeit, arenaCancel, arenaSettle, arenaState, arenaOutcome,
       arenaEnqueue, arenaLeaveQueue, arenaRoster, refreshSmartCoins, scEarnedTotal,
     arenaInvite, arenaInvites, arenaInviteRespond, arenaInviteCancel,
+      arenaInviteReady, arenaChallengeTargets,
       claimChallengeReward, getMyReferral, applyReferral,
       createSquad, joinSquad, leaveSquad, getMySquad, claimSquadReward,
       createRoom, joinRoom, leaveRoom, getActiveRooms, getMyRoom,

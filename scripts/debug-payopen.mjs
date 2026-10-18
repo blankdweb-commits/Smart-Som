@@ -8,10 +8,10 @@ page.on('pageerror', e => logs.push('PAGEERROR: ' + e.message.slice(0, 400)));
 page.on('requestfailed', r => logs.push(`REQFAILED: ${r.url().slice(0, 100)} :: ${r.failure()?.errorText}`));
 
 await page.goto('http://localhost:5173/signup', { waitUntil: 'networkidle' });
-await page.fill('input[placeholder="Full Name"]', 'Pk');
-await page.fill('input[placeholder="Email Address"]', `pkx${Date.now().toString().slice(-6)}@apextest.local`);
-await page.fill('input[placeholder="Password"]', 'testpass123');
-await page.fill('input[placeholder="Confirm Password"]', 'testpass123');
+await page.fill('input[aria-label="Full name"]', 'Pk');
+await page.fill('input[aria-label="Email address"]', `pkx${Date.now().toString().slice(-6)}@apextest.local`);
+await page.fill('input[aria-label="Password"]', 'testpass123');
+await page.fill('input[aria-label="Confirm password"]', 'testpass123');
 await page.click('button[type="submit"]');
 await page.waitForTimeout(3500);
 

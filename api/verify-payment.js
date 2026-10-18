@@ -247,11 +247,17 @@ async function grantMarketplaceProduct(supabase, user, paidAmount, metadata) {
 
   const { data: product } = await supabase
     .from('marketplace_products')
-    .select('id, title, price, access_type, is_published, is_archived, marketplace_sellers(business_name)')
+    .select('id, title, price, access_type, kind, is_published, is_archived, marketplace_sellers(business_name)')
     .eq('id', productId)
     .maybeSingle();
   if (!product || !product.is_published || product.is_archived) {
     return { status: 400, body: { error: 'PRODUCT_NOT_AVAILABLE', message: 'This product is no longer available.' } };
+  }
+  // Cosmetics are Smart-Coin only. Refused identically in all three payment
+  // entry points (initiate, verify, webhook) because each of them is reachable
+  // on its own: a verified payment is not proof that initiate-payment ran.
+  if (product.kind === 'cosmetic' || product.access_type === 'cosmetic') {
+    return { status: 400, body: { error: 'COSMETIC_NOT_CARD_PURCHASABLE', message: 'Cosmetics are purchased with Smart Coins in the Cosmetics section, not with card payment.' } };
   }
   const seller = product.marketplace_sellers;
   const isPlatform =

@@ -19,7 +19,31 @@ export default defineConfig({
       // /api/verify-payment works during local development, not just on Vercel.
       "/api": {
         target: process.env.API_TARGET || "http://localhost:3001",
-        changeOrigin: true
+        changeOrigin: true,
+        // Vite's built-in proxy error handler answers a dead upstream with
+        // `res.writeHead(500, {"Content-Type": "text/plain"}).end()` - a 500
+        // whose body is ZERO bytes. Every handler in api/ always emits JSON, so
+        // an empty text/plain 500 could only mean "the local API server is not
+        // listening" (npm run dev:vite with nothing on :3001, or the restart
+        // window scripts/dev.mjs opens on every api/** save). The client then
+        // logged a confusing "API returned non-JSON ... Body: (empty)" for four
+        // unrelated endpoints at once and treated it as a server answer.
+        //
+        // Answer with a real JSON error instead, so the cause is self-evident
+        // and callers can treat it as transient.
+        configure(proxy) {
+          proxy.on("error", (err, _req, res) => {
+            if (res.headersSent || res.writableEnded) return;
+            res.writeHead(503, { "Content-Type": "application/json" });
+            res.end(
+              JSON.stringify({
+                error: "API_SERVER_UNREACHABLE",
+                message:
+                  "The local API server is not running. Start it with `npm run dev` (not `npm run dev:vite`), or wait for it to finish restarting.",
+              })
+            );
+          });
+        },
       }
     }
   },

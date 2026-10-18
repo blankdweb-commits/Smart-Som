@@ -38,10 +38,10 @@ page.on('pageerror', err => consoleErrors.push('PAGEERROR: ' + err.message.slice
 try {
   // ---------- SIGN UP ----------
   await page.goto(`${BASE}/signup`, { waitUntil: 'networkidle' });
-  await page.fill('input[placeholder="Full Name"]', USER.name);
-  await page.fill('input[placeholder="Email Address"]', USER.email);
-  await page.fill('input[placeholder="Password"]', USER.password);
-  await page.fill('input[placeholder="Confirm Password"]', USER.password);
+  await page.fill('input[aria-label="Full name"]', USER.name);
+  await page.fill('input[aria-label="Email address"]', USER.email);
+  await page.fill('input[aria-label="Password"]', USER.password);
+  await page.fill('input[aria-label="Confirm password"]', USER.password);
   await page.click('button[type="submit"]');
   await page.waitForTimeout(3500);
   const sess = await page.evaluate(async () => {

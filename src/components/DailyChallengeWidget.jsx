@@ -239,10 +239,16 @@ const DailyChallengeWidget = () => {
     markDailyChallengeDone?.();
     if (!session?.access_token) return;
     try {
-      await callApexApi('/api/daily-challenge/complete', {
+await callApexApi('/api/daily-challenge/complete', {
         method: 'POST',
         headers: authHeaders(session, { json: true }),
-        body: JSON.stringify({ score, total, question_ids: ids })
+        // The OBJECT, not JSON.stringify(obj). callApexApi already
+        // JSON.stringify's the body it is given, so pre-stringifying here sent a
+        // JSON string as the body - the server then destructured a string, got
+        // score=0 / total=0 / question_ids=[] and upserted an empty row while
+        // replying {success:true}. Every completed challenge scored 0 and
+        // nothing ever surfaced the error.
+        body: { score, total, question_ids: ids },
       });
     } catch (err) {
       console.warn('Daily challenge complete skipped:', err.message);

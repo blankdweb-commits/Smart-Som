@@ -153,6 +153,17 @@ create table if not exists public.voting_candidates (
 
 create index if not exists idx_voting_candidates_campaign on public.voting_candidates(campaign_id);
 
+-- A stable natural key. `voting_campaigns` has only a generated identity id, so
+-- without a slug the sample seed below would duplicate itself on every re-run.
+-- Same shape as the v36 promo-pricing seed (add slug -> unique index -> upsert).
+alter table public.voting_campaigns
+  add column if not exists slug text;
+-- Plain (not partial) unique index so it can be used as an ON CONFLICT arbiter
+-- by the seed below. Postgres permits any number of NULL slugs in a plain
+-- UNIQUE index, so ordinary campaigns can leave it NULL.
+create unique index if not exists voting_campaigns_slug_key
+  on public.voting_campaigns (slug);
+
 create table if not exists public.campaign_votes (
   id                 bigint generated always as identity primary key,
   campaign_id        bigint not null references public.voting_campaigns(id) on delete cascade,
@@ -393,6 +404,7 @@ declare
   v_rat  integer;
   v_opts text[];
   v_comment text;
+  v_replay boolean := false;
   v_stats public.service_rating_stats;
 begin
   if v_user is null then
@@ -427,13 +439,47 @@ begin
 
   v_comment := left(coalesce(p_comment, ''), 500);
 
-  insert into public.service_ratings (user_id, category, rating, options, comment)
-  values (v_user, v_cat, v_rat, v_opts, v_comment)
-  on conflict (user_id, category) do update
-    set rating     = excluded.rating,
-        options    = excluded.options,
-        comment    = excluded.comment,
-        updated_at = now();
+  -- ONE REVIEW PER SERVICE, per account. Every one of the five categories is
+  -- write-once. The UNIQUE (user_id, category) constraint alone cannot express
+  -- this: on its own it only stops duplicate ROWS, and the upsert below would
+  -- happily overwrite an existing rating, which is exactly the re-roll this has
+  -- to refuse. An account that can edit its score of a service can keep editing
+  -- it until it likes the number it landed on, so the aggregate stops meaning
+  -- anything.
+  --
+  -- An IDENTICAL re-submission is the one exception. A double-tapped Save, a
+  -- retried request after a dropped connection, or a replayed idempotency key
+  -- all look like a second attempt but carry no new opinion, so they are
+  -- accepted as a no-op replay instead of an error. Anything that CHANGES the
+  -- stored rating is refused.
+  if exists (
+    select 1 from public.service_ratings
+    where user_id = v_user and category = v_cat
+  ) then
+    if not exists (
+      select 1 from public.service_ratings
+      where user_id = v_user
+        and category = v_cat
+        and rating  = v_rat
+        and comment is not distinct from v_comment
+        and options = v_opts
+    ) then
+      raise exception 'ALREADY_RATED' using errcode = '22023';
+    end if;
+
+    -- Identical replay: fall through to the aggregate recompute so the caller
+    -- still gets fresh stats, but do NOT rewrite the row (which would move
+    -- updated_at and imply an edit that never happened).
+    v_replay := true;
+  else
+    insert into public.service_ratings (user_id, category, rating, options, comment)
+    values (v_user, v_cat, v_rat, v_opts, v_comment)
+    on conflict (user_id, category) do update
+      set rating     = excluded.rating,
+          options    = excluded.options,
+          comment    = excluded.comment,
+          updated_at = now();
+  end if;
 
   -- Recompute the aggregate from the base rows in the same transaction, so the
   -- chart can never disagree with what was actually stored.
@@ -462,6 +508,10 @@ begin
     'ok', true,
     'category', v_cat,
     'rating', v_rat,
+    -- true when this call carried no new opinion (a double-tap / retried
+    -- request replaying the identical rating). The client uses it to avoid
+    -- showing a "saved" toast for something that changed nothing.
+    'replay', v_replay,
     'stats', jsonb_build_object(
       'rating_count', v_stats.rating_count,
       'rating_sum',   v_stats.rating_sum,
@@ -592,7 +642,8 @@ begin
       'turnout', null,
       'candidates', coalesce((
         select jsonb_agg(jsonb_build_object(
-          'id', cd.id, 'name', cd.name, 'statement', cd.statement,
+          'id', cd.id, 'name', cd.name, 'image_url', cd.image_url,
+          'statement', cd.statement,
           'votes', null, 'sort_order', cd.sort_order
         ) order by cd.sort_order, cd.name)
         from public.voting_candidates cd where cd.campaign_id = p_campaign
@@ -603,6 +654,7 @@ begin
   select coalesce(jsonb_agg(jsonb_build_object(
            'id', cd.id,
            'name', cd.name,
+           'image_url', cd.image_url,
            'statement', cd.statement,
            'sort_order', cd.sort_order,
            'votes', coalesce(t.votes, 0)
@@ -687,6 +739,80 @@ drop policy if exists "voting_polls_insert_authed" on public.voting_polls;
 drop policy if exists "voting_options_owner_all" on public.voting_options;
 
 -- PostgREST schema-cache refresh so the replaced definitions are picked up.
+notify pgrst, 'reload schema';
+
+-- ============================================================
+-- 8. SAMPLE CAMPAIGN (seeded so the Campaigns tab is never a dead end)
+--
+-- WHY THIS EXISTS: with no rows, the Campaigns tab renders only its "No
+-- campaigns right now" panel and a first-time user has nothing to look at, so
+-- the Voting tutorial describes a screen they cannot see.
+--
+-- HONESTY RULES FOR THIS SEED, deliberately enforced:
+--   * The title is prefixed "SAMPLE -" and the description opens with an
+--     explicit disclosure. Nobody can mistake it for a real election.
+--   * NO votes are fabricated. Every candidate starts at exactly 0 and the
+--     ONLY writer of totals is cast_campaign_vote. Whatever numbers appear
+--     are real votes cast by real accounts.
+--   * `status` is hand-maintained in this schema (no trigger derives it from
+--     the window), so it is hard-coded 'active' alongside a window that
+--     already contains now() - otherwise the card renders an "Upcoming" pill
+--     and the Vote buttons never appear.
+--   * `results_public = true`, because get_campaign_results hides every total
+--     until then, which would make the sample look broken.
+--   * `votes_per_user = 1`. That column is DISPLAY ONLY - cast_campaign_vote
+--     never reads it and the DB hard-wires one vote via
+--     unique (campaign_id, user_id). Seeding anything higher would print
+--     "3 vote per account" while the server still allowed exactly one.
+--   * Idempotent via the slug. Re-running never rewrites a row that may
+--     already hold real votes (ON CONFLICT DO NOTHING, not DO UPDATE).
+-- ============================================================
+insert into public.voting_campaigns
+  (slug, title, description, eligibility_note, rules_note,
+   starts_at, ends_at, status, results_public, votes_per_user)
+values
+  ('sample-how-voting-works',
+   'SAMPLE - How voting works',
+   'This is a sample campaign that demonstrates how voting works. It is not a real election and nobody is standing for anything. Open it to see the rules, the candidates, your own vote and live standings.',
+   'Open to every signed-in PolyNurse account. One vote per account. Change your display name in Settings first so candidates are attributed to you.',
+   'Tap a candidate and then Vote. Your vote is recorded by the server, not your device, and the standings update on their own. If two candidates are level we show them level rather than inventing a winner.',
+   now() - interval '1 day',
+   now() + interval '90 days',
+   'active',
+   true,
+   1)
+on conflict (slug) do nothing;
+
+insert into public.voting_candidates (campaign_id, name, image_url, statement, sort_order)
+select c.id, v.name, '', v.statement, v.sort_order
+from public.voting_campaigns c
+cross join (values
+  ('Keisha B.',
+   'I want more timed rounds. A 40-question blitz under a shared clock is the single best thing on this app and I would like to see more question banks behind it, especially Midwifery 300.',
+   1),
+  ('Tobi A.',
+   'I would spend the effort on explanation quality instead. A wrong answer that teaches you something is worth more than ten more questions, and the review panel is where that has to happen.',
+   2),
+  ('Amaka O.',
+   'Study groups are the part of PolyNurse I actually use every week. Stronger group leaderboards, real group quizzes with a proper streak, and a way to see who is online in a group would help me most.',
+   3)
+) as v(name, statement, sort_order)
+where c.slug = 'sample-how-voting-works'
+  and not exists (
+    select 1 from public.voting_candidates existing
+    where existing.campaign_id = c.id and existing.name = v.name
+  );
+
+-- Every candidate gets a real zero row so the standings chart renders honestly
+-- instead of leaving a missing row the client has to guess about.
+insert into public.campaign_totals (candidate_id, campaign_id, votes)
+select cd.id, cd.campaign_id, 0
+from public.voting_candidates cd
+join public.voting_campaigns c on c.id = cd.campaign_id
+where c.slug = 'sample-how-voting-works'
+on conflict (candidate_id) do nothing;
+
+-- PostgREST cache refresh again: the seed inserts rows the client will read.
 notify pgrst, 'reload schema';
 
 -- ============================================================

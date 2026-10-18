@@ -139,7 +139,22 @@ export const MAX_POST_LIFE_MS = 6 * 60 * 60 * 1000;
 // Versioned safety notice members must acknowledge before they can speak.
 // v62 - bumped to 5: the room gained the consent-gated "Toast / Crack" gag, so
 // everyone re-accepts the notice (which now discloses it) before it can appear.
-export const ROOM_NOTICE = { key: 'anonymous_room_safety', version: 5 };
+// v88 - bumped to 6: the notice now carries an explicit 18+ confirmation, which
+// is BOLD and REQUIRED (the client cannot dismiss the gate and the confirm
+// button stays disabled until it is ticked). Spectators are covered from v6
+// too - they used to be hard-coded as accepted (see handleAnonRoom), which left
+// a reader with full read/react access and no age gate at all.
+//
+// The bump is what re-asks everyone: community_notice_acks stores the version,
+// and hasNoticeAck compares `stored >= ROOM_NOTICE.version`, so every existing
+// v5 row stops being valid. That is intended - the notice text changed, so the
+// acknowledgement has to be given again.
+export const ROOM_NOTICE = { key: 'anonymous_room_safety', version: 6 };
+// Minimum age the Anonymous Room admits. The PLATFORM floor is 16 (see
+// src/pages/Legal.jsx §8); the room is stricter because it carries adult
+// humour and the consent-gated gag. Kept here so the number the server
+// enforces and the number the client displays come from one place.
+export const ROOM_MINIMUM_AGE = 18;
 
 // Reporting: fixed categories + a per-user hourly rate limit.
 export const REPORT_CATEGORIES = ['harassment', 'spam', 'self_harm', 'hate', 'sexual', 'personal_info', 'other'];
@@ -343,7 +358,39 @@ export async function hasNoticeAck(userId) {
     .eq('user_id', userId)
     .eq('notice_key', ROOM_NOTICE.key)
     .maybeSingle();
-  return !!data && Number(data.version) >= ROOM_NOTICE.version;
+return !!data && Number(data.version) >= ROOM_NOTICE.version;
+}
+
+// The safety-notice + 18+ gate. Call this AFTER a handler's own access check.
+// Returns false and has already written the response when the caller has not
+// accepted the current notice version.
+//
+// The client's overlay is the friendly half of this; this function is the half
+// that actually holds. Without it the gate is cosmetic - `POST
+// /api/community/anonymous/feed` would still hand an unconfirmed caller the
+// room's entire message history in one request.
+//
+// DELIBERATELY NOT APPLIED TO:
+//   - handleAnonRoom / handleAnonPreview: the client needs the room payload in
+//     order to learn `notice.accepted === false`. Gating the thing that carries
+//     the gate flag leaves the client with nothing to render it from.
+//   - handleAnonPresence: presence is what keeps a seat alive.
+//     community_membership_reconcile releases members idle past
+//     MEMBERSHIP_ACTIVITY_SECONDS, and a member reading the 18+ box is by
+//     definition idle. Gating presence would cost them their seat before they
+//     had any chance to accept.
+//   - handleAnonAck: it is the only way out of the gate.
+export async function requireNoticeAck(req, res, user) {
+  if (await hasNoticeAck(user.id)) return true;
+  res.status(403).json({
+    error: 'NOTICE_REQUIRED',
+    message:
+      `Please accept the room safety notice and confirm you are ${ROOM_MINIMUM_AGE} or older `
+      + 'before viewing this room.',
+    notice: { key: ROOM_NOTICE.key, version: ROOM_NOTICE.version },
+    minimumAge: ROOM_MINIMUM_AGE,
+  });
+  return false;
 }
 
 // SERVER-AUTHORITATIVE premium check (mirrors AppContext but never trusts the
@@ -1122,6 +1169,56 @@ export async function handleLeaveGroup(req, res, user) {
   if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND' });
 
 if (group.type === 'anonymous') {
+    // HOST LEAVE DELETES THE ROOM (migration-v88).
+    //
+    // community_anonymous_leave hard-refuses with OWNER_CANNOT_LEAVE for anyone
+    // holding the owner membership row, which reached the user as a bare 400
+    // from the Room's Leave button. The operator decision is that the host
+    // leaving closes the room outright, so the ownership test happens HERE,
+    // before the RPC, and the host takes a different path entirely.
+    //
+    // The delete itself lives in one SECURITY DEFINER function so the ordering
+    // that keeps this safe cannot be got wrong from JS: community_posts is
+    // `on delete set null` off study_groups, and the public community_feed view
+    // admits any post whose group_id is null - so deleting the room row first
+    // would publish the room's entire message history to logged-out visitors.
+    // The function deletes posts first and is service-role only.
+    const isHost = group.creator_id === user.id
+      || !!(await supabase
+        .from('study_group_members')
+        .select('role')
+        .eq('group_id', groupId)
+        .eq('user_id', user.id)
+        .eq('role', 'owner')
+        .maybeSingle()
+        .then((r) => r.data, () => null));
+
+    if (isHost) {
+      const { data: deleted, error: deleteErr } = await supabase.rpc('anonymous_room_delete_host', {
+        p_group: groupId,
+        p_user: user.id,
+      });
+      if (deleteErr) {
+        console.error('[community anon host delete]', deleteErr);
+        // The function RAISES on refusal rather than returning a jsonb, so a
+        // refusal arrives as an error here. OWNER_CANNOT_LEAVE / NOT_ANONYMOUS
+        // can only happen if ownership changed between the check above and the
+        // call (the function takes an advisory lock, so this is a genuine race,
+        // not a lost update) and are a 409, not a server fault.
+        const refusal = /OWNER_CANNOT_LEAVE|NOT_ANONYMOUS/i.test(deleteErr.message || '');
+        return res.status(refusal ? 409 : 500).json({
+          error: refusal ? 'ROOM_NOT_CLOSED' : 'Failed to close the room',
+          message: deleteErr.message,
+        });
+      }
+      return res.status(200).json({
+        ok: true,
+        deleted: true,
+        group_id: groupId,
+        posts_deleted: deleted?.posts_deleted ?? 0,
+      });
+    }
+
     // Read the alias the ROOM ALREADY KNOWS (no visit key => no re-roll). Passing
     // the visit key here used to re-roll first, so a departing member in a new
     // tab was announced under a number nobody had ever seen.
@@ -1907,7 +2004,14 @@ export async function handleAnonRoom(req, res, user) {
   const myAlias = access === 'member' ? await ensureRoomAlias(group.id, user.id, readVisitKey(req)) : null;
   // Opening the room is real engagement for a member (S4).
   if (access === 'member') void touchMembership(group.id, user.id);
-  const noticeAccepted = access === 'member' ? await hasNoticeAck(user.id) : true;
+  // Both MEMBERS and SPECTATORS must have accepted the current notice (which
+  // includes the 18+ confirmation). Spectators used to be hard-coded `true`
+  // here, which meant anyone could take a spectator seat - full read and react
+  // access - with no notice and no age gate whatsoever. A spectator cannot post
+  // (handleAnonSend is gated and they hold no member role), so covering them
+  // here changes no server behaviour beyond the payload flag itself.
+  const noticeAccepted =
+    access === 'member' || access === 'spectator' ? await hasNoticeAck(user.id) : true;
   const premium = viewable ? await isPremiumUser(user.id) : false;
   let online = null;
   if (viewable) {
@@ -1968,7 +2072,7 @@ export async function handleAnonRoom(req, res, user) {
       activate: group.minimum_members_to_activate,
       survive: group.minimum_members_to_remain_active,
     },
-    notice: noticeAccepted ? { accepted: true } : { accepted: false, key: ROOM_NOTICE.key, version: ROOM_NOTICE.version },
+notice: noticeAccepted ? { accepted: true } : { accepted: false, key: ROOM_NOTICE.key, version: ROOM_NOTICE.version },
     channel: roomChannel(group.id),
     config: {
       reactions: ROOM_REACTIONS,
@@ -1979,6 +2083,9 @@ export async function handleAnonRoom(req, res, user) {
       lifetime_hours: MAX_POST_LIFE_MS / (60 * 60 * 1000),
       notice_key: ROOM_NOTICE.key,
       notice_version: ROOM_NOTICE.version,
+      // Sent so the age the client renders in the gate is the SAME number the
+      // server enforces, rather than a second literal that can drift.
+      minimum_age: ROOM_MINIMUM_AGE,
       actions: ROOM_ACTIONS,
       tags: ROOM_TAGS,
       social_actions: SOCIAL_ACTIONS,
@@ -2488,9 +2595,10 @@ export async function handleAnonMembers(req, res, user) {
   const { access } = await roomAccess(group, user.id);
   if (access === 'banned') return res.status(403).json({ error: 'BANNED', message: 'Your community access is currently restricted.' });
   if (access === 'wiped') return res.status(403).json({ error: 'GROUP_WIPED', message: 'This round has been wiped. Nothing persists.' });
-  if (access !== 'member') {
+if (access !== 'member') {
     return res.status(403).json({ error: 'ANONYMOUS_MEMBERS_ONLY', message: 'Only members can view the room roster.' });
   }
+  if (!(await requireNoticeAck(req, res, user))) return;
 
   const { data: memberRows, error: memberError } = await supabase
     .from('study_group_members')
@@ -2555,10 +2663,11 @@ export async function handleAnonFeed(req, res, user) {
   const group = await resolveAnonGroup(req.body?.group_id);
   if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND', message: 'No Anonymous room found.' });
 
-  const { access } = await roomAccess(group, user.id);
+const { access } = await roomAccess(group, user.id);
   if (!access || !['member', 'spectator'].includes(access)) {
     return res.status(403).json({ error: access.toUpperCase(), message: 'You cannot read this room right now.' });
   }
+  if (!(await requireNoticeAck(req, res, user))) return;
 
   const limit = Math.max(1, Math.min(ROOM_MAX_LIMIT, Number(req.body?.limit) || ROOM_PAGE_SIZE));
   const before = typeof req.body?.before === 'string' && req.body.before ? req.body.before : null;
@@ -2665,10 +2774,11 @@ export async function handleAnonMessage(req, res, user) {
   const group = await resolveAnonGroup(req.body?.group_id);
   if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND', message: 'No Anonymous room found.' });
 
-  const { access } = await roomAccess(group, user.id);
+const { access } = await roomAccess(group, user.id);
   if (!access || !['member', 'spectator'].includes(access)) {
     return res.status(403).json({ error: access.toUpperCase(), message: 'You cannot read this room right now.' });
   }
+  if (!(await requireNoticeAck(req, res, user))) return;
 
   const messageId = parseId(req.body?.message_id);
   if (!messageId) return res.status(400).json({ error: 'Invalid message id' });
@@ -2754,14 +2864,10 @@ export async function handleAnonSend(req, res, user) {
   // Feature/argument validation runs BEFORE the safety-notice gate so an
   // unavailable feature (e.g. non-premium Encode) reports its own reason
   // rather than a generic NOTICE_REQUIRED. The notice is still enforced
-  // server-side before any write happens.
-  if (!(await hasNoticeAck(user.id))) {
-    return res.status(403).json({
-      error: 'NOTICE_REQUIRED',
-      message: 'Please accept the room safety notice before speaking.',
-      notice: { key: ROOM_NOTICE.key, version: ROOM_NOTICE.version },
-    });
-  }
+// server-side before any write happens.
+  // Same helper as the read gates, so the message a refused writer sees names the
+  // age confirmation too rather than only the safety notice.
+  if (!(await requireNoticeAck(req, res, user))) return;
 
   const now = new Date().toISOString();
   const { data: post, error } = await supabase
@@ -3230,9 +3336,10 @@ export async function handleAnonEvent(req, res, user) {
   if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND', message: 'No Anonymous room found.' });
 
   const { access } = await roomAccess(group, user.id);
-  if (!['member', 'spectator'].includes(access)) {
+if (!['member', 'spectator'].includes(access)) {
     return res.status(403).json({ error: access.toUpperCase(), message: 'You cannot read this room right now.' });
   }
+  if (!(await requireNoticeAck(req, res, user))) return;
 
   const eventId = Number(req.body?.event_id);
   if (!Number.isFinite(eventId) || eventId <= 0) return res.status(400).json({ error: 'Invalid event id' });
@@ -3520,6 +3627,7 @@ export async function handleAnonDuel(req, res, user) {
   if (access !== 'member') {
     return res.status(403).json({ error: 'ANONYMOUS_MEMBERS_ONLY', message: 'Only members can fight.' });
   }
+  if (!(await requireNoticeAck(req, res, user))) return;
 
   if (req.method === 'GET') {
     const eventId = Number(req.body?.event_id);

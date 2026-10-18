@@ -34,6 +34,10 @@ const EMPTY_FORM = {
   description: '',
   price: '',
   access_type: 'one-time',
+  kind: 'standard',
+  slot: '',
+  sku: '',
+  sc_price: '',
   content_url: '',
   is_published: true,
   is_featured: false
@@ -141,6 +145,13 @@ export default function AdminMarketplace() {
       description: p.description || '',
       price: p.price != null ? String(p.price) : '',
       access_type: p.access_type,
+      // Pre-migration rows have no kind, and the column defaults to 'standard'.
+      // Coerced here so an old product never lands in the editor as a cosmetic
+      // just because the field came back undefined.
+      kind: p.kind === 'cosmetic' ? 'cosmetic' : 'standard',
+      slot: p.slot || '',
+      sku: p.sku || '',
+      sc_price: p.sc_price != null ? String(p.sc_price) : '',
       content_url: p.content_url || '',
       is_published: p.is_published,
       is_featured: p.is_featured
@@ -160,6 +171,21 @@ export default function AdminMarketplace() {
     if (!Number.isFinite(price) || price < 0) { setFormError('PRICE'); return; }
     if (f.access_type === 'one-time' && price <= 0) { setFormError('PRICE_NEEDED'); return; }
 
+    // A cosmetic is validated against migration-v92's
+    // marketplace_products_cosmetic_price_check: kind='cosmetic' requires a
+    // positive sc_price AND a slot AND a sku. Sending any of them missing
+    // would be refused by the database as an opaque check violation, so it is
+    // caught here with a readable message instead.
+    const isCosmetic = f.kind === 'cosmetic';
+    const slot = (f.slot || '').trim();
+    const sku = (f.sku || '').trim();
+    const scPrice = Number(f.sc_price);
+    if (isCosmetic) {
+      if (!/^[a-z0-9][a-z0-9-]*$/.test(sku)) { setFormError('SKU'); return; }
+      if (!slot) { setFormError('SLOT'); return; }
+      if (!Number.isInteger(scPrice) || scPrice <= 0) { setFormError('SC_PRICE'); return; }
+    }
+
     const categoryId = f.category_id ? Number(f.category_id) : null;
     const contentUrl = (f.content_url || '').trim();
     const payload = {
@@ -169,6 +195,14 @@ export default function AdminMarketplace() {
       description: (f.description || '').trim(),
       price,
       access_type: f.access_type,
+      kind: isCosmetic ? 'cosmetic' : 'standard',
+      // Cosmetics are never in the NGN storefront (Marketplace.jsx filters
+      // kind='cosmetic' out at the query) and all three payment endpoints
+      // refuse them, so their naira price is pinned to 0 rather than left to
+      // drift - a cosmetic showing a naira figure anywhere would be a lie.
+      slot: isCosmetic ? slot : null,
+      sku: isCosmetic ? sku : null,
+      sc_price: isCosmetic ? scPrice : null,
       content_url: contentUrl && /^https?:\/\//i.test(contentUrl) ? contentUrl : null,
       is_published: !!f.is_published,
       is_featured: !!f.is_featured
@@ -443,6 +477,9 @@ const EditorModal = ({ form, categories, sellers, saving, formError, onField, on
     SELLER: 'Pick a seller for this product.',
     PRICE: 'Enter a valid price (0 or more).',
     PRICE_NEEDED: 'One-time paid products need a price greater than 0.',
+    SKU: 'A cosmetic needs a SKU: lowercase letters, digits and dashes only.',
+    SLOT: 'A cosmetic needs a slot (for example profile_crown).',
+    SC_PRICE: 'A cosmetic needs a Smart Coin price greater than 0.',
     WRITE: 'The database refused this change. Check the fields and try again.',
     NETWORK: 'Could not reach the database. Try again.'
   }[formError];
@@ -506,6 +543,16 @@ const EditorModal = ({ form, categories, sellers, saving, formError, onField, on
           </Field>
 
           <div className="grid grid-cols-2 gap-3">
+            <Field label="Kind">
+              <select
+                value={form.kind || 'standard'}
+                onChange={(e) => onField({ kind: e.target.value })}
+                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
+              >
+                <option value="standard">Standard product</option>
+                <option value="cosmetic">Cosmetic (Smart Coins)</option>
+              </select>
+            </Field>
             <Field label="Access">
               <select
                 value={form.access_type}
@@ -513,18 +560,62 @@ const EditorModal = ({ form, categories, sellers, saving, formError, onField, on
                 className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
               >
                 {ACCESS_OPTIONS.map((o) => <option key={o.value} value={o.value}>{o.label}</option>)}
+                {form.kind === 'cosmetic' && <option value="cosmetic">Cosmetic</option>}
               </select>
             </Field>
-            <Field label={form.access_type === 'one-time' ? 'Price (₦)' : 'Price (₦, informational)'}>
-              <input
-                type="number" min="0" step="0.01"
-                value={form.price}
-                onChange={(e) => onField({ price: e.target.value })}
-                placeholder="0"
-                className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
-              />
-            </Field>
           </div>
+
+          {/* Cosmetics are bought with Smart Coins and never appear in the NGN
+              storefront, so the naira price is hidden for them rather than
+              shown as a field nobody should fill in. */}
+          {form.kind === 'cosmetic' ? (
+            <>
+              <div className="grid grid-cols-3 gap-3">
+                <Field label="SKU">
+                  <input
+                    value={form.sku}
+                    onChange={(e) => onField({ sku: e.target.value })}
+                    placeholder="crown-001"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                </Field>
+                <Field label="Slot">
+                  <input
+                    value={form.slot}
+                    onChange={(e) => onField({ slot: e.target.value })}
+                    placeholder="profile_crown"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                </Field>
+                <Field label="Price (SC)">
+                  <input
+                    type="number" min="1" step="1"
+                    value={form.sc_price}
+                    onChange={(e) => onField({ sc_price: e.target.value })}
+                    placeholder="40"
+                    className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
+                  />
+                </Field>
+              </div>
+              <p className="text-[11px] font-bold text-amber-700 dark:text-amber-400 leading-snug">
+                Cosmetics are decoration only. They are paid for in Smart Coins,
+                never with card payment, and must not affect quiz difficulty,
+                scoring, rank or any credential.
+              </p>
+            </>
+          ) : (
+            <div className="grid grid-cols-2 gap-3">
+              <Field label={form.access_type === 'one-time' ? 'Price (₦)' : 'Price (₦, informational)'}>
+                <input
+                  type="number" min="0" step="0.01"
+                  value={form.price}
+                  onChange={(e) => onField({ price: e.target.value })}
+                  placeholder="0"
+                  className="w-full px-4 py-3 rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 text-sm font-semibold focus:outline-none focus:ring-2 focus:ring-teal-500"
+                />
+              </Field>
+            </div>
+          )}
 
           <Field label="Content URL (opened by buyers)">
             <input

@@ -251,6 +251,18 @@ export const LegalPrivacy = () => (
       The Platform is intended for users aged 16 and above. We do not knowingly collect data from
       children under 16.
     </p>
+    <p>
+      The Anonymous Room is stricter: it carries adult humour and consent-gated comedy gags, so it
+      admits only users who confirm they are <strong>18 or older</strong>. That confirmation is
+      recorded against your account (the notice key and version you accepted, and when) and blocks
+      entry until it is given. The room's own server enforces this on every read, so the restriction
+      does not depend on the client behaving.
+    </p>
+    <p>
+      We do not ask for a date of birth, and we cannot verify an age claim beyond your confirmation.
+      If you are under 18, do not enter the Anonymous Room. You may still use the rest of the
+      Platform, which is intended for users aged 16 and above.
+    </p>
 
     <h2>9. Changes to This Policy</h2>
     <p>
