@@ -4594,6 +4594,68 @@ checks.push(
 }
 
 // ---------------------------------------------------------------------------
+// EVERY RELATIVE IMPORT RESOLVES.
+//
+// This gate exists because of a real break that shipped in a commit: a
+// Sidebar.jsx import of BrandLogo was rewritten from './BrandLogo' to
+// '../BrandLogo' by a diff-based edit that matched loosely and silently
+// replaced the path. The app then failed to load the Sidebar at all, which
+// took down the whole authenticated layout.
+//
+// It is the same failure mode as `friend_list()`: the code was there, the
+// thing it pointed at was not, and nothing said so until a human opened the
+// app. A build catches it, but the build takes 45-90 seconds, and the failure
+// only shows up as "Failed to resolve import" in the browser console.
+//
+// This checks it statically, for EVERY file under src/, in about a second.
+//
+// It also proves the barrel is not quietly hiding a broken path: a relative
+// import that resolves to a DIRECTORY with an index file is allowed, and
+// anything else is reported with the file and the specifier that failed.
+// ---------------------------------------------------------------------------
+{
+  const srcRoot = resolve(ROOT, 'src');
+  const srcFiles = [];
+  const walk = (dir) => {
+    for (const entry of readdirSync(dir, { withFileTypes: true })) {
+      const full = resolve(dir, entry.name);
+      if (entry.isDirectory()) walk(full);
+      else if (/\.(jsx?|tsx?)$/.test(entry.name)) srcFiles.push(full);
+    }
+  };
+  if (existsSync(srcRoot)) walk(srcRoot);
+
+  const broken = [];
+  for (const file of srcFiles) {
+    const src = readFileSync(file, 'utf8');
+    const dir = dirname(file);
+    // `from './x'`, `import './x'`, and `import('...')` for dynamic imports.
+    const specs = [
+      ...src.matchAll(/(?:^|\n)\s*import\s+(?:[^'"]*?\sfrom\s+)?['"](\.[^'"]+)['"]/g),
+      ...src.matchAll(/import\(\s*['"](\.[^'"]+)['"]\s*\)/g),
+    ];
+    for (const m of specs) {
+      const spec = m[1];
+      const target = resolve(dir, spec);
+      const candidates = [
+        target,
+        `${target}.jsx`, `${target}.js`, `${target}.mjs`, `${target}.ts`, `${target}.tsx`,
+        resolve(target, 'index.jsx'), resolve(target, 'index.js'),
+      ];
+      if (!candidates.some((c) => existsSync(c))) {
+        broken.push(`${relative(ROOT, file)} -> ${spec}`);
+      }
+    }
+  }
+
+  checks.push(
+    broken.length === 0
+      ? ok(`every relative import under src/ resolves (${srcFiles.length} files checked)`)
+      : fail('a relative import under src/ does not resolve - the app will fail to load that module', broken.slice(0, 8).join(' | ')),
+  );
+}
+
+// ---------------------------------------------------------------------------
 console.log('\n----');
 const failed = checks.filter((c) => c === false).length;
 passed = checks.filter((c) => c === true).length;

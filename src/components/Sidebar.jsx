@@ -2,7 +2,7 @@ import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
 import { LayoutDashboard, BookOpen, Volume2, Settings, Award, Users, Search, Brain, FileUp, Shield, ShieldCheck, Coins, Target, Trophy, Sparkles, Swords, Wallet } from './Icons';
 import { useAppContext } from '../context/AppContext';
-import BrandLogo from '../BrandLogo';
+import BrandLogo from './BrandLogo';
 
 /**
  * navItemIsActive — decides which nav row is highlighted.
