@@ -30,8 +30,11 @@ const medal = (rank) => {
   return 'bg-slate-100 dark:bg-slate-800 text-slate-500 dark:text-slate-400';
 };
 
-const RankingBoard = ({ myId, onOpenProfile, onChallenge, challengeBusy }) => {
-  const { supabase, fetchGlobalRank, userProfile, arenaChallengeTargets } = useAppContext();
+const RankingBoard = ({
+  myId, targets, callerBlocked, stake,
+  onOpenProfile, onChallenge, challengeBusy,
+}) => {
+  const { supabase, fetchGlobalRank, userProfile } = useAppContext();
 
   const [rows, setRows] = useState([]);
   const [myRank, setMyRank] = useState(null);
@@ -40,10 +43,6 @@ const RankingBoard = ({ myId, onOpenProfile, onChallenge, challengeBusy }) => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState(null);
   const [refreshedAt, setRefreshedAt] = useState(null);
-
-  // ---- challenge eligibility (merged onto the rows by userId) ----
-  const [targets, setTargets] = useState({});
-  const [callerBlocked, setCallerBlocked] = useState(null);
 
   const loadPage = useCallback(async (offset) => {
     if (!supabase) return null;
@@ -78,19 +77,6 @@ const RankingBoard = ({ myId, onOpenProfile, onChallenge, challengeBusy }) => {
   useEffect(() => {
     fetchGlobalRank().then((res) => setMyRank(res && res.globalRank != null ? res : null));
   }, [fetchGlobalRank]);
-
-  useEffect(() => {
-    let live = true;
-    (async () => {
-      const res = await arenaChallengeTargets({ limit: PAGE_SIZE, offset: 0 });
-      if (!live || !res) return;
-      const map = {};
-      for (const p of res.players) map[p.userId] = p;
-      setTargets(map);
-      setCallerBlocked(res.callerBlocked || null);
-    })();
-    return () => { live = false; };
-  }, [arenaChallengeTargets]);
 
   const loadMore = async () => {
     if (loadingMore) return;
@@ -231,14 +217,17 @@ const RankingBoard = ({ myId, onOpenProfile, onChallenge, challengeBusy }) => {
                     </span>
                   </button>
 
-                  {/* Challenge a duel. Nothing is held until they accept. */}
+                  {/* Challenge a duel. Nothing is held until they accept. The
+                      stake is the server's own number (arena_rules.stake_fixed,
+                      via arena_challenge_targets), so the amount on the button
+                      is the amount that gets escrowed. */}
                   {!isMe && (
                     <button
                       type="button"
                       onClick={() => onChallenge(row)}
                       disabled={!canChallenge || challengeBusy === row.userId}
                       title={canChallenge
-                        ? `Challenge ${row.displayName || 'this scholar'} to a 2 SC duel. Nothing is held until they accept.`
+                        ? `Challenge ${row.displayName || 'this scholar'} to a ${stake} SC duel. Nothing is held until they accept.`
                         : blockedLabel}
                       className="shrink-0 self-center rounded-full px-3 py-2 text-[10px] font-black uppercase tracking-widest bg-polynurse-700 hover:bg-polynurse-800 text-white transition active:scale-95 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 disabled:cursor-not-allowed"
                     >

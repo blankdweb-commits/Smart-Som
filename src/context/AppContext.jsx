@@ -6,6 +6,7 @@ import { authHeaders } from '../utils/apiHeaders';
 import { ensureFreshSessionToken } from '../utils/apexFetch';
 import { safeGet, safeSet, safeRemove } from '../utils/safeStorage';
 import { dedupe, getCacheFirst, cacheClearAll, cacheTtl } from '../utils/cache';
+import { audioManager } from '../utils/audio';
 import {
   computeCurrentIdentity,
   computeProgressToNext,
@@ -234,6 +235,20 @@ export function AppProvider({ children }) {
     const saved = safeGet('darkMode', { parsed: true });
     return typeof saved === 'boolean' ? saved : false;
   });
+
+  // Keep the audio singleton in step with the preference AT ALL TIMES.
+  //
+  // This used to live only in useQuizAudio, which is mounted inside Quiz.jsx
+  // and nowhere else - so turning sound off in Settings did nothing until you
+  // happened to open a quiz, and the AudioManager started every page load
+  // believing sound was on. AppContext is always mounted, so the preference is
+  // now authoritative app-wide.
+  //
+  // audioManager.setEnabled(false) also calls stopAll(), so a sound that is
+  // already playing is cut off the moment the user turns sound off.
+  useEffect(() => {
+    audioManager.setEnabled(soundEnabled);
+  }, [soundEnabled]);
   const [studyStats, setStudyStats] = useState({
     streak: 0,
     lastStudyDate: null,

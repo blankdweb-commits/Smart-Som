@@ -1,11 +1,44 @@
 import React from 'react';
-import { NavLink } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import { LayoutDashboard, BookOpen, Volume2, Settings, Award, Users, Search, Brain, FileUp, Shield, ShieldCheck, Coins, Target, Trophy, Sparkles, Swords, Wallet } from './Icons';
 import { useAppContext } from '../context/AppContext';
-import BrandLogo from './BrandLogo';
+import BrandLogo from '../BrandLogo';
+
+/**
+ * navItemIsActive — decides which nav row is highlighted.
+ *
+ * NavLink's own `isActive` compares the PATHNAME only. The social hub put two
+ * entries on the same pathname with different query strings:
+ *
+ *   "Leaderboard"        -> /leaderboard
+ *   "Friends & Rivals"   -> /leaderboard?tab=friends
+ *
+ * so pathname matching alone lit BOTH up on every hub tab, and the plain
+ * "Leaderboard" row stayed lit even on the Friends tab.
+ *
+ * The rule used here: an item with a query string is active only when every
+ * one of its query params matches the current ones, AND - because
+ * "Leaderboard" carries no query - it is active only when the current URL
+ * carries no tab either. That keeps exactly one row lit at a time.
+ */
+const navItemIsActive = (item, location) => {
+  const [base, query] = item.path.split('?');
+  if (location.pathname !== base) return false;
+  if (!query) {
+    // No tab on this item: active only when the URL names no tab either.
+    return !location.search;
+  }
+  const want = new URLSearchParams(query);
+  const have = new URLSearchParams(location.search);
+  for (const [k, v] of want.entries()) {
+    if (have.get(k) !== v) return false;
+  }
+  return true;
+};
 
 const Sidebar = () => {
   const { userProfile, smartCoins } = useAppContext();
+  const location = useLocation();
 
   const navItems = [
     { name: 'Dashboard', icon: LayoutDashboard, path: '/dashboard' },
@@ -15,7 +48,11 @@ const Sidebar = () => {
     // The SC War Hall is a real hub now, not a hidden 5-tap easter egg on the
     // Quiz page. The easter egg still routes here, so both paths work.
     { name: 'SC War Hall', icon: Swords, path: '/rumble' },
-    { name: 'Friends & Rivals', icon: Users, path: '/rivals' },
+    // Friends & Rivals now lives as a TAB of the /leaderboard hub, so this entry
+  // points straight at that tab rather than at /rivals and letting the route
+  // redirect. /rivals still exists and still redirects - it is in people's
+  // bookmarks - but a nav item should not need a redirect to arrive.
+  { name: 'Friends & Rivals', icon: Users, path: '/leaderboard?tab=friends' },
     { name: 'Achievements', icon: Award, path: '/achievements' },
     { name: 'Nursing License', icon: ShieldCheck, path: '/license' },
     { name: 'Loan Shark', icon: Coins, path: '/loans' },
@@ -65,14 +102,14 @@ const Sidebar = () => {
                 to={item.path}
                 className={({ isActive }) => `
                   flex items-center px-4 py-3 rounded-xl transition-all duration-200
-                  ${isActive
+                  ${isActive && navItemIsActive(item, location)
                     ? 'bg-polynurse-50 text-polynurse-700 dark:bg-polynurse-900/30 dark:text-polynurse-400 font-bold'
                     : 'text-slate-600 hover:bg-slate-50 dark:text-slate-300 dark:hover:bg-slate-700/50'}
                 `}
               >
                 {({ isActive }) => (
                   <>
-                    <item.icon className={`mr-3 ${isActive ? 'text-polynurse-600' : 'text-slate-400'}`} size={20} />
+                    <item.icon className={`mr-3 ${isActive && navItemIsActive(item, location) ? 'text-polynurse-600' : 'text-slate-400'}`} size={20} />
                     <span>{item.name}</span>
                   </>
                 )}

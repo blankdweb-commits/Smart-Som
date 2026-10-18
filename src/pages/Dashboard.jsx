@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
-import { BookOpen, TrendingUp, Award, Zap, ArrowRight, Clock, AlertCircle, Target, CheckCircle, ChevronRight, Lock, Sparkles, Coins, Trophy, Users, ShieldCheck } from '../components/Icons';
+import { TrendingUp, Award, Zap, ArrowRight, Clock, AlertCircle, Target, CheckCircle, ChevronRight, Lock, Sparkles, Coins, Trophy, Users, ShieldCheck } from '../components/Icons';
 import { fetchLicenseStatus } from '../utils/licenseApi';
 import { differenceInDays } from 'date-fns';
 
@@ -13,7 +13,7 @@ import StudyPlanCard from '../components/StudyPlanCard';
 import PushOptInBanner from '../components/PushOptInBanner';
 import AdSenseSlot from '../components/ads/AdSenseSlot';
 import { ACHIEVEMENT_CATALOG, tierForAchievement, tierStyle } from '../utils/achievementEngine';
-import { greetingForName } from '../utils/getGreeting';
+import { greetingForDisplayName } from '../utils/getGreeting';
 import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
 const Dashboard = () => {
@@ -186,7 +186,11 @@ const Dashboard = () => {
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Polynurse Exam Center
           </p>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-            {greetingForName(userProfile.fullName || session?.user?.user_metadata?.full_name, 'Scholar')}
+            {greetingForDisplayName(
+              userProfile.identityName,
+              userProfile.fullName || session?.user?.user_metadata?.full_name,
+              'Scholar'
+            )}
             {' '}{identity?.emoji || '👶'}
           </h2>
           <p className="text-slate-500 dark:text-slate-400 font-medium mt-1 text-sm sm:text-base">Your NCLEX Success Partner • {userProfile.level}</p>
@@ -331,14 +335,23 @@ const Dashboard = () => {
               })}
             </div>
           )}
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <StatsCard title="Vault" value={flashcards.length} icon={<BookOpen className="text-apex-600" />} color="bg-white dark:bg-slate-800" />
-            <StatsCard title="Mastery" value={studyStats.cardsStudied} icon={<TrendingUp className="text-emerald-500" />} color="bg-white dark:bg-slate-800" />
-            <StatsCard title="Streak" value={`${studyStats.streak}d`} icon={<Award className="text-amber-500" />} color="bg-white dark:bg-slate-800" />
-            <StatsCard title="Due" value={dueFlashcards.length} icon={<Clock className="text-red-500" />} color="bg-white dark:bg-slate-800" />
-          </div>
+          {/*
+            REMOVED: the Vault / Mastery / Streak / Due stat row.
 
-          </div>
+            It was a `grid grid-cols-2 sm:grid-cols-4` of four StatsCards. It
+            was asked to go, and it was also the weakest surface on the page:
+            three of the four numbers were zeros for anyone who had not studied
+            (Vault 0, Mastery 0, Due 0) and the fourth repeated a streak the
+            Today's Progress widget already shows in context.
+
+            The StatsCard component went with it - it was defined once and used
+            only by these four cards, so leaving it would have been an unused
+            local. `flashcards`, `dueFlashcards` and `studyStats` all stay:
+            they are used by the review prompt, the Today's Progress widget and
+            the IdentityCard.
+          */}
+
+        </div>
 
         <div className="space-y-8">
            <IdentityCard stats={{
@@ -536,19 +549,7 @@ const Dashboard = () => {
   );
 };
 
-const StatsCard = ({ title, value, icon, color }) => (
-  <div className={`p-4 sm:p-6 rounded-[1.5rem] sm:rounded-[2rem] shadow-clinical border border-slate-100 dark:border-slate-700 ${color} flex flex-col items-center justify-center text-center space-y-1 sm:space-y-2 group transition-all hover:-translate-y-1`}>
-    <div className="p-2 sm:p-3 bg-slate-50 dark:bg-slate-900/50 rounded-xl sm:rounded-2xl mb-1 group-hover:scale-110 transition-transform">
-      {React.cloneElement(icon, { size: 20 })}
-    </div>
-    <div>
-      <p className="text-[9px] sm:text-[10px] text-slate-400 font-black uppercase tracking-widest">{title}</p>
-      <p className="text-lg sm:text-xl font-black text-slate-900 dark:text-white tracking-tighter mt-0.5">{value}</p>
-    </div>
-  </div>
-);
-
-// ---- Global Rank: server-computed COMPETITIVE score + rank (migration v32)
+  // ---- Global Rank: server-computed COMPETITIVE score + rank (migration v32)
 // Pre-v32 responses (player_score-only ranks) are normalized by
 // fetchGlobalRank onto the same shape, so this card reads identically either way.
 const GlobalRankCard = ({ rank }) => {

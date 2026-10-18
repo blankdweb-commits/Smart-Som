@@ -1,8 +1,9 @@
-import React, { useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { Bell, X, Flame, Calendar, Target, Sparkles } from './Icons';
 import { useAppContext } from '../context/AppContext';
 import { differenceInDays } from 'date-fns';
 import { safeGet, safeSet } from '../utils/safeStorage';
+import { supabase } from '../utils/supabase';
 
 const CACHE_KEY = 'apex:notifDismissed';
 
@@ -80,6 +81,12 @@ const NotificationBell = () => {
   const { exams, studyStats, learningAnalytics, identity } = useAppContext();
   const [open, setOpen] = useState(false);
   const [dismissed, setDismissed] = useState(() => loadDismissed());
+  // Server-backed notifications (the `notifications` table). Until
+  // migration-v94 this table was written by the achievement trigger and read
+  // by NOBODY, so "your friends unlocked something" was generated and shown to
+  // no one. These are real events with real ids, so dismissing one marks it
+  // read in the database rather than hiding it in localStorage.
+  const [serverNotes, setServerNotes] = useState([]);
 
   const notifications = useMemo(
     () => buildNotifications({ exams, studyStats, learningAnalytics, identity }),
@@ -87,21 +94,69 @@ const NotificationBell = () => {
     [exams, studyStats?.streak, learningAnalytics?.weakConcepts, identity?.tier]
   );
 
-  const visible = notifications.filter(n => !dismissed.has(n.key));
+  const loadServerNotes = useCallback(async () => {
+    try {
+      const { data, error } = await supabase.rpc('notifications_list', { p_limit: 15, p_offset: 0 });
+      if (error || !data || data.ok === false) return;
+      setServerNotes(Array.isArray(data.notifications) ? data.notifications : []);
+    } catch {
+      /* the bell still shows the client-side ones */
+    }
+  }, []);
+
+  useEffect(() => {
+    loadServerNotes();
+  }, [loadServerNotes]);
+
+  // Server events first: they are things that actually happened to you, and
+  // the client-side ones are contextual nudges the app can recompute at any
+  // time.
+  const visible = useMemo(() => {
+    const fromServer = serverNotes.map((n) => ({
+      key: `db-${n.id}`,
+      server: true,
+      id: n.id,
+      icon: n.kind === 'achievement'
+        ? <Sparkles className="text-amber-500" />
+        : <Bell size={16} className="text-slate-500" />,
+      title: n.kind === 'achievement'
+        ? `${n.actorName || 'A scholar'} unlocked ${n.payload?.name || 'an achievement'}`
+        : (n.payload?.name || 'New activity'),
+      body: n.kind === 'achievement'
+        ? `${n.payload?.emoji || ''} Tap to see their profile.`.trim()
+        : 'Something new happened.',
+    }));
+    const fromClient = notifications
+      .filter((n) => !dismissed.has(n.key))
+      .map((n) => ({ ...n, server: false }));
+    return [...fromServer, ...fromClient];
+  }, [serverNotes, notifications, dismissed]);
+
   const hasUnread = visible.length > 0;
 
-  const dismiss = (key) => {
+  const dismiss = (note) => {
+    if (note.server) {
+      // Mark it read in the database so it does not come back on the next
+      // load. Optimistic: it disappears now, and the server catches up.
+      setServerNotes((cur) => cur.map((n) => (n.id === note.id ? { ...n, read: true } : n)));
+      supabase.rpc('notifications_mark_read', { p_ids: [note.id] }).catch(() => {});
+      return;
+    }
     const next = new Set(dismissed);
-    next.add(key);
+    next.add(note.key);
     setDismissed(next);
     saveDismissed(next);
   };
 
   const dismissAll = () => {
     const next = new Set(dismissed);
-    visible.forEach(n => next.add(n.key));
+    visible.filter((n) => !n.server).forEach((n) => next.add(n.key));
     setDismissed(next);
     saveDismissed(next);
+    if (visible.some((n) => n.server)) {
+      setServerNotes([]);
+      supabase.rpc('notifications_mark_read', { p_ids: null }).catch(() => {});
+    }
   };
 
   return (

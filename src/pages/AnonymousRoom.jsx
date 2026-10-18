@@ -176,16 +176,18 @@ const EVENT_ENTER_CLASS = {
 const eventEnterClass = (kind, reduced) =>
   reduced ? '' : (EVENT_ENTER_CLASS[kind] || EVENT_ENTER_CLASS.action);
 
-const SOUND_KEY = 'soundEnabled';
-
-const loadSound = () => {
-  try {
-    const raw = localStorage.getItem(SOUND_KEY);
-    return raw === null ? true : raw === 'true';
-  } catch {
-    return true;
-  }
-};
+// The sound preference is NOT read here any more.
+//
+// This page used to keep its own `soundEnabled` state, its own localStorage
+// reader and its own writer, over the SAME key AppContext uses. Two copies of
+// one preference meant a Settings toggle did not reach this page until it was
+// remounted, and the two could disagree outright. The single source is now
+// AppContext - `soundEnabled` / `toggleSound` - which is also what the Settings
+// card writes and what the AudioManager singleton reads.
+//
+// The key itself ('soundEnabled') is unchanged, so anyone who had already
+// turned sound off keeps that choice: AppContext parses the same bare
+// 'true' / 'false' text this page used to write.
 
 const timeOf = (iso) => {
   try {
@@ -1065,7 +1067,7 @@ const AnonymousRoom = () => {
   const { id } = useParams();
   const navigate = useNavigate();
   const location = useLocation();
-  const { session } = useAppContext();
+  const { session, soundEnabled, toggleSound } = useAppContext();
 
   const [booting, setBooting] = useState(true);
   const [bootError, setBootError] = useState('');
@@ -1140,7 +1142,6 @@ const AnonymousRoom = () => {
   const [reportBusy, setReportBusy] = useState(false);
   const [reportError, setReportError] = useState('');
 
-  const [soundOn, setSoundOn] = useState(loadSound);
   const [pendingTag, setPendingTag] = useState(null);
   const [encodedOn, setEncodedOn] = useState(false);
   const [encodedRecipient, setEncodedRecipient] = useState(null);
@@ -1203,7 +1204,7 @@ const AnonymousRoom = () => {
   // inactivity release (which raised a blocking modal over a re-joined room).
   const leftDeliberatelyRef = useRef(false);
   const seenSoundIdsRef = useRef(new Set());
-  const soundRef = useRef(soundOn);
+  const soundRef = useRef(soundEnabled);
   const olderCursorRef = useRef(null);
   const celebrationTimerRef = useRef(null);
   const fightTimerRef = useRef(null);
@@ -1225,8 +1226,8 @@ const AnonymousRoom = () => {
   );
 
   useEffect(() => {
-    soundRef.current = soundOn;
-  }, [soundOn]);
+    soundRef.current = soundEnabled;
+  }, [soundEnabled]);
 
   const groupId = room?.group?.id ?? (id ? Number(id) : null);
   const myLabel = room?.my_alias ? `Anonymous #${String(room.my_alias).padStart(2, '0')}` : null;
@@ -2344,18 +2345,6 @@ if (type === 'fight') {
   const revealEncoded = (msg) => setEncodedAction(msg, 'decode');
   const revealToRoom = (msg) => setEncodedAction(msg, 'reveal');
   const privateAgain = (msg) => setEncodedAction(msg, 'unreveal');
-
-  const toggleSound = () => {
-    setSoundOn((prev) => {
-      const next = !prev;
-      try {
-        localStorage.setItem(SOUND_KEY, String(next));
-      } catch {
-        /* best effort */
-      }
-      return next;
-    });
-  };
 
   const openPush = async () => {
     setPushOpen(true);
@@ -3525,10 +3514,10 @@ if (type === 'fight') {
         <button
           onClick={toggleSound}
           className="w-9 h-9 rounded-xl bg-slate-900 border border-slate-800 flex items-center justify-center text-slate-400 hover:text-white transition shrink-0"
-          aria-label={soundOn ? 'Mute sounds' : 'Enable sounds'}
-          title={soundOn ? 'Sounds on' : 'Sounds off'}
+          aria-label={soundEnabled ? 'Mute sounds' : 'Enable sounds'}
+          title={soundEnabled ? 'Sounds on' : 'Sounds off'}
         >
-          {soundOn ? <Volume2 size={15} /> : <VolumeX size={15} />}
+          {soundEnabled ? <Volume2 size={15} /> : <VolumeX size={15} />}
         </button>
         {pushSupported() && (
           <button

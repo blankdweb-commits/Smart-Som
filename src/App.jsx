@@ -113,7 +113,7 @@ const AppRouter = () => (
       <Route path="/login" element={<Auth />} />
       <Route path="/signup" element={<Auth />} />
       <Route path="/rumble" element={<Rumble />} />
-      <Route path="/rivals" element={<Rivals />} />
+      <Route path="/rivals" element={<RequireAuth><Rivals /></RequireAuth>} />
       <Route path="/wallet" element={<Wallet />} />
       <Route path="/xp-hall" element={<Navigate to="/rumble" replace />} />
       {/* Anonymous room: immersive full-screen (no sidebar/bottom nav),

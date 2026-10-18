@@ -1,10 +1,10 @@
-import React, { useCallback, useMemo, useState } from 'react';
+import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { usePlayerSheet } from '../hooks/usePlayerSheet';
 import { ArrowLeft, Swords, Trophy, Users, Sparkles, Crown } from '../components/Icons';
 import BrandLogo from '../components/BrandLogo';
-import RankingBoard from '../components/RankingBoard';
+import RankingBoard, { PAGE_SIZE as RANKING_PAGE_SIZE } from '../components/RankingBoard';
 import SocialPanel from '../components/SocialPanel';
 import ActivityPanel from '../components/ActivityPanel';
 import CosmeticsPanel from '../components/CosmeticsPanel';
@@ -60,7 +60,7 @@ const HERO = {
 
 const Leaderboard = () => {
   const navigate = useNavigate();
-  const { session, arenaInvite } = useAppContext();
+  const { session, arenaInvite, arenaChallengeTargets } = useAppContext();
   const [params, setParams] = useSearchParams();
 
   const myId = session?.user?.id || null;
@@ -68,6 +68,38 @@ const Leaderboard = () => {
 
   const [challengeBusy, setChallengeBusy] = useState(null);
   const [notice, setNotice] = useState(null);
+
+  // ---- challenge eligibility + the stake the arena is actually running ----
+  //
+  // These live in the SHELL, not in RankingBoard, for one reason: the stake.
+  //
+  // `arena_challenge_targets` is the single source of truth for "who can be
+  // challenged" AND "what it costs". It used to be fetched inside
+  // RankingBoard, which threw away the top-level `stake` and kept only the
+  // per-player map - so the shell had to hardcode 2 while the server was
+  // advertising min(stakes) = 1 (fixed by migration-v93, which reads
+  // stake_fixed). Two numbers, one of them wrong, and the affordability check
+  // on the server used the wrong one.
+  //
+  // One fetch, one stake, and the number the row promises is the number that
+  // gets escrowed.
+  const [targets, setTargets] = useState({});
+  const [callerBlocked, setCallerBlocked] = useState(null);
+  const [stake, setStake] = useState(2);
+
+  useEffect(() => {
+    let live = true;
+    (async () => {
+      const res = await arenaChallengeTargets({ limit: RANKING_PAGE_SIZE, offset: 0 });
+      if (!live || !res) return;
+      const map = {};
+      for (const p of res.players) map[p.userId] = p;
+      setTargets(map);
+      setCallerBlocked(res.callerBlocked || null);
+      setStake(Number(res.stake) || 2);
+    })();
+    return () => { live = false; };
+  }, [arenaChallengeTargets]);
 
   const profile = usePlayerSheet({
     onChallenge: (t) => t?.userId && sendChallenge(t),
@@ -91,7 +123,7 @@ const Leaderboard = () => {
     if (!userId || challengeBusy) return;
     setChallengeBusy(userId);
     setNotice(null);
-    const res = await arenaInvite({ userId, stake: 2 });
+    const res = await arenaInvite({ userId, stake });
     setChallengeBusy(null);
     if (res?.ok) {
       setNotice(`Challenge sent to ${target.displayName || target.name || 'that scholar'}. It is held only if they accept.`);
@@ -101,16 +133,16 @@ const Leaderboard = () => {
     setNotice(BLOCKED_COPY[res?.error]
       ? `Cannot challenge right now — ${BLOCKED_COPY[res.error].toLowerCase()}.`
       : 'That challenge could not be sent right now.');
-  }, [arenaInvite, challengeBusy, navigate]);
+  }, [arenaInvite, challengeBusy, navigate, stake]);
 
   const hero = HERO[tab];
 
   const panel = useMemo(() => {
     switch (tab) {
       case 'friends':
-        return <SocialPanel relType="friend" onOpenProfile={profile.open} onChallenge={sendChallenge} challengeBusy={challengeBusy} />;
+        return <SocialPanel relType="friend" stake={stake} onOpenProfile={profile.open} onChallenge={sendChallenge} challengeBusy={challengeBusy} />;
       case 'rivals':
-        return <SocialPanel relType="rival" onOpenProfile={profile.open} onChallenge={sendChallenge} challengeBusy={challengeBusy} />;
+        return <SocialPanel relType="rival" stake={stake} onOpenProfile={profile.open} onChallenge={sendChallenge} challengeBusy={challengeBusy} />;
       case 'activity':
         return <ActivityPanel onOpenProfile={profile.open} />;
       case 'cosmetics':
@@ -119,13 +151,16 @@ const Leaderboard = () => {
         return (
           <RankingBoard
             myId={myId}
+            targets={targets}
+            callerBlocked={callerBlocked}
+            stake={stake}
             onOpenProfile={profile.open}
             onChallenge={sendChallenge}
             challengeBusy={challengeBusy}
           />
         );
     }
-  }, [tab, profile, sendChallenge, challengeBusy, myId]);
+  }, [tab, profile, sendChallenge, challengeBusy, myId, targets, callerBlocked, stake]);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">

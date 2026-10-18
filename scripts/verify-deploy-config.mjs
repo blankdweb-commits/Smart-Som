@@ -3980,22 +3980,47 @@ checks.push(
   );
   // Rewritten for the hub. The four RPC calls moved from pages/Rivals.jsx into
   // components/SocialPanel.jsx when /rivals became a redirect into the
-  // Leaderboard hub. The properties are unchanged - still routed, still in the
-  // sidebar, still wired to the same four RPCs - so they are asserted against
-  // the file that now holds them, plus the redirect itself.
+  // Leaderboard hub. The properties are unchanged - still routed, still
+  // reachable from the sidebar, still wired to the same four RPCs.
+  //
+  // The sidebar entry no longer points at /rivals: it goes straight to the
+  // hub's Friends tab, because a nav item should not need a redirect to
+  // arrive. /rivals is still routed and still redirects, because it is in
+  // people's bookmarks.
   const socialPanel = read(resolve(ROOT, 'src/components/SocialPanel.jsx'));
+  const sidebarSrc = read(resolve(ROOT, 'src/components/Sidebar.jsx'));
   checks.push(
     existsSync(resolve(ROOT, 'src/pages/Rivals.jsx'))
       && /Navigate to="\/leaderboard\?tab=friends" replace/.test(rivals)
       && /path="\/rivals"/.test(read(resolve(ROOT, 'src/App.jsx')))
-      && /path: '\/rivals'/.test(read(resolve(ROOT, 'src/components/Sidebar.jsx')))
+      && /path: '\/leaderboard\?tab=friends'/.test(sidebarSrc)
       && /request_relationship/.test(socialPanel)
       && /respond_relationship/.test(socialPanel)
       && /remove_relationship/.test(socialPanel)
       && /friend_search/.test(socialPanel)
       && /friend_list/.test(socialPanel)
-      ? ok('Friends & Rivals: /rivals redirects into the hub, the tab is routed and sidebar-ed, and it wires all three write RPCs plus both read RPCs')
+      ? ok('Friends & Rivals: /rivals redirects into the hub, the sidebar goes straight to the Friends tab, and the panel wires all three write RPCs plus both read RPCs')
       : fail('Friends & Rivals: the route/redirect is missing, or the panel does not use the relationship RPCs'),
+  );
+  // The hub must be reachable on a PHONE. The Sidebar is `hidden lg:block` and
+  // BottomNav is `lg:hidden`, so a nav entry that exists only in the sidebar
+  // is unreachable on a 360px screen - which is exactly how the whole social
+  // hub became phone-unreachable.
+  const layoutSrc = read(resolve(ROOT, 'src/components/Layout.jsx'));
+  checks.push(
+    /to="\/leaderboard"/.test(layoutSrc)
+      && /aria-label="Ranks and friends"/.test(layoutSrc)
+      ? ok('The social hub is reachable on mobile: the header carries a Ranks entry (the Sidebar is lg-only and BottomNav is mobile-only)')
+      : fail('The social hub has no mobile entry point'),
+  );
+  // NavLink matches by PATHNAME only, so "Leaderboard" (/leaderboard) and
+  // "Friends & Rivals" (/leaderboard?tab=friends) would BOTH light up. The
+  // sidebar therefore needs its own comparison, not NavLink's.
+  checks.push(
+    /navItemIsActive/.test(sidebarSrc)
+      && /location\.search/.test(sidebarSrc)
+      ? ok('Sidebar: the hub nav items light up one at a time (NavLink matches on pathname only, so ?tab= needs its own check)')
+      : fail('Sidebar: /leaderboard and /leaderboard?tab=friends would both highlight as active'),
   );
   // v89 - the READ side was dead. friend_list() referenced arena_invites'
   // column names (from_user/to_user) on a table that has user_id/target_id, so
@@ -4132,6 +4157,116 @@ checks.push(
       && /\.neq\('kind', 'cosmetic'\)/.test(read(resolve(ROOT, 'src/pages/Marketplace.jsx')))
       ? ok('Cosmetics are refused by initiate-payment, verify-payment and the webhook, and filtered out of the card storefront')
       : fail('Cosmetics can still reach a card payment path, or appear in the NGN storefront'),
+  );
+
+  // --- v93: the arena must report the stake it is actually running ---------
+  const v93 = read('scripts/migration-v93-arena-challenge-stake.sql');
+  checks.push(
+    /nullif\(public\._arena_rules\(\) ->> 'stake_fixed', ''\)::int/.test(v93)
+      && /'stake', v_stake/.test(v93)
+      ? ok('v93: arena_challenge_targets reports stake_fixed, so the advertised stake matches the escrowed one')
+      : fail('v93: arena_challenge_targets still reports min(stakes), which is not the arena\'s fixed stake'),
+  );
+  // ...and the client must USE the reported stake, not a hardcoded 2.
+  const lbSrc = read(resolve(ROOT, 'src/pages/Leaderboard.jsx'));
+  checks.push(
+    /arenaInvite\(\{ userId, stake \}\)/.test(lbSrc)
+      && !/stake: 2/.test(lbSrc)
+      && /setStake\(Number\(res\.stake\) \|\| 2\)/.test(lbSrc)
+      ? ok('The hub sends the stake the server reported, instead of a hardcoded 2')
+      : fail('The hub still hardcodes the challenge stake'),
+  );
+
+  // --- sound effects: the preference exists, and now has a home -------------
+  const settingsSrc = read(resolve(ROOT, 'src/pages/Settings.jsx'));
+  const audioSrc = read(resolve(ROOT, 'src/utils/audio.js'));
+  const appCtxSrc = read(resolve(ROOT, 'src/context/AppContext.jsx'));
+  checks.push(
+    /Sound Effects/.test(settingsSrc)
+      && /toggleSound/.test(settingsSrc)
+      && /soundEnabled/.test(settingsSrc)
+      ? ok('Settings has a Sound Effects toggle bound to the existing soundEnabled preference')
+      : fail('Settings has no Sound Effects toggle'),
+  );
+  checks.push(
+    /readStoredSoundPreference/.test(audioSrc)
+      && /this\._enabled = readStoredSoundPreference\(\)/.test(audioSrc)
+      ? ok('The audio singleton starts from the STORED preference, not from hardcoded true')
+      : fail('The audio singleton ignores the stored sound preference on construction'),
+  );
+  checks.push(
+    /useEffect\(\(\) => \{\s*audioManager\.setEnabled\(soundEnabled\);/.test(appCtxSrc)
+      && /audioManager\.setEnabled\(soundEnabled\)/.test(appCtxSrc)
+      ? ok('The sound preference is synced from AppContext, so it applies on every route and not only inside the Quiz')
+      : fail('The sound preference is still only applied from the Quiz-scoped hook'),
+  );
+  // The Anonymous Room used to keep its OWN copy of the same preference.
+  const anonSrc = read(resolve(ROOT, 'src/pages/AnonymousRoom.jsx'));
+  checks.push(
+    /soundEnabled, toggleSound/.test(anonSrc)
+      && !/const loadSound/.test(anonSrc)
+      && !/setSoundOn/.test(anonSrc)
+      ? ok('The Anonymous Room uses the shared sound preference instead of a second copy of it')
+      : fail('The Anonymous Room still keeps a duplicate sound preference'),
+  );
+
+  // --- identity synchronisation --------------------------------------------
+  const greetSrc = read(resolve(ROOT, 'src/utils/getGreeting.js'));
+  const dashSrc = read(resolve(ROOT, 'src/pages/Dashboard.jsx'));
+  checks.push(
+    // The CALL SITE, not the name: an import alone must not satisfy this.
+    /greetingForDisplayName\(\s*\n?\s*userProfile\.identityName/.test(dashSrc)
+      && !/greetingForName\(/.test(dashSrc)
+      ? ok('The Dashboard greeting uses the IDENTITY name (the name the rest of the app shows), not the legal name')
+      : fail('The Dashboard still greets with the legal name, so it disagrees with the ranking and community'),
+  );
+  checks.push(
+    /identityName/.test(greetSrc)
+      && /\.trim\(\)\.split\(\/\\s\+\/\)\[0\]/.test(greetSrc)
+      ? ok('greetingForDisplayName keeps the identity name WHOLE and only first-words the legal-name fallback')
+      : fail('greetingForDisplayName is missing, or it would truncate a display name to its first word'),
+  );
+
+  // --- the profile-views feature must actually be reachable -----------------
+  // NOTE ON HOW THESE GATES ARE WRITTEN. The first draft of each of these
+  // three matched a bare NAME, e.g. /profile_view_record/. Negative-tested,
+  // that was a no-op: renaming the RPC to profile_view_record_disabled still
+  // contains the substring, and the import statement still contains the name
+  // even after the CALL is removed. So each gate below matches the CALL SITE
+  // with its argument list, which a rename or an unused import cannot fake.
+  const sheetHookSrc = read(resolve(ROOT, 'src/hooks/usePlayerSheet.jsx'));
+  checks.push(
+    /rpc\('profile_view_record',\s*\{\s*p_profile:\s*userId\s*\}\)/.test(sheetHookSrc)
+      && /ProfilePrivacyCard/.test(settingsSrc)
+      ? ok('Profile views are actually wired: opening a profile records the view, and Settings has the consent controls')
+      : fail('Profile views are still inert - the RPC exists but nothing calls it'),
+  );
+  const privacyCardSrc = read(resolve(ROOT, 'src/components/ProfilePrivacyCard.jsx'));
+  checks.push(
+    /rpc\('profile_privacy_get'\)/.test(privacyCardSrc)
+      && /rpc\('profile_privacy_set'/.test(privacyCardSrc)
+      && /rpc\('profile_view_list'/.test(privacyCardSrc)
+      ? ok('The privacy card reads and writes both consents, and lists the views')
+      : fail('The privacy card does not exercise the profile-privacy RPCs'),
+  );
+
+  // --- the notifications table must not be write-only -----------------------
+  const v94 = read('scripts/migration-v94-notifications-reader.sql');
+  const bellSrc = read(resolve(ROOT, 'src/components/NotificationBell.jsx'));
+  checks.push(
+    /create or replace function public\.notifications_list/.test(v94)
+      && /create or replace function public\.notifications_mark_read/.test(v94)
+      && /rpc\('notifications_list'/.test(bellSrc)
+      && /rpc\('notifications_mark_read'/.test(bellSrc)
+      ? ok('The notifications table has a reader: the bell shows real events and marks them read')
+      : fail('The notifications table is still write-only'),
+  );
+  checks.push(
+    /drop policy if exists "notifications_all_own"/.test(v94)
+      && /notifications_read_own/.test(v94)
+      && !/for all\s+on public\.notifications/.test(v94)
+      ? ok('The notifications FOR ALL policy is narrowed to select-own, so a client cannot forge rows in its own inbox')
+      : fail('The notifications policy still allows a client to write its own inbox'),
   );
 
   // The hub shell itself.

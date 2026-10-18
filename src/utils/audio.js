@@ -64,11 +64,40 @@ const HELD_SOUND_TYPES = new Set(['correct', 'wrong', 'timeout']);
 // Name -> one-shot wrapper so callers can use readable methods.
 const SINGLE = ['intro', 'exit'];
 
+/**
+ * Read the stored sound preference.
+ *
+ * The AudioManager is a module singleton, and it used to start with
+ * `_enabled = true` regardless of what the user had chosen. The preference was
+ * only ever pushed into it by useQuizAudio - a hook mounted INSIDE Quiz.jsx -
+ * so the stored setting took effect only once you had opened a quiz, and on
+ * every fresh page load the manager believed sound was on.
+ *
+ * The key is written by AppContext as JSON.stringify(boolean), so localStorage
+ * holds the bare text `true` / `false`. The quoted form is accepted too, in
+ * case an older build wrote it differently.
+ */
+const readStoredSoundPreference = () => {
+  try {
+    if (typeof localStorage === 'undefined') return true;
+    const raw = localStorage.getItem('soundEnabled');
+    if (raw === null || raw === undefined) return true;
+    if (raw === 'true') return true;
+    if (raw === 'false') return false;
+    const parsed = JSON.parse(raw);
+    return typeof parsed === 'boolean' ? parsed : true;
+  } catch {
+    return true;
+  }
+};
+
 class AudioManager {
   constructor() {
     this.cache = {}; // url -> Audio[]
     this.timers = new Map(); // Audio -> timeout id
-    this._enabled = true;
+    // Start from the STORED preference, not from `true`. See
+    // readStoredSoundPreference above for why.
+    this._enabled = readStoredSoundPreference();
     this._logged = new Set();
     this._exitStopTimer = null;
   }

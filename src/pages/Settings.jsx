@@ -15,11 +15,14 @@ import {
   Building2,
   Copy,
   Sparkles,
-  Bell,
-  BellOff
-} from 'lucide-react';
+    Bell,
+    BellOff,
+    Volume2,
+    VolumeX
+  } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
 import Toast from '../components/Toast';
+import ProfilePrivacyCard from '../components/ProfilePrivacyCard';
 import { pushSupported, getPushState, enablePush, disablePush, savePreferences } from '../utils/push';
 import { TUTORIALS } from '../data/tutorials';
 
@@ -33,7 +36,19 @@ const DEPARTMENTS = [
 ];
 
 export default function Settings() {
-  const { userProfile, updateProfile, session, signOut, identity, getMyReferral } = useAppContext();
+  const { userProfile, updateProfile, session, signOut, identity, getMyReferral, soundEnabled, toggleSound } = useAppContext();
+
+  // The name this account is known by everywhere else in the app.
+  //
+  // `identityName` is the public display name (set in Profile Details below);
+  // `fullName` is the legal name. The ranking, community, friends and rivals
+  // all show the identity name, so the account card and the Dashboard heading
+  // show it too - otherwise the same scholar reads as two different people
+  // depending on which screen you are on.
+  const hasIdentityName = !!(userProfile.identityName || '').trim();
+  const displayName = hasIdentityName
+    ? (userProfile.identityName || '').trim()
+    : (userProfile.fullName || '').trim();
   const navigate = useNavigate();
 
   const [referral, setReferral] = useState(null);
@@ -241,11 +256,23 @@ export default function Settings() {
         <h2 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-5">Account</h2>
         <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div className="flex items-center gap-4 min-w-0">
+            {/* The avatar initial follows the IDENTITY name, because that is
+                the name the rest of the app shows for this scholar - the
+                ranking, community, friends and rivals all use it. */}
             <div className="w-14 h-14 bg-gradient-to-tr from-medical-500 to-apex-600 rounded-2xl flex items-center justify-center text-white font-black text-xl shrink-0 shadow-lg shadow-medical-500/20">
-              {(userProfile.fullName || 'A').charAt(0).toUpperCase()}
+              {(displayName || 'A').charAt(0).toUpperCase()}
             </div>
             <div className="min-w-0">
-              <p className="font-black text-slate-900 dark:text-white truncate">{userProfile.fullName || 'Auxibaby'}</p>
+              {/* Identity name on top, so this card agrees with the Dashboard
+                  heading and with every other surface. The legal name sits
+                  underneath it, because it is still the name on the account
+                  and is worth seeing. */}
+              <p className="font-black text-slate-900 dark:text-white truncate">{displayName || 'Scholar'}</p>
+              {hasIdentityName && (
+                <p className="text-xs font-bold text-slate-500 dark:text-slate-400 truncate">
+                  {userProfile.fullName}
+                </p>
+              )}
               <p className="text-xs font-bold text-slate-400 truncate">{session?.user?.email || userProfile.email || 'Not signed in'}</p>
             </div>
           </div>
@@ -497,6 +524,51 @@ export default function Settings() {
           {pushNote && <p className="mt-3 text-[10px] font-black uppercase tracking-widest text-amber-600 dark:text-amber-400">{pushNote}</p>}
         </motion.div>
       )}
+
+      {/* Profile privacy + profile views. The server half of this feature
+          existed (migration-v91) with no client to reach it; this card is the
+          missing half. */}
+      {session && <ProfilePrivacyCard />}
+
+      {/* Sound effects.
+          The preference has existed in AppContext since long before this card
+          did - `soundEnabled` state, `toggleSound`, and a localStorage key that
+          is already documented in the storage policy on the Legal page. What
+          was missing was anywhere to reach it: `useQuizAudio` even returned
+          `toggleSound` for exactly this purpose and nothing rendered it.
+
+          It is not a quiz-only switch. The AudioManager is a module singleton,
+          and AppContext now keeps it in step with this preference on every
+          route, so turning sound off here silences the app - and cuts off
+          anything already playing. */}
+      <motion.div
+        initial={{ y: 10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.145 }}
+        className="bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-100 dark:border-slate-700 p-6 sm:p-8 shadow-clinical"
+      >
+        <div className="flex items-center justify-between gap-3 mb-5">
+          <h2 className="text-sm font-black uppercase tracking-widest text-slate-400">Sound Effects</h2>
+          <span className={`text-[10px] font-black uppercase tracking-widest px-2.5 py-1 rounded-full ${soundEnabled ? 'bg-emerald-50 dark:bg-emerald-900/20 text-emerald-600 dark:text-emerald-400' : 'bg-slate-100 dark:bg-slate-700 text-slate-400'}`}>
+            {soundEnabled ? 'On' : 'Off'}
+          </span>
+        </div>
+
+        <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
+          Answer feedback, quiz sounds and interface effects. Turning this off
+          silences sound everywhere in the app, and stops anything already
+          playing.
+        </p>
+
+        <button
+          onClick={toggleSound}
+          aria-label={soundEnabled ? 'Turn sound effects off' : 'Turn sound effects on'}
+          className={`w-full py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 ${soundEnabled ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600' : 'bg-polynurse-600 text-white hover:bg-polynurse-700'}`}
+        >
+          {soundEnabled ? <VolumeX size={16} /> : <Volume2 size={16} />}
+          {soundEnabled ? 'Turn off sound effects' : 'Turn on sound effects'}
+        </button>
+      </motion.div>
 
       {/* Session */}
       {session && (

@@ -40,7 +40,7 @@ const SEARCH_MIN = 2;
 
 const chip = 'rounded-full px-3 py-2 text-[10px] font-black uppercase tracking-widest transition disabled:opacity-40';
 
-const SocialPanel = ({ relType, onOpenProfile, onChallenge, challengeBusy }) => {
+const SocialPanel = ({ relType, stake = 2, onOpenProfile, onChallenge, challengeBusy }) => {
   const { supabase, session } = useAppContext();
   const myId = session?.user?.id || null;
   const other = relType === 'rival' ? 'friend' : 'rival';
@@ -424,10 +424,11 @@ const SocialPanel = ({ relType, onOpenProfile, onChallenge, challengeBusy }) => 
                         <button
                           onClick={() => onChallenge({ userId: f.userId, displayName: f.name, ...f })}
                           disabled={challengeBusy === f.userId}
+                          title={`Challenge ${f.name} to a ${stake} SC duel. Nothing is held until they accept.`}
                           className={`${chip} bg-polynurse-700 text-white disabled:opacity-40`}
                         >
                           <Swords size={12} className="inline mr-1" />
-                          {challengeBusy === f.userId ? 'Sending' : 'Challenge'}
+                          {challengeBusy === f.userId ? 'Sending' : `Challenge · ${stake} SC`}
                         </button>
                         <button
                           onClick={() => (armedBlock === f.userId ? block(f) : setArmedBlock(f.userId))}
