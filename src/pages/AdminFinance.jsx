@@ -25,6 +25,7 @@ import {
   Zap
 } from '../components/Icons';
 import { useNavigate } from 'react-router-dom';
+import AdminPlansTab from '../components/AdminPlansTab';
 
 const AdminFinance =  () => {
   const {
@@ -50,7 +51,12 @@ const AdminFinance =  () => {
     { id: 'overview', label: 'Overview', icon: <TrendingUp size={16} /> },
     { id: 'ledger', label: 'Transaction Ledger', icon: <FileText size={16} /> },
     { id: 'purposes', label: 'Payment Items', icon: <CreditCard size={16} /> },
-    { id: 'plans', label: 'Subscription Plans', icon: <SettingsIcon size={16} />, superOnly: true },
+    // NOT superOnly. The two v100 RPCs gate on is_admin(), which admits a
+    // plain `admin` as well as a `super_admin` — so hiding this tab behind
+    // superOnly would hide a control those admins can legitimately call, and
+    // they would have no reason to know it exists. The server is still the
+    // authority: this gate only decides whether the UI offers the button.
+    { id: 'plans', label: 'Subscription Plans', icon: <SettingsIcon size={16} /> },
     { id: 'disputes', label: 'Disputes', icon: <AlertTriangle size={16} /> },
   ].filter(tab => !tab.superOnly || userProfile.role === 'super_admin');
 
@@ -103,7 +109,12 @@ const AdminFinance =  () => {
            </div>
         )}
 
-        {activeTab !== 'overview' && (
+        {/* The plans tab is REAL. It used to fall through to the shared
+            "maintenance mode" placeholder below, so pricing could only be
+            changed by hand-running SQL. */}
+        {activeTab === 'plans' && <AdminPlansTab />}
+
+        {activeTab !== 'overview' && activeTab !== 'plans' && (
            <div className="flex flex-col items-center justify-center py-20 text-center space-y-6 animate-in zoom-in duration-500">
               <div className="w-20 h-20 bg-slate-50 dark:bg-slate-900 text-slate-300 rounded-[2rem] flex items-center justify-center"><Zap size={40} /></div>
               <div>

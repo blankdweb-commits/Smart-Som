@@ -1,4 +1,5 @@
-﻿import { chromium } from 'playwright';
+import { chromium } from 'playwright';
+import { signupFlow } from './e2e-utils.mjs';
 import fs from 'fs';
 import path from 'path';
 
@@ -37,13 +38,7 @@ page.on('pageerror', err => consoleErrors.push('PAGEERROR: ' + err.message.slice
 
 try {
   // ---------- SIGN UP ----------
-  await page.goto(`${BASE}/signup`, { waitUntil: 'networkidle' });
-  await page.fill('input[aria-label="Full name"]', USER.name);
-  await page.fill('input[aria-label="Email address"]', USER.email);
-  await page.fill('input[aria-label="Password"]', USER.password);
-  await page.fill('input[aria-label="Confirm password"]', USER.password);
-  await page.click('button[type="submit"]');
-  await page.waitForTimeout(3500);
+  await signupFlow(page, BASE, USER.name, USER.email, USER.password);
   const sess = await page.evaluate(async () => {
     const mod = await import('/src/utils/supabase.js');
     const { data } = await mod.supabase.auth.getSession();

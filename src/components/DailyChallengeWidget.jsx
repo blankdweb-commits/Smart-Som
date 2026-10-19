@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import { authHeaders } from '../utils/apiHeaders';
 import { safeGet, safeSet } from '../utils/safeStorage';
 import { Sparkles, ChevronRight, CheckCircle2, XCircle, Trophy, Loader2, Clock } from './Icons';
+import PremiumUpgradeModal from './PremiumUpgradeModal';
   // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 
@@ -83,6 +84,7 @@ const DailyChallengeWidget = () => {
   // Per-course round gate (v13): the Daily Challenge charges its own round
   // (`daily-challenge` key). Blocked starts render a centered notification.
   const [cooldown, setCooldown] = useState(null); // { seconds, expiresAt }
+  const [upsellOpen, setUpsellOpen] = useState(false);
   const [tickNow, setTickNow] = useState(Date.now());
   // FAIL-CLOSED: shown when the server could not confirm availability (network
   // hiccup, API 5xx) so the CTA never silently reads as startable.
@@ -312,7 +314,21 @@ await callApexApi('/api/daily-challenge/complete', {
       now={tickNow}
       onDismiss={() => { setCooldown(null); navigate('/quiz'); }}
       onStart={() => { setCooldown(null); startChallenge(); }}
-      onPremium={() => navigate('/activate')}
+      onPremium={() => setUpsellOpen(true)}
+    />
+  );
+
+  // The Premium prompt rides ALONGSIDE the cooldown overlay rather than
+  // replacing it. Both are fixed-position at z-50/z-100, so opening one leaves
+  // the other mounted underneath: dismissing the prompt returns the user to the
+  // cooldown screen with the countdown still ticking, instead of the page
+  // silently changing underneath them.
+  const renderUpsell = (
+    <PremiumUpgradeModal
+      isOpen={upsellOpen}
+      onClose={() => setUpsellOpen(false)}
+      surface="daily_challenge"
+      reason="Daily Challenge is on cooldown"
     />
   );
 
@@ -320,6 +336,7 @@ await callApexApi('/api/daily-challenge/complete', {
     return (
       <>
         {renderOverlay}
+        {renderUpsell}
         <div className="bg-white dark:bg-slate-800 p-8 rounded-[2.5rem] shadow-clinical border border-slate-100 dark:border-slate-700 relative overflow-hidden group">
           <div className="absolute top-0 right-0 p-6 opacity-10 group-hover:scale-110 transition-transform">
             <Sparkles size={80} className="text-apex-600" />
@@ -361,6 +378,7 @@ await callApexApi('/api/daily-challenge/complete', {
   return (
     <>
       {renderOverlay}
+      {renderUpsell}
       <div className="bg-white dark:bg-slate-800 p-6 sm:p-8 rounded-[2.5rem] shadow-clinical border border-slate-100 dark:border-slate-700 min-h-[350px] flex flex-col animate-in fade-in duration-500">
        <div className="flex justify-between items-center mb-6">
           <div className="flex gap-1">
@@ -447,7 +465,7 @@ const DailyCooldownOverlay = ({ expiresAt, now, onDismiss, onStart, onPremium })
             🔄 Try another course
           </button>
           <button onClick={onPremium} className="w-full py-2.5 text-teal-600 dark:text-teal-400 font-black uppercase tracking-widest text-[10px] hover:underline">
-            ⭐ Go Premium — unlimited rounds
+            ⭐ Premium removes the round cooldown
           </button>
         </div>
       </div>

@@ -26,7 +26,6 @@ import {
   loadEnv,
   createBrowser,
   createLogger,
-  signupFlow,
   loginFlow,
   waitForText,
   exit
@@ -87,7 +86,7 @@ try {
 
   // ---------- 1. THE RANKING SHOWS USERS AND RANKS ----------
   const pageA = await browser.newPage({ viewport: { width: 390, height: 844 } });
-  await signupFlow(pageA, BASE, A.name, A.email, PASSWORD);
+  await loginFlow(pageA, BASE, A.email, PASSWORD);
   await pageA.goto(`${BASE}/leaderboard`, { waitUntil: 'networkidle' });
   await pageA.waitForTimeout(2500);
 
@@ -155,7 +154,7 @@ try {
 
   // ---------- 4. B ACCEPTS, AND BOTH SEE EACH OTHER ----------
   const pageB = await browser.newPage({ viewport: { width: 390, height: 844 } });
-  await signupFlow(pageB, BASE, B.name, B.email, PASSWORD);
+  await loginFlow(pageB, BASE, B.email, PASSWORD);
   await pageB.goto(`${BASE}/leaderboard?tab=friends`, { waitUntil: 'networkidle' });
   await pageB.waitForTimeout(2500);
 
@@ -381,4 +380,4 @@ try {
   tester.log('cleanup: no test accounts left', (leftoverUsers || 0) === 0, `users=${leftoverUsers}`);
 }
 
-await exit(browser, tester);
+await exit(browser, tester.results);

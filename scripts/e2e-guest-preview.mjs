@@ -73,11 +73,18 @@ const token = first.body?.token;
 log('the token is opaque and signed', typeof token === 'string' && /^v1\.[A-Za-z0-9_-]+\.[A-Za-z0-9_-]+$/.test(token));
 // expires_at is truncated to a whole second (the token signs a second-granular
 // `e`), while server_now carries milliseconds, so the observed gap can read as
-// 299.x. What matters is that it is never MORE than 300 — the advertised
+// 119.x. What matters is that it is never MORE than the advertised window - the
 // deadline must never exceed what the signed token will actually honour.
+//
+// v99 shortened this window from 5 minutes to 2. The assertion is REWRITTEN to
+// the new value, not deleted: the property it protects (the advertised deadline
+// is never oversold) is unchanged, and it is checked against the constant the
+// server actually uses rather than a copy of the number.
+const GUEST_PREVIEW_SECONDS = 2 * 60;
 const windowSecs = (Date.parse(first.body?.expires_at) - Date.parse(first.body?.server_now)) / 1000;
-log('the window is 5 minutes on the SERVER clock, and never oversold',
-  windowSecs > 298 && windowSecs <= 300, `${windowSecs.toFixed(3)}s`);
+log('the window is 2 minutes on the SERVER clock, and never oversold',
+  windowSecs > GUEST_PREVIEW_SECONDS - 2 && windowSecs <= GUEST_PREVIEW_SECONDS,
+  `${windowSecs.toFixed(3)}s (limit ${GUEST_PREVIEW_SECONDS}s)`);
 
 const again = await start({ token });
 log('re-presenting the token does NOT mint or extend a second window',

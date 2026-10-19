@@ -1,4 +1,5 @@
 import { chromium } from 'playwright';
+import { signupFlow } from './e2e-utils.mjs';
 import fs from 'fs';
 import path from 'path';
 
@@ -17,13 +18,8 @@ const results = [];
 const log = (s, ok, d = '') => { results.push(ok); console.log(`${ok ? 'PASS' : 'FAIL'}  ${s}${d ? ' — ' + d : ''}`); };
 
 try {
-  await page.goto('http://localhost:5173/signup', { waitUntil: 'networkidle' });
-  await page.fill('input[aria-label="Full name"]', 'Pay Check');
-  await page.fill('input[aria-label="Email address"]', `pk${Date.now().toString().slice(-6)}@apextest.local`);
-  await page.fill('input[aria-label="Password"]', 'testpass123');
-  await page.fill('input[aria-label="Confirm password"]', 'testpass123');
-  await page.click('button[type="submit"]');
-  await page.waitForTimeout(3500);
+  const pkEmail = `pk${Date.now().toString().slice(-6)}@apextest.local`;
+  await signupFlow(page, 'http://localhost:5173', 'Pay Check', pkEmail, 'testpass123');
   const sess = await page.evaluate(async () => {
     const mod = await import('/src/utils/supabase.js');
     const { data } = await mod.supabase.auth.getSession();

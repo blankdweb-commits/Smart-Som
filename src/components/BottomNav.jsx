@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { NavLink } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Calendar, Award, Users, Volume2, Search, Brain, FileUp } from './Icons';
+import { LayoutDashboard, Calendar, Award, Users, Trophy, Brain, FileUp } from './Icons';
 
 const BottomNav = () => {
   const [quizActive, setQuizActive] = useState(() =>
@@ -21,10 +21,19 @@ const BottomNav = () => {
 
   if (quizActive) return null;
 
+  // "Cards" was removed from here, NOT from the app. /flashcards is gated
+  // behind an admin-granted flashcard_access and lands on the HIGHLY
+  // CLASSIFIED lock screen for everyone else, so it was a dead end occupying
+  // one of six slots. The route and the desktop Sidebar entry both remain, so
+  // an account that HAS been granted access can still reach it.
+  //
+  // "Ranks" takes that slot because the Global Ranking is the one destination
+  // that is genuinely live for every scholar, and it is the entry point to the
+  // whole social hub (ranking / friends / rivals / activity / cosmetics).
   const navItems = [
     { name: 'Home', icon: LayoutDashboard, path: '/dashboard' },
     { name: 'Quiz', icon: Brain, path: '/quiz' },
-    { name: 'Cards', icon: BookOpen, path: '/flashcards' },
+    { name: 'Ranks', icon: Trophy, path: '/leaderboard' },
     { name: 'Voting', icon: Calendar, path: '/voting' },
     { name: 'Market', icon: FileUp, path: '/marketplace' },
     { name: 'Circle', icon: Users, path: '/community' },

@@ -1,4 +1,5 @@
 import { chromium } from 'playwright';
+import { signupFlow } from './e2e-utils.mjs';
 import fs from 'fs';
 import path from 'path';
 import os from 'os';
@@ -34,23 +35,7 @@ page.on('pageerror', err => console.log('PAGEERROR:', err.message));
 
 try {
   // ---------- 1. Signup ----------
-  await page.goto(`${BASE}/signup`, { waitUntil: 'networkidle' });
-  await page.fill('input[aria-label="Full name"]', TEST_USER.name);
-  await page.selectOption('select', { index: 2 }).catch(() => {});
-  await page.fill('input[aria-label="Email address"]', TEST_USER.email);
-  await page.fill('input[aria-label="Password"]', TEST_USER.password);
-  await page.fill('input[aria-label="Confirm password"]', TEST_USER.password);
-  await page.click('button[type="submit"]');
-  await page.waitForTimeout(3000);
-  const urlNow = page.url();
-  const bodyText = await page.textContent('body');
-  const needsSignIn = urlNow.includes('/signup') && /account created/i.test(bodyText || '');
-  if (needsSignIn) {
-    await page.fill('input[aria-label="Email address"]', TEST_USER.email);
-    await page.fill('input[aria-label="Password"]', TEST_USER.password);
-    await page.click('button[type="submit"]');
-    await page.waitForTimeout(3000);
-  }
+  await signupFlow(page, BASE, TEST_USER.name, TEST_USER.email, TEST_USER.password);
   const session = await page.evaluate(async () => {
     const mod = await import('/src/utils/supabase.js');
     const { data } = await mod.supabase.auth.getSession();

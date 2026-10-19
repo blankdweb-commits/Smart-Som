@@ -27,6 +27,10 @@ import {
 import {
   handleEconomyOverview, handleTransfer, handleBankStatus, handleBorrow, handleRepay,
 } from './_economy.js';
+import {
+  handleBlitzCreate, handleBlitzState, handleBlitzAnswer, handleBlitzSkip,
+  handleBlitzFlow, handleBlitzSettle, handleBlitzRematch,
+} from './_blitz-duel.js';
 
 export default async function handler(req, res) {
   if (!applyCors(req, res)) {
@@ -65,6 +69,19 @@ export default async function handler(req, res) {
   if (loan === 'cancel') return handleLoanCancel(req, res);
   if (loan === 'shark-buy') return handleLoanSharkBuy(req, res);
   if (loan === 'default') return handleLoanDefault(req, res);
+
+  // Blitz Duel with Flow State sub-routes
+  // (/api/blitz-duel/create|state|answer|skip|flow|settle|rematch).
+  // Every rule lives in the service_role-only blitz_duel_* RPCs; this router
+  // exists only to map each refusal onto a meaningful HTTP status.
+  const blitz = path.match(/blitz[-/]?duel[-/](create|state|answer|skip|flow|settle|rematch)$/)?.[1];
+  if (blitz === 'create') return handleBlitzCreate(req, res);
+  if (blitz === 'state') return handleBlitzState(req, res);
+  if (blitz === 'answer') return handleBlitzAnswer(req, res);
+  if (blitz === 'skip') return handleBlitzSkip(req, res);
+  if (blitz === 'flow') return handleBlitzFlow(req, res);
+  if (blitz === 'settle') return handleBlitzSettle(req, res);
+  if (blitz === 'rematch') return handleBlitzRematch(req, res);
 
   const action = path.match(/batch-(create|get|answer|complete)$/)?.[1];
 

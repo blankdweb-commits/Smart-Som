@@ -3,9 +3,10 @@ import { BrowserRouter as Router, Routes, Route, Navigate, useNavigate } from 'r
 import { AppProvider, useAppContext } from './context/AppContext';
 import Layout from './components/Layout';
 import RequireAuth from './components/RequireAuth';
-import CookieConsentBanner from './components/CookieConsentBanner';
+import ConsentManager from './components/ConsentManager';
 import AdSenseManager from './components/ads/AdSenseManager';
 import ChallengeProvider from './context/ChallengeContext';
+import { ConsentUIProvider } from './context/ConsentUIContext';
 import ErrorBoundary from './components/ErrorBoundary';
 import { MotionConfig } from 'framer-motion';
 
@@ -24,6 +25,7 @@ const Settings = lazy(() => import('./pages/Settings'));
 const Community = lazy(() => import('./pages/Community'));
 const PronunciationHelper = lazy(() => import('./pages/PronunciationHelper'));
 const Rumble = lazy(() => import('./pages/Rumble'));
+const BlitzDuel = lazy(() => import('./pages/BlitzDuel'));
 const Rivals = lazy(() => import('./pages/Rivals'));
 const Wallet = lazy(() => import('./pages/Wallet'));
   const Leaderboard = lazy(() => import('./pages/Leaderboard'));
@@ -113,6 +115,7 @@ const AppRouter = () => (
       <Route path="/login" element={<Auth />} />
       <Route path="/signup" element={<Auth />} />
       <Route path="/rumble" element={<Rumble />} />
+      <Route path="/blitz-duel" element={<RequireAuth><BlitzDuel /></RequireAuth>} />
       <Route path="/rivals" element={<RequireAuth><Rivals /></RequireAuth>} />
       <Route path="/wallet" element={<Wallet />} />
       <Route path="/xp-hall" element={<Navigate to="/rumble" replace />} />
@@ -169,22 +172,24 @@ function App() {
           AppContext — that would re-render every consumer four times a minute. */}
       <MotionConfig reducedMotion="user">
         <Router>
-          <ChallengeProvider>
-            <PushNavigationListener />
-            {/* AdSenseManager sits ABOVE <AppRouter>, so a throw inside it used to
-                take down the entire tree: the only ErrorBoundary lived in
-                Layout, BELOW this point, and therefore could never catch it.
-                That is how a single context destructure ("Cannot destructure
-                property 'isPremium'") blanked every page at once. Wrapping here
-                contains any such fault to a recovery screen instead. */}
-            <ErrorBoundary>
-              <AdSenseManager>
-                <AppRouter />
-                <CelebrationHost />
-              </AdSenseManager>
-            </ErrorBoundary>
-            <CookieConsentBanner />
-          </ChallengeProvider>
+          <ConsentUIProvider>
+            <ChallengeProvider>
+              <PushNavigationListener />
+              {/* AdSenseManager sits ABOVE <AppRouter>, so a throw inside it used to
+                  take down the entire tree: the only ErrorBoundary lived in
+                  Layout, BELOW this point, and therefore could never catch it.
+                  That is how a single context destructure ("Cannot destructure
+                  property 'isPremium'") blanked every page at once. Wrapping here
+                  contains any such fault to a recovery screen instead. */}
+              <ErrorBoundary>
+                <AdSenseManager>
+                  <AppRouter />
+                  <CelebrationHost />
+                </AdSenseManager>
+              </ErrorBoundary>
+              <ConsentManager />
+            </ChallengeProvider>
+          </ConsentUIProvider>
         </Router>
       </MotionConfig>
     </AppProvider>

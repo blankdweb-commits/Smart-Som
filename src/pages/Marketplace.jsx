@@ -15,6 +15,7 @@ import {
   Search,
   ShieldCheck,
   Sparkles,
+  ChevronRight,
   Star,
   Store,
   X,
@@ -25,6 +26,7 @@ import {
 import { useAppContext } from '../context/AppContext';
 import TutorialTip from '../components/TutorialTip';
 import { supabase } from '../utils/supabase';
+import PremiumUpgradeModal from '../components/PremiumUpgradeModal';
 
 const PLATFORM_SELLER = 'polynurse';
 
@@ -65,12 +67,18 @@ const safeContentUrl = (url) => {
 };
 
 export default function Marketplace() {
-  const { userProfile, session } = useAppContext();
+  // `isPremium` is the context value (AppContext derives it from the live
+  // subscription status). This line used to read `userProfile?.isPremium`, which
+  // is ALWAYS undefined - userProfile has no such field - so the Premium CTA
+  // below was unreachable and every subscriber saw the "Needs Premium" lock
+  // panel instead.
+  const { session, isPremium } = useAppContext();
   const me = session?.user?.id;
 
   const [categories, setCategories] = useState([]);
   const [products, setProducts] = useState([]);
   const [ownedIds, setOwnedIds] = useState(new Set());
+  const [upsellOpen, setUpsellOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [loadError, setLoadError] = useState(null);
 
@@ -81,6 +89,10 @@ export default function Marketplace() {
   const [active, setActive] = useState(null);
   const [buyingId, setBuyingId] = useState(null);
   const [buyError, setBuyError] = useState(null);
+  // The server's own refusal reason from marketplace_claim_free_product, kept
+  // separate from `buyError` because the two flows fail differently and only
+  // one of them is a payment.
+  const [claimError, setClaimError] = useState(null);
 
   const loadMarketplace = useCallback(async () => {
     setLoadError(null);
@@ -172,24 +184,36 @@ export default function Marketplace() {
     if (!ownRes.error) setOwnedIds(new Set((ownRes.data || []).map((p) => p.product_id)));
   }, [me]);
 
+  // Claiming a free or premium-included product now goes through
+  // marketplace_claim_free_product (migration-v98).
+  //
+  // It used to insert straight into marketplace_purchases from the browser,
+  // which was only safe because of the `product.access_type === 'free'` branch
+  // in the JSX below it. The underlying RLS policy never checked the product at
+  // all - its WITH CHECK was only `auth.uid() = user_id` - so a crafted client
+  // could claim any product, paid ones included. That policy is gone. The RPC
+  // decides from the product row and the caller's live subscription whether a
+  // claim is legitimate, and is idempotent on a deterministic reference, so a
+  // double tap is a replay rather than a second grant.
   const grantSelfEntitlement = useCallback(async (product) => {
     setBuyError(null);
     if (!supabase || !me) {
       setBuyError('AUTH');
       return;
     }
-    const ref = `${product.access_type === 'premium' ? 'premium' : 'free'}-${crypto.randomUUID()}`;
-    const { error } = await supabase.from('marketplace_purchases').insert({
-      user_id: me,
-      product_id: product.id,
-      amount: 0,
-      reference: ref,
-      status: 'complete'
+    const { data, error } = await supabase.rpc('marketplace_claim_free_product', {
+      p_product_id: product.id,
     });
     if (error) {
+      console.warn('[marketplace-claim]', error.message);
       setBuyError('GRANT');
       return;
     }
+    if (!data || data.ok === false) {
+      setClaimError(data?.error || 'GRANT');
+      return;
+    }
+    setClaimError(null);
     await refreshOwned();
   }, [me, refreshOwned]);
 
@@ -317,7 +341,7 @@ export default function Marketplace() {
                         product={p}
                         categoryColor={CATEGORY_COLORS[Math.abs(p.category_id) % CATEGORY_COLORS.length]}
                         owned={ownedIds.has(p.id)}
-                        onClick={() => { setActive(p); setBuyError(null); }}
+                        onClick={() => { setActive(p); setBuyError(null); setClaimError(null); }}
                       />
                     </motion.div>
                   ))}
@@ -334,15 +358,24 @@ export default function Marketplace() {
             product={active}
             categoryColor={CATEGORY_COLORS[Math.abs(active.category_id) % CATEGORY_COLORS.length]}
             owned={ownedIds.has(active.id)}
-            premium={!!userProfile?.isPremium}
+            premium={!!isPremium}
             isPlatform={isPlatformSeller(active.marketplace_sellers)}
             buying={buyingId === active.id}
             buyError={buyError}
+            claimError={claimError}
             onClose={() => setActive(null)}
             onBuy={() => buyProduct(active)}
             onGrant={() => grantSelfEntitlement(active)}
+            onUpgrade={() => setUpsellOpen(true)}
           />
         )}
+
+        <PremiumUpgradeModal
+          isOpen={upsellOpen}
+          onClose={() => setUpsellOpen(false)}
+          surface="marketplace"
+          reason="This item is included with Premium"
+        />
       </motion.div>
     </div>
   );
@@ -543,7 +576,7 @@ const EmptyState = ({ title, note, action, actionLabel }) => (
   </div>
 );
 
-const ProductSheet = ({ product, categoryColor, owned, premium, isPlatform, buying, buyError, onClose, onBuy, onGrant }) => {
+const ProductSheet = ({ product, categoryColor, owned, premium, isPlatform, buying, buyError, claimError, onClose, onBuy, onGrant, onUpgrade }) => {
   const url = safeContentUrl(product.content_url);
   const price = Number(product.price) || 0;
 
@@ -588,13 +621,22 @@ const ProductSheet = ({ product, categoryColor, owned, premium, isPlatform, buyi
         <Sparkles size={18} /> Included with Premium — Open
       </button>
     ) : (
-      <div className="rounded-2xl border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-900/20 p-4 flex items-center gap-3">
+      // This panel was STATIC: it told a non-subscriber the item needs Premium
+      // and offered no way to get it — no button, no route, a dead end inside a
+      // product sheet. It now opens the same contextual prompt as every other
+      // Premium gate, so the surface is actually actionable.
+      <button
+        type="button"
+        onClick={onUpgrade}
+        className="w-full text-left rounded-2xl border border-violet-200 dark:border-violet-800 bg-violet-50 dark:bg-violet-900/20 p-4 flex items-center gap-3 hover:border-violet-400 dark:hover:border-violet-600 transition-colors"
+      >
         <Lock size={18} className="text-violet-500 shrink-0" />
-        <div>
-          <p className="text-violet-700 dark:text-violet-300 text-sm font-bold">Needs Premium</p>
-          <p className="text-xs text-violet-600/90 dark:text-violet-300/80">This product is included with a premium subscription.</p>
+        <div className="flex-1 min-w-0">
+          <p className="text-violet-700 dark:text-violet-300 text-sm font-bold">Included with Premium</p>
+          <p className="text-xs text-violet-600/90 dark:text-violet-300/80">Tap to see what Premium includes.</p>
         </div>
-      </div>
+        <ChevronRight size={18} className="text-violet-500 shrink-0" />
+      </button>
     );
   } else {
     cta = (
@@ -663,13 +705,16 @@ const ProductSheet = ({ product, categoryColor, owned, premium, isPlatform, buyi
 
         {cta}
 
-        {buyError && <BuyError buyError={buyError} onClear={() => {}} />}
+        {(buyError || claimError) && <BuyError buyError={buyError} claimError={claimError} onClear={() => {}} />}
       </div>
     </div>
   );
 };
 
-const BuyError = ({ buyError }) => {
+const BuyError = ({ buyError, claimError }) => {
+  // A refusal from marketplace_claim_free_product wins over the generic bucket,
+  // because it is the specific, server-authored reason.
+  const code = claimError || buyError;
   const msg = {
     AUTH: 'Please sign in to purchase products.',
     NETWORK: 'Could not start payment. Check your connection and try again.',
@@ -680,8 +725,14 @@ const BuyError = ({ buyError }) => {
     PRODUCT_NOT_AVAILABLE: 'This product is not available for purchase right now.',
     FREE_PRODUCT: 'This product is free — use “Get free product”.',
     PREMIUM_ONLY: 'This product is included with Premium, not sold separately.',
-    ALREADY_OWNED: 'You already own this product.'
-  }[buyError] || buyError;
+    ALREADY_OWNED: 'You already own this product.',
+    // v98 codes.
+    INVALID_PRODUCT: 'That product could not be identified.',
+    NOT_FOUND: 'That product is no longer available.',
+    NOT_FREE: 'This product is no longer free, so it cannot be claimed directly.',
+    PAID_PRODUCT: 'This product has to be purchased — claim is for free items only.',
+    COSMETIC_NOT_CLAIMABLE: 'Cosmetics are bought with Smart Coins on the Cosmetics tab, not claimed here.'
+  }[code] || code;
   return (
     <div className="mt-3 p-4 bg-red-50 dark:bg-red-900/20 border border-red-200 dark:border-red-800 rounded-xl flex items-start gap-2">
       <AlertCircle size={16} className="text-red-500 shrink-0 mt-0.5" />

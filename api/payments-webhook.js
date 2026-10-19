@@ -363,7 +363,24 @@ export default async function handler(req, res) {
     .update(JSON.stringify(req.body))
     .digest('hex');
 
-  if (hash !== req.headers['x-paystack-signature']) {
+  // Constant-time compare. `!==` on strings short-circuits at the first
+  // differing character, so the time taken to reject a forged signature leaks
+  // how many leading bytes were correct — a byte-at-a-time oracle for
+  // reconstructing the real HMAC. timingSafeEqual has no such branch.
+  //
+  // It THROWS on a length mismatch, so the incoming value is length-checked
+  // first: sha512 hex is always 128 chars, the expected length is public, and
+  // leaking it discloses nothing.
+  const provided = typeof req.headers['x-paystack-signature'] === 'string'
+    ? req.headers['x-paystack-signature']
+    : '';
+  const expectedBuf = Buffer.from(hash, 'utf8');
+  const providedBuf = Buffer.from(provided, 'utf8');
+
+  const signatureValid = providedBuf.length === expectedBuf.length
+    && crypto.timingSafeEqual(providedBuf, expectedBuf);
+
+  if (!signatureValid) {
     return res.status(401).json({ error: 'Invalid signature' });
   }
 
@@ -433,30 +450,41 @@ export default async function handler(req, res) {
       // 2. Resolve plan + expected amount server-side — never trust client
       // sent durations or amounts. Charge amounts below a plan's price are
       // rejected outright (no subscription grant).
-      let durationDays = 30;
-      let planName = 'Monthly';
-      let expectedPrice = null;
-
-      if (metadata?.plan_id) {
-        const { data: plan } = await supabase
-          .from('subscription_plans')
-          .select('*')
-          .eq('id', metadata.plan_id)
-          .maybeSingle();
-        if (plan) {
-          durationDays = plan.duration_days;
-          planName = plan.name;
-          expectedPrice = Number(plan.price);
-        }
+      //
+      // NO PLAN ID ⇒ NO SUBSCRIPTION. The Paystack PUBLIC key is public, so the
+      // whole `metadata` object on a charge.success event is attacker-authored:
+      // anyone can initialize a ₦1 transaction that omits plan_id and even
+      // self-certifies `expected_amount_kobo`. Trusting either one as the
+      // expected amount means the amount guard compares the paid figure with a
+      // number the payer supplied, and 30 days of Premium ships for ₦1. Only the
+      // server's own plan table decides what was bought, so an unresolvable plan
+      // mints nothing and the transaction is logged for review.
+      if (!metadata?.plan_id) {
+        console.error(`Webhook subscription carried no plan_id for ref ${reference} — no grant`);
+        return res.status(200).json({ status: 'plan_unresolved' });
       }
 
-      // Last-resort fallback when the plan row is missing: the amount that
-      // /api/initiate-payment embedded in the charge metadata at initialize.
-      if (expectedPrice === null && metadata?.expected_amount_kobo != null) {
-        expectedPrice = Number(metadata.expected_amount_kobo) / 100;
+      const { data: plan } = await supabase
+        .from('subscription_plans')
+        .select('*')
+        .eq('id', metadata.plan_id)
+        .maybeSingle();
+
+      if (!plan) {
+        console.error(`Webhook plan ${metadata.plan_id} no longer exists for ref ${reference} — no grant`);
+        return res.status(200).json({ status: 'plan_unresolved' });
       }
 
-      if (expectedPrice !== null && Math.abs(paidAmount - expectedPrice) > 1) {
+      if (plan.is_active === false) {
+        console.error(`Webhook plan ${metadata.plan_id} is inactive for ref ${reference} — no grant`);
+        return res.status(200).json({ status: 'plan_unavailable' });
+      }
+
+      const durationDays = plan.duration_days;
+      const planName = plan.name;
+      const expectedPrice = Number(plan.price);
+
+      if (Math.abs(paidAmount - expectedPrice) > 1) {
         console.error(`Webhook amount mismatch, ref ${reference}: paid ${paidAmount}, expected ${expectedPrice}`);
         return res.status(200).json({ status: 'amount_mismatch' });
       }

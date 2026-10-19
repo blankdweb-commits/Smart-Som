@@ -38,6 +38,8 @@ const REWRITES = [
   { source: '/api/quiz-batch-complete', destination: '/api/quiz' },
   // /api/license/* -> /api/quiz (Nursing License Renewal sub-router, S8)
   { source: '/api/license/:path*', destination: '/api/quiz', prefix: true },
+  // /api/blitz-duel/* -> /api/quiz (Blitz Duel with Flow State sub-router)
+  { source: '/api/blitz-duel/:path*', destination: '/api/quiz', prefix: true },
   // /api/loans/* -> /api/quiz (Loan Shark sub-router, S9)
   { source: '/api/loans/:path*', destination: '/api/quiz', prefix: true },
 // /api/economy/* -> /api/quiz (transfers + World Bank sub-router, v81)

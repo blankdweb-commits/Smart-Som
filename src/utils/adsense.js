@@ -18,10 +18,13 @@ let loadPromise = null;
 export const isAdSenseScriptPresent = () =>
   typeof document !== 'undefined' && !!document.querySelector(ADSENSE_SCRIPT_SELECTOR);
 
-export const loadAdSenseScript = (client) => {
+export const loadAdSenseScript = (client, { permitted = true } = {}) => {
   if (typeof window === 'undefined' || typeof document === 'undefined') {
     return Promise.resolve(false);
   }
+  // Consent gate: the publisher script is marketing technology. It is never
+  // injected unless the user has explicitly granted marketing consent.
+  if (!permitted) return Promise.resolve(false);
   // Duplicate protection: an existing tag (from a prior mount, a Strict Mode
   // double-invoke, or a hot reload) is reused as-is.
   if (isAdSenseScriptPresent()) return Promise.resolve(true);

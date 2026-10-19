@@ -11,6 +11,7 @@
 // Every check here runs against a REAL authenticated session, because the whole
 // point is which uid the server sees.
 import fs from 'fs';
+import crypto from 'crypto';
 import { createClient } from '@supabase/supabase-js';
 
 const env = {};
@@ -429,20 +430,39 @@ try {
       `err=${feedErr?.message?.slice(0, 90) || 'none'} rows=${feedRows?.length}`);
   }
 
-  // ---- 14. marketplace_purchases is no longer FOR ALL --------------------
+  // ---- 14. marketplace_purchases: the client write path is GONE ----------
+  //
+  // REWRITTEN, not deleted. This used to assert that a client COULD insert its
+  // own purchase row, which was v92's deliberate position ("a purchase row is
+  // the entitlement, so record your own intent"). That was wrong: the policy's
+  // WITH CHECK was only `auth.uid() = user_id`, so it constrained who you could
+  // name and never what the row could SAY - any client could grant itself any
+  // product, paid ones included, at amount 0. migration-v98 dropped the policy
+  // and replaced the browser write with two SECURITY DEFINER RPCs.
   {
     const { data: product } = await admin.from('marketplace_products')
-      .select('id').eq('sku', 'crown-001').maybeSingle();
+      .select('id, access_type, kind').eq('sku', 'crown-001').maybeSingle();
     const client = A.client;
 
-    // A purchase row is the ENTITLEMENT for a real product, so being able to
-    // write one is being able to grant yourself one.
+    // 1. The forge is closed: a client cannot write the entitlement at all.
     const own = await client.from('marketplace_purchases')
       .insert({ user_id: A.id, product_id: product.id, amount: 0, reference: `e2e-own-${stamp}`, status: 'complete' });
-    log('a client can still INSERT its own purchase row (used by the free/premium self-entitlement path)',
-      !own.error, `err=${own.error?.message?.slice(0, 60) || 'none'}`);
+    log('a client INSERT is now REFUSED (the entitlement is server-authorised)',
+      !!own.error,
+      `err=${own.error?.message?.slice(0, 70) || 'none'}`);
 
-    // ...but it must not be able to REWRITE or ERASE it. FOR ALL allowed both.
+    const forged = await admin.from('marketplace_purchases')
+      .select('id').eq('reference', `e2e-own-${stamp}`);
+    log('...and no row was created by the attempt',
+      (forged.data || []).length === 0,
+      `rows=${(forged.data || []).length}`);
+
+    // 2. It must not be able to REWRITE or ERASE one either. Seed the row with
+    //    the service-role client, which bypasses RLS the way the payment
+    //    handlers do.
+    await admin.from('marketplace_purchases')
+      .insert({ user_id: A.id, product_id: product.id, amount: 0, reference: `e2e-own-${stamp}`, status: 'complete' });
+
     const upd = await client.from('marketplace_purchases').update({ status: 'complete' }).eq('reference', `e2e-own-${stamp}`);
     const stillThere = await admin.from('marketplace_purchases')
       .select('id, status').eq('reference', `e2e-own-${stamp}`);
@@ -457,7 +477,180 @@ try {
       !del.error && (afterDel.data || []).length === 1,
       `rows=${(afterDel.data || []).length}`);
 
+    // 3. The replacement RPC refuses what the old client path would have let
+    //    through. The Crown is a cosmetic, so it must be bought with Smart
+    //    Coins - a marketplace_purchases row would grant nothing.
+    const claimCos = await client.rpc('marketplace_claim_free_product', { p_product_id: product.id });
+    log('marketplace_claim_free_product refuses a cosmetic (it must go through cosmetic_purchase/SC)',
+      claimCos.error || claimCos.data?.error === 'COSMETIC_NOT_CLAIMABLE',
+      `err=${claimCos.data?.error || claimCos.error?.message?.slice(0, 60) || 'none'}`);
+
+    const claimMissing = await client.rpc('marketplace_claim_free_product', { p_product_id: 999999999 });
+    log('...and refuses a product that does not exist',
+      claimMissing.data?.error === 'NOT_FOUND',
+      `err=${claimMissing.data?.error || 'none'}`);
+
+    const claimNull = await client.rpc('marketplace_claim_free_product', { p_product_id: null });
+    log('...and refuses a null product',
+      claimNull.data?.error === 'INVALID_PRODUCT',
+      `err=${claimNull.data?.error || 'none'}`);
+
+    // 4. The admin path is gated, and it is NOT a service-role backdoor.
+    //    `is_admin()` reads auth.uid(), which the service-role JWT does not
+    //    carry, so even the suite's own admin client is refused. That is the
+    //    property worth asserting here: reaching the cosmetics guard needs a
+    //    real signed-in admin, which this suite has no credentials for (the
+    //    guard itself is covered by the v98 gate and by a live probe).
+    const grantAsService = await admin.rpc('admin_grant_marketplace_entitlement', {
+      p_user_id: A.id, p_product_id: product.id,
+    });
+    log('the admin grant is refused to the service role too (it is not a backdoor)',
+      grantAsService.data?.error === 'NOT_AUTHORIZED',
+      `err=${grantAsService.data?.error || grantAsService.error?.message?.slice(0, 60) || 'none'}`);
+
+    const grantNonAdmin = await client.rpc('admin_grant_marketplace_entitlement', {
+      p_user_id: A.id, p_product_id: product.id,
+    });
+    log('a signed-in non-admin cannot use admin_grant_marketplace_entitlement',
+      grantNonAdmin.data?.error === 'NOT_AUTHORIZED',
+      `err=${grantNonAdmin.data?.error || grantNonAdmin.error?.message?.slice(0, 60) || 'none'}`);
+
+    const auditBefore = await admin.from('admin_audit_log')
+      .select('id').eq('action', 'marketplace_entitlement_grant').eq('user_id', A.id);
+    log('...and the refused admin attempts wrote NO audit row',
+      (auditBefore.data || []).length === 0,
+      `rows=${(auditBefore.data || []).length}`);
+
     await admin.from('marketplace_purchases').delete().eq('reference', `e2e-own-${stamp}`);
+  }
+
+  // ---- 15. scholar_search finds people friend_search deliberately hides ----
+  //
+  // friend_search excludes anyone you already have a relationship with, because
+  // its job is "find someone to ADD". scholar_search is the "find this person I
+  // already know" path, so it must INCLUDE them and report the relationship.
+  //
+  // The state is established here rather than inherited: earlier sections
+  // create and delete relationships, so nothing downstream may assume a given
+  // pair is still accepted.
+  {
+    // Search by the id-hash fragment: these fixtures carry no identity_name or
+    // full_name, and that fragment is one of the three columns scholar_search
+    // matches on.
+    const handleOf = (id) => crypto.createHash('md5').update(id).digest('hex').slice(0, 6);
+
+    // A <-> B : an ACCEPTED friendship, so A's read of B is the `connected` tier.
+    await A.client.rpc('remove_relationship', { p_other: B.id });
+    const reqAB = await A.client.rpc('request_relationship', { p_target: B.id, p_type: 'friend' });
+    if (reqAB?.data?.ok) {
+      await B.client.rpc('respond_relationship', { p_rel_id: reqAB.data.id, p_accept: true });
+    }
+    // A -> C : a PENDING rival request, so relStatus is pending_out.
+    await A.client.rpc('remove_relationship', { p_other: C.id });
+    const reqAC = await A.client.rpc('request_relationship', { p_target: C.id, p_type: 'rival' });
+
+    log('the A->B friendship is accepted before the visibility assertions run',
+      !!(reqAB?.data?.ok), `ok=${reqAB?.data?.ok} err=${reqAB?.data?.error || ''}`);
+    log('the A->C rival request is pending before the search assertions run',
+      !!(reqAC?.data?.ok), `ok=${reqAC?.data?.ok} err=${reqAC?.data?.error || ''}`);
+
+    const { data: byFriend } = await A.client.rpc('scholar_search', { p_query: handleOf(B.id), p_limit: 25 });
+    const friendHit = (byFriend?.results || []).find((r) => r.userId === B.id);
+    log('scholar_search finds a scholar by id handle', !!friendHit,
+      `hits=${(byFriend?.results || []).length} found=${!!friendHit}`);
+
+    log('...and reports the ACCEPTED FRIEND as relStatus=friend',
+      friendHit?.relStatus === 'friend',
+      `relStatus=${friendHit?.relStatus}`);
+
+    const { data: byRival } = await A.client.rpc('scholar_search', { p_query: handleOf(C.id), p_limit: 25 });
+    const rivalHit = (byRival?.results || []).find((r) => r.userId === C.id);
+    log('...and the PENDING RIVAL as relStatus=pending_out (friend_search would have hidden both)',
+      rivalHit?.relStatus === 'pending_out',
+      `relStatus=${rivalHit?.relStatus}`);
+
+    // Names stay pseudonymous until the pair has dueled.
+    log('...and the name is a pseudonym handle, not a legal name',
+      typeof friendHit?.name === 'string' && friendHit.name.length > 0,
+      `name=${friendHit?.name}`);
+
+    // The friend_search cap bug: `limit 25` used to sit AFTER an ungrouped
+    // jsonb_agg, so a blank query returned EVERY activated profile.
+    const blank = await A.client.rpc('friend_search', { p_query: '' });
+    const blankCount = (blank?.results || []).length;
+    log('friend_search with a blank query is capped at 25 (it used to return the whole user directory)',
+      blankCount <= 25,
+      `returned=${blankCount}`);
+
+    const { data: activeRows } = await admin.from('profiles').select('id').eq('is_activated', true);
+    log('...and the cap is at or below the activated user base, so the fix is observable',
+      (blankCount ?? 0) <= (activeRows || []).length,
+      `returned=${blankCount} activated=${(activeRows || []).length}`);
+  }
+
+  // ---- 16. profile visibility tiers (v97) ----------------------------------
+  //
+  // A friend may see achievements and head-to-head. A stranger may not. The
+  // fields must be ABSENT from the stranger's payload, not merely hidden by the
+  // client - the RPC is the boundary.
+  {
+    const anon = await A.client.rpc('player_public_profile', { p_user: B.id });
+    log('a FRIEND\'s profile carries visibility=connected',
+      anon?.data?.visibility === 'connected',
+      `visibility=${anon?.data?.visibility}`);
+    log('...and includes achievements and head-to-head',
+      anon?.data?.achievements !== undefined && anon?.data?.headToHead !== undefined,
+      `ach=${anon?.data?.achievements !== undefined} h2h=${anon?.data?.headToHead !== undefined}`);
+
+    // C has no relationship with A in one direction - use a fresh pairing so
+    // this is a genuine stranger read. Reuses the suite's own `password`,
+    // which is known-good against the project's password policy.
+    const strangerEmail = `e2e-stranger-${stamp}@test.local`;
+    // supabase-js returns { data, error }; the user hangs off `data`.
+    const { data: stranger, error: strangerErr } = await admin.auth.admin.createUser({
+      email: strangerEmail,
+      password,
+      email_confirm: true,
+    });
+    const sid = stranger?.user?.id;
+    let strangerBody = null;
+    if (sid) {
+      await admin.from('profiles').update({ is_activated: true }).eq('id', sid);
+      const sClient = createClient(URL, ANON, { auth: { persistSession: false } });
+      await sClient.auth.signInWithPassword({ email: strangerEmail, password });
+      const r = await sClient.rpc('player_public_profile', { p_user: A.id });
+      strangerBody = r?.data;
+      log('a STRANGER\'s read of someone else is visibility=public',
+        strangerBody?.visibility === 'public',
+        `visibility=${strangerBody?.visibility}`);
+      log('...and the stranger DOES see display name, Smart Coins and duels',
+        strangerBody?.smartCoins !== undefined && strangerBody?.duels !== undefined,
+        `coins=${strangerBody?.smartCoins} duels=${JSON.stringify(strangerBody?.duels)}`);
+      const leaked = ['achievements', 'achievementCount', 'headToHead', 'rank',
+        'scoreBreakdown', 'competitiveScore', 'answers', 'streak', 'joinedAt', 'year', 'hasCrown']
+        .filter((k) => strangerBody && k in strangerBody);
+      log('...and NOTHING else: no achievements, head-to-head, rank, breakdown, streaks or join date',
+        leaked.length === 0,
+        `leaked=${leaked.join(',') || 'none'}`);
+    } else {
+      log('a STRANGER\'s read of someone else is visibility=public', false,
+        `could not create the stranger account: ${strangerErr?.message || 'no user returned'}`);
+    }
+
+    // The leaderboard was the BIGGER leak: it was not viewer-scoped at all.
+    const { data: lb } = await A.client.rpc('get_player_leaderboard', { p_limit: 5, p_offset: 0 });
+    const rowKeys = Object.keys((lb?.players || [])[0] || {});
+    const lbLeaked = ['smartCoins', 'competitiveScore', 'scoreBreakdown',
+      'oneVOneWins', 'threeVThreeWins', 'playerScore'].filter((k) => rowKeys.includes(k));
+    log('the leaderboard row no longer carries wallet, score or duel figures',
+      lbLeaked.length === 0,
+      `leaked=${lbLeaked.join(',') || 'none'} keys=${rowKeys.join('|')}`);
+    log('...but still carries rank, displayName and totalAnswers',
+      rowKeys.includes('rank') && rowKeys.includes('displayName') && rowKeys.includes('totalAnswers'),
+      `keys=${rowKeys.join('|')}`);
+
+    if (sid) await admin.auth.admin.deleteUser(sid);
+    if (strangerBody) { /* nothing to clean: the profile view was read-only */ }
   }
 } catch (err) {
   log('SUITE ERROR - ' + (err?.message || err), false);

@@ -1,5 +1,5 @@
 import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import { X, Trophy, Coins, Award, TrendingUp, Clock, Loader2, Swords, Eye, User, Crown } from 'lucide-react';
+import { X, Trophy, Coins, Award, TrendingUp, Clock, Loader2, Swords, Eye, User, Crown, Users } from 'lucide-react';
 import { supabase } from '../utils/supabase';
 import { playerColor } from '../utils/playerIdentity';
 
@@ -125,15 +125,27 @@ const PlayerSheet = ({ userId, seed, onClose, onChallenge, challengeBusy, canCha
 
   const d = detail;
   const name = d?.name || seedName || 'Scholar';
-  const rank = d?.rank ?? seed?.rank ?? null;
+
+  // migration-v97. The server now returns a `visibility` tier and withholds the
+  // fields a viewer is not entitled to, so the sections below are gated on what
+  // ARRIVED rather than on a client-side guess about the relationship.
+  //   self      -> everything
+  //   connected -> an accepted friend or rival: achievements, head-to-head, rank
+  //   public    -> name, Smart Coins and duel record only
+  const visibility = d?.visibility || 'public';
+  const isDetailed = visibility === 'self' || visibility === 'connected';
+
+  const rank = d?.rank ?? null;
   const total = d?.totalPlayers ?? null;
-  const score = d?.competitiveScore ?? seed?.competitiveScore ?? null;
-  const breakdown = d?.scoreBreakdown || seed?.scoreBreakdown || null;
+  const score = d?.competitiveScore ?? null;
+  const breakdown = d?.scoreBreakdown || null;
   const duels = d?.duels || {};
-  const oneWins = duels.oneVsOneWins ?? seed?.oneVOneWins ?? 0;
-  const threeWins = duels.threeVsThreeWins ?? seed?.threeVThreeWins ?? 0;
+  const oneWins = duels.oneVsOneWins ?? 0;
+  const threeWins = duels.threeVsThreeWins ?? 0;
+  const oneMatches = duels.oneVsOneMatches ?? 0;
+  const threeMatches = duels.threeVsThreeMatches ?? 0;
   const answers = d?.answers || {};
-  const coins = d?.smartCoins ?? seed?.smartCoins ?? null;
+  const coins = d?.smartCoins ?? null;
 
   const h2h = d?.headToHead;
   const showH2h = h2h && Number(h2h.played) > 0;
@@ -211,37 +223,66 @@ const PlayerSheet = ({ userId, seed, onClose, onChallenge, challengeBusy, canCha
           </div>
         )}
 
-        <Section title="Standing">
-          <Row label="Rank" icon={Trophy} value={rank != null ? `#${rank}${total ? ` / ${total}` : ''}` : '—'} />
-          <Row label="Power score" icon={Coins} value={score != null ? Number(score).toLocaleString() : '—'} />
-          <Row label="Smart Coins" icon={Coins} value={coins != null ? Number(coins).toLocaleString() : '—'} />
-        </Section>
-
-        {breakdown && (
-          <Section title="Where the score comes from">
-            <Row label="Coins" value={Number(breakdown.coin || 0).toLocaleString()} />
-            <Row label="Duels" value={Number(breakdown.duels || 0).toLocaleString()} />
-            <Row label="Performance" value={Number(breakdown.perf || 0).toLocaleString()} />
+        {/* Smart Coins and the duel record are the two figures every viewer is
+            entitled to, so they render at every visibility tier. */}
+        {coins != null && (
+          <Section title="Smart Coins">
+            <Row label="Balance" icon={Coins} value={Number(coins).toLocaleString()} />
           </Section>
         )}
 
         <Section title="Duel record">
-          <Row label="1v1 wins" icon={Swords} value={Number(oneWins || 0).toLocaleString()} />
-          <Row label="3v3 wins" icon={Swords} value={Number(threeWins || 0).toLocaleString()} />
-          {d && Number(answers.total || 0) > 0 && (
-            <Row
-              label="Answers"
-              icon={Eye}
-              value={`${Number(answers.correct || 0).toLocaleString()} correct / ${Number(answers.total || 0).toLocaleString()}`}
-            />
-          )}
+          <Row
+            label="1v1"
+            icon={Swords}
+            value={`${Number(oneWins || 0).toLocaleString()} won / ${Number(oneMatches || 0).toLocaleString()} played`}
+          />
+          <Row
+            label="3v3"
+            icon={Swords}
+            value={`${Number(threeWins || 0).toLocaleString()} won / ${Number(threeMatches || 0).toLocaleString()} played`}
+          />
         </Section>
 
-        {d && (Number(d.streak || 0) > 0 || Number(d.maxQuizStreak || 0) > 0) && (
-          <Section title="Streaks">
-            <Row label="Day streak" icon={TrendingUp} value={Number(d.streak || 0)} />
-            <Row label="Best quiz streak" icon={Award} value={Number(d.maxQuizStreak || 0)} />
-          </Section>
+        {/* Everything below is withheld by the server unless the viewer is the
+            owner or an accepted friend/rival, so this gate is a display
+            decision, not the security boundary. */}
+        {isDetailed && (
+          <>
+            <Section title="Standing">
+              <Row label="Rank" icon={Trophy} value={rank != null ? `#${rank}${total ? ` / ${total}` : ''}` : '—'} />
+              <Row label="Power score" icon={Coins} value={score != null ? Number(score).toLocaleString() : '—'} />
+            </Section>
+
+            {breakdown && (
+              <Section title="Where the score comes from">
+                <Row label="Coins" value={Number(breakdown.coin || 0).toLocaleString()} />
+                <Row label="Duels" value={Number(breakdown.duels || 0).toLocaleString()} />
+                <Row label="Performance" value={Number(breakdown.perf || 0).toLocaleString()} />
+              </Section>
+            )}
+
+            {Number(answers.total || 0) > 0 && (
+              <Section title="Answers graded">
+                <Row
+                  label="Correct"
+                  icon={Eye}
+                  value={`${Number(answers.correct || 0).toLocaleString()} / ${Number(answers.total || 0).toLocaleString()}`}
+                />
+              </Section>
+            )}
+
+            {Number(d?.streak || 0) > 0 || Number(d?.maxQuizStreak || 0) > 0 ? (
+              <Section title="Streaks">
+                {Number(d.streak || 0) > 0 && (
+                  <Row label="Day streak" icon={TrendingUp} value={Number(d.streak || 0)} />
+                )}
+                {Number(d.maxQuizStreak || 0) > 0 && (
+                  <Row label="Best quiz streak" icon={Award} value={Number(d.maxQuizStreak || 0)} />
+                )}
+              </Section>
+            ) : null}
+          </>
         )}
 
         {showH2h && (
@@ -253,13 +294,13 @@ const PlayerSheet = ({ userId, seed, onClose, onChallenge, challengeBusy, canCha
           </Section>
         )}
 
-        {d && (
-          <Section title={`Achievements (${Number(d.achievementCount || 0)})`}>
-            {(d.achievements || []).length === 0 ? (
+        {isDetailed && (
+          <Section title={`Achievements (${Number(d?.achievementCount || 0)})`}>
+            {(d?.achievements || []).length === 0 ? (
               <p className="text-[11px] font-medium text-slate-400 py-2">Nothing unlocked yet.</p>
             ) : (
               <ul className="flex flex-wrap gap-1.5 pt-1">
-                {(d.achievements || []).map((a) => (
+                {(d?.achievements || []).map((a) => (
                   <li
                     key={a.key}
                     title={a.description}
@@ -272,6 +313,16 @@ const PlayerSheet = ({ userId, seed, onClose, onChallenge, challengeBusy, canCha
               </ul>
             )}
           </Section>
+        )}
+
+        {!isDetailed && !loading && (
+          <p className="mt-4 flex items-start gap-1.5 rounded-2xl border border-polynurse-200 dark:border-polynurse-700 bg-polynurse-50 dark:bg-slate-800/60 px-4 py-3 text-[11px] font-medium leading-snug text-slate-600 dark:text-slate-300">
+            <Users size={13} className="mt-px shrink-0 text-polynurse-600 dark:text-polynurse-300" aria-hidden="true" />
+            <span>
+              You see their display name, Smart Coins and duel record. Add them as a
+              friend or rival to see their achievements and your head-to-head.
+            </span>
+          </p>
         )}
 
         {!d && !loading && (

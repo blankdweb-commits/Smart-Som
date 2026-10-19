@@ -1,4 +1,5 @@
 import { chromium } from 'playwright';
+import { signupFlow } from './e2e-utils.mjs';
 import fs from 'fs';
 import path from 'path';
 
@@ -30,25 +31,10 @@ const consoleErrors = [];
 page.on('pageerror', err => consoleErrors.push('PAGEERROR: ' + err.message));
 
 try {
-  // ---------- 1. SIGNUP via /signup page ----------
-  await page.goto(`${BASE}/signup`, { waitUntil: 'domcontentloaded', timeout: 60000 });
-  await page.fill('input[aria-label="Full name"]', TEST_USER.name);
-  await page.selectOption('select', { index: 2 }).catch(() => {});
-  await page.fill('input[aria-label="Email address"]', TEST_USER.email);
-  await page.fill('input[aria-label="Password"]', TEST_USER.password);
-  await page.fill('input[aria-label="Confirm password"]', TEST_USER.password);
-  await page.click('button[type="submit"]');
-  await page.waitForTimeout(3000);
-
-  const urlNow = page.url();
-  const bodyText = await page.textContent('body');
-  if (urlNow.includes('/signup') && /account created/i.test(bodyText || '')) {
-    await page.fill('input[aria-label="Email address"]', TEST_USER.email);
-    await page.fill('input[aria-label="Password"]', TEST_USER.password);
-    await page.click('button[type="submit"]');
-    await page.waitForTimeout(3000);
-  }
+  // ---------- 1. SIGNUP via the guided /signup wizard ----------
+  await signupFlow(page, BASE, TEST_USER.name, TEST_USER.email, TEST_USER.password);
   log('signup completed', !page.url().includes('/signup'), TEST_USER.email);
+
 
   // ---------- 2. CREATE POST ----------
   await page.goto(`${BASE}/community`, { waitUntil: 'domcontentloaded' });

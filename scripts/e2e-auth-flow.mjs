@@ -13,6 +13,7 @@ import {
   createBrowser,
   createLogger,
   signupFlow,
+  walkSignupWizard,
   loginFlow,
   exit
 } from './e2e-utils.mjs';
@@ -101,16 +102,29 @@ try {
   const signedOutUrl = page.url();
   tester.log('sign-out returns to login', /\/login/.test(signedOutUrl), signedOutUrl);
 
-  // ---------- 5. SIGNUP WITH SAME EMAIL -> "ALREADY EXISTS" TOAST ----------
+  // ---------- 5. SIGNUP WITH SAME EMAIL -> "ALREADY EXISTS" ----------
+  //
+  // The wizard walks all the way to the review step and submits from there. On
+  // a duplicate, it hands the collected email back to Auth.jsx, which switches
+  // to the sign-in view and shows the message in the sign-in card's inline
+  // error block (it used to be a Toast — inline is both accessible and
+  // assertable from body text, which is what waitBody reads).
+  // The wizard walks from wherever the page already is, so step 5 has to land
+  // on /signup first (step 4 signed us out onto /login).
   await page.goto(`${BASE}/signup`, { waitUntil: 'networkidle' });
-  await page.fill('input[aria-label="Full name"]', name);
-  await page.fill('input[aria-label="Email address"]', email);
-  await page.fill('input[aria-label="Password"]', password);
-  await page.fill('input[aria-label="Confirm password"]', password);
-  await page.click('button[type="submit"]');
-  const duplicateToast = await waitBody('already exists', 15000);
-  tester.log('duplicate signup warns "account already exists"', duplicateToast, `url=${page.url()} body: ${await pageBody()}`);
-  await page.screenshot({ path: 'test-results/auth-duplicate-toast.png' });
+  await walkSignupWizard(page, { name, email, password });
+  await page.getByRole('button', { name: /create my account/i }).click();
+  const duplicateWarned = await waitBody('already exists', 20000);
+  tester.log(
+    'duplicate signup warns "account already exists"',
+    duplicateWarned,
+    `url=${page.url()} body: ${await pageBody()}`
+  );
+  // And it must land on a usable sign-in form with the email carried across,
+  // rather than dropping the user on a dead screen.
+  const backOnSignIn = await page.isVisible('input[aria-label="Email address"]').catch(() => false);
+  tester.log('duplicate signup lands on the sign-in form with the email kept', backOnSignIn, `url=${page.url()}`);
+  await page.screenshot({ path: 'test-results/auth-duplicate.png' });
 
   // ---------- 6. SIGN BACK IN -> DASHBOARD + QUOTA ----------
   await loginFlow(page, BASE, email, password);

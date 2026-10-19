@@ -18,7 +18,7 @@ import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
 const Dashboard = () => {
   const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
-  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, learningAnalytics, quizHistory, smartCoins, scEarnedTotal, scLedger, claimDailySC, identity, identityUnlock, dismissIdentityUnlock, SC_FEATURE_LOCKED, userAchievements, achievementCatalog, fetchAchievementCatalog, fetchGlobalRank } = useAppContext();
+  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, profileLoaded, learningAnalytics, quizHistory, smartCoins, scEarnedTotal, scLedger, claimDailySC, identity, identityUnlock, dismissIdentityUnlock, SC_FEATURE_LOCKED, userAchievements, achievementCatalog, fetchAchievementCatalog, fetchGlobalRank } = useAppContext();
   const navigate = useNavigate();
 
   // Server-authoritative global player score rank (migration v30). RPC-based;
@@ -186,14 +186,31 @@ const Dashboard = () => {
             <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" /> Polynurse Exam Center
           </p>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight">
-            {greetingForDisplayName(
-              userProfile.identityName,
-              userProfile.fullName || session?.user?.user_metadata?.full_name,
-              'Scholar'
+            {/* Do not greet until the profiles row has actually arrived.
+                `fetchUserData` awaits twice before setting anything, and
+                RequireAuth gates on `session` alone, so for that window the
+                greeting used to render "Good morning, Scholar" with an empty
+                level - a wrong name on the page that is supposed to show the
+                authoritative one. A neutral placeholder is honest; a guessed
+                name is not. */}
+            {session && !profileLoaded ? (
+              <span className="text-slate-300 dark:text-slate-600">&hellip;</span>
+            ) : (
+              <>
+                {greetingForDisplayName(
+                  userProfile.identityName,
+                  userProfile.fullName || session?.user?.user_metadata?.full_name,
+                  'Scholar'
+                )}
+                {' '}{identity?.emoji || '👶'}
+              </>
             )}
-            {' '}{identity?.emoji || '👶'}
           </h2>
-          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1 text-sm sm:text-base">Your NCLEX Success Partner • {userProfile.level}</p>
+          <p className="text-slate-500 dark:text-slate-400 font-medium mt-1 text-sm sm:text-base">
+            {session && !profileLoaded
+              ? 'Your NCLEX Success Partner'
+              : `Your NCLEX Success Partner • ${userProfile.level}`}
+          </p>
         </div>
         <div className="flex gap-3">
            <button

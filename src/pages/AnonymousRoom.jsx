@@ -42,6 +42,7 @@ import {
   Compass,
   Clock,
 } from '../components/Icons';
+import LiveEventBar from '../components/LiveEventBar';
 import { communityApi, guestPreviewStart, guestPreviewStream } from '../utils/communityApi';
 import { clearAnonVisitKey } from '../utils/anonVisit';
 import { authHeaders } from '../utils/apiHeaders';
@@ -888,6 +889,11 @@ const RoomPreview = ({ guest, locationPath, onRetry }) => {
   const room = guest.room;
   const ended = room?.group_state === 'wiped';
   const remaining = Math.max(0, guest.expiresAt - guest.now);
+  // NOTE: the live-event clock is deliberately NOT surfaced in the guest
+  // preview. A visitor's two-minute window is their OWN authorisation and is
+  // independent of the 40-60 minute event; showing one countdown next to the
+  // other would imply the preview extends, restarts or is bounded by the
+  // event, which is exactly the confusion the brief separates them to avoid.
 
   // Anything that is not a live window goes straight to the gate. Messages are
   // dropped by the parent the moment the window closes, so nothing readable is
@@ -1076,6 +1082,9 @@ const AnonymousRoom = () => {
   // stale in-room view that would never update again.
   const [roomGone, setRoomGone] = useState(false);
   const [room, setRoom] = useState(null);
+  // Fires ONCE when the local countdown crosses zero. A notice, not a stream:
+  // the brief asks for a warning, not repeated pings.
+  const [eventEndedNotified, setEventEndedNotified] = useState(false);
   const [messages, setMessages] = useState([]);
   const [systemEvents, setSystemEvents] = useState([]);
   const [hasMore, setHasMore] = useState(false);
@@ -1969,6 +1978,10 @@ if (type === 'fight') {
   // remains authoritative; this only warns the user to interact before the
   // activity deadline so they are not silently removed from the room.
   const membershipWarningSeconds = room?.config?.membership?.warning_seconds ?? 600;
+  // v99: ONE flag from the server decides whether this room accepts writes.
+  // Everything that can write a message, a reaction, a vote or a duel is gated
+  // on it, so an expired event cannot half-work.
+  const canWrite = room?.can_write !== false && room?.event?.state !== 'ended';
   const markActivity = useCallback(() => {
     lastActivityRef.current = Date.now();
     setMemberWarning(false);
@@ -3429,6 +3442,14 @@ if (type === 'fight') {
           </div>
         </div>
       )}
+      {eventEndedNotified && (
+        <div className="pointer-events-none absolute inset-x-0 top-16 z-20 flex justify-center px-4">
+          <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-slate-800/95 text-slate-200 text-[11px] font-black uppercase tracking-widest shadow-2xl border border-slate-600/60">
+            <Clock size={13} />
+            This live event has ended — you can still read it
+          </div>
+        </div>
+      )}
       {memberWarning && isMember && (
         <div className="pointer-events-none absolute inset-x-0 bottom-24 z-20 flex justify-center px-4">
           <div className="flex items-center gap-2 px-4 py-2 rounded-full bg-amber-500/95 text-slate-950 text-[11px] font-black uppercase tracking-widest shadow-2xl border border-amber-300/50">
@@ -3451,11 +3472,21 @@ if (type === 'fight') {
               </span>
             )}
             {membershipLocked && (
-              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-slate-800 text-slate-400 text-[8px] font-black uppercase tracking-widest">
+              <span className="inline-flex items-center gap-1 px-1.5 py-0.5 rounded-full bg-slate-800 text-slate-400 border border-slate-700 text-[8px] font-black uppercase tracking-widest">
                 <Lock size={9} /> Closed
               </span>
             )}
           </div>
+          {/* Live-event status line (migration-v99). Sits under the title row so
+              the compact header stays one extra line tall on a 360px phone and
+              never covers the composer or the message list. The countdown it
+              renders is display-only — `room.can_write` is the server's answer
+              to "may I still write", and that is what actually gates the UI. */}
+          <LiveEventBar
+            event={room?.event}
+            memberCount={seatMemberCount ?? memberCount}
+            onEndedNotified={() => setEventEndedNotified(true)}
+          />
           <p className="text-[10px] font-bold text-slate-500 mt-0.5 flex items-center gap-2 flex-wrap min-h-[14px]">
             {isMember && myLabel && <span style={{ ...identityStyle(room?.my_alias) }} className="font-black">{myLabel}</span>}
             {isSpectator && (
@@ -3975,7 +4006,7 @@ if (type === 'fight') {
 
                   {isOpen && !isEditing && (
                     <div className="flex items-center gap-1 mt-1.5 flex-wrap">
-                      {canSpeak && (
+                      {canSpeak && canWrite && (
                         <button
                           onClick={() => {
                             setReplyTo(msg);
@@ -3997,7 +4028,7 @@ if (type === 'fight') {
                       >
                         <Smile size={11} /> React
                       </button>
-                      {canSpeak && roomSocial.length > 0 && (
+                      {canSpeak && canWrite && roomSocial.length > 0 && (
                         <button
                           onClick={() => {
                             openActionSheet(msg);
@@ -4261,11 +4292,17 @@ if (type === 'fight') {
           )}
         </div>
 
-        <div className="flex items-end gap-2 pb-2">
-          <textarea
-            ref={draftRef}
-            value={draft}
-            onChange={onDraftChange}
+        {/* The composer. Hidden entirely once the event has closed — the SERVER
+            says so via can_write, and the 1-second countdown is deliberately not
+            consulted here. Leaving a compose box on screen that is guaranteed to
+            return 403 EVENT_ENDED is how a user loses a message they thought they
+            had sent. An honest read-only footer replaces it. */}
+        {canWrite ? (
+          <div className="flex items-end gap-2 pb-2">
+            <textarea
+              ref={draftRef}
+              value={draft}
+              onChange={onDraftChange}
             onKeyDown={(e) => {
               if (e.key === 'Enter' && !e.shiftKey) {
                 e.preventDefault();
@@ -4292,7 +4329,13 @@ if (type === 'fight') {
           >
             {sending ? <Loader2 size={17} className="animate-spin" /> : <Send size={17} />}
           </button>
-        </div>
+          </div>
+        ) : (
+          <div className="flex items-center justify-center gap-2 py-4 text-[11px] font-black uppercase tracking-widest text-slate-500">
+            <Clock size={13} />
+            This live event has ended — the conversation is read-only
+          </div>
+        )}
       </footer>
 
       {showNotice && isMember && (

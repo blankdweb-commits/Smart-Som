@@ -41,6 +41,10 @@
       "destination": "/api/quiz"
     },
     {
+      "source": "/api/blitz-duel/:path*",
+      "destination": "/api/quiz"
+    },
+    {
 "source": "/api/loans/:path*",
    "destination": "/api/quiz"
    },

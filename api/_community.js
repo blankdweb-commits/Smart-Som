@@ -156,6 +156,96 @@ export const ROOM_NOTICE = { key: 'anonymous_room_safety', version: 6 };
 // enforces and the number the client displays come from one place.
 export const ROOM_MINIMUM_AGE = 18;
 
+// ============================================================================
+// LIVE EVENT TIMING (migration-v99)
+// ============================================================================
+// The Anonymous Room is a time-limited live event rather than an open-ended
+// room. These constants are the SERVER's copy of the product rule; the database
+// CHECK constraints (study_groups_event_duration_check and
+// study_groups_event_window_check) enforce the same range independently, so a
+// stale build or a crafted request cannot widen it.
+//
+//   EVENT_MIN_MINUTES  40  minimum INTENDED live duration
+//   EVENT_MAX_MINUTES  60  absolute maximum, never exceeded for any reason
+//   EVENT_DEFAULT_MINUTES 60 what a room gets if nobody configures otherwise
+//
+// THE AUTHORITY IS THE DATABASE, NOT THIS FILE. Every guard below ultimately
+// asks Postgres `_anon_event_over(group_id)`, which evaluates `now()` on the
+// server clock inside the caller's own transaction. A browser clock cannot
+// reach it, and a sweep never has to have run for an event to be closed. The
+// sweep calls here exist only to write event_ended_at for the audit trail.
+export const EVENT_MIN_MINUTES = 40;
+export const EVENT_MAX_MINUTES = 60;
+export const EVENT_DEFAULT_MINUTES = 60;
+// The "ending soon" warning window. Chosen so a member has time to finish what
+// they are doing; it is a UI warning only and never gates a write.
+export const EVENT_ENDING_SOON_MS = 5 * 60 * 1000;
+
+// Clamp a requested duration into the permitted range, or return null when the
+// request is outside it. NULL is the signal: a client asking for 90 minutes is
+// REJECTED, not silently rounded, because silently turning "2 hours please"
+// into "1 hour" is how a caller ends up believing it got what it asked for.
+export function normaliseEventDuration(requested) {
+  if (requested === undefined || requested === null || requested === '') return EVENT_DEFAULT_MINUTES;
+  const n = Number(requested);
+  if (!Number.isInteger(n)) return null;
+  if (n < EVENT_MIN_MINUTES || n > EVENT_MAX_MINUTES) return null;
+  return n;
+}
+
+// The event block every room payload carries. Computed from the group's own
+// columns plus the server clock, and it deliberately reports `serverNow` so the
+// client can correct for its own clock skew instead of trusting Date.now().
+//
+// `remainingSeconds` is null when there is no deadline (a room that has not
+// activated yet, or one that was already open before v99 existed). The client
+// must render "no countdown" in that case rather than counting down to zero.
+export function eventBlockFor(group, nowMs = Date.now()) {
+  const endsAt = group?.event_ends_at ? new Date(group.event_ends_at).getTime() : null;
+  const startedAt = group?.event_started_at ? new Date(group.event_started_at).getTime() : null;
+  const hasClock = Number.isFinite(endsAt) && Number.isFinite(startedAt);
+  const over = !!(group?.event_ended_at) || (hasClock && nowMs >= endsAt);
+
+  let state = 'scheduled';
+  if (group?.group_state === 'wiped') state = 'ended';
+  else if (over) state = 'ended';
+  else if (group?.group_state === 'waiting') state = 'waiting';
+  else if (!hasClock) state = 'live';
+  else if (nowMs >= endsAt - EVENT_ENDING_SOON_MS) state = 'ending_soon';
+  else state = 'live';
+
+  return {
+    state,
+    startedAt: startedAt || null,
+    endsAt: hasClock ? endsAt : null,
+    endedAt: group?.event_ended_at || null,
+    endedReason: group?.event_ended_reason || null,
+    durationMinutes: group?.event_duration_minutes ?? EVENT_DEFAULT_MINUTES,
+    minMinutes: EVENT_MIN_MINUTES,
+    maxMinutes: EVENT_MAX_MINUTES,
+    endingSoonSeconds: EVENT_ENDING_SOON_MS / 1000,
+    remainingSeconds: hasClock ? Math.max(0, Math.round((endsAt - nowMs) / 1000)) : null,
+    // Let the client measure its own skew once, on load, instead of guessing.
+    serverNow: new Date(nowMs).toISOString(),
+  };
+}
+
+// A flat 403 for any write into an event that is closed. One shape for every
+// write path so the client can recognise it with a single comparison, and one
+// place that decides what the user is told.
+export function eventEndedError(group, message) {
+  const endsAt = group?.event_ends_at || null;
+  return {
+    status: 403,
+    body: {
+      error: 'EVENT_ENDED',
+      message: message || 'This live event has closed. You can still read it, but no new messages or actions can be added.',
+      ends_at: endsAt,
+    },
+  };
+}
+
+
 // Reporting: fixed categories + a per-user hourly rate limit.
 export const REPORT_CATEGORIES = ['harassment', 'spam', 'self_harm', 'hate', 'sexual', 'personal_info', 'other'];
 export const REPORT_RATE_LIMIT = 12; // max reports per user per hour
@@ -664,6 +754,18 @@ export async function handleVote(req, res, user) {
   const post = await fetchAlivePost(postId, user.id);
   if (!post) return res.status(404).json({ error: 'POST_NOT_FOUND', message: 'This post is no longer visible.' });
 
+  // An anonymous-room post inside a CLOSED event must stop taking votes. The
+  // route is /posts/vote (shared with the general feed), so this only applies
+  // when the post actually belongs to an anonymous room — a public community
+  // post is unaffected by any room's clock.
+  if (post.group_id != null) {
+    const votedGroup = await resolveAnonGroup(post.group_id);
+    if (votedGroup) {
+      const voteRefusal = await requireLiveEvent(votedGroup);
+      if (voteRefusal) return res.status(voteRefusal.status).json(voteRefusal.body);
+    }
+  }
+
   let writeError = null;
   if (value === 0) {
     const { error } = await supabase
@@ -914,6 +1016,20 @@ export async function handleCreateAnonRoom(req, res, user) {
   const requested = typeof req.body?.name === 'string' ? req.body.name.trim().slice(0, 120) : '';
   const name = requested || `Anonymous Nursing Room ${Math.random().toString(36).slice(2, 6).toUpperCase()}`;
 
+  // The event duration is clamped SERVER-side and an out-of-range request is
+  // REFUSED, not rounded. Silently turning "two hours please" into "one hour"
+  // is how a caller ends up believing it got what it asked for. The database
+  // CHECK enforces the same 40-60 range independently.
+  const duration = normaliseEventDuration(req.body?.event_duration_minutes);
+  if (duration === null) {
+    return res.status(400).json({
+      error: 'EVENT_DURATION_OUT_OF_RANGE',
+      message: `An event must be between ${EVENT_MIN_MINUTES} and ${EVENT_MAX_MINUTES} minutes.`,
+      min_minutes: EVENT_MIN_MINUTES,
+      max_minutes: EVENT_MAX_MINUTES,
+    });
+  }
+
   const { data: group, error } = await supabase
     .from('study_groups')
     .insert({
@@ -924,8 +1040,12 @@ export async function handleCreateAnonRoom(req, res, user) {
       privacy: 'restricted',
       group_state: 'waiting',
       membership_locked: false,
+      // Written here so the value is auditable. The CLOCK is still stamped by
+      // the BEFORE UPDATE activation trigger, never by this INSERT — the room
+      // is born waiting and only starts its event when it activates.
+      event_duration_minutes: duration,
     })
-    .select('id, name, member_limit, minimum_members_to_activate, minimum_members_to_remain_active, spectator_price, group_state')
+    .select('id, name, member_limit, minimum_members_to_activate, minimum_members_to_remain_active, spectator_price, group_state, event_duration_minutes')
     .single();
 
   if (error) {
@@ -963,6 +1083,12 @@ export async function handleJoinGroup(req, res, user) {
 
   if (group.type === 'anonymous') {
     if (await isBanned(user.id)) return res.status(403).json({ error: 'BANNED', message: 'Your community access is currently restricted.' });
+    // A seat cannot be granted into a closed event. The BEFORE INSERT trigger
+    // on study_group_members would refuse this anyway (and does, for the
+    // payment webhooks that call the RPC directly) — this turns that into a
+    // clear 403 instead of a P0001 bubbling out as a 500.
+    const joinRefusal = await requireLiveEvent(group);
+    if (joinRefusal) return res.status(joinRefusal.status).json(joinRefusal.body);
     const { data, error } = await supabase.rpc('community_anonymous_join', { p_group: groupId, p_user: user.id });
     if (error) {
       console.error('[community anon join]', error);
@@ -1019,6 +1145,13 @@ export async function handleAnonSpectateFree(req, res, user) {
   const groupId = Number(req.body?.group_id);
   if (!Number.isFinite(groupId)) return res.status(400).json({ error: 'Invalid group id' });
   if (await isBanned(user.id)) return res.status(403).json({ error: 'BANNED', message: 'Your community access is currently restricted.' });
+
+  // No spectator seat into a closed event.
+  const spectateGroup = await resolveAnonGroup(groupId);
+  if (spectateGroup) {
+    const spectateRefusal = await requireLiveEvent(spectateGroup);
+    if (spectateRefusal) return res.status(spectateRefusal.status).json(spectateRefusal.body);
+  }
 
   const { data, error } = await supabase.rpc('community_anonymous_spectate_free', {
     p_group: groupId,
@@ -1114,6 +1247,20 @@ export async function handleAnonGiftClaim(req, res, user) {
   const code = String(req.body?.code || '').trim();
   if (!Number.isFinite(groupId)) return res.status(400).json({ error: 'Invalid group id' });
   if (!code || code.length > 32) return res.status(400).json({ error: 'INVALID_GIFT', message: 'Enter the gift code exactly as it was shared.' });
+
+  // A PAID seat must never be redeemable after the event closed — the buyer
+  // would have charged real money for a room that no longer accepts members.
+  // This is the single most valuable guard in this file.
+  const giftGroup = await resolveAnonGroup(groupId);
+  if (giftGroup) {
+    const giftRefusal = await requireLiveEvent(giftGroup);
+    if (giftRefusal) {
+      return res.status(giftRefusal.status).json({
+        ...giftRefusal.body,
+        message: 'This live event has closed, so its gift seats cannot be redeemed. The code is still valid for the next event — please contact support for a refund.',
+      });
+    }
+  }
 
   const { data, error } = await supabase.rpc('community_anonymous_redeem_gift', {
     p_group: groupId,
@@ -1590,6 +1737,16 @@ export async function validateRoomMentions(groupId, text) {
 
 // Server-side access decision for the room. Never 403s on resolution —
 // the response says which state the viewer is in.
+//
+// It also returns `event`, the live-event block. It is computed HERE, at the one
+// place every room read already goes through, rather than being re-derived per
+// handler.
+//
+// DELIBERATELY NOT DONE: an ended event does NOT change `access`. Reads stay
+// allowed after the deadline — the history is the point of a 40-60 minute event,
+// and an event that deleted its own record on expiry would be a worse product
+// than one that stops accepting writes. What expiry blocks is WRITES, and it
+// blocks them in requireLiveEvent below.
 export async function roomAccess(group, userId) {
   const banned = await isBanned(userId);
   const role = banned ? 'none' : await viewerRole(group.id, userId);
@@ -1600,7 +1757,50 @@ export async function roomAccess(group, userId) {
   else if (role === 'spectator') access = 'spectator';
   else if (group.group_state === 'waiting') access = 'join';
   else access = 'closed';
-  return { role, access, viewable: access === 'member' || access === 'spectator' };
+  return {
+    role,
+    access,
+    viewable: access === 'member' || access === 'spectator',
+    event: eventBlockFor(group),
+  };
+}
+
+// The write guard for a closed event.
+//
+// ASYNC AND AUTHORITATIVE ON PURPOSE. An earlier version read the deadline out
+// of the `group` object we already had, which is best-effort: that object was
+// fetched before this request began, so a caller who loads the room and then
+// sits on the response until after the deadline could still get a write
+// through the JS check. Asking the database instead costs one small indexed
+// query per write — negligible for a community room — and it is the same
+// `now() >= event_ends_at` evaluation the trigger uses, in the same clock
+// domain. There is no code path where the two can disagree.
+//
+// The BEFORE INSERT triggers on study_group_members / anonymous_spectators remain
+// the backstop for the seat RPCs, because api/payments-webhook.js calls those
+// RPCs directly and would otherwise bypass any JavaScript here. This function is
+// what turns that backstop into a clear 403 instead of a bare P0001.
+export async function requireLiveEvent(group) {
+  const supabase = getDb();
+  if (!supabase || !group?.id) return null;
+  let over = false;
+  try {
+    const { data, error } = await supabase.rpc('_anon_event_over', { p_group: group.id });
+    if (error) throw error;
+    over = data === true;
+  } catch {
+    // If the predicate itself cannot be read we must NOT fall through and allow
+    // the write. Fail closed: an unavailability of the guard is not permission.
+    return {
+      status: 503,
+      body: {
+        error: 'EVENT_STATE_UNAVAILABLE',
+        message: 'We could not confirm this event is still open. Please try again.',
+      },
+    };
+  }
+  if (over) return eventEndedError(group);
+  return null;
 }
 
 const excerptOf = (text) => {
@@ -1972,7 +2172,7 @@ export async function handleAnonRoom(req, res, user) {
   // S4 — release idle seats + reconcile counts before they are shown. Never fatal.
   await reconcileMembership(group.id).catch(() => {});
 
-  const { role, access } = await roomAccess(group, user.id);
+  const { role, access, event } = await roomAccess(group, user.id);
   const viewable = access === 'member' || access === 'spectator';
   // P2 — the capacity breakdown (seat counts + caps + prices) is a prospective-
   // joiner surface, so the counts are computed for every access. The top-level
@@ -2056,6 +2256,9 @@ export async function handleAnonRoom(req, res, user) {
     gifts,
     can_speak: access === 'member',
     can_react: viewable,
+    // ONE flag the client uses to lock the composer, the action sheet and every
+    // reaction control. Reads stay open, so the history remains readable.
+    can_write: viewable && event.state !== 'ended',
     group: {
       id: group.id,
       name: group.name,
@@ -2074,6 +2277,10 @@ export async function handleAnonRoom(req, res, user) {
     },
 notice: noticeAccepted ? { accepted: true } : { accepted: false, key: ROOM_NOTICE.key, version: ROOM_NOTICE.version },
     channel: roomChannel(group.id),
+    // The live-event block: state, the authoritative deadline, and the server's
+    // own clock. The client renders a countdown from this and re-syncs it on
+    // every loadRoom; it never decides validity itself.
+    event,
     config: {
       reactions: ROOM_REACTIONS,
       page_size: ROOM_PAGE_SIZE,
@@ -2106,6 +2313,12 @@ notice: noticeAccepted ? { accepted: true } : { accepted: false, key: ROOM_NOTIC
       presence: {
         grace_seconds: PRESENCE_GRACE_SECONDS,
         inactivity_seconds: PRESENCE_INACTIVITY_SECONDS,
+      },
+      event: {
+        min_minutes: EVENT_MIN_MINUTES,
+        max_minutes: EVENT_MAX_MINUTES,
+        default_minutes: EVENT_DEFAULT_MINUTES,
+        ending_soon_seconds: EVENT_ENDING_SOON_MS / 1000,
       },
     },
   });
@@ -2226,6 +2439,11 @@ export async function handleAnonPreview(req, res) {
       activate: group.minimum_members_to_activate,
       survive: group.minimum_members_to_remain_active,
     },
+    // Read-only event metadata for the logged-out preview. No messages, no
+    // roster, no aliases — the same discipline the rest of this handler keeps.
+    // The preview does NOT touch the event clock: observing a live event must
+    // never start, extend or restart it.
+    event: eventBlockFor(group),
   });
 }
 
@@ -2243,7 +2461,7 @@ export async function handleAnonPreview(req, res) {
 // deliberately minimal projection of each message.
 //
 // THE RULES THIS ENFORCES:
-//   * 5 minutes, measured on the SERVER clock (GUEST_PREVIEW_MS). The browser
+//   * 2 minutes, measured on the SERVER clock (GUEST_PREVIEW_MS). The browser
 //     clock is never trusted; the client gets expires_at + server_now and
 //     renders a countdown from the difference.
 //   * ONE preview per guest. Starting it spends the allowance immediately —
@@ -2264,7 +2482,7 @@ export async function handleAnonPreview(req, res) {
 //     a silent empty success that would look like "the room is quiet".
 // ============================================================
 
-export const GUEST_PREVIEW_MS = 5 * 60 * 1000; // 5 minutes, server-authoritative
+export const GUEST_PREVIEW_MS = 2 * 60 * 1000; // 2 minutes, server-authoritative
 const GUEST_PREVIEW_PAGE = 12; // small first page; guests never need the backlog
 const GUEST_PREVIEW_MAX_LIMIT = 20;
 const GUEST_PREVIEW_START_THROTTLE_MS = 3_000; // per caller-key, best effort
@@ -2775,6 +2993,9 @@ export async function handleAnonMessage(req, res, user) {
   if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND', message: 'No Anonymous room found.' });
 
 const { access } = await roomAccess(group, user.id);
+  // NOT GUARDED, deliberately: this is a READ. An event that refused to show its
+  // own history after closing would be destroying the thing the 40-60 minute
+  // window produced. requireLiveEvent gates WRITES only.
   if (!access || !['member', 'spectator'].includes(access)) {
     return res.status(403).json({ error: access.toUpperCase(), message: 'You cannot read this room right now.' });
   }
@@ -2805,6 +3026,8 @@ export async function handleAnonSend(req, res, user) {
   if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND', message: 'No Anonymous room found.' });
 
   const { access } = await roomAccess(group, user.id);
+  const eventRefusal = await requireLiveEvent(group);
+  if (eventRefusal) return res.status(eventRefusal.status).json(eventRefusal.body);
   if (access === 'banned') return res.status(403).json({ error: 'BANNED', message: 'Your community access is currently restricted.' });
   if (access === 'wiped') return res.status(403).json({ error: 'GROUP_WIPED', message: 'This round has been wiped. Nothing persists.' });
   if (access === 'spectator') return res.status(403).json({ error: 'SPECTATOR_READ_ONLY', message: 'Spectators can watch and react, but cannot speak.' });
@@ -2946,6 +3169,8 @@ export async function handleAnonReact(req, res, user) {
   if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND', message: 'No Anonymous room found.' });
 
   const { access } = await roomAccess(group, user.id);
+  const eventRefusal = await requireLiveEvent(group);
+  if (eventRefusal) return res.status(eventRefusal.status).json(eventRefusal.body);
   if (access === 'banned') return res.status(403).json({ error: 'BANNED', message: 'Your community access is currently restricted.' });
   if (access === 'wiped') return res.status(403).json({ error: 'GROUP_WIPED', message: 'This round has been wiped.' });
   if (!['member', 'spectator'].includes(access)) {
@@ -3076,6 +3301,8 @@ export async function handleAnonSocial(req, res, user) {
   if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND', message: 'No Anonymous room found.' });
 
   const { access } = await roomAccess(group, user.id);
+  const eventRefusal = await requireLiveEvent(group);
+  if (eventRefusal) return res.status(eventRefusal.status).json(eventRefusal.body);
   if (access === 'banned') return res.status(403).json({ error: 'BANNED', message: 'Your community access is currently restricted.' });
   if (access === 'wiped') return res.status(403).json({ error: 'GROUP_WIPED', message: 'This round has been wiped.' });
   if (access !== 'member') {
@@ -3361,6 +3588,8 @@ export async function handleAnonEventReact(req, res, user) {
   if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND', message: 'No Anonymous room found.' });
 
   const { access } = await roomAccess(group, user.id);
+  const eventRefusal = await requireLiveEvent(group);
+  if (eventRefusal) return res.status(eventRefusal.status).json(eventRefusal.body);
   if (access === 'banned') return res.status(403).json({ error: 'BANNED', message: 'Your community access is currently restricted.' });
   if (!['member', 'spectator'].includes(access)) {
     return res.status(403).json({ error: access.toUpperCase(), message: 'You cannot interact with this room right now.' });
@@ -3629,6 +3858,8 @@ export async function handleAnonDuel(req, res, user) {
   }
   if (!(await requireNoticeAck(req, res, user))) return;
 
+  // The GET below is a read (fetching the state of a duel someone already
+  // started) and stays open after the deadline; only the PICK is a write.
   if (req.method === 'GET') {
     const eventId = Number(req.body?.event_id);
     if (!Number.isFinite(eventId) || eventId <= 0) return res.status(400).json({ error: 'Invalid event id' });
@@ -3653,6 +3884,12 @@ export async function handleAnonDuel(req, res, user) {
   if (!RPS_MOVES.includes(move)) {
     return res.status(400).json({ error: 'INVALID_MOVE', message: 'Pick rock, paper or scissors.' });
   }
+
+  // Throwing a move is a WRITE, and it writes an anonymous_room_events card
+  // when the duel resolves — so it has to be refused once the event is over,
+  // or the closing minutes produce new cards.
+  const duelEventRefusal = await requireLiveEvent(group);
+  if (duelEventRefusal) return res.status(duelEventRefusal.status).json(duelEventRefusal.body);
 
   const { data: duel, error: duelError } = await supabase
     .from('anonymous_duels')
@@ -3725,6 +3962,8 @@ export async function handleAnonEventRespond(req, res, user) {
   if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND', message: 'No Anonymous room found.' });
 
   const { access } = await roomAccess(group, user.id);
+  const eventRefusal = await requireLiveEvent(group);
+  if (eventRefusal) return res.status(eventRefusal.status).json(eventRefusal.body);
   if (access === 'banned') return res.status(403).json({ error: 'BANNED', message: 'Your community access is currently restricted.' });
   if (access !== 'member') {
     return res.status(403).json({ error: 'ANONYMOUS_MEMBERS_ONLY', message: 'Only members can respond to a challenge.' });
@@ -3873,6 +4112,26 @@ async function maybeReapPresence(groupId) {
   const now = Date.now();
   if (now - (presenceReapAt.get(groupId) || 0) < PRESENCE_REAP_INTERVAL_MS) return;
   presenceReapAt.set(groupId, now);
+
+  // Traffic-driven event close. This already runs on the 25s presence heartbeat
+  // with a per-room throttle, so an event that expires while members are still
+  // connected is recorded as ended within about a minute, and the client learns
+  // about it through the same room_event broadcast it already handles.
+  //
+  // Reconnecting and continued activity do NOT extend anything: this only ever
+  // writes event_ended_at, never the window. And it is not what makes expiry
+  // WORK — writes are already refused by the _anon_event_over() predicate. This
+  // is the audit trail and the client signal.
+  try {
+    const { data: eventEnd } = await supabase.rpc('community_anonymous_event_end', {
+      p_group: groupId,
+      p_reason: 'deadline',
+    });
+    if (eventEnd && eventEnd.ok && eventEnd.already_ended === false) {
+      publishRoomEvent(groupId, 'state', { event: 'ended', ends_at: eventEnd.ends_at });
+    }
+  } catch { /* v99 not applied yet */ }
+
   try {
     await supabase.rpc('community_presence_reap', {
       p_group: groupId,
@@ -3978,6 +4237,8 @@ export async function handleAnonEncoded(req, res, user) {
   if (!group) return res.status(404).json({ error: 'GROUP_NOT_FOUND', message: 'No Anonymous room found.' });
 
   const { access } = await roomAccess(group, user.id);
+  const eventRefusal = await requireLiveEvent(group);
+  if (eventRefusal) return res.status(eventRefusal.status).json(eventRefusal.body);
   if (!['member', 'spectator'].includes(access)) {
     return res.status(403).json({ error: access.toUpperCase(), message: 'You cannot read this room right now.' });
   }
@@ -4265,6 +4526,16 @@ export async function handleCleanup(req, res) {
     return res.status(401).json({ error: 'Unauthorized' });
   }
 
+  // Record any event whose deadline has passed. This is the AUDIT trail and a
+  // hint to bulk cleanup — it is NOT what makes expiry work. Writes are refused
+  // by the _anon_event_over() predicate whether or not this sweep has ever run,
+  // which is why an event still closes on time with no cron and no browser open.
+  let eventsSwept = null;
+  try {
+    const { data: sweep } = await supabase.rpc('community_anonymous_event_sweep', { p_now: null });
+    eventsSwept = sweep || null;
+  } catch { /* v99 not applied yet — nothing to sweep */ }
+
   const { data, error } = await supabase.rpc('community_cleanup', { p_now: null });
   if (error) {
     console.error('[community cleanup]', error);
@@ -4307,7 +4578,7 @@ export async function handleCleanup(req, res) {
     /* v44/v51 not applied yet — nothing to reap */
   }
 
-  return res.status(200).json({ ok: true, result: data, presence_reaped: presenceReaped, seats_reconciled: seatsReconciled });
+  return res.status(200).json({ ok: true, result: data, presence_reaped: presenceReaped, seats_reconciled: seatsReconciled, events_swept: eventsSwept });
 }
 
 export async function handleRelationshipRequest(req, res) {

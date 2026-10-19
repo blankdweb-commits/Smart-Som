@@ -1,0 +1,687 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:#000}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Flow State Simulator</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Inter:wght@500;600;700;800&display=swap">
+<style>
+/* Layout: one phone-width column. Setup, duel and results are three screens in the same frame; the duel pins its controls to the bottom. */
+:root{
+  --bg:#060818; --surface:#0E1329; --surface-deep:#090D24; --line:#1E2542; --line-strong:#2A3157;
+  --fg:#F4F6FF; --muted:#8A93B8; --brand:#7C3AED; --amber:#F59E0B;
+  --you:#34D399; --you-bg:#062A27; --you-line:#0F4A44;
+  --rival:#A5B4FC; --rival-num:#C7D2FE; --rival-bg:#11133A; --rival-line:#262A63;
+  --good:#34D399; --good-bg:#06362B; --bad:#F87171; --bad-bg:#3A1220;
+  --flow-rgb:34,211,238; --flow:rgb(var(--flow-rgb)); --bot-rgb:167,139,250; --gold:#FFFFFF; --gold-rgb:255,255,255; /* neutral accent for Flow State controls, reads on red, blue and violet */
+  --font:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  color-scheme:dark;
+}
+html,body{height:100%}
+body{margin:0;background-color:var(--bg);color:var(--fg);font-family:var(--font);font-size:15px;-webkit-tap-highlight-color:transparent}
+body{--flow:rgb(var(--flow-rgb))}
+/* Flow State: the whole screen takes the aura colour, scorecards hide, the question gets the room */
+body.flowbg{background-color:#0B2A36;background-color:color-mix(in srgb,rgb(var(--flow-rgb)) 34%,#060818)}
+/* top zone: one fixed-height area. Cards and match timer in normal mode, the ring timer in Flow State. The question and options never move. */
+.top{display:grid}
+.top>*{grid-area:1/1;min-width:0}
+.top-n{display:flex;flex-direction:column;gap:8px;transition:opacity .4s ease,visibility 0s}
+.top-f{display:flex;align-items:center;justify-content:center;visibility:hidden;opacity:0;transition:opacity .4s ease,visibility 0s linear .4s}
+body.flowon .top-n{visibility:hidden;opacity:0;transition:opacity .4s ease,visibility 0s linear .4s}
+body.flowon .top-f{visibility:visible;opacity:1;transition:opacity .4s ease,visibility 0s}
+.ringbox{position:relative;width:112px;height:112px;border-radius:50%;display:flex;align-items:center;justify-content:center;background:rgba(6,8,24,.4)}
+.ringbox svg{position:absolute;inset:0}
+.ringnum{position:relative;font-size:30px;font-weight:800;color:#FFFFFF;font-variant-numeric:tabular-nums}
+.ringbox.flash{background:#FFFFFF}
+.ringbox.flash svg{opacity:0}
+.ringbox.flash .ringnum{font-size:14px;letter-spacing:.08em;color:#0A0A14}
+body.flowon .qcard{background:rgba(6,8,24,.35);border-color:rgba(var(--flow-rgb),.5)}
+body.flowon .opt{background:rgba(6,8,24,.4);border-color:rgba(var(--flow-rgb),.45)}
+body.flowon .opt.good{background:var(--good-bg);border-color:var(--good)}
+body.flowon .opt.bad{background:var(--bad-bg);border-color:var(--bad)}
+@keyframes botaura{0%,100%{box-shadow:0 0 12px rgba(var(--bot-rgb),.25)}50%{box-shadow:0 0 28px rgba(var(--bot-rgb),.65)}}
+.pc.rival.glow{border-color:rgb(var(--bot-rgb));animation:botaura 2.4s ease-in-out infinite}
+button{font-family:inherit;cursor:pointer}
+button:focus-visible,input:focus-visible{outline:3px solid #fff;outline-offset:2px}
+.app{position:relative;z-index:1;box-sizing:border-box;height:100%;max-width:440px;margin:0 auto;padding-block:10px;padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.screen{height:100%;display:flex;flex-direction:column;gap:10px;min-height:0}
+.scroll{flex:1;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-bottom:4px}
+.eyebrow{font-size:12px;font-weight:700;letter-spacing:.14em;color:#A78BFA;text-transform:uppercase}
+h1{margin:0;font-size:26px;line-height:1.1;font-weight:800;text-wrap:balance}
+.lede{margin:0;font-size:14px;line-height:1.45;color:var(--muted)}
+
+/* setup */
+.pace-card{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 16px;border-radius:22px;background:rgba(var(--flow-rgb),.14);border:2px solid var(--flow);box-shadow:0 0 30px rgba(var(--flow-rgb),.35);transition:background-color .3s ease,border-color .3s ease}
+.pace-card .k{font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--muted)}
+.pace-card .big{font-size:52px;line-height:1;font-weight:800;color:var(--flow);font-variant-numeric:tabular-nums}
+.pace-card .u{font-size:13px;font-weight:600;color:var(--muted)}
+.pace-card .z{margin-top:6px;padding:5px 14px;border-radius:999px;border:1.5px solid var(--flow);font-size:12px;font-weight:700;letter-spacing:.1em;color:var(--flow)}
+input.pace{-webkit-appearance:none;appearance:none;width:100%;height:14px;border-radius:999px;margin:0;background:linear-gradient(90deg,#FF6A3D 0%,#FF6A3D 16.7%,#22D3EE 16.7%,#22D3EE 50%,#A78BFA 50%,#A78BFA 100%)}
+input.pace::-webkit-slider-thumb{-webkit-appearance:none;appearance:none;width:34px;height:34px;border-radius:50%;background:#fff;border:5px solid var(--bg);box-shadow:0 0 0 2px #fff}
+input.pace::-moz-range-thumb{width:24px;height:24px;border-radius:50%;background:#fff;border:5px solid var(--bg);box-shadow:0 0 0 2px #fff}
+.ends{display:flex;justify-content:space-between;font-size:12px;font-weight:600;color:var(--muted)}
+.zones{display:flex;justify-content:space-between;gap:6px;font-size:12px;font-weight:600}
+.rules{margin:0;padding:10px 14px;border-radius:16px;background:var(--surface);border:1px solid var(--line);font-size:12px;line-height:1.45;color:var(--muted);list-style:none;display:flex;flex-direction:column;gap:4px}
+.rules b{color:var(--fg);font-weight:700}
+.primary{width:100%;height:56px;border-radius:18px;border:none;background:var(--brand);color:#fff;font-size:16px;font-weight:700}
+.ghost{width:100%;height:50px;border-radius:16px;border:1px solid var(--line-strong);background:transparent;color:var(--fg);font-size:14px;font-weight:700}
+
+/* duel */
+.bar{display:flex;align-items:center;justify-content:space-between;padding:8px 14px;border:1px solid var(--line);border-radius:16px;background:var(--surface)}
+.bar .l{display:flex;align-items:center;gap:10px}
+.bar .t1{font-size:13px;font-weight:700;letter-spacing:.08em;color:var(--amber)}
+.bar .t2{font-size:11px;font-weight:600;letter-spacing:.06em;color:var(--muted)}
+.clock{text-align:right}
+.clock .v{font-size:28px;line-height:1;font-weight:800;font-variant-numeric:tabular-nums}
+.clock .s{display:none;font-size:10px;font-weight:700;letter-spacing:.12em;color:var(--muted)}
+body.flowon .clock .v{font-size:18px;color:var(--muted)}
+body.flowon .clock .s{display:block}
+body.flowon .bar{border-color:rgba(var(--flow-rgb),.35)}
+.cards{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px}
+.pc{display:flex;flex-direction:column;align-items:center;gap:1px;padding:8px;border-radius:18px;border:2px solid}
+.pc .n{font-size:11px;font-weight:700;letter-spacing:.14em}
+.pc .sc{font-size:28px;line-height:1.1;font-weight:800;font-variant-numeric:tabular-nums}
+.pc .st{font-size:11px;font-weight:600}
+.pc .cap{font-size:10px;font-weight:700;letter-spacing:.12em;text-transform:uppercase;opacity:.65;line-height:1;margin-bottom:3px}
+.tbl.sb .r{grid-template-columns:minmax(0,1.15fr) repeat(4,minmax(0,1fr));gap:4px;padding:8px 12px}
+.tbl.sb .r:first-child{font-size:9px;letter-spacing:0}
+.tbl.sb .r:not(:first-child) span:first-child{color:inherit;font-weight:700}
+.tbl.sb .r.me{background:#0B1445;color:#FFFFFF}
+.tbl.sb .r.op{background:#FFFFFF;color:#0A0A14}
+.tbl.sb .r .ok{color:#34D399}
+.tbl.sb .r .bad{color:#F87171}
+.tbl.sb .r .sk{color:#F59E0B}
+.tbl.sb .r.op .ok{color:#047857}
+.tbl.sb .r.op .bad{color:#B91C1C}
+.tbl.sb .r.op .sk{color:#B45309}
+.chip{padding:3px 12px;border-radius:999px;border:2px solid;font-size:14px;font-weight:800}
+.chip.you{background:#0B1445;border-color:#FFFFFF;color:#FFFFFF}
+.chip.rival{background:#FFFFFF;border-color:#000000;color:#0A0A14}
+.pc.you{background:#0B1445;border-color:#FFFFFF;color:#FFFFFF}
+.pc.you .st{color:#B8C0E0}
+.pc.rival{background:#FFFFFF;border-color:#000000;color:#0A0A14}
+.pc.rival .st{color:#4B5275}
+.qcard{display:flex;flex-direction:column;align-items:center;gap:5px;padding:10px 14px;border-radius:20px;background:var(--surface-deep);border:1px solid var(--line)}
+.qcard .k{font-size:11px;font-weight:700;letter-spacing:.14em;color:var(--muted)}
+.qcard .q{font-size:clamp(15px,2.3vh,18px);line-height:1.3;font-weight:700;text-align:center;text-wrap:balance}
+.opts{display:flex;flex-direction:column;gap:8px;flex:1;min-height:0}
+.opt{width:100%;flex:1 1 0;min-height:0;max-height:68px;display:flex;align-items:center;padding:6px 16px;border-radius:18px;background:var(--surface);border:1px solid var(--line);color:var(--fg);font-size:clamp(13px,1.95vh,15px);font-weight:600;line-height:1.3;text-align:left}
+.opt:active{background:#161D3D}
+.opt.good{background:var(--good-bg);border-color:var(--good)}
+.opt.bad{background:var(--bad-bg);border-color:var(--bad)}
+.ctl{display:flex;gap:10px;padding-top:2px}
+.btn-flow,.btn-skip{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;height:46px;border-radius:999px;background:var(--surface);border:1.5px solid #3A4375;color:var(--fg);font-size:13px;font-weight:800;letter-spacing:.06em}
+.btn-flow{background:rgba(var(--flow-rgb),.14);border:2px solid var(--flow);color:var(--flow)}
+.btn-flow:active{background:rgba(var(--flow-rgb),.28)}
+.btn-skip:active{background:#1B2347}
+.btn-deact{width:100%;display:flex;align-items:center;justify-content:center;gap:8px;height:46px;border-radius:999px;background:#060818;border:2px solid rgba(255,255,255,.3);color:#F4F6FF;font-size:13px;font-weight:800;letter-spacing:.06em}
+
+/* results */
+.verdict{display:flex;flex-direction:column;align-items:center;gap:2px;padding:12px 16px;border-radius:22px;background:var(--surface);border:1px solid var(--line)}
+.verdict .w{font-size:24px;font-weight:800;letter-spacing:.04em}
+.verdict .sc{font-size:15px;font-weight:600;color:var(--muted);font-variant-numeric:tabular-nums}
+.tbl{border-radius:16px;border:1px solid var(--line);background:var(--surface);overflow:hidden}
+.tbl .r{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr) minmax(0,1fr);gap:8px;padding:7px 14px;border-top:1px solid var(--line);font-size:13px;font-variant-numeric:tabular-nums}
+.tbl .r:first-child{border-top:none;font-size:11px;font-weight:700;letter-spacing:.1em;color:var(--muted)}
+.tbl .r span:not(:first-child){text-align:right;font-weight:700}
+.tbl .r span:first-child{color:var(--muted);font-weight:600}
+.tbl .r .f{color:var(--flow)}
+.facts{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:8px}
+.fact{display:flex;flex-direction:column;align-items:center;gap:2px;padding:8px 4px;border-radius:14px;background:var(--surface);border:1px solid var(--line)}
+.fact .n{font-size:22px;font-weight:800;font-variant-numeric:tabular-nums}
+.fact .t{font-size:10px;font-weight:700;letter-spacing:.08em;color:var(--muted);text-transform:uppercase}
+#scr-match .scroll{gap:8px}
+.sndbtn{height:30px;padding:0 12px;border-radius:999px;border:1px solid var(--line-strong);background:transparent;color:var(--fg);font-size:11px;font-weight:800;letter-spacing:.1em}
+.sndbtn.icon{width:34px;padding:0;display:flex;align-items:center;justify-content:center}
+.sndbtn.off{color:var(--muted)}
+.sndbtn.off .waves{display:none}
+/* verdict screen */
+#scr-verdict{--vd:#34D399;--vd-rgb:52,211,153}
+#scr-verdict.loss{--vd:#F87171;--vd-rgb:248,113,113}
+#scr-verdict.draw{--vd:#F59E0B;--vd-rgb:245,158,11}
+.vd{flex:1;min-height:0;position:relative;overflow:hidden;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;padding:0 12px;text-align:center;border-radius:24px;background:radial-gradient(circle at 50% 30%,rgba(var(--vd-rgb),.22),rgba(var(--vd-rgb),0) 65%)}
+.vd>*:not(.vd-fx){position:relative;z-index:1}
+.vd-emoji{font-size:clamp(56px,10vh,84px);line-height:1;animation:vdPop .6s cubic-bezier(.2,1.4,.4,1) both}
+.vd-title{font-size:clamp(32px,5.2vh,44px);line-height:1.05;font-weight:800;letter-spacing:.04em;color:var(--vd)}
+.vd-chips{display:flex;gap:8px;flex-wrap:wrap;justify-content:center}
+.vd-quote{margin:0;max-width:300px;font-size:16px;line-height:1.4;font-weight:600;color:var(--fg);text-wrap:balance}
+.vd-coins{padding:10px 28px;border-radius:20px;border:2px solid var(--vd);background:rgba(var(--vd-rgb),.12)}
+.vd-amt{font-size:38px;line-height:1.1;font-weight:800;color:var(--vd);font-variant-numeric:tabular-nums}
+.vd-lab{font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.vd-fx{position:absolute;inset:0;pointer-events:none}
+.vd-fx span{position:absolute;top:-10%;animation:vdFall linear infinite;opacity:.9}
+@keyframes vdFall{to{transform:translateY(120vh) rotate(360deg)}}
+@keyframes vdPop{from{transform:scale(.3);opacity:0}to{transform:none;opacity:1}}
+/* pairing screen */
+.vs-wrap{flex:1;min-height:0;display:flex;flex-direction:column;justify-content:center;gap:12px}
+.vs-tag{text-align:center;font-size:12px;font-weight:700;letter-spacing:.14em;color:var(--muted);text-transform:uppercase}
+.vs-card{display:flex;align-items:center;gap:14px;padding:16px 20px;border-radius:24px;border:2px solid}
+.vs-you{background:#0B1445;border-color:#FFFFFF;color:#FFFFFF;animation:vsInL .5s ease-out both}
+.vs-rival{background:#FFFFFF;border-color:#000000;color:#0A0A14;opacity:0;transform:translateX(70px);transition:opacity .45s ease,transform .45s ease}
+.vs-ava{flex:none;width:54px;height:54px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:24px;font-weight:800}
+.vs-you .vs-ava{background:#FFFFFF;color:#0B1445}
+.vs-rival .vs-ava{background:#0A0A14;color:#FFFFFF}
+.vs-name{font-size:26px;line-height:1.1;font-weight:800;letter-spacing:.06em}
+.vs-sub{font-size:12px;font-weight:700;letter-spacing:.1em;text-transform:uppercase;opacity:.7;margin-top:2px}
+.vs-mid{text-align:center;font-size:44px;line-height:1;font-weight:800;letter-spacing:.1em;color:var(--gold);opacity:0;transform:scale(.6);transition:opacity .35s ease .15s,transform .35s ease .15s}
+.vs-wrap.paired .vs-rival,.vs-wrap.paired .vs-mid{opacity:1;transform:none}
+.vs-count{display:flex;align-items:center;justify-content:center;min-height:64px;text-align:center;font-size:14px;font-weight:800;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+.vs-count.num{font-size:56px;letter-spacing:0;color:var(--fg)}
+.vs-count.wait{animation:vsPulse 1.2s ease-in-out infinite}
+@keyframes vsInL{from{opacity:0;transform:translateX(-70px)}to{opacity:1;transform:none}}
+@keyframes vsPulse{0%,100%{opacity:.45}50%{opacity:1}}
+@media (prefers-reduced-motion:reduce){.pc.rival.glow{animation:none}body{transition:none}.vs-you{animation:none}.vs-rival,.vs-mid{transition:none}.vs-count.wait{animation:none}}
+</style>
+
+<div id="wash" hidden style="position:fixed;inset:0;z-index:0;pointer-events:none"></div>
+<div class="app">
+
+<section class="screen" id="scr-setup">
+  <div class="scroll" style="gap:12px">
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;gap:8px"><div class="eyebrow">SC War Hall · Blitz Duel</div><button type="button" class="sndbtn" id="sndSetup">SOUND ON</button></div>
+      <h1>Choose your pace</h1>
+      <p class="lede">Flow State puts this countdown on every question while it is on. Switch it on or off any time during the duel.</p>
+    </div>
+    <div class="pace-card" id="paceCard">
+      <div class="k">YOUR PACE</div>
+      <div class="big" id="paceBig">6s</div>
+      <div class="u">per question</div>
+      <div class="z" id="paceZone">BALANCED</div>
+    </div>
+    <div style="display:flex;flex-direction:column;gap:10px;padding:0 4px">
+      <input class="pace" id="paceRange" type="range" min="3" max="12" step="1" value="6" aria-label="Seconds per question">
+      <div class="ends"><span>3s</span><span>12s</span></div>
+    </div>
+    <div class="zones">
+      <span style="color:#FF6A3D">3–4s Aggressive</span>
+      <span style="color:#22D3EE">5–7s Balanced</span>
+      <span style="color:#A78BFA">8–12s Deliberate</span>
+    </div>
+    <ul class="rules">
+      <li><b>1</b> point for a correct answer. A wrong answer or a skip scores <b>0</b>.</li>
+      <li>The 90 second timer never pauses. Flow State gives no bonus points.</li>
+      <li>In Flow State your cards hide and the screen takes your aura colour.</li>
+      <li>Scholar is a bot (about 7 in 10 right). He enters Flow State now and then, and his card glows when you can see it.</li>
+    </ul>
+  </div>
+  <button class="primary" id="btnStart">Start duel · 2 SC</button>
+</section>
+
+<section class="screen" id="scr-vs" hidden>
+  <div class="vs-wrap" id="vsWrap">
+    <div class="vs-tag">Blitz Duel · 90 seconds · 2 SC</div>
+    <div class="vs-card vs-you"><div class="vs-ava">B</div><div><div class="vs-name">BRANIAC</div><div class="vs-sub">You</div></div></div>
+    <div class="vs-mid">VS</div>
+    <div class="vs-card vs-rival"><div class="vs-ava">S</div><div><div class="vs-name">SCHOLAR</div><div class="vs-sub">Opponent</div></div></div>
+    <div class="vs-count wait" id="vsCount">Finding an opponent…</div>
+  </div>
+</section>
+
+<section class="screen" id="scr-match" hidden>
+  <div class="top">
+    <div class="top-n">
+      <div class="bar">
+        <div class="l">
+          <svg width="20" height="20" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="#F59E0B"/></svg>
+          <div><div class="t1">BLITZ DUEL</div><div class="t2" id="qLine">Q 1 · 2 SC</div></div>
+        </div>
+        <div style="display:flex;align-items:center;gap:12px">
+          <button type="button" class="sndbtn icon" id="sndBar" aria-label="Sound" aria-pressed="true"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4z" fill="currentColor"/><path class="waves" d="M16 8.5a5 5 0 010 7M18.5 6a8.5 8.5 0 010 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+          <div class="clock"><div class="v" id="clock">1:30</div><div class="s">MATCH</div></div>
+        </div>
+      </div>
+      <div class="cards">
+        <div class="pc you"><div class="n">BRANIAC</div><div class="sc" id="myScore">0</div><div class="cap">answered</div><div class="st" id="myStat">0 correct · 0 wrong</div></div>
+        <div class="pc rival" id="rivalCard"><div class="n">SCHOLAR</div><div class="sc" id="botScore">0</div><div class="cap">answered</div><div class="st" id="botStat">0 correct · 0 wrong</div></div>
+      </div>
+    </div>
+    <div class="top-f">
+      <div class="ringbox" id="tcard" role="timer" aria-label="Seconds left on this question">
+        <svg viewBox="0 0 120 120" width="112" height="112" aria-hidden="true">
+          <circle cx="60" cy="60" r="52" fill="none" stroke="rgba(255,255,255,.2)" stroke-width="8"/>
+          <circle id="tfill" cx="60" cy="60" r="52" fill="none" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round" stroke-dasharray="326.7" stroke-dashoffset="0" transform="rotate(-90 60 60)"/>
+        </svg>
+        <div class="ringnum" id="tval">6s</div>
+      </div>
+    </div>
+  </div>
+  <div class="scroll">
+    <div class="qcard"><div class="k" id="qLabel">QUESTION 1</div><div class="q" id="qText"></div></div>
+    <div class="opts" id="opts"></div>
+  </div>
+  <div id="ctl-off" class="ctl">
+    <button class="btn-skip" id="btnSkip" type="button"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M5 4l10 8-10 8z M19 4v16" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>SKIP (0 PTS)</button>
+    <button class="btn-flow" id="btnOn" type="button"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><path d="M13 2L4 14h7l-1 8 9-12h-7l1-8z" fill="currentColor"/></svg>ACTIVATE FLOW</button>
+  </div>
+  <div id="ctl-on" class="ctl" hidden>
+    <button class="btn-deact" id="btnOff" type="button"><svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true"><rect x="6" y="6" width="12" height="12" rx="2" fill="currentColor"/></svg>DEACTIVATE FLOW STATE</button>
+  </div>
+</section>
+
+<section class="screen" id="scr-verdict" hidden>
+  <div class="vd">
+    <div class="vd-fx" id="vdFx" aria-hidden="true"></div>
+    <div class="vd-emoji" id="vdEmoji"></div>
+    <div class="vd-title" id="vdTitle"></div>
+    <div class="vd-chips" id="vdChips"></div>
+    <p class="vd-quote" id="vdQuote"></p>
+    <div class="vd-coins"><div class="vd-amt" id="vdAmt"></div><div class="vd-lab" id="vdLab"></div></div>
+  </div>
+  <button class="primary" id="btnBreak" type="button">See breakdown</button>
+</section>
+
+<section class="screen" id="scr-result" hidden>
+  <div class="scroll" style="gap:10px" id="resBody"></div>
+  <div style="display:flex;gap:10px">
+    <button class="primary" id="btnAgain" style="flex:1;width:auto;height:50px">Rematch</button>
+    <button class="ghost" id="btnPace" style="flex:1;width:auto;height:50px">Change pace</button>
+  </div>
+</section>
+
+</div>
+
+<script>
+(function(){
+var BANK=[
+["Which activity is an example of secondary prevention in community maternal health?","Screening pregnant women for hypertension","Health education on healthy pregnancy","Rehabilitation following a disabling complication","Providing long-term disability support"],
+["Which activity is an example of tertiary prevention in maternal health?","Rehabilitation of women left disabled","Health education on healthy pregnancy","Screening pregnant women for anaemia","Immunising pregnant women against tetanus"],
+["Which activity is an example of primary prevention in maternal health?","Health education on healthy pregnancy","Screening pregnant women for hypertension","Rehabilitation following a disabling complication","Providing long-term disability support"],
+["What is the antidote for magnesium sulphate toxicity?","Calcium gluconate","Naloxone","Vitamin K","Protamine sulphate"],
+["Which drug is preferred to prevent and control eclamptic seizures?","Magnesium sulphate","Furosemide","Phenobarbitone","Metronidazole"],
+["What is the normal fetal heart rate range?","110 to 160 beats per minute","60 to 100 beats per minute","170 to 200 beats per minute","80 to 110 beats per minute"],
+["Which hormone relaxes uterine muscle to help maintain pregnancy?","Progesterone","Oxytocin","Prolactin","Follicle-stimulating hormone"],
+["Which hormone stimulates uterine contractions in labour?","Oxytocin","Progesterone","Prolactin","Thyroxine"],
+["What causes Lassa fever?","Lassa virus","Ebola virus","Dengue virus","Zika virus"],
+["What is the main animal reservoir of the Lassa virus?","Multimammate rat","Straw-coloured fruit bat","Domestic pig","Vervet monkey"],
+["Which antiviral is commonly used to treat Lassa fever?","Ribavirin","Penicillin","Chloroquine","Metronidazole"],
+["Lassa virus commonly spreads to people through?","Food soiled by rodent urine","Bites from infected mosquitoes","Contact with infected poultry","Drinking from stagnant ponds"],
+["Vitamin K is given to newborns to prevent?","Bleeding in the newborn","Jaundice in the newborn","Rickets in infancy","Night blindness in infancy"],
+["Naegele's rule is used to estimate the?","Estimated delivery date","Expected fetal weight","Likely mode of delivery","Gestational age at booking"],
+["Which stage of labour runs from full cervical dilatation to birth of the baby?","Second stage","First stage","Third stage","Fourth stage"],
+["The third stage of labour ends with?","Expulsion of the placenta","Full cervical dilatation","Crowning of the baby's head","Onset of regular contractions"],
+["Hypertension in pregnancy is generally defined as a blood pressure of at least?","140/90 mmHg","120/80 mmHg","100/60 mmHg","180/120 mmHg"],
+["What is the normal resting pulse rate in an adult?","60 to 100 beats per minute","30 to 50 beats per minute","110 to 140 beats per minute","150 to 180 beats per minute"],
+["What is the normal respiratory rate in an adult?","12 to 20 breaths per minute","4 to 8 breaths per minute","25 to 35 breaths per minute","40 to 50 breaths per minute"],
+["A term baby's normal birth weight is about?","2.5 to 4.0 kg","1.0 to 1.5 kg","1.5 to 2.0 kg","4.5 to 5.5 kg"],
+["The Apgar score is first assessed at?","1 minute after birth","30 minutes after birth","1 hour after birth","6 hours after birth"],
+["In the APGAR score, what does G stand for?","Grimace","Growth","Gestation","Glucose"],
+["Which vaccine given at birth protects against tuberculosis?","BCG","Measles","Pentavalent","Yellow fever"],
+["In Nigeria's routine schedule, the first measles dose is given at?","9 months","6 weeks","14 weeks","5 years"],
+["Zinc supplementation for childhood diarrhoea is given for?","10 to 14 days","2 to 3 days","4 to 6 weeks","3 months"],
+["Folic acid before and in early pregnancy helps prevent?","Neural tube defects","Rhesus incompatibility","Gestational diabetes","Malaria"],
+["Postpartum haemorrhage after a vaginal birth is commonly defined as blood loss of more than?","500 mL","100 mL","250 mL","50 mL"],
+["Which drug is commonly used in active management of the third stage of labour?","Oxytocin","Magnesium sulphate","Diazepam","Hydralazine"],
+["The fundus of the uterus reaches the umbilicus at about?","20 weeks","8 weeks","12 weeks","36 weeks"],
+["For how long is exclusive breastfeeding recommended?","6 months","6 weeks","3 months","12 months"],
+["Colostrum is especially rich in?","Antibodies and protein","Fat and lactose","Water and glucose","Iron and vitamin D"],
+["An Rh-negative mother with an Rh-positive baby usually receives?","Anti-D immunoglobulin","Oxytocin infusion","Iron dextran injection","Tetanus toxoid vaccine"],
+["Anaemia in pregnancy is defined as haemoglobin below?","11 g/dL","7 g/dL","14 g/dL","16 g/dL"],
+["Which of these is a core dimension of burnout?","Emotional exhaustion","Increased job satisfaction","Heightened empathy","Reduced workload"],
+["What is the recommended storage temperature for most vaccines?","2 to 8 °C","-20 to -10 °C","10 to 15 °C","20 to 25 °C"],
+["Which disease requires airborne precautions?","Measles","Hepatitis B","Cholera","Tetanus"],
+["According to WHO, how many moments for hand hygiene are there?","5","2","3","7"],
+["Intermittent preventive treatment of malaria in pregnancy typically uses?","Sulfadoxine-pyrimethamine","Artemether-lumefantrine","Amodiaquine-artesunate","Chloroquine-primaquine"],
+["Antimicrobial resistance occurs when?","Microbes adapt and survive medicines","The body stops making antibodies","Antibiotics lose strength in storage","Vaccines wear off over time"],
+["What is the cervical dilatation at the end of the first stage of labour?","10 cm","4 cm","6 cm","8 cm"],
+["What is the normal fetal presentation in labour?","Vertex","Breech","Brow","Shoulder"],
+["Kangaroo mother care involves?","Skin-to-skin contact with mother","Feeding with formula only","Keeping the baby in an incubator","Swaddling the baby away from mother"],
+["Pre-eclampsia is hypertension together with?","Protein in the urine","Low blood sugar","Slow heart rate","High red cell count"],
+["What is a normal adult oral body temperature, roughly?","37 °C","33 °C","40 °C","35 °C"]
+];
+var ZONES=[{max:4,name:"AGGRESSIVE",rgb:"255,106,61",base:261.63},{max:7,name:"BALANCED",rgb:"34,211,238",base:220},{max:12,name:"DELIBERATE",rgb:"167,139,250",base:174.61}];
+var DURATION=90000, FEEDBACK=300, USER="Braniac";
+function $(id){return document.getElementById(id)}
+function zoneOf(p){for(var i=0;i<ZONES.length;i++){if(p<=ZONES[i].max)return ZONES[i]}return ZONES[2]}
+function shuffle(a){a=a.slice();for(var i=a.length-1;i>0;i--){var j=Math.floor(Math.random()*(i+1));var t=a[i];a[i]=a[j];a[j]=t}return a}
+function rnd(a,b){return a+Math.random()*(b-a)}
+function show(id){["scr-setup","scr-vs","scr-match","scr-verdict","scr-result"].forEach(function(s){$(s).hidden=(s!==id)});if(id!=="scr-match"){document.body.classList.remove("flowon","flowbg");washKill()}}
+function applyZone(p){var z=zoneOf(p);document.body.style.setProperty("--flow-rgb",z.rgb);return z}
+
+/* Sound: everything is synthesised with Web Audio, no files. Normal mode ticks and pops. Flow State drops the tick, adds a soft pad and swipes. */
+var Snd=(function(){
+  var ctx=null,master=null,on=true,pad=null,nb=null;
+  function ok(){
+    if(!ctx){try{var AC=window.AudioContext||window.webkitAudioContext;ctx=new AC();master=ctx.createGain();master.gain.value=0.8;master.connect(ctx.destination)}catch(e){ctx=null}}
+    if(ctx&&ctx.state==="suspended"){try{ctx.resume()}catch(e){}}
+    return !!ctx&&on;
+  }
+  function tone(f0,f1,dur,vol,type,delay){
+    if(!ok())return;
+    var t=ctx.currentTime+(delay||0),o=ctx.createOscillator(),g=ctx.createGain();
+    o.type=type||"sine";o.frequency.setValueAtTime(f0,t);
+    if(f1){o.frequency.exponentialRampToValueAtTime(f1,t+dur)}
+    g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+0.008);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g);g.connect(master);o.start(t);o.stop(t+dur+0.03);
+  }
+  function noise(){
+    if(!nb){var n=Math.floor(ctx.sampleRate*0.6),b=ctx.createBuffer(1,n,ctx.sampleRate),d=b.getChannelData(0);for(var i=0;i<n;i++){d[i]=Math.random()*2-1}nb=b}
+    return nb;
+  }
+  function swipe(f0,f1,dur,vol){
+    if(!ok())return;
+    var t=ctx.currentTime,s=ctx.createBufferSource();s.buffer=noise();
+    var bp=ctx.createBiquadFilter();bp.type="bandpass";bp.Q.value=1.3;
+    bp.frequency.setValueAtTime(f0,t);bp.frequency.exponentialRampToValueAtTime(f1,t+dur);
+    var g=ctx.createGain();g.gain.setValueAtTime(0.0001,t);g.gain.exponentialRampToValueAtTime(vol,t+dur*0.35);g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    s.connect(bp);bp.connect(g);g.connect(master);s.start(t);s.stop(t+dur+0.03);
+  }
+  function padStop(){
+    if(!pad||!ctx)return;
+    var p=pad,t=ctx.currentTime;pad=null;
+    try{p.g.gain.cancelScheduledValues(t);p.g.gain.setValueAtTime(Math.max(p.g.gain.value,0.0001),t);p.g.gain.linearRampToValueAtTime(0.0001,t+0.8);
+    p.oscs.forEach(function(o){o.stop(t+0.9)});p.lfo.stop(t+0.9)}catch(e){}
+  }
+  function padStart(base){
+    if(!ok()||pad)return;
+    var t=ctx.currentTime,g=ctx.createGain();
+    g.gain.setValueAtTime(0.0001,t);g.gain.linearRampToValueAtTime(0.9,t+2);
+    var lp=ctx.createBiquadFilter();lp.type="lowpass";lp.frequency.value=900;
+    var tr=ctx.createGain();tr.gain.value=0.75;
+    var lfo=ctx.createOscillator(),lg=ctx.createGain();lfo.frequency.value=0.18;lg.gain.value=0.25;lfo.connect(lg);lg.connect(tr.gain);
+    var oscs=[];
+    [1,1.5,2,2.25].forEach(function(m,i){
+      [-1,1].forEach(function(d){
+        var o=ctx.createOscillator(),og=ctx.createGain();
+        o.type="sine";o.frequency.value=base*m;o.detune.value=d*5*(i+1);
+        og.gain.value=0.035/(1+i*0.4);o.connect(og);og.connect(lp);o.start(t);oscs.push(o);
+      });
+    });
+    lp.connect(tr);tr.connect(g);g.connect(master);lfo.start(t);
+    pad={g:g,oscs:oscs,lfo:lfo};
+  }
+  return{
+    unlock:function(){ok()},
+    isOn:function(){return on},
+    setOn:function(v){on=v;if(!v){padStop()}},
+    tick:function(last){tone(last?1500:1100,null,0.035,last?0.12:0.07,"square")},
+    pop:function(){tone(720,220,0.08,0.28,"sine")},
+    swipe:swipe,
+    beep:function(hi){tone(hi?880:520,null,0.14,0.18,"sine")},
+    enter:function(){swipe(300,2600,0.4,0.4);tone(660,880,0.5,0.1,"sine",0.08)},
+    exit:function(){swipe(2200,300,0.35,0.3)},
+    win:function(){[523,659,784].forEach(function(f,i){tone(f,null,0.2,0.2,"triangle",i*0.14)});tone(1046,null,0.7,0.22,"triangle",0.45);tone(784,null,0.7,0.12,"sine",0.45);tone(659,null,0.7,0.1,"sine",0.45)},
+    lose:function(){tone(311,293,0.28,0.2,"triangle",0);tone(293,277,0.28,0.2,"triangle",0.32);tone(277,262,0.28,0.2,"triangle",0.64);tone(262,185,0.8,0.22,"triangle",0.96)},
+    draw:function(){tone(440,null,0.22,0.18,"sine",0);tone(440,null,0.3,0.18,"sine",0.28)},
+    padStart:padStart,
+    padStop:padStop
+  };
+})();
+
+/* Colour wash: the aura colour spreads from the Activate button across the screen, and the default colour spreads back from Deactivate */
+var washAnim=null;
+var reduceMotion=!!(window.matchMedia&&window.matchMedia("(prefers-reduced-motion: reduce)").matches);
+function orgOf(el){var r=el.getBoundingClientRect();return{x:r.left+r.width/2,y:r.top+r.height/2}}
+function tintOf(p){var r=zoneOf(p).rgb.split(",").map(Number),b=[6,8,24];return "rgb("+r.map(function(v,i){return Math.round(v*0.34+b[i]*0.66)}).join(",")+")"}
+function washKill(){
+  if(washAnim){washAnim.cancel();washAnim=null}
+  $("wash").hidden=true;
+}
+function washRun(color,x,y,from,to,dur,easing,done){
+  var ov=$("wash");
+  if(washAnim){washAnim.cancel();washAnim=null}
+  if(reduceMotion||!ov.animate){ov.hidden=true;done();return}
+  ov.style.backgroundColor=color;ov.hidden=false;
+  var a=ov.animate([{clipPath:"circle("+from+"px at "+x+"px "+y+"px)"},{clipPath:"circle("+to+"px at "+x+"px "+y+"px)"}],{duration:dur,easing:easing,fill:"forwards"});
+  washAnim=a;
+  a.onfinish=function(){
+    if(washAnim!==a)return;
+    washAnim=null;done();ov.hidden=true;a.cancel();
+  };
+}
+/* Activate: the aura colour spreads out from the button. Deactivate: the same colour is drawn back into the same corner. */
+function startWash(on,org){
+  var R=Math.ceil(Math.hypot(window.innerWidth,window.innerHeight));
+  if(on){
+    S.washOrg=org||{x:window.innerWidth*0.75,y:window.innerHeight-40};
+    washRun(tintOf(S.pace),S.washOrg.x,S.washOrg.y,0,R,1100,"cubic-bezier(.25,.7,.25,1)",function(){document.body.classList.add("flowbg")});
+  }else{
+    var o=S.washOrg||org||{x:window.innerWidth*0.75,y:window.innerHeight-40};
+    document.body.classList.remove("flowbg");
+    /* start the shrink at the farthest screen corner, so there is no unseen dead time at the start */
+    var W=window.innerWidth,H=window.innerHeight;
+    var Rf=Math.ceil(Math.max(Math.hypot(o.x,o.y),Math.hypot(W-o.x,o.y),Math.hypot(o.x,H-o.y),Math.hypot(W-o.x,H-o.y)));
+    washRun(tintOf(S.pace),o.x,o.y,Rf,0,650,"cubic-bezier(.45,.05,.8,.5)",function(){});
+  }
+}
+
+var pace=6, S=null;
+
+function paintSetup(){var z=applyZone(pace);$("paceBig").textContent=pace+"s";$("paceZone").textContent=z.name}
+$("paceRange").addEventListener("input",function(e){pace=Number(e.target.value);paintSetup()});
+paintSetup();
+
+var vsTimers=[];
+function startMatch(){
+  vsTimers.forEach(clearTimeout);vsTimers=[];
+  var w=$("vsWrap"),c=$("vsCount");
+  w.classList.remove("paired");
+  c.className="vs-count wait";c.textContent="Finding an opponent…";
+  show("scr-vs");
+  function at(ms,fn){vsTimers.push(setTimeout(fn,ms))}
+  at(1000,function(){w.classList.add("paired");c.className="vs-count";c.textContent="Opponent found"});
+  at(1900,function(){c.className="vs-count num";c.textContent="3";Snd.beep(false)});
+  at(2700,function(){c.textContent="2";Snd.beep(false)});
+  at(3500,function(){c.textContent="1";Snd.beep(false)});
+  at(4300,function(){Snd.beep(true);beginMatch()});
+}
+function beginMatch(){
+  var now=performance.now();
+  var me=S={pace:pace,start:now,end:now+DURATION,over:false,flow:false,flowSince:0,flowMs:0,qDeadline:null,flashUntil:0,
+    locked:false,qn:0,queue:[],cur:null,qStart:now,score:0,answered:0,wrong:0,manualSkips:0,autoSkips:0,log:[],
+    bot:0,botAns:0,botWrong:0,botNext:now+rnd(3500,6500),lastClock:-1,botFlow:false,botFlowNext:now+rnd(9000,15000),botRgb:ZONES[Math.floor(Math.random()*3)].rgb};
+  $("rivalCard").classList.remove("glow");
+  $("rivalCard").style.setProperty("--bot-rgb",me.botRgb);
+  Snd.padStop();
+  applyZone(pace);
+  show("scr-match");
+  newQuestion();
+  renderScores();
+  applyMode();
+  (function loop(){
+    if(S!==me||me.over)return;
+    var t=performance.now();
+    var rem=me.end-t;
+    if(rem<=0){endMatch(me);return}
+    var secs=Math.ceil(rem/1000);
+    if(secs!==me.lastClock){me.lastClock=secs;$("clock").textContent=Math.floor(secs/60)+":"+("0"+(secs%60)).slice(-2);if(!me.flow){Snd.tick(secs<=10)}}
+    if(t>=me.botNext){
+      me.botAns++;
+      if(Math.random()<0.7){me.bot++}else{me.botWrong++}
+      me.botNext=t+rnd(3500,7500);
+      renderScores();
+    }
+    if(t>=me.botFlowNext){
+      me.botFlow=!me.botFlow;
+      var rc=$("rivalCard");
+      rc.classList.toggle("glow",me.botFlow);
+      me.botFlowNext=t+(me.botFlow?rnd(9000,16000):rnd(8000,15000));
+    }
+    var flashing=t<me.flashUntil;
+    var tc=$("tcard");
+    if(me.flow&&!me.locked&&me.qDeadline!==null){
+      var left=me.qDeadline-t;
+      if(left<=0){
+        me.autoSkips++;Snd.swipe(1800,300,.22,.3);
+        me.flashUntil=t+800;
+        newQuestion();
+        left=me.qDeadline-t;
+      }
+      ring(left/(me.pace*1000));
+      if(!flashing&&t<me.flashUntil){flashing=true}
+      $("tval").textContent=flashing?"SKIPPED":Math.ceil(left/1000)+"s";
+    }
+    tc.classList.toggle("flash",me.flow&&flashing);
+    requestAnimationFrame(loop);
+  })();
+}
+
+function newQuestion(){
+  if(!S.queue.length){S.queue=shuffle(BANK.map(function(_,i){return i}))}
+  var b=BANK[S.queue.pop()];
+  S.cur={q:b[0],ans:b[1],opts:shuffle([b[1],b[2],b[3],b[4]])};
+  S.qn++;
+  S.locked=false;
+  S.qStart=performance.now();
+  S.qDeadline=S.flow?S.qStart+S.pace*1000:null;
+  $("qText").textContent=S.cur.q;
+  $("qLabel").textContent="QUESTION "+S.qn;
+  $("qLine").textContent="Q "+S.qn+" · 2 SC";
+  var box=$("opts");box.textContent="";
+  S.cur.opts.forEach(function(o){
+    var b2=document.createElement("button");
+    b2.type="button";b2.className="opt";b2.textContent=o;
+    b2.addEventListener("click",function(){pick(b2,o)});
+    box.appendChild(b2);
+  });
+}
+
+function pick(btn,opt){
+  if(!S||S.over||S.locked)return;
+  var me=S,now=performance.now(),ok=(opt===me.cur.ans);
+  me.locked=true;
+  me.log.push({mode:me.flow?"flow":"normal",ok:ok,t:now-me.qStart});
+  me.answered++;
+  if(ok){me.score++}else{me.wrong++}
+  if(me.flow){Snd.swipe(500,2400,.16,.35)}else{Snd.pop()}
+  btn.classList.add(ok?"good":"bad");
+  renderScores();
+  setTimeout(function(){if(S===me&&!me.over){newQuestion()}},FEEDBACK);
+}
+
+function skip(){
+  if(!S||S.over||S.locked)return;
+  S.manualSkips++;Snd.pop();
+  newQuestion();
+}
+
+function setFlow(on,org){
+  if(!S||S.over||S.flow===on)return;
+  var now=performance.now();
+  S.flow=on;
+  if(on){Snd.enter();Snd.padStart(zoneOf(S.pace).base)}else{Snd.exit();Snd.padStop()}
+  if(on){S.flowSince=now;S.qDeadline=S.locked?null:now+S.pace*1000}
+  else{S.flowMs+=now-S.flowSince;S.qDeadline=null;S.flashUntil=0}
+  applyMode();
+  startWash(on,org);
+}
+
+function ring(f){$("tfill").style.strokeDashoffset=String(326.7*(1-Math.max(0,Math.min(1,f))))}
+function applyMode(){
+  var on=S.flow;
+  document.body.classList.toggle("flowon",on);
+  $("ctl-off").hidden=on;
+  $("ctl-on").hidden=!on;
+  var tc=$("tcard");
+  tc.classList.toggle("on",on);
+  if(!on){tc.classList.remove("flash");$("tval").textContent="OFF";ring(0)}
+  else{$("tval").textContent=S.pace+"s";ring(1)}
+}
+
+function renderScores(){
+  $("myScore").textContent=S.answered;
+  $("myStat").textContent=S.score+" correct · "+S.wrong+" wrong";
+  $("botScore").textContent=S.botAns;
+  $("botStat").textContent=S.bot+" correct · "+S.botWrong+" wrong";
+}
+
+var QUOTES={
+  win:{
+    big:["That was not a duel. That was a lecture.","Scholar is asking if you take apprentices.","Somebody check on Scholar, he needs a moment."],
+    mid:["Clean work. Scholar is flipping through his notes.","You came, you saw, you answered.","Scholar wants a rematch and a nap."],
+    small:["Close one. You can unclench now.","Won by a whisker. A very well-read whisker.","Scholar is still checking the answer key."]
+  },
+  loss:{
+    small:["So close. Scholar won by a whisker.","One more answer and the pot was yours.","Painful. Scholar barely got away with it."],
+    mid:["Scholar showed up and left with your coins.","The revision timetable has been summoned.","Scholar says thank you for the donation."],
+    big:["Scholar was merciless. Revise first, duel later.","That one will be discussed in your next prayer.","Even Scholar felt a little sorry. A little."]
+  },
+  draw:["Dead even. Nobody wins, nobody cries.","A perfect tie. Scholar respects you for it.","Same score, same stakes, same stubbornness."]
+};
+function pickOne(a){return a[Math.floor(Math.random()*a.length)]}
+function showVerdict(me,win,draw){
+  var kind=win?"win":(draw?"draw":"loss");
+  var gap=Math.abs(me.score-me.bot);
+  var size=gap>=8?"big":(gap>=4?"mid":"small");
+  $("scr-verdict").className="screen "+kind;
+  $("vdEmoji").textContent=win?"🏆":(draw?"🤝":"😭");
+  $("vdTitle").textContent=win?"VICTORY":(draw?"DRAW":"DEFEAT");
+  $("vdChips").innerHTML='<span class="chip you">'+USER+' '+me.score+'</span><span class="chip rival">Scholar '+me.bot+'</span>';
+  $("vdQuote").textContent=pickOne(draw?QUOTES.draw:QUOTES[kind][size]);
+  $("vdAmt").textContent=win?"+4 SC":(draw?"0 SC":"−2 SC");
+  $("vdLab").textContent=win?"You won":(draw?"Stakes returned":"You lost");
+  var fx=$("vdFx");fx.textContent="";
+  var bits=win?["🎉","✨","🪙","🎊"]:(kind==="loss"?["💸","💧"]:[]);
+  if(!reduceMotion){
+    for(var i=0;i<(bits.length?18:0);i++){
+      var s=document.createElement("span");
+      s.textContent=bits[i%bits.length];
+      s.style.left=(Math.random()*92)+"%";
+      s.style.fontSize=(18+Math.random()*12)+"px";
+      s.style.animationDuration=(3+Math.random()*3)+"s";
+      s.style.animationDelay="-"+(Math.random()*5)+"s";
+      fx.appendChild(s);
+    }
+  }
+  show("scr-verdict");
+  if(win){Snd.win()}else if(draw){Snd.draw()}else{Snd.lose()}
+}
+$("btnBreak").addEventListener("click",function(){Snd.pop();show("scr-result")});
+
+function endMatch(me){
+  if(me.over)return;
+  me.over=true;Snd.padStop();
+  if(me.flow){me.flowMs+=me.end-me.flowSince}
+  var win=me.score>me.bot, draw=me.score===me.bot;
+  showVerdict(me,win,draw);
+  var verdict=win?"YOU WIN":(draw?"DRAW":"SCHOLAR WINS");
+  var vcol=win?"var(--you)":(draw?"var(--amber)":"var(--bad)");
+  var flowLog=me.log.filter(function(x){return x.mode==="flow"});
+  var normLog=me.log.filter(function(x){return x.mode==="normal"});
+  var flowSec=me.flowMs/1000, normSec=Math.max(0,DURATION/1000-flowSec);
+  function acc(a){return a.length?Math.round(a.filter(function(x){return x.ok}).length/a.length*100)+"%":"–"}
+  function avg(a){return a.length?(a.reduce(function(s,x){return s+x.t},0)/a.length/1000).toFixed(1)+"s":"–"}
+  function rate(a,sec){return (a.length&&sec>=3)?(a.length/sec*60).toFixed(1):"–"}
+  var skipped=me.manualSkips+me.autoSkips;
+  var z=zoneOf(me.pace);
+  $("resBody").innerHTML=
+    '<div style="display:flex;flex-direction:column;gap:6px"><div class="eyebrow">Duel over · pace '+me.pace+'s · '+z.name.toLowerCase()+'</div><h1>Results</h1></div>'+
+    '<div class="verdict"><div class="w" style="color:'+vcol+'">'+verdict+'</div><div class="sc" style="display:flex;gap:8px;align-items:center;margin-top:4px"><span class="chip you">'+USER+' '+me.score+'</span><span class="chip rival">Scholar '+me.bot+'</span></div></div>'+
+    '<div class="tbl sb" role="table" aria-label="Score breakdown">'+
+      '<div class="r"><span></span><span>ANSWERED</span><span class="ok">CORRECT</span><span class="bad">WRONG</span><span class="sk">SKIPPED</span></div>'+
+      '<div class="r me"><span>'+USER+'</span><span>'+me.answered+'</span><span class="ok">'+me.score+'</span><span class="bad">'+me.wrong+'</span><span class="sk">'+skipped+'</span></div>'+
+      '<div class="r op"><span>Scholar</span><span>'+me.botAns+'</span><span class="ok">'+me.bot+'</span><span class="bad">'+me.botWrong+'</span><span class="sk">0</span></div>'+
+    '</div>'+
+    '<div class="tbl" role="table" aria-label="Flow State on compared with off">'+
+      '<div class="r"><span>YOUR PACE '+me.pace+'s</span><span class="f">ON · '+flowSec.toFixed(0)+'s</span><span>OFF · '+normSec.toFixed(0)+'s</span></div>'+
+      '<div class="r"><span>Answered</span><span class="f">'+flowLog.length+'</span><span>'+normLog.length+'</span></div>'+
+      '<div class="r"><span>Accuracy</span><span class="f">'+acc(flowLog)+'</span><span>'+acc(normLog)+'</span></div>'+
+      '<div class="r"><span>Avg per answer</span><span class="f">'+avg(flowLog)+'</span><span>'+avg(normLog)+'</span></div>'+
+      '<div class="r"><span>Answers / min</span><span class="f">'+rate(flowLog,flowSec)+'</span><span>'+rate(normLog,normSec)+'</span></div>'+
+      '<div class="r"><span>Skips</span><span class="f">'+me.autoSkips+' auto</span><span>'+me.manualSkips+' manual</span></div>'+
+    '</div>'+
+    '';
+}
+
+function refreshSnd(){
+  var on=Snd.isOn();
+  $("sndSetup").textContent=on?"SOUND ON":"SOUND OFF";
+  $("sndSetup").classList.toggle("off",!on);
+  $("sndBar").classList.toggle("off",!on);
+  $("sndBar").setAttribute("aria-pressed",on?"true":"false");
+}
+function toggleSnd(){
+  Snd.setOn(!Snd.isOn());
+  if(Snd.isOn()){Snd.unlock();if(S&&S.flow&&!S.over){Snd.padStart(zoneOf(S.pace).base)}}
+  refreshSnd();
+}
+$("sndSetup").addEventListener("click",toggleSnd);
+$("sndBar").addEventListener("click",toggleSnd);
+refreshSnd();
+$("btnStart").addEventListener("click",function(){Snd.unlock();startMatch()});
+$("btnOn").addEventListener("click",function(){setFlow(true,orgOf($("btnOn")))});
+$("btnOff").addEventListener("click",function(){setFlow(false,orgOf($("btnOff")))});
+$("btnSkip").addEventListener("click",skip);
+$("btnAgain").addEventListener("click",function(){Snd.unlock();startMatch()});
+$("btnPace").addEventListener("click",function(){S=null;applyZone(pace);show("scr-setup")});
+})();
+</script>
+
+</body></html>

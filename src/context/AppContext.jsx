@@ -47,8 +47,17 @@ const hydrateCourseQuotaCache = (uid) => {
   return raw.map;
 };
 
+// The signed-out / not-yet-loaded shape. `identityName` and `matricNumber`
+// used to be ABSENT here, so they read back as `undefined` while signed out,
+// and Settings.jsx silently used `matricNumber === undefined` as its
+// "profile has not loaded yet" sentinel. That was a coupling to an omission:
+// adding either key would have broken the Settings form without any obvious
+// link. Both keys are now declared explicitly and the sentinel is a real
+// flag, `profileLoaded`, below.
 const ANONYMOUS_PROFILE = {
   fullName: '',
+  identityName: '',
+  matricNumber: '',
   email: '',
   phone: '',
   department: '',
@@ -258,6 +267,22 @@ export function AppProvider({ children }) {
     milestone: 'Auxibaby 👶'
   });
   const [userProfile, setUserProfile] = useState(ANONYMOUS_PROFILE);
+  // True only once a profiles row for the CURRENT session has been read.
+  //
+  // Why this is not derivable from userProfile: `fetchUserData` performs two
+  // sequential awaits (the profiles select, then subscriptions) before it sets
+  // anything, and RequireAuth gates on `session` alone. For that window the
+  // Dashboard rendered "Good morning, Scholar" with an empty level, because
+  // the identity name is legitimately empty until the row arrives. A consumer
+  // can now tell "not loaded yet" from "loaded and genuinely has no identity
+  // name" and hold the greeting instead of guessing.
+  const [profileLoaded, setProfileLoaded] = useState(false);
+  // Monotonic counter for profile fetches. `fetchUserData` captures the value
+  // it started with and refuses to write if a newer fetch has begun, so a slow
+  // response cannot overwrite a fresher one - the case where you save a new
+  // display name while the initial load is still in flight and the Dashboard
+  // silently reverts to the old name.
+  const profileFetchSeq = useRef(0);
   // ---- Smart Coin (SC) currency ----
   // Wallet is persisted on profiles.smart_coins; daily payout and the
   // once-per-day fail penalty are tracked so each is awarded/deducted once/day.
@@ -434,6 +459,9 @@ const [scEarnedTotal, setScEarnedTotal] = useState(0);
 
   const fetchUserData = useCallback(async () => {
     if (!supabase || !session) return;
+    // Claim a ticket. If a newer fetch starts while this one is awaiting, this
+    // one is stale and must not write - see profileFetchSeq above.
+    const ticket = ++profileFetchSeq.current;
     try {
       const userId = session.user.id;
       let { data: profile, error: profileError } = await supabase.from('profiles').select('*').eq('id', userId).single();
@@ -475,6 +503,9 @@ const [scEarnedTotal, setScEarnedTotal] = useState(0);
       }
 
       if (profile) {
+        // A newer fetch (or a sign-out) landed while this one was awaiting.
+        // Writing now would resurrect a stale profile over the current one.
+        if (ticket !== profileFetchSeq.current) return;
         const role = profile.role || 'student';
         setUserProfile({
           fullName: profile.full_name || '',
@@ -491,6 +522,7 @@ const [scEarnedTotal, setScEarnedTotal] = useState(0);
           subscriptionExpiry: subscription?.expires_at || null,
           graceUntil: subscription?.grace_until || null
         });
+        setProfileLoaded(true);
 
         setStudyStats(prev => ({
           ...prev,
@@ -1691,18 +1723,71 @@ const arenaChallengeTargets = useCallback(async ({ limit = 100, offset = 0 } = {
   }, [session]);
 
   // ---------- Plans & transactions ----------
-  useEffect(() => {
+  // ---------- Premium offer (migration-v100) ----------
+// `premium_offer_public()` is a narrow SECURITY DEFINER RPC: it returns only the
+// six offer fields and `server_now`, so an anonymous visitor can read the promo
+// without being handed the rest of server_config (arena rules, loan/economy
+// settings). It is deliberately NOT read through the `server_config` table.
+//
+// The offer ships DISABLED with no dates, so the normal shape is
+// `{ enabled: false, state: 'inactive', ends_at: null }`. Nothing here may
+// invent a deadline when that is what comes back — an offer with no end date has
+// no countdown, and rendering "2d 14h left" over an open-ended promo would be a
+// fabricated deadline.
+const [premiumOffer, setPremiumOffer] = useState({
+  enabled: false,
+  state: 'inactive',
+  starts_at: null,
+  ends_at: null,
+  headline: null,
+  subline: null,
+  server_now: null,
+});
+
+const fetchPremiumOffer = useCallback(async () => {
+  if (!supabase) return null;
+  try {
+    const { data, error } = await supabase.rpc('premium_offer_public');
+    if (error || !data) return null;
+    const offer = data && typeof data === 'object' && !Array.isArray(data) ? data : data.premium_offer_public;
+    if (offer) setPremiumOffer(offer);
+    return offer || null;
+  } catch {
+    return null;
+  }
+}, []);
+
+useEffect(() => { fetchPremiumOffer(); }, [fetchPremiumOffer]);
+
+// Best-effort funnel analytics. The server allowlists both the action and the
+// metadata KEYS (see api/feedback.js), returns 204 for anything it does not
+// recognise, and never throws back at the caller — so this is fire-and-forget
+// by design. It must never be awaited on a user-visible path or allowed to
+// reject: a failed analytics write must not break the flow that produced it.
+const trackConversion = useCallback((action, meta = {}) => {
+  if (!session?.access_token || !action) return;
+  try {
+    callApexApi('/api/feedback/conversion', {
+      method: 'POST',
+      body: { action, ...meta },
+    })?.catch?.(() => {});
+  } catch {
+    /* analytics is never allowed to surface */
+  }
+}, []);
+
+useEffect(() => {
     // Fallback plans are always available so the payment page never renders
     // empty. IDs match the seeded subscription_plans table (Monthly=1,
     // Weekly=2, Yearly=3, Student Bonus 30d=4, Student Bonus 7d=5) so
     // server-side plan resolution stays consistent even if the live query
     // fails or returns no rows.
     const FALLBACK_PLANS = [
-      { id: 1, name: 'Monthly', price: 6999, duration_days: 30, is_active: true },
-      { id: 2, name: 'Weekly', price: 1999.9, duration_days: 7, is_active: true },
-      { id: 3, name: 'Yearly', price: 49999, duration_days: 365, is_active: true },
-      { id: 4, name: 'Student Bonus (30 Days)', price: 990, duration_days: 30, is_active: true, is_promo: true },
-      { id: 5, name: 'Student Bonus (7 Days)', price: 550, duration_days: 7, is_active: true, is_promo: true }
+      { id: 1, name: 'Monthly', price: 6999, duration_days: 30, is_active: true, sort_order: 100, offer_eligible: false, reference_price: null },
+      { id: 2, name: 'Weekly', price: 1999.9, duration_days: 7, is_active: true, sort_order: 2, offer_eligible: false, reference_price: null },
+      { id: 3, name: 'Yearly', price: 49999, duration_days: 365, is_active: true, sort_order: 1, offer_eligible: false, reference_price: null },
+      { id: 4, name: 'Student Bonus (30 Days)', price: 990, duration_days: 30, is_active: true, is_promo: true, sort_order: 3, offer_eligible: true, reference_price: 6999 },
+      { id: 5, name: 'Student Bonus (7 Days)', price: 550, duration_days: 7, is_active: true, is_promo: true, sort_order: 4, offer_eligible: true, reference_price: 1999.9 }
     ];
     if (!supabase) {
       setSubscriptionPlans(FALLBACK_PLANS);
@@ -1716,6 +1801,13 @@ const arenaChallengeTargets = useCallback(async ({ limit = 100, offset = 0 } = {
         .from('subscription_plans')
         .select('*')
         .eq('is_active', true)
+        // migration-v100. Ordering by PRICE put the cheapest plan first, which
+        // front-loaded the ₦550 weekly (and made the annual look like an
+        // afterthought). `sort_order` is the admin's merchandising order and
+        // puts the annual first (1), weekly second (2). The secondary sort on
+        // price keeps the order total even if two plans share a sort_order, and
+        // keeps it stable across the cache.
+        .order('sort_order', { ascending: true })
         .order('price', { ascending: true });
       if (error) throw error;
       return data || [];
@@ -1787,10 +1879,22 @@ const arenaChallengeTargets = useCallback(async ({ limit = 100, offset = 0 } = {
         // A new identity (or a shared-tab retry after sign-out) must never
         // inherit cached display data from a previous account.
         cacheClearAll();
+        // ...and it must never inherit the PREVIOUS ACCOUNT's profile, either.
+        // SIGNED_OUT cleared this, but SIGNED_IN did not, and supabase-js
+        // broadcasts auth events across tabs: signing in as user B in one tab
+        // while another tab still held user A rendered A's identity name in the
+        // Dashboard until B's profiles row arrived. Reset here so the greeting
+        // goes blank-and-loading rather than showing another user's name, and
+        // invalidate any in-flight fetch for the outgoing account.
+        profileFetchSeq.current += 1;
+        setUserProfile(ANONYMOUS_PROFILE);
+        setProfileLoaded(false);
       } else if (event === 'SIGNED_OUT') {
         cacheClearAll();
         setSession(null);
+        profileFetchSeq.current += 1;
         setUserProfile(ANONYMOUS_PROFILE);
+        setProfileLoaded(false);
         setExams([]);
         setTransactions([]);
         setLevelCompletions({});
@@ -2414,7 +2518,9 @@ const arenaChallengeTargets = useCallback(async ({ limit = 100, offset = 0 } = {
     }
     cacheClearAll();
     setSession(null);
+    profileFetchSeq.current += 1;
     setUserProfile(ANONYMOUS_PROFILE);
+    setProfileLoaded(false);
     setExams([]);
     setTransactions([]);
     setLevelCompletions({});
@@ -2480,8 +2586,10 @@ const arenaChallengeTargets = useCallback(async ({ limit = 100, offset = 0 } = {
       curriculumSubjects, curriculumTopics, levelCompletions, refreshLevelCompletions,
       quizHistory, fetchQuizHistory,
       studyStats, setStudyStats, userProfile, updateProfile,
+      profileLoaded,
       darkMode, toggleDarkMode, toggleSound, soundEnabled, setSoundEnabled,
       transactions, auditLogs, subscriptionPlans, paymentPurposes, learningAnalytics,
+      premiumOffer, fetchPremiumOffer, trackConversion,
       updateSubscriptionPlan: () => {}, addSubscriptionPlan: () => {}, deleteSubscriptionPlan: () => {},
       updatePaymentPurpose: () => {}, addPaymentPurpose: () => {}, deletePaymentPurpose: () => {},
       addAuditLog: () => {}, updateCardProgress, incrementCardsStudied,

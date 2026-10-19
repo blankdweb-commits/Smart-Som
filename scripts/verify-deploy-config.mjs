@@ -1812,9 +1812,12 @@ let passed = 0;
 }
 
 // ---------------------------------------------------------------------------
-// PART E4 — ONE-TIME GUEST PREVIEW (Phase 1).
-// A signed-out visitor gets ONE 5-minute, strictly read-only slice of the room
-// behind a server-issued HMAC token. The rules these gates defend:
+// PART E4 — ONE-TIME GUEST PREVIEW.
+// A signed-out visitor gets ONE 2-minute, strictly read-only slice of the room
+// behind a server-issued HMAC token. (This was 5 minutes; v99 shortened it to
+// the 2 minutes the product rule specifies. The gate below is REWRITTEN, not
+// deleted — the property it protects is unchanged, only the value moved.) The
+// rules these gates defend:
 //   * the window is minted and expired by the SERVER (GUEST_PREVIEW_MS), and a
 //     returning token is never re-minted or extended;
 //   * the read path NEVER widens RLS — it stays a service-role endpoint;
@@ -1829,10 +1832,10 @@ let passed = 0;
   const guestApiSrc = read(resolve(ROOT, 'src/utils/communityApi.js'));
 
   checks.push(
-    /export const GUEST_PREVIEW_MS = 5 \* 60 \* 1000/.test(guestServerSrc)
+    /export const GUEST_PREVIEW_MS = 2 \* 60 \* 1000/.test(guestServerSrc)
       && /export async function handleGuestPreviewStart\(req, res\)/.test(guestServerSrc)
       && /export async function handleGuestPreviewStream\(req, res\)/.test(guestServerSrc)
-      ? ok('Phase 1: a 5-minute server-side guest preview window with start + read-only stream handlers')
+      ? ok('Phase 1: a 2-minute server-side guest preview window with start + read-only stream handlers')
       : fail('Phase 1: guest preview handlers / 5-minute window missing'),
   );
   checks.push(
@@ -4006,12 +4009,30 @@ checks.push(
   // BottomNav is `lg:hidden`, so a nav entry that exists only in the sidebar
   // is unreachable on a 360px screen - which is exactly how the whole social
   // hub became phone-unreachable.
-  const layoutSrc = read(resolve(ROOT, 'src/components/Layout.jsx'));
+  //
+  // REWRITTEN, not deleted. This used to assert that the HEADER carried a
+  // `/leaderboard` link, which was a stopgap added while neither nav had one.
+  // BottomNav now carries a "Ranks" item and the header link is gone (it was a
+  // third copy of the same destination on every breakpoint). The property
+  // behind the gate - the hub is reachable on a phone - is unchanged; the
+  // surface that satisfies it is not.
+  const bottomNavSrc = read(resolve(ROOT, 'src/components/BottomNav.jsx'));
+  const appRoutesSrc = read(resolve(ROOT, 'src/App.jsx'));
   checks.push(
-    /to="\/leaderboard"/.test(layoutSrc)
-      && /aria-label="Ranks and friends"/.test(layoutSrc)
-      ? ok('The social hub is reachable on mobile: the header carries a Ranks entry (the Sidebar is lg-only and BottomNav is mobile-only)')
-      : fail('The social hub has no mobile entry point'),
+    /path:\s*'\/leaderboard'/.test(bottomNavSrc)
+      && /name:\s*'Ranks'/.test(bottomNavSrc)
+      && !/path:\s*'\/flashcards'/.test(bottomNavSrc)
+      ? ok('The social hub is reachable on mobile: BottomNav carries a Ranks entry (the Sidebar is lg-only and BottomNav is mobile-only)')
+      : fail('The social hub has no mobile entry point (BottomNav must carry a Ranks item to /leaderboard)'),
+  );
+  // /flashcards must remain REACHABLE for an admin-granted account even though
+  // its nav entry was removed - the "Cards" item was a dead end for everyone
+  // else, not a feature removal.
+  checks.push(
+    /path="\/flashcards"/.test(appRoutesSrc)
+      && /path:\s*'\/flashcards'/.test(sidebarSrc)
+      ? ok('Flashcards: removed from the mobile nav but still routed and still listed in the Sidebar, so a granted account can still reach it')
+      : fail('Flashcards: the route or the Sidebar entry was removed along with the mobile nav item'),
   );
   // NavLink matches by PATHNAME only, so "Leaderboard" (/leaderboard) and
   // "Friends & Rivals" (/leaderboard?tab=friends) would BOTH light up. The
@@ -4225,6 +4246,206 @@ checks.push(
       && /\.trim\(\)\.split\(\/\\s\+\/\)\[0\]/.test(greetSrc)
       ? ok('greetingForDisplayName keeps the identity name WHOLE and only first-words the legal-name fallback')
       : fail('greetingForDisplayName is missing, or it would truncate a display name to its first word'),
+  );
+  // A display name that can be wrong is worse than one that is late. These
+  // gates cover the three ways it could drift.
+  checks.push(
+    // 1. SIGNED_IN must reset the profile, not just the cache.
+    /event === 'SIGNED_IN'[\s\S]{0,1400}?setUserProfile\(ANONYMOUS_PROFILE\)/.test(appCtxSrc)
+      && /event === 'SIGNED_IN'[\s\S]{0,1400}?setProfileLoaded\(false\)/.test(appCtxSrc)
+      ? ok('SIGNED_IN resets userProfile and profileLoaded, so an account switch cannot render the previous account\'s display name')
+      : fail('SIGNED_IN clears the cache but leaves userProfile set, so signing in as another user shows their predecessor\'s name'),
+  );
+  checks.push(
+    // 2. A late fetch must not overwrite a newer one (save-while-loading race).
+    //    The invalidation is `+= 1`, not `++`; match the statement as written.
+    /profileFetchSeq\.current\s*\+=\s*1/.test(appCtxSrc)
+      && /ticket !== profileFetchSeq\.current/.test(appCtxSrc)
+      ? ok('Profile fetches carry a sequence ticket, so a slow response cannot overwrite a fresher profile')
+      : fail('Profile fetches are unguarded, so a slow response can revert a just-saved display name'),
+  );
+  checks.push(
+    // 3. The Dashboard must not guess a name before the row arrives.
+    /profileLoaded/.test(dashSrc)
+      && /!profileLoaded/.test(dashSrc)
+      && /setProfileLoaded\(true\)/.test(appCtxSrc)
+      ? ok('The Dashboard holds the greeting until the profile is actually loaded, instead of guessing "Scholar"')
+      : fail('The Dashboard greets before the profile has loaded'),
+  );
+  // Settings must write from the server's answer, not from the form it sent.
+  checks.push(
+    /\.select\('full_name, identity_name, phone, department, level'\)/.test(settingsSrc)
+      && /if \(!data\)/.test(settingsSrc)
+      ? ok('Settings reads the profile row back after saving and reports a write that matched nothing')
+      : fail('Settings updates the profile without reading it back, so it can show a name that was never stored'),
+  );
+
+  // --- v96: scholar search + the friend_search cap fix ----------------------
+  const v96 = read('scripts/migration-v96-scholar-search.sql');
+  checks.push(
+    /create or replace function public\.scholar_search/.test(v96)
+      && /create or replace function public\.friend_search/.test(v96)
+      ? ok('v96: scholar_search is added and friend_search is redefined')
+      : fail('v96: scholar_search is missing, or friend_search was not redefined'),
+  );
+  // The original defect: `limit 25` sat AFTER an ungrouped jsonb_agg, so it
+  // capped the one-row result instead of the profiles, and a blank query
+  // returned the whole activated user base. The cap must live INSIDE a
+  // subquery over profiles.
+  const friendSearchBody = (v96.match(/create or replace function public\.friend_search[\s\S]*?end;\s*\$\$;/i) || [''])[0];
+  checks.push(
+    /limit 25\s*\n\s*\)\s*s/i.test(friendSearchBody)
+      && !/jsonb_agg\([\s\S]{0,900}?limit 25/i.test(friendSearchBody)
+      ? ok('v96: friend_search caps its results INSIDE a subquery, so a blank query cannot dump the user directory')
+      : fail('v96: friend_search still applies its limit to the aggregate result set, which returns every activated profile'),
+  );
+  checks.push(
+    /relStatus/.test(v96)
+      && /pending_out/.test(v96)
+      && /_blocked_between/.test(v96)
+      && /revoke all on function public\.scholar_search\(text, int\) from public, anon/.test(v96)
+      ? ok('v96: scholar_search reports the relationship per row, filters blocked scholars, and is revoked from anon')
+      : fail('v96: scholar_search is missing its relationship/block handling, or anon can execute it'),
+  );
+
+  // --- v97: profile visibility tiers ----------------------------------------
+  const v97 = read('scripts/migration-v97-profile-visibility.sql');
+  const profObjBody = (v97.match(/create or replace function public\._player_profile_obj[\s\S]*?end;\s*\$\$;/i) || [''])[0];
+  checks.push(
+    /'visibility'/.test(profObjBody)
+      && /v_full/.test(profObjBody)
+      && /_blocked_between/.test(profObjBody)
+      ? ok('v97: the profile object carries a visibility tier and accounts for blocks')
+      : fail('v97: the profile object has no visibility tier'),
+  );
+  // The tier must be decided BEFORE the aggregates run, not after: computing
+  // achievements/head-to-head and then dropping them still reads the rows.
+  checks.push(
+    /if v_full then[\s\S]*?user_achievements[\s\S]*?if v_full then[\s\S]*?jsonb_build_object\(\s*'year'/.test(profObjBody)
+      || (/if v_full then/.test(profObjBody) && profObjBody.indexOf('user_achievements') < profObjBody.lastIndexOf("if v_full then"))
+      ? ok('v97: achievements and head-to-head are computed INSIDE the tier check, so an unauthorised viewer never causes the rows to be read')
+      : fail('v97: the restricted aggregates are computed before the tier is applied'),
+  );
+  // The public tier must be exactly name + coins + duels.
+  const pubTier = (profObjBody.match(/v_obj := jsonb_build_object\([\s\S]*?\n  \);/) || [''])[0];
+  checks.push(
+    /'name'/.test(pubTier)
+      && /'smartCoins'/.test(pubTier)
+      && /'duels'/.test(pubTier)
+      && !/'achievements'/.test(pubTier)
+      && !/'headToHead'/.test(pubTier)
+      && !/'rank'/.test(pubTier)
+      && !/'scoreBreakdown'/.test(pubTier)
+      ? ok('v97: the public tier is exactly display name, Smart Coins and duel record')
+      : fail('v97: the public tier leaks a restricted field'),
+  );
+  // get_player_leaderboard was the bigger leak - it was not viewer-scoped.
+  // NOTE the two duel keys: `'threeVThreeWins',` (key + comma) only appears as
+  // an OUTPUT key. The ORDER BY legitimately references `parts ->>
+  // 'threeVThreeWins'`, so a bare quote match would false-positive on the sort
+  // itself and pass a version that still shipped the column.
+  const lbBody = (v97.match(/create or replace function public\.get_player_leaderboard[\s\S]*?end;\s*\$\$;/i) || [''])[0];
+  checks.push(
+    !/'smartCoins'/.test(lbBody)
+      && !/'competitiveScore'/.test(lbBody)
+      && !/'scoreBreakdown'/.test(lbBody)
+      && !/'threeVThreeWins',/.test(lbBody)
+      && !/'oneVOneWins',/.test(lbBody)
+      && !/'playerScore'/.test(lbBody)
+      && /'rank'/.test(lbBody)
+      && /'totalAnswers'/.test(lbBody)
+      ? ok('v97: the leaderboard no longer returns wallet, score or duel figures per row; position and totalAnswers remain')
+      : fail('v97: the leaderboard still returns personal figures for every ranked row'),
+  );
+  // Ranking must be provably unchanged: the tie-break chain is what decides it.
+  checks.push(
+    /order by \(b\.parts ->> 'score'\)::int desc,\s*\(b\.parts ->> 'threeVThreeWins'\)::int desc,\s*\(b\.parts ->> 'oneVOneWins'\)::int desc,\s*\(b\.parts ->> 'wins'\)::int desc,\s*b\.sc_balance desc,\s*b\.user_id asc/.test(lbBody)
+      && /'rank', row_number\(\) over/.test(lbBody)
+      ? ok('v97: the leaderboard tie-break chain is untouched, so trimming the payload cannot move a row')
+      : fail('v97: the leaderboard ordering changed - ranks may have moved'),
+  );
+  const sheetSrc = read(resolve(ROOT, 'src/components/PlayerSheet.jsx'));
+  checks.push(
+    /visibility/.test(sheetSrc)
+      && /isDetailed/.test(sheetSrc)
+      && !/seed\?\.scoreBreakdown/.test(sheetSrc)
+      && !/seed\?\.smartCoins/.test(sheetSrc)
+      ? ok('The profile sheet renders from the server visibility tier and no longer falls back to leaderboard figures')
+      : fail('The profile sheet still reads personal figures off the leaderboard seed'),
+  );
+  const rankBoardSrc = read(resolve(ROOT, 'src/components/RankingBoard.jsx'));
+  checks.push(
+    !/row\.scoreBreakdown/.test(rankBoardSrc)
+      && !/row\.playerScore/.test(rankBoardSrc)
+      && !/row\.smartCoins/.test(rankBoardSrc)
+      ? ok('Ranking rows no longer read the fields the leaderboard stopped sending')
+      : fail('Ranking rows still read a field the leaderboard no longer returns'),
+  );
+  checks.push(
+    /rpc\('scholar_search'/.test(rankBoardSrc)
+      && /SEARCH_MIN/.test(rankBoardSrc)
+      && /REL_LABEL/.test(rankBoardSrc)
+      ? ok('The Ranking tab can find a scholar by name and shows their relationship')
+      : fail('The Ranking tab has no scholar search'),
+  );
+
+  // --- v98: the marketplace self-grant hole ----------------------------------
+  const v98 = read('scripts/migration-v98-marketplace-entitlement.sql');
+  checks.push(
+    /drop policy if exists "marketplace_purchases_insert_own"/.test(v98)
+      ? ok('v98: the client INSERT policy on marketplace_purchases is dropped')
+      : fail('v98: marketplace_purchases_insert_own still exists, so any client can still self-grant a product'),
+  );
+  checks.push(
+    /create or replace function public\.marketplace_claim_free_product/.test(v98)
+      && /access_type = 'free'/.test(v98)
+      && /PREMIUM_ONLY/.test(v98)
+      && /subscriptions s/.test(v98)
+      && /'claim:' \|\| md5/.test(v98)
+      ? ok('v98: claiming goes through a server-validated RPC that checks the product type and the live subscription, idempotently')
+      : fail('v98: marketplace_claim_free_product is missing its product/subscription validation or its deterministic key'),
+  );
+  // Cosmetics must be refused on BOTH paths, or the grant writes a row that
+  // grants nothing.
+  checks.push(
+    (v98.match(/COSMETIC_NOT_CLAIMABLE/g) || []).length >= 2
+      && /PAID_PRODUCT/.test(v98)
+      && /NOT_FREE/.test(v98)
+      ? ok('v98: cosmetics, paid and mislabelled-free products are all refused explicitly')
+      : fail('v98: a claim path does not refuse a product it cannot actually grant'),
+  );
+  checks.push(
+    /create or replace function public\.admin_grant_marketplace_entitlement/.test(v98)
+      && /if not public\.is_admin\(\)/.test(v98)
+      && /CANNOT_GRANT_SUPER_ADMIN/.test(v98)
+      && /admin_audit_log/.test(v98)
+      && /marketplace_entitlement_grant/.test(v98)
+      ? ok('v98: the admin grant re-checks is_admin, protects super-admin targets, and is audited')
+      : fail('v98: the admin grant is unaudited, ungated, or will target a super admin'),
+  );
+  // anon EXECUTE on a new function is the documented default-privileges trap.
+  checks.push(
+    /revoke all on function public\.marketplace_claim_free_product\(bigint\) from public, anon/.test(v98)
+      && /from public, anon, authenticated;/.test(v98)
+      ? ok('v98: both new RPCs are revoked from anon (this project auto-grants anon EXECUTE on new functions)')
+      : fail('v98: a new RPC is left executable by anon'),
+  );
+  const marketSrc = read(resolve(ROOT, 'src/pages/Marketplace.jsx'));
+  checks.push(
+    /rpc\('marketplace_claim_free_product'/.test(marketSrc)
+      && !/from\('marketplace_purchases'\)\s*\n?\s*\.insert/.test(marketSrc)
+      ? ok('Marketplace claims through the RPC and no longer inserts purchase rows from the browser')
+      : fail('Marketplace still inserts entitlement rows directly'),
+  );
+  // The Premium CTA was dead code because it read a field userProfile does not
+  // have. `isPremium` is a separate context value. Match the ASSIGNMENT, not
+  // the bare token - the explanatory comment in Marketplace.jsx names the old
+  // expression on purpose, and a bare match would flag its own explanation.
+  checks.push(
+    /const \{ session, isPremium \} = useAppContext\(\)/.test(marketSrc)
+      && !/premium=\{!!userProfile\?\.isPremium\}/.test(marketSrc)
+      ? ok('Marketplace gates the Premium CTA on the real isPremium context value')
+      : fail('Marketplace still gates on userProfile.isPremium, which is always undefined'),
   );
 
   // --- the profile-views feature must actually be reachable -----------------
@@ -4544,25 +4765,124 @@ checks.push(
   );
 
   // --- auth exemplar text ---
+  //
+  // REWRITTEN against the wizard. Registration moved out of Auth.jsx into a
+  // guided, one-task-per-step flow (src/components/SignupWizard.jsx); the old
+  // gates below asserted on Auth.jsx's single-page form and would have failed
+  // on correct code. They are rewritten, not deleted — the property behind each
+  // one (exemplar copy, visible placeholder colour, a password visibility
+  // toggle, a confirm hint) is still required, it just now lives in the wizard.
   const auth = read(resolve(ROOT, 'src/pages/Auth.jsx'));
   const cam = read(resolve(ROOT, 'src/components/CommunityAuthModal.jsx'));
+  const wizard = read(resolve(ROOT, 'src/components/SignupWizard.jsx'));
+  const signupValidation = read(resolve(ROOT, 'src/utils/signupValidation.js'));
   checks.push(
-    /e\.g\. Amaka Okonkwo/.test(auth) && /e\.g\. amaka@gmail\.com/.test(auth)
+    /e\.g\. Amaka Okonkwo/.test(wizard) && /e\.g\. amaka@gmail\.com/.test(wizard)
+      && /placeholder:text-slate-400/.test(wizard)
+      ? ok('SignupWizard has exemplar placeholders with visible placeholder colour')
+      : fail('SignupWizard is missing exemplar text or its placeholder colour class'),
+  );
+  // Auth.jsx no longer renders a name field — that step belongs to the wizard —
+  // so this asserts exemplar copy for the fields it DOES still render (email
+  // and password). The property is unchanged: no default placeholder text, and
+  // the placeholder colour is visible against the dark field. The name exemplar
+  // is asserted against the wizard above.
+  checks.push(
+    /e\.g\. amaka@gmail\.com/.test(auth) && /Your password/.test(auth)
       && /placeholder:text-slate-400/.test(auth)
-      ? ok('Auth.jsx has exemplar placeholders with visible placeholder colour')
+      ? ok('Auth.jsx (sign-in + reset) still has exemplar placeholders with visible placeholder colour')
       : fail('Auth.jsx is missing exemplar text or its placeholder colour class'),
   );
+  // The toggle now exists on all THREE surfaces: sign-in (Auth.jsx), and both
+  // password steps in the wizard. The confirm hint moved into the wizard.
   checks.push(
     /setShowPassword/.test(auth) && /type="button"/.test(auth)
-      && /placeholder="Type it again"/.test(auth)
-      ? ok('Auth.jsx has a show/hide password toggle and a confirm hint')
-      : fail('Auth.jsx is missing the show/hide toggle or the confirm hint'),
+      && /setShowPassword/.test(wizard) && /setShowConfirm/.test(wizard)
+      && /Type it again/.test(wizard)
+      ? ok('a show/hide password toggle exists on sign-in and on both wizard password steps, with a confirm hint')
+      : fail('a show/hide password toggle or the confirm hint is missing'),
   );
   checks.push(
-    /e\.g\. Amaka Okonkwo/.test(cam) && /e\.g\. 0803 123 4567/.test(cam)
+    /e\.g\. 0803 123 4567/.test(cam)
       && /placeholder:text-slate-400/.test(cam)
       ? ok('CommunityAuthModal has exemplar text on every signup field')
       : fail('CommunityAuthModal is missing exemplar text'),
+  );
+
+  // --- the four stable aria-labels are a CONTRACT with the e2e suites ---
+  //
+  // scripts/e2e-utils.mjs builds AUTH_NAME / AUTH_EMAIL / AUTH_PASSWORD /
+  // AUTH_CONFIRM from these four strings and ~15 browser suites fill them.
+  // Renaming one silently breaks every one of those suites, and a rename is
+  // exactly the kind of "tidy-up" that looks harmless. This gate makes the
+  // contract explicit on BOTH sides: the wizard defines them and the e2e
+  // helper keys on them, so the two cannot drift apart unnoticed.
+  const e2eUtils = read(resolve(ROOT, 'scripts/e2e-utils.mjs'));
+  checks.push(
+    ['Full name', 'Email address', 'Password', 'Confirm password'].every(
+      (label) => wizard.includes(`aria-label="${label}"`)
+    )
+      ? ok('SignupWizard keeps the four stable aria-labels the e2e suites key on')
+      : fail('SignupWizard changed an aria-label that scripts/e2e-utils.mjs depends on'),
+  );
+  checks.push(
+    /aria-label="Full name"/.test(e2eUtils) && /aria-label="Email address"/.test(e2eUtils)
+      && /aria-label="Password"/.test(e2eUtils) && /aria-label="Confirm password"/.test(e2eUtils)
+      ? ok('e2e-utils still keys on the same four aria-labels the wizard renders')
+      : fail('e2e-utils selectors no longer match the wizard aria-labels'),
+  );
+
+  // --- registration is EXACTLY four required fields ---
+  //
+  // The directive is a product rule, not a style note: name, email, password,
+  // confirm. Nothing else may become required. The wizard holds exactly these
+  // four in one object; the assertion below fails if a fifth field key appears
+  // in EMPTY_VALUES.
+  checks.push(
+    /const EMPTY_VALUES = \{ fullName: '', email: '', password: '', confirmPassword: '' \}/.test(wizard)
+      ? ok('registration collects exactly the four required fields')
+      : fail('registration is collecting something other than name/email/password/confirm'),
+  );
+  // Validation must live in ONE module, not in component JSX — that is the whole
+  // point of utils/signupValidation.js (Auth.jsx and CommunityAuthModal are two
+  // separate registration surfaces and their rules used to drift).
+  checks.push(
+    /export function validateName/.test(signupValidation)
+      && /export function validateEmail/.test(signupValidation)
+      && /export function validatePassword/.test(signupValidation)
+      && /export function validateConfirm/.test(signupValidation)
+      && /PASSWORD_MIN_LENGTH = 6/.test(signupValidation)
+      && /STEP_VALIDATORS/.test(wizard) && /STEP_VALIDATORS/.test(signupValidation)
+      ? ok('signup validation lives in one shared module and the wizard consumes it')
+      : fail('signup validation is not centralised in utils/signupValidation.js'),
+  );
+  // The password must never reach the screen outside the two masked inputs, and
+  // the review step must not echo it. A character count is the honest way to
+  // show "your password is set" without showing the password.
+  checks.push(
+    !/value=\{values\.password\}/.test(wizard.replace(/type=\{showPassword[\s\S]*?\}[\s\S]*?value=\{values\.password\}/, ''))
+      && /characters, hidden/.test(wizard)
+      && /maskEmail/.test(wizard)
+      ? ok('the review step shows a masked email and a length, never the password')
+      : fail('the review step appears to render the password'),
+  );
+  // signUp must declare where a confirmation link returns to. Without it, the
+  // one day email confirmation is switched on the link lands on the project's
+  // Site URL with no handler for the token fragment.
+  checks.push(
+    /emailRedirectTo: `\$\{window\.location\.origin\}\/activate`/.test(wizard)
+      ? ok('signUp passes emailRedirectTo so a confirmation link has a landing route')
+      : fail('signUp passes no emailRedirectTo'),
+  );
+  // The wizard must be able to keep itself mounted long enough to show its
+  // confirmation screen. Auth.jsx redirects (and unmounts via `session`) any
+  // authenticated visitor off /signup, which silently ate the success screen
+  // until the page claimed the redirect through a ref BEFORE signUp resolves.
+  checks.push(
+    /signupOwnsRedirect = useRef/.test(auth) && /!signupOwnsRedirect\.current/.test(auth)
+      && /claimedRef\.current = true/.test(wizard)
+      ? ok('Auth.jsx lets the wizard claim the post-signup redirect through a ref')
+      : fail('Auth.jsx may tear the wizard down before it shows the success screen'),
   );
 
   // --- the visible pts are gone, the ranking maths is not ---
@@ -4652,6 +4972,599 @@ checks.push(
     broken.length === 0
       ? ok(`every relative import under src/ resolves (${srcFiles.length} files checked)`)
       : fail('a relative import under src/ does not resolve - the app will fail to load that module', broken.slice(0, 8).join(' | ')),
+  );
+}
+
+// ---------------------------------------------------------------------------
+// PART S — GUIDED SIGN-UP (v99 client) + TIMED LIVE EVENTS (migration-v99).
+//
+// Every gate below was written against a live-proven failure, not against the
+// happy path. The "why" comment on each is the reason it exists.
+// ---------------------------------------------------------------------------
+{
+  const v99 = read(resolve(ROOT, 'scripts/migration-v99-anonymous-live-event.sql'));
+  const comm = read(resolve(ROOT, 'api/_community.js'));
+  const utils = read(resolve(ROOT, 'api/_utils.js'));
+  const initiate = read(resolve(ROOT, 'api/initiate-payment.js'));
+  const bar = read(resolve(ROOT, 'src/components/LiveEventBar.jsx'));
+  const room = read(resolve(ROOT, 'src/pages/AnonymousRoom.jsx'));
+
+  // --- the 40-60 range is a CHECK, not a UI hint --------------------------
+  checks.push(
+    /event_duration_minutes between 40 and 60/.test(v99)
+      && /study_groups_event_duration_check/.test(v99)
+      && /EVENT_MIN_MINUTES = 40/.test(comm) && /EVENT_MAX_MINUTES = 60/.test(comm)
+      ? ok('v99: the 40-60 minute range is enforced by a DB CHECK and mirrored by the server constants')
+      : fail('v99: the 40-60 range is not enforced in the database'),
+  );
+
+  // --- the window cannot be extended --------------------------------------
+  // The window CHECK alone was NOT enough: probing proved that shifting both
+  // event_started_at and event_ends_at forward together satisfied it and
+  // returned HTTP 201. This trigger is what closed that hole.
+  checks.push(
+    /study_groups_event_window_check/.test(v99)
+      && /EVENT_CLOCK_IMMUTABLE/.test(v99)
+      && /trg_anon_event_clock_lock/.test(v99)
+      && /old\.event_started_at is null/.test(v99)
+      ? ok('v99: the clock window is consistent AND immutable once an event has started')
+      : fail('v99: a started event\'s deadline can still be moved (the extension hole)'),
+  );
+
+  // --- activation starts the clock, once ----------------------------------
+  checks.push(
+    /trg_anon_event_activate/.test(v99)
+      && /new\.event_started_at is null/.test(v99)
+      && /old\.group_state is distinct from 'active'/.test(v99)
+      ? ok('v99: the clock is stamped on the waiting->active transition and is idempotent')
+      : fail('v99: activation does not stamp the clock idempotently'),
+  );
+
+  // --- expiry is a PREDICATE on the server clock --------------------------
+  checks.push(
+    /create or replace function public\._anon_event_over/.test(v99)
+      && /now\(\) >= g\.event_ends_at/.test(v99)
+      && /coalesce/.test(v99)
+      ? ok('v99: _anon_event_over() is a server-clock predicate that fails closed')
+      : fail('v99: the expiry predicate is missing or does not use the server clock'),
+  );
+
+  // --- no new seat into an ended event, at the DATA layer -----------------
+  checks.push(
+    /trg_anon_event_member_seat/.test(v99) && /trg_anon_event_spectator_seat/.test(v99)
+      && /raise exception 'EVENT_ENDED'/.test(v99)
+      ? ok('v99: member and spectator seat INSERTs are refused for an ended event at the data layer')
+      : fail('v99: a seat can still be granted into an ended event'),
+  );
+
+  // --- the seat RPCs stay service-role only ------------------------------
+  checks.push(
+    /revoke execute on function public\.community_anonymous_event_end\(bigint, text\)\s*\n?\s*from public, anon, authenticated/.test(v99)
+      && /revoke execute on function public\.community_anonymous_event_sweep\(timestamptz\)\s*\n?\s*from public, anon, authenticated/.test(v99)
+      ? ok('v99: the end/sweep RPCs are revoked from public, anon AND authenticated (the live-grant gotcha)')
+      : fail('v99: the end/sweep RPCs are still executable by anon/authenticated'),
+  );
+
+  // --- exactly-once ending -----------------------------------------------
+  checks.push(
+    /pg_advisory_xact_lock\(hashtext\('anon_event:'/.test(v99)
+      && /already_ended/.test(v99) && /event_ended_at is not null/.test(v99)
+      ? ok('v99: ending an event is advisory-locked and idempotent (exactly once)')
+      : fail('v99: ending an event is neither locked nor idempotent'),
+  );
+
+  // --- the sweep function must READ the jsonb result ---------------------
+  // It was written as `if community_anonymous_event_end(...) then` — a 22P02
+  // that took the whole sweep down. Caught by probing, not by reading.
+  checks.push(
+    /v_res := public\.community_anonymous_event_end/.test(v99)
+      && /\(v_res ->> 'ok'\)::boolean/.test(v99)
+      && !/if public\.community_anonymous_event_end\(/.test(v99)
+      ? ok('v99: the bulk sweep reads the RPC\'s jsonb result instead of testing it as a boolean')
+      : fail('v99: the bulk sweep tests a jsonb return value as a boolean (22P02)'),
+  );
+
+  // --- the watchdog is suspended only while live -------------------------
+  checks.push(
+    /v_event_live :=/.test(v99)
+      && /if v_gr\.group_state = 'active' and v_event_live then/.test(v99)
+      && /'event_live', v_event_live/.test(v99)
+      ? ok('v99: idle-release and the wipe watchdog are suspended only while an event is live')
+      : fail('v99: the membership watchdog is not suspended during a live event'),
+  );
+
+  // --- every write path is guarded, and no READ path is -----------------
+  // The guard list is asserted by handler name so adding a new write handler
+  // without a guard shows up as a diff against this gate.
+  for (const fn of ['handleAnonSend', 'handleAnonReact', 'handleAnonSocial', 'handleAnonEventReact',
+    'handleAnonEventRespond', 'handleAnonEncoded', 'handleVote', 'handleJoinGroup',
+    'handleAnonSpectateFree', 'handleAnonGiftClaim', 'handleAnonDuel']) {
+    const start = comm.indexOf(`export async function ${fn}(`);
+    const next = comm.indexOf('\nexport async function ', start + 10);
+    const body = comm.slice(start, next < 0 ? undefined : next);
+    checks.push(
+      /requireLiveEvent\(/.test(body)
+        ? ok(`v99: ${fn} refuses writes once the event has ended`)
+        : fail(`v99: ${fn} can still write into an ended event`),
+    );
+  }
+  // Reads must survive the deadline — an event that hid its own history would
+  // destroy the thing the 40-60 minute window produced.
+  for (const fn of ['handleAnonFeed', 'handleAnonMessage', 'handleAnonEvent']) {
+    const start = comm.indexOf(`export async function ${fn}(`);
+    const next = comm.indexOf('\nexport async function ', start + 10);
+    const body = comm.slice(start, next < 0 ? undefined : next);
+    checks.push(
+      !/const eventRefusal = await requireLiveEvent/.test(body)
+        ? ok(`v99: ${fn} is a read and stays readable after the event ends`)
+        : fail(`v99: ${fn} is a READ but is gated - history must survive expiry`),
+    );
+  }
+  // The presence heartbeat must NOT be gated: a gated heartbeat releases seats.
+  {
+    const start = comm.indexOf('export async function handleAnonPresence(');
+    const next = comm.indexOf('\nexport async function ', start + 10);
+    const body = comm.slice(start, next < 0 ? undefined : next);
+    checks.push(
+      !/requireLiveEvent/.test(body)
+        ? ok('v99: the presence heartbeat is NOT gated (a gated heartbeat releases seats)')
+        : fail('v99: the presence heartbeat is gated'),
+    );
+  }
+
+  // --- an out-of-range duration is REFUSED, not rounded ------------------
+  checks.push(
+    /normaliseEventDuration/.test(comm) && /EVENT_DURATION_OUT_OF_RANGE/.test(comm)
+      && /return null;/.test(comm)
+      && /event_duration_minutes: duration/.test(comm)
+      ? ok('v99: room creation clamps the duration server-side and refuses an out-of-range request')
+      : fail('v99: room creation does not validate the requested duration'),
+  );
+
+  // --- the payment surface refuses to SELL a seat into a closed event ----
+  checks.push(
+    /export async function isEventOver/.test(utils)
+      && (initiate.match(/isEventOver\(supabase, groupId\)/g) || []).length === 3
+      && /e\.code = 'EVENT_ENDED'; e\.status = 409/.test(initiate)
+      ? ok('v99: all three anonymous-room purchase resolvers refuse before a Paystack transaction exists')
+      : fail('v99: a closed event can still be charged for'),
+  );
+
+  // --- the client renders the bar from the SERVER's block ----------------
+  checks.push(
+    /eventBlockFor/.test(comm) && /serverNow: new Date\(nowMs\)\.toISOString\(\)/.test(comm)
+      && /can_write: viewable && event\.state !== 'ended'/.test(comm)
+      && /data-testid="live-event-bar"/.test(bar)
+      && /<LiveEventBar/.test(room)
+      ? ok('v99: the room payload carries an offset-correctable event block and the client renders it')
+      : fail('v99: the live-event header is not wired to the server event block'),
+  );
+
+  // --- the client's countdown must not DECIDE validity --------------------
+  checks.push(
+    /const canWrite = room\?\.can_write !== false && room\?\.event\?\.state !== 'ended'/.test(room)
+      && /\{canWrite \? \(/.test(room)
+      && /room\?\.event\?\.endsAt/.test(room) === false
+      ? ok('v99: writes are gated on the server flag, never on the local countdown')
+      : fail('v99: the client is gating writes on its own countdown instead of the server flag'),
+  );
+
+  // --- a room with no clock must not render a fake countdown -------------
+  checks.push(
+    /if \(remainingMs === null\) return null/.test(bar)
+      && /if \(state === 'ended'\) return null/.test(bar)
+      && /the clock starts when the room opens/.test(bar)
+      ? ok('v99: an un-started room shows an honest waiting state with no fabricated countdown')
+      : fail('v99: the countdown is rendered even when there is no deadline'),
+  );
+}
+
+// ===========================================================================
+// PART T — PREMIUM CONVERSION (v100) + PAYSTACK INTEGRITY
+// ===========================================================================
+//
+// Every gate here was written against a failure that was PROVEN LIVE, not
+// against the happy path. The two money gates in particular are not style
+// preferences: both were real ways to obtain Premium without paying for it.
+// ---------------------------------------------------------------------------
+{
+  const v100 = read(resolve(ROOT, 'scripts/migration-v100-premium-conversion.sql'));
+  const verifyPay = read(resolve(ROOT, 'api/verify-payment.js'));
+  const webhook = read(resolve(ROOT, 'api/payments-webhook.js'));
+  const feedback = read(resolve(ROOT, 'api/feedback.js'));
+  const modal = read(resolve(ROOT, 'src/components/Modal.jsx'));
+  const upsell = read(resolve(ROOT, 'src/components/PremiumUpgradeModal.jsx'));
+  const activate = read(resolve(ROOT, 'src/pages/Activate.jsx'));
+  const quiz = read(resolve(ROOT, 'src/pages/Quiz.jsx'));
+  const setupFlow = read(resolve(ROOT, 'src/components/QuizSetupFlow.jsx'));
+  const daily = read(resolve(ROOT, 'src/components/DailyChallengeWidget.jsx'));
+  const market = read(resolve(ROOT, 'src/pages/Marketplace.jsx'));
+  const adminPlans = read(resolve(ROOT, 'src/components/AdminPlansTab.jsx'));
+  const adminFin = read(resolve(ROOT, 'src/pages/AdminFinance.jsx'));
+  const ctx = read(resolve(ROOT, 'src/context/AppContext.jsx'));
+  const safeStore = read(resolve(ROOT, 'src/utils/safeStorage.js'));
+  const pkg = read(resolve(ROOT, 'package.json'));
+
+  // --- THE EXPLOIT: a plan-less charge must grant nothing ------------------
+  // The Paystack PUBLIC key is public, so anyone can initialize a charge whose
+  // metadata omits plan_id. With a `durationDays = 30` default and a nullable
+  // expected price, the amount guard was skipped entirely and a ₦1 charge
+  // granted 30 days of Premium. The webhook was worse: it fell back to
+  // `expected_amount_kobo`, which the PAYER wrote.
+  checks.push(
+    /if \(!planId\)/.test(verifyPay)
+      && /if \(!metadata\?\.plan_id\)/.test(webhook)
+      && !/let durationDays = 30/.test(verifyPay)
+      && !/let durationDays = 30/.test(webhook)
+      ? ok('v100: both payment paths REFUSE a charge with no plan_id (no 30-day default)')
+      : fail('v100: a plan-less charge can still fall through to a default grant'),
+
+    // The self-certified amount must not be treated as the authority.
+    !/expectedPrice = Number\(metadata\.expected_amount_kobo\)/.test(webhook)
+      && /plan_unresolved/.test(webhook)
+      ? ok('v100: the webhook no longer trusts the payer-authored expected_amount_kobo')
+      : fail('v100: the webhook still falls back to a payer-authored expected amount'),
+
+    // The amount guard must be unconditional once a plan resolves.
+    /Math\.abs\(paidAmount - expectedPrice\) > 1/.test(verifyPay)
+      && !/expectedPrice !== null && Math\.abs/.test(verifyPay)
+      ? ok('v100: the amount guard always runs once a plan resolves')
+      : fail('v100: the amount guard can still be skipped'),
+
+    // An INACTIVE plan must not be honoured either.
+    /is_active === false/.test(verifyPay) && /is_active === false/.test(webhook)
+      && /plan_unavailable/.test(webhook)
+      ? ok('v100: an inactive plan is refused on both paths')
+      : fail('v100: an inactive plan would still grant'),
+
+    // The grant must use the PLAN's own duration, not a constant.
+    /durationDays = plan\.duration_days/.test(verifyPay)
+      && /durationDays = plan\.duration_days/.test(webhook)
+      ? ok('v100: the grant duration comes from the plan row')
+      : fail('v100: the grant duration is not taken from the plan'),
+  );
+
+  // --- signature comparison must be constant-time --------------------------
+  checks.push(
+    /crypto\.timingSafeEqual/.test(webhook)
+      && /providedBuf\.length === expectedBuf\.length/.test(webhook)
+      && !/hash !== req\.headers/.test(webhook)
+      ? ok('v100: the webhook signature is compared with timingSafeEqual, length-guarded')
+      : fail('v100: the webhook signature comparison is not constant-time'),
+
+    // The length guard is what stops timingSafeEqual THROWING on a short
+    // signature, which would be a 500 instead of a clean 401.
+    /typeof req\.headers\['x-paystack-signature'\] === 'string'/.test(webhook)
+      ? ok('v100: a missing or non-string signature header is coerced, not thrown on')
+      : fail('v100: a missing signature header is not handled'),
+  );
+
+  // --- analytics privacy: closed allowlists, not passthroughs --------------
+  checks.push(
+    /VALID_CONVERSION_ACTIONS/.test(feedback) && /CONVERSION_METADATA_KEYS/.test(feedback)
+      ? ok('v100: conversion events use a closed action AND metadata-key allowlist')
+      : fail('v100: conversion events lack a closed allowlist'),
+
+    // Spreading the caller's metadata object would let ANY key through. This
+    // checks the CODE, not the prose: a match inside a comment is the comment
+    // explaining the pitfall, not the pitfall.
+    //
+    // The spread pattern must tolerate the PARENTHESISED form. A negative test
+    // proved `...metadata` does NOT match `...(metadata || {})`, so that gate
+    // passed a real passthrough. `...(metadata` is now matched explicitly.
+    (() => {
+      const code = feedback
+        .split('\n')
+        .filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l))
+        .join('\n');
+      const spreadsCallerObject =
+        /\.\.\.\s*\(?\s*metadata\b/.test(code) || /\.\.\.\s*\(?\s*flat\b/.test(code);
+      return !spreadsCallerObject && /CONVERSION_METADATA_KEYS/.test(code);
+    })()
+      ? ok('v100: the caller metadata object is field-by-field, never spread through')
+      : fail('v100: the caller metadata object is spread into the row'),
+
+    // Writes are service-role only; there is no client INSERT policy.
+    /grant select on public\.conversion_events to authenticated/.test(v100)
+      && /revoke all on public\.conversion_events from public, anon;/.test(v100)
+      ? ok('v100: conversion_events is admin-read-only and service-role-write')
+      : fail('v100: conversion_events grants are wrong'),
+
+    // The anonymous surface must not expose the rest of server_config.
+    /create or replace function public\.premium_offer_public/.test(v100)
+      && /conversion_events_prune\(p_days integer default 180\)/.test(v100)
+      ? ok('v100: the offer has its own narrow RPC and retention defaults to 180 days')
+      : fail('v100: the offer RPC or retention default is missing'),
+  );
+
+  // --- prices are admin-controlled, and the client cannot invent them ------
+  checks.push(
+    /reference_price/.test(v100)
+      && /subscription_plans_reference_above_price/.test(v100)
+      && /subscription_plans_price_non_negative/.test(v100)
+      ? ok('v100: reference prices exist and are constrained in the database')
+      : fail('v100: reference price constraints are missing'),
+
+    /offer_eligible/.test(v100) && /sort_order/.test(v100)
+      && /\.order\('sort_order', \{ ascending: true \}\)/.test(ctx)
+      ? ok('v100: annual-first ordering is data-driven via sort_order')
+      : fail('v100: plan ordering is not driven by sort_order'),
+
+    // Ordering by PRICE would put the cheapest (weekly) first and quietly
+    // defeat the annual-first decision.
+    !/\.order\('price', \{ ascending: true \}\)\s*;/.test(ctx.slice(0, ctx.indexOf("static:subscription-plans") + 400))
+      || /sort_order/.test(ctx.slice(0, ctx.indexOf("static:subscription-plans") + 400))
+      ? ok('v100: plans are not ordered by price alone (annual would sort last)')
+      : fail('v100: plans are still ordered by price ascending'),
+
+    /admin_set_plan_pricing/.test(v100) && /admin_set_premium_offer/.test(v100)
+      && /admin_set_plan_pricing/.test(adminPlans) && /admin_set_premium_offer/.test(adminPlans)
+      ? ok('v100: both admin pricing/offer RPCs exist and are wired to the admin UI')
+      : fail('v100: the admin pricing/offer controls are not wired'),
+
+    // The plans tab must be reachable and must render the real controls.
+    /activeTab === 'plans'/.test(adminFin) && /<AdminPlansTab \/>/.test(adminFin)
+      ? ok('v100: the admin plans tab renders real controls, not the maintenance placeholder')
+      : fail('v100: the admin plans tab is still a placeholder'),
+
+    /id: 'plans'/.test(adminFin) && !/id: 'plans', label: 'Subscription Plans', icon: <SettingsIcon size=\{16\} \/>, superOnly: true/.test(adminFin)
+      ? ok('v100: the plans tab is visible to is_admin() users, matching the RPC gate')
+      : fail('v100: the plans tab visibility does not match the is_admin() gate'),
+  );
+
+  // --- no fabricated deadlines --------------------------------------------
+  checks.push(
+    /if \(!endsAt\) return null/.test(upsell) && /if \(!endsAt\) return null/.test(activate)
+      ? ok('v100: a countdown is only ever rendered from a server-supplied end time')
+      : fail('v100: a countdown can render without a real deadline'),
+
+    // The offer ships disabled; the client must gate promo display on it.
+    /const offerLive = premiumOffer\?\.enabled === true/.test(activate)
+      && /offerLive && promoPlans\.length > 0/.test(activate)
+      ? ok('v100: promo pricing is hidden unless the server says the offer is live')
+      : fail('v100: promo pricing is shown regardless of the server offer state'),
+
+    // "Student Offer" was a hardcoded banner reading ₦990 / ₦550 while the
+    // same numbers lived in the plan table — two sources that can drift.
+    !/Student Bonus pricing is live — pay/.test(activate)
+      && /premiumOffer\?\.headline/.test(activate)
+      ? ok('v100: the promo banner is rendered from server state, not hardcoded prices')
+      : fail('v100: the promo banner still hardcodes prices'),
+  );
+
+  // --- the upsell must not overclaim --------------------------------------
+  // Premium does NOT grant unlimited questions, flashcards, Arena, or Smart
+  // Coins. Flashcards are an admin grant and the Arena is coin-gated, so
+  // advertising either would sell something that never arrives.
+  checks.push(
+    // "Unlimited rounds" overclaims: what Premium removes is the 30-minute
+    // cooldown, and "unlimited" reads to a learner as "unlimited questions",
+    // which is a different (and untrue) promise. Comments explaining WHY the
+    // claim was removed are excluded — the gate is on rendered copy.
+    [upsell, activate, quiz, daily].every((src) => {
+      const code = src
+        .split('\n')
+        .filter((l) => !/^\s*(\/\/|\*|\/\*)/.test(l) && !/\{\/\*/.test(l))
+        .join('\n');
+      return !/unlimited\s+rounds/i.test(code) && !/for unlimited/i.test(code);
+    })
+      ? ok('v100: no "unlimited rounds" overclaim survives in the Premium surface')
+      : fail('v100: an "unlimited rounds" overclaim is still present'),
+
+    /This does not auto-renew/.test(upsell) && /No auto-renewal/.test(activate)
+      ? ok('v100: the no-auto-renewal fact is stated on both the modal and the pricing page')
+      : fail('v100: the no-auto-renewal statement is missing'),
+
+    // Activation is NOT premium: `is_activated` is a free signup milestone, so
+    // routing that gate through a paid prompt would be mis-selling.
+    /requireActivated/.test(quiz) && /navigate\('\/activate'\)/.test(quiz)
+      && /is not a synonym for/.test(quiz)
+      ? ok('v100: the ACTIVATION gate stays on /activate and is not treated as Premium')
+      : fail('v100: the activation gate may be routed as a Premium upsell'),
+
+    // Every gate must open the modal rather than hard-navigate.
+    /PremiumUpgradeModal/.test(quiz) && /PremiumUpgradeModal/.test(setupFlow)
+      && /PremiumUpgradeModal/.test(daily) && /PremiumUpgradeModal/.test(market)
+      ? ok('v100: all four Premium gates render the contextual modal')
+      : fail('v100: a Premium gate still bypasses the modal'),
+
+    !/onClick=\{\(\) => navigate\('\/activate'\)\}/.test(quiz)
+      ? ok('v100: no bare navigate("/activate") remains on a Premium gate')
+      : fail('v100: a bare navigate("/activate") remains on a Premium gate'),
+
+    // The marketplace lock used to be a static panel with no way out.
+    /onClick=\{onUpgrade\}/.test(market) && /onUpgrade/.test(adminFin + market)
+      ? ok('v100: the marketplace Premium lock is actionable')
+      : fail('v100: the marketplace Premium lock is still a dead end'),
+  );
+
+  // --- the modal must be an accessible, escapeable overlay ----------------
+  checks.push(
+    /role="dialog"/.test(modal) && /aria-modal="true"/.test(modal)
+      && /e\.key === 'Escape'/.test(modal)
+      && /e\.key !== 'Tab'/.test(modal)
+      ? ok('v100: the shared Modal is a keyboard-dismissable, focus-trapped dialog')
+      : fail('v100: the shared Modal lacks ARIA, Escape or a Tab trap'),
+
+    /document\.body\.style\.overflow = 'hidden'/.test(modal)
+      ? ok('v100: the shared Modal locks body scroll while open')
+      : fail('v100: the shared Modal does not lock body scroll'),
+
+    // A dismissible gate is not a gate; the prop must exist so a real gate can
+    // turn Escape off.
+    /dismissible = true/.test(modal)
+      ? ok('v100: the Modal can opt out of dismissal for non-dismissible gates')
+      : fail('v100: the Modal cannot be made non-dismissible'),
+
+    // Frequency: a contextual upsell must not reappear on every attempt, and a
+    // user who explicitly asked for it must not be silently suppressed.
+    /isPromptAllowed/.test(safeStore) && /notePromptShown/.test(safeStore)
+      && /PROMPT_MAX_PER_WINDOW/.test(upsell) && /automatic = true/.test(upsell)
+      ? ok('v100: the upsell is frequency-capped, and explicit prompts bypass the cap')
+      : fail('v100: the upsell has no frequency control'),
+  );
+
+  // --- the e2e suite is wired ---------------------------------------------
+  checks.push(
+    /"e2e:premium": "node scripts\/e2e-premium\.mjs"/.test(pkg)
+      && /P6–P8/.test(read(resolve(ROOT, 'scripts/e2e-premium.mjs')))
+      ? ok('v100: the e2e:premium suite is registered and covers the payment paths')
+      : fail('v100: the e2e:premium suite is missing or does not cover payments'),
+
+    // A policy without a grant is dead code: proven live as
+    // `permission denied for table conversion_events` on an admin read.
+    /create policy "conversion_events_admin_read"/.test(v100)
+      && /grant select on public\.conversion_events to authenticated/.test(v100)
+      ? ok('v100: the admin read policy is backed by an actual table GRANT')
+      : fail('v100: the admin RLS policy has no matching GRANT'),
+  );
+}
+
+// ===========================================================================
+// PART U — BLITZ DUEL WITH FLOW STATE (v101)
+// ===========================================================================
+//
+// A server-authoritative 1v1 (user vs Scholar bot) with a 90s shared clock, a
+// 2 SC stake and a Flow State. Every rule lives in service_role-only
+// blitz_duel_* RPCs; the client reaches them only through api/_blitz-duel.js.
+// ---------------------------------------------------------------------------
+{
+  const v101 = read(resolve(ROOT, 'scripts/migration-v101-blitz-duel.sql'));
+  const api = read(resolve(ROOT, 'api/_blitz-duel.js'));
+  const router = read(resolve(ROOT, 'api/quiz.js'));
+  const vercel = read(resolve(ROOT, 'vercel.json'));
+  const serveApi = read(resolve(ROOT, 'scripts/serve-api.mjs'));
+  const clientApi = read(resolve(ROOT, 'src/utils/blitzDuelApi.js'));
+  const page = read(resolve(ROOT, 'src/pages/BlitzDuel.jsx'));
+  const app = read(resolve(ROOT, 'src/App.jsx'));
+  const pkg = read(resolve(ROOT, 'package.json'));
+  const e2e = read(resolve(ROOT, 'scripts/e2e-blitz-duel.mjs'));
+
+  // --- THE BUG THE LIVE E2E CAUGHT -----------------------------------------
+  // `(timestamptz - timestamptz)` is an INTERVAL, and `interval::bigint` is a
+  // hard 42846. `((m.ends_at - m.starts_at) * 1000)::bigint` therefore made
+  // EVERY blitz RPC throw before it could answer. This gate exists because the
+  // bug passed the apply AND the static verifier and was only found by running
+  // the RPCs live — a static gate proves the SQL is written, never that it runs.
+  checks.push(
+    /extract\(epoch from \(m\.ends_at - m\.starts_at\)\)/.test(v101)
+      ? ok('v101: the match duration uses extract(epoch …) rather than a bare interval')
+      : fail('v101: the match duration is not extracted from the interval'),
+
+    !/\(\(m\.ends_at - m\.starts_at\) \* 1000\)::bigint/.test(v101)
+      ? ok('v101: no raw interval is cast straight to bigint (a live 42846)')
+      : fail('v101: an interval is cast straight to bigint (42846 at runtime)'),
+  );
+
+  // --- schema + the three service_role-only tables -------------------------
+  checks.push(
+    /create table if not exists public\.blitz_duel_questions/.test(v101)
+      && /create table if not exists public\.blitz_duels/.test(v101)
+      && /create table if not exists public\.blitz_duel_rate_limits/.test(v101)
+      && /enable row level security/.test(v101)
+      ? ok('v101: the question bank, the match table and the rate limiter exist with RLS on')
+      : fail('v101: a blitz table or its RLS is missing'),
+
+    /create unique index if not exists uq_blitz_duels_active_user[\s\S]{0,160}where status = 'active'/.test(v101)
+      ? ok('v101: one ACTIVE match per user is enforced by a partial unique index')
+      : fail('v101: a user could hold two active blitz matches'),
+
+    /_blitz_rate_check/.test(v101)
+      && /on conflict \(user_id, action, window_start\)/.test(v101)
+      ? ok('v101: the rate limiter increments atomically via an upsert, not read-then-write')
+      : fail('v101: the rate limiter is not atomic'),
+  );
+
+  // --- the answer key can never leave the database -------------------------
+  // _blitz_question is the ONLY egress for a question, and it selects columns
+  // by name — correct_answer and explanation are simply absent, so a rationale
+  // that quotes the answer cannot leak either.
+  checks.push(
+    (() => {
+      const start = v101.indexOf('create or replace function public._blitz_question');
+      const end = v101.indexOf('create or replace function public._blitz_state');
+      const body = start >= 0 && end > start ? v101.slice(start, end) : '';
+      return /'options', options/.test(body) && !/correct_answer|explanation/.test(body);
+    })()
+      ? ok('v101: _blitz_question projects no correct_answer/explanation — the key stays server-side')
+      : fail('v101: the question egress can leak the answer key'),
+  );
+
+  // --- money moves only through the one canonical mutator ------------------
+  checks.push(
+    /public\._sc_apply\(/.test(v101)
+      && /md5\('blitz:' \|\| m\.id::text \|\| ':win'\)/.test(v101)
+      && /md5\('blitz:' \|\| m\.id::text \|\| ':refund'\)/.test(v101)
+      && /md5\('blitz:' \|\| v_new\.id::text \|\| ':stake'\)/.test(v101)
+      ? ok('v101: stake/win/refund all go through _sc_apply with deterministic md5 keys')
+      : fail('v101: a blitz coin move is not deterministic through _sc_apply'),
+
+    /revoke all on function public\.%s from public, anon, authenticated/.test(v101)
+      && /grant execute on function public\.%s to service_role/.test(v101)
+      && /blitz_duel_settle\(uuid, uuid\)/.test(v101)
+      ? ok('v101: every blitz function is revoked from anon/authenticated and granted to service_role only')
+      : fail('v101: the blitz function ACLs are not locked to service_role'),
+
+    /notify pgrst, 'reload schema'/.test(v101)
+      ? ok('v101: the migration reloads the PostgREST schema cache')
+      : fail('v101: the migration does not reload the schema cache'),
+  );
+
+  // --- the server module + router + rewrites -------------------------------
+  checks.push(
+    ['handleBlitzCreate', 'handleBlitzState', 'handleBlitzAnswer', 'handleBlitzSkip', 'handleBlitzFlow', 'handleBlitzSettle', 'handleBlitzRematch']
+      .every((h) => api.includes(`export async function ${h}(`))
+      && /ERROR_STATUS/.test(api) && /RATE_LIMITED: 429/.test(api) && /MATCH_CLOSED: 409/.test(api)
+      ? ok('v101: api/_blitz-duel.js exports all seven handlers with the error→status map')
+      : fail('v101: an api/_blitz-duel.js handler or the error map is missing'),
+
+    !existsSync(resolve(ROOT, 'api/blitz.js'))
+      ? ok('v101: blitz rides the existing quiz function (no new api/*.js — Hobby cap intact)')
+      : fail('v101: a new api/blitz.js function would breach the Hobby cap'),
+
+    /blitz\[-\/\]\?duel\[-\/\]/.test(router)
+      && ['create', 'state', 'answer', 'skip', 'flow', 'settle', 'rematch'].every((r) => router.includes(`blitz === '${r}'`))
+      ? ok('v101: api/quiz.js dispatches all seven blitz sub-routes before the batch routes')
+      : fail('v101: a blitz sub-route is not dispatched from api/quiz.js'),
+
+    /"source": "\/api\/blitz-duel\/:path\*"/.test(vercel)
+      && /source: '\/api\/blitz-duel\/:path\*', destination: '\/api\/quiz'/.test(serveApi)
+      ? ok('v101: vercel.json and serve-api.mjs both rewrite /api/blitz-duel/* to /api/quiz')
+      : fail('v101: the blitz rewrite is missing from vercel.json or serve-api.mjs'),
+
+    /apiFetch\('\/blitz-duel\/create'/.test(clientApi)
+      && !/apiFetch\('\/api\/blitz-duel/.test(clientApi)
+      ? ok('v101: the client talks to /blitz-duel/* (apiFetch adds the /api prefix)')
+      : fail('v101: the client duplicates the /api prefix'),
+  );
+
+  // --- the client surface --------------------------------------------------
+  checks.push(
+    /export default function BlitzDuel\(/.test(page)
+      && /function SetupView\(/.test(page) && /function ActiveView\(/.test(page) && /function ResultsView\(/.test(page)
+      && /const BLITZ_CSS = `/.test(page)
+      ? ok('v101: BlitzDuel.jsx ships the setup/active/results views and its page-scoped styles')
+      : fail('v101: a BlitzDuel.jsx view or its scoped CSS is missing'),
+
+    /const MATCH_KEY = 'blitz_duel_match_id'/.test(page) && /const PACE_KEY = 'blitz_duel_pace'/.test(page)
+      ? ok('v101: the active match id and pace persist under their own localStorage keys')
+      : fail('v101: the blitz localStorage keys are missing'),
+
+    // RotateCcw is not exported by Icons.jsx; RefreshCw is. A wrong icon import
+    // is a runtime blank page, not a lint error, so it is gated.
+    /RefreshCw/.test(page) && !/RotateCcw/.test(page)
+      ? ok('v101: the rematch icon is the exported RefreshCw, not the unexported RotateCcw')
+      : fail('v101: the page imports an icon Icons.jsx does not export'),
+
+    /const BlitzDuel = lazy\(\(\) => import\('\.\/pages\/BlitzDuel'\)\)/.test(app)
+      && /path="\/blitz-duel" element=\{<RequireAuth><BlitzDuel \/><\/RequireAuth>\}/.test(app)
+      ? ok('v101: /blitz-duel is a lazy, auth-gated route')
+      : fail('v101: the /blitz-duel route is missing or not auth-gated'),
+
+    /"e2e:blitz-duel": "node scripts\/e2e-blitz-duel\.mjs"/.test(pkg)
+      && /match\?\.settlement/.test(e2e)
+      ? ok('v101: the e2e:blitz-duel suite is registered and reads the nested match.settlement')
+      : fail('v101: the blitz e2e suite is missing or reads the wrong settlement path'),
   );
 }
 

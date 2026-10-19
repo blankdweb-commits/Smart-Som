@@ -137,3 +137,25 @@ export const authorizeRequest = async (req) => {
   }
   return { status: 200, body: null, user, revoked: false, sessionId };
 };
+
+// ---------------------------------------------------------------------------
+// isEventOver(supabase, groupId) — migration-v99.
+//
+// TRUE when this anonymous room's live event has closed, read from the SERVER
+// clock via the _anon_event_over() predicate. A room that never started (no
+// clock) is never over, so ordinary group purchases are unaffected.
+//
+// Returns FALSE if the predicate cannot be read, rather than true: the callers
+// all have their own pre-existing validation, and turning a transient RPC
+// problem into "sorry, this event has closed" would be a worse lie than letting
+// the (enforced) database trigger make the real decision.
+// ---------------------------------------------------------------------------
+export async function isEventOver(supabase, groupId) {
+  try {
+    const { data, error } = await supabase.rpc('_anon_event_over', { p_group: Number(groupId) });
+    if (error) return false;
+    return data === true;
+  } catch {
+    return false;
+  }
+}

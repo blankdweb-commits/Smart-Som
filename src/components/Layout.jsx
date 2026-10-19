@@ -9,7 +9,7 @@ import NotificationBell from './NotificationBell';
 import ChallengeBell from './ChallengeBell';
 import AchievementToast from './AchievementToast';
 import BrandLogo from './BrandLogo';
-import { Sun, Moon, Calendar, Menu, Settings, Trophy } from './Icons';
+import { Sun, Moon, Calendar, Menu, Settings } from './Icons';
 import { useAppContext } from '../context/AppContext';
 
 const Layout = ({ children }) => {
@@ -39,24 +39,14 @@ const Layout = ({ children }) => {
                 must never depend on which page the user happens to be on. */}
             <ChallengeBell />
 
-            {/* The social hub (ranking / friends / rivals / activity /
-                cosmetics). It lives in the HEADER because the Sidebar is
-                `hidden lg:block` and BottomNav is `lg:hidden` — so on a phone
-                neither nav carried the hub and /leaderboard was unreachable
-                except by typing the URL. The tab bar sits directly under the
-                hub's hero, so Friends and Rivals are one tap from here. */}
-            <Link
-              to="/leaderboard"
-              aria-label="Ranks and friends"
-              title="Ranks and friends"
-              className={`p-2 rounded-lg transition-all ${
-                location.pathname === '/leaderboard'
-                  ? 'bg-medical-100 text-medical-700 dark:bg-medical-900/30'
-                  : 'text-slate-500 hover:bg-slate-50'
-              }`}
-            >
-              <Trophy size={20} />
-            </Link>
+            {/* REMOVED: the header's trophy link to /leaderboard.
+
+                It existed only because neither nav carried the hub on a phone
+                (Sidebar is `hidden lg:block`, BottomNav was `lg:hidden`), which
+                left /leaderboard reachable by typing the URL. BottomNav now has
+                a "Ranks" item, and the Sidebar already lists "Leaderboard", so
+                the header icon was a third copy of the same destination on
+                every breakpoint. */}
 
             <Link
               to="/settings"

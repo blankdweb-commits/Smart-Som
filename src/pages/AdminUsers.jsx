@@ -13,7 +13,9 @@ import {
   ArrowLeft,
   Lock,
   Mail,
-  BookOpen
+  BookOpen,
+  ShoppingCart,
+  Check
 } from '../components/Icons';
 import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 import { useNavigate } from 'react-router-dom';
@@ -131,6 +133,67 @@ const AdminUsers = () => {
       setToast({ message: user.flashcard_access ? 'Flashcard access revoked' : 'Flashcard access granted', type: 'success' });
     } catch (err) {
       setToast({ message: `Failed to update flashcard access: ${err.message}`, type: 'error' });
+    } finally {
+      setBusy(null);
+    }
+  };
+
+  // Grant a Marketplace entitlement. migration-v98 removed the client INSERT
+  // policy on marketplace_purchases (its WITH CHECK never looked at the
+  // product, so any client could self-grant any product at amount 0). This is
+  // the replacement admin path: it re-checks is_admin() server-side, refuses a
+  // super-admin target, refuses cosmetics (whose entitlement lives in
+  // user_cosmetics, so a marketplace_purchases row would grant nothing), and
+  // writes an admin_audit_log row.
+  //
+  // Cosmetics are deliberately NOT offered here. Until there is an admin path
+  // that writes user_cosmetics, the RPC refuses them rather than writing a row
+  // that looks like a grant and delivers nothing.
+  const [grantables, setGrantables] = useState([]);
+  const [grantOpen, setGrantOpen] = useState(null);
+
+  // `supabase` is a module-level import, not reactive state, so it is
+  // deliberately absent from the dependency array: react-hooks/exhaustive-deps
+  // rejects outer-scope values as dependencies because mutating them cannot
+  // re-render this component. The list is fetched once on mount.
+  useEffect(() => {
+    let live = true;
+    (async () => {
+      // Cosmetics are filtered out for the same reason the RPC refuses them.
+      const { data } = await supabase
+        .from('marketplace_products')
+        .select('id, title, access_type')
+        .neq('kind', 'cosmetic')
+        .eq('is_archived', false)
+        .order('id');
+      if (live) setGrantables(data || []);
+    })();
+    return () => { live = false; };
+  }, []);
+
+  const handleGrantEntitlement = async (user, productId) => {
+    if (!user || !productId) return;
+    const key = `grant:${user.id}`;
+    setBusy(key);
+    try {
+      const { data, error } = await supabase.rpc('admin_grant_marketplace_entitlement', {
+        p_user_id: user.id,
+        p_product_id: Number(productId),
+      });
+      if (error) throw error;
+      if (!data || data.ok === false) {
+        setToast({ message: `Grant refused: ${data?.error || 'unknown reason'}`, type: 'error' });
+        return;
+      }
+      setGrantOpen(null);
+      setToast({
+        message: data.replay
+          ? 'They already owned that product — nothing changed.'
+          : 'Marketplace entitlement granted (logged to the audit trail).',
+        type: 'success',
+      });
+    } catch (err) {
+      setToast({ message: `Failed to grant entitlement: ${err.message}`, type: 'error' });
     } finally {
       setBusy(null);
     }
@@ -283,6 +346,61 @@ const AdminUsers = () => {
                     <span className="text-[9px] font-black uppercase tracking-widest text-slate-400 flex items-center gap-1">
                       <BookOpen size={10} /> Flashcards
                     </span>
+
+                    {/* Marketplace entitlement (migration-v98). Opens a small
+                        product picker rather than acting immediately, because
+                        this is a money-adjacent grant and should never be one
+                        stray tap away. */}
+                    <button
+                      onClick={() => setGrantOpen(grantOpen === user.id ? null : user.id)}
+                      disabled={locked || user.role === 'super_admin'}
+                      aria-expanded={grantOpen === user.id}
+                      className="flex items-center gap-1.5 px-3 py-2 rounded-xl font-bold text-[10px] uppercase tracking-widest bg-slate-200 dark:bg-slate-700 text-slate-600 dark:text-slate-300 transition-all disabled:opacity-40 disabled:cursor-not-allowed"
+                    >
+                      <ShoppingCart size={12} /> Grant product
+                    </button>
+                    {grantOpen === user.id && (
+                      <div className="mt-2 flex flex-wrap items-center gap-2 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800/60 p-3">
+                        <label
+                          htmlFor={`grant-${user.id}`}
+                          className="text-[9px] font-black uppercase tracking-widest text-slate-400"
+                        >
+                          Product
+                        </label>
+                        <select
+                          id={`grant-${user.id}`}
+                          defaultValue=""
+                          disabled={busy === `grant:${user.id}`}
+                          className="flex-1 min-w-[10rem] bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 rounded-lg px-3 py-2 text-[11px] font-bold text-slate-700 dark:text-slate-200"
+                        >
+                          <option value="" disabled>Choose a product…</option>
+                          {grantables.map((p) => (
+                            <option key={p.id} value={p.id}>
+                              {p.title} ({p.access_type})
+                            </option>
+                          ))}
+                        </select>
+                        <button
+                          onClick={(e) => {
+                            const sel = e.currentTarget.parentElement?.querySelector('select');
+                            if (sel?.value) handleGrantEntitlement(user, sel.value);
+                          }}
+                          disabled={busy === `grant:${user.id}`}
+                          className="flex items-center gap-1.5 px-3 py-2 rounded-xl bg-polynurse-600 hover:bg-polynurse-700 text-white font-bold text-[10px] uppercase tracking-widest transition-all disabled:opacity-40"
+                        >
+                          {busy === `grant:${user.id}`
+                            ? <Loader2 size={12} className="animate-spin" />
+                            : <Check size={12} />}
+                          Confirm
+                        </button>
+                        {grantables.length === 0 && (
+                          <p className="w-full text-[10px] font-bold text-slate-400">
+                            No grantable products — the catalog holds only cosmetics, which are
+                            bought with Smart Coins and cannot be granted here.
+                          </p>
+                        )}
+                      </div>
+                    )}
 
                     {locked && (
                       <span className="text-[9px] font-black uppercase tracking-widest text-amber-500 flex items-center gap-1">

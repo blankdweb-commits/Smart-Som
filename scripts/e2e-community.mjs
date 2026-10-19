@@ -1,4 +1,5 @@
 import { chromium } from 'playwright';
+import { signupFlow } from './e2e-utils.mjs';
 import fs from 'fs';
 import path from 'path';
 
@@ -32,32 +33,16 @@ page.on('pageerror', err => consoleErrors.push('PAGEERROR: ' + err.message));
 
 try {
   // ---------- 1. SIGNUP ----------
-  await page.goto(`${BASE}/signup`, { waitUntil: 'networkidle' });
+  // signupFlow walks the guided wizard (welcome -> name -> email -> password ->
+  // confirm -> review), submits, and accepts the confirmation screen. It also
+  // falls back to signing in if the account ever needs email confirmation.
+  const { needsSignIn: neededSignIn } = await signupFlow(
+    page, BASE, TEST_USER.name, TEST_USER.email, TEST_USER.password
+  );
+  log('signup', true, neededSignIn
+    ? `email confirmation enabled; signed in as ${TEST_USER.email}`
+    : `${TEST_USER.email} (auto-session)`);
 
-  await page.fill('input[aria-label="Full name"]', TEST_USER.name);
-  await page.selectOption('select', { index: 2 }).catch(() => {}); // nursing year optional
-  await page.fill('input[aria-label="Email address"]', TEST_USER.email);
-  await page.fill('input[aria-label="Password"]', TEST_USER.password);
-  await page.fill('input[aria-label="Confirm password"]', TEST_USER.password);
-  await page.click('button[type="submit"]');
-
-  // Either auto-session -> redirected, or success message asking to sign in.
-  await page.waitForTimeout(3000);
-  const urlNow = page.url();
-  const bodyText = await page.textContent('body');
-  const needsSignIn =
-    urlNow.includes('/signup') &&
-    /account created/i.test(bodyText || '');
-
-  if (needsSignIn) {
-    log('signup', true, `email confirmation enabled; signing in as ${TEST_USER.email}`);
-    await page.fill('input[aria-label="Email address"]', TEST_USER.email);
-    await page.fill('input[aria-label="Password"]', TEST_USER.password);
-    await page.click('button[type="submit"]');
-    await page.waitForTimeout(3000);
-  } else {
-    log('signup', true, `${TEST_USER.email} (auto-session)`);
-  }
 
   // ---------- 2. VERIFY SESSION + PROFILE SYNC ----------
   await page.goto(`${BASE}/community`, { waitUntil: 'networkidle' });

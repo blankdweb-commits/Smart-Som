@@ -366,24 +366,40 @@ export default async function handler(req, res) {
     const planId = metadata.plan_id;
 
     // 2. Resolve the plan SERVER-SIDE and validate the amount actually paid.
-    let durationDays = 30;
-    let planName = 'Monthly';
-    let expectedPrice = null;
-
-    if (planId) {
-      const { data: plan } = await supabase
-        .from('subscription_plans')
-        .select('*')
-        .eq('id', planId)
-        .maybeSingle();
-      if (plan) {
-        durationDays = plan.duration_days;
-        planName = plan.name;
-        expectedPrice = Number(plan.price);
-      }
+    //
+    // NO PLAN ID ⇒ NO SUBSCRIPTION. The Paystack PUBLIC key is public by design,
+    // so anyone can initialize a ₦1 transaction carrying hand-written metadata.
+    // If an unresolvable plan_id were allowed to fall through to a default, the
+    // amount guard below would compare against `null` and never fire, and the
+    // payer would receive 30 days of Premium for ₦1. What was bought must be
+    // knowable from the server's own plan table, or nothing is granted.
+    if (!planId) {
+      console.error(`Subscription metadata carried no plan_id for ref ${reference} — refusing to grant`);
+      return res.status(400).json({ error: 'Payment is not linked to a plan' });
     }
 
-    if (expectedPrice !== null && Math.abs(paidAmount - expectedPrice) > 1) {
+    const { data: plan } = await supabase
+      .from('subscription_plans')
+      .select('*')
+      .eq('id', planId)
+      .maybeSingle();
+
+    if (!plan) {
+      console.error(`Subscription plan ${planId} no longer exists for ref ${reference} — refusing to grant`);
+      return res.status(400).json({ error: 'The plan for this payment no longer exists' });
+    }
+
+    if (plan.is_active === false) {
+      console.error(`Subscription plan ${planId} is inactive for ref ${reference} — refusing to grant`);
+      return res.status(400).json({ error: 'The plan for this payment is no longer available' });
+    }
+
+    const durationDays = plan.duration_days;
+    const planName = plan.name;
+    const expectedPrice = Number(plan.price);
+
+    // `expectedPrice` can no longer be null here, so this guard always runs.
+    if (Math.abs(paidAmount - expectedPrice) > 1) {
       console.error(`Amount mismatch for ref ${reference}: paid ${paidAmount}, expected ${expectedPrice}`);
       return res.status(400).json({ error: 'Payment amount does not match the selected plan' });
     }

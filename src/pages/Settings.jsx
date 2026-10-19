@@ -21,6 +21,7 @@ import {
     VolumeX
   } from 'lucide-react';
 import { useAppContext } from '../context/AppContext';
+import { useConsentUI } from '../context/ConsentUIContext';
 import Toast from '../components/Toast';
 import ProfilePrivacyCard from '../components/ProfilePrivacyCard';
 import { pushSupported, getPushState, enablePush, disablePush, savePreferences } from '../utils/push';
@@ -36,7 +37,8 @@ const DEPARTMENTS = [
 ];
 
 export default function Settings() {
-  const { userProfile, updateProfile, session, signOut, identity, getMyReferral, soundEnabled, toggleSound } = useAppContext();
+  const { userProfile, updateProfile, session, signOut, identity, getMyReferral, soundEnabled, toggleSound, profileLoaded } = useAppContext();
+  const { setIsOpen: openConsentManager } = useConsentUI();
 
   // The name this account is known by everywhere else in the app.
   //
@@ -143,7 +145,10 @@ export default function Settings() {
   const profileSyncedRef = React.useRef(false);
   React.useEffect(() => {
     if (profileSyncedRef.current) return;
-    if (userProfile.matricNumber === undefined) return; // not loaded yet
+    // An explicit flag, not `userProfile.matricNumber === undefined`. That
+    // sentinel only worked because ANONYMOUS_PROFILE happened to omit the key;
+    // it is now declared there, so the omission check would never fire again.
+    if (!profileLoaded) return;
     profileSyncedRef.current = true;
     setProfileForm({
       fullName: userProfile.fullName || '',
@@ -152,7 +157,7 @@ export default function Settings() {
       department: userProfile.department || '',
       level: userProfile.level || ''
     });
-  }, [userProfile]);
+  }, [userProfile, profileLoaded]);
 
   const [passwordForm, setPasswordForm] = useState({ next: '', confirm: '' });
   const [savingPassword, setSavingPassword] = useState(false);
@@ -169,7 +174,7 @@ export default function Settings() {
     setSavingProfile(true);
     setProfileMsg(null);
     try {
-      const { error } = await supabase
+      const { data, error } = await supabase
         .from('profiles')
         .update({
           full_name: profileForm.fullName.trim(),
@@ -184,9 +189,39 @@ export default function Settings() {
           department: profileForm.department,
           level: profileForm.level
         })
-        .eq('id', session.user.id);
+        .eq('id', session.user.id)
+        // Read the row back rather than trusting the values we sent. Without
+        // this the handler called updateProfile() unconditionally, so a write
+        // that matched zero rows without raising an error left Settings, the
+        // Dashboard greeting and the server-rendered leaderboard disagreeing
+        // about the same person.
+        .select('full_name, identity_name, phone, department, level')
+        .maybeSingle();
       if (error) throw error;
-      updateProfile({ ...profileForm, identityName: profileForm.identityName.trim() });
+      if (!data) {
+        // No error, no row: the profile row is gone or unreachable. Say so
+        // instead of reporting a save that did not happen.
+        setProfileMsg('Could not save — your profile row was not found.');
+        setToast({ message: 'Failed to save profile.', type: 'error' });
+        return;
+      }
+      // Apply what the SERVER stored, not what we typed. A trigger, a CHECK or
+      // a future normalisation may have changed it, and the Dashboard must
+      // agree with the database.
+      updateProfile({
+        fullName: data.full_name || '',
+        identityName: data.identity_name || '',
+        phone: data.phone || '',
+        department: data.department || '',
+        level: data.level || ''
+      });
+      setProfileForm({
+        fullName: data.full_name || '',
+        identityName: data.identity_name || '',
+        phone: data.phone || '',
+        department: data.department || '',
+        level: data.level || ''
+      });
       setProfileMsg('Profile updated.');
       setToast({ message: 'Profile saved successfully!', type: 'success' });
     } catch (err) {
@@ -508,7 +543,14 @@ export default function Settings() {
                   ].map(({ key, label }) => (
                     <button
                       key={key}
+                      type="button"
                       onClick={() => togglePushPref(key)}
+                      // The visible track/knob below is decorative spans, so
+                      // without these the state is conveyed visually only.
+                      // aria-pressed, not role="switch": these toggle one
+                      // channel on/off rather than a named setting, matching
+                      // the equivalent toggles in AnonymousRoom.jsx.
+                      aria-pressed={!!pushPrefs[key]}
                       className="w-full flex items-center justify-between gap-3 py-2.5 text-left group"
                     >
                       <span className="text-xs font-bold text-slate-600 dark:text-slate-300">{label}</span>
@@ -562,7 +604,14 @@ export default function Settings() {
 
         <button
           onClick={toggleSound}
-          aria-label={soundEnabled ? 'Turn sound effects off' : 'Turn sound effects on'}
+          type="button"
+          // role="switch" + aria-checked, matching the pattern
+          // ProfilePrivacyCard already uses in this file tree. The label alone
+          // changes with state, so without these a screen reader hears a new
+          // button name and never learns whether sound is currently on.
+          role="switch"
+          aria-checked={soundEnabled}
+          aria-label="Sound effects"
           className={`w-full py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] flex items-center justify-center gap-2 transition-all active:scale-95 ${soundEnabled ? 'bg-slate-100 dark:bg-slate-700 text-slate-600 dark:text-slate-300 hover:bg-slate-200 dark:hover:bg-slate-600' : 'bg-polynurse-600 text-white hover:bg-polynurse-700'}`}
         >
           {soundEnabled ? <VolumeX size={16} /> : <Volume2 size={16} />}
@@ -660,7 +709,30 @@ export default function Settings() {
         </div>
       </motion.div>
 
-      {/* Legal */}
+      {/* Privacy & consent.
+          The ConsentManager is mounted once at the app root; this card re-opens
+          it so the user can change or withdraw cookie / local-storage choices at
+          any time (FCCPC Reg. 4 guidance: withdrawal as easy as acceptance). */}
+      <motion.div
+        initial={{ y: 10, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ delay: 0.155 }}
+        className="bg-white dark:bg-slate-800 rounded-[2rem] border border-slate-100 dark:border-slate-700 p-6 sm:p-8 shadow-clinical"
+      >
+        <h2 className="text-sm font-black uppercase tracking-widest text-slate-400 mb-4">Privacy &amp; consent</h2>
+        <p className="text-xs font-bold text-slate-500 dark:text-slate-400 mb-4 leading-relaxed">
+          Change which optional technologies PolyNurse may use (theme and sound
+          preferences are always yours; advertising is off unless you allow it).
+          Your choice is saved and can be updated here at any time.
+        </p>
+        <button
+          onClick={() => openConsentManager(true)}
+          className="w-full py-3.5 rounded-xl font-black uppercase tracking-widest text-[10px] border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 bg-white dark:bg-slate-800 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors flex items-center justify-center gap-2"
+        >
+          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="w-4 h-4"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82-.33l-.06-.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0 2.83l.06.06a1.65 1.65 0 0 0 .33 1.82 1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 0 2-2v-2.64a1.65 1.65 0 0 0-.33-1.82z"/></svg>
+          Manage cookie &amp; privacy preferences
+        </button>
+      </motion.div>
       <motion.div
         initial={{ y: 10, opacity: 0 }}
         animate={{ y: 0, opacity: 1 }}

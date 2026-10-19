@@ -23,9 +23,12 @@
     "e2e:duel": "node scripts/e2e-duel-lobby.mjs",
     "e2e:anon-v62": "node scripts/e2e-anon-v62.mjs",
     "e2e:marketplace": "node scripts/e2e-marketplace.mjs",
+    "e2e:premium": "node scripts/e2e-premium.mjs",
     "e2e:arena": "node scripts/e2e-arena.mjs",
     "e2e:relationships": "node scripts/e2e-relationships.mjs",
-    "e2e:economy": "node scripts/e2e-economy.mjs"
+    "e2e:economy": "node scripts/e2e-economy.mjs",
+    "e2e:blitz-duel": "node scripts/e2e-blitz-duel.mjs",
+    "e2e:v99": "node scripts/e2e-v99-onboarding-event.mjs"
   },
   "dependencies": {
     "@daformat/react-swipeable-cards": "^1.0.4",

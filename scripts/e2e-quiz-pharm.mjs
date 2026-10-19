@@ -1,4 +1,5 @@
 import { chromium } from 'playwright';
+import { signupFlow } from './e2e-utils.mjs';
 
 // Verifies the Pharmacology bank is merged into the live non-Uselu quiz pools
 // by sampling subject badges across real sessions (clinical + quick).
@@ -17,13 +18,8 @@ page.on('pageerror', err => console.log('PAGEERROR:', err.message));
 // Fresh signup so the user is authenticated (batch-create 401s otherwise).
 const stamp = Date.now().toString().slice(-8);
 const u = { name: `Pharm ${stamp}`, email: `pharm${stamp}@apextest.local`, password: 'testpass123' };
-await page.goto(`${BASE}/signup`, { waitUntil: 'networkidle' });
-await page.fill('input[aria-label="Full name"]', u.name);
-await page.fill('input[aria-label="Email address"]', u.email);
-await page.fill('input[aria-label="Password"]', u.password);
-await page.fill('input[aria-label="Confirm password"]', u.password);
-await page.click('button[type="submit"]');
-await page.waitForTimeout(3500);
+await signupFlow(page, BASE, u.name, u.email, u.password);
+
 
 const subjectsSeen = new Set();
 let useluPharmCount = 0;

@@ -11,7 +11,7 @@
 //   { product:'anonymous_membership', group_id }  -> one-time member seat
 //   { product:'marketplace_product', product_id } -> first-party PolyNurse
 //     product (one-time purchase; third-party listings are refused here).
-import { applyCors, getSupabaseAdmin, getUserFromRequest } from './_utils.js';
+import { applyCors, getSupabaseAdmin, getUserFromRequest, isEventOver } from './_utils.js';
 
 const KOBOS = 100;
 
@@ -51,6 +51,17 @@ async function resolveSpectatorPurchase(supabase, user, groupIdRaw) {
   if (groupError) {
     const e = new Error('Failed to resolve group');
     e.code = 'GROUP_LOOKUP_FAILED'; e.status = 500; throw e;
+  }
+
+  // ---- LIVE EVENT (migration-v99) ----------------------------------------
+  // Do NOT take money for a seat in a room that has already closed. The
+  // database triggers would refuse the grant later, but by then the customer
+  // would have been charged for a room that cannot accept them — which is a
+  // refund, not a feature. Refuse HERE, before a Paystack transaction exists.
+  const eventOver = await isEventOver(supabase, groupId);
+  if (eventOver) {
+    const e = new Error('This live event has closed, so its seats are no longer for sale.');
+    e.code = 'EVENT_ENDED'; e.status = 409; throw e;
   }
   if (!group) {
     const e = new Error('Group not found');
@@ -141,6 +152,17 @@ async function resolveMembershipPurchase(supabase, user, groupIdRaw) {
     const e = new Error('Failed to resolve group');
     e.code = 'GROUP_LOOKUP_FAILED'; e.status = 500; throw e;
   }
+
+  // ---- LIVE EVENT (migration-v99) ----------------------------------------
+  // Do NOT take money for a seat in a room that has already closed. The
+  // database triggers would refuse the grant later, but by then the customer
+  // would have been charged for a room that cannot accept them — which is a
+  // refund, not a feature. Refuse HERE, before a Paystack transaction exists.
+  const eventOver = await isEventOver(supabase, groupId);
+  if (eventOver) {
+    const e = new Error('This live event has closed, so its seats are no longer for sale.');
+    e.code = 'EVENT_ENDED'; e.status = 409; throw e;
+  }
   if (!group) {
     const e = new Error('Group not found');
     e.code = 'GROUP_NOT_FOUND'; e.status = 404; throw e;
@@ -222,6 +244,17 @@ async function resolveMembershipsPurchase(supabase, user, body) {
   if (groupError) {
     const e = new Error('Failed to resolve group');
     e.code = 'GROUP_LOOKUP_FAILED'; e.status = 500; throw e;
+  }
+
+  // ---- LIVE EVENT (migration-v99) ----------------------------------------
+  // Do NOT take money for a seat in a room that has already closed. The
+  // database triggers would refuse the grant later, but by then the customer
+  // would have been charged for a room that cannot accept them — which is a
+  // refund, not a feature. Refuse HERE, before a Paystack transaction exists.
+  const eventOver = await isEventOver(supabase, groupId);
+  if (eventOver) {
+    const e = new Error('This live event has closed, so its seats are no longer for sale.');
+    e.code = 'EVENT_ENDED'; e.status = 409; throw e;
   }
   if (!group) {
     const e = new Error('Group not found');

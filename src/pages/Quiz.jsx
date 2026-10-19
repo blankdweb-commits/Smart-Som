@@ -15,6 +15,7 @@ import {
 // eslint-disable-next-line no-unused-vars
 import { motion } from 'framer-motion';
 import QuizSetupFlow, { QUIZ_CONFIGS, LEVEL_SUBJECTS } from '../components/QuizSetupFlow';
+import PremiumUpgradeModal from '../components/PremiumUpgradeModal';
 import QuizPlayer from '../components/QuizPlayer';
 import { useQuizBatch } from '../hooks/useQuizBatch';
 import { canonicalOptionText } from '../utils/answerMatch.js';
@@ -272,8 +273,12 @@ const CourseLockOverlay = ({ lock, courseQuota, quotaStatus, isPremium, onOpen, 
           </button>
         </div>
         {!isReady && !isError && (
+          // "Unlimited rounds" overclaims: what Premium removes is the 30-minute
+          // cooldown. A round is still bounded by the questions that exist, and
+          // "unlimited" reads to a learner as "unlimited questions", which is a
+          // different (and untrue) promise.
           <button type="button" onClick={onGoPremium} className="mt-2 w-full flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-widest text-teal-600 dark:text-teal-400 py-2 hover:underline">
-            ⭐ Go Premium — unlimited rounds
+            ⭐ Premium removes the round cooldown
           </button>
         )}
       </div>
@@ -526,6 +531,9 @@ const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, lo
   const quizStartRef = React.useRef(null);
   const resultRecordedRef = React.useRef(false);
   const [weaknessIntentHandled, setWeaknessIntentHandled] = useState(false);
+  // Contextual Premium prompt. `reason` varies by gate, so the modal can say
+  // WHY it opened rather than opening on a bare price list.
+  const [upsell, setUpsell] = useState(null); // null | 'cooldown' | 'activation'
 
   // Deep-link support: /quiz?difficulty=Hard | ?subject= | ?practiceSubject=
   // | ?groupId= | ?weakness=1. URLs pre-load state and queue an INTENT — setup
@@ -584,6 +592,12 @@ const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, lo
     if (deepLinkIntent.requireActivated && !userProfile.isActivated && !weaknessIntentHandled) {
       deepLinkResolvedRef.current = true;
       setWeaknessIntentHandled(true);
+      // Deliberately NOT the Premium upsell. `requireActivated` is the ACCOUNT
+      // ACTIVATION milestone, which every free user completes during signup — it
+      // is not a paid entitlement and `is_activated` is not a synonym for
+      // premium. Showing a paid prompt here would be selling something the user
+      // gets for free, and would train people to dismiss every upgrade prompt
+      // as a scam. /activate is the correct destination.
       navigate('/activate');
       return;
     }
@@ -1003,23 +1017,31 @@ const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, lo
   // refetch confirms the cooldown ended (rowState === AVAILABLE).
   if (selectionLock && !playerActive) {
     return (
-      <CourseLockOverlay
-        lock={selectionLock}
-        courseQuota={courseQuota}
-        quotaStatus={quotaFetchStatus}
-        isPremium={isPremium}
-        onOpen={() => {
-          if (selectionLock.subject) setPresetSubject(selectionLock.subject);
-          if (selectionLock.difficulty) {
-            setSelectedDifficulty(selectionLock.difficulty);
-            setPresetDifficulty(selectionLock.difficulty);
-          }
-          openSetup(selectionLock.setupId);
-        }}
-        onRetry={fetchCourseQuotaStatus}
-        onClose={() => setSelectionLock(null)}
-        onGoPremium={() => navigate('/activate')}
-      />
+      <>
+        <CourseLockOverlay
+          lock={selectionLock}
+          courseQuota={courseQuota}
+          quotaStatus={quotaFetchStatus}
+          isPremium={isPremium}
+          onOpen={() => {
+            if (selectionLock.subject) setPresetSubject(selectionLock.subject);
+            if (selectionLock.difficulty) {
+              setSelectedDifficulty(selectionLock.difficulty);
+              setPresetDifficulty(selectionLock.difficulty);
+            }
+            openSetup(selectionLock.setupId);
+          }}
+          onRetry={fetchCourseQuotaStatus}
+          onClose={() => setSelectionLock(null)}
+          onGoPremium={() => setUpsell('cooldown')}
+        />
+        <PremiumUpgradeModal
+          isOpen={upsell === 'cooldown'}
+          onClose={() => setUpsell(null)}
+          surface="quiz"
+          reason="This course is on cooldown"
+        />
+      </>
     );
   }
 
@@ -1045,6 +1067,7 @@ const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, lo
       setCooldownVerifying(false);
     };
     return (
+      <>
       <div className="min-h-[70vh] max-w-md mx-auto px-4 pt-10 flex items-center justify-center animate-in fade-in">
         <div className="w-full text-center bg-white dark:bg-slate-800 rounded-3xl shadow-clinical border border-slate-100 dark:border-slate-700 p-6 sm:p-8">
           <div className={`w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-5 ${iconBg}`}>
@@ -1066,7 +1089,7 @@ const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, lo
               <>Free plan: one <span className="font-semibold">10-question round per course</span>, then a 30-minute cooldown. Come back in{' '}
                 <span className="font-semibold text-amber-600 dark:text-amber-400 tabular-nums">
                   {fmtClock(remaining)}
-                </span> to restart <span className="font-semibold text-slate-700 dark:text-slate-200">{cooldownNotice.label}</span> — or go Premium for unlimited rounds.</>
+                </span> to restart <span className="font-semibold text-slate-700 dark:text-slate-200">{cooldownNotice.label}</span> — or go Premium to drop the cooldown.</>
             )}
           </p>
 
@@ -1118,14 +1141,21 @@ const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, lo
           </div>
           {!isLocked && !isError && (
             <button
-              onClick={() => navigate('/activate')}
+              onClick={() => setUpsell('cooldown')}
               className="mt-2 w-full flex items-center justify-center gap-1.5 text-xs font-black uppercase tracking-widest text-teal-600 dark:text-teal-400 py-2 hover:underline"
             >
-              ⭐ Go Premium — unlimited rounds
+              ⭐ Premium removes the round cooldown
             </button>
           )}
         </div>
       </div>
+      <PremiumUpgradeModal
+        isOpen={upsell === 'cooldown'}
+        onClose={() => setUpsell(null)}
+        surface="quiz"
+        reason={statusTitle}
+      />
+      </>
     );
   }
 

@@ -1,42 +1,59 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, useLocation, Link } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { supabase } from '../utils/supabase';
 import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
-import { Mail, Lock, User, ArrowRight, Loader2, ShieldCheck, Eye, EyeOff } from 'lucide-react';
-import Toast from '../components/Toast';
+import { Mail, Lock, ArrowRight, Loader2, ShieldCheck, Eye, EyeOff } from 'lucide-react';
 import BrandLogo from '../components/BrandLogo';
+import SignupWizard from '../components/SignupWizard';
 
-// The sign-in password field and the sign-up password field are the SAME input
-// (one `view !== 'forgot'` block), so its copy has to be true in both. The rule
-// only applies when choosing one, so the helper branches and the placeholder
-// stays neutral.
-const PASSWORD_HINT = {
-  signin: 'The password you set when you signed up.',
-  signup: 'Six characters minimum. A short phrase you will remember beats a short word.',
-};
+// Registration moved to components/SignupWizard.jsx — a guided, one-task-per-step
+// flow. Sign-in and password reset stay HERE, untouched: sign-in is the path
+// most e2e suites drive and the one path that must not regress, and there is no
+// reason to rebuild it to make the sign-up experience nicer.
+//
+// The password field below is now only ever rendered by the sign-in and reset
+// views, so its helper line no longer has to branch.
+const PASSWORD_HINT = 'The password you set when you signed up.';
 
 export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState(null);
   const [successMsg, setSuccessMsg] = useState(null);
-  const [toast, setToast] = useState(null);
-  // Show/hide on the password fields. CommunityAuthModal already had these; the
+  // Show/hide on the password field. CommunityAuthModal already had this; the
   // main page did not, so a mistyped character was invisible and the only
   // symptom was a bare "Invalid login credentials" from Supabase.
   const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
   const location = useLocation();
-  // Route-aware initial view: /signup opens the registration form directly.
+  // Route-aware initial view: /signup opens the registration wizard directly.
   const [view, setView] = useState(location.pathname === '/signup' ? 'signup' : 'signin'); // 'signin', 'signup', 'forgot'
   const { session, loadingAuth } = useAppContext();
 
+  // TRUE from the moment the wizard begins creating an account until the new
+  // account has been handed off to /activate.
+  //
+  // WHY A REF AND NOT STATE: signUp resolves into a live session, and the very
+  // next render would run the redirect effect and the `session` render guard
+  // and tear the wizard out of the DOM — before it could show its success
+  // screen, so the user was silently dropped on the dashboard and the
+  // /activate hand-off never happened. Neither can be fixed with state: React
+  // applies a setState from a child's effect only AFTER the parent's effects
+  // for that same commit have already run, and the parent's render guard runs
+  // even earlier. A ref is written synchronously, so the wizard can claim the
+  // redirect BEFORE the session exists and both guards see it in time.
+  //
+  // The wizard sets this before it calls signUp, not after: it cannot know in
+  // advance whether the response will carry a session, and claiming early is
+  // harmless because the guard is `session && !claimed` — with no session
+  // there is nothing to redirect away from anyway.
+  const signupOwnsRedirect = useRef(false);
+
   // Session recognition — a device that already has a live session (persisted
   // in localStorage by supabase-js) is sent straight to the dashboard instead
-  // of being asked to log in again.
+  // of being asked to log in again. The wizard is the exception: see above.
   useEffect(() => {
-    if (!loadingAuth && session) {
+    if (!loadingAuth && session && !signupOwnsRedirect.current) {
       navigate(location.state?.from || '/dashboard', { replace: true });
     }
   }, [loadingAuth, session, navigate, location.state?.from]);
@@ -56,16 +73,12 @@ export default function Auth() {
     }
   }, [location.search]);
 
-  // Registration is deliberately 4 fields (name, email, password, confirm).
-  // Phone / nursing year / role used to be collected here but nothing required
-  // them at signup — the profiles trigger fills them with '' — and they added
-  // friction to the one flow we most need to keep short. Referral codes still
-  // arrive via the ?referral= deep link above, not as a form field.
+  // Sign-in and reset only. The four-field registration form used to live here
+  // too; it is now components/SignupWizard.jsx, which owns the whole create
+  // flow. formData therefore holds just the two fields these views read.
   const [formData, setFormData] = useState({
     email: '',
     password: '',
-    confirmPassword: '',
-    fullName: ''
   });
 
   const handleSubmit = async (e) => {
@@ -82,73 +95,71 @@ export default function Auth() {
 
       if (view === 'forgot') {
         if (!formData.email) throw new Error('Please enter your email address');
-        const { error } = await supabase.auth.resetPasswordForEmail(
+        const { error: resetError } = await supabase.auth.resetPasswordForEmail(
           formData.email,
           { redirectTo: `${window.location.origin}/login` }
         );
-        if (error) throw error;
+        if (resetError) throw resetError;
         setSuccessMsg('Password reset link sent to your email.');
         setLoading(false);
         return;
       }
 
-      if (view === 'signin') {
-        const { error } = await supabase.auth.signInWithPassword({
-          email: formData.email,
-          password: formData.password,
-        });
-        if (error) throw error;
-        navigate(location.state?.from || '/dashboard');
-      } else if (view === 'signup') {
-        if (formData.password.length < 6) throw new Error('Password must be at least 6 characters');
-        if (formData.password !== formData.confirmPassword) throw new Error('Passwords do not match');
-
-        const { data, error } = await supabase.auth.signUp({
-          email: formData.email,
-          password: formData.password,
-          options: {
-            data: {
-              full_name: formData.fullName
-            }
-          }
-        });
-
-        // Supabase reports an existing email as an auth error (or user:null for
-        // an unconfirmed user). Both cases mean the account already exists.
-        const alreadyExists = error?.message
-          && /already registered|already exists|already been registered|email.*conflict/i.test(error.message);
-
-        if (alreadyExists) {
-          setToast({ message: 'An account with this email already exists. Please sign in.', type: 'error' });
-          setView('signin');
-          setLoading(false);
-          return;
-        }
-        if (error) throw error;
-
-        // Email confirmation is OFF, so a session should already exist. If not,
-        // recover it explicitly so the new user is signed straight in.
-        if (data?.session) {
-          navigate('/activate');
-        } else {
-          const { data: recovered } = await supabase.auth.getSession();
-          if (recovered?.session) {
-            navigate('/activate');
-          } else if (!data?.user) {
-            setToast({ message: 'An account with this email already exists. Please sign in.', type: 'error' });
-            setView('signin');
-          } else {
-            setSuccessMsg('Account created successfully! You can now sign in.');
-            setView('signin');
-            setFormData({ ...formData, password: '', confirmPassword: '' });
-          }
-        }
-      }
+      const { error: signInError } = await supabase.auth.signInWithPassword({
+        email: formData.email,
+        password: formData.password,
+      });
+      if (signInError) throw signInError;
+      navigate(location.state?.from || '/dashboard');
     } catch (err) {
       setError(err.message);
     } finally {
       setLoading(false);
     }
+  };
+
+  // The wizard hands its collected state back to us here, because the sign-in
+  // view owns the inline error block and the "already exists" message needs to
+  // land where the user is already looking. The email is carried across so a
+  // user who hit a duplicate does not retype it.
+  const handleDuplicateAccount = ({ email, message }) => {
+    setFormData((f) => ({ ...f, email }));
+    setError(message);
+    setSuccessMsg(null);
+    setShowPassword(false);
+    setView('signin');
+  };
+
+  // Stable identity so the wizard's handleCreateAccount does not get a new
+  // `onCreated` on every parent render.
+  const handleWizardCreated = useCallback(() => {
+    signupOwnsRedirect.current = true;
+  }, []);
+
+  const handleWizardComplete = useCallback(() => {
+    signupOwnsRedirect.current = false;
+    navigate('/activate');
+  }, [navigate]);
+
+  const switchToSignIn = () => {
+    setError(null);
+    setSuccessMsg(null);
+    setShowPassword(false);
+    setView('signin');
+    window.scrollTo({ top: 0 });
+  };
+
+  const switchToSignUp = () => {
+    setError(null);
+    setSuccessMsg(null);
+    setShowPassword(false);
+    // A password typed into Sign In was still sitting in formData when the
+    // Sign Up form appeared, so the new-account form opened pre-filled with
+    // it. With the show/hide toggle above that is now plainly visible, and it
+    // is a real leak on a shared device.
+    setFormData((f) => ({ ...f, password: '' }));
+    window.scrollTo({ top: 0 });
+    setView('signup');
   };
 
   // While the persisted session is being rehydrated (or a signed-in user on a
@@ -160,13 +171,34 @@ export default function Auth() {
       </div>
     );
   }
+  // Registration owns its own card, progress indicator and terminal screens, so
+  // the wizard replaces the page entirely rather than being nested inside the
+  // sign-in card below.
+  //
+  // This check MUST sit above the `if (session) return null` guard, and the
+  // `session && !signupOwnsRedirect` test is what distinguishes "a returning
+  // visitor who wandered onto /signup" from "the wizard that just created this
+  // account". Only the first should be bounced; the second has to stay mounted
+  // so its success screen can render before the hand-off.
+  if (view === 'signup') {
+    if (session && !signupOwnsRedirect.current) return null;
+    return (
+      <SignupWizard
+        onCreated={handleWizardCreated}
+        onComplete={handleWizardComplete}
+        onDuplicateAccount={handleDuplicateAccount}
+        onSwitchToSignIn={switchToSignIn}
+      />
+    );
+  }
+
   if (session) return null;
 
   return (
     <div className="min-h-screen flex items-start sm:items-center justify-center bg-slate-950 p-4 py-6 sm:py-8 relative overflow-hidden">
-      {/* items-start + py on small screens, not items-center: the four helper
-          lines make this card tall enough to exceed a short phone viewport, and
-          a centred over-tall flex child clips the top AND bottom with no way to
+      {/* items-start + py on small screens, not items-center: the helper lines
+          make this card tall enough to exceed a short phone viewport, and a
+          centred over-tall flex child clips the top AND bottom with no way to
           scroll to either. */}
       {/* Background decoration */}
       <div className="absolute top-0 left-0 w-full h-full">
@@ -186,10 +218,10 @@ export default function Auth() {
               <BrandLogo variant="short" size="lg" />
             </div>
             <h1 className="text-3xl font-bold text-white mb-2">
-              {view === 'signin' ? 'Welcome Back' : view === 'signup' ? 'Join Polynurse Exam Center' : 'Reset Password'}
+              {view === 'forgot' ? 'Reset Password' : 'Welcome Back'}
             </h1>
             <p className="text-slate-400">
-              {view === 'signin' ? 'Enter your credentials to continue' : view === 'signup' ? 'Your NCLEX success starts here' : 'We will send you a link to reset it'}
+              {view === 'forgot' ? 'We will send you a link to reset it' : 'Enter your credentials to continue'}
             </p>
           </div>
 
@@ -200,29 +232,6 @@ export default function Auth() {
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">
-            {view === 'signup' && (
-              <>
-                <div>
-                  <div className="relative">
-                    <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-                    <input
-                      type="text"
-                      placeholder="e.g. Amaka Okonkwo"
-                      aria-label="Full name"
-                      autoComplete="name"
-                      required
-                      className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-4 text-white placeholder:text-slate-400 focus:outline-none focus:border-medical-500 transition-colors"
-                      value={formData.fullName}
-                      onChange={(e) => setFormData({...formData, fullName: e.target.value})}
-                    />
-                  </div>
-                  <p className="mt-1.5 text-[11px] font-medium text-slate-500">
-                    Your legal name. You can set a different display name later in Settings.
-                  </p>
-                </div>
-              </>
-            )}
-
             <div>
               <div className="relative">
                 <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
@@ -250,7 +259,7 @@ export default function Auth() {
                     type={showPassword ? 'text' : 'password'}
                     placeholder="Your password"
                     aria-label="Password"
-                    autoComplete={view === 'signup' ? 'new-password' : 'current-password'}
+                    autoComplete="current-password"
                     required
                     className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-12 text-white placeholder:text-slate-400 focus:outline-none focus:border-medical-500 transition-colors"
                     value={formData.password}
@@ -268,44 +277,12 @@ export default function Auth() {
                     {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                   </button>
                 </div>
-                <p className="mt-1.5 text-[11px] font-medium text-slate-500">
-                  {PASSWORD_HINT[view] || PASSWORD_HINT.signin}
-                </p>
-              </div>
-            )}
-
-            {view === 'signup' && (
-              <div>
-                <div className="relative">
-                  <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-500" />
-                  <input
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    placeholder="Type it again"
-                    aria-label="Confirm password"
-                    autoComplete="new-password"
-                    required
-                    className="w-full bg-slate-800/50 border border-white/10 rounded-xl py-3 pl-12 pr-12 text-white placeholder:text-slate-400 focus:outline-none focus:border-medical-500 transition-colors"
-                    value={formData.confirmPassword}
-                    onChange={(e) => setFormData({...formData, confirmPassword: e.target.value})}
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword((v) => !v)}
-                    aria-label={showConfirmPassword ? 'Hide password confirmation' : 'Show password confirmation'}
-                    aria-pressed={showConfirmPassword}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-white transition-colors"
-                  >
-                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-                <p className="mt-1.5 text-[11px] font-medium text-slate-500">
-                  Must match the password above.
-                </p>
+                <p className="mt-1.5 text-[11px] font-medium text-slate-500">{PASSWORD_HINT}</p>
               </div>
             )}
 
             {error && (
-              <p className="text-red-400 text-sm bg-red-400/10 p-3 rounded-lg border border-red-400/20">
+              <p role="alert" className="text-red-400 text-sm bg-red-400/10 p-3 rounded-lg border border-red-400/20">
                 {error}
               </p>
             )}
@@ -319,7 +296,7 @@ export default function Auth() {
                 <Loader2 className="w-5 h-5 animate-spin" />
               ) : (
                 <>
-                  {view === 'signin' ? 'Sign In' : view === 'signup' ? 'Create Account' : 'Send Reset Link'}
+                  {view === 'forgot' ? 'Send Reset Link' : 'Sign In'}
                   <ArrowRight className="w-5 h-5" />
                 </>
               )}
@@ -342,35 +319,12 @@ export default function Auth() {
             )}
 
             <button
-              onClick={() => {
-                const next = view === 'signin' ? 'signup' : 'signin';
-                setView(next);
-                setError(null);
-                setSuccessMsg(null);
-                // A password typed into Sign In was still sitting in formData when
-                // the Sign Up form appeared, so the new-account form opened
-                // pre-filled with it. With the show/hide toggle above that is now
-                // plainly visible, and it is a real leak on a shared device.
-                setShowPassword(false);
-                setShowConfirmPassword(false);
-                setFormData((f) => ({ ...f, password: '', confirmPassword: '' }));
-                // land on the top of the new form, not wherever the old one was
-                window.scrollTo({ top: 0 });
-              }}
+              onClick={() => (view === 'signin' ? switchToSignUp() : switchToSignIn())}
               className="block w-full text-slate-400 hover:text-white transition-colors text-sm font-medium"
             >
-              {view === 'signin' ? "Don't have an account? Sign Up" : "Back to Sign In"}
+              {view === 'signin' ? "Don't have an account? Sign Up" : 'Back to Sign In'}
             </button>
           </div>
-
-          {view === 'signup' && (
-            <p className="text-slate-500 text-xs leading-relaxed">
-              By creating an account, you agree to our{' '}
-              <Link to="/legal/terms" className="text-medical-400 underline">Terms of Service</Link>,
-              {' '}<Link to="/legal/privacy" className="text-medical-400 underline">Privacy Policy</Link>{' '}
-              and{' '}<Link to="/legal/cookies" className="text-medical-400 underline">Cookie Policy</Link>.
-            </p>
-          )}
 
           <div className="flex items-center justify-center gap-3 text-slate-500 text-xs pt-4">
             <Link to="/legal/terms" className="hover:text-slate-300 transition-colors">Terms</Link>
@@ -386,8 +340,6 @@ export default function Auth() {
           </div>
         </div>
       </motion.div>
-
-      {toast && <Toast message={toast.message} type={toast.type} onClose={() => setToast(null)} />}
     </div>
   );
 }

@@ -1,5 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { useAppContext } from '../context/AppContext';
+import PremiumUpgradeModal from './PremiumUpgradeModal';
   // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from 'framer-motion';
 import {
@@ -374,6 +375,10 @@ const ChoiceButton = ({ selected, onClick, children, disabled, colorClass = 'bg-
 const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete, onCancel }) => {
   const config = QUIZ_CONFIGS[quizType] || QUIZ_CONFIGS['clinical-challenge'];
   const { isPremium, difficultyProgress, fetchDifficultyStatus, session, courseQuota, quotaFetchStatus, fetchCourseQuotaStatus } = useAppContext();
+  // Contextual Premium prompt. Dismissing it leaves the configured setup
+  // exactly as it was — the modal is an aside, never a navigation, so a user
+  // who taps the locked-timer tile and says "not now" is still where they were.
+  const [upsellOpen, setUpsellOpen] = useState(false);
 
   // Keep the per-subject cooldown chips fresh whenever the subject picker is on
   // screen (free users). Runs on mount + whenever the flow is re-entered.
@@ -698,9 +703,19 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
                       </ChoiceButton>
                     ))}
                     {freeTimerLocked && !timerOptions.some(t => t.value === null) && (
-                      <div className="flex items-center justify-center gap-1.5 px-3 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-dashed border-slate-200 dark:border-slate-700 text-[9px] font-bold text-slate-400 uppercase tracking-widest">
+                      // The lock tile used to be inert copy with no route out of
+                      // it: a free user who wanted a longer timer was told the
+                      // timer was premium and given no way to become premium
+                      // without abandoning the setup they had configured. It is
+                      // now a button that opens the contextual prompt, which
+                      // already knows this is the timer gate.
+                      <button
+                        type="button"
+                        onClick={() => setUpsellOpen(true)}
+                        className="w-full flex items-center justify-center gap-1.5 px-3 py-3 rounded-xl bg-slate-50 dark:bg-slate-900/50 border border-dashed border-slate-200 dark:border-slate-700 text-[9px] font-bold text-slate-400 uppercase tracking-widest hover:border-apex-500 hover:text-apex-600 dark:hover:text-apex-400 transition-colors"
+                      >
                         <Lock size={11} className="shrink-0" /> Faster/slower timers are premium
-                      </div>
+                      </button>
                     )}
                   </div>
                 </div>
@@ -890,6 +905,13 @@ const QuizSetupFlow = ({ quizType, initialDifficulty, initialSubject, onComplete
       >
         ← Back to Quiz Modes
       </button>
+
+      <PremiumUpgradeModal
+        isOpen={upsellOpen}
+        onClose={() => setUpsellOpen(false)}
+        surface="quiz_setup"
+        reason="Longer timers are a Premium feature"
+      />
     </div>
   );
 };
