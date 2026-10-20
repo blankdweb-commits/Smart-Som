@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import Modal from "../components/Modal";
+import { useAppContext } from "../context/AppContext";
 import { useChallenge } from "../context/ChallengeContext";
 import TutorialTip from '../components/TutorialTip';
 import { supabase } from "../utils/supabase";

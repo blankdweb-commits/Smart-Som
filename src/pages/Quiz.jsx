@@ -403,7 +403,7 @@ const DirectoryRow = ({ bankId, index = 0, onLaunch, onBlocked, courseQuota, quo
 };
 
 const Quiz = () => {
-  const { flashcards, updateQuizStats } = useAppContext();
+  const { flashcards, updateQuizStats , getUser } = useAppContext();
   const { unlock: unlockAudio, preload: preloadAudio, playIntro, manager: audioRef } = useQuizAudio();
   const introHandledRef = React.useRef(false);
   const navigate = useNavigate();
@@ -1307,9 +1307,9 @@ const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, lo
             onClick={() => {
               const next = secretTaps + 1;
               setSecretTaps(next);
-              if (next >= 5) { navigate('/xp-hall'); setSecretTaps(0); }
+              if (next >= 5) { navigate('/rumble'); setSecretTaps(0); }
             }}
-            aria-label="Apex Scholars"
+            aria-label="SC War Hall"
             className="shrink-0 self-center sm:self-auto p-4 sm:p-6 rounded-3xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-2xl shadow-purple-500/40 animate-pulse active:scale-95 transition-transform"
           >
             <Brain size={64} className="text-white w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 drop-shadow-[0_0_26px_rgba(216,180,254,1)]" />

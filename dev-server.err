@@ -339,3 +339,9 @@ TypeError: fetch failed
     code: 'UND_ERR_CONNECT_TIMEOUT'
   }
 }
+[2m3:33:35 pm[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/session/touch[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m3:34:35 pm[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/session/touch[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
