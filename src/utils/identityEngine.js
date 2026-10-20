@@ -11,8 +11,7 @@ export function computeCurrentIdentity(stats = {}) {
     quizStreak: stats.quizStreak || 0,
     cardsStudied: stats.cardsStudied || 0,
     accuracy: stats.accuracy || 0,
-    scEarned: stats.scEarned || 0,
-    speedRuns: stats.speedRuns || 0
+    scEarned: stats.scEarned || 0
   };
   let identity = IDENTITIES[0];
   for (const tier of IDENTITIES) {
@@ -40,8 +39,7 @@ export function computeProgressToNext(stats = {}, currentTier = null) {
     quizStreak: stats.quizStreak || 0,
     cardsStudied: stats.cardsStudied || 0,
     accuracy: stats.accuracy || 0,
-    scEarned: stats.scEarned || 0,
-    speedRuns: stats.speedRuns || 0
+    scEarned: stats.scEarned || 0
   };
 
   let maxFraction = 0;

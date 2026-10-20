@@ -13,6 +13,7 @@ import {
   shouldCelebrate,
   acknowledgeUnlock
 } from '../utils/identityEngine';
+import { IDENTITIES } from '../data/identities';
 import {
   buildCelebrations,
   readPresentedKeys,
@@ -291,6 +292,10 @@ export function AppProvider({ children }) {
 // ledger by sc_earned_total(). Distinct from the balance above, which goes down
 // when you spend. Migration v80.
 const [scEarnedTotal, setScEarnedTotal] = useState(0);
+  // DB-authoritative identity tier from get_my_identity() (migration v105).
+  // null until the RPC answers (or if it is unavailable), in which case the
+  // client engine is the fallback so the UI never shows a blank identity.
+  const [serverIdentity, setServerIdentity] = useState(null);
   const [scLastPayout, setScLastPayout] = useState(null);   // ISO timestamptz
   const [scLastFailDate, setScLastFailDate] = useState(null); // YYYY-MM-DD
   const [scLedger, setScLedger] = useState([]);
@@ -2195,12 +2200,33 @@ useEffect(() => {
       // LIFETIME earnings from the ledger (migration v80). This used to be
       // `smartCoins`, i.e. the CURRENT BALANCE, so it dropped every time the
       // user spent and the 200/500/1000 identity tiers were unreachable.
-      scEarned: scEarnedTotal || 0,
-      speedRuns: 0
+      scEarned: scEarnedTotal || 0
     };
   }, [quizHistory, learningAnalytics.totalAttempts, studyStats.quizStreak, studyStats.cardsStudied, scEarnedTotal]);
 
-  const identity = useMemo(() => computeCurrentIdentity(identityStats), [identityStats]);
+  // The server tier is authoritative when present; the client engine is the
+  // fallback (pre-migration / RPC failure) so the identity is never blank. The
+  // tier list itself lives in src/data/identities.js, shared by both paths.
+  const identity = useMemo(() => {
+    if (serverIdentity && serverIdentity.tier != null) {
+      const match = IDENTITIES.find((t) => t.tier === serverIdentity.tier);
+      if (match) return match;
+    }
+    return computeCurrentIdentity(identityStats);
+  }, [serverIdentity, identityStats]);
+
+  // ---- DB-authoritative identity (migration v105) ----
+  const fetchIdentity = useCallback(async (sess = session) => {
+    if (!sess?.user?.id || !supabase) return null;
+    try {
+      const { data, error } = await supabase.rpc('get_my_identity');
+      if (error || !data?.ok || !data.identity) return null;
+      setServerIdentity(data.identity);
+      return data.identity;
+    } catch {
+      return null;
+    }
+  }, [session]);
 
   // ---- Achievements ----
   const fetchAchievements = useCallback(async (sess = session) => {
@@ -2369,6 +2395,17 @@ useEffect(() => {
     return () => cancelIdle(handle);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [sessionUserId]);
+
+  // DB-authoritative identity tier. Refetched whenever the underlying
+  // aggregates change (attempts, streak, cards, lifetime SC) so the tier the
+  // server corroborates catches up after a quiz without a page reload.
+  useEffect(() => {
+    if (!sessionUserId) { setServerIdentity(null); return; }
+    let active = true;
+    fetchIdentity().then((id) => { if (!active) void id; });
+    return () => { active = false; };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [sessionUserId, learningAnalytics.totalAttempts, studyStats.quizStreak, studyStats.cardsStudied, scEarnedTotal]);
 
   // Apply a pending referral code captured at signup (`?referral=CODE` deep
   // link on /signup). Server-authoritative: the code is redeemed once per
@@ -2599,12 +2636,12 @@ useEffect(() => {
   const dismissIdentityUnlock = useCallback(() => setIdentityUnlock(null), []);
 
   const refreshIdentityUnlock = useCallback(() => {
-    const current = computeCurrentIdentity(identityStats);
+    const current = identity;
     if (current.tier > 0 && shouldCelebrate(current.tier)) {
       acknowledgeUnlock(current.tier);
       setIdentityUnlock(current);
     }
-  }, [identityStats]);
+  }, [identity]);
 
   // Re-evaluate for a fresh tier unlock after any quiz activity (history or
   // attempt count changes), so the celebration fires right after a milestone.
@@ -2644,7 +2681,7 @@ useEffect(() => {
       createRoom, joinRoom, leaveRoom, getActiveRooms, getMyRoom,
       bumpGroupQuizStreak, fetchGlobalRank,
       streakFreezeActive, setStreakFreezeActive,
-      identity, identityProgress, identityUnlock, dismissIdentityUnlock, refreshIdentityUnlock,
+      identity, identityProgress, identityUnlock, dismissIdentityUnlock, refreshIdentityUnlock, identityStats, serverIdentity, fetchIdentity,
       // ---- Command Center exports ----
       callApexApi, SC_FEATURE_LOCKED, isPremium,
       courseQuota, quotaFetchStatus, courseQuotaAvailable: quotaFetchStatus === 'ok', fetchCourseQuotaStatus, consumeCourseQuota,

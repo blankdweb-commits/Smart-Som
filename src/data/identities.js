@@ -14,7 +14,7 @@ export const IDENTITIES = [
     emoji: '👶',
     tagline: 'Every scholar starts small.',
     color: 'from-slate-400 to-slate-500',
-    required: { totalAttempts: 0, quizStreak: 0, cardsStudied: 0, accuracy: 0, scEarned: 0, speedRuns: 0 }
+    required: { totalAttempts: 0, quizStreak: 0, cardsStudied: 0, accuracy: 0, scEarned: 0 }
   },
   {
     tier: 1,
@@ -62,7 +62,7 @@ export const IDENTITIES = [
     emoji: '⚔️',
     tagline: 'Sharpened in the XP Hall arena.',
     color: 'from-orange-400 to-orange-600',
-    required: { totalAttempts: 550, accuracy: 62, speedRuns: 3 }
+    required: { totalAttempts: 550, accuracy: 62 }
   },
   {
     tier: 7,

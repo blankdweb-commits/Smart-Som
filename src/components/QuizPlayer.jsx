@@ -26,7 +26,7 @@ const pad = (n) => String(n).padStart(2, '0');
  * Conceptual Misalignment, per-question timer, exam vs instant feedback.
  */
 const QuizPlayer = ({ questions, config, modeLabel, onSound, onSoundStop, onAnswer, onComplete, onQuit, onExitSoundStart, onExitSoundStop }) => {
-  const { smartCoins, spendSC, streakFreezeActive, setStreakFreezeActive, submitQuestionFeedback } = useAppContext();
+  const { smartCoins, spendSC, streakFreezeActive, setStreakFreezeActive, submitQuestionFeedback, identity } = useAppContext();
   const total = questions.length;
   const [idx, setIdx] = useState(0);
   const [selected, setSelected] = useState(null);
@@ -321,6 +321,12 @@ const QuizPlayer = ({ questions, config, modeLabel, onSound, onSoundStop, onAnsw
               {config.difficulty && (
                 <span className="px-3 py-1 bg-amber-500/20 text-amber-300 rounded-full text-[9px] font-black uppercase tracking-widest border border-amber-500/30">
                   {config.difficulty}
+                </span>
+              )}
+              {identity && (
+                <span className="px-3 py-1 bg-slate-500/20 text-slate-200 rounded-full text-[9px] font-black uppercase tracking-widest border border-slate-500/30 inline-flex items-center gap-1">
+                  <span className="text-[11px] leading-none">{identity.emoji}</span>
+                  {identity.name}
                 </span>
               )}
               {hasTimer && (

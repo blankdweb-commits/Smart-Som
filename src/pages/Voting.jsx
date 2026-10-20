@@ -4,9 +4,10 @@ import { useAppContext } from '../context/AppContext';
 import { supabase } from '../utils/supabase';
 import TutorialTip from '../components/TutorialTip';
 import AdSenseSlot from '../components/ads/AdSenseSlot';
+import Modal from '../components/Modal';
 import {
   Star, BarChart2, Trophy, Loader2, CheckCircle, Users, Clock, Flag,
-  AlertCircle, Shield, RefreshCw, ChevronRight,
+  AlertCircle, Shield, RefreshCw, ChevronRight, ChevronDown,
 } from 'lucide-react';
 
 // ============================================================================
@@ -761,15 +762,47 @@ const Voting = () => {
   );
 };
 
-// The campaign detail sheet: rules first, then standings, then the vote.
+// The campaign detail sheet — CANDIDATES FIRST, then the vote, then (only
+// after you have voted) the standings. Rules and eligibility are a disclosure,
+// because they are read once and the ballot is what people came for.
+//
+// Standings are hidden until the viewer has cast their vote in THIS campaign.
+// That is a deliberate product choice: a live tally on an open ballot lets a
+// reader pick the winner instead of the best candidate. The server's own
+// `results_visible` flag is honoured independently — a closed campaign with
+// results published still shows them to everyone, whether they voted or not.
 const CampaignSheet = ({
   campaign, standings, maxVotes, results, myVote, voteBusy, votePending, error, onVote, onClose,
   isAdmin, voteRows, auditRows, voiding, onVoid,
 }) => {
   const canVote = campaign.status === 'active' && new Date(campaign.starts_at) <= new Date();
-  const visible = !!results?.results_visible;
+  const closed = campaign.status === 'closed' || campaign.status === 'ended';
+  const published = !!results?.results_visible;
+  // Results are revealed either because the campaign closed and the server
+  // published them, or because this viewer has already voted here.
+  const hasVoted = !!myVote;
+  const showStandings = (published || hasVoted) && standings.length > 0;
   const totalVotes = standings.reduce((s, r) => s + r.votes, 0);
   const leaders = standings.filter((r) => r.rank === 1);
+
+  const [rulesOpen, setRulesOpen] = useState(false);
+  const [confirmId, setConfirmId] = useState(null);
+  const confirmCandidate = standings.find((c) => c.id === confirmId) || null;
+
+  // Candidates are the ballot. When results are visible we can rank them; while
+  // the ballot is open the order is stable and alphabetical, so an in-flight
+  // tally can never nudge the list under the reader's finger.
+  const ballot = useMemo(() => {
+    const rows = results?.candidates || [];
+    if (showStandings && standings.length) return standings;
+    return [...rows].sort((a, b) => String(a.name).localeCompare(String(b.name)));
+  }, [results, standings, showStandings]);
+
+  const castConfirmed = () => {
+    const id = confirmId;
+    setConfirmId(null);
+    if (id) onVote(id);
+  };
 
   return (
     <div className="fixed inset-0 z-40 flex items-end sm:items-center justify-center bg-black/70 p-0 sm:p-4"
@@ -787,32 +820,46 @@ const CampaignSheet = ({
           <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">{campaign.description}</p>
         )}
 
-        <div className="mt-4 space-y-2 text-[11px]">
-          <p className="flex items-start gap-2 text-slate-500 dark:text-slate-400">
-            <Clock size={13} className="mt-0.5 shrink-0" />
-            <span>
-              {new Date(campaign.starts_at).toLocaleDateString()} — {new Date(campaign.ends_at).toLocaleDateString()}
-              {campaign.status === 'active' && <span className="ml-1 font-black text-emerald-500">· {fmtCountdown(campaign.ends_at)}</span>}
-            </span>
-          </p>
-          {campaign.eligibility_note && (
-            <p className="flex items-start gap-2 text-slate-500 dark:text-slate-400">
-              <Shield size={13} className="mt-0.5 shrink-0" />
-              <span><strong className="text-slate-700 dark:text-slate-200">Who can vote:</strong> {campaign.eligibility_note}</span>
-            </p>
+        {/* Rules + eligibility: read-once information, disclosed on demand. */}
+        <div className="mt-3">
+          <button
+            type="button"
+            onClick={() => setRulesOpen((v) => !v)}
+            aria-expanded={rulesOpen}
+            className="w-full flex items-center justify-between gap-2 min-h-[40px] rounded-xl bg-slate-50 dark:bg-slate-800/60 px-3 text-[11px] font-black uppercase tracking-widest text-slate-500 dark:text-slate-400"
+          >
+            <span className="flex items-center gap-2"><Shield size={13} /> Rules &amp; eligibility</span>
+            <ChevronDown size={14} className={`transition-transform ${rulesOpen ? 'rotate-180' : ''}`} />
+          </button>
+          {rulesOpen && (
+            <div className="mt-2 space-y-2 text-[11px] px-1">
+              <p className="flex items-start gap-2 text-slate-500 dark:text-slate-400">
+                <Clock size={13} className="mt-0.5 shrink-0" />
+                <span>
+                  {new Date(campaign.starts_at).toLocaleDateString()} — {new Date(campaign.ends_at).toLocaleDateString()}
+                  {campaign.status === 'active' && <span className="ml-1 font-black text-emerald-500">· {fmtCountdown(campaign.ends_at)}</span>}
+                </span>
+              </p>
+              {campaign.eligibility_note && (
+                <p className="flex items-start gap-2 text-slate-500 dark:text-slate-400">
+                  <Shield size={13} className="mt-0.5 shrink-0" />
+                  <span><strong className="text-slate-700 dark:text-slate-200">Who can vote:</strong> {campaign.eligibility_note}</span>
+                </p>
+              )}
+              {campaign.rules_note && (
+                <p className="flex items-start gap-2 text-slate-500 dark:text-slate-400">
+                  <BarChart2 size={13} className="mt-0.5 shrink-0" />
+                  <span><strong className="text-slate-700 dark:text-slate-200">Rules:</strong> {campaign.rules_note}</span>
+                </p>
+              )}
+              <p className="flex items-start gap-2 text-slate-500 dark:text-slate-400">
+                <Users size={13} className="mt-0.5 shrink-0" />
+                <span>
+                  {campaign.votes_per_user} {campaign.votes_per_user === 1 ? 'vote' : 'votes'} per account, per campaign.
+                </span>
+              </p>
+            </div>
           )}
-          {campaign.rules_note && (
-            <p className="flex items-start gap-2 text-slate-500 dark:text-slate-400">
-              <BarChart2 size={13} className="mt-0.5 shrink-0" />
-              <span><strong className="text-slate-700 dark:text-slate-200">Rules:</strong> {campaign.rules_note}</span>
-            </p>
-          )}
-          <p className="flex items-start gap-2 text-slate-500 dark:text-slate-400">
-            <Users size={13} className="mt-0.5 shrink-0" />
-            <span>
-              {campaign.votes_per_user} {campaign.votes_per_user === 1 ? 'vote' : 'votes'} per account, per campaign.
-            </span>
-          </p>
         </div>
 
         {error && (
@@ -821,20 +868,34 @@ const CampaignSheet = ({
           </p>
         )}
 
-        {/* Standings */}
+        {/* The ballot. Candidates first, the vote right where you read it. */}
         <div className="mt-5">
           <div className="flex items-center justify-between mb-2">
-            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">Standings</h3>
-            {visible && <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 tabular-nums">{totalVotes} vote{totalVotes === 1 ? '' : 's'}</span>}
+            <h3 className="text-[10px] font-black uppercase tracking-widest text-slate-400">
+              {showStandings ? 'Standings' : 'Candidates'}
+            </h3>
+            {showStandings && (
+              <span className="text-[10px] font-black uppercase tracking-widest text-slate-400 tabular-nums">{totalVotes} vote{totalVotes === 1 ? '' : 's'}</span>
+            )}
           </div>
 
-          {!visible && (
-            <p className="rounded-xl bg-slate-100 dark:bg-slate-800 px-3.5 py-3 text-xs text-slate-500 dark:text-slate-400">
-              Results for this campaign are not published until voting closes.
+          {!showStandings && (
+            <p className="mb-2 rounded-xl bg-slate-100 dark:bg-slate-800 px-3.5 py-3 text-xs text-slate-500 dark:text-slate-400">
+              {!published
+                ? (closed
+                  ? 'Results for this campaign are not published until voting closes.'
+                  : 'The live tally for this campaign is not published while voting is open.')
+                : 'The live tally stays hidden until you vote, so nobody can pick a winner just because they are ahead. Cast your vote to see the standings.'}
             </p>
           )}
 
-          {visible && leaders.length > 1 && (
+          {showStandings && !hasVoted && published && (
+            <p className="mb-2 rounded-xl bg-slate-100 dark:bg-slate-800 px-3.5 py-2.5 text-[11px] text-slate-500 dark:text-slate-400">
+              Voting has closed. These are the final standings.
+            </p>
+          )}
+
+          {showStandings && leaders.length > 1 && (
             <p className="mb-2 text-[11px] text-slate-500 dark:text-slate-400">
               {leaders.length} candidates are level on {leaders[0].votes} vote{leaders[0].votes === 1 ? '' : 's'}.
               A lead this small is not a win — it can still change until voting closes.
@@ -842,14 +903,16 @@ const CampaignSheet = ({
           )}
 
           <ul className="space-y-2">
-            {standings.map((c) => (
+            {ballot.map((c) => (
               <li key={c.id} className="rounded-xl border border-slate-200 dark:border-slate-700 p-3">
                 <div className="flex items-center gap-2.5">
-                  <span className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-black ${
-                    c.rank === 1 ? 'bg-amber-400 text-amber-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
-                  }`}>
-                    {c.rank}
-                  </span>
+                  {showStandings && (
+                    <span className={`shrink-0 w-7 h-7 rounded-lg flex items-center justify-center text-[11px] font-black ${
+                      c.rank === 1 ? 'bg-amber-400 text-amber-900' : 'bg-slate-100 dark:bg-slate-800 text-slate-500'
+                    }`}>
+                      {c.rank}
+                    </span>
+                  )}
                   {c.image_url ? (
                     <img src={c.image_url} alt="" loading="lazy"
                       className="shrink-0 w-9 h-9 rounded-lg object-cover" />
@@ -857,17 +920,21 @@ const CampaignSheet = ({
                   <div className="min-w-0 flex-1">
                     <p className="text-sm font-black text-slate-800 dark:text-slate-100 truncate">{c.name}</p>
                   </div>
-                  <span className="shrink-0 text-sm font-black text-slate-800 dark:text-white tabular-nums">{c.votes}</span>
+                  <span className="shrink-0 text-sm font-black text-slate-800 dark:text-white tabular-nums">
+                    {showStandings ? c.votes : ''}
+                  </span>
                 </div>
 
                 {/* Live progress bar. Width is stable, so a realtime update
                     never nudges the layout. */}
-                <div className="mt-2 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
-                  <div
-                    className="h-full rounded-full bg-teal-500 transition-[width] duration-500 motion-reduce:transition-none"
-                    style={{ width: `${maxVotes ? (c.votes / maxVotes) * 100 : 0}%` }}
-                  />
-                </div>
+                {showStandings && (
+                  <div className="mt-2 h-1.5 rounded-full bg-slate-100 dark:bg-slate-800 overflow-hidden">
+                    <div
+                      className="h-full rounded-full bg-teal-500 transition-[width] duration-500 motion-reduce:transition-none"
+                      style={{ width: `${maxVotes ? (c.votes / maxVotes) * 100 : 0}%` }}
+                    />
+                  </div>
+                )}
 
                 {c.statement && (
                   <p className="mt-2 text-[11px] text-slate-500 dark:text-slate-400 leading-snug">{c.statement}</p>
@@ -875,7 +942,7 @@ const CampaignSheet = ({
 
                 {canVote && !myVote && (
                   <button
-                    onClick={() => onVote(c.id)}
+                    onClick={() => setConfirmId(c.id)}
                     disabled={voteBusy}
                     className="mt-2.5 w-full min-h-[44px] rounded-xl bg-teal-600 text-white text-[11px] font-black uppercase tracking-widest disabled:opacity-50 flex items-center justify-center gap-1.5"
                   >
@@ -897,6 +964,36 @@ const CampaignSheet = ({
             ))}
           </ul>
         </div>
+
+        {/* A vote cannot be changed afterwards, so it is confirmed first. */}
+        <Modal
+          isOpen={!!confirmCandidate}
+          onClose={() => setConfirmId(null)}
+          label="Confirm your vote"
+          variant="center"
+        >
+          <div className="p-5">
+            <h3 className="text-base font-black text-slate-900 dark:text-white">Confirm your vote</h3>
+            <p className="mt-2 text-sm text-slate-600 dark:text-slate-300 leading-relaxed">
+              You are voting for <strong className="text-slate-900 dark:text-white">{confirmCandidate?.name}</strong>.
+              A vote cannot be changed or withdrawn after it is recorded.
+            </p>
+            <div className="mt-4 flex gap-2">
+              <button
+                onClick={() => setConfirmId(null)}
+                className="flex-1 min-h-[44px] rounded-xl border border-slate-200 dark:border-slate-700 text-slate-600 dark:text-slate-300 text-[11px] font-black uppercase tracking-widest"
+              >
+                Cancel
+              </button>
+              <button
+                onClick={castConfirmed}
+                className="flex-1 min-h-[44px] rounded-xl bg-teal-600 text-white text-[11px] font-black uppercase tracking-widest"
+              >
+                Confirm vote
+              </button>
+            </div>
+          </div>
+        </Modal>
 
         <p className="mt-5 flex items-start gap-2 text-[10px] text-slate-400 leading-relaxed">
           <RefreshCw size={11} className="mt-0.5 shrink-0" />

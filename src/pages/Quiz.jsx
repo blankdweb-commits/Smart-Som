@@ -449,7 +449,7 @@ const Quiz = () => {
   const attemptIdRef = React.useRef(null);
 
   // ----- Difficulty progression -----
-const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchGlobalRank, studyStats, session, fetchQuestionHistory, isPremium, fetchCourseQuotaStatus, courseQuota, quotaFetchStatus } = useAppContext();
+const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchGlobalRank, studyStats, session, fetchQuestionHistory, isPremium, fetchCourseQuotaStatus, courseQuota, quotaFetchStatus, identity } = useAppContext();
 
   const [globalRank, setGlobalRank] = useState(null);
 
@@ -1329,6 +1329,12 @@ const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, lo
             <div className="min-w-0 flex-1 order-1 sm:order-2">
               <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight uppercase">Quiz Modes</h1>
               <p className="text-slate-500 dark:text-slate-400 font-medium mt-1 uppercase tracking-[0.2em] text-[9px] sm:text-[10px]">Select your training intensity</p>
+              {identity && (
+                <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-0.5">
+                  <span className="text-sm leading-none">{identity.emoji}</span>
+                  <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">{identity.name}</span>
+                </div>
+              )}
             </div>
           </div>
           <div className="grid grid-cols-2 sm:flex items-center justify-between bg-white dark:bg-slate-800 p-3 sm:p-4 rounded-2xl sm:rounded-3xl shadow-clinical border border-slate-100 dark:border-slate-700 w-full">

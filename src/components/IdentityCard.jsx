@@ -4,10 +4,12 @@ import { ChevronRight, Sparkles } from './Icons';
 
 // Compact card showing the user's current identity tier, its emoji, and the
 // progress bar toward the next identity. Props:
-//   stats: { totalAttempts, quizStreak, cardsStudied, accuracy, scEarned, speedRuns }
+//   stats: { totalAttempts, quizStreak, cardsStudied, accuracy, scEarned }
+//   identity: optional pre-computed tier (from context) so this card agrees
+//     with the rest of the app instead of recomputing independently.
 //   onView: optional callback when the card is tapped (e.g. open a fuller modal)
-const IdentityCard = ({ stats = {}, onView = null }) => {
-  const current = computeCurrentIdentity(stats);
+const IdentityCard = ({ stats = {}, identity = null, onView = null }) => {
+  const current = identity || computeCurrentIdentity(stats);
   const progress = computeProgressToNext(stats, current);
 
   return (

@@ -228,8 +228,15 @@ const Rumble = () => {
   // PER-PLAYER. The server stores the caller's own toggle/pace events, so this
   // ring can never be imposed on the opponent. `paceTick` only exists to
   // re-render the ring every 100ms; the deadline itself is wall-clock.
+  //
+  // `preferredPace` is chosen BEFORE the match, on the picker, and survives
+  // clearMatch (it is a user preference, not match state). `flowPace` is the
+  // pace the SERVER currently has for this player in THIS match; the picker
+  // seeds it and every flow RPC can overwrite it. In-match, do not offer a
+  // second set of chips — the pace is decided once, before the clock starts.
   const [flowActive, setFlowActive] = useState(false);
   const [flowPace, setFlowPace] = useState(FLOW_DEFAULT_PACE);
+  const [preferredPace, setPreferredPace] = useState(FLOW_DEFAULT_PACE);
   const [flowBusy, setFlowBusy] = useState(false);
   const [paceTick, setPaceTick] = useState(0);
 
@@ -261,10 +268,15 @@ const Rumble = () => {
     else { arenaTrace('back', { fallback: '/dashboard', reason: 'no router history' }); navigate('/dashboard'); }
   }, [navigate]);
 
-  // While a stake is escrowed and an opponent has not confirmed, Back is
-  // hidden: Cancel is the only exit, and it refunds both sides. Leaving through
-  // a stale Back button could strand the pot.
-  const showBack = phase !== 'blitz-waiting';
+  // While a stake is escrowed the Back button is HIDDEN for the whole staked
+  // span — waiting (opponent not confirmed), the countdown, and the live round.
+  // Cancel/Forfeit is the only deliberate exit and it settles the pot; a Back
+  // button here could strand two players' stakes. On the result screen the
+  // button returns as a plain "return home", because the match is settled.
+  const STAKED_PHASES = ['blitz-waiting', 'blitz-countdown', 'blitz-play'];
+  const stakeHeld = STAKED_PHASES.includes(phase);
+  const showBack = !stakeHeld;
+  const onResult = phase === 'blitz-result';
 
   // The current user's id is already in the auth session, synchronously.
   // Do NOT call supabase.auth.getUser() here: it takes GoTrue's navigator
@@ -1007,14 +1019,19 @@ const Rumble = () => {
     setFlowBusy(true);
     flowBusyRef.current = true;
     setFlowActive(next);
+    // Turning Flow ON applies the pace chosen on the picker. Turning it off
+    // sends a null pace, which leaves the stored pace untouched server-side.
+    if (next) setFlowPace(preferredPace);
     paceShownIndexRef.current = blitzIndex;
     paceShownAtRef.current = Date.now();
     setPaceTick((n) => n + 1);
     try {
-      const res = await arenaFlow(mid, next, null, flowRequestId());
+      const res = await arenaFlow(mid, next, next ? preferredPace : null, flowRequestId());
       if (!res?.ok) {
         setFlowActive(!next);
         arenaTrace('flow-toggle-failed', { error: res?.error });
+      } else if (next && res.pace != null) {
+        setFlowPace(numOr(res.pace, preferredPace));
       }
     } catch {
       setFlowActive(!next);
@@ -1022,35 +1039,17 @@ const Rumble = () => {
       flowBusyRef.current = false;
       setFlowBusy(false);
     }
-  }, [arenaFlow, blitzMatch, blitzIndex, flowActive, flowBusy]);
+  }, [arenaFlow, blitzMatch, blitzIndex, flowActive, flowBusy, preferredPace]);
 
-  // Tapping a pace chip while Flow is off enables Flow at that pace: one clear
-  // action instead of a toggle-then-chip dance.
-  const choosePace = useCallback(async (pace) => {
-    const mid = matchIdRef.current || blitzMatch?.matchId;
-    if (!mid || flowBusy) return;
-    if (pace === flowPace && flowActive) return;
-    setFlowBusy(true);
-    flowBusyRef.current = true;
-    setFlowPace(pace);
-    setFlowActive(true);
-    paceShownIndexRef.current = blitzIndex;
-    paceShownAtRef.current = Date.now();
-    setPaceTick((n) => n + 1);
-    try {
-      const res = await arenaFlow(mid, true, pace, flowRequestId());
-      if (res?.ok) {
-        if (res.flowActive != null) setFlowActive(!!res.flowActive);
-        if (res.pace != null) setFlowPace(numOr(res.pace, pace));
-      } else {
-        arenaTrace('flow-pace-failed', { error: res?.error, pace });
-      }
-    } catch { /* the next arena_state poll reconciles */ }
-    finally {
-      flowBusyRef.current = false;
-      setFlowBusy(false);
-    }
-  }, [arenaFlow, blitzMatch, blitzIndex, flowActive, flowPace, flowBusy]);
+  // The pace is chosen on the PICKER, before the match, and stored as a
+  // preference. There is deliberately no in-match pace control: the ring's
+  // speed is decided once, so a live round has no chip to tap that could
+  // distract from the question (and no second way to change a server setting
+  // once the clock is already running).
+  const pickPace = useCallback((pace) => {
+    if (flowBusy) return;
+    setPreferredPace(pace);
+  }, [flowBusy]);
 
   const paceRemainingMs = useMemo(() => {
     if (!flowActive || phase !== 'blitz-play') return flowPace * 1000;
@@ -1214,11 +1213,12 @@ const Rumble = () => {
         <div className="flex items-center justify-between mb-10">
           {showBack ? (
             <button onClick={goBack} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors font-bold text-sm px-4 py-2 bg-white/5 rounded-2xl active:scale-95">
-              <ChevronLeft size={18} /> Back
+              <ChevronLeft size={18} /> {onResult ? 'Home' : 'Back'}
             </button>
           ) : (
-            // Deliberate placeholder: while a stake is held and an opponent has
-            // not confirmed, Back is hidden so the only way out is Cancel.
+            // Deliberate placeholder: while a stake is escrowed (waiting,
+            // countdown, or the live round) Back is hidden so the only way out
+            // is Cancel/Forfeit, which settles the pot.
             <span className="w-[84px]" aria-hidden="true" />
           )}
           <div className="flex items-center gap-2 px-4 py-2 bg-amber-500/10 border border-amber-500/20 rounded-2xl">
@@ -1325,6 +1325,33 @@ const Rumble = () => {
                 </div>
                 <h1 className="text-3xl font-black tracking-tight uppercase">1v1 Arena</h1>
                 <p className="text-slate-400 font-medium mt-2 text-sm">40 NMCN questions · one shared 90-second clock</p>
+              </div>
+
+              {/* Flow pace is chosen HERE, before the match. It is a per-player
+                  aid: it only auto-skips YOUR unanswered question, never touches
+                  the shared clock, and is never imposed on the opponent. */}
+              <div className="rounded-[2rem] border border-indigo-400/25 bg-indigo-500/[0.07] p-4">
+                <div className="flex items-center justify-between gap-3">
+                  <div className="min-w-0">
+                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-300 flex items-center gap-2">
+                      <Zap size={13} fill="currentColor" /> Flow State pace
+                    </p>
+                    <p className="text-[11px] text-white/50 font-medium mt-1 leading-snug">
+                      Auto-skips your unanswered question after this long. You can toggle Flow on or off mid-duel.
+                    </p>
+                  </div>
+                </div>
+                <div className="mt-3 grid grid-cols-4 gap-2">
+                  {FLOW_PACES.map((p) => (
+                    <button key={p} onClick={() => pickPace(p)}
+                      className={`py-2.5 rounded-2xl text-xs font-black tabular-nums transition-all active:scale-95 ${preferredPace === p ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'bg-white/5 text-white/50 hover:text-white/80'}`}>
+                      {p}s
+                    </button>
+                  ))}
+                </div>
+                <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-white/30">
+                  Default {FLOW_DEFAULT_PACE}s · server-checked 3–12s
+                </p>
               </div>
 
               {!canAffordStake ? (
@@ -1641,7 +1668,8 @@ const Rumble = () => {
 
               {/* Flow State — YOUR rhythm. It never pauses or extends the shared
                   90s clock; it only auto-skips YOUR unanswered question (0 pts)
-                  once the ring runs out. The pace is server-validated (3-12s). */}
+                  once the ring runs out. The pace was chosen on the picker and
+                  is server-validated (3-12s); here it is shown, not edited. */}
               <div className={`rounded-2xl border p-3.5 transition-all ${flowActive ? 'bg-indigo-500/10 border-indigo-400/40' : 'bg-white/[0.03] border-white/10'}`}>
                 <div className="flex items-center justify-between gap-3">
                   <button onClick={toggleFlow} disabled={flowBusy}
@@ -1651,14 +1679,9 @@ const Rumble = () => {
                     </span>
                     <span className="text-[10px] font-black uppercase tracking-widest text-white/70">Flow State</span>
                   </button>
-                  <div className="flex items-center gap-1.5">
-                    {FLOW_PACES.map((p) => (
-                      <button key={p} onClick={() => choosePace(p)} disabled={flowBusy}
-                        className={`px-2.5 py-1 rounded-full text-[10px] font-black tabular-nums transition-all active:scale-95 disabled:opacity-50 ${flowPace === p ? 'bg-indigo-500 text-white' : 'bg-white/5 text-white/40 hover:text-white/70'}`}>
-                        {p}s
-                      </button>
-                    ))}
-                  </div>
+                  <span className="rounded-full bg-white/5 px-2.5 py-1 text-[10px] font-black tabular-nums text-white/50">
+                    {flowActive ? `${flowPace}s pace` : `off · ${preferredPace}s set`}
+                  </span>
                 </div>
                 {flowActive && (
                   <div className="mt-2.5">

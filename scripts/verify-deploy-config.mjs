@@ -3633,8 +3633,10 @@ checks.push(
     /window\.history\?\.state\?\.idx/.test(v64Hall)
       && /navigate\(-1\)/.test(v64Hall)
       && !/navigate\("\/quiz"\)/.test(v64Hall)
-      && /const showBack = phase !== 'blitz-waiting'/.test(v64Hall)
-      ? ok('Rumble: Back goes to the previous screen (with a /dashboard fallback) and is hidden while a stake is held')
+      // v105/A widened this from "not while waiting" to the WHOLE staked span.
+      && /const STAKED_PHASES = \['blitz-waiting', 'blitz-countdown', 'blitz-play'\]/.test(v64Hall)
+      && /const showBack = !stakeHeld/.test(v64Hall)
+      ? ok('Rumble: Back goes to the previous screen (with a /dashboard fallback) and is hidden across the whole staked span')
       : fail('Rumble: Back is still hardcoded, or is still shown during a search'),
   );
   checks.push(
@@ -4546,9 +4548,13 @@ checks.push(
   checks.push(
     !/scEarned: smartCoins \|\| 0/.test(read(resolve(ROOT, 'src/context/AppContext.jsx')))
       && !/scEarned: smartCoins \|\| 0/.test(read(resolve(ROOT, 'src/pages/Dashboard.jsx')))
+      // v105: the Dashboard no longer recomputes its own stats (it passed the
+      // CURRENT BALANCE-shaped object and could disagree with the context);
+      // it now consumes the context identityStats, so the only scEarned
+      // expression that may exist is the lifetime-ledger one in AppContext.
       && /scEarned: scEarnedTotal \|\| 0/.test(read(resolve(ROOT, 'src/context/AppContext.jsx')))
-      && /scEarned: scEarnedTotal \|\| 0/.test(read(resolve(ROOT, 'src/pages/Dashboard.jsx')))
-      ? ok('the client no longer feeds the CURRENT BALANCE into the identity tiers (both call sites updated)')
+      && !/scEarned:/.test(read(resolve(ROOT, 'src/pages/Dashboard.jsx')))
+      ? ok('the client no longer feeds the CURRENT BALANCE into the identity tiers, and the Dashboard consumes the context stats instead of recomputing them')
       : fail('scEarned is still the balance in the client'),
   );
   checks.push(
@@ -5756,13 +5762,19 @@ checks.push(
       ? ok('v104: AppContext exposes an arenaFlow wrapper over arena_flow')
       : fail('v104: the arenaFlow client wrapper is missing from AppContext'),
 
-    // Rumble wiring: pace range, per-player reset, exactly-once skip, no bonus
+    // Rumble wiring: pace range, per-player reset, exactly-once skip, no bonus.
+    // Workstream D moved the pace chips to the PICKER: the pace is set once,
+    // before the match, as a preference (`preferredPace`), and there is NO
+    // in-match pace control (the in-match card shows the pace, read-only).
     /const FLOW_PACES = \[3, 6, 9, 12\]/.test(rumble)
       && /flow-auto-skip/.test(rumble)
       && /paceSkipForRef/.test(rumble)
       && /blitzPick\(null\)/.test(rumble)
-      ? ok('v104: Rumble wires the 3–12 pace chips and a once-per-question auto-skip')
-      : fail('v104: the Rumble flow wiring is incomplete'),
+      && /const \[preferredPace, setPreferredPace\] = useState\(FLOW_DEFAULT_PACE\)/.test(rumble)
+      && /const pickPace = useCallback/.test(rumble)
+      && !/choosePace/.test(rumble)
+      ? ok('v104/D: Rumble wires the 3–12 pace range, a picker-time pace preference and a once-per-question auto-skip (no in-match pace chips)')
+      : fail('v104/D: the Rumble flow wiring is incomplete (pace must be chosen pre-match)'),
 
     // the ring only ever triggers a SKIP, and the 90s clock drives settlement
     /const BLITZ_DURATION_MS = 90 \* 1000/.test(rumble)
@@ -5774,6 +5786,137 @@ checks.push(
     /FLOW STATE \(migration v104\)/.test(e2e) && /arena_flow/.test(e2e)
       ? ok('v104: e2e-arena covers the per-player flow contract')
       : fail('v104: the arena e2e suite has no flow section'),
+  );
+}
+
+// ===========================================================================
+// PART V — DB-AUTHORITATIVE IDENTITY TIER (v105)
+// ===========================================================================
+//
+// The 12-tier identity ladder was computed ONLY on the client, from four
+// locally-derived aggregates, so two surfaces could disagree and a partial
+// client read could show a tier the server would not corroborate. v105 adds
+// get_my_identity(), a SECURITY DEFINER RPC that computes the SAME ladder from
+// persisted facts. The checks below pin down:
+//   1. speedRuns is gone from EVERY layer (it was client-only and permanently
+//      capped the ladder at tier 4, since it defaulted to 0);
+//   2. the SQL threshold table mirrors src/data/identities.js;
+//   3. the RPC is anon-denied and AppContext prefers the server tier, with the
+//      client engine as fallback;
+//   4. the tier is actually SHOWN in the quiz flow (not just computed).
+// ---------------------------------------------------------------------------
+{
+  const v105 = read(resolve(ROOT, 'scripts/migration-v105-identity-rpc.sql'));
+  const identities = read(resolve(ROOT, 'src/data/identities.js'));
+  const engine = read(resolve(ROOT, 'src/utils/identityEngine.js'));
+  const ctx = read(resolve(ROOT, 'src/context/AppContext.jsx'));
+  const quiz = read(resolve(ROOT, 'src/pages/Quiz.jsx'));
+  const quizPlayer = read(resolve(ROOT, 'src/components/QuizPlayer.jsx'));
+
+  checks.push(
+    // speedRuns removal — client-only metric that gated tier 5/6 forever.
+    !/speedRuns/.test(identities)
+      && !/speedRuns/.test(engine)
+      && !/speedRuns/.test(ctx)
+      ? ok('v105: speedRuns is removed from the tier table, the engine and the context (it was client-only and capped the ladder at tier 4)')
+      : fail('v105: speedRuns still appears in the identity stack - tiers 5/6 stay unreachable'),
+
+    // the SQL RPC exists and is a SECURITY DEFINER that defaults to auth.uid()
+    /create or replace function public\.get_my_identity\(p_user uuid default null\)/.test(v105)
+      && /security definer/.test(v105)
+      && /coalesce\(p_user, auth\.uid\(\)\)/.test(v105)
+      ? ok('v105: get_my_identity(user default auth.uid()) is a SECURITY DEFINER RPC')
+      : fail('v105: the get_my_identity RPC is missing or not a definer'),
+
+    // anon is explicitly revoked (the project auto-grants new functions)
+    /revoke all on function public\.get_my_identity\(uuid\) from public, anon/.test(v105)
+      && /grant execute on function public\.get_my_identity\(uuid\) to authenticated, service_role/.test(v105)
+      ? ok('v105: get_my_identity is authenticated+service_role only (anon revoked explicitly)')
+      : fail('v105: the get_my_identity ACLs are missing or too permissive'),
+
+    // the exact top-tier thresholds mirror the client ladder (spot-check the
+    // bounds so a drift in either file fails the gate)
+    /v_total_attempts >= 25/.test(v105) && /v_total_attempts >= 75 and v_accuracy >= 40/.test(v105)
+      && /v_total_attempts >= 550 and v_accuracy >= 62/.test(v105)
+      && /v_total_attempts >= 3000 and v_accuracy >= 80 and v_quiz_streak >= 10 and v_sc_earned >= 1000/.test(v105)
+      ? ok('v105: the SQL threshold table mirrors identities.js (tiers 1, 2, 6 and 11 spot-checked)')
+      : fail('v105: the SQL identity thresholds drifted from identities.js'),
+
+    // identity.js keeps those same thresholds (both sides asserted)
+    /required: \{ totalAttempts: 550, accuracy: 62 \}/.test(identities)
+      && /required: \{ totalAttempts: 3000, accuracy: 80, quizStreak: 10, scEarned: 1000 \}/.test(identities)
+      ? ok('v105: identities.js still carries the 550/62 and 3000/80/10/1000 thresholds')
+      : fail('v105: identities.js lost a tier threshold that the RPC mirrors'),
+
+    // AppContext prefers the server tier and falls back to the client engine
+    /rpc\('get_my_identity'\)/.test(ctx)
+      && /serverIdentity && serverIdentity\.tier != null/.test(ctx)
+      ? ok('v105: AppContext reads the server tier and falls back to the client engine')
+      : fail('v105: AppContext does not consult get_my_identity'),
+
+    // the tier is actually displayed in the quiz flow
+    /identity\.name/.test(quiz) && /identity\.name/.test(quizPlayer)
+      ? ok('v105: the identity tier is shown in both the quiz directory and the in-quiz header')
+      : fail('v105: the identity tier is computed but never shown in the quiz flow'),
+  );
+}
+
+// ===========================================================================
+// PART X — ARENA BACK BUTTON HIDDEN WHILE A STAKE IS HELD
+// ===========================================================================
+//
+// Back must never be reachable during the staked span (waiting / countdown /
+// live round), because leaving through it can strand two players' escrow;
+// Cancel/Forfeit is the only deliberate exit and it settles the pot. The gate
+// pins the STAKED_PHASES list itself, not just the presence of a showBack flag,
+// so widening the staked span without widening the hide cannot pass.
+// ---------------------------------------------------------------------------
+{
+  const rumble = read(resolve(ROOT, 'src/pages/Rumble.jsx'));
+  checks.push(
+    /const STAKED_PHASES = \['blitz-waiting', 'blitz-countdown', 'blitz-play'\]/.test(rumble)
+      && /const showBack = !stakeHeld/.test(rumble)
+      ? ok('Arena: Back is hidden across the whole staked span (waiting, countdown, live round)')
+      : fail('Arena: Back is reachable while a stake is held'),
+    /const onResult = phase === 'blitz-result'/.test(rumble)
+      && /\{onResult \? 'Home' : 'Back'\}/.test(rumble)
+      ? ok('Arena: on the settled result screen the button returns as a plain Home action')
+      : fail('Arena: the result-screen Back/Home labelling is missing'),
+  );
+}
+
+// ===========================================================================
+// PART Y — VOTING: BALLOT FIRST, TALLY GATED ON VOTE
+// ===========================================================================
+//
+// The sheet used to lead with the rules and then show a live tally on an OPEN
+// ballot, so a reader could vote for whoever was already ahead. The redesign
+// puts the candidates (the actual ballot) first, moves the read-once rules into
+// a disclosure, and — the part that matters — hides the live tally until the
+// viewer has voted. A vote is irreversible, so it is confirmed first. The gates
+// below pin each of those, and in particular that the tally gate can never be
+// satisfied by `results_visible` alone.
+// ---------------------------------------------------------------------------
+{
+  const voting = read(resolve(ROOT, 'src/pages/Voting.jsx'));
+  checks.push(
+    /const showStandings = \(published \|\| hasVoted\) && standings\.length > 0/.test(voting)
+      && /const hasVoted = !!myVote/.test(voting)
+      ? ok('Voting: standings are gated on having voted (or on the server publishing results), never on results_visible alone')
+      : fail('Voting: the live tally can still be read before voting'),
+    /Rules &amp; eligibility/.test(voting) && /setRulesOpen/.test(voting)
+      && /aria-expanded=\{rulesOpen\}/.test(voting)
+      ? ok('Voting: rules and eligibility are a disclosure, so the ballot leads')
+      : fail('Voting: the rules block is not a disclosure'),
+    /Confirm your vote/.test(voting) && /onClick=\{\(\) => setConfirmId\(c\.id\)\}/.test(voting)
+      && /const castConfirmed = \(\) =>/.test(voting)
+      ? ok('Voting: a vote is confirmed before it is cast (it cannot be changed afterwards)')
+      : fail('Voting: a vote is cast with no confirmation'),
+    // The ballot renders the candidates even while the tally is hidden, so the
+    // page is a ballot and not an empty "results hidden" wall.
+    /const ballot = useMemo/.test(voting)
+      ? ok('Voting: the candidate list renders independently of the tally gate')
+      : fail('Voting: candidates disappear when the tally is hidden'),
   );
 }
 

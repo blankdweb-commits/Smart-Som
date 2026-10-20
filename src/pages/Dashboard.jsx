@@ -18,7 +18,7 @@ import { motion } from 'framer-motion'; // eslint-disable-line no-unused-vars
 
 const Dashboard = () => {
   const DEV_MODE = import.meta.env.VITE_DASHBOARD_DEV_MODE === 'true' || import.meta.env.VITE_DEV_DASHBOARD_MODE === 'true';
-  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, profileLoaded, learningAnalytics, quizHistory, smartCoins, scEarnedTotal, scLedger, claimDailySC, identity, identityUnlock, dismissIdentityUnlock, SC_FEATURE_LOCKED, userAchievements, achievementCatalog, fetchAchievementCatalog, fetchGlobalRank } = useAppContext();
+  const { flashcards, exams, studyStats, userProfile, session, loadingAuth, profileLoaded, learningAnalytics, quizHistory, smartCoins, scLedger, claimDailySC, identity, identityStats, identityUnlock, dismissIdentityUnlock, SC_FEATURE_LOCKED, userAchievements, achievementCatalog, fetchAchievementCatalog, fetchGlobalRank } = useAppContext();
   const navigate = useNavigate();
 
   // Server-authoritative global player score rank (migration v30). RPC-based;
@@ -371,15 +371,10 @@ const Dashboard = () => {
         </div>
 
         <div className="space-y-8">
-           <IdentityCard stats={{
-             totalAttempts: learningAnalytics.totalAttempts || 0,
-             quizStreak: studyStats.quizStreak || 0,
-             cardsStudied: studyStats.cardsStudied || 0,
-             accuracy: todayStats.accuracy,
-             // Lifetime earned, not the balance (migration v80).
-             scEarned: scEarnedTotal || 0,
-             speedRuns: 0
-           }} />
+           {/* Single source of truth: the same stats + tier the context derives
+               and the rest of the app reads, so this card can never disagree
+               with the Settings pill or the quiz header. */}
+           <IdentityCard stats={identityStats} identity={identity} />
 
            <GlobalRankCard rank={globalRankInfo} />
 
