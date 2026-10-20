@@ -47,6 +47,9 @@ const Achievements = lazy(() => import('./pages/Achievements'));
 const LegalPage = lazy(() => import('./pages/Legal'));
 const Landing = lazy(() => import('./pages/Landing'));
 const AchievementCelebration = lazy(() => import('./components/AchievementCelebration'));
+const LiveEvents = lazy(() => import('./pages/LiveEvents'));
+const LiveEventRoom = lazy(() => import('./pages/LiveEventRoom'));
+const AdminLiveEvents = lazy(() => import('./pages/AdminLiveEvents'));
 
 const PageLoader = () => (
   <div className="flex items-center justify-center h-screen bg-white dark:bg-slate-900">
@@ -104,12 +107,15 @@ const AppRouter = () => (
         <Route path="/settings" element={<RequireAuth><Settings /></RequireAuth>} />
         <Route path="/community" element={<RequireAuth><Community /></RequireAuth>} />
         <Route path="/community/:section" element={<RequireAuth><Community /></RequireAuth>} />
+        <Route path="/live-events" element={<RequireAuth><LiveEvents /></RequireAuth>} />
+        <Route path="/live-events/:id" element={<RequireAuth><LiveEventRoom /></RequireAuth>} />
         <Route path="/study-groups" element={<RequireAuth><StudyGroups /></RequireAuth>} />
         <Route path="/study-groups/:id" element={<RequireAuth><GroupPage /></RequireAuth>} />
         <Route path="/pronunciation" element={<RequireAuth><PronunciationHelper /></RequireAuth>} />
         <Route path="/admin/finance" element={<RequireAuth><AdminFinance /></RequireAuth>} />
         <Route path="/admin/questions" element={<RequireAuth><AdminQuestionManager /></RequireAuth>} />
         <Route path="/admin/users" element={<RequireAuth><AdminUsers /></RequireAuth>} />
+        <Route path="/admin/live-events" element={<RequireAuth><AdminLiveEvents /></RequireAuth>} />
       </Route>
 
       <Route path="/login" element={<Auth />} />

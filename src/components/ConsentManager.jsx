@@ -91,7 +91,7 @@ const ConsentDialog = ({ forceOpen = false }) => {
       <div className="space-y-5">
         <div className="flex items-center gap-2">
           <span className="w-10 h-10 rounded-xl bg-medical-100 dark:bg-medical-900/30 text-medical-600 dark:text-medical-400 flex items-center justify-center shrink-0">
-            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" className="w-5 h-5"><circle cx="12" cy="12" r="10"/><path d="M12 2v20m0-20h20"/></svg>
+            <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="w-5 h-5"><circle cx="12" cy="12" r="10"/><path d="M12 2v20m0-20h20"/></svg>
           </span>
           <div>
             <h2 className="text-base font-black text-slate-900 dark:text-white">Cookie &amp; local-storage consent</h2>

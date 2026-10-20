@@ -40,9 +40,18 @@ export function usePlayerSheet(options = {}) {
 
     // Best effort: a failure here must never stop the sheet from opening, so
     // the promise is deliberately not awaited and not awaited-then-checked.
+    //
+    // IMPORTANT: supabase-js's PostgrestFilterBuilder is a LAZY thenable. It
+    // has `.then` but NO `.catch`/`.finally` until something calls `.then`,
+    // and the network request is only dispatched when the thenable is
+    // subscribed to. The old guard `typeof p.catch === 'function'` was always
+    // FALSE here, so `.catch` was never attached and the RPC was built but
+    // NEVER SENT - every profile view was silently dropped. Subscribing with
+    // `.then(onFulfilled, onRejected)` both fires the request and swallows the
+    // failure, which is exactly the "best effort" contract this hook wants.
     try {
       const p = supabase?.rpc('profile_view_record', { p_profile: userId });
-      if (p && typeof p.catch === 'function') p.catch(() => {});
+      if (p && typeof p.then === 'function') p.then(() => {}, () => {});
     } catch {
       /* the sheet still opens; the view is simply not counted */
     }

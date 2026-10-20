@@ -4612,3 +4612,467 @@ export async function handleRelationshipRemove(req, res) {
   if (error) return res.status(500).json({ error: 'REMOVE_FAILED' });
   return res.status(200).json({ ok: true });
 }
+
+// ============================================================================
+// Anonymous Live Events — admin-managed, dedicated from the Anonymous Room.
+// Every handler runs service_role (getDb) but enforces auth + lifecycle in JS.
+// ============================================================================
+const LIVE_EVENT_CLOSED_NOTICE =
+  'This live event has closed. You can still read it, but no new messages or actions can be added.';
+
+const LIVE_EVENT_STATUS_ORDER = { live: 0, scheduled: 1, closed: 2, draft: 3, cancelled: 4 };
+
+const isUuid = (v) =>
+  typeof v === 'string' &&
+  /^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$/.test(v);
+
+const effectiveStatus = (row) => {
+  if (!row) return null;
+  if (row.status === 'cancelled') return 'cancelled';
+  if (row.status === 'closed') return 'closed';
+  if (row.status === 'live' && row.end_at && new Date(row.end_at).getTime() <= Date.now()) return 'closed';
+  if (row.status === 'scheduled' && row.start_at && new Date(row.start_at).getTime() <= Date.now()) return 'live';
+  return row.status;
+};
+
+// POST /api/community/live-events/list   {}
+// Discovery: live now, upcoming, recently closed. Real participant counts.
+export async function handleListLiveEvents(req, res) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+
+  const { data: events, error } = await supabase
+    .from('live_events')
+    .select('id, title, description, cover_url, status, start_at, end_at, created_by, created_at')
+    .order('status', { ascending: true })
+    .order('start_at', { ascending: true, nullsLast: true });
+
+  if (error) {
+    console.error('[live events list]', error);
+    return res.status(500).json({ error: 'Failed to load live events' });
+  }
+
+  const rows = (events || []).map((e) => ({
+    ...e,
+    state: effectiveStatus(e),
+  }));
+
+  // Real participant count: distinct authors who have sent a message in the event.
+  const eventIds = rows.map((e) => e.id);
+  let counts = {};
+  if (eventIds.length) {
+    const { data: msgCounts } = await supabase
+      .from('live_event_messages')
+      .select('event_id, author_id')
+      .in('event_id', eventIds);
+    if (msgCounts) {
+      for (const m of msgCounts) {
+        if (!counts[m.event_id]) counts[m.event_id] = new Set();
+        counts[m.event_id].add(m.author_id);
+      }
+    }
+  }
+
+  return res.status(200).json({
+    ok: true,
+    events: rows.map((e) => ({
+      id: e.id,
+      title: e.title,
+      description: e.description,
+      cover_url: e.cover_url,
+      status: e.state,
+      status_raw: e.status,
+      start_at: e.start_at,
+      end_at: e.end_at,
+      created_at: e.created_at,
+      created_by: e.created_by,
+      participant_count: counts[e.id] ? counts[e.id].size : 0,
+    })),
+  });
+}
+
+// POST /api/community/live-events/get   { event_id }
+// Read-only archive for closed events; full feed + composer availability for live ones.
+export async function handleGetLiveEvent(req, res) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+
+  const eventId = req.body?.event_id;
+  if (!isUuid(eventId)) return res.status(400).json({ error: 'Invalid event id' });
+
+  const { data: event, error } = await supabase
+    .from('live_events')
+    .select('id, title, description, cover_url, status, start_at, end_at, created_by, created_at, updated_at')
+    .eq('id', eventId)
+    .maybeSingle();
+  if (error) {
+    console.error('[live event get]', error);
+    return res.status(500).json({ error: 'Failed to load event' });
+  }
+  if (!event) return res.status(404).json({ error: 'EVENT_NOT_FOUND', message: 'No such live event.' });
+
+  const state = effectiveStatus(event);
+  const isClosed = state === 'closed' || state === 'cancelled';
+
+  // Latest 50 messages, oldest first so the feed renders top-to-bottom.
+  const { data: messages, error: mErr } = await supabase
+    .from('live_event_messages')
+    .select('id, author_id, author_alias, content, created_at')
+    .eq('event_id', eventId)
+    .order('created_at', { ascending: true })
+    .limit(50);
+
+  if (mErr) {
+    console.error('[live event get messages]', mErr);
+    return res.status(500).json({ error: 'Failed to load messages' });
+  }
+
+  // Reaction counts per message (only for messages in this batch).
+  const messageIds = (messages || []).map((m) => m.id);
+  let reactions = {};
+  if (messageIds.length) {
+    const { data: reacs } = await supabase
+      .from('live_event_reactions')
+      .select('message_id, emoji')
+      .in('message_id', messageIds);
+    if (reacs) {
+      for (const r of reacs) {
+        if (!reactions[r.message_id]) reactions[r.message_id] = {};
+        reactions[r.message_id][r.emoji] = (reactions[r.message_id][r.emoji] || 0) + 1;
+      }
+    }
+  }
+
+  return res.status(200).json({
+    ok: true,
+    event: {
+      id: event.id,
+      title: event.title,
+      description: event.description,
+      cover_url: event.cover_url,
+      status: state,
+      status_raw: event.status,
+      start_at: event.start_at,
+      end_at: event.end_at,
+      created_at: event.created_at,
+      updated_at: event.updated_at,
+      created_by: event.created_by,
+      closed_notice: isClosed ? LIVE_EVENT_CLOSED_NOTICE : null,
+    },
+    messages: (messages || []).map((m) => ({
+      id: m.id,
+      author_id: m.author_id,
+      author_alias: m.author_alias,
+      content: m.content,
+      created_at: m.created_at,
+      reactions: reactions[m.id] || {},
+    })),
+    can_write: state === 'live',
+    closed: isClosed,
+  });
+}
+
+// POST /api/community/live-events/create   { title, description, cover_url?, start_at?, end_at?, status? }  admin only
+export async function handleCreateLiveEvent(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+  if (!(await isAdminUser(user.id))) return res.status(403).json({ error: 'NOT_AUTHORIZED' });
+
+  const { title, description, cover_url, start_at, end_at, status } = req.body || {};
+  if (typeof title !== 'string' || title.trim().length < 1 || title.trim().length > 120)
+    return res.status(400).json({ error: 'Invalid title' });
+  if (typeof description !== 'string' || description.trim().length < 1 || description.trim().length > 2000)
+    return res.status(400).json({ error: 'Invalid description' });
+  const st = status && ['draft','scheduled','live'].includes(status) ? status : 'draft';
+
+  let startsAt = start_at ? new Date(start_at) : null;
+  let endsAt = end_at ? new Date(end_at) : null;
+  if (startsAt && endsAt && endsAt.getTime() <= startsAt.getTime())
+    return res.status(400).json({ error: 'end_at must be after start_at' });
+  if (st === 'live' && !endsAt) return res.status(400).json({ error: 'end_at is required to start an event' });
+  if (st === 'live' && !startsAt) startsAt = new Date();
+
+  const { data, error } = await supabase
+    .from('live_events')
+    .insert({
+      title: title.trim(),
+      description: description.trim(),
+      cover_url: cover_url || null,
+      status: st,
+      start_at: startsAt ? startsAt.toISOString() : null,
+      end_at: endsAt ? endsAt.toISOString() : null,
+      created_by: user.id,
+    })
+    .select('id, title, description, cover_url, status, start_at, end_at, created_at')
+    .maybeSingle();
+  if (error) {
+    console.error('[live event create]', error);
+    return res.status(500).json({ error: 'Failed to create event' });
+  }
+
+  publishRoomEvent(null, 'live_event_created', { event: data });
+  return res.status(200).json({ ok: true, event: data });
+}
+
+// POST /api/community/live-events/update   { event_id, title?, description?, cover_url?, start_at?, end_at?, status? }  admin only
+export async function handleUpdateLiveEvent(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+  if (!(await isAdminUser(user.id))) return res.status(403).json({ error: 'NOT_AUTHORIZED' });
+
+  const eventId = req.body?.event_id;
+  if (!isUuid(eventId)) return res.status(400).json({ error: 'Invalid event id' });
+
+  const { data: event, error } = await supabase
+    .from('live_events')
+    .select('id, status, start_at, end_at')
+    .eq('id', eventId)
+    .maybeSingle();
+  if (error) {
+    console.error('[live event update]', error);
+    return res.status(500).json({ error: 'Failed to load event' });
+  }
+  if (!event) return res.status(404).json({ error: 'EVENT_NOT_FOUND', message: 'No such live event.' });
+
+  const state = effectiveStatus(event);
+  if (state === 'closed' || state === 'cancelled')
+    return res.status(403).json({ error: 'TERMINAL', message: 'A closed or cancelled event cannot be edited.' });
+
+  // Once live or with participants, the deadline window is immutable.
+  const { data: msg } = await supabase
+    .from('live_event_messages')
+    .select('id')
+    .eq('event_id', eventId)
+    .limit(1)
+    .maybeSingle();
+  const hasParticipants = !!msg;
+  if ((state === 'live' || hasParticipants) && (req.body?.start_at !== undefined || req.body?.end_at !== undefined)) {
+    const newStart = req.body?.start_at ? new Date(req.body.start_at) : (event.start_at ? new Date(event.start_at) : null);
+    const newEnd = req.body?.end_at ? new Date(req.body.end_at) : (event.end_at ? new Date(event.end_at) : null);
+    const oldStart = event.start_at ? new Date(event.start_at) : null;
+    const oldEnd = event.end_at ? new Date(event.end_at) : null;
+    if (
+      (newStart && oldStart && newStart.getTime() !== oldStart.getTime()) ||
+      (newEnd && oldEnd && newEnd.getTime() !== oldEnd.getTime()) ||
+      (!!newStart !== !!oldStart) || (!!newEnd !== !!oldEnd)
+    ) {
+      return res.status(403).json({
+        error: 'EVENT_LOCKED',
+        message: 'The event deadline cannot be changed once the event has started or participants have joined.',
+      });
+    }
+  }
+
+  const patch = {};
+  if (req.body?.title !== undefined) {
+    const t = String(req.body.title).trim();
+    if (t.length < 1 || t.length > 120) return res.status(400).json({ error: 'Invalid title' });
+    patch.title = t;
+  }
+  if (req.body?.description !== undefined) {
+    const d = String(req.body.description).trim();
+    if (d.length < 1 || d.length > 2000) return res.status(400).json({ error: 'Invalid description' });
+    patch.description = d;
+  }
+  if (req.body?.cover_url !== undefined) patch.cover_url = String(req.body.cover_url).trim() || null;
+  if (req.body?.start_at !== undefined) patch.start_at = req.body.start_at ? new Date(req.body.start_at).toISOString() : null;
+  if (req.body?.end_at !== undefined) patch.end_at = req.body.end_at ? new Date(req.body.end_at).toISOString() : null;
+  if (req.body?.status !== undefined && ['draft','scheduled','live','closed','cancelled'].includes(req.body.status))
+    patch.status = req.body.status;
+  patch.updated_at = new Date().toISOString();
+
+  if (patch.start_at && patch.end_at && new Date(patch.end_at).getTime() <= new Date(patch.start_at).getTime())
+    return res.status(400).json({ error: 'end_at must be after start_at' });
+
+  const { data, error: uErr } = await supabase
+    .from('live_events')
+    .update(patch)
+    .eq('id', eventId)
+    .select('id, title, description, cover_url, status, start_at, end_at, updated_at')
+    .maybeSingle();
+  if (uErr) {
+    console.error('[live event update]', uErr);
+    return res.status(500).json({ error: 'Failed to update event' });
+  }
+
+  publishRoomEvent(null, 'live_event_updated', { event: data });
+  return res.status(200).json({ ok: true, event: data });
+}
+
+// POST /api/community/live-events/publish   { event_id }  admin only  (draft/scheduled -> scheduled)
+export async function handlePublishLiveEvent(req, res, user) {
+  return handleSetLiveEventStatus(req, res, user, 'scheduled');
+}
+
+// POST /api/community/live-events/start   { event_id }  admin only  (scheduled -> live)
+export async function handleStartLiveEvent(req, res, user) {
+  return handleSetLiveEventStatus(req, res, user, 'live');
+}
+
+// POST /api/community/live-events/cancel   { event_id }  admin only  (draft/scheduled -> cancelled)
+export async function handleCancelLiveEvent(req, res, user) {
+  return handleSetLiveEventStatus(req, res, user, 'cancelled');
+}
+
+// POST /api/community/live-events/close   { event_id, reason? }  admin only  (live -> closed)
+export async function handleCloseLiveEvent(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+  if (!(await isAdminUser(user.id))) return res.status(403).json({ error: 'NOT_AUTHORIZED' });
+
+  const eventId = req.body?.event_id;
+  if (!isUuid(eventId)) return res.status(400).json({ error: 'Invalid event id' });
+
+  const reason = req.body?.reason && ['deadline','moderator','admin','operational'].includes(req.body.reason)
+    ? req.body.reason
+    : 'admin';
+
+  const { data, error } = await supabase.rpc('live_event_close', { p_event: eventId, p_reason: reason });
+  if (error) {
+    console.error('[live event close]', error);
+    return res.status(500).json({ error: 'Failed to close event' });
+  }
+  if (!data || data.ok === false)
+    return res.status(409).json({ error: data?.code || 'CLOSE_FAILED', message: LIVE_EVENT_CLOSED_NOTICE });
+
+  publishRoomEvent(null, 'live_event_closed', { event_id: eventId, state: data.state });
+  return res.status(200).json({ ok: true, event_id: eventId, state: data.state, closed_notice: LIVE_EVENT_CLOSED_NOTICE });
+}
+
+async function handleSetLiveEventStatus(req, res, user, target) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+  if (!(await isAdminUser(user.id))) return res.status(403).json({ error: 'NOT_AUTHORIZED' });
+
+  const eventId = req.body?.event_id;
+  if (!isUuid(eventId)) return res.status(400).json({ error: 'Invalid event id' });
+
+  const { data: event, error } = await supabase
+    .from('live_events')
+    .select('id, status, start_at, end_at')
+    .eq('id', eventId)
+    .maybeSingle();
+  if (error) {
+    console.error(`[live event ${target}]`, error);
+    return res.status(500).json({ error: 'Failed to load event' });
+  }
+  if (!event) return res.status(404).json({ error: 'EVENT_NOT_FOUND', message: 'No such live event.' });
+
+  const state = effectiveStatus(event);
+  if (state === 'closed' || state === 'cancelled')
+    return res.status(403).json({ error: 'TERMINAL', message: 'A closed or cancelled event cannot be transitioned.' });
+
+  const allowed = {
+    draft: ['scheduled','live'],
+    scheduled: ['live','cancelled'],
+    live: [], // live -> closed handled by close handler
+  }[state] || [];
+  if (!allowed.includes(target))
+    return res.status(403).json({ error: 'INVALID_TRANSITION', message: `Cannot move ${state} to ${target}.` });
+
+  if (target === 'scheduled' && (!event.start_at || !event.end_at))
+    return res.status(400).json({ error: 'start_at and end_at are required to schedule' });
+  if (target === 'live' && !event.end_at)
+    return res.status(400).json({ error: 'end_at is required to start an event' });
+
+  const patch = { status: target, updated_at: new Date().toISOString() };
+  if (target === 'live' && !event.start_at) patch.start_at = new Date().toISOString();
+
+  const { data, error: uErr } = await supabase
+    .from('live_events')
+    .update(patch)
+    .eq('id', eventId)
+    .select('id, status, start_at, end_at, updated_at')
+    .maybeSingle();
+  if (uErr) {
+    console.error(`[live event ${target}]`, uErr);
+    return res.status(500).json({ error: 'Failed to transition event' });
+  }
+
+  publishRoomEvent(null, 'live_event_transitioned', { event_id: eventId, status: target, state: effectiveStatus(data) });
+  return res.status(200).json({ ok: true, event: data });
+}
+
+// POST /api/community/live-events/send   { event_id, content }   (authenticated, live only)
+export async function handleSendLiveEventMessage(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+
+  const eventId = req.body?.event_id;
+  const content = typeof req.body?.content === 'string' ? req.body.content.trim() : '';
+  if (!isUuid(eventId)) return res.status(400).json({ error: 'Invalid event id' });
+  if (content.length < 1 || content.length > 1000) return res.status(400).json({ error: 'Invalid content' });
+
+  const over = await supabase.rpc('_live_event_over', { p_event: eventId });
+  if (over.error || over.data === true)
+    return res.status(403).json({ error: 'EVENT_CLOSED', message: LIVE_EVENT_CLOSED_NOTICE });
+
+  const { data, error } = await supabase
+    .from('live_event_messages')
+    .insert({ event_id: eventId, author_id: user.id, author_alias: 'Anonymous Member', content })
+    .select('id, author_id, author_alias, content, created_at')
+    .maybeSingle();
+  if (error) {
+    console.error('[live event send]', error);
+    return res.status(500).json({ error: 'Failed to send message' });
+  }
+
+  publishRoomEvent(null, 'live_event_message', { event_id: eventId, message: data });
+  return res.status(200).json({ ok: true, message: data });
+}
+
+// POST /api/community/live-events/react   { message_id, emoji, active }   (authenticated, live only)
+export async function handleReactLiveEventMessage(req, res, user) {
+  const supabase = getDb();
+  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+
+  const messageId = req.body?.message_id;
+  const emoji = typeof req.body?.emoji === 'string' ? req.body.emoji.trim() : '';
+  const active = req.body?.active !== false;
+  if (!isUuid(messageId)) return res.status(400).json({ error: 'Invalid message id' });
+  if (emoji.length < 1 || emoji.length > 20) return res.status(400).json({ error: 'Invalid emoji' });
+
+  // Resolve the parent event so we can gate on its lifecycle.
+  const { data: message, error: mErr } = await supabase
+    .from('live_event_messages')
+    .select('id, event_id')
+    .eq('id', messageId)
+    .maybeSingle();
+  if (mErr) {
+    console.error('[live event react]', mErr);
+    return res.status(500).json({ error: 'Failed to load message' });
+  }
+  if (!message) return res.status(404).json({ error: 'MESSAGE_NOT_FOUND', message: 'No such message.' });
+
+  const over = await supabase.rpc('_live_event_over', { p_event: message.event_id });
+  if (over.error || over.data === true)
+    return res.status(403).json({ error: 'EVENT_CLOSED', message: LIVE_EVENT_CLOSED_NOTICE });
+
+  if (active) {
+    const { error } = await supabase
+      .from('live_event_reactions')
+      .insert({ message_id: messageId, event_id: message.event_id, user_id: user.id, emoji })
+      .select('id')
+      .maybeSingle();
+    if (error) {
+      // Duplicate (same user/emoji on same message) is idempotent — treat as ok.
+      if (error.code === '23505') return res.status(200).json({ ok: true, active: true });
+      console.error('[live event react insert]', error);
+      return res.status(500).json({ error: 'Failed to add reaction' });
+    }
+  } else {
+    const { error } = await supabase
+      .from('live_event_reactions')
+      .delete()
+      .eq('message_id', messageId)
+      .eq('user_id', user.id)
+      .eq('emoji', emoji);
+    if (error) {
+      console.error('[live event react delete]', error);
+      return res.status(500).json({ error: 'Failed to remove reaction' });
+    }
+  }
+
+  publishRoomEvent(null, 'live_event_reaction', { event_id: message.event_id, message_id: messageId, user_id: user.id, emoji, active });
+  return res.status(200).json({ ok: true, active });
+}

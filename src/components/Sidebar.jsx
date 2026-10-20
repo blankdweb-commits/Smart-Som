@@ -1,6 +1,6 @@
 import React from 'react';
 import { NavLink, useLocation } from 'react-router-dom';
-import { LayoutDashboard, BookOpen, Volume2, Settings, Award, Users, Search, Brain, FileUp, Shield, ShieldCheck, Coins, Target, Trophy, Sparkles, Swords, Wallet } from './Icons';
+import { LayoutDashboard, BookOpen, Volume2, Settings, Award, Users, Search, Brain, FileUp, Shield, ShieldCheck, Coins, Target, Trophy, Sparkles, Swords, Wallet, Calendar } from './Icons';
 import { useAppContext } from '../context/AppContext';
 import BrandLogo from './BrandLogo';
 
@@ -80,6 +80,7 @@ const Sidebar = () => {
     { name: 'User Management', icon: Users, path: '/admin/users' },
     { name: 'Question Bank', icon: Search, path: '/admin/questions' },
     { name: 'Marketplace', icon: FileUp, path: '/admin/marketplace' },
+    { name: 'Live Events', icon: Calendar, path: '/admin/live-events' },
   ] : [];
 
   return (

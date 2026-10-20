@@ -342,6 +342,17 @@ try {
     r2.data?.ok === true && r2.data?.status === 'ready' && r2.data?.canStart === true,
     `status=${r2.data?.status}`);
 
+  const r3 = await rpc(P1, 'arena_ready', { p_match_id: M1 });
+  log('P1 duplicate readiness is idempotent (safe replay, no double-ready)',
+    r3.data?.ok === true && r3.data?.status === 'ready',
+    `status=${r3.data?.status}`);
+
+  const staleId = uuid();
+  const r4 = await rpc(P1, 'arena_ready', { p_match_id: staleId });
+  log('stale match id is rejected with MATCH_NOT_FOUND, not silently accepted',
+    r4.data?.ok === false && r4.data?.error === 'MATCH_NOT_FOUND',
+    `error=${r4.data?.error}`);
+
   const s1 = await rpc(P1, 'arena_start', { p_match_id: M1 });
   const s2 = await rpc(P1, 'arena_start', { p_match_id: M1 });
   log('C4 start opens the shared 90s clock and is idempotent',
@@ -1246,6 +1257,129 @@ try {
     const anonResp = await anon.rpc('arena_invite_respond', { p_invite_id: 1, p_accept: true });
     log('O21 anon cannot respond to an invite', !!anonResp.error, `err=${anonResp.error?.message?.slice(0, 50)}`);
   }
+  }
+
+  // ================================================================
+  // P. FLOW STATE (migration v104) — a SELF-PACED ring on top of the
+  //    unchanged 90s wall clock. Per-player by design: one player's pace
+  //    can never slow the opponent down or punish them.
+  // ================================================================
+  {
+  const FLOW_A = await makeUser('flow_a', 20);
+  const FLOW_B = await makeUser('flow_b', 20);
+  const FLOW_C = await makeUser('flow_c', 20);
+  users.push(FLOW_A, FLOW_B, FLOW_C);
+
+  const flowCreate = await rpc(FLOW_A, 'arena_create_match',
+    { p_mode: 'duel', p_stake: 2, p_opponent_id: FLOW_B.id });
+  const FLOW_M = flowCreate.data?.matchId;
+  if (FLOW_M) createdMatchIds.add(FLOW_M);
+  await rpc(FLOW_A, 'arena_ready', { p_match_id: FLOW_M });
+  await rpc(FLOW_B, 'arena_ready', { p_match_id: FLOW_M });
+  const flowStart = await rpc(FLOW_A, 'arena_start', { p_match_id: FLOW_M });
+  log('P0 flow fixture is a live, started duel',
+    flowCreate.data?.ok === true && flowStart.data?.ok === true,
+    `match=${FLOW_M} start=${JSON.stringify(flowStart.data).slice(0, 80)}`);
+
+  const st0 = (await rpc(FLOW_A, 'arena_state', { p_match_id: FLOW_M })).data || {};
+  log('P1 a new player starts with Flow OFF at the 6s default',
+    st0.ok === true && st0.flowActive === false && Number(st0.pace) === 6
+      && Number(st0.flowOnMs) === 0,
+    `active=${st0.flowActive} pace=${st0.pace} onMs=${st0.flowOnMs}`);
+
+  const bad2 = await rpc(FLOW_A, 'arena_flow',
+    { p_match_id: FLOW_M, p_active: true, p_pace: 2 });
+  const bad13 = await rpc(FLOW_A, 'arena_flow',
+    { p_match_id: FLOW_M, p_active: true, p_pace: 13 });
+  log('P2 pace is clamped to 3–12 on the server (2 and 13 refused)',
+    bad2.data?.error === 'INVALID_PACE' && bad13.data?.error === 'INVALID_PACE',
+    `2=${JSON.stringify(bad2.data)} 13=${JSON.stringify(bad13.data)}`);
+
+  const onRes = await rpc(FLOW_A, 'arena_flow',
+    { p_match_id: FLOW_M, p_active: true, p_pace: 3 });
+  await sleep(450);
+  const stOn = (await rpc(FLOW_A, 'arena_state', { p_match_id: FLOW_M })).data || {};
+  log('P3 Flow can be switched ON at 3s and time is accumulated server-side',
+    onRes.data?.ok === true && onRes.data?.changed === true && onRes.data?.flowActive === true
+      && Number(onRes.data?.pace) === 3 && stOn.flowActive === true
+      && Number(stOn.pace) === 3 && Number(stOn.flowOnMs) >= 250,
+    `toggle=${JSON.stringify(onRes.data).slice(0, 100)} stateOnMs=${stOn.flowOnMs}`);
+
+  const rid = uuid();
+  const paceRes = await rpc(FLOW_A, 'arena_flow',
+    { p_match_id: FLOW_M, p_active: true, p_pace: 6, p_client_request_id: rid });
+  await sleep(200);
+  const paceReplay = await rpc(FLOW_A, 'arena_flow',
+    { p_match_id: FLOW_M, p_active: false, p_pace: 9, p_client_request_id: rid });
+  const flowRow = await matchRow(FLOW_M);
+  const aEvents = (flowRow?.flow_events || []).filter((e) => e.by === FLOW_A.id);
+  log('P4 a replayed request id is answered from the log and appends NOTHING',
+    paceRes.data?.changed === true && paceReplay.data?.ok === true
+      && paceReplay.data?.replay === true && paceReplay.data?.changed === false
+      && Number(paceReplay.data?.pace) === 6 && paceReplay.data?.flowActive === true
+      && aEvents.length === 2,
+    `replay=${JSON.stringify(paceReplay.data).slice(0, 110)} events=${aEvents.length}`);
+
+  log('P5 an unchanged repeat is a no-op rather than another event',
+    (await rpc(FLOW_A, 'arena_flow', { p_match_id: FLOW_M, p_active: true, p_pace: 6 }))
+      .data?.changed === false
+      && ((await matchRow(FLOW_M))?.flow_events || []).filter((e) => e.by === FLOW_A.id).length === 2);
+
+  const bBefore = (await rpc(FLOW_B, 'arena_state', { p_match_id: FLOW_M })).data || {};
+  const bToggle = await rpc(FLOW_B, 'arena_flow',
+    { p_match_id: FLOW_M, p_active: true, p_pace: 9 });
+  await sleep(350);
+  const aAfterB = (await rpc(FLOW_A, 'arena_state', { p_match_id: FLOW_M })).data || {};
+  const bAfter = (await rpc(FLOW_B, 'arena_state', { p_match_id: FLOW_M })).data || {};
+  log('P6 Flow is PER-PLAYER: B\'s pace 9 never changes A\'s pace 6 or A\'s ring',
+    bBefore.flowActive === false && bToggle.data?.ok === true && bToggle.data?.pace === 9
+      && aAfterB.flowActive === true && Number(aAfterB.pace) === 6
+      && bAfter.flowActive === true && Number(bAfter.pace) === 9,
+    `a=${aAfterB.flowActive}/${aAfterB.pace} b=${bAfter.flowActive}/${bAfter.pace}`);
+
+  const stranger = await rpc(FLOW_C, 'arena_flow',
+    { p_match_id: FLOW_M, p_active: true, p_pace: 6 });
+  log('P7 a non-participant cannot touch the match\'s flow',
+    stranger.data?.ok === false && stranger.data?.error === 'NOT_YOUR_MATCH',
+    `res=${JSON.stringify(stranger.data)}`);
+
+  const offRes = await rpc(FLOW_A, 'arena_flow',
+    { p_match_id: FLOW_M, p_active: false });
+  const stOff1 = (await rpc(FLOW_A, 'arena_state', { p_match_id: FLOW_M })).data || {};
+  await sleep(300);
+  const stOff2 = (await rpc(FLOW_A, 'arena_state', { p_match_id: FLOW_M })).data || {};
+  log('P8 switching Flow OFF freezes flowOnMs (the ring stops, the clock never does)',
+    offRes.data?.ok === true && offRes.data?.changed === true && stOff1.flowActive === false
+      && Number(stOff1.flowOnMs) === Number(stOff2.flowOnMs),
+    `onMs=${stOff1.flowOnMs} later=${stOff2.flowOnMs}`);
+
+  const paceIdle = await rpc(FLOW_A, 'arena_flow',
+    { p_match_id: FLOW_M, p_active: false, p_pace: 12 });
+  const stIdle = (await rpc(FLOW_A, 'arena_state', { p_match_id: FLOW_M })).data || {};
+  log('P9 a pace can be chosen while OFF (it applies when Flow is enabled)',
+    paceIdle.data?.ok === true && paceIdle.data?.changed === true
+      && paceIdle.data?.flowActive === false && Number(paceIdle.data?.pace) === 12
+      && stIdle.flowActive === false && Number(stIdle.pace) === 12,
+    `res=${JSON.stringify(paceIdle.data).slice(0, 100)}`);
+
+  log('P10 Flow never moves the 90s end time',
+    !!st0.endsAt && stOff2.endsAt === st0.endsAt,
+    `start=${st0.endsAt} now=${stOff2.endsAt}`);
+
+  // Expire the clock, then prove Flow cannot revive or settle a closed match.
+  await fastForward(FLOW_M);
+  const closed = await rpc(FLOW_A, 'arena_flow',
+    { p_match_id: FLOW_M, p_active: true, p_pace: 6 });
+  log('P11 a closed/expired match refuses Flow (MATCH_CLOSED, status=expired)',
+    closed.data?.ok === false && closed.data?.error === 'MATCH_CLOSED'
+      && closed.data?.status === 'expired',
+    `res=${JSON.stringify(closed.data)}`);
+
+  const anonFlow = createClient(URL, ANON, { auth: { persistSession: false } });
+  const anonRes = await anonFlow.rpc('arena_flow',
+    { p_match_id: FLOW_M, p_active: true, p_pace: 6 });
+  log('P12 anon cannot call arena_flow', !!anonRes.error,
+    `err=${anonRes.error?.message?.slice(0, 60)}`);
   }
 
 } catch (err) {

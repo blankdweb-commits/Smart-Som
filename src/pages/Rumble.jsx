@@ -6,7 +6,7 @@ import TutorialTip from '../components/TutorialTip';
 import { supabase } from "../utils/supabase";
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
-import { Brain, Zap, Star, ChevronLeft, ArrowRight, Users, AlertCircle, RefreshCw, Trophy, Award, Shield, User, SkipForward, Check, X, Search } from "../components/Icons";
+import { Brain, Zap, Star, ChevronLeft, ArrowRight, Users, AlertCircle, RefreshCw, Trophy, Award, Shield, User, SkipForward, Check, X, Search, Swords } from "../components/Icons";
 import { useMatchRealtime } from "../hooks/useMatchRealtime";
 // ---------------------------------------------------------------------------
 // Constants. The stake is FIXED and shown upfront: no wager selector, so nobody
@@ -29,6 +29,11 @@ const MATCHMAKING_TIMEOUT_MS = 45 * 1000;
 const HISTORY_LIMIT = 5;
 const ACTIVE_ARENA_KEY = "apex_active_arena";
 const ARENA_DEBUG_KEY = "apex_arena_debug";
+// Flow State paces, in seconds, exactly the v104 server range. Flow never
+// touches the shared 90s clock: it only decides how long YOUR unanswered
+// question sits before it is auto-skipped for 0 points.
+const FLOW_PACES = [3, 6, 9, 12];
+const FLOW_DEFAULT_PACE = 6;
 const EMPTY_CARD = { answers: 0, correct: 0, wrong: 0, skipped: 0, points: 0 };
 
 // Server error code -> something a player can act on. Anything unlisted falls
@@ -114,6 +119,12 @@ const numOr = (v, fallback) => {
   return Number.isFinite(n) ? n : fallback;
 };
 
+// A per-request id makes the Flow toggle idempotent: a double tap (or a retry
+// after a dropped response) is answered as a replay instead of a second event.
+const flowRequestId = () => {
+  try { return globalThis.crypto?.randomUUID?.() || null; } catch { return null; }
+};
+
 // ---------------------------------------------------------------------------
 // Scorecard. Deliberately three numbers only: answered (big), correct, wrong.
 // "seen" / "skip" / "Double available" / "Racing" were clutter - skip and the
@@ -150,7 +161,7 @@ const Rumble = () => {
     session,
     smartCoins, syncAchievements, refreshSmartCoins,
     arenaCreateMatch, arenaReady, arenaStart, arenaAnswer, arenaHeartbeat,
-    arenaForfeit, arenaCancel, arenaSettle, arenaState, arenaEnqueue,
+    arenaForfeit, arenaCancel, arenaSettle, arenaState, arenaEnqueue, arenaFlow,
     arenaInvite, arenaInvites, arenaInviteRespond, arenaInviteCancel,
     arenaLeaveQueue, arenaRoster,
   } = useAppContext();
@@ -158,7 +169,9 @@ const Rumble = () => {
   // ChallengeContext owns the invite poll, the popup, and the accepted-match
   // handoff. The Arena is the only thing that can act on that handoff, which is
   // why these two are wired together rather than each polling on its own.
-  const { consumeAdopt, setMatchLive } = useChallenge();
+  // handoffTick wakes this drain when a handoff lands while the Arena is
+  // already mounted at the same phase — a ref alone cannot re-run an effect.
+  const { consumeAdopt, setMatchLive, handoffTick } = useChallenge();
 
   // ---- shell --------------------------------------------------------------
   const [phase, setPhase] = useState('hub');
@@ -211,9 +224,26 @@ const Rumble = () => {
   const [userAnswerState, setUserAnswerState] = useState(null);
   const [txState, setTxState] = useState(null);
 
+  // ---- Flow State (migration v104) ----------------------------------------
+  // PER-PLAYER. The server stores the caller's own toggle/pace events, so this
+  // ring can never be imposed on the opponent. `paceTick` only exists to
+  // re-render the ring every 100ms; the deadline itself is wall-clock.
+  const [flowActive, setFlowActive] = useState(false);
+  const [flowPace, setFlowPace] = useState(FLOW_DEFAULT_PACE);
+  const [flowBusy, setFlowBusy] = useState(false);
+  const [paceTick, setPaceTick] = useState(0);
+
   const matchIdRef = useRef(null);
   const lastOptionRef = useRef(null);
   const settleDoneRef = useRef(false);
+  const paceShownAtRef = useRef(0);
+  const paceShownIndexRef = useRef(-1);
+  const paceSkipForRef = useRef(-1);
+  const paceKeyRef = useRef('');
+  // A poll that lands WHILE our own toggle is still in flight can carry the
+  // pre-toggle snapshot; ignoring flow fields during the write prevents the
+  // switch from flickering back off. The RPC response is the next truth.
+  const flowBusyRef = useRef(false);
 
   // Every phase change records WHY, so an unexpected transition is traceable.
   const goPhase = useCallback((next, trigger) => {
@@ -283,6 +313,13 @@ const Rumble = () => {
     setOppCard(cardFrom(data.opponentScore));
     setOppDown(!!data.opponentDisconnected);
     if (data.graceSeconds != null) setGraceSeconds(Number(data.graceSeconds) || 15);
+    // Flow is restored from the server on reconnect/resume. Absent fields mean
+    // "leave the current local value alone" (e.g. an older snapshot), and a
+    // snapshot that raced our own in-flight toggle is ignored.
+    if (!flowBusyRef.current) {
+      if (data.flowActive != null) setFlowActive(!!data.flowActive);
+      if (data.pace != null) setFlowPace(numOr(data.pace, FLOW_DEFAULT_PACE));
+    }
   }, []);
 
   // Adopt a freshly created (or replayed) match and declare MY readiness. The
@@ -314,10 +351,45 @@ const Rumble = () => {
     setArenaReview(null);
     setOppDown(false);
     setBlitzTimeLeft(BLITZ_DURATION_MS);
+    setFlowActive(false);
+    setFlowPace(FLOW_DEFAULT_PACE);
+    paceShownIndexRef.current = -1;
+    paceSkipForRef.current = -1;
+    paceKeyRef.current = '';
     settleDoneRef.current = false;
     if (oppLabel) setOpponent(oppLabel);
 
     const ready = await arenaReady(mid);
+    // Reconciled after a MATCH_NOT_WAITING: the match already advanced out of
+    // waiting/ready. Surface the authoritative state instead of forcing a
+    // readiness mutation.
+    if (ready?.reconciled) {
+      matchIdRef.current = mid;
+      const st = ready.state;
+      setBlitzMatch((m) => ({
+        ...(m || {}),
+        matchId: mid,
+        startsAt: st.startsAt || null,
+        endsAt: st.endsAt || null,
+        stake: numOr(st.stake, ARENA_STAKE),
+        practice: !!st.practice,
+        escrowed: st.escrowed ?? 0,
+      }));
+      applyArenaState(st);
+      if (st.status === 'active' && st.endsAt) {
+        setBlitzTimeLeft(Math.max(0, Date.parse(st.endsAt) - Date.now()));
+        goPhase('blitz-play', 'reconciled-active');
+      } else if (st.status === 'ready') {
+        goPhase('blitz-countdown', 'reconciled-ready'); setCountdown(3);
+      } else if (st.status === 'completed' || st.status === 'abandoned') {
+        settleDoneRef.current = true;
+        const res = await arenaSettle(mid);
+        finishArena(res);
+      } else {
+        goPhase('blitz-waiting', 'reconciled-waiting');
+      }
+      return true;
+    }
     try {
       sessionStorage.setItem(ACTIVE_ARENA_KEY, JSON.stringify({ matchId: mid, stake: created.stake }));
     } catch { /* ignore */ }
@@ -384,10 +456,6 @@ const Rumble = () => {
   //      authoritative state come from `arena_state`, so we resume afterwards
   //      rather than trying to rebuild the board from the ready response.
   //
-  // Runs on mount AND on every phase change, because the handoff can land while
-  // the player is on the scholars screen, in the picker, or mid-match. Draining
-  // a ref is idempotent (it returns null once empty), so a phase change with
-  // nothing pending is a single cheap null check.
   const joinAdopted = useCallback(async (mid) => {
     if (!mid || !arenaReady || !arenaState) return;
     matchIdRef.current = mid;
@@ -397,10 +465,16 @@ const Rumble = () => {
     await resumeArena(mid);
   }, [arenaReady, arenaState, resumeArena]);
 
+  // Mount, every phase change, AND every handoffTick: the handoff can land
+  // while the Arena is already mounted at the same phase (popup accept on
+  // /rumble, or an inviter handoff arriving mid-picker), and a ref alone
+  // cannot re-run an effect. A live duel is NEVER interrupted — the ref
+  // stays parked and the next phase change drains it.
   useEffect(() => {
+    if (phaseRef.current === 'blitz-play' || phaseRef.current === 'blitz-countdown') return;
     const adopted = consumeAdopt?.();
     if (adopted) joinAdopted(adopted);
-  }, [phase, consumeAdopt, joinAdopted]);
+  }, [phase, handoffTick, consumeAdopt, joinAdopted]);
 
   // Tell ChallengeContext a duel is running so the incoming-challenge popup
   // stays suppressed. Derived from the phase rather than set at each call site:
@@ -889,6 +963,102 @@ const Rumble = () => {
     }, res.replay ? 150 : 450);
   }, [blitzMatch, blitzIndex, blitzTimeLeft, userAnswerState, doubleArmed, arenaAnswer]);
 
+  // ---- Flow State: ring lifetime + exactly-once auto-skip ------------------
+  // The deadline is wall-clock and starts when a question is first shown (or
+  // the moment Flow is switched on). The ring is per-player: the opponent's
+  // answers, pace and toggles are never read here.
+  useEffect(() => {
+    if (phase !== 'blitz-play') return;
+    const key = `${flowActive ? 'on' : 'off'}:${blitzIndex}`;
+    if (paceKeyRef.current === key) return;
+    paceKeyRef.current = key;
+    paceShownIndexRef.current = blitzIndex;
+    paceShownAtRef.current = Date.now();
+    setPaceTick((n) => n + 1);
+  }, [phase, flowActive, blitzIndex]);
+
+  // Re-render the ring while it is running. The interval does NOT decide the
+  // skip; it only redraws, so a throttled background tab cannot add time.
+  useEffect(() => {
+    if (phase !== 'blitz-play' || !flowActive) return undefined;
+    const id = setInterval(() => setPaceTick((n) => n + 1), 100);
+    return () => clearInterval(id);
+  }, [phase, flowActive]);
+
+  useEffect(() => {
+    if (phase !== 'blitz-play' || !flowActive) return undefined;
+    if (userAnswerState !== null || txState === 'pending') return undefined;
+    if (paceShownIndexRef.current !== blitzIndex) return undefined;
+    // One auto-skip per question. If the submit fails the guard stays armed, so
+    // a dead connection cannot produce a skip loop; the player can still tap.
+    if (paceSkipForRef.current === blitzIndex) return undefined;
+    const left = flowPace * 1000 - (Date.now() - paceShownAtRef.current);
+    if (left > 0) return undefined;
+    paceSkipForRef.current = blitzIndex;
+    arenaTrace('flow-auto-skip', { index: blitzIndex, pace: flowPace });
+    blitzPick(null);
+    return undefined;
+  }, [phase, flowActive, flowPace, blitzIndex, userAnswerState, txState, paceTick, blitzPick]);
+
+  const toggleFlow = useCallback(async () => {
+    const mid = matchIdRef.current || blitzMatch?.matchId;
+    if (!mid || flowBusy) return;
+    const next = !flowActive;
+    setFlowBusy(true);
+    flowBusyRef.current = true;
+    setFlowActive(next);
+    paceShownIndexRef.current = blitzIndex;
+    paceShownAtRef.current = Date.now();
+    setPaceTick((n) => n + 1);
+    try {
+      const res = await arenaFlow(mid, next, null, flowRequestId());
+      if (!res?.ok) {
+        setFlowActive(!next);
+        arenaTrace('flow-toggle-failed', { error: res?.error });
+      }
+    } catch {
+      setFlowActive(!next);
+    } finally {
+      flowBusyRef.current = false;
+      setFlowBusy(false);
+    }
+  }, [arenaFlow, blitzMatch, blitzIndex, flowActive, flowBusy]);
+
+  // Tapping a pace chip while Flow is off enables Flow at that pace: one clear
+  // action instead of a toggle-then-chip dance.
+  const choosePace = useCallback(async (pace) => {
+    const mid = matchIdRef.current || blitzMatch?.matchId;
+    if (!mid || flowBusy) return;
+    if (pace === flowPace && flowActive) return;
+    setFlowBusy(true);
+    flowBusyRef.current = true;
+    setFlowPace(pace);
+    setFlowActive(true);
+    paceShownIndexRef.current = blitzIndex;
+    paceShownAtRef.current = Date.now();
+    setPaceTick((n) => n + 1);
+    try {
+      const res = await arenaFlow(mid, true, pace, flowRequestId());
+      if (res?.ok) {
+        if (res.flowActive != null) setFlowActive(!!res.flowActive);
+        if (res.pace != null) setFlowPace(numOr(res.pace, pace));
+      } else {
+        arenaTrace('flow-pace-failed', { error: res?.error, pace });
+      }
+    } catch { /* the next arena_state poll reconciles */ }
+    finally {
+      flowBusyRef.current = false;
+      setFlowBusy(false);
+    }
+  }, [arenaFlow, blitzMatch, blitzIndex, flowActive, flowPace, flowBusy]);
+
+  const paceRemainingMs = useMemo(() => {
+    if (!flowActive || phase !== 'blitz-play') return flowPace * 1000;
+    if (paceShownIndexRef.current !== blitzIndex) return flowPace * 1000;
+    return Math.max(0, flowPace * 1000 - (Date.now() - paceShownAtRef.current));
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [flowActive, flowPace, phase, blitzIndex, paceTick]);
+
   // ---- resets -------------------------------------------------------------
   const clearMatch = useCallback(() => {
     matchIdRef.current = null;
@@ -909,6 +1079,14 @@ const Rumble = () => {
     setUserAnswerState(null);
     setTxState(null);
     setBlitzTimeLeft(BLITZ_DURATION_MS);
+    setFlowActive(false);
+    setFlowPace(FLOW_DEFAULT_PACE);
+    setFlowBusy(false);
+    flowBusyRef.current = false;
+    paceShownAtRef.current = 0;
+    paceShownIndexRef.current = -1;
+    paceSkipForRef.current = -1;
+    paceKeyRef.current = '';
     lastOptionRef.current = null;
     try { sessionStorage.removeItem(ACTIVE_ARENA_KEY); } catch { /* ignore */ }
   }, []);
@@ -1459,6 +1637,42 @@ const Rumble = () => {
                 <div className={`font-black tabular-nums text-2xl ${blitzTimeLeft <= 10000 ? 'text-red-400 animate-pulse' : 'text-white'}`}>
                   {fmtBlitzTime(blitzTimeLeft)}
                 </div>
+              </div>
+
+              {/* Flow State — YOUR rhythm. It never pauses or extends the shared
+                  90s clock; it only auto-skips YOUR unanswered question (0 pts)
+                  once the ring runs out. The pace is server-validated (3-12s). */}
+              <div className={`rounded-2xl border p-3.5 transition-all ${flowActive ? 'bg-indigo-500/10 border-indigo-400/40' : 'bg-white/[0.03] border-white/10'}`}>
+                <div className="flex items-center justify-between gap-3">
+                  <button onClick={toggleFlow} disabled={flowBusy}
+                    className="flex items-center gap-2 text-left active:scale-95 transition-all disabled:opacity-50">
+                    <span className={`w-9 h-5 rounded-full p-0.5 transition-colors ${flowActive ? 'bg-indigo-500' : 'bg-white/15'}`}>
+                      <span className={`block w-4 h-4 rounded-full bg-white transition-transform ${flowActive ? 'translate-x-4' : ''}`} />
+                    </span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-white/70">Flow State</span>
+                  </button>
+                  <div className="flex items-center gap-1.5">
+                    {FLOW_PACES.map((p) => (
+                      <button key={p} onClick={() => choosePace(p)} disabled={flowBusy}
+                        className={`px-2.5 py-1 rounded-full text-[10px] font-black tabular-nums transition-all active:scale-95 disabled:opacity-50 ${flowPace === p ? 'bg-indigo-500 text-white' : 'bg-white/5 text-white/40 hover:text-white/70'}`}>
+                        {p}s
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                {flowActive && (
+                  <div className="mt-2.5">
+                    <div className="h-1 rounded-full bg-white/10 overflow-hidden">
+                      <div className="h-full bg-indigo-400 transition-[width] duration-100 ease-linear"
+                        style={{ width: `${Math.max(0, Math.min(100, (paceRemainingMs / (flowPace * 1000)) * 100))}%` }} />
+                    </div>
+                    <p className="mt-1.5 text-[9px] font-bold uppercase tracking-widest text-white/30">
+                      {userAnswerState
+                        ? 'Answer sent — the ring resets on the next question'
+                        : `Auto-skip in ${(paceRemainingMs / 1000).toFixed(1)}s`}
+                    </p>
+                  </div>
+                )}
               </div>
 
               {oppDown && (

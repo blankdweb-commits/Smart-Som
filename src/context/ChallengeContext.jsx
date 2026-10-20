@@ -1,4 +1,5 @@
 import React, { createContext, useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAppContext } from './AppContext';
 import { supabase } from '../utils/supabase';
 import ChallengePopup from '../components/ChallengePopup';
@@ -54,6 +55,7 @@ const ChallengeContext = createContext({
   cancel: () => {},
   refresh: () => {},
   consumeAdopt: () => {},
+  handoffTick: 0,
 });
 
 // Module-level singleton so StrictMode's double-invoked effect cannot leave two
@@ -75,6 +77,8 @@ const ensureChannel = (onEvent) => {
 export function ChallengeProvider({ children }) {
   const { arenaInvites, arenaInviteReady, arenaInviteRespond, arenaInviteCancel, session } =
     useAppContext();
+  const navigate = useNavigate();
+  const location = useLocation();
 
   const [incoming, setIncoming] = useState([]);
   const [outgoing, setOutgoing] = useState([]);
@@ -84,10 +88,26 @@ export function ChallengeProvider({ children }) {
   const [notice, setNotice] = useState(null);
   const [dismissed, setDismissed] = useState(() => new Set());
   const [matchLive, setMatchLive] = useState(false);
+  // Bumped every time a match is parked for the Arena, even if the ref already
+  // held this id. A ref alone cannot wake the Arena's drain effect when it is
+  // already mounted at the same phase — the counter can.
+  const [handoffTick, setHandoffTick] = useState(0);
 
   // A match id the Arena has not picked up yet. A ref, not state: the Arena
   // drains it on mount and we must not want a re-render for it.
   const pendingRef = useRef(null);
+
+  // Park a match for the Arena AND put the player in front of it. The notice
+  // alone was the bug: "The duel is opening…" with no navigation left both
+  // players staring at a banner while the match sat unplayed. Skipped only
+  // when a duel is already live (navigating away mid-round would strand it) —
+  // the poll/phase-change drain picks the handoff up when that duel ends.
+  const dispatchHandoff = useCallback((matchId) => {
+    if (!matchId) return;
+    if (pendingRef.current !== matchId) pendingRef.current = matchId;
+    setHandoffTick((t) => t + 1);
+    if (!matchLive && location.pathname !== '/rumble') navigate('/rumble');
+  }, [matchLive, location.pathname, navigate]);
 
   // ---- the inviter handoff -------------------------------------------------
   const adopt = useCallback(async (entry) => {
@@ -101,9 +121,9 @@ export function ChallengeProvider({ children }) {
       setNotice('Your challenge was accepted but the duel could not be opened. Try again from the Arena.');
       return;
     }
-    pendingRef.current = matchId;
+    dispatchHandoff(matchId);
     setNotice(`${entry.name || 'Your rival'} accepted your challenge. Opening the duel…`);
-  }, [arenaInviteReady]);
+  }, [arenaInviteReady, dispatchHandoff]);
 
   // ---- the single poll -----------------------------------------------------
   // The ONLY place setState is called. This is an external-system subscription
@@ -153,7 +173,7 @@ export function ChallengeProvider({ children }) {
     return undefined;
   }, [refresh, session]);
 
-  // The Arena drains this on mount and on every phase change.
+  // The Arena drains this on mount, on every phase change, and on handoffTick.
   const consumeAdopt = useCallback(() => {
     const mid = pendingRef.current;
     if (!mid) return null;
@@ -206,13 +226,17 @@ export function ChallengeProvider({ children }) {
       try {
         channel?.send({ type: 'broadcast', event: 'accepted', payload: { inviteId: invite.inviteId, matchId: res.matchId } });
       } catch { /* best effort */ }
-      setNotice('Challenge accepted. The duel is opening for both of you.');
+      // The accepter is made creator_id and readied by arena_invite_respond.
+      // Park the match and walk them into the Arena — a notice with no
+      // navigation left the duel unplayed on both sides.
+      dispatchHandoff(res.matchId);
+      setNotice('Challenge accepted. Opening the duel…');
       return res;
     }
     if (!accept && res?.ok) setNotice('Challenge declined. Nothing was held.');
     else if (accept) setNotice('Could not accept that challenge right now.');
     return res;
-  }, [arenaInviteRespond, refresh, dismiss]);
+  }, [arenaInviteRespond, refresh, dismiss, dispatchHandoff]);
 
   const cancel = useCallback(async (invite) => {
     if (!invite) return;
@@ -238,7 +262,8 @@ export function ChallengeProvider({ children }) {
     cancel,
     refresh,
     consumeAdopt,
-  }), [incoming, outgoing, ready, windowSeconds, busy, notice, dismissNotice, dismiss, matchLive, openFor, respond, cancel, refresh, consumeAdopt]);
+    handoffTick,
+  }), [incoming, outgoing, ready, windowSeconds, busy, notice, dismissNotice, dismiss, matchLive, openFor, respond, cancel, refresh, consumeAdopt, handoffTick]);
 
   return (
     <ChallengeContext.Provider value={value}>

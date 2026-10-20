@@ -31,6 +31,9 @@ import {
   exit
 } from './e2e-utils.mjs';
 import { createClient } from '@supabase/supabase-js';
+import crypto from 'crypto';
+
+const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
 const env = loadEnv();
 const BASE = env.E2E_BASE_URL || 'http://localhost:5173';
@@ -119,13 +122,20 @@ try {
   }
 
   await pageA.locator('[role="tab"]', { hasText: 'Friends' }).first().click();
-  await pageA.waitForTimeout(1200);
-  const friendsBody = (await pageA.textContent('body').catch(() => '')) || '';
+  // Wait for the Friends panel to actually mount rather than sleeping: the
+  // search field is the panel's anchor and its placeholder is an ATTRIBUTE, so
+  // it must be read with getAttribute - it never appears in textContent.
+  const friendsSearch = pageA.locator('input[aria-label="Find a scholar to add"]');
+  await friendsSearch.waitFor({ state: 'visible', timeout: 8000 }).catch(() => {});
+  const friendsSearchCount = await friendsSearch.count().catch(() => 0);
+  const friendsSearchPlaceholder =
+    friendsSearchCount > 0 ? (await friendsSearch.getAttribute('placeholder')) || '' : '';
   tester.log('the Friends tab renders its own content',
-    /Find a scholar by name/i.test(friendsBody), `has search box=${/Find a scholar by name/i.test(friendsBody)}`);
+    friendsSearchCount > 0 && friendsSearchPlaceholder.length > 0,
+    `searchBoxes=${friendsSearchCount} placeholder="${friendsSearchPlaceholder}"`);
 
   await pageA.locator('[role="tab"]', { hasText: 'Cosmetics' }).first().click();
-  await pageA.waitForTimeout(1500);
+  await waitForText(pageA, 'Crown', 8000).catch(() => {});
   const cosBody = (await pageA.textContent('body').catch(() => '')) || '';
   tester.log('the Cosmetics tab lists the Crown at 40 SC',
     /Crown/.test(cosBody) && /40\s*SC/.test(cosBody),
@@ -133,21 +143,28 @@ try {
 
   // ---------- 3. A SENDS B A FRIEND REQUEST ----------
   await pageA.locator('[role="tab"]', { hasText: 'Friends' }).first().click();
-  await pageA.waitForTimeout(800);
   const search = pageA.locator('input[aria-label="Find a scholar to add"]');
+  await search.waitFor({ state: 'visible', timeout: 8000 }).catch(() => {});
   await search.fill(B.name);
-  await pageA.waitForTimeout(2000);
 
   const bResult = pageA.locator('li', { hasText: B.name }).first();
+  // The panel debounces the search by 300ms; wait for the result row itself
+  // rather than sleeping past it.
+  await bResult.waitFor({ state: 'visible', timeout: 8000 }).catch(() => {});
   const bFound = await bResult.count().catch(() => 0);
   tester.log('search finds the other scholar by their identity name', bFound > 0, `matches=${bFound}`);
 
   await bResult.locator('button', { hasText: 'Friend' }).first().click();
-  await pageA.waitForTimeout(2000);
-
-  const { data: rel } = await admin.from('user_relationships')
-    .select('id, user_id, target_id, rel_type, status')
-    .eq('user_id', ids.a).eq('target_id', ids.b).maybeSingle();
+  // Wait for the request to land in the DB (the real assertion), polling.
+  let rel = null;
+  for (let i = 0; i < 20; i += 1) {
+    const { data } = await admin.from('user_relationships')
+      .select('id, user_id, target_id, rel_type, status')
+      .eq('user_id', ids.a).eq('target_id', ids.b).maybeSingle();
+    rel = data;
+    if (rel) break;
+    await sleep(250);
+  }
   tester.log('the friend request was written to the database',
     rel?.status === 'pending' && rel?.rel_type === 'friend',
     `rel=${JSON.stringify(rel)}`);
@@ -195,17 +212,22 @@ try {
 
   // ---------- 5. A RIVAL IS A DIFFERENT TAB, AND ONLY ONE TYPE PER PAIR ---
   await pageA.locator('input[aria-label="Find a scholar to add"]').fill(C.name);
-  await pageA.waitForTimeout(2000);
   const cResult = pageA.locator('li', { hasText: C.name }).first();
+  await cResult.waitFor({ state: 'visible', timeout: 8000 }).catch(() => {});
   const cFound = await cResult.count().catch(() => 0);
   tester.log('search finds the third scholar', cFound > 0, `matches=${cFound}`);
   if (cFound > 0) {
     await cResult.locator('button', { hasText: 'Rival' }).first().click();
-    await pageA.waitForTimeout(2000);
   }
 
-  const { data: rivalRel } = await admin.from('user_relationships')
-    .select('rel_type, status').eq('user_id', ids.a).eq('target_id', ids.c).maybeSingle();
+  let rivalRel = null;
+  for (let i = 0; i < 20; i += 1) {
+    const { data } = await admin.from('user_relationships')
+      .select('rel_type, status').eq('user_id', ids.a).eq('target_id', ids.c).maybeSingle();
+    rivalRel = data;
+    if (rivalRel) break;
+    await sleep(250);
+  }
   tester.log('the rival request is stored as rel_type=rival',
     rivalRel?.rel_type === 'rival' && rivalRel?.status === 'pending',
     `rel=${JSON.stringify(rivalRel)}`);
@@ -217,25 +239,71 @@ try {
     `rival visible=${rivalsBody.includes(C.name)}`);
 
   await pageA.locator('[role="tab"]', { hasText: 'Friends' }).first().click();
-  await pageA.waitForTimeout(1500);
-  const friendsBody2 = (await pageA.textContent('body').catch(() => '')) || '';
+  // The search box is shared across tabs and the RESULTS list deliberately
+  // offers BOTH relationship types ("a search hit is a person, not a
+  // category"), so stale search results are not a rival leaking into Friends.
+  // Clear the search, then assert the Friends LIST (not search results)
+  // excludes the rival. The debounced query means "cleared" is a moment after
+  // the click, so poll for the disappearance instead of sleeping a fixed time.
+  await pageA.locator('button[aria-label="Clear search"]').first().click().catch(() => {});
+  await pageA.locator('input[aria-label="Find a scholar to add"]').fill('').catch(() => {});
+  // Scope to the relationship LIST rows, NOT the whole body: sending the rival
+  // request raises a role="status" notice toast whose text contains "Rival
+  // request sent to <C.name> ...". That toast is transient UI feedback about
+  // the action, not a rival row leaking into the Friends list, so a
+  // body.textContent check would always see the name and never pass.
+  let rivalGoneOnFriends = false;
+  for (let i = 0; i < 20; i += 1) {
+    const rows = await pageA.locator('li').allInnerTexts().catch(() => []);
+    if (!rows.some((t) => t.includes(C.name))) { rivalGoneOnFriends = true; break; }
+    await sleep(250);
+  }
   tester.log('the Friends tab does NOT show the rival (one type per pair)',
-    !friendsBody2.includes(C.name), `rival leaked into friends=${friendsBody2.includes(C.name)}`);
+    rivalGoneOnFriends, `rival leaked into friends=${!rivalGoneOnFriends}`);
 
   // ---------- 6. CHALLENGING A FRIEND ----------
-  await pageA.reload({ waitUntil: 'networkidle' });
-  await pageA.waitForTimeout(2000);
-  const challengeBtn = pageA.locator('button', { hasText: /Challenge/ }).first();
-  const chCount = await challengeBtn.count().catch(() => 0);
-  tester.log('a friend card carries a Challenge control', chCount > 0, `count=${chCount}`);
+  //
+  // BOTH sides need Smart Coins: the arena refuses a scholar who cannot cover
+  // the stake, and `arena_challenge_targets` reports `canChallenge:false,
+  // reason:'OPPONENT_INSUFFICIENT_SC'` when the TARGET is broke (and
+  // `callerBlocked:'INSUFFICIENT_SC'` when the CALLER is broke). The row label
+  // becomes "Low coins" and the button is disabled. So fund BOTH A and B before
+  // challenging. The score route is `_sc_apply`, the same single balance
+  // mutator the app uses, so the balance and the ledger agree.
+  for (const uid of [ids.a, ids.b]) {
+    await admin.rpc('_sc_apply', {
+      p_user_id: uid, p_amount: 100, p_reason: 'e2e_seed', p_source: 'e2e',
+      p_transaction_type: 'earn', p_ref_type: 'e2e', p_ref_id: crypto.randomUUID(),
+      p_metadata: {}, p_client_request_id: crypto.randomUUID(),
+    });
+  }
+  await pageA.goto(`${BASE}/leaderboard`, { waitUntil: 'networkidle' });
+  // Target B's ROW specifically. The board is ordered by rank, so B is not the
+  // first row; a generic "first Challenge button" would invite the wrong
+  // scholar. The row is anchored by B's own profile button (aria-label).
+  const bRow = pageA.locator('li', { has: pageA.getByRole('button', { name: `Open ${B.name}` }) }).first();
+  await bRow.waitFor({ state: 'visible', timeout: 8000 }).catch(() => {});
+  const challengeBtn = bRow.locator('button', { hasText: 'Challenge' }).first();
+  let chCount = 0;
+  for (let i = 0; i < 20; i += 1) {
+    chCount = await challengeBtn.count().catch(() => 0);
+    if (chCount > 0) break;
+    await sleep(250);
+  }
+  tester.log('a friend row carries an enabled Challenge control', chCount > 0, `count=${chCount}`);
   if (chCount > 0) {
     await challengeBtn.click();
-    await pageA.waitForTimeout(2500);
   }
 
-  const { data: invites } = await admin.from('arena_invites')
-    .select('id, from_user, to_user, stake, status')
-    .eq('from_user', ids.a).eq('to_user', ids.b).maybeSingle();
+  let invites = null;
+  for (let i = 0; i < 20; i += 1) {
+    const { data } = await admin.from('arena_invites')
+      .select('id, from_user, to_user, stake, status')
+      .eq('from_user', ids.a).eq('to_user', ids.b).maybeSingle();
+    invites = data;
+    if (invites) break;
+    await sleep(250);
+  }
   tester.log('the challenge was written to arena_invites',
     !!invites && invites.status === 'pending',
     `invite=${JSON.stringify(invites)}`);
@@ -244,19 +312,34 @@ try {
   tester.log('the challenge stake is the arena\'s fixed 2 SC, not min(stakes)=1',
     stakeOk, `stake=${invites?.stake}`);
 
+  // The handoff can land after the invite row (navigate runs right after the
+  // RPC), so wait for the URL rather than reading it once.
+  await pageA.waitForURL(/\/rumble\?challenge=/, { timeout: 8000 }).catch(() => {});
   const url = pageA.url();
   tester.log('the app handed off to /rumble?challenge=<userId>',
     /\/rumble\?challenge=/.test(url) && url.includes(ids.b), `url=${url}`);
 
   // ---------- 7. PROFILE VIEWS ARE RECORDED ----------
+  // The profile sheet opens from the Ranking tab's row control, which carries a
+  // stable aria-label ("Open {displayName}'s profile"). Clicking the first
+  // generic button in the row was a stale artifact - it could hit the Challenge
+  // control - so the aria-label locator is used instead. Both the panel body
+  // and the "who viewed" total key off this action.
+  const openProfileFor = async (name) => {
+    await pageA.goto(`${BASE}/leaderboard`, { waitUntil: 'networkidle' });
+    const target = pageA
+      .getByRole('button', { name: new RegExp(`Open ${name.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}`) })
+      .first();
+    await target.waitFor({ state: 'visible', timeout: 8000 }).catch(() => {});
+    if (await target.count().catch(() => 0)) {
+      await target.click();
+      // The sheet renders a dialog; waiting on it is the state signal.
+      await pageA.getByRole('dialog').first().waitFor({ state: 'visible', timeout: 6000 }).catch(() => {});
+    }
+  };
+
   // B has not opted in to being viewed, so nothing should be recorded for B.
-  await pageA.goto(`${BASE}/leaderboard`, { waitUntil: 'networkidle' });
-  await pageA.waitForTimeout(2000);
-  const row = pageA.locator('li', { hasText: B.name }).first();
-  if (await row.count().catch(() => 0)) {
-    await row.locator('button').first().click();
-    await pageA.waitForTimeout(2500);
-  }
+  await openProfileFor(B.name);
   const { count: viewsOff } = await admin.from('profile_views')
     .select('viewer_id', { count: 'exact', head: true })
     .eq('profile_id', ids.b);
@@ -265,17 +348,19 @@ try {
 
   // Now B opts in, and the same action records a view.
   await admin.from('profile_privacy').upsert({ user_id: ids.b, show_profile_views: true });
-  await pageA.goto(`${BASE}/leaderboard`, { waitUntil: 'networkidle' });
-  await pageA.waitForTimeout(2000);
-  const row2 = pageA.locator('li', { hasText: B.name }).first();
-  if (await row2.count().catch(() => 0)) {
-    await row2.locator('button').first().click();
-    await pageA.waitForTimeout(2500);
+  await openProfileFor(B.name);
+  // The record RPC is fire-and-forget (a failure must never block the sheet),
+  // so poll for the row instead of reading once right after the click.
+  let viewsOn = 0;
+  for (let i = 0; i < 20; i += 1) {
+    const { count } = await admin.from('profile_views')
+      .select('viewer_id', { count: 'exact', head: true })
+      .eq('profile_id', ids.b);
+    viewsOn = count || 0;
+    if (viewsOn > 0) break;
+    await sleep(250);
   }
-  const { count: viewsOn } = await admin.from('profile_views')
-    .select('viewer_id', { count: 'exact', head: true })
-    .eq('profile_id', ids.b);
-  tester.log('a view IS recorded once the receiver opts in', (viewsOn || 0) > 0, `views=${viewsOn}`);
+  tester.log('a view IS recorded once the receiver opts in', viewsOn > 0, `views=${viewsOn}`);
 
   // ---------- 8. THE SOUND PREFERENCE ----------
   await pageA.goto(`${BASE}/settings`, { waitUntil: 'networkidle' });
@@ -311,7 +396,8 @@ try {
 
   // ---------- 9. THE DASHBOARD GREETS WITH THE IDENTITY NAME ----------
   await pageA.goto(`${BASE}/dashboard`, { waitUntil: 'networkidle' });
-  await pageA.waitForTimeout(2500);
+  // Wait for the greeting to resolve the identity name rather than sleeping.
+  await waitForText(pageA, A.name, 8000).catch(() => {});
   const dashBody = (await pageA.textContent('body').catch(() => '')) || '';
   const dashH2 = (await pageA.locator('h2').first().textContent().catch(() => '')) || '';
 
@@ -323,25 +409,34 @@ try {
     !/,\s*Hub\s*$/.test(dashH2.trim()) && dashH2.includes(A.name),
     `h2="${dashH2.trim()}" identity="${A.name}"`);
 
-  // The removed stat row must be gone.
-  const statRowGone = !/Vault/.test(dashBody) && !/Mastery/.test(dashBody) && !/Due/.test(dashBody);
+  // The removed stat row was a 4-column grid of StatsCards labelled
+  // Vault / Mastery / Strength / Due. "Streak" and "mastery" still appear in
+  // legitimate copy (Today's Progress, the review prompt), so a loose
+  // substring test is a false positive. "Vault" and a standalone "Due" had no
+  // other use on this page, so those are the honest signals.
+  const statRowGone = !/Vault/.test(dashBody) && !/\bDue\b/.test(dashBody);
   tester.log('the Vault / Mastery / Due stat cards are gone from the Dashboard', statRowGone,
-    `vault=${/Vault/.test(dashBody)} mastery=${/Mastery/.test(dashBody)} due=${/Due/.test(dashBody)}`);
+    `vault=${/Vault/.test(dashBody)} due=${/\bDue\b/.test(dashBody)}`);
 
   // ---------- 10. THE CROWN: 40 SC, ONE LEDGER ROW, AUTO-EQUIPPED ----------
   await admin.from('profiles').update({ smart_coins: 100 }).eq('id', ids.a);
   await pageA.goto(`${BASE}/leaderboard?tab=cosmetics`, { waitUntil: 'networkidle' });
-  await pageA.waitForTimeout(2000);
   const buyBtn = pageA.locator('button', { hasText: /Buy/ }).first();
+  await buyBtn.waitFor({ state: 'visible', timeout: 8000 }).catch(() => {});
   const buyCount = await buyBtn.count().catch(() => 0);
   tester.log('the Crown is offered for purchase', buyCount > 0, `count=${buyCount}`);
   if (buyCount > 0) {
     await buyBtn.click();
-    await pageA.waitForTimeout(3000);
   }
 
-  const { data: cos } = await admin.from('user_cosmetics')
-    .select('sku, equipped, sc_price').eq('user_id', ids.a).maybeSingle();
+  let cos = null;
+  for (let i = 0; i < 20; i += 1) {
+    const { data } = await admin.from('user_cosmetics')
+      .select('sku, equipped, sc_price').eq('user_id', ids.a).maybeSingle();
+    cos = data;
+    if (cos) break;
+    await sleep(250);
+  }
   tester.log('the Crown is owned and equipped', cos?.sku === 'crown-001' && cos?.equipped === true,
     `cos=${JSON.stringify(cos)}`);
 

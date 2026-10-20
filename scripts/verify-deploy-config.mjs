@@ -4462,6 +4462,20 @@ checks.push(
       ? ok('Profile views are actually wired: opening a profile records the view, and Settings has the consent controls')
       : fail('Profile views are still inert - the RPC exists but nothing calls it'),
   );
+  // THE LAZY-THENABLE TRAP. supabase-js's PostgrestFilterBuilder is a thenable
+  // with `.then` but NO `.catch`/`.finally` until `.then` is called, and the
+  // HTTP request is only dispatched when the builder is SUBSCRIBED to. The
+  // call-site gate above passed for months while every profile view was
+  // silently dropped, because `if (typeof p.catch === 'function') p.catch(...)`
+  // was always false - the request was built and never sent. So this gate
+  // requires a real subscription (`.then(...)`), not just the call. The
+  // argument-list match above stops a rename from faking it; this stops an
+  // un-subscribed builder from faking it.
+  checks.push(
+    /\.rpc\('profile_view_record'[\s\S]{0,200}?\.then\(/.test(sheetHookSrc)
+      ? ok('The profile-view RPC is SUBSCRIBED to, not merely built (a lazy thenable with no .then is never sent)')
+      : fail('The profile-view RPC is built but never subscribed to - supabase-js will not dispatch the request'),
+  );
   const privacyCardSrc = read(resolve(ROOT, 'src/components/ProfilePrivacyCard.jsx'));
   checks.push(
     /rpc\('profile_privacy_get'\)/.test(privacyCardSrc)
@@ -5565,6 +5579,201 @@ checks.push(
       && /match\?\.settlement/.test(e2e)
       ? ok('v101: the e2e:blitz-duel suite is registered and reads the nested match.settlement')
       : fail('v101: the blitz e2e suite is missing or reads the wrong settlement path'),
+  );
+}
+
+// ===========================================================================
+// PART V — ANONYMOUS LIVE EVENTS (v102/v103)
+// ===========================================================================
+//
+// Dedicated admin-only live-event system, separate from the Anonymous Room.
+// Migration v102 creates live_events + live_event_messages with RLS and the
+// server-clock lifecycle; v103 adds live_event_reactions. Handlers live in the
+// existing api/community.js router (12-function Hobby cap intact).
+// ---------------------------------------------------------------------------
+{
+  const v102 = read(resolve(ROOT, 'scripts/migration-v102-live-events.sql'));
+  const v103 = read(resolve(ROOT, 'scripts/migration-v103-live-event-reactions.sql'));
+  const comm = read(resolve(ROOT, 'api/_community.js'));
+  const router = read(resolve(ROOT, 'api/community.js'));
+  const app = read(resolve(ROOT, 'src/App.jsx'));
+  const sidebar = read(resolve(ROOT, 'src/components/Sidebar.jsx'));
+  const liveApi = read(resolve(ROOT, 'src/utils/liveEventsApi.js'));
+  const pkg = read(resolve(ROOT, 'package.json'));
+
+  checks.push(
+    // schema
+    /create table if not exists public\.live_events/.test(v102)
+      && /create table if not exists public\.live_event_messages/.test(v102)
+      && /enable row level security/.test(v102)
+      ? ok('v102: live_events and live_event_messages exist with RLS on')
+      : fail('v102: a live_events table or its RLS is missing'),
+
+    // the server-clock lifecycle (no browser timer)
+    /_live_event_state/.test(v102) && /_live_event_over/.test(v102)
+      ? ok('v102: _live_event_state/_live_event_over evaluate the server clock')
+      : fail('v102: the server-clock lifecycle helpers are missing'),
+
+    // exactly-once closure + sweep, service_role only
+    /live_event_close/.test(v102) && /live_event_sweep/.test(v102)
+      && /revoke all on function public\.live_event_close/.test(v102)
+      && /grant execute on function public\.live_event_close[\s\S]*?to service_role/.test(v102)
+      ? ok('v102: live_event_close/live_event_sweep exist and are service_role only')
+      : fail('v102: the closure functions are missing or not locked to service_role'),
+
+    // deadline immutability once live
+    /cannot be changed once the event has started/.test(comm)
+      || /started or participants have joined/.test(comm)
+      ? ok('v102: the update handler refuses to move the deadline after start/participants')
+      : fail('v102: the deadline can be silently moved after the event starts'),
+
+    // reactions table (v103)
+    /create table if not exists public\.live_event_reactions/.test(v103)
+      && /enable row level security/.test(v103)
+      ? ok('v103: live_event_reactions exists with RLS on')
+      : fail('v103: the reactions table or its RLS is missing'),
+
+    // handlers + routes (no new api/*.js -> Hobby cap intact)
+    ['handleListLiveEvents','handleGetLiveEvent','handleCreateLiveEvent','handleUpdateLiveEvent','handlePublishLiveEvent','handleStartLiveEvent','handleCancelLiveEvent','handleCloseLiveEvent','handleSendLiveEventMessage','handleReactLiveEventMessage']
+      .every((h) => comm.includes(`export async function ${h}(`))
+      ? ok('v102: api/_community.js exports all ten live-event handlers')
+      : fail('v102: a live-event handler is missing from api/_community.js'),
+
+    ['list','get','create','update','publish','start','cancel','close','send','react']
+      .every((action) => router.includes(`\\/live-events\\/${action}\$`))
+      ? ok('v102: api/community.js routes all ten live-event sub-paths')
+      : fail('v102: a live-event route is missing from api/community.js'),
+
+    !existsSync(resolve(ROOT, 'api/live-events.js'))
+      ? ok('v102: live events ride the existing community function (Hobby cap intact)')
+      : fail('v102: a new api/live-events.js would breach the Hobby cap'),
+
+    // client + routes + admin sidebar
+    /export const listLiveEvents/.test(liveApi) && /export const sendLiveEventMessage/.test(liveApi)
+      ? ok('v102: src/utils/liveEventsApi.js wraps all live-event endpoints')
+      : fail('v102: the live-events API client is incomplete'),
+
+    /path="\/live-events" element=\{<RequireAuth><LiveEvents \/><\/RequireAuth>\}/.test(app)
+      && /path="\/live-events\/:id" element=\{<RequireAuth><LiveEventRoom \/><\/RequireAuth>\}/.test(app)
+      && /path="\/admin\/live-events" element=\{<RequireAuth><AdminLiveEvents \/><\/RequireAuth>\}/.test(app)
+      ? ok('v102: /live-events, /live-events/:id and /admin/live-events are lazy, auth-gated routes')
+      : fail('v102: the live-events routes are missing or not auth-gated'),
+
+    /'Live Events', icon: Calendar, path: '\/admin\/live-events'/.test(sidebar)
+      ? ok('v102: the admin sidebar links to Live Events management')
+      : fail('v102: the Live Events admin sidebar item is missing'),
+
+    /"e2e:blitz-duel"/.test(pkg)
+      ? ok('package.json still registers the blitz e2e suite (Flow State coverage intact)')
+      : fail('package.json lost the blitz e2e suite registration'),
+  );
+}
+
+// ===========================================================================
+// PART W — ARENA FLOW STATE (v104)
+// ===========================================================================
+//
+// A per-player, self-paced ring on top of the UNCHANGED 90s arena clock. The
+// whole design rests on three invariants the checks below pin down:
+//   1. the state is an APPEND-ONLY event log keyed by `by` (the caller), so one
+//      player's pace can never be forced onto the opponent (griefing);
+//   2. the clock is structurally untouchable — no write to starts_at/ends_at;
+//   3. the ring is an aid, not a bonus: a timeout is exactly one 0-point skip
+//      through the existing first-answer-wins arena_answer path.
+// ---------------------------------------------------------------------------
+{
+  const v104 = read(resolve(ROOT, 'scripts/migration-v104-arena-flow.sql'));
+  const e2e = read(resolve(ROOT, 'scripts/e2e-arena.mjs'));
+  const ctx = read(resolve(ROOT, 'src/context/AppContext.jsx'));
+  const rumble = read(resolve(ROOT, 'src/pages/Rumble.jsx'));
+
+  checks.push(
+    // schema: the append-only per-player log, NOT a shared boolean column
+    /add column if not exists flow_events jsonb not null default '\[\]'::jsonb/.test(v104)
+      && !/add column if not exists flow_active/.test(v104)
+      && !/add column if not exists pace_seconds/.test(v104)
+      ? ok('v104: competitive_matches gains flow_events jsonb (and no shared flow_active/pace column)')
+      : fail('v104: the per-player flow_events column is missing or a shared column was added'),
+
+    // internal helpers, per-caller filtering
+    /create or replace function public\._arena_flow_state\(p_events jsonb, p_user uuid\)/.test(v104)
+      && /create or replace function public\._arena_flow_ms\([\s\S]{0,120}?p_elapsed_ms bigint/.test(v104)
+      && /with ordinality/.test(v104)
+      ? ok('v104: _arena_flow_state/_arena_flow_ms read the caller\'s last event via with ordinality')
+      : fail('v104: the per-player flow helper functions are missing or not order-preserving'),
+
+    // the interval localisation lesson (42846). Strip SQL line-comments first so
+    // the migration's own "interval::bigint does not exist" warning cannot be
+    // mistaken for the offending cast it is warning about.
+    (() => {
+      const code = v104.replace(/--[^\n]*/g, '');
+      return /\(extract\(epoch from/.test(code) && /::bigint/.test(code)
+        && !/interval\s*::\s*bigint/.test(code);
+    })()
+      ? ok('v104: elapsed time is (extract(epoch ...)*1000)::bigint (no interval::bigint 42846)')
+      : fail('v104: an interval is cast to bigint directly (this fails with 42846)'),
+
+    // the client RPC shape
+    /create or replace function public\.arena_flow\(/.test(v104)
+      && /p_active boolean/.test(v104) && /p_pace integer/.test(v104)
+      && /p_client_request_id uuid/.test(v104)
+      ? ok('v104: arena_flow(match, active, pace, rid) is the client RPC')
+      : fail('v104: the arena_flow RPC signature changed'),
+
+    // validation order: pace range, then participant, then closure, then replay
+    /INVALID_PACE/.test(v104) && /NOT_YOUR_MATCH/.test(v104)
+      && /MATCH_CLOSED/.test(v104)
+      ? ok('v104: arena_flow refuses bad pace, non-participants and closed matches')
+      : fail('v104: an arena_flow validation branch is missing'),
+
+    // exactly-once event append via the request-id log (changed:false on replay)
+    /changed', false/.test(v104) && /'replay', true/.test(v104)
+      ? ok('v104: a replayed request id returns changed:false instead of appending again')
+      : fail('v104: the flow request-id replay guard is missing'),
+
+    // ARENA_STATE exposes the three flow fields
+    /'flowActive',/.test(v104) && /'pace', coalesce\(\(v_flow->>'pace'\)/.test(v104)
+      && /'flowOnMs',/.test(v104)
+      ? ok('v104: arena_state carries flowActive / pace / flowOnMs')
+      : fail('v104: arena_state does not expose the flow fields'),
+
+    // the clock is structurally invariant
+    !/set\s+starts_at/.test(v104) && !/set\s+ends_at/.test(v104)
+      && !/ends_at\s*=/.test(v104) && !/starts_at\s*=/.test(v104)
+      ? ok('v104: the migration never writes starts_at/ends_at (the 90s clock is untouched)')
+      : fail('v104: the flow migration writes the arena clock'),
+
+    // ACLs: helpers internal-only, arena_flow authenticated-only
+    /revoke all on function public\._arena_flow_state[\s\S]*?from public, anon, authenticated/.test(v104)
+      && /revoke all on function public\._arena_flow_ms[\s\S]*?from public, anon, authenticated/.test(v104)
+      && /grant execute on function public\.arena_flow[\s\S]*?to authenticated, service_role/.test(v104)
+      ? ok('v104: helpers are revoked from clients and arena_flow is authenticated+service_role only')
+      : fail('v104: the flow-function ACLs are too permissive or missing'),
+
+    // client wrapper + provider export
+    /arena_flow/.test(ctx) && /arenaFlow/.test(ctx)
+      && /arenaRpc\('arena_flow'/.test(ctx)
+      ? ok('v104: AppContext exposes an arenaFlow wrapper over arena_flow')
+      : fail('v104: the arenaFlow client wrapper is missing from AppContext'),
+
+    // Rumble wiring: pace range, per-player reset, exactly-once skip, no bonus
+    /const FLOW_PACES = \[3, 6, 9, 12\]/.test(rumble)
+      && /flow-auto-skip/.test(rumble)
+      && /paceSkipForRef/.test(rumble)
+      && /blitzPick\(null\)/.test(rumble)
+      ? ok('v104: Rumble wires the 3–12 pace chips and a once-per-question auto-skip')
+      : fail('v104: the Rumble flow wiring is incomplete'),
+
+    // the ring only ever triggers a SKIP, and the 90s clock drives settlement
+    /const BLITZ_DURATION_MS = 90 \* 1000/.test(rumble)
+      && !/flowActive[\s\S]{0,120}endsAt\s*=/.test(rumble)
+      ? ok('v104: Flow never extends the 90s clock (it only auto-skips inside it)')
+      : fail('v104: something in Rumble ties flow to the end time'),
+
+    // e2e coverage is registered
+    /FLOW STATE \(migration v104\)/.test(e2e) && /arena_flow/.test(e2e)
+      ? ok('v104: e2e-arena covers the per-player flow contract')
+      : fail('v104: the arena e2e suite has no flow section'),
   );
 }
 

@@ -947,8 +947,9 @@ const [scEarnedTotal, setScEarnedTotal] = useState(0);
     return res;
   }, [arenaRpc, syncArenaBalance]);
 
-  const arenaReady = useCallback((matchId) =>
-    arenaRpc('arena_ready', { p_match_id: matchId }), [arenaRpc]);
+  // Guards against reconciliation loops: once we are reconciling a given match
+  // after a MATCH_NOT_WAITING, never re-enter arena_ready for it.
+  const arenaReconciling = useRef(new Set());
 
   const arenaStart = useCallback((matchId) =>
     arenaRpc('arena_start', { p_match_id: matchId }), [arenaRpc]);
@@ -992,6 +993,40 @@ const [scEarnedTotal, setScEarnedTotal] = useState(0);
 
   const arenaOutcome = useCallback((matchId) =>
     arenaRpc('arena_outcome', { p_match_id: matchId }), [arenaRpc]);
+
+  // Personal Flow rhythm (migration v104). Per-player and server-authoritative:
+  // the state, the pace and the elapsed Flow time all come back from the RPC.
+  // `clientRequestId` makes a double tap a replay instead of a second event.
+  const arenaFlow = useCallback((matchId, active, pace = null, clientRequestId = null) =>
+    arenaRpc('arena_flow', {
+      p_match_id: matchId,
+      p_active: !!active,
+      p_pace: pace,
+      p_client_request_id: clientRequestId,
+    }), [arenaRpc]);
+
+  // Declare readiness for a match. The server is authoritative: MATCH_NOT_WAITING
+  // means the match has already advanced out of waiting/ready (started,
+  // completed, abandoned, or a duplicate/stale readiness request). Never force
+  // the transition — reconcile against the authoritative arena_state snapshot
+  // instead, without sending another readiness mutation.
+  const arenaReady = useCallback(async (matchId) => {
+    const ready = await arenaRpc('arena_ready', { p_match_id: matchId });
+    if (ready?.error === 'MATCH_NOT_WAITING' && !arenaReconciling.current.has(matchId)) {
+      arenaReconciling.current.add(matchId);
+      try {
+        const st = await arenaState(matchId);
+        if (st?.ok) {
+          syncArenaBalance(st);
+          return { ok: true, reconciled: true, status: st.status, canStart: false, state: st };
+        }
+      } catch { /* fall through to stale */ }
+      arenaReconciling.current.delete(matchId);
+      return { ok: false, error: 'MATCH_STALE', reconciled: false };
+    }
+    arenaReconciling.current.delete(matchId);
+    return ready;
+  }, [arenaRpc, arenaState, syncArenaBalance]);
 
   const arenaEnqueue = useCallback(async ({ stake }) => {
     const res = await arenaRpc('arena_enqueue', { p_mode: 'duel', p_stake: Number(stake) || 0, p_format: 'blitz' });
@@ -2581,7 +2616,7 @@ useEffect(() => {
 
   return (
     <AppContext.Provider value={{
-      session, loadingAuth, flashcards, setFlashcards, exams, setExams,
+      supabase, session, loadingAuth, flashcards, setFlashcards, exams, setExams,
       addExam, updateExam, deleteExam,
       curriculumSubjects, curriculumTopics, levelCompletions, refreshLevelCompletions,
       quizHistory, fetchQuizHistory,
@@ -2600,7 +2635,7 @@ useEffect(() => {
       smartCoins, scLedger, claimDailySC, spendSC, recordStreakBreak, recordQuizFailPenalty,
       finalizeDuel,
       arenaCreateMatch, arenaReady, arenaStart, arenaAnswer, arenaHeartbeat,
-      arenaForfeit, arenaCancel, arenaSettle, arenaState, arenaOutcome,
+      arenaForfeit, arenaCancel, arenaSettle, arenaState, arenaOutcome, arenaFlow,
       arenaEnqueue, arenaLeaveQueue, arenaRoster, refreshSmartCoins, scEarnedTotal,
     arenaInvite, arenaInvites, arenaInviteRespond, arenaInviteCancel,
       arenaInviteReady, arenaChallengeTargets,
