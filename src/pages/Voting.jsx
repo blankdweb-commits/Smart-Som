@@ -129,7 +129,7 @@ const Voting = () => {
   // tutorial describes.
   const [searchParams] = useSearchParams();
   const requestedTab = searchParams.get('tab');
-  const [tab, setTab] = useState(requestedTab === 'campaigns' ? 'campaigns' : 'services');
+  const [tab, setTab] = useState(requestedTab === 'campaigns' ? 'campaigns' : requestedTab === 'services' ? 'services' : 'campaigns');
 
   // ---------------- Service feedback ----------------
   const [stats, setStats] = useState({});

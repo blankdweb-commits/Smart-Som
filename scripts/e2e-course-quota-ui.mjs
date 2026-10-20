@@ -44,9 +44,11 @@ try {
   await waitBody('Clinical Challenge', 25000);
   const gridText = (await page.textContent('body').catch(() => '')) || '';
   log('free plan banner present', gridText.includes('10 questions per round') && gridText.includes('new round every 30 minutes'));
-  const headers = ['Clinical Challenge', 'Quick Quiz', 'Uselu Test Questions', 'Fix My Weak Areas', 'Nursing 200-Level', 'Midwifery 200-Level'];
+  // Nursing/Midwifery 200-Level rows were removed from the directory (configs +
+  // server quota keys remain; only the UI rows are gone).
+  const headers = ['Clinical Challenge', 'Quick Quiz', 'Uselu Test Questions', 'Fix My Weak Areas', 'Nursing 300-Level', 'Midwifery 300-Level', 'Midwifery 200-Level · 2nd Semester'];
   const missing = headers.filter(h => !gridText.includes(h));
-  log('all course sections listed', missing.length === 0, missing.length ? `missing=${missing}` : '6/6');
+  log('all course sections listed', missing.length === 0, missing.length ? `missing=${missing}` : `${headers.length}/${headers.length}`);
 
   // ---------- 3. Clinical Challenge setup: free-locked options ----------
   await btn('Clinical Challenge').click();

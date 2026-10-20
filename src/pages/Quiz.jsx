@@ -161,7 +161,10 @@ const MODE_STYLE = {
 };
 
 // Display order — levels first, then the remaining quiz modes.
-const QUIZ_LEVEL_ORDER = ['nursing-200', 'midwifery-200', 'nursing-300', 'midwifery-300', 'midwifery-200-s2'];
+// Nursing-200 / Midwifery-200 directory rows are intentionally NOT listed
+// (configs and server quota keys remain for the API/seed tooling; the courses
+// are not launchable from the UI).
+const QUIZ_LEVEL_ORDER = ['nursing-300', 'midwifery-300', 'midwifery-200-s2'];
 const OTHER_MODE_ORDER = ['clinical-challenge', 'quick-quiz', 'uselu-test', 'weakness-challenge'];
 
 const courseCount = (bankId) => (LEVEL_SUBJECTS[bankId] || []).length;
@@ -449,25 +452,7 @@ const Quiz = () => {
   const attemptIdRef = React.useRef(null);
 
   // ----- Difficulty progression -----
-const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, loadingAuth, smartCoins, fetchGlobalRank, studyStats, session, fetchQuestionHistory, isPremium, fetchCourseQuotaStatus, courseQuota, quotaFetchStatus, identity } = useAppContext();
-
-  const [globalRank, setGlobalRank] = useState(null);
-
-  // Load the server-authoritative player score rank once (lightweight,
-  // non-blocking). Falls back to '—' until the v30 migration is applied.
-  // Only the POSITION is kept. The score behind it still decides the ordering
-  // server-side, but it is no longer printed anywhere in the app, so there is
-  // no reason to hold a copy of it here.
-  React.useEffect(() => {
-    let active = true;
-    fetchGlobalRank().then(res => {
-      if (!active) return;
-      if (res) {
-        setGlobalRank(res.globalRank);
-      }
-    });
-    return () => { active = false; };
-  }, [fetchGlobalRank]);
+const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, loadingAuth, session, fetchQuestionHistory, isPremium, fetchCourseQuotaStatus, courseQuota, quotaFetchStatus, identity } = useAppContext();
 
   const weakConceptNames = React.useMemo(() => {
     const names = new Set();
@@ -558,18 +543,18 @@ const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, lo
     // that contains the subject, subject preselected. Falls back to Clinical.
     const ps = params.get('practiceSubject');
     if (ps) {
-      const levelMatch = ['nursing-200', 'midwifery-200', 'nursing-300', 'midwifery-300', 'midwifery-200-s2']
+      const levelMatch = ['nursing-300', 'midwifery-300', 'midwifery-200-s2']
         .find((key) => (LEVEL_SUBJECTS[key] || []).includes(ps));
       intent = { setupId: levelMatch || 'clinical-challenge', subject: ps };
       setPresetSubject(ps);
       setSelectedDifficulty(null);
     }
     // Deep-link from a study group: stamp results with the group_id for the
-    // per-group quiz streak. Defaults to the Midwifery 200-Level setup.
+    // per-group quiz streak. Defaults to the Midwifery 300-Level setup.
     const g = params.get('groupId');
     if (g && /^\d+$/.test(g)) {
       setGroupQuizId(Number(g));
-      if (!s && !ps) intent = intent || { setupId: 'midwifery-200', subject: null };
+      if (!s && !ps) intent = intent || { setupId: 'midwifery-300', subject: null };
     }
     // Deep-link: /quiz?weakness=1 → Fix My Weak Areas (PAID — gated server-side).
     if (params.get('weakness')) {
@@ -1304,51 +1289,31 @@ const { recordQuizResult, recordWrongAnswers, learningAnalytics, userProfile, lo
   };
 
   // Mode selection
-  const statCells = [
-    // No score sub-label: the rank is the fact, the number behind it is not
-    // shown anywhere in the app any more (see Dashboard GlobalRankCard).
-    { label: 'Global Rank', value: globalRank ? `#${globalRank}` : '—', sub: globalRank ? 'on the leaderboard' : null, className: 'text-indigo-600' },
-    { label: 'Smart Coins', value: Number(smartCoins || 0).toLocaleString(undefined, { maximumFractionDigits: 1 }), className: 'text-emerald-500' },
-    { label: 'Quiz Streak', value: `${studyStats?.quizStreak || 0}`, className: 'text-amber-500' }
-  ];
   return (
     <div className="space-y-6 sm:space-y-8 animate-in fade-in duration-700 max-w-6xl mx-auto px-1 sm:px-0 pb-[calc(env(safe-area-inset-bottom,0px)+6.5rem)] lg:pb-16">
-      <header className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
-          <div className="flex items-center gap-3 min-w-0 w-full sm:w-auto">
-            <button
-              onClick={() => {
-                const next = secretTaps + 1;
-                setSecretTaps(next);
-                if (next >= 5) { navigate('/xp-hall'); setSecretTaps(0); }
-              }}
-              aria-label="Apex Scholars"
-              className="p-2 text-slate-200 dark:text-slate-700 hover:text-medical-500 dark:hover:text-medical-400 transition-colors rounded-xl active:scale-90 shrink-0 order-2 sm:order-1"
-            >
-              <Brain size={22} />
-            </button>
-            <div className="min-w-0 flex-1 order-1 sm:order-2">
-              <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight uppercase">Quiz Modes</h1>
-              <p className="text-slate-500 dark:text-slate-400 font-medium mt-1 uppercase tracking-[0.2em] text-[9px] sm:text-[10px]">Select your training intensity</p>
-              {identity && (
-                <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-0.5">
-                  <span className="text-sm leading-none">{identity.emoji}</span>
-                  <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">{identity.name}</span>
-                </div>
-              )}
-            </div>
-          </div>
-          <div className="grid grid-cols-2 sm:flex items-center justify-between bg-white dark:bg-slate-800 p-3 sm:p-4 rounded-2xl sm:rounded-3xl shadow-clinical border border-slate-100 dark:border-slate-700 w-full">
-            {statCells.map((cell, idx) => (
-              <div
-                key={cell.label}
-                className={`text-center px-2 sm:px-4 py-1.5 sm:py-0 sm:flex-1 ${idx < statCells.length - 1 ? 'sm:border-r border-slate-100 dark:border-slate-700' : ''}`}
-              >
-                <p className="text-[9px] sm:text-[10px] font-black text-slate-400 uppercase tracking-widest">{cell.label}</p>
-                <p className={`text-lg sm:text-xl font-black ${cell.className}`}>{cell.value}</p>
-                {cell.sub && <p className="text-[9px] font-bold text-slate-400">{cell.sub}</p>}
+      <header className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+          <div className="min-w-0 flex-1">
+            <h1 className="text-3xl sm:text-4xl font-black text-slate-900 dark:text-white tracking-tight uppercase">Quiz Modes</h1>
+            <p className="text-slate-500 dark:text-slate-400 font-medium mt-1 uppercase tracking-[0.2em] text-[9px] sm:text-[10px]">Select your training intensity</p>
+            {identity && (
+              <div className="mt-2 inline-flex items-center gap-1.5 rounded-full bg-slate-100 dark:bg-slate-800 border border-slate-200 dark:border-slate-700 px-2.5 py-0.5">
+                <span className="text-sm leading-none">{identity.emoji}</span>
+                <span className="text-[9px] sm:text-[10px] font-black uppercase tracking-widest text-slate-600 dark:text-slate-300">{identity.name}</span>
               </div>
-            ))}
+            )}
           </div>
+          <button
+            type="button"
+            onClick={() => {
+              const next = secretTaps + 1;
+              setSecretTaps(next);
+              if (next >= 5) { navigate('/xp-hall'); setSecretTaps(0); }
+            }}
+            aria-label="Apex Scholars"
+            className="shrink-0 self-center sm:self-auto p-4 sm:p-6 rounded-3xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-2xl shadow-purple-500/40 animate-pulse active:scale-95 transition-transform"
+          >
+            <Brain size={64} className="text-white w-20 h-20 sm:w-24 sm:h-24 lg:w-28 lg:h-28 drop-shadow-[0_0_26px_rgba(216,180,254,1)]" />
+          </button>
         </header>
 
         {/* Plan banner (compact) */}

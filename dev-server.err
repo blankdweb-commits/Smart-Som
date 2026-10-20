@@ -1,0 +1,341 @@
+TypeError: fetch failed
+    at node:internal/deps/undici/undici:15845:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async _handleRequest (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@supabase\auth-js\dist\main\lib\fetch.js:101:18)
+    at async _request (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@supabase\auth-js\dist\main\lib\fetch.js:91:18)
+    at async SupabaseAuthClient._getUser (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@supabase\auth-js\dist\main\GoTrueClient.js:1274:24)
+    at async SupabaseAuthClient.getUser (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@supabase\auth-js\dist\main\GoTrueClient.js:1260:20)
+    at async getUserFromRequest (file:///C:/Users/yvngt/OneDrive/Desktop/Apex-Scholars/Smart-Som/api/_utils.js:86:29)
+    at async touch (file:///C:/Users/yvngt/OneDrive/Desktop/Apex-Scholars/Smart-Som/api/session.js?t=1792529074533:76:18)
+    at async handler (file:///C:/Users/yvngt/OneDrive/Desktop/Apex-Scholars/Smart-Som/api/session.js?t=1792529074533:202:66)
+    at async Server.<anonymous> (file:///C:/Users/yvngt/OneDrive/Desktop/Apex-Scholars/Smart-Som/scripts/serve-api.mjs:153:5) {
+  [cause]: Error: getaddrinfo ENOTFOUND urhcvdcpxhxmmnavkcvd.supabase.co
+      at GetAddrInfoReqWrap.onlookupall [as oncomplete] (node:dns:121:26) {
+    errno: -3008,
+    code: 'ENOTFOUND',
+    syscall: 'getaddrinfo',
+    hostname: 'urhcvdcpxhxmmnavkcvd.supabase.co'
+  }
+}
+TypeError: fetch failed
+    at node:internal/deps/undici/undici:15845:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async _handleRequest (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@supabase\auth-js\dist\main\lib\fetch.js:101:18)
+    at async _request (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@supabase\auth-js\dist\main\lib\fetch.js:91:18)
+    at async SupabaseAuthClient._getUser (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@supabase\auth-js\dist\main\GoTrueClient.js:1274:24)
+    at async SupabaseAuthClient.getUser (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@supabase\auth-js\dist\main\GoTrueClient.js:1260:20)
+    at async getUserFromRequest (file:///C:/Users/yvngt/OneDrive/Desktop/Apex-Scholars/Smart-Som/api/_utils.js:86:29)
+    at async touch (file:///C:/Users/yvngt/OneDrive/Desktop/Apex-Scholars/Smart-Som/api/session.js?t=1792530634539:76:18)
+    at async handler (file:///C:/Users/yvngt/OneDrive/Desktop/Apex-Scholars/Smart-Som/api/session.js?t=1792530634539:202:66)
+    at async Server.<anonymous> (file:///C:/Users/yvngt/OneDrive/Desktop/Apex-Scholars/Smart-Som/scripts/serve-api.mjs:153:5) {
+  [cause]: Error: read ECONNRESET
+      at TLSWrap.onStreamRead (node:internal/stream_base_commons:216:20) {
+    errno: -4077,
+    code: 'ECONNRESET',
+    syscall: 'read'
+  }
+}
+[2m2:32:48 pm[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/session/touch[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m2:33:49 pm[22m [31m[1m[vite][22m[39m [31mhttp proxy error: /api/session/touch[39m
+Error: read ECONNRESET
+    at TCP.onStreamRead (node:internal/stream_base_commons:216:20)
+[2m3:02:38 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\src\pages\Rumble.jsx: Unterminated string constant. (3:18)
+
+[0m [90m 1 |[31m [36mimport[31m [33mReact[31m[33m,[31m { useState[33m,[31m useEffect[33m,[31m useCallback[33m,[31m useRef[33m,[31m useMemo } [36mfrom[31m [32m"react"[31m[33m;[31m
+ [90m 2 |[31m [36mimport[31m { useNavigate[33m,[31m useSearchParams } [36mfrom[31m [32m"react-router-dom"[31m[33m;[31m
+[31m[1m>[22m[31m[90m 3 |[31m [36mimport[31m [33mModal[31m [36mfrom[31m [32m" ../components/Modal;[31m
+ [90m   |[31m                   [31m[1m^[22m[31m
+ [90m 4 |[31m [36mimport[31m { useChallenge } [36mfrom[31m [32m"../context/ChallengeContext"[31m[33m;[31m
+ [90m 5 |[31m [36mimport[31m [33mTutorialTip[31m [36mfrom[31m [32m'../components/TutorialTip'[31m[33m;[31m
+ [90m 6 |[31m [36mimport[31m { supabase } [36mfrom[31m [32m"../utils/supabase"[31m[33m;[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/yvngt/OneDrive/Desktop/Apex-Scholars/Smart-Som/src/pages/Rumble.jsx[39m:3:18
+[33m  1  |  import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+  2  |  import { useNavigate, useSearchParams } from "react-router-dom";
+  3  |  import Modal from " ../components/Modal;
+     |                    ^
+  4  |  import { useChallenge } from "../context/ChallengeContext";
+  5  |  import TutorialTip from '../components/TutorialTip';[39m
+      at constructor (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6599:19)
+      at Object.unterminated (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:5664:20)
+      at readStringContents (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:5406:16)
+      at JSXParserMixin.readString (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6498:9)
+      at JSXParserMixin.getTokenFromCode (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6258:14)
+      at JSXParserMixin.getTokenFromCode (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:4797:11)
+      at JSXParserMixin.nextToken (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:5782:10)
+      at JSXParserMixin.next (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:5692:10)
+      at JSXParserMixin.eatContextual (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6868:12)
+      at JSXParserMixin.expectContextual (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6874:15)
+      at JSXParserMixin.parseImportSpecifiersAndAfter (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:14243:10)
+      at JSXParserMixin.parseImport (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:14235:17)
+      at JSXParserMixin.parseStatementContent (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12876:27)
+      at JSXParserMixin.parseStatementLike (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseProgram (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12612:25)
+      at JSXParserMixin.parse (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:14488:25)
+      at parse (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:14522:38)
+      at parser (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\transformation\normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:261:32)
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:223:11)
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:189:28
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\gensync-utils\async.js:67:7
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:113:33
+      at step (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:287:14)
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:223:11)
+[2m3:03:52 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\src\pages\Rumble.jsx: Unterminated string constant. (3:18)
+
+[0m [90m 1 |[31m [36mimport[31m [33mReact[31m[33m,[31m { useState[33m,[31m useEffect[33m,[31m useCallback[33m,[31m useRef[33m,[31m useMemo } [36mfrom[31m [32m"react"[31m[33m;[31m
+ [90m 2 |[31m [36mimport[31m { useNavigate[33m,[31m useSearchParams } [36mfrom[31m [32m"react-router-dom"[31m[33m;[31m
+[31m[1m>[22m[31m[90m 3 |[31m [36mimport[31m [33mModal[31m [36mfrom[31m [32m" ../components/Modal;[31m
+ [90m   |[31m                   [31m[1m^[22m[31m
+ [90m 4 |[31m [36mimport[31m { useChallenge } [36mfrom[31m [32m"../context/ChallengeContext"[31m[33m;[31m
+ [90m 5 |[31m [36mimport[31m [33mTutorialTip[31m [36mfrom[31m [32m'../components/TutorialTip'[31m[33m;[31m
+ [90m 6 |[31m [36mimport[31m { supabase } [36mfrom[31m [32m"../utils/supabase"[31m[33m;[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/yvngt/OneDrive/Desktop/Apex-Scholars/Smart-Som/src/pages/Rumble.jsx[39m:3:18
+[33m  1  |  import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+  2  |  import { useNavigate, useSearchParams } from "react-router-dom";
+  3  |  import Modal from " ../components/Modal;
+     |                    ^
+  4  |  import { useChallenge } from "../context/ChallengeContext";
+  5  |  import TutorialTip from '../components/TutorialTip';[39m
+      at constructor (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6599:19)
+      at Object.unterminated (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:5664:20)
+      at readStringContents (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:5406:16)
+      at JSXParserMixin.readString (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6498:9)
+      at JSXParserMixin.getTokenFromCode (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6258:14)
+      at JSXParserMixin.getTokenFromCode (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:4797:11)
+      at JSXParserMixin.nextToken (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:5782:10)
+      at JSXParserMixin.next (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:5692:10)
+      at JSXParserMixin.eatContextual (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6868:12)
+      at JSXParserMixin.expectContextual (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6874:15)
+      at JSXParserMixin.parseImportSpecifiersAndAfter (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:14243:10)
+      at JSXParserMixin.parseImport (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:14235:17)
+      at JSXParserMixin.parseStatementContent (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12876:27)
+      at JSXParserMixin.parseStatementLike (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseProgram (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12612:25)
+      at JSXParserMixin.parse (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:14488:25)
+      at parse (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:14522:38)
+      at parser (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\transformation\normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:261:32)
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:223:11)
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:189:28
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\gensync-utils\async.js:67:7
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:113:33
+      at step (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:287:14)
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:223:11)
+[2m3:03:59 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\src\pages\Rumble.jsx: Unterminated string constant. (3:18)
+
+[0m [90m 1 |[31m [36mimport[31m [33mReact[31m[33m,[31m { useState[33m,[31m useEffect[33m,[31m useCallback[33m,[31m useRef[33m,[31m useMemo } [36mfrom[31m [32m"react"[31m[33m;[31m
+ [90m 2 |[31m [36mimport[31m { useNavigate[33m,[31m useSearchParams } [36mfrom[31m [32m"react-router-dom"[31m[33m;[31m
+[31m[1m>[22m[31m[90m 3 |[31m [36mimport[31m [33mModal[31m [36mfrom[31m [32m" ../components/Modal;[31m
+ [90m   |[31m                   [31m[1m^[22m[31m
+ [90m 4 |[31m [36mimport[31m { useChallenge } [36mfrom[31m [32m"../context/ChallengeContext"[31m[33m;[31m
+ [90m 5 |[31m [36mimport[31m [33mTutorialTip[31m [36mfrom[31m [32m'../components/TutorialTip'[31m[33m;[31m
+ [90m 6 |[31m [36mimport[31m { supabase } [36mfrom[31m [32m"../utils/supabase"[31m[33m;[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/yvngt/OneDrive/Desktop/Apex-Scholars/Smart-Som/src/pages/Rumble.jsx[39m:3:18
+[33m  1  |  import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+  2  |  import { useNavigate, useSearchParams } from "react-router-dom";
+  3  |  import Modal from " ../components/Modal;
+     |                    ^
+  4  |  import { useChallenge } from "../context/ChallengeContext";
+  5  |  import TutorialTip from '../components/TutorialTip';[39m
+      at constructor (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6599:19)
+      at Object.unterminated (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:5664:20)
+      at readStringContents (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:5406:16)
+      at JSXParserMixin.readString (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6498:9)
+      at JSXParserMixin.getTokenFromCode (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6258:14)
+      at JSXParserMixin.getTokenFromCode (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:4797:11)
+      at JSXParserMixin.nextToken (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:5782:10)
+      at JSXParserMixin.next (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:5692:10)
+      at JSXParserMixin.eatContextual (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6868:12)
+      at JSXParserMixin.expectContextual (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6874:15)
+      at JSXParserMixin.parseImportSpecifiersAndAfter (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:14243:10)
+      at JSXParserMixin.parseImport (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:14235:17)
+      at JSXParserMixin.parseStatementContent (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12876:27)
+      at JSXParserMixin.parseStatementLike (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseProgram (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12612:25)
+      at JSXParserMixin.parse (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:14488:25)
+      at parse (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:14522:38)
+      at parser (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\transformation\normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:261:32)
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:223:11)
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:189:28
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\gensync-utils\async.js:67:7
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:113:33
+      at step (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:287:14)
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:223:11)
+[2m3:04:16 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\src\pages\Rumble.jsx: Unterminated string constant. (3:18)
+
+[0m [90m 1 |[31m [36mimport[31m [33mReact[31m[33m,[31m { useState[33m,[31m useEffect[33m,[31m useCallback[33m,[31m useRef[33m,[31m useMemo } [36mfrom[31m [32m"react"[31m[33m;[31m
+ [90m 2 |[31m [36mimport[31m { useNavigate[33m,[31m useSearchParams } [36mfrom[31m [32m"react-router-dom"[31m[33m;[31m
+[31m[1m>[22m[31m[90m 3 |[31m [36mimport[31m [33mModal[31m [36mfrom[31m [32m" ../components/Modal;[31m
+ [90m   |[31m                   [31m[1m^[22m[31m
+ [90m 4 |[31m [36mimport[31m { useChallenge } [36mfrom[31m [32m"../context/ChallengeContext"[31m[33m;[31m
+ [90m 5 |[31m [36mimport[31m [33mTutorialTip[31m [36mfrom[31m [32m'../components/TutorialTip'[31m[33m;[31m
+ [90m 6 |[31m [36mimport[31m { supabase } [36mfrom[31m [32m"../utils/supabase"[31m[33m;[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/yvngt/OneDrive/Desktop/Apex-Scholars/Smart-Som/src/pages/Rumble.jsx[39m:3:18
+[33m  1  |  import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+  2  |  import { useNavigate, useSearchParams } from "react-router-dom";
+  3  |  import Modal from " ../components/Modal;
+     |                    ^
+  4  |  import { useChallenge } from "../context/ChallengeContext";
+  5  |  import TutorialTip from '../components/TutorialTip';[39m
+      at constructor (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6599:19)
+      at Object.unterminated (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:5664:20)
+      at readStringContents (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:5406:16)
+      at JSXParserMixin.readString (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6498:9)
+      at JSXParserMixin.getTokenFromCode (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6258:14)
+      at JSXParserMixin.getTokenFromCode (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:4797:11)
+      at JSXParserMixin.nextToken (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:5782:10)
+      at JSXParserMixin.next (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:5692:10)
+      at JSXParserMixin.eatContextual (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6868:12)
+      at JSXParserMixin.expectContextual (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6874:15)
+      at JSXParserMixin.parseImportSpecifiersAndAfter (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:14243:10)
+      at JSXParserMixin.parseImport (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:14235:17)
+      at JSXParserMixin.parseStatementContent (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12876:27)
+      at JSXParserMixin.parseStatementLike (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseProgram (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12612:25)
+      at JSXParserMixin.parse (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:14488:25)
+      at parse (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:14522:38)
+      at parser (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\transformation\normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:261:32)
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:223:11)
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:189:28
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\gensync-utils\async.js:67:7
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:113:33
+      at step (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:287:14)
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:223:11)
+[2m3:04:41 pm[22m [31m[1m[vite][22m[39m [31mInternal server error: C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\src\pages\Rumble.jsx: Unterminated string constant. (3:18)
+
+[0m [90m 1 |[31m [36mimport[31m [33mReact[31m[33m,[31m { useState[33m,[31m useEffect[33m,[31m useCallback[33m,[31m useRef[33m,[31m useMemo } [36mfrom[31m [32m"react"[31m[33m;[31m
+ [90m 2 |[31m [36mimport[31m { useNavigate[33m,[31m useSearchParams } [36mfrom[31m [32m"react-router-dom"[31m[33m;[31m
+[31m[1m>[22m[31m[90m 3 |[31m [36mimport[31m [33mModal[31m [36mfrom[31m [32m" ../components/Modal;[31m
+ [90m   |[31m                   [31m[1m^[22m[31m
+ [90m 4 |[31m [36mimport[31m { useChallenge } [36mfrom[31m [32m"../context/ChallengeContext"[31m[33m;[31m
+ [90m 5 |[31m [36mimport[31m [33mTutorialTip[31m [36mfrom[31m [32m'../components/TutorialTip'[31m[33m;[31m
+ [90m 6 |[31m [36mimport[31m { supabase } [36mfrom[31m [32m"../utils/supabase"[31m[33m;[31m[0m[39m
+  Plugin: [35mvite:react-babel[39m
+  File: [36mC:/Users/yvngt/OneDrive/Desktop/Apex-Scholars/Smart-Som/src/pages/Rumble.jsx[39m:3:18
+[33m  1  |  import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
+  2  |  import { useNavigate, useSearchParams } from "react-router-dom";
+  3  |  import Modal from " ../components/Modal;
+     |                    ^
+  4  |  import { useChallenge } from "../context/ChallengeContext";
+  5  |  import TutorialTip from '../components/TutorialTip';[39m
+      at constructor (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:365:19)
+      at JSXParserMixin.raise (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6599:19)
+      at Object.unterminated (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:5664:20)
+      at readStringContents (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:5406:16)
+      at JSXParserMixin.readString (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6498:9)
+      at JSXParserMixin.getTokenFromCode (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6258:14)
+      at JSXParserMixin.getTokenFromCode (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:4797:11)
+      at JSXParserMixin.nextToken (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:5782:10)
+      at JSXParserMixin.next (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:5692:10)
+      at JSXParserMixin.eatContextual (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6868:12)
+      at JSXParserMixin.expectContextual (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:6874:15)
+      at JSXParserMixin.parseImportSpecifiersAndAfter (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:14243:10)
+      at JSXParserMixin.parseImport (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:14235:17)
+      at JSXParserMixin.parseStatementContent (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12876:27)
+      at JSXParserMixin.parseStatementLike (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12767:17)
+      at JSXParserMixin.parseModuleItem (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12744:17)
+      at JSXParserMixin.parseBlockOrModuleBlockBody (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:13316:36)
+      at JSXParserMixin.parseBlockBody (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:13309:10)
+      at JSXParserMixin.parseProgram (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12622:10)
+      at JSXParserMixin.parseTopLevel (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:12612:25)
+      at JSXParserMixin.parse (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:14488:25)
+      at parse (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\parser\lib\index.js:14522:38)
+      at parser (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\parser\index.js:41:34)
+      at parser.next (<anonymous>)
+      at normalizeFile (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\transformation\normalize-file.js:64:37)
+      at normalizeFile.next (<anonymous>)
+      at run (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\transformation\index.js:22:50)
+      at run.next (<anonymous>)
+      at transform (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\transform.js:22:33)
+      at transform.next (<anonymous>)
+      at step (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:261:32)
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:223:11)
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:189:28
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@babel\core\lib\gensync-utils\async.js:67:7
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:113:33
+      at step (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:287:14)
+      at C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:273:13
+      at async.call.result.err.err (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\gensync\index.js:223:11)
+TypeError: fetch failed
+    at node:internal/deps/undici/undici:15845:13
+    at process.processTicksAndRejections (node:internal/process/task_queues:103:5)
+    at async _handleRequest (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@supabase\auth-js\dist\main\lib\fetch.js:101:18)
+    at async _request (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@supabase\auth-js\dist\main\lib\fetch.js:91:18)
+    at async SupabaseAuthClient._getUser (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@supabase\auth-js\dist\main\GoTrueClient.js:1274:24)
+    at async SupabaseAuthClient.getUser (C:\Users\yvngt\OneDrive\Desktop\Apex-Scholars\Smart-Som\node_modules\@supabase\auth-js\dist\main\GoTrueClient.js:1260:20)
+    at async getUserFromRequest (file:///C:/Users/yvngt/OneDrive/Desktop/Apex-Scholars/Smart-Som/api/_utils.js:86:29)
+    at async touch (file:///C:/Users/yvngt/OneDrive/Desktop/Apex-Scholars/Smart-Som/api/session.js?t=1792534632848:76:18)
+    at async handler (file:///C:/Users/yvngt/OneDrive/Desktop/Apex-Scholars/Smart-Som/api/session.js?t=1792534632848:202:66)
+    at async Server.<anonymous> (file:///C:/Users/yvngt/OneDrive/Desktop/Apex-Scholars/Smart-Som/scripts/serve-api.mjs:153:5) {
+  [cause]: ConnectTimeoutError: Connect Timeout Error (attempted addresses: 172.64.149.246:443, 104.18.38.10:443, timeout: 10000ms)
+      at onConnectTimeout (node:internal/deps/undici/undici:1690:23)
+      at Immediate._onImmediate (node:internal/deps/undici/undici:1656:35)
+      at process.processImmediate (node:internal/timers:504:21) {
+    code: 'UND_ERR_CONNECT_TIMEOUT'
+  }
+}

@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useCallback, useRef, useMemo } from "react";
 import { useNavigate, useSearchParams } from "react-router-dom";
-import { useAppContext } from "../context/AppContext";
+import Modal from "../components/Modal";
 import { useChallenge } from "../context/ChallengeContext";
 import TutorialTip from '../components/TutorialTip';
 import { supabase } from "../utils/supabase";
@@ -239,6 +239,8 @@ const Rumble = () => {
   const [preferredPace, setPreferredPace] = useState(FLOW_DEFAULT_PACE);
   const [flowBusy, setFlowBusy] = useState(false);
   const [paceTick, setPaceTick] = useState(0);
+  const [showPaceSheet, setShowPaceSheet] = useState(false);
+  const [tempPace, setTempPace] = useState(FLOW_DEFAULT_PACE);
 
   const matchIdRef = useRef(null);
   const lastOptionRef = useRef(null);
@@ -1051,6 +1053,17 @@ const Rumble = () => {
     setPreferredPace(pace);
   }, [flowBusy]);
 
+  const openPaceSheet = useCallback(() => {
+    setTempPace(preferredPace);
+    setShowPaceSheet(true);
+  }, [preferredPace]);
+
+  const savePace = useCallback(() => {
+    if (flowBusy) return;
+    setPreferredPace(tempPace);
+    setShowPaceSheet(false);
+  }, [flowBusy, tempPace]);
+
   const paceRemainingMs = useMemo(() => {
     if (!flowActive || phase !== 'blitz-play') return flowPace * 1000;
     if (paceShownIndexRef.current !== blitzIndex) return flowPace * 1000;
@@ -1235,8 +1248,8 @@ const Rumble = () => {
             <motion.div key="hub" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0 }} className="space-y-6">
               <div className="text-center mb-10">
                 <div className="flex items-center justify-center gap-3 mb-4">
-                  <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-2xl shadow-purple-500/40">
-                    <Brain size={28} />
+                  <div className="w-28 h-28 sm:w-32 sm:h-32 rounded-3xl bg-gradient-to-br from-purple-600 to-indigo-600 flex items-center justify-center shadow-2xl shadow-purple-500/40 animate-pulse">
+                    <Brain size={64} className="text-white w-16 h-16 sm:w-20 sm:h-20 drop-shadow-[0_0_26px_rgba(216,180,254,1)]" />
                   </div>
                 </div>
                 <h1 className="text-4xl font-black tracking-tight uppercase">SC War Hall</h1>
@@ -1330,28 +1343,15 @@ const Rumble = () => {
               {/* Flow pace is chosen HERE, before the match. It is a per-player
                   aid: it only auto-skips YOUR unanswered question, never touches
                   the shared clock, and is never imposed on the opponent. */}
-              <div className="rounded-[2rem] border border-indigo-400/25 bg-indigo-500/[0.07] p-4">
-                <div className="flex items-center justify-between gap-3">
-                  <div className="min-w-0">
-                    <p className="text-[10px] font-black uppercase tracking-widest text-indigo-300 flex items-center gap-2">
-                      <Zap size={13} fill="currentColor" /> Flow State pace
-                    </p>
-                    <p className="text-[11px] text-white/50 font-medium mt-1 leading-snug">
-                      Auto-skips your unanswered question after this long. You can toggle Flow on or off mid-duel.
-                    </p>
-                  </div>
-                </div>
-                <div className="mt-3 grid grid-cols-4 gap-2">
-                  {FLOW_PACES.map((p) => (
-                    <button key={p} onClick={() => pickPace(p)}
-                      className={`py-2.5 rounded-2xl text-xs font-black tabular-nums transition-all active:scale-95 ${preferredPace === p ? 'bg-indigo-500 text-white shadow-lg shadow-indigo-500/30' : 'bg-white/5 text-white/50 hover:text-white/80'}`}>
-                      {p}s
-                    </button>
-                  ))}
-                </div>
-                <p className="mt-2 text-[10px] font-bold uppercase tracking-widest text-white/30">
-                  Default {FLOW_DEFAULT_PACE}s · server-checked 3–12s
-                </p>
+              <div className="flex justify-center">
+                <button
+                  onClick={openPaceSheet}
+                  className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-indigo-500/15 border border-indigo-400/40 text-indigo-200 font-black uppercase tracking-widest text-[10px] shadow-lg shadow-indigo-500/10 active:scale-95 transition-all"
+                  aria-label="Change Flow State pace"
+                >
+                  <Zap size={12} fill="currentColor" />
+                  <span>FLOW STATE · {preferredPace} s</span>
+                </button>
               </div>
 
               {!canAffordStake ? (
@@ -1931,9 +1931,59 @@ const Rumble = () => {
                 </div>
               </motion.div>
             );
-          })()}
+          })(          )}
         </AnimatePresence>
       </div>
+
+      <Modal isOpen={showPaceSheet} onClose={() => setShowPaceSheet(false)} label="Flow State pace" variant="bottom">
+        <div className="p-5 space-y-5">
+          <div className="flex items-center justify-between">
+            <div>
+              <p className="text-[10px] font-black uppercase tracking-widest text-indigo-300 flex items-center gap-2">
+                <Zap size={12} fill="currentColor" /> Flow State pace
+              </p>
+              <p className="text-lg font-black text-slate-900 dark:text-white mt-1">Auto-skip your unanswered question</p>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mt-1">Applies to Enter Arena and Practise vs a bot</p>
+            </div>
+            <button
+              onClick={() => setShowPaceSheet(false)}
+              className="p-2 rounded-full bg-slate-100 dark:bg-slate-700"
+              aria-label="Close"
+            >
+              <X size={16} />
+            </button>
+          </div>
+          <div className="space-y-3">
+            <div className="flex items-baseline justify-between">
+              <span className="text-sm font-bold text-slate-600 dark:text-slate-300">Seconds per question</span>
+              <span className="text-xl font-black tabular-nums text-indigo-500">{tempPace} s</span>
+            </div>
+            <input
+              type="range"
+              min={3}
+              max={12}
+              step={3}
+              value={tempPace}
+              onChange={(e) => setTempPace(Number(e.target.value))}
+              className="w-full accent-indigo-500"
+            />
+            <div className="flex justify-between text-[10px] font-black uppercase tracking-widest text-slate-400">
+              {FLOW_PACES.map((p) => (
+                <span key={p}>{p}s</span>
+              ))}
+            </div>
+            <p className="text-[10px] font-bold uppercase tracking-widest text-slate-400">
+              Default {FLOW_DEFAULT_PACE}s · server-checked 3–12s
+            </p>
+          </div>
+          <button
+            onClick={savePace}
+            className="w-full py-4 rounded-2xl bg-gradient-to-r from-indigo-600 to-purple-600 font-black uppercase tracking-widest text-xs shadow-xl shadow-indigo-500/20 active:scale-[0.98] transition-all"
+          >
+            Save pace
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 };
