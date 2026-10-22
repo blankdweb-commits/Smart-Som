@@ -114,6 +114,7 @@ import {
   handleCloseLiveEvent,
   handleSendLiveEventMessage,
   handleReactLiveEventMessage,
+  withLiveEventErrors,
 } from './_community.js';
 
 const HANDLERS = [
@@ -186,6 +187,12 @@ export default async function handler(req, res) {
   }
 
   const path = (req.url || '').split('?')[0];
+
+  // LE-0 — every Live Events refusal carries a stable code AND a human
+  // message, and is logged with its code. Applied before the handler runs so
+  // the contract also covers the method check and the generic catch below.
+  if (/\/live-events\/[^/]+$/.test(path)) withLiveEventErrors(req, res);
+
   const entry = HANDLERS.find(({ re }) => re.test(path));
 
   if (!entry) {
@@ -245,6 +252,9 @@ export default async function handler(req, res) {
     return await entry.fn(req, res, auth.user);
   } catch (error) {
     console.error(`[community ${path}]`, error?.stack || error?.message || error);
-    return res.status(500).json({ error: 'Internal Server Error' });
+    return res.status(500).json({
+      error: 'Internal Server Error',
+      message: 'Something went wrong handling this request. Please retry.',
+    });
   }
 }

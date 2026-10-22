@@ -80,6 +80,23 @@
 //        current default room; a bogus id 404s; a wiped room still previews its
 //        ended state.
 //
+// v99 additions (the live-event clock — requires migration-v99 applied live):
+//   10h. THE CLOCK STARTS ON ACTIVATION. A room that activates is a live event
+//        with a 40–60 minute window, and while that window runs
+//        community_membership_reconcile touches NOTHING: no idle release, no
+//        wipe, the idle member keeps their seat. The 15-minute idle deadline
+//        belongs to an open-ended room, not to a timed event, so the watchdog
+//        is SUSPENDED rather than re-tuned.
+//   10h2. THE WATCHDOG RESUMES AFTER THE DEADLINE. A dedicated room with an
+//        already-elapsed window (configured, not simulated — the window may be
+//        written freely while the room has never run an event) releases the
+//        idle seat, keeps the owner's, does not wipe, and refuses writes with
+//        EVENT_ENDED while reads still work.
+//   10h3. MEMBERSHIP REFUSALS WITHOUT A CLOCK. In a waiting room (no event at
+//        all) a member who LEFT loses read access, cannot send, cannot read the
+//        roster, and cannot be aimed at with a social action — the lingering
+//        alias is refused with NOT_A_MEMBER.
+//
 // Requires a reachable Supabase project (VITE_SUPABASE_URL +
 // SUPABASE_SERVICE_ROLE_KEY + VITE_SUPABASE_ANON_KEY in .env). Run:
 //   npm run e2e:anonymous-lifecycle
@@ -154,6 +171,10 @@ let gateGroupId = null;
 let lockGroupId = null;
 let p2GroupId = null;
 let p3GroupId = null;
+// v99: two dedicated rooms for the live-event contract — one whose event window
+// has ALREADY elapsed, one waiting room with no clock at all.
+let endedGroupId = null;
+let waitGroupId = null;
 
 // Minimal req/res harness so we can exercise the real server handlers (the
 // same functions the /api/community router dispatches to) against live DB.
@@ -793,28 +814,198 @@ try {
       Number(reap.data?.member_count) === presUsers.length,
     JSON.stringify(reap.data));
 
-  // v46 — an idle member's seat is released by the membership reconcile, and the
-  // owner is never released (S4 membership corrections).
+  // ---------- 10h. v99 — THE LIVE EVENT CLOCK SUSPENDS THE MEMBERSHIP WATCHDOG ----------
+  //
+  // v99 turned the Anonymous room into a TIME-LIMITED live event, and the clock
+  // starts on ACTIVATION (a BEFORE UPDATE trigger), so the scratch room above —
+  // which activated when its third member arrived — is a live event with a
+  // 60-minute window.
+  //
+  // While that window runs, community_membership_reconcile touches NOTHING: no
+  // idle release, no wipe. The 15-minute idle deadline is right for an
+  // open-ended room and wrong for a 40–60 minute event, so the operator chose to
+  // SUSPEND the watchdog for the live window rather than change the thresholds.
+  // That is a deliberate product decision and this block is its guard: if a
+  // future change resumes the release mid-event, these assertions fail.
+  const { data: liveClock } = await admin
+    .from('study_groups')
+    .select('group_state, event_started_at, event_ends_at, event_duration_minutes')
+    .eq('id', scratchGroupId)
+    .single();
+  const liveEndsAt = liveClock?.event_ends_at ? new Date(liveClock.event_ends_at).getTime() : 0;
+  log('v99: the clock starts on ACTIVATION (the activated room runs a live event window)',
+    liveClock?.group_state === 'active' && liveClock?.event_started_at != null && liveEndsAt > Date.now(),
+    `state=${liveClock?.group_state} duration=${liveClock?.event_duration_minutes} ends=${liveClock?.event_ends_at}`);
+
   await admin
     .from('study_group_members')
     .update({ last_activity_at: new Date(Date.now() - 20 * 60 * 1000).toISOString() })
     .eq('group_id', scratchGroupId)
     .eq('user_id', memberId);
   const recon = await admin.rpc('community_membership_reconcile', { p_group: scratchGroupId, p_deadline: 900, p_warning: 600 });
-  log('membership reconcile releases an idle member seat and never the owner',
-    recon.data?.ok === true && Number(recon.data?.released) === 1 &&
-      Number(recon.data?.member_count) === presUsers.length - 1,
+  log('v99: while the event is LIVE the membership watchdog touches NOTHING (no idle release, no wipe)',
+    recon.data?.ok === true && recon.data?.event_live === true &&
+      Number(recon.data?.released) === 0 &&
+      Number(recon.data?.member_count) === presUsers.length &&
+      recon.data?.wipe !== true,
     JSON.stringify(recon.data));
 
-  // 10h2. PHASE 3 — the released member loses read access END-TO-END and no stale
-  // subscription can reintroduce them (a later feed/message call must 403).
-  const releasedFeed = await callHandler(handleAnonFeed, { id: memberId }, { group_id: scratchGroupId, limit: 5 });
-  log('revoked member feed is refused immediately (no stale access after release)',
-    releasedFeed.status === 403 && releasedFeed.body?.message, `status=${releasedFeed.status} error=${releasedFeed.body?.error}`);
-  const releasedSend = await callHandler(handleAnonSend, { id: memberId }, { group_id: scratchGroupId, content: `revoked ${stamp}` });
-  log('revoked member cannot send either (server-enforced, direct endpoint)',
-    [400, 403].includes(releasedSend.status) && !releasedSend.body?.ok,
-    `status=${releasedSend.status} error=${releasedSend.body?.error}`);
+  const { data: liveSeats } = await admin
+    .from('study_group_members')
+    .select('user_id, role')
+    .eq('group_id', scratchGroupId);
+  log('v99: an idle member KEEPS their seat while the event is live (the 15-minute rule is suspended)',
+    liveSeats?.length === presUsers.length && liveSeats.some((s) => s.user_id === memberId),
+    `seats=${liveSeats?.length}`);
+
+  // ---------- 10h2. v99 — THE WATCHDOG RESUMES ONCE THE EVENT IS OVER ----------
+  //
+  // A dedicated room whose event window is ALREADY ELAPSED. The window is
+  // CONFIGURED, never simulated: v99 freezes a clock once one exists, but a room
+  // that has never run an event may have its window written freely — which is
+  // exactly how a deadline can be pre-configured without waiting 40 minutes for
+  // one.
+  //
+  // Two ordering rules make this legal, and both are the point:
+  //   1. the seats are granted BEFORE the window is set, because the seat guard
+  //      refuses a new seat in an event that is already over;
+  //   2. the window is written in ONE statement, because the CHECK demands
+  //      event_ends_at = event_started_at + duration exactly.
+  const EVENT_MINUTES = 40;
+  const endedOwner = await makeUser('endedowner');
+  const endedIdle = await makeUser('endedidle');
+  const { data: endedGrp, error: endedGrpErr } = await admin
+    .from('study_groups')
+    .insert({
+      name: `Anon Ended ${stamp}`,
+      description: 'E2E scratch room with an already-elapsed event window (v99)',
+      creator_id: endedOwner,
+      is_verified: true,
+      member_limit: 10,
+      is_active: true,
+      type: 'anonymous',
+      privacy: 'restricted',
+      spectator_price: SPECTATOR_PRICE,
+      minimum_members_to_activate: 10,
+      minimum_members_to_remain_active: 1,
+      membership_locked: false,
+      group_state: 'waiting',
+    })
+    .select('id')
+    .single();
+  if (endedGrpErr) throw endedGrpErr;
+  endedGroupId = endedGrp.id;
+  const endedSeatIns = await admin.from('study_group_members').insert([
+    { group_id: endedGroupId, user_id: endedOwner, role: 'owner' },
+    { group_id: endedGroupId, user_id: endedIdle, role: 'member' },
+  ]);
+  if (endedSeatIns.error) throw endedSeatIns.error;
+  const eventEnds = new Date();
+  const eventStarts = new Date(eventEnds.getTime() - EVENT_MINUTES * 60 * 1000);
+  const { error: windowErr } = await admin
+    .from('study_groups')
+    .update({
+      group_state: 'active',
+      event_started_at: eventStarts.toISOString(),
+      event_ends_at: eventEnds.toISOString(),
+      event_duration_minutes: EVENT_MINUTES,
+    })
+    .eq('id', endedGroupId);
+  log('v99: an already-elapsed event window can be configured on a room that never ran one',
+    !windowErr && eventEnds.getTime() <= Date.now(),
+    `err=${windowErr?.message || 'none'} starts=${eventStarts.toISOString()} ends=${eventEnds.toISOString()}`);
+
+  await admin
+    .from('study_group_members')
+    .update({ last_activity_at: new Date(Date.now() - 20 * 60 * 1000).toISOString() })
+    .eq('group_id', endedGroupId)
+    .eq('user_id', endedIdle);
+  const endedRecon = await admin.rpc('community_membership_reconcile', { p_group: endedGroupId, p_deadline: 900, p_warning: 600 });
+  log('v99: once the event is OVER the watchdog resumes - the idle seat is released and the owner is kept',
+    endedRecon.data?.ok === true && endedRecon.data?.event_live === false &&
+      Number(endedRecon.data?.released) === 1 &&
+      Number(endedRecon.data?.member_count) === 1 &&
+      endedRecon.data?.wipe !== true,
+    JSON.stringify(endedRecon.data));
+
+  const { data: endedSeats } = await admin
+    .from('study_group_members')
+    .select('user_id, role')
+    .eq('group_id', endedGroupId);
+  log('v99: the owner seat survives the reconcile (the owner is never released)',
+    endedSeats?.length === 1 && endedSeats[0]?.user_id === endedOwner && endedSeats[0]?.role === 'owner',
+    JSON.stringify(endedSeats));
+
+  const endedFeed = await callHandler(handleAnonFeed, { id: endedIdle }, { group_id: endedGroupId, limit: 5 });
+  log('v99: a released member loses read access the moment the seat is released (no stale access)',
+    endedFeed.status === 403 && !!endedFeed.body?.message,
+    `status=${endedFeed.status} error=${endedFeed.body?.error}`);
+  const endedSend = await callHandler(handleAnonSend, { id: endedIdle }, { group_id: endedGroupId, content: `ended ${stamp}` });
+  log('v99: an ended event refuses writes outright (EVENT_ENDED - the deadline is a predicate)',
+    endedSend.status === 403 && endedSend.body?.error === 'EVENT_ENDED',
+    `status=${endedSend.status} error=${endedSend.body?.error}`);
+
+  // ---------- 10h3. v99 — MEMBERSHIP REFUSALS, PROVEN WITHOUT AN EVENT CLOCK ----------
+  //
+  // The refusal above is about the EVENT (the deadline closed the room). These
+  // are about MEMBERSHIP, so they are proven in a room with NO clock at all — a
+  // waiting room, where writes are still open. That isolates the reason: a
+  // released member is refused because their seat is gone, not because the
+  // event closed.
+  //
+  // The member here leaves VOLUNTARILY. A voluntary leave deletes the seat but
+  // leaves the alias row behind, which is exactly the "lingering alias" case
+  // the social handler has to defend against.
+  const waitOwner = await makeUser('waitowner');
+  const waitIdle = await makeUser('waitidle');
+  const { data: waitGrp, error: waitGrpErr } = await admin
+    .from('study_groups')
+    .insert({
+      name: `Anon Wait ${stamp}`,
+      description: 'E2E scratch waiting room (no event clock) for membership refusals',
+      creator_id: waitOwner,
+      is_verified: true,
+      member_limit: 10,
+      is_active: true,
+      type: 'anonymous',
+      privacy: 'restricted',
+      spectator_price: SPECTATOR_PRICE,
+      minimum_members_to_activate: 10,
+      minimum_members_to_remain_active: 1,
+      membership_locked: false,
+      group_state: 'waiting',
+    })
+    .select('id')
+    .single();
+  if (waitGrpErr) throw waitGrpErr;
+  waitGroupId = waitGrp.id;
+  const waitSeatIns = await admin.from('study_group_members').insert([
+    { group_id: waitGroupId, user_id: waitOwner, role: 'owner' },
+    { group_id: waitGroupId, user_id: waitIdle, role: 'member' },
+  ]);
+  if (waitSeatIns.error) throw waitSeatIns.error;
+  const waitIdleAlias = Number(await ensureRoomAlias(waitGroupId, waitIdle));
+  const waitLeave = await admin.rpc('community_anonymous_leave', { p_group: waitGroupId, p_user: waitIdle });
+  log('v99: setup - the waiting-room member left (seat gone, alias kept)',
+    waitLeave.data?.ok === true && waitLeave.data?.wiped !== true,
+    JSON.stringify(waitLeave.data));
+
+  const waitFeed = await callHandler(handleAnonFeed, { id: waitIdle }, { group_id: waitGroupId, limit: 5 });
+  log('a released member feed is refused immediately (no stale access after release)',
+    waitFeed.status === 403 && !!waitFeed.body?.message,
+    `status=${waitFeed.status} error=${waitFeed.body?.error}`);
+  const waitSend = await callHandler(handleAnonSend, { id: waitIdle }, { group_id: waitGroupId, content: `revoked ${stamp}` });
+  log('a released member cannot send either (server-enforced, direct endpoint)',
+    waitSend.status === 403 && waitSend.body?.error === 'ANONYMOUS_MEMBERS_ONLY',
+    `status=${waitSend.status} error=${waitSend.body?.error}`);
+  const waitRoster = await callHandler(handleAnonMembers, { id: waitIdle }, { group_id: waitGroupId });
+  log('a released member cannot read the roster (members-only)',
+    waitRoster.status === 403 && waitRoster.body?.error === 'ANONYMOUS_MEMBERS_ONLY',
+    `status=${waitRoster.status} error=${waitRoster.body?.error}`);
+  const waitAim = await callHandler(handleAnonSocial, { id: waitOwner }, { group_id: waitGroupId, action: 'wave', target_alias: waitIdleAlias });
+  log('aiming at a member who already left is refused (NOT_A_MEMBER)',
+    waitAim.status === 400 && waitAim.body?.error === 'NOT_A_MEMBER',
+    `status=${waitAim.status} error=${waitAim.body?.error}`);
 
   // 10h3. PHASE 3 — vote adjustments are once-only (+3min at >=7 up, -3min at
   // >=10 down). Exercised through the real RPC the server calls per vote.
@@ -961,8 +1152,9 @@ try {
     `lives=${new Date(computed).toISOString()} ceiling=${new Date(ceilingPost.created_at).getTime() + MAX_POST_LIFE_MS}`);
 
   // ---------- 14b. v53 — EVENT CARDS / CHALLENGE RESPOND / ANTI-SLAM / REVEAL ----------
-  // Seated members here: owner + recipId (u2) + thirdId (lockjoin). memberId (u1)
-  // was released above, so every aim is between two LIVE members.
+  // Seated members here: owner + memberId (u1) + recipId (u2) + thirdId (lockjoin).
+  // The live event suspends the idle release, so nobody was released above and
+  // every aim below is between two LIVE members.
   const v53Actor = recipId;
   const v53Target = thirdId;
   const thirdAlias = await ensureRoomAlias(scratchGroupId, v53Target);
@@ -1322,7 +1514,7 @@ try {
   const rosterByAlias = new Map(rosterMembers.map((m) => [m.alias, m]));
   log('P1: roster lists every current member (members-only) with a masked alias',
     rosterResp.status === 200 && rosterResp.body?.ok === true &&
-      rosterMembers.length === 3 && rosterMembers.every((m) => Number.isFinite(m.alias) && m.user_id === undefined),
+      rosterMembers.length === presUsers.length && rosterMembers.every((m) => Number.isFinite(m.alias) && m.user_id === undefined),
     `status=${rosterResp.status} count=${rosterMembers.length}`);
   log('P1: roster includes the requester (is_self) and marks the owner as host',
     rosterByAlias.get(Number(thirdAlias))?.is_self === true &&
@@ -1338,16 +1530,13 @@ try {
   log('P1: a spectator cannot read the roster (members-only)',
     rosterSpectator.status === 403 && rosterSpectator.body?.error === 'ANONYMOUS_MEMBERS_ONLY',
     `status=${rosterSpectator.status} error=${rosterSpectator.body?.error}`);
-  const rosterNonMember = await callHandler(handleAnonMembers, { id: memberId }, { group_id: scratchGroupId });
+  // A genuinely departed member (the waiting-room user who left in 10h3) must
+  // not be able to read this room's roster either. The scratch room's own idle
+  // member is still seated while the event is live, so it cannot stand in here.
+  const rosterNonMember = await callHandler(handleAnonMembers, { id: waitIdle }, { group_id: scratchGroupId });
   log('P1: a released (non-member) user cannot read the roster',
-    rosterNonMember.status === 403,
+    rosterNonMember.status === 403 && rosterNonMember.body?.error === 'ANONYMOUS_MEMBERS_ONLY',
     `status=${rosterNonMember.status} error=${rosterNonMember.body?.error}`);
-
-  // A directly aimed action at a lingering (non-member) alias is refused.
-  const aimGhost = await callHandler(handleAnonSocial, { id: thirdId }, { group_id: scratchGroupId, action: 'wave', target_alias: authorAlias });
-  log('P1: aiming at a member who already left is refused (NOT_A_MEMBER)',
-    aimGhost.status === 400 && aimGhost.body?.error === 'NOT_A_MEMBER',
-    `status=${aimGhost.status} error=${aimGhost.body?.error}`);
 
   // ---------- 14f. P2 — CAPACITY / MONETIZATION (free founding seats -> ₦499, free spectator slots -> ₦299) ----------
   // A tiny dedicated room: 2 free founding seats, 1 free spectator slot,
@@ -1656,6 +1845,16 @@ try {
       await admin.from('anonymous_memberships').delete().eq('group_id', p3GroupId);
       await admin.from('study_group_members').delete().eq('group_id', p3GroupId);
       await admin.from('study_groups').delete().eq('id', p3GroupId);
+    }
+    // v99 rooms. The alias rows hang off the group (on delete cascade), the
+    // seats do not, and community_posts is `on delete set null` - so the posts
+    // go first, exactly as for every other room above.
+    for (const gid of [endedGroupId, waitGroupId]) {
+      if (!gid) continue;
+      await admin.from('community_posts').delete().eq('group_id', gid);
+      await admin.from('anonymous_spectators').delete().eq('group_id', gid);
+      await admin.from('study_group_members').delete().eq('group_id', gid);
+      await admin.from('study_groups').delete().eq('id', gid);
     }
     for (const u of users) {
       await admin.auth.admin.deleteUser(u.id).catch(() => {});

@@ -15,9 +15,13 @@ import {
   startLiveEvent,
   cancelLiveEvent,
   closeLiveEvent,
+  liveEventError,
 } from '../utils/liveEventsApi';
 import { Shield, Users, Calendar, Clock, Plus, RefreshCw, Loader2, Edit2, X } from '../components/Icons';
 import { Link } from 'react-router-dom';
+
+// A closed or cancelled event is read-only: the server refuses the edit.
+const terminalStatus = (status) => status === 'closed' || status === 'cancelled';
 
 const fmtClock = (iso) => {
   if (!iso) return '';
@@ -25,15 +29,41 @@ const fmtClock = (iso) => {
   return Number.isNaN(d.getTime()) ? '' : d.toLocaleString([], { month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit' });
 };
 
+// ---------------------------------------------------------------------------
+// LE-1 — the deadline grid.
+//
+// Deadlines are edited on a MINUTE grid in the browser's LOCAL time and sent
+// as absolute instants. The server stores minutes, so the minute shown here is
+// the minute the database holds.
+// ---------------------------------------------------------------------------
+const pad2 = (n) => String(n).padStart(2, '0');
+
+const toLocalInputValue = (iso) => {
+  if (!iso) return '';
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return '';
+  return `${d.getFullYear()}-${pad2(d.getMonth() + 1)}-${pad2(d.getDate())}T${pad2(d.getHours())}:${pad2(d.getMinutes())}`;
+};
+
+// "YYYY-MM-DDTHH:mm" is read as LOCAL time by the platform, so this is the
+// admin's own wall clock. Returns null when the value cannot be read.
+const fromLocalInputValue = (value) => {
+  if (!value) return '';
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return d.toISOString();
+};
+
 export default function AdminLiveEvents() {
   const { userProfile, session } = useAppContext();
 
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const [error, setError] = useState(null); // { code, message } — the code is shown for diagnosis
   const [open, setOpen] = useState(false);
   const [editing, setEditing] = useState(null);
   const [busy, setBusy] = useState(null);
+  const [reloadToken, setReloadToken] = useState(0);
   const [form, setForm] = useState({ title: '', description: '', cover_url: '', start_at: '', end_at: '', status: 'draft' });
 
   const nowRef = useRef(Date.now());
@@ -47,7 +77,7 @@ export default function AdminLiveEvents() {
         const res = await listLiveEvents(session);
         if (!cancelled) setEvents(res.events || []);
       } catch (err) {
-        if (!cancelled) setError(err.message || 'Failed to load events');
+        if (!cancelled) setError(liveEventError(err));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -55,7 +85,7 @@ export default function AdminLiveEvents() {
     load();
     const t = setInterval(load, 30000);
     return () => { cancelled = true; clearInterval(t); };
-  }, [session]);
+  }, [session, reloadToken]);
 
   if (!userProfile?.isAdmin) {
     return (
@@ -96,8 +126,8 @@ export default function AdminLiveEvents() {
       title: e.title,
       description: e.description,
       cover_url: e.cover_url || '',
-      start_at: e.start_at ? new Date(e.start_at).toISOString().slice(0, 16) : '',
-      end_at: e.end_at ? new Date(e.end_at).toISOString().slice(0, 16) : '',
+      start_at: toLocalInputValue(e.start_at),
+      end_at: toLocalInputValue(e.end_at),
       status: e.status_raw || e.status,
     });
     setOpen(true);
@@ -105,57 +135,104 @@ export default function AdminLiveEvents() {
 
   const closeForm = () => { setOpen(false); setEditing(null); };
 
+  // The deadline is frozen once the event is live or someone has joined — the
+  // server refuses a change with EVENT_LOCKED, so the form says so up front.
+  const deadlineLocked = !!editing && (editing.status === 'live' || (editing.participant_count || 0) > 0);
+
   const save = async (ev) => {
     ev.preventDefault();
     setBusy('save');
     try {
+      // LE-1 — read the grid first: an unreadable value is refused here
+      // instead of becoming a server-side 500.
+      const startIso = fromLocalInputValue(form.start_at);
+      const endIso = fromLocalInputValue(form.end_at);
+      if (startIso === null || endIso === null) {
+        setError({ code: 'INVALID_TIME', message: 'That date and time could not be read. Re-enter it.' });
+        return;
+      }
+      if (startIso && endIso && new Date(endIso).getTime() <= new Date(startIso).getTime()) {
+        setError({ code: 'INVALID_WINDOW', message: 'The end time must be after the start time.' });
+        return;
+      }
+
       let res;
       if (editing) {
-        res = await updateLiveEvent(session, editing.id, {
-          title: form.title,
-          description: form.description,
-          cover_url: form.cover_url || undefined,
-          start_at: form.start_at || undefined,
-          end_at: form.end_at || undefined,
-          status: form.status,
-        });
+        // LE-1 — dirty diff: only the fields the admin actually changed are
+        // sent. An unrelated title edit can therefore never carry a stale
+        // deadline and trip the locked-window refusal.
+        const original = {
+          title: (editing.title || '').trim(),
+          description: (editing.description || '').trim(),
+          cover_url: (editing.cover_url || '').trim(),
+          start_at: toLocalInputValue(editing.start_at),
+          end_at: toLocalInputValue(editing.end_at),
+        };
+        const patch = {};
+        if (form.title.trim() !== original.title) patch.title = form.title.trim();
+        if (form.description.trim() !== original.description) patch.description = form.description.trim();
+        if (form.cover_url.trim() !== original.cover_url) patch.cover_url = form.cover_url.trim() || null;
+        if (form.start_at !== original.start_at) patch.start_at = startIso || null;
+        if (form.end_at !== original.end_at) patch.end_at = endIso || null;
+        res = await updateLiveEvent(session, editing.id, patch);
       } else {
         res = await createLiveEvent(session, {
-          title: form.title,
-          description: form.description,
-          cover_url: form.cover_url || undefined,
-          start_at: form.start_at || undefined,
-          end_at: form.end_at || undefined,
+          title: form.title.trim(),
+          description: form.description.trim(),
+          cover_url: form.cover_url.trim() || undefined,
+          start_at: startIso || undefined,
+          end_at: endIso || undefined,
           status: form.status,
         });
       }
-      if (!res.ok) { setError(res.error || 'Failed to save event'); return; }
+      // apiFetch throws on every non-2xx, so a refusal arrives in the catch
+      // with its server code attached. The check below is only a defensive net
+      // for a 2xx body that still carries an error field.
+      if (!res || res.error) {
+        setError(liveEventError({ code: res?.error, data: res }));
+        return;
+      }
       setOpen(false);
       setEditing(null);
       setError(null);
+      setReloadToken((t) => t + 1);
     } catch (err) {
-      setError(err.message || 'Failed to save event');
+      setError(liveEventError(err));
     } finally {
       setBusy(false);
     }
   };
 
-  const transition = async (fn, label) => {
+  // LE-4 — a lifecycle action always names the event it acts on, and the list
+  // is refreshed from the server straight after it (never from a guess).
+  const transition = async (fn, label, eventId) => {
+    const targetId = eventId || editing?.id;
+    if (!targetId) return;
     setBusy(label);
     try {
-      const res = await fn(session, editing?.id || null);
-      if (!res.ok) { setError(res.error || `Failed to ${label}`); return; }
+      const res = await fn(session, targetId);
+      if (!res || res.error) {
+        setError(liveEventError({ code: res?.error, data: res }));
+        return;
+      }
       setError(null);
+      setReloadToken((t) => t + 1);
+      // Keep the open editor in step with the new status so the next action
+      // offered is the one the server will accept.
+      const nextStatus = res?.event?.status || res?.state;
+      if (editing && nextStatus) setEditing({ ...editing, status: nextStatus });
     } catch (err) {
-      setError(err.message || `Failed to ${label}`);
+      setError(liveEventError(err));
     } finally {
       setBusy(false);
     }
   };
 
-  const confirmClose = async () => {
+  const confirmClose = async (eventId) => {
+    const targetId = eventId || editing?.id;
+    if (!targetId) return;
     if (!window.confirm('Close this event? It stays readable but no new messages or actions can be added.')) return;
-    await transition(() => closeLiveEvent(session, editing.id), 'close');
+    await transition(() => closeLiveEvent(session, targetId), 'close', targetId);
   };
 
   const statusTone = {
@@ -179,8 +256,20 @@ export default function AdminLiveEvents() {
       </div>
 
       {error && (
-        <div className="mb-6 rounded-2xl border border-rose-200 dark:border-rose-900/30 bg-rose-50 dark:bg-rose-900/10 p-3 text-rose-700 dark:text-rose-400 font-black text-sm">
-          {error}
+        <div className="mb-6 rounded-2xl border border-rose-200 dark:border-rose-900/30 bg-rose-50 dark:bg-rose-900/10 p-3 text-rose-700 dark:text-rose-400">
+          <div className="font-black text-sm">{error.message}</div>
+          <div className="mt-1 text-[9px] font-black uppercase tracking-widest opacity-70">
+            Code: {error.code}
+          </div>
+          {/* A failed read must not leave the console blank until the next
+              30s poll: the operator retries it now. */}
+          <button
+            type="button"
+            onClick={() => { setError(null); setReloadToken((t) => t + 1); }}
+            className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg border border-rose-300 dark:border-rose-800 text-[9px] font-black uppercase tracking-widest hover:bg-rose-100 dark:hover:bg-rose-900/30 transition"
+          >
+            <RefreshCw size={12} /> Retry
+          </button>
         </div>
       )}
 
@@ -211,6 +300,11 @@ export default function AdminLiveEvents() {
                     <span className={`inline-flex items-center gap-1 px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-widest border ${statusTone[e.status] || statusTone.draft}`}>
                       {e.status.charAt(0).toUpperCase() + e.status.slice(1)}
                     </span>
+                    {terminalStatus(e.status) && (
+                      <span className="mt-1 block text-[9px] font-black uppercase tracking-widest text-slate-400">
+                        Read-only
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3 text-[10px] text-slate-600 dark:text-slate-400">
                     {e.start_at ? fmtClock(e.start_at) : '—'}{e.end_at ? ` · ${fmtClock(e.end_at)}` : ''}
@@ -224,8 +318,9 @@ export default function AdminLiveEvents() {
                         <button
                           type="button"
                           onClick={(ev) => editForm(ev, e)}
-                          className="px-2.5 py-1.5 rounded border text-[9px] font-black text-polynurse-600 hover:bg-polynurse-50 dark:hover:bg-polynurse-900/30 transition"
-                          title="Edit"
+                          disabled={terminalStatus(e.status)}
+                          className="px-2.5 py-1.5 rounded border text-[9px] font-black text-polynurse-600 hover:bg-polynurse-50 dark:hover:bg-polynurse-900/30 transition disabled:opacity-40 disabled:cursor-not-allowed disabled:hover:bg-transparent"
+                          title={terminalStatus(e.status) ? 'A closed or cancelled event cannot be edited' : 'Edit'}
                         >
                           <Edit2 size={13} />
                         </button>
@@ -233,7 +328,7 @@ export default function AdminLiveEvents() {
                       {!busy && e.status === 'live' && (
                         <button
                           type="button"
-                          onClick={confirmClose}
+                          onClick={() => confirmClose(e.id)}
                           className="px-2.5 py-1.5 rounded border text-[9px] font-black text-rose-600 dark:text-rose-400 hover:bg-rose-50 dark:hover:bg-rose-900/30 transition"
                           title="Close"
                         >
@@ -314,8 +409,9 @@ export default function AdminLiveEvents() {
                 <input
                   type="datetime-local"
                   value={form.start_at}
+                  disabled={deadlineLocked}
                   onChange={(e) => setForm({ ...form, start_at: e.target.value })}
-                  className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-polynurse-600 focus:border-transparent"
+                  className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-polynurse-600 focus:border-transparent disabled:bg-slate-100 disabled:text-slate-400 dark:disabled:bg-slate-800/50 dark:disabled:text-slate-500"
                 />
               </div>
               <div>
@@ -323,11 +419,17 @@ export default function AdminLiveEvents() {
                 <input
                   type="datetime-local"
                   value={form.end_at}
+                  disabled={deadlineLocked}
                   onChange={(e) => setForm({ ...form, end_at: e.target.value })}
-                  className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-polynurse-600 focus:border-transparent"
+                  className="w-full border border-slate-200 dark:border-slate-700 rounded-xl px-3 py-2 text-sm text-slate-900 dark:text-white focus:ring-2 focus:ring-polynurse-600 focus:border-transparent disabled:bg-slate-100 disabled:text-slate-400 dark:disabled:bg-slate-800/50 dark:disabled:text-slate-500"
                 />
               </div>
             </div>
+            <p className="text-[10px] text-slate-500 dark:text-slate-400">
+              {deadlineLocked
+                ? 'The deadline is frozen now that the event has started or participants have joined. You can still edit the title and description.'
+                : 'Times are your own local clock. The deadline is stored to the minute.'}
+            </p>
             {busy === 'save' && <Loader2 size={16} className="animate-spin mx-auto" />}
             <div className="mt-4 flex justify-end gap-2">
               <button type="button" onClick={closeForm} className="px-4 py-2 rounded-xl text-[10px] font-black text-slate-600 dark:text-slate-400 bg-slate-100 dark:bg-slate-800/50">Cancel</button>
@@ -335,63 +437,68 @@ export default function AdminLiveEvents() {
                 {editing ? 'Save changes' : 'Create event'}
               </button>
             </div>
+
+            {/* LE-4 — the lifecycle actions live INSIDE the editor. They used to
+                sit in a panel underneath the overlay, which made them
+                unreachable while the modal was open. */}
+            {editing && (
+              <div className="mt-4 border-t border-slate-200 dark:border-slate-700 pt-3">
+                <div className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-2 flex items-center gap-2">
+                  <Users size={13} /> Lifecycle
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {editing.status === 'draft' && (
+                    <button
+                      type="button"
+                      onClick={() => transition(() => publishLiveEvent(session, editing.id), 'publish')}
+                      disabled={!!busy}
+                      className="px-3 py-2 rounded-xl border text-[10px] font-black text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/30 hover:bg-amber-50 dark:hover:bg-amber-900/10 transition disabled:opacity-50"
+                    >
+                      Publish (schedule)
+                    </button>
+                  )}
+                  {editing.status === 'scheduled' && (
+                    <>
+                      <button
+                        type="button"
+                        onClick={() => transition(() => startLiveEvent(session, editing.id), 'start')}
+                        disabled={!!busy}
+                        className="px-3 py-2 rounded-xl bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider hover:bg-emerald-700 transition disabled:opacity-50"
+                      >
+                        Start (go live)
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => transition(() => cancelLiveEvent(session, editing.id), 'cancel')}
+                        disabled={!!busy}
+                        className="px-3 py-2 rounded-xl border text-[10px] font-black text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-900/30 hover:bg-rose-50 dark:hover:bg-rose-900/10 transition disabled:opacity-50"
+                      >
+                        Cancel event
+                      </button>
+                    </>
+                  )}
+                  {editing.status === 'live' && (
+                    <button
+                      type="button"
+                      onClick={() => confirmClose(editing.id)}
+                      disabled={!!busy}
+                      className="px-3 py-2 rounded-xl border text-[10px] font-black text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-900/30 hover:bg-rose-50 dark:hover:bg-rose-900/10 transition disabled:opacity-50"
+                    >
+                      Close event
+                    </button>
+                  )}
+                  {terminalStatus(editing.status) && (
+                    <span className="text-[10px] font-black uppercase tracking-wider text-slate-400">
+                      This event is closed — it is read-only.
+                    </span>
+                  )}
+                  {busy && <Loader2 size={16} className="animate-spin" />}
+                </div>
+              </div>
+            )}
           </form>
         </div>
       </div>
-
-      {/* Quick actions row for the selected event */}
-      {editing && (
-        <div className="mt-6 rounded-2xl border bg-white dark:bg-slate-800 border-slate-200 dark:border-slate-700 p-4">
-          <h2 className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
-            <Users size={14} /> Actions for “{editing.title}”
-          </h2>
-          <div className="flex flex-wrap gap-2">
-            {editing.status === 'draft' && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => transition(() => publishLiveEvent(session, editing.id), 'publish')}
-                  disabled={busy === 'publish'}
-                  className="px-3 py-2 rounded-xl border text-[10px] font-black text-amber-700 dark:text-amber-400 border-amber-200 dark:border-amber-900/30 hover:bg-amber-50 dark:hover:bg-amber-900/10 transition"
-                >
-                  Publish (schedule)
-                </button>
-              </>
-            )}
-            {editing.status === 'scheduled' && (
-              <>
-                <button
-                  type="button"
-                  onClick={() => transition(() => startLiveEvent(session, editing.id), 'start')}
-                  disabled={busy === 'start'}
-                  className="px-3 py-2 rounded-xl bg-emerald-600 text-white text-[10px] font-black uppercase tracking-wider hover:bg-emerald-700 transition"
-                >
-                  Start (go live)
-                </button>
-                <button
-                  type="button"
-                  onClick={() => transition(() => cancelLiveEvent(session, editing.id), 'cancel')}
-                  disabled={busy === 'cancel'}
-                  className="px-3 py-2 rounded-xl border text-[10px] font-black text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-900/30 hover:bg-rose-50 dark:hover:bg-rose-900/10 transition"
-                >
-                  Cancel
-                </button>
-              </>
-            )}
-            {editing.status === 'live' && (
-              <button
-                type="button"
-                onClick={confirmClose}
-                disabled={busy === 'close'}
-                className="px-3 py-2 rounded-xl border text-[10px] font-black text-rose-700 dark:text-rose-400 border-rose-200 dark:border-rose-900/30 hover:bg-rose-50 dark:hover:bg-rose-900/10 transition"
-              >
-                Close event
-              </button>
-            )}
-            {busy && <Loader2 size={16} className="animate-spin" />}
-          </div>
-        </div>
-      )}
     </div>
   );
 }

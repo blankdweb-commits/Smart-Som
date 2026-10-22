@@ -8,6 +8,7 @@ import AdSenseManager from './components/ads/AdSenseManager';
 import ChallengeProvider from './context/ChallengeContext';
 import { ConsentUIProvider } from './context/ConsentUIContext';
 import ErrorBoundary from './components/ErrorBoundary';
+import WarhallExitProvider from './components/WarhallExitGuard';
 import { MotionConfig } from 'framer-motion';
 
 // Lazy load pages
@@ -180,20 +181,26 @@ function App() {
         <Router>
           <ConsentUIProvider>
             <ChallengeProvider>
-              <PushNavigationListener />
-              {/* AdSenseManager sits ABOVE <AppRouter>, so a throw inside it used to
-                  take down the entire tree: the only ErrorBoundary lived in
-                  Layout, BELOW this point, and therefore could never catch it.
-                  That is how a single context destructure ("Cannot destructure
-                  property 'isPremium'") blanked every page at once. Wrapping here
-                  contains any such fault to a recovery screen instead. */}
-              <ErrorBoundary>
-                <AdSenseManager>
-                  <AppRouter />
-                  <CelebrationHost />
-                </AdSenseManager>
-              </ErrorBoundary>
-              <ConsentManager />
+              {/* WarhallExitProvider arms the browser's beforeunload guard
+                  while a duel is live and owns the leave-confirmation modals.
+                  It reads the location, so it belongs inside <Router>, and it
+                  must wrap the routes that arm it. */}
+              <WarhallExitProvider>
+                <PushNavigationListener />
+                {/* AdSenseManager sits ABOVE <AppRouter>, so a throw inside it used to
+                    take down the entire tree: the only ErrorBoundary lived in
+                    Layout, BELOW this point, and therefore could never catch it.
+                    That is how a single context destructure ("Cannot destructure
+                    property 'isPremium'") blanked every page at once. Wrapping here
+                    contains any such fault to a recovery screen instead. */}
+                <ErrorBoundary>
+                  <AdSenseManager>
+                    <AppRouter />
+                    <CelebrationHost />
+                  </AdSenseManager>
+                </ErrorBoundary>
+                <ConsentManager />
+              </WarhallExitProvider>
             </ChallengeProvider>
           </ConsentUIProvider>
         </Router>

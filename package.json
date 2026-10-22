@@ -29,7 +29,10 @@
     "e2e:economy": "node scripts/e2e-economy.mjs",
     "e2e:blitz-duel": "node scripts/e2e-blitz-duel.mjs",
     "e2e:v99": "node scripts/e2e-v99-onboarding-event.mjs",
-    "e2e:social-hub": "node scripts/e2e-social-hub.mjs"
+    "e2e:social-hub": "node scripts/e2e-social-hub.mjs",
+    "e2e:live-events": "node scripts/e2e-live-events.mjs",
+    "e2e:live-events-ui": "node scripts/e2e-live-events-ui.mjs",
+    "verify:live-events-negative": "node scripts/verify-live-events-negative.mjs"
   },
   "dependencies": {
     "@daformat/react-swipeable-cards": "^1.0.4",

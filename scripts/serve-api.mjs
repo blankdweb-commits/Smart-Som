@@ -15,9 +15,12 @@ Object.assign(process.env, loadEnv());
 
 // Fail loudly at startup when the Supabase backend would be unusable, instead
 // of every handler failing at request time with a confusing 500.
-if (!process.env.VITE_SUPABASE_URL || !process.env.SUPABASE_SERVICE_ROLE_KEY) {
-  console.warn('[serve-api] WARNING: VITE_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY missing in .env —');
-  console.warn('[serve-api]   authenticated routes will 500 with "Server configuration error".');
+// LE-5: the server accepts either the legacy service_role JWT or the new
+// Supabase secret key, so both are accepted here.
+const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
+if (!process.env.VITE_SUPABASE_URL || !serviceKey) {
+  console.warn('[serve-api] WARNING: VITE_SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY/SUPABASE_SECRET_KEY missing in .env —');
+  console.warn('[serve-api]   authenticated routes will 503 with "SERVER_CONFIG".');
 }
 
 const API_DIR = path.join(process.cwd(), 'api');

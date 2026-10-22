@@ -5,10 +5,19 @@
 // and reactions only while `status === 'live'`. All mutation gates are enforced
 // by the server (_live_event_over / RLS); the client never decides.
 //
-// Realtime: subscribes to a per-event broadcast channel so messages and the
-// closure notice arrive without a manual refresh. Reconnects/refetches restore
-// the authoritative state from getLiveEvent. Optimistic messages are deduped
-// by id so a realtime echo doesn't duplicate them.
+// DELIVERY. The server fans out a NOTICE-ONLY broadcast on `live_event:<id>`
+// (no content, no author id) and the room re-reads the authorized endpoint
+// when it arrives. A quiet poll runs while the event is live, so the room
+// still converges when the broadcast channel is unavailable.
+//
+// OPTIMISM. A sent message is inserted from the server's own response (the row
+// is already committed), and a reaction is applied locally and reconciled by
+// the next read. Both are keyed by id, so a broadcast or poll echo can never
+// duplicate them.
+//
+// REACTIONS. `reactions` stays the { emoji: count } map. `my_reactions` (the
+// viewer's own emoji on that message) is what makes a reaction toggleable: the
+// client sends `active: !mine`, never a blind `active: true`.
 // ============================================================================
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import { useAppContext } from '../context/AppContext';
@@ -18,12 +27,19 @@ import {
   sendLiveEventMessage,
   reactLiveEventMessage,
   closeLiveEvent,
+  liveEventError,
 } from '../utils/liveEventsApi';
-import { Loader2, Send, RefreshCw, Clock, Users, MessageCircle, ShieldAlert } from '../components/Icons';
+import { Loader2, Send, RefreshCw, Clock, Users, MessageCircle, ShieldAlert, Smile } from '../components/Icons';
 import { useParams } from 'react-router-dom';
 
 const CLOSED_NOTICE =
   'This live event has closed. You can still read it, but no new messages or actions can be added.';
+
+const REACTION_EMOJIS = ['👍', '❤️', '😂', '🎉', '👏', '🔥', '💡', '🙌'];
+
+// How often a live room re-reads the authorized endpoint. The broadcast is the
+// fast path; this is the path that always works.
+const POLL_MS = 4000;
 
 const fmtRemaining = (ms) => {
   const total = Math.max(0, Math.round(ms / 1000));
@@ -49,63 +65,66 @@ export default function LiveEventRoom() {
   const [messages, setMessages] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const [actionError, setActionError] = useState(null);
   const [composer, setComposer] = useState('');
   const [sending, setSending] = useState(false);
   const [online, setOnline] = useState(null);
+  const [pickerFor, setPickerFor] = useState(null);
   const messageIdsRef = useRef(new Set());
+  // Messages inserted locally that the server has not echoed yet.
+  const pendingRef = useRef(new Map());
   const channelRef = useRef(null);
 
-  const load = useCallback(async () => {
-    if (!eventId) return;
-    try {
-      setLoading(true);
-      const res = await getLiveEvent(session, eventId);
-      if (!res.ok) { setError(res.error || 'Failed to load event'); return; }
-      setEvent(res.event);
-      setMessages(res.messages || []);
-      messageIdsRef.current = new Set((res.messages || []).map((m) => m.id));
-      setError(null);
-    } catch (err) {
-      setError(err.message || 'Failed to load event');
-    } finally {
-      setLoading(false);
-    }
-  }, [session, eventId]);
+  const state = event?.status;
+  const closed = state === 'closed' || state === 'cancelled';
+  const canWrite = state === 'live' && !!session;
+
+  const load = useCallback(
+    async (opts) => {
+      const quiet = opts?.quiet === true;
+      if (!eventId) return;
+      try {
+        if (!quiet) setLoading(true);
+        const res = await getLiveEvent(session, eventId);
+        if (!res || res.error) {
+          if (!quiet) setError(liveEventError({ code: res?.error, data: res }));
+          return;
+        }
+        const serverMessages = res.messages || [];
+        const serverIds = new Set(serverMessages.map((m) => m.id));
+        // A message inserted locally stays visible even if the read that was
+        // already in flight when it was sent has not caught up yet.
+        const pending = Array.from(pendingRef.current.values()).filter((m) => !serverIds.has(m.id));
+        const merged = pending.length ? [...serverMessages, ...pending] : serverMessages;
+        pendingRef.current = new Map(pending.map((m) => [m.id, m]));
+        setEvent(res.event);
+        setMessages(merged);
+        messageIdsRef.current = new Set(merged.map((m) => m.id));
+        if (!quiet) setError(null);
+      } catch (err) {
+        if (!quiet) setError(liveEventError(err));
+      } finally {
+        if (!quiet) setLoading(false);
+      }
+    },
+    [session, eventId]
+  );
 
   useEffect(() => {
     load();
   }, [load]);
 
-  // Realtime broadcast channel for this event.
+  // Realtime notice channel. The payload is a notice only, so the only
+  // correct reaction to it is to re-read the room through the API.
   useEffect(() => {
     if (!supabase || !eventId) return undefined;
     const ch = supabase.channel(`live_event:${eventId}`);
-    ch.on('broadcast', { event: 'live_event_message' }, (payload) => {
-      const m = payload?.payload?.message;
-      if (m && !messageIdsRef.current.has(m.id)) {
-        messageIdsRef.current.add(m.id);
-        setMessages((prev) => [...prev, m]);
-      }
-    });
-    ch.on('broadcast', { event: 'live_event_reaction' }, (payload) => {
-      const { message_id, emoji, active } = payload?.payload || {};
-      if (!message_id) return;
-      setMessages((prev) =>
-        prev.map((m) => {
-          if (m.id !== message_id) return m;
-          const reactions = { ...(m.reactions || {}) };
-          if (active) reactions[emoji] = (reactions[emoji] || 0) + 1;
-          else if (reactions[emoji] > 0) reactions[emoji] -= 1;
-          return { ...m, reactions };
-        })
-      );
-    });
-    ch.on('broadcast', { event: 'live_event_closed' }, () => {
-      load();
+    ch.on('broadcast', { event: 'live_event' }, () => {
+      load({ quiet: true });
     });
     ch.subscribe((status) => {
       setOnline(status === 'subscribed' ? true : status === 'closed' ? false : null);
-      if (status === 'subscribed' || status === 'rejoined') load();
+      if (status === 'subscribed' || status === 'rejoined') load({ quiet: true });
     });
     channelRef.current = ch;
     return () => {
@@ -114,25 +133,48 @@ export default function LiveEventRoom() {
     };
   }, [eventId, load]);
 
-  const state = event?.status;
-  const closed = state === 'closed' || state === 'cancelled';
-  const canWrite = state === 'live' && !!session;
+  // Quiet poll while the event is live, so messages and reactions converge even
+  // when the broadcast never arrives. A hidden tab does not poll.
+  useEffect(() => {
+    if (state !== 'live') return undefined;
+    const tick = () => {
+      if (typeof document !== 'undefined' && document.visibilityState === 'hidden') return;
+      load({ quiet: true });
+    };
+    const timer = setInterval(tick, POLL_MS);
+    const onVisible = () => {
+      if (document.visibilityState === 'visible') load({ quiet: true });
+    };
+    document.addEventListener('visibilitychange', onVisible);
+    return () => {
+      clearInterval(timer);
+      document.removeEventListener('visibilitychange', onVisible);
+    };
+  }, [state, load]);
 
   const handleSend = async (e) => {
     e.preventDefault();
     const c = composer.trim();
     if (!c || sending || !canWrite) return;
     setSending(true);
+    setActionError(null);
     try {
       const res = await sendLiveEventMessage(session, eventId, c);
       if (res.ok) {
         setComposer('');
-        // Optimistic insert already covered by broadcast echo; dedupe by id.
+        const msg = res.message;
+        // The row is committed before the response, so it is safe to show it
+        // now. Deduped by id against the feed and against a poll echo.
+        if (msg && msg.id && !messageIdsRef.current.has(msg.id)) {
+          messageIdsRef.current.add(msg.id);
+          pendingRef.current.set(msg.id, { ...msg, reactions: {}, my_reactions: [] });
+          setMessages((prev) => (prev.some((m) => m.id === msg.id) ? prev : [...prev, { ...msg, reactions: {}, my_reactions: [] }]));
+        }
       } else {
-        setError(res.error || 'Failed to send message');
+        setActionError(liveEventError({ code: res?.error, data: res }));
       }
     } catch (err) {
-      setError(err.message || 'Failed to send message');
+      setActionError(liveEventError(err));
     } finally {
       setSending(false);
     }
@@ -140,22 +182,50 @@ export default function LiveEventRoom() {
 
   const handleReact = async (messageId, emoji, active) => {
     if (!canWrite) return;
+    setActionError(null);
+    // Optimistic: the chip and the count move now, the next read reconciles.
+    setMessages((prev) =>
+      prev.map((m) => {
+        if (m.id !== messageId) return m;
+        const reactions = { ...(m.reactions || {}) };
+        const mine = new Set(m.my_reactions || []);
+        if (active) {
+          reactions[emoji] = (reactions[emoji] || 0) + 1;
+          mine.add(emoji);
+        } else {
+          if (reactions[emoji] > 0) reactions[emoji] -= 1;
+          if (reactions[emoji] <= 0) delete reactions[emoji];
+          mine.delete(emoji);
+        }
+        return { ...m, reactions, my_reactions: Array.from(mine) };
+      })
+    );
     try {
       const res = await reactLiveEventMessage(session, messageId, emoji, active);
-      if (!res.ok) setError(res.error || 'Reaction failed');
+      if (!res || res.error) {
+        setActionError(liveEventError({ code: res?.error, data: res }));
+        load({ quiet: true });
+      }
     } catch (err) {
-      setError(err.message || 'Reaction failed');
+      setActionError(liveEventError(err));
+      load({ quiet: true });
     }
+  };
+
+  const toggleReaction = (messageId, emoji) => {
+    const mine = (messages.find((m) => m.id === messageId)?.my_reactions || []).includes(emoji);
+    handleReact(messageId, emoji, !mine);
   };
 
   const handleClose = async () => {
     if (!window.confirm('Close this live event? Closed events stay readable but no new messages or actions can be added.')) return;
+    setActionError(null);
     try {
       const res = await closeLiveEvent(session, eventId);
-      if (!res.ok) setError(res.error || 'Failed to close event');
-      else load();
+      if (!res || res.error) setActionError(liveEventError({ code: res?.error, data: res }));
+      else load({ quiet: true });
     } catch (err) {
-      setError(err.message || 'Failed to close event');
+      setActionError(liveEventError(err));
     }
   };
 
@@ -171,8 +241,9 @@ export default function LiveEventRoom() {
       <div className="flex flex-col items-center justify-center py-20 text-center">
         <ShieldAlert size={40} className="text-rose-500 mb-3" />
         <h2 className="font-black text-slate-900 dark:text-white">Couldn’t load the event</h2>
-        <p className="text-slate-500 dark:text-slate-400 text-sm">{error}</p>
-        <button onClick={load} className="mt-4 px-4 py-2 rounded-xl bg-polynurse-600 text-white text-[10px] font-black uppercase tracking-wider">
+        <p className="text-slate-500 dark:text-slate-400 text-sm">{error.message}</p>
+        <p className="mt-1 text-[9px] font-black uppercase tracking-widest text-slate-400">Code: {error.code}</p>
+        <button onClick={() => load()} className="mt-4 px-4 py-2 rounded-xl bg-polynurse-600 text-white text-[10px] font-black uppercase tracking-wider">
           Try again
         </button>
       </div>
@@ -240,6 +311,13 @@ export default function LiveEventRoom() {
         )}
       </div>
 
+      {actionError && (
+        <div className="mb-4 rounded-2xl border border-rose-200 dark:border-rose-900/30 bg-rose-50 dark:bg-rose-900/10 p-3 text-rose-700 dark:text-rose-400">
+          <div className="font-black text-sm">{actionError.message}</div>
+          <div className="mt-1 text-[9px] font-black uppercase tracking-widest opacity-70">Code: {actionError.code}</div>
+        </div>
+      )}
+
       {/* Feed */}
       <div className="mb-5">
         <h2 className="text-[10px] font-black uppercase tracking-wider text-slate-400 mb-3 flex items-center gap-2">
@@ -257,34 +335,72 @@ export default function LiveEventRoom() {
           </div>
         ) : (
           <ul className="space-y-3" role="log" aria-label="Live event messages">
-            {messages.map((m) => (
-              <li key={m.id} className="flex flex-col gap-1">
-                <div className="flex items-start gap-2">
-                  <span className="text-[9px] font-black text-slate-400">{m.author_alias}</span>
-                  <span className="text-[9px] text-slate-400">{new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
-                </div>
-                <div className="rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
-                  {m.content}
-                </div>
-                <div className="flex items-center gap-2 text-[10px]">
-                  {Object.entries(m.reactions || {}).map(([emoji, count]) => (
-                    <button
-                      key={`${m.id}-${emoji}`}
-                      type="button"
-                      disabled={!canWrite}
-                      onClick={() => handleReact(m.id, emoji, true)}
-                      className={`flex items-center gap-1 px-2 py-1 rounded-full border text-[9px] font-bold ${
-                        canWrite
-                          ? 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 dark:bg-slate-800/50 dark:border-slate-700'
-                          : 'bg-slate-200 text-slate-400 border-slate-200 dark:bg-slate-700/30 dark:border-slate-700'
-                      }`}
-                    >
-                      {emoji} <span className="font-black">{count}</span>
-                    </button>
-                  ))}
-                </div>
-              </li>
-            ))}
+            {messages.map((m) => {
+              const mine = m.my_reactions || [];
+              return (
+                <li key={m.id} className="flex flex-col gap-1">
+                  <div className="flex items-start gap-2">
+                    <span className="text-[9px] font-black text-slate-400">{m.author_alias}</span>
+                    <span className="text-[9px] text-slate-400">{new Date(m.created_at).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}</span>
+                  </div>
+                  <div className="rounded-xl bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 p-3 text-sm text-slate-700 dark:text-slate-200 leading-relaxed">
+                    {m.content}
+                  </div>
+                  <div className="flex items-center gap-2 flex-wrap text-[10px]">
+                    {Object.entries(m.reactions || {}).map(([emoji, count]) => {
+                      const isMine = mine.includes(emoji);
+                      return (
+                        <button
+                          key={`${m.id}-${emoji}`}
+                          type="button"
+                          aria-label={`${emoji} reaction, ${count}`}
+                          aria-pressed={isMine}
+                          disabled={!canWrite}
+                          onClick={() => toggleReaction(m.id, emoji)}
+                          className={`flex items-center gap-1 px-2 py-1 rounded-full border text-[9px] font-bold ${
+                            isMine
+                              ? 'bg-emerald-50 text-emerald-700 border-emerald-300 dark:bg-emerald-900/20 dark:text-emerald-300 dark:border-emerald-700'
+                              : canWrite
+                                ? 'bg-slate-100 text-slate-600 border-slate-200 hover:bg-emerald-50 hover:text-emerald-700 hover:border-emerald-200 dark:bg-slate-800/50 dark:border-slate-700'
+                                : 'bg-slate-200 text-slate-400 border-slate-200 dark:bg-slate-700/30 dark:border-slate-700'
+                          }`}
+                        >
+                          {emoji} <span className="font-black">{count}</span>
+                        </button>
+                      );
+                    })}
+                    {canWrite && (
+                      <button
+                        type="button"
+                        aria-label={`Add reaction to message ${m.id}`}
+                        onClick={() => setPickerFor(pickerFor === m.id ? null : m.id)}
+                        className="flex items-center gap-1 px-2 py-1 rounded-full border border-dashed border-slate-300 text-slate-500 hover:text-polynurse-600 hover:border-polynurse-300 dark:border-slate-600 dark:text-slate-400"
+                      >
+                        <Smile size={11} />
+                      </button>
+                    )}
+                    {canWrite && pickerFor === m.id && (
+                      <span className="inline-flex items-center gap-1 px-1.5 py-1 rounded-full border border-slate-200 bg-white dark:bg-slate-800 dark:border-slate-700">
+                        {REACTION_EMOJIS.map((emoji) => (
+                          <button
+                            key={`${m.id}-pick-${emoji}`}
+                            type="button"
+                            aria-label={`React with ${emoji}`}
+                            onClick={() => {
+                              toggleReaction(m.id, emoji);
+                              setPickerFor(null);
+                            }}
+                            className={`px-1 text-[13px] ${mine.includes(emoji) ? 'opacity-100' : 'opacity-60 hover:opacity-100'}`}
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </span>
+                    )}
+                  </div>
+                </li>
+              );
+            })}
           </ul>
         )}
       </div>
@@ -321,7 +437,7 @@ export default function LiveEventRoom() {
         </span>
         <button
           type="button"
-          onClick={load}
+          onClick={() => load()}
           className="flex items-center gap-1 px-2 py-1 rounded border text-slate-500 hover:text-polynurse-600 dark:hover:text-polynurse-400 transition"
           title="Refresh"
         >

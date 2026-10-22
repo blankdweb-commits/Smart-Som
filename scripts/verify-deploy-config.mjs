@@ -5920,6 +5920,244 @@ checks.push(
   );
 }
 
+// ===========================================================================
+// PART Z — LIVE EVENTS REPAIR (LE-0..LE-5) + THE LE-V SUITE
+// ===========================================================================
+//
+// The Live Events console was refused with a bare 403 and a free-text error,
+// the deadline grid disagreed with what the database held, a draft leaked to
+// non-admins, and a missing service key produced a 500 that blamed the
+// caller. Each defect is pinned below by a gate that names the PROPERTY, not
+// the implementation, so the gate still bites if the code is rewritten.
+//
+// EVERY gate in this PART is negative-tested by `npm run verify:live-events-negative`,
+// which breaks the source on purpose and proves the gate FAILS. A gate that
+// cannot fail on the bug it names is worse than no gate.
+// ---------------------------------------------------------------------------
+{
+  const comm = read(resolve(ROOT, 'api/_community.js'));
+  const router = read(resolve(ROOT, 'api/community.js'));
+  const utils = read(resolve(ROOT, 'api/_utils.js'));
+  const adminPage = read(resolve(ROOT, 'src/pages/AdminLiveEvents.jsx'));
+  const liveApi = read(resolve(ROOT, 'src/utils/liveEventsApi.js'));
+  const roomPage = read(resolve(ROOT, 'src/pages/LiveEventRoom.jsx'));
+  const pkg = read(resolve(ROOT, 'package.json'));
+
+  // The block of ONE top-level declaration: from its marker to the next one.
+  // Inner `const` lines are indented, so only a column-0 declaration ends it.
+  const block = (text, marker) => {
+    const i = text.indexOf(marker);
+    if (i === -1) return '';
+    const rest = text.slice(i);
+    const m = rest.slice(1).search(/\n(?=export |const |let |async function |function |class )/);
+    return m === -1 ? rest : rest.slice(0, m + 1);
+  };
+
+  const list = block(comm, 'export async function handleListLiveEvents');
+  const get = block(comm, 'export async function handleGetLiveEvent');
+  const create = block(comm, 'export async function handleCreateLiveEvent');
+  const upd = block(comm, 'export async function handleUpdateLiveEvent');
+  const close = block(comm, 'export async function handleCloseLiveEvent');
+  const setStatus = block(comm, 'async function handleSetLiveEventStatus');
+  const send = block(comm, 'export async function handleSendLiveEventMessage');
+  const react = block(comm, 'export async function handleReactLiveEventMessage');
+  const dbHelper = block(comm, 'const liveEventsDb');
+  const adminGate = block(comm, 'const requireLiveEventAdmin');
+  const errWrapper = block(comm, 'export const withLiveEventErrors');
+  const writeGate = block(comm, 'const requireLiveEventWritable');
+
+  const ALL_HANDLERS = [list, get, create, upd, close, setStatus, send, react];
+  const ADMIN_HANDLERS = [create, upd, close, setStatus];
+
+  // The client sends the deadline as an absolute instant: the patch object it
+  // hands to updateLiveEvent must not carry a status (LE-2).
+  const patchRegion = (() => {
+    const i = adminPage.indexOf('const patch = {};');
+    if (i === -1) return '';
+    const j = adminPage.indexOf('updateLiveEvent(', i);
+    return j === -1 ? '' : adminPage.slice(i, j);
+  })();
+
+  // The lifecycle actions live INSIDE the modal (LE-4): the modal starts at
+  // the overlay and the actions must come after it.
+  const modalRegion = (() => {
+    const i = adminPage.indexOf('absolute inset-0 bg-slate-900/40');
+    if (i === -1) return '';
+    return adminPage.slice(i);
+  })();
+
+  // The realtime notice handler: the room must RE-READ on a notice, never
+  // trust the payload it carries.
+  const broadcastRegion = (() => {
+    const i = roomPage.indexOf("ch.on('broadcast'");
+    if (i === -1) return '';
+    const j = roomPage.indexOf('});', i);
+    return j === -1 ? '' : roomPage.slice(i, j + 3);
+  })();
+
+  checks.push(
+    // ---------------------------------------------------------------- LE-0 --
+    /export const LIVE_EVENT_ERROR_MESSAGES/.test(comm)
+      && /export const liveEventErrorCode/.test(comm)
+      && /export const withLiveEventErrors/.test(comm)
+      ? ok('LE-0: the server exports ONE error contract (codes + messages) for the live-events routes')
+      : fail('LE-0: the live-events error contract is not exported'),
+
+    router.includes('withLiveEventErrors') &&
+      router.includes("if (/\\/live-events\\/[^/]+$/.test(path)) withLiveEventErrors(req, res);")
+      ? ok('LE-0: the router wraps every live-events route so a refusal is always { error: CODE, message }')
+      : fail('LE-0: the live-events routes are not wrapped by the error contract'),
+
+    /const context = \{ code, status: res\.statusCode \}/.test(errWrapper)
+      && !/user|token|email|authorization|stack|body\.content|body\.title/i.test(errWrapper)
+      ? ok('LE-0: the refusal log carries the code, the status and the event id only (never a token, a user or a body)')
+      : fail('LE-0: the refusal log can carry more than the code, the status and the event id'),
+
+    /export const LIVE_EVENT_ERROR_COPY/.test(liveApi) && /export const liveEventError/.test(liveApi)
+      ? ok('LE-0: the client has a code→copy table and reads the SERVER message first')
+      : fail('LE-0: the client has no error-copy table'),
+
+    // ---------------------------------------------------------------- LE-1 --
+    /const LIVE_EVENT_MINUTE_MS = 60 \* 1000/.test(comm)
+      && /const truncateToMinute = /.test(comm)
+      && /const toMinuteIso = /.test(comm)
+      && /const parseLiveEventTime = /.test(comm)
+      ? ok('LE-1: the server keeps ONE minute grid (truncateToMinute / toMinuteIso / parseLiveEventTime)')
+      : fail('LE-1: the minute grid helpers are missing'),
+
+    comm.includes("`${raw.replace(' ', 'T')}Z`")
+      ? ok('LE-1: a naive "YYYY-MM-DDTHH:mm" deadline is read as UTC, never as the server local zone')
+      : fail('LE-1: a naive deadline string is no longer pinned to UTC'),
+
+    /toLocalInputValue/.test(adminPage) && /fromLocalInputValue/.test(adminPage)
+      && /d\.toISOString\(\)/.test(adminPage)
+      ? ok('LE-1: the admin console edits the deadline in LOCAL time and submits an absolute instant')
+      : fail('LE-1: the admin console does not submit an absolute instant'),
+
+    // ---------------------------------------------------------------- LE-2 --
+    !/patch\.status/.test(upd) && !/req\.body(\?)?\.status/.test(upd) && !/status:\s*req\.body/.test(upd)
+      ? ok('LE-2: the update handler cannot write a status (the lifecycle owns the transitions)')
+      : fail('LE-2: the update handler can still move an event to another status'),
+
+    patchRegion && !/status/.test(patchRegion)
+      ? ok('LE-2: the admin console sends no status through update')
+      : fail('LE-2: the admin console sends a status through update'),
+
+    // ---------------------------------------------------------------- LE-3 --
+    /if \(!admin\) query = query\.neq\('status', 'draft'\);/.test(list)
+      ? ok('LE-3: a draft is filtered in the QUERY for a non-admin, never hidden in the payload')
+      : fail('LE-3: a draft event is not filtered out of a non-admin list'),
+
+    /\.order\('created_at', \{ ascending: false \}\)/.test(get) && /\.limit\(50\)/.test(get)
+      && /reverse\(\)/.test(get)
+      ? ok('LE-3: the message window is the NEWEST 50, rendered oldest-first')
+      : fail('LE-3: the message window is not the newest 50'),
+
+    // ---------------------------------------------------------------- LE-4 --
+    /error: 'TERMINAL'/.test(upd) && /error: 'TERMINAL'/.test(setStatus)
+      ? ok('LE-4: a closed or cancelled event is refused by update AND by every transition')
+      : fail('LE-4: a terminal event can still be edited or transitioned'),
+
+    /terminalStatus/.test(adminPage) && /Read-only/.test(adminPage)
+      && /This event is closed[\s\S]{0,3}it is read-only\./.test(adminPage)
+      ? ok('LE-4: the admin console marks a terminal event read-only')
+      : fail('LE-4: the admin console does not mark a terminal event read-only'),
+
+    /publishLiveEvent\(session, editing\.id\)/.test(modalRegion)
+      && /startLiveEvent\(session, editing\.id\)/.test(modalRegion)
+      && /cancelLiveEvent\(session, editing\.id\)/.test(modalRegion)
+      && /confirmClose\(editing\.id\)/.test(modalRegion)
+      ? ok('LE-4: the lifecycle actions are inside the modal (they are always reachable)')
+      : fail('LE-4: a lifecycle action is not reachable from the modal'),
+
+    /reloadToken/.test(adminPage) && /setReloadToken\(\(t\) => t \+ 1\)/.test(adminPage)
+      ? ok('LE-4: the list is re-read from the server after every mutation')
+      : fail('LE-4: the admin console does not refresh the list after a mutation'),
+
+    // ---------------------------------------------------------------- LE-5 --
+    /res\.status\(503\)\.json\(\{/.test(dbHelper) && /error: 'SERVER_CONFIG'/.test(dbHelper)
+      && /detail: \{ missing \}/.test(dbHelper)
+      ? ok('LE-5: a missing server configuration is a 503 SERVER_CONFIG that NAMES what is missing')
+      : fail('LE-5: a missing server configuration is not a 503 that names the missing variables'),
+
+    // The LITERAL code assignment is required: a bare `ADMIN_LOOKUP_UNAVAILABLE`
+    // would also match the message-table reference in the next line, so the
+    // gate would stay green if the response ever stopped reporting 503.
+    /error: 'ADMIN_LOOKUP_UNAVAILABLE'/.test(adminGate) && /res\.status\(503\)/.test(adminGate)
+      && /error: 'NOT_AUTHORIZED'/.test(adminGate)
+      ? ok('LE-5: a FAILED admin lookup is a 503 (a server fault), and only a real non-admin is a 403')
+      : fail('LE-5: a failed admin lookup is reported as a 403'),
+
+    ALL_HANDLERS.every((b) => b.includes('liveEventsDb(res)'))
+      ? ok('LE-5: every live-events handler resolves its database through liveEventsDb(res)')
+      : fail('LE-5: a live-events handler bypasses liveEventsDb(res)'),
+
+    ADMIN_HANDLERS.every((b) => b.includes('requireLiveEventAdmin(res, user)'))
+      ? ok('LE-5: every admin-gated live-events handler goes through requireLiveEventAdmin(res, user)')
+      : fail('LE-5: an admin-gated live-events handler skips requireLiveEventAdmin'),
+
+    /process\.env\.SUPABASE_SERVICE_ROLE_KEY \|\| process\.env\.SUPABASE_SECRET_KEY/.test(utils)
+      ? ok('LE-5: the service key may be SUPABASE_SERVICE_ROLE_KEY or SUPABASE_SECRET_KEY')
+      : fail('LE-5: the SUPABASE_SECRET_KEY fallback is gone'),
+
+    // ---------------------------------------------------------------- LE-V --
+    /"e2e:live-events": "node scripts\/e2e-live-events\.mjs"/.test(pkg)
+      && existsSync(resolve(ROOT, 'scripts/e2e-live-events.mjs'))
+      ? ok('LE-V: the live-events e2e suite is registered in package.json and present')
+      : fail('LE-V: the live-events e2e suite is missing or unregistered'),
+
+    // ---------------------------------------------------------------- LE-6 --
+    // The room read advertises `can_write: state === 'live'`. If the SERVER
+    // accepted a write into a scheduled event, the client would be the only
+    // thing enforcing the rule - and the client is not an authority.
+    /effectiveStatus\(event\) !== 'live'/.test(writeGate)
+      && /error: 'EVENT_NOT_LIVE'/.test(writeGate)
+      && /EVENT_NOT_LIVE: 'Only a live event can accept messages and reactions\.'/.test(comm)
+      ? ok('LE-6: the server refuses a write unless the event is LIVE (a scheduled or draft event answers EVENT_NOT_LIVE)')
+      : fail('LE-6: the server accepts a write into a scheduled or draft event'),
+
+    /requireLiveEventWritable\(res, supabase, eventId\)/.test(send)
+      && /requireLiveEventWritable\(res, supabase, message\.event_id\)/.test(react)
+      ? ok('LE-6: BOTH write handlers (send and react) go through the live-only gate')
+      : fail('LE-6: a write handler bypasses the live-only gate'),
+
+    /EVENT_NOT_LIVE: 'This event is not live yet\./.test(liveApi)
+      ? ok('LE-6: the client can explain an EVENT_NOT_LIVE refusal')
+      : fail('LE-6: the client has no copy for EVENT_NOT_LIVE'),
+
+    /"e2e:live-events-ui": "node scripts\/e2e-live-events-ui\.mjs"/.test(pkg)
+      && existsSync(resolve(ROOT, 'scripts/e2e-live-events-ui.mjs'))
+      ? ok('LE-V: the live-events BROWSER suite is registered in package.json and present')
+      : fail('LE-V: the live-events browser suite is missing or unregistered'),
+
+    // The BROWSER suite drives TWO sessions and proves they converge. These
+    // pin the client properties that make that convergence possible, so the
+    // browser proof cannot rot into a lie.
+    /const POLL_MS = 4000/.test(roomPage)
+      && /setInterval\(tick, POLL_MS\)/.test(roomPage)
+      ? ok('LE-V: the room polls while the event is live (two sessions converge even without a broadcast)')
+      : fail('LE-V: the room does not poll while the event is live'),
+
+    /ch\.on\('broadcast', \{ event: 'live_event' \}/.test(roomPage)
+      && /load\(\{ quiet: true \}\)/.test(broadcastRegion)
+      ? ok('LE-V: a realtime notice makes the room RE-READ the event (the payload is never trusted)')
+      : fail('LE-V: the room does not re-read the event on a realtime notice'),
+
+    /const canWrite = state === 'live' && !!session/.test(roomPage)
+      ? ok('LE-V: the composer is writable only while the SERVER says the event is live')
+      : fail('LE-V: the composer is not gated on the server state'),
+
+    /my_reactions \|\| \[\]/.test(roomPage)
+      && /handleReact\(messageId, emoji, !mine\)/.test(roomPage)
+      ? ok("LE-V: the room tracks the caller's own reactions, so a reaction can be toggled off")
+      : fail("LE-V: the room does not track the caller's own reactions"),
+
+    /RefreshCw size=\{12\} \/> Retry/.test(adminPage)
+      ? ok('LE-V: the admin console can retry a failed read instead of waiting for the next poll')
+      : fail('LE-V: the admin console cannot retry a failed read'),
+  );
+}
+
 // ---------------------------------------------------------------------------
 console.log('\n----');
 const failed = checks.filter((c) => c === false).length;

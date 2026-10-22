@@ -403,7 +403,7 @@ const DirectoryRow = ({ bankId, index = 0, onLaunch, onBlocked, courseQuota, quo
 };
 
 const Quiz = () => {
-  const { flashcards, updateQuizStats , getUser } = useAppContext();
+  const { flashcards, updateQuizStats } = useAppContext();
   const { unlock: unlockAudio, preload: preloadAudio, playIntro, manager: audioRef } = useQuizAudio();
   const introHandledRef = React.useRef(false);
   const navigate = useNavigate();

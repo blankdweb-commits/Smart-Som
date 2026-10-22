@@ -72,6 +72,11 @@ const mustRefuseSql = async (q, expect) => {
 };
 
 const rooms = [];
+// The browser section creates an account THROUGH THE SIGN-UP UI, so its id is
+// not known here the way it is for makeUser(). It is tracked by EMAIL and
+// deleted in the finally below — otherwise every run leaves one throwaway
+// account (and its profile row) behind.
+const wizardEmails = [];
 const newRoom = async (tag) => {
   const r = await mustSql(`
     insert into public.study_groups (name, description, creator_id, type, privacy, group_state)
@@ -112,6 +117,21 @@ async function deleteUser(id) {
   const { createClient } = await import('@supabase/supabase-js');
   const admin = createClient(SUPA_URL, SERVICE);
   await admin.auth.admin.deleteUser(id);
+}
+// The auth admin API has no getUserByEmail, so the id is resolved by paging
+// the user list. The project has a few dozen accounts, so this is cheap.
+async function deleteUserByEmail(email) {
+  const { createClient } = await import('@supabase/supabase-js');
+  const admin = createClient(SUPA_URL, SERVICE);
+  const want = (email || '').toLowerCase();
+  for (let page = 1; page <= 20; page += 1) {
+    const { data, error } = await admin.auth.admin.listUsers({ page, perPage: 200 });
+    if (error) throw new Error(`listUsers: ${error.message}`);
+    const hit = (data?.users || []).find((u) => (u.email || '').toLowerCase() === want);
+    if (hit) { await admin.auth.admin.deleteUser(hit.id); return true; }
+    if (!data?.users?.length || data.users.length < 200) return false;
+  }
+  return false;
 }
 
 // ---------------------------------------------------------------------------
@@ -209,6 +229,9 @@ async function signupSection() {
       && await page.isVisible(EMAIL));
 
     const email = `v99wizard${stamp}@apextest.local`;
+    // Tracked BEFORE the account exists: if the flow dies between here and
+    // A12, the cleanup still finds and removes whatever was created.
+    wizardEmails.push(email);
     at = 'advance-from-email';
     await page.fill(EMAIL, email);
     await clickSubmit();
@@ -690,13 +713,21 @@ async function cleanup() {
   await sql(`delete from public.anonymous_spectators where group_id in (${list});`);
   await sql(`delete from public.anonymous_room_events where group_id in (${list});`);
   await sql(`delete from public.study_groups where id in (${list});`);
-  const left = await mustSql(`select count(*)::int c from public.study_groups
-    where name like 'V99E2E %';`);
-  console.log(`\ncleanup: scratch rooms remaining = ${left[0].c}`);
-  const r12 = await mustSql(`select id, group_state, minimum_members_to_activate, member_limit,
-      spectator_price, member_price, event_duration_minutes, event_started_at
-    from public.study_groups where id = 12;`);
-  console.log('room 12 after the run:', JSON.stringify(r12[0]));
+  // The verification reads below MUST NOT throw. This function runs inside the
+  // suite's `finally`, and a throw here would abort the finally block and skip
+  // the account deletions — which is how a scratch account survived a run whose
+  // Management API token was already dead.
+  try {
+    const left = await mustSql(`select count(*)::int c from public.study_groups
+      where name like 'V99E2E %';`);
+    console.log(`\ncleanup: scratch rooms remaining = ${left[0].c}`);
+    const r12 = await mustSql(`select id, group_state, minimum_members_to_activate, member_limit,
+        spectator_price, member_price, event_duration_minutes, event_started_at
+      from public.study_groups where id = 12;`);
+    console.log('room 12 after the run:', JSON.stringify(r12[0]));
+  } catch (err) {
+    console.log('cleanup: the room verification could not run —', err.message.slice(0, 160));
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -713,6 +744,16 @@ async function cleanup() {
   } finally {
     await cleanup();
     if (user) await deleteUser(user.id).catch(() => {});
+    // The browser-created account is deleted LAST and independently, so a
+    // failure in either cleanup step cannot strand it.
+    for (const email of wizardEmails) {
+      try {
+        const gone = await deleteUserByEmail(email);
+        if (gone) console.log(`cleanup: removed the sign-up account ${email}`);
+      } catch (err) {
+        console.log(`cleanup: could not remove ${email} — ${err.message.slice(0, 120)}`);
+      }
+    }
   }
   const failed = results.filter(r => !r.ok).length;
   console.log(`\n=== ${results.length - failed}/${results.length} checks passed ===`);

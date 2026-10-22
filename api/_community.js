@@ -307,16 +307,28 @@ const getDb = () => getSupabaseAdmin();
 // ------------------------------------------------------------
 // Auth-adjacent lookups (service role, so profiles RLS is bypassed).
 // ------------------------------------------------------------
-export const isAdminUser = async (userId) => {
+
+// LE-5 — the admin lookup is TRI-STATE: 'admin' | 'user' | 'unknown'.
+// 'unknown' means the lookup itself failed (the database was unreachable or
+// the query errored). Collapsing that into 'not an admin' turns a server
+// fault into a 403 that blames the caller for the server's problem.
+export const adminRoleState = async (userId) => {
   const supabase = getDb();
-  if (!userId || !supabase) return false;
-  const { data } = await supabase
+  if (!userId || !supabase) return 'unknown';
+  const { data, error } = await supabase
     .from('profiles')
     .select('role')
     .eq('id', userId)
     .maybeSingle();
-  return !!data && ADMIN_ROLES.includes(data.role);
+  if (error) {
+    console.error('[admin role lookup]', error.code || error.message);
+    return 'unknown';
+  }
+  if (!data) return 'user';
+  return ADMIN_ROLES.includes(data.role) ? 'admin' : 'user';
 };
+
+export const isAdminUser = async (userId) => (await adminRoleState(userId)) === 'admin';
 
 export const isBanned = async (userId) => {
   const supabase = getDb();
@@ -432,6 +444,54 @@ export async function publishRoomEvent(groupId, type, extra = {}) {
   } catch (e) {
     // Broadcast is best-effort; clients also poll + refetch on reconnect.
     console.error('[room broadcast]', e?.message || e);
+    return false;
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+// ------------------------------------------------------------
+// Live Events fan-out. A Live Event is keyed by a UUID, not the numeric group
+// id the Anonymous Room uses, so it gets its own channel name. The browser
+// subscribes to `live_event:<id>` (see src/pages/LiveEventRoom.jsx).
+//
+// The payload is a NOTICE ONLY — it never carries message content, an author
+// id or a reaction owner. A client that receives it re-reads the room through
+// the authorized /api/community/live-events/get endpoint, which is the only
+// path that can see who is allowed to read what.
+//
+// Fire-and-forget: a broadcast failure must never fail the write, and the
+// room polls as the authoritative fallback.
+// ------------------------------------------------------------
+export const liveEventChannel = (eventId) => `live_event:${eventId}`;
+
+export async function publishLiveEventEvent(eventId, type, extra = {}) {
+  const url = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
+  if (!url || !key || !eventId) return false;
+
+  const controller = new AbortController();
+  const timer = setTimeout(() => controller.abort(), 2500);
+  try {
+    const res = await fetch(`${url}/realtime/v1/api/broadcast`, {
+      method: 'POST',
+      headers: { apikey: key, Authorization: `Bearer ${key}`, 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        messages: [
+          {
+            topic: liveEventChannel(eventId),
+            event: 'live_event',
+            payload: { type, at: Date.now(), event_id: eventId, ...extra },
+            private: false,
+          },
+        ],
+      }),
+      signal: controller.signal,
+    });
+    return res.ok;
+  } catch (e) {
+    // Broadcast is best-effort; the room polls and re-reads on an interval.
+    console.error('[live event broadcast]', e?.message || e);
     return false;
   } finally {
     clearTimeout(timer);
@@ -4635,17 +4695,222 @@ const effectiveStatus = (row) => {
   return row.status;
 };
 
+// ---------------------------------------------------------------------------
+// LE-1 — the deadline contract.
+//
+// The admin console edits deadlines on a MINUTE grid in the browser's local
+// time. To make that exact:
+//   • a deadline is stored truncated to the minute, so the minute the console
+//     shows IS the minute the database holds;
+//   • two deadlines are "the same" when they land in the same minute, so a
+//     stray millisecond can never lock an event the admin did not retime
+//     (this was the reported 403 EVENT_LOCKED);
+//   • the console always sends an absolute instant; a naive "YYYY-MM-DDTHH:mm"
+//     string is read as UTC, so the server never guesses a timezone.
+// ---------------------------------------------------------------------------
+const LIVE_EVENT_MINUTE_MS = 60 * 1000;
+
+const truncateToMinute = (date) =>
+  new Date(Math.floor(date.getTime() / LIVE_EVENT_MINUTE_MS) * LIVE_EVENT_MINUTE_MS);
+
+const NAIVE_MINUTE_RE = /^\d{4}-\d{2}-\d{2}[T ]\d{2}:\d{2}(:\d{2}(\.\d{1,3})?)?$/;
+
+// Any value → an ISO minute string, or null when it is absent/unreadable.
+const toMinuteIso = (value) => {
+  if (value === null || value === undefined || value === '') return null;
+  const d = new Date(value);
+  if (Number.isNaN(d.getTime())) return null;
+  return truncateToMinute(d).toISOString();
+};
+
+// Returns { ok, iso }. `iso` is null for "no deadline" and truncated to the
+// minute. ok=false means the value was present but unreadable.
+const parseLiveEventTime = (value) => {
+  if (value === null || value === undefined) return { ok: true, iso: null };
+  const raw = typeof value === 'string' ? value.trim() : '';
+  if (raw === '') return { ok: true, iso: null };
+  const parsed = new Date(NAIVE_MINUTE_RE.test(raw) ? `${raw.replace(' ', 'T')}Z` : raw);
+  if (Number.isNaN(parsed.getTime())) return { ok: false, iso: null };
+  return { ok: true, iso: truncateToMinute(parsed).toISOString() };
+};
+
+// ---------------------------------------------------------------------------
+// LE-0 — the Live Events error contract.
+//
+// Every refusal leaves this router as { error: <CODE>, message: <human text> }
+// and is logged with its code. The code is the machine contract (the admin
+// console maps it to copy); the message is what a person reads. Nothing that
+// is logged is a secret: the code, the status and the event id only — never a
+// token, a user id, a message body or a stack.
+// ---------------------------------------------------------------------------
+export const LIVE_EVENT_ERROR_MESSAGES = {
+  SERVER_CONFIG: 'The live-events service is not configured. Please contact an administrator.',
+  ADMIN_LOOKUP_UNAVAILABLE: 'Could not verify administrator access right now. Please retry.',
+  UNAUTHORIZED: 'Sign in to use live events.',
+  AUTH_SERVICE_UNAVAILABLE: 'Authentication service temporarily unavailable. Please retry.',
+  FORBIDDEN_ORIGIN: 'This API is locked to the app domain.',
+  METHOD_NOT_ALLOWED: 'That request method is not allowed here.',
+  NOT_FOUND: 'Unknown live-events endpoint.',
+  NOT_AUTHORIZED: 'Administrator access is required to manage live events.',
+  INVALID_EVENT_ID: 'That live event id is not valid.',
+  INVALID_MESSAGE_ID: 'That message id is not valid.',
+  INVALID_TITLE: 'A title between 1 and 120 characters is required.',
+  INVALID_DESCRIPTION: 'A description between 1 and 2000 characters is required.',
+  INVALID_CONTENT: 'A message between 1 and 1000 characters is required.',
+  INVALID_EMOJI: 'That reaction is not valid.',
+  INVALID_WINDOW: 'The end time must be after the start time.',
+  INVALID_TIME: 'That date and time could not be read.',
+  END_TIME_REQUIRED: 'An end time is required before this event can go live.',
+  SCHEDULE_WINDOW_REQUIRED: 'A start time and an end time are required before this event can be scheduled.',
+  EVENT_LOCKED:
+    'The deadline cannot be changed once the event has started or participants have joined. Edit the title or description instead.',
+  TERMINAL: 'A closed or cancelled event cannot be changed.',
+  INVALID_TRANSITION: 'That status change is not allowed for this event.',
+  EVENT_NOT_FOUND: 'No such live event.',
+  MESSAGE_NOT_FOUND: 'No such message.',
+  EVENT_CLOSED: LIVE_EVENT_CLOSED_NOTICE,
+  EVENT_NOT_LIVE: 'Only a live event can accept messages and reactions.',
+  NOT_LIVE: 'Only a live event can be closed.',
+  LIST_FAILED: 'Could not load live events. Please retry.',
+  LOAD_FAILED: 'Could not load the live event. Please retry.',
+  MESSAGES_FAILED: 'Could not load the messages for this event. Please retry.',
+  MESSAGE_LOAD_FAILED: 'Could not load the message. Please retry.',
+  CREATE_FAILED: 'Could not create the live event. Please retry.',
+  UPDATE_FAILED: 'Could not update the live event. Please retry.',
+  TRANSITION_FAILED: 'Could not change the status of this event. Please retry.',
+  CLOSE_FAILED: 'Could not close the live event. Please retry.',
+  SEND_FAILED: 'Could not send the message. Please retry.',
+  REACT_FAILED: 'Could not save the reaction. Please retry.',
+  INTERNAL_ERROR: 'Something went wrong handling this request. Please retry.',
+};
+
+// Historic free-text errors → canonical codes. This is the ONE place that
+// knows an old string, so each handler can be migrated independently without
+// the wire contract changing under it.
+const LIVE_EVENT_ERROR_ALIASES = {
+  'Server configuration error': 'SERVER_CONFIG',
+  Unauthorized: 'UNAUTHORIZED',
+  'Method not allowed': 'METHOD_NOT_ALLOWED',
+  'Internal Server Error': 'INTERNAL_ERROR',
+  'Invalid event id': 'INVALID_EVENT_ID',
+  'Invalid message id': 'INVALID_MESSAGE_ID',
+  'Invalid title': 'INVALID_TITLE',
+  'Invalid description': 'INVALID_DESCRIPTION',
+  'Invalid content': 'INVALID_CONTENT',
+  'Invalid emoji': 'INVALID_EMOJI',
+  'end_at must be after start_at': 'INVALID_WINDOW',
+  'end_at is required to start an event': 'END_TIME_REQUIRED',
+  'start_at and end_at are required to schedule': 'SCHEDULE_WINDOW_REQUIRED',
+  'Failed to load live events': 'LIST_FAILED',
+  'Failed to load event': 'LOAD_FAILED',
+  'Failed to load messages': 'MESSAGES_FAILED',
+  'Failed to load message': 'MESSAGE_LOAD_FAILED',
+  'Failed to create event': 'CREATE_FAILED',
+  'Failed to update event': 'UPDATE_FAILED',
+  'Failed to transition event': 'TRANSITION_FAILED',
+  'Failed to close event': 'CLOSE_FAILED',
+  'Failed to send message': 'SEND_FAILED',
+  'Failed to add reaction': 'REACT_FAILED',
+  'Failed to remove reaction': 'REACT_FAILED',
+};
+
+// A refusal code is either an alias, an already-canonical SCREAMING_SNAKE
+// code, or — if the handler invented something else — a generic failure.
+export const liveEventErrorCode = (raw) => {
+  const text = typeof raw === 'string' ? raw : '';
+  if (LIVE_EVENT_ERROR_ALIASES[text]) return LIVE_EVENT_ERROR_ALIASES[text];
+  if (/^[A-Z][A-Z0-9_]*$/.test(text)) return text;
+  return 'INTERNAL_ERROR';
+};
+
+// Wraps res.json for the Live Events routes so the contract is enforced in ONE
+// place: a refusal body always ends up as { error: <CODE>, message: <text> }
+// and every refusal is logged with its code.
+export const withLiveEventErrors = (req, res) => {
+  if (!res || res.__liveEventErrorsApplied) return res;
+  res.__liveEventErrorsApplied = true;
+  const originalJson = res.json.bind(res);
+  res.json = (body) => {
+    if (!body || typeof body !== 'object' || !body.error) return originalJson(body);
+    const code = liveEventErrorCode(body.error);
+    const message = body.message || LIVE_EVENT_ERROR_MESSAGES[code] || LIVE_EVENT_ERROR_MESSAGES.INTERNAL_ERROR;
+    const context = { code, status: res.statusCode };
+    const reqBody = req && typeof req.body === 'object' ? req.body : null;
+    const eventId = reqBody?.event_id || reqBody?.message_id || null;
+    if (eventId) context.event_id = eventId;
+    if (res.statusCode >= 500) console.error('[live-events:refusal]', context);
+    else console.warn('[live-events:refusal]', context);
+    return originalJson({ ...body, error: code, message });
+  };
+  return res;
+};
+
+// ---------------------------------------------------------------------------
+// Live Events server helpers (LE-5).
+// ---------------------------------------------------------------------------
+
+// A missing server configuration is a 503 that NAMES what is missing (the
+// names only, never a value). It is a server fault — not a 500, and never the
+// caller's fault.
+const liveEventsDb = (res) => {
+  let supabase = null;
+  let missing = [];
+  try {
+    supabase = getDb();
+  } catch (error) {
+    missing = Array.isArray(error?.missing) ? error.missing : ['SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY'];
+  }
+  if (supabase) return supabase;
+  if (!missing.length) {
+    // getDb() returned null instead of throwing (development mode). Name the
+    // variables that are actually absent — never their values.
+    if (!process.env.VITE_SUPABASE_URL && !process.env.SUPABASE_URL) missing.push('VITE_SUPABASE_URL|SUPABASE_URL');
+    if (!process.env.SUPABASE_SERVICE_ROLE_KEY && !process.env.SUPABASE_SECRET_KEY)
+      missing.push('SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY');
+  }
+  res.status(503).json({
+    error: 'SERVER_CONFIG',
+    message: LIVE_EVENT_ERROR_MESSAGES.SERVER_CONFIG,
+    detail: { missing },
+  });
+  return null;
+};
+
+// The admin check is tri-state. A FAILED LOOKUP is a 503, not a 403 — a 403
+// would blame the caller for the server's own fault.
+const requireLiveEventAdmin = async (res, user) => {
+  const role = await adminRoleState(user?.id);
+  if (role === 'admin') return true;
+  if (role === 'unknown') {
+    res.status(503).json({
+      error: 'ADMIN_LOOKUP_UNAVAILABLE',
+      message: LIVE_EVENT_ERROR_MESSAGES.ADMIN_LOOKUP_UNAVAILABLE,
+    });
+    return false;
+  }
+  res.status(403).json({ error: 'NOT_AUTHORIZED' });
+  return false;
+};
+
 // POST /api/community/live-events/list   {}
 // Discovery: live now, upcoming, recently closed. Real participant counts.
-export async function handleListLiveEvents(req, res) {
-  const supabase = getDb();
-  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+export async function handleListLiveEvents(req, res, user) {
+  const supabase = liveEventsDb(res);
+  if (!supabase) return;
 
-  const { data: events, error } = await supabase
+  // LE-3 — a DRAFT is an unpublished event: admin-only. The filter is applied
+  // in the QUERY, so a non-admin never reads the row at all (hiding it in the
+  // payload would still have shipped the event to the browser).
+  const admin = (await adminRoleState(user?.id)) === 'admin';
+
+  let query = supabase
     .from('live_events')
     .select('id, title, description, cover_url, status, start_at, end_at, created_by, created_at')
     .order('status', { ascending: true })
     .order('start_at', { ascending: true, nullsLast: true });
+  if (!admin) query = query.neq('status', 'draft');
+
+  const { data: events, error } = await query;
 
   if (error) {
     console.error('[live events list]', error);
@@ -4693,9 +4958,9 @@ export async function handleListLiveEvents(req, res) {
 
 // POST /api/community/live-events/get   { event_id }
 // Read-only archive for closed events; full feed + composer availability for live ones.
-export async function handleGetLiveEvent(req, res) {
-  const supabase = getDb();
-  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+export async function handleGetLiveEvent(req, res, user) {
+  const supabase = liveEventsDb(res);
+  if (!supabase) return;
 
   const eventId = req.body?.event_id;
   if (!isUuid(eventId)) return res.status(400).json({ error: 'Invalid event id' });
@@ -4714,12 +4979,15 @@ export async function handleGetLiveEvent(req, res) {
   const state = effectiveStatus(event);
   const isClosed = state === 'closed' || state === 'cancelled';
 
-  // Latest 50 messages, oldest first so the feed renders top-to-bottom.
-  const { data: messages, error: mErr } = await supabase
+  // LE-3 — the LATEST 50 messages. Ordering ascending and then limiting to 50
+  // returned the OLDEST 50, so a busy room never showed a recent message.
+  // (id is the tiebreaker: created_at is not unique.)
+  const { data: newestMessages, error: mErr } = await supabase
     .from('live_event_messages')
     .select('id, author_id, author_alias, content, created_at')
     .eq('event_id', eventId)
-    .order('created_at', { ascending: true })
+    .order('created_at', { ascending: false })
+    .order('id', { ascending: false })
     .limit(50);
 
   if (mErr) {
@@ -4727,18 +4995,30 @@ export async function handleGetLiveEvent(req, res) {
     return res.status(500).json({ error: 'Failed to load messages' });
   }
 
-  // Reaction counts per message (only for messages in this batch).
+  // Oldest-first for rendering, but still the newest 50.
+  const messages = [...(newestMessages || [])].reverse();
+
+  // Reaction counts per message (only for messages in this batch), plus the
+  // VIEWER's own reactions. Without `my_reactions` the client cannot tell a
+  // reaction it already made from one it has not, so it could neither toggle a
+  // reaction off nor render "mine" — and `reactions: { emoji: count }` stays
+  // exactly the shape it was.
   const messageIds = (messages || []).map((m) => m.id);
   let reactions = {};
+  const myReactions = {};
   if (messageIds.length) {
     const { data: reacs } = await supabase
       .from('live_event_reactions')
-      .select('message_id, emoji')
+      .select('message_id, emoji, user_id')
       .in('message_id', messageIds);
     if (reacs) {
       for (const r of reacs) {
         if (!reactions[r.message_id]) reactions[r.message_id] = {};
         reactions[r.message_id][r.emoji] = (reactions[r.message_id][r.emoji] || 0) + 1;
+        if (user?.id && r.user_id === user.id) {
+          if (!myReactions[r.message_id]) myReactions[r.message_id] = [];
+          myReactions[r.message_id].push(r.emoji);
+        }
       }
     }
   }
@@ -4766,6 +5046,7 @@ export async function handleGetLiveEvent(req, res) {
       content: m.content,
       created_at: m.created_at,
       reactions: reactions[m.id] || {},
+      my_reactions: myReactions[m.id] || [],
     })),
     can_write: state === 'live',
     closed: isClosed,
@@ -4774,9 +5055,9 @@ export async function handleGetLiveEvent(req, res) {
 
 // POST /api/community/live-events/create   { title, description, cover_url?, start_at?, end_at?, status? }  admin only
 export async function handleCreateLiveEvent(req, res, user) {
-  const supabase = getDb();
-  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
-  if (!(await isAdminUser(user.id))) return res.status(403).json({ error: 'NOT_AUTHORIZED' });
+  const supabase = liveEventsDb(res);
+  if (!supabase) return;
+  if (!(await requireLiveEventAdmin(res, user))) return;
 
   const { title, description, cover_url, start_at, end_at, status } = req.body || {};
   if (typeof title !== 'string' || title.trim().length < 1 || title.trim().length > 120)
@@ -4785,12 +5066,16 @@ export async function handleCreateLiveEvent(req, res, user) {
     return res.status(400).json({ error: 'Invalid description' });
   const st = status && ['draft','scheduled','live'].includes(status) ? status : 'draft';
 
-  let startsAt = start_at ? new Date(start_at) : null;
-  let endsAt = end_at ? new Date(end_at) : null;
-  if (startsAt && endsAt && endsAt.getTime() <= startsAt.getTime())
+  const startParsed = parseLiveEventTime(start_at);
+  const endParsed = parseLiveEventTime(end_at);
+  if (!startParsed.ok || !endParsed.ok)
+    return res.status(400).json({ error: 'INVALID_TIME' });
+  let startsAt = startParsed.iso;
+  let endsAt = endParsed.iso;
+  if (startsAt && endsAt && new Date(endsAt).getTime() <= new Date(startsAt).getTime())
     return res.status(400).json({ error: 'end_at must be after start_at' });
   if (st === 'live' && !endsAt) return res.status(400).json({ error: 'end_at is required to start an event' });
-  if (st === 'live' && !startsAt) startsAt = new Date();
+  if (st === 'live' && !startsAt) startsAt = truncateToMinute(new Date()).toISOString();
 
   const { data, error } = await supabase
     .from('live_events')
@@ -4799,8 +5084,8 @@ export async function handleCreateLiveEvent(req, res, user) {
       description: description.trim(),
       cover_url: cover_url || null,
       status: st,
-      start_at: startsAt ? startsAt.toISOString() : null,
-      end_at: endsAt ? endsAt.toISOString() : null,
+      start_at: startsAt,
+      end_at: endsAt,
       created_by: user.id,
     })
     .select('id, title, description, cover_url, status, start_at, end_at, created_at')
@@ -4810,15 +5095,16 @@ export async function handleCreateLiveEvent(req, res, user) {
     return res.status(500).json({ error: 'Failed to create event' });
   }
 
-  publishRoomEvent(null, 'live_event_created', { event: data });
+  publishLiveEventEvent(data.id, 'created', { status: data.status });
   return res.status(200).json({ ok: true, event: data });
 }
 
-// POST /api/community/live-events/update   { event_id, title?, description?, cover_url?, start_at?, end_at?, status? }  admin only
+// POST /api/community/live-events/update   { event_id, title?, description?, cover_url?, start_at?, end_at? }  admin only
+// (`status` is not editable here — the lifecycle has its own endpoints.)
 export async function handleUpdateLiveEvent(req, res, user) {
-  const supabase = getDb();
-  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
-  if (!(await isAdminUser(user.id))) return res.status(403).json({ error: 'NOT_AUTHORIZED' });
+  const supabase = liveEventsDb(res);
+  if (!supabase) return;
+  if (!(await requireLiveEventAdmin(res, user))) return;
 
   const eventId = req.body?.event_id;
   if (!isUuid(eventId)) return res.status(400).json({ error: 'Invalid event id' });
@@ -4846,16 +5132,28 @@ export async function handleUpdateLiveEvent(req, res, user) {
     .limit(1)
     .maybeSingle();
   const hasParticipants = !!msg;
-  if ((state === 'live' || hasParticipants) && (req.body?.start_at !== undefined || req.body?.end_at !== undefined)) {
-    const newStart = req.body?.start_at ? new Date(req.body.start_at) : (event.start_at ? new Date(event.start_at) : null);
-    const newEnd = req.body?.end_at ? new Date(req.body.end_at) : (event.end_at ? new Date(event.end_at) : null);
-    const oldStart = event.start_at ? new Date(event.start_at) : null;
-    const oldEnd = event.end_at ? new Date(event.end_at) : null;
-    if (
-      (newStart && oldStart && newStart.getTime() !== oldStart.getTime()) ||
-      (newEnd && oldEnd && newEnd.getTime() !== oldEnd.getTime()) ||
-      (!!newStart !== !!oldStart) || (!!newEnd !== !!oldEnd)
-    ) {
+
+  // LE-1 — deadlines are read on the minute grid and stored as minutes.
+  const startProvided = req.body?.start_at !== undefined;
+  const endProvided = req.body?.end_at !== undefined;
+  const startParsed = startProvided
+    ? parseLiveEventTime(req.body.start_at)
+    : { ok: true, iso: undefined };
+  const endParsed = endProvided
+    ? parseLiveEventTime(req.body.end_at)
+    : { ok: true, iso: undefined };
+  if (!startParsed.ok || !endParsed.ok)
+    return res.status(400).json({ error: 'INVALID_TIME' });
+
+  const oldStart = toMinuteIso(event.start_at);
+  const oldEnd = toMinuteIso(event.end_at);
+  const newStart = startProvided ? startParsed.iso : oldStart;
+  const newEnd = endProvided ? endParsed.iso : oldEnd;
+
+  // Same minute = not a change. A millisecond of drift must never lock an
+  // event the admin did not actually retime.
+  if ((state === 'live' || hasParticipants) && (startProvided || endProvided)) {
+    if (newStart !== oldStart || newEnd !== oldEnd) {
       return res.status(403).json({
         error: 'EVENT_LOCKED',
         message: 'The event deadline cannot be changed once the event has started or participants have joined.',
@@ -4875,13 +5173,18 @@ export async function handleUpdateLiveEvent(req, res, user) {
     patch.description = d;
   }
   if (req.body?.cover_url !== undefined) patch.cover_url = String(req.body.cover_url).trim() || null;
-  if (req.body?.start_at !== undefined) patch.start_at = req.body.start_at ? new Date(req.body.start_at).toISOString() : null;
-  if (req.body?.end_at !== undefined) patch.end_at = req.body.end_at ? new Date(req.body.end_at).toISOString() : null;
-  if (req.body?.status !== undefined && ['draft','scheduled','live','closed','cancelled'].includes(req.body.status))
-    patch.status = req.body.status;
+  if (startProvided) patch.start_at = startParsed.iso;
+  if (endProvided) patch.end_at = endParsed.iso;
+  // LE-2 — `status` is NOT editable here. The lifecycle only moves through the
+  // dedicated publish / start / cancel / close endpoints, each of which
+  // validates its own transition (and the deadline lock).
   patch.updated_at = new Date().toISOString();
 
-  if (patch.start_at && patch.end_at && new Date(patch.end_at).getTime() <= new Date(patch.start_at).getTime())
+  // The window is validated against the MERGED row, so changing only the end
+  // time is still checked against the stored start time.
+  const effectiveStart = startProvided ? startParsed.iso : oldStart;
+  const effectiveEnd = endProvided ? endParsed.iso : oldEnd;
+  if (effectiveStart && effectiveEnd && new Date(effectiveEnd).getTime() <= new Date(effectiveStart).getTime())
     return res.status(400).json({ error: 'end_at must be after start_at' });
 
   const { data, error: uErr } = await supabase
@@ -4895,7 +5198,7 @@ export async function handleUpdateLiveEvent(req, res, user) {
     return res.status(500).json({ error: 'Failed to update event' });
   }
 
-  publishRoomEvent(null, 'live_event_updated', { event: data });
+  publishLiveEventEvent(eventId, 'updated', { status: data.status, start_at: data.start_at, end_at: data.end_at });
   return res.status(200).json({ ok: true, event: data });
 }
 
@@ -4916,9 +5219,9 @@ export async function handleCancelLiveEvent(req, res, user) {
 
 // POST /api/community/live-events/close   { event_id, reason? }  admin only  (live -> closed)
 export async function handleCloseLiveEvent(req, res, user) {
-  const supabase = getDb();
-  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
-  if (!(await isAdminUser(user.id))) return res.status(403).json({ error: 'NOT_AUTHORIZED' });
+  const supabase = liveEventsDb(res);
+  if (!supabase) return;
+  if (!(await requireLiveEventAdmin(res, user))) return;
 
   const eventId = req.body?.event_id;
   if (!isUuid(eventId)) return res.status(400).json({ error: 'Invalid event id' });
@@ -4933,16 +5236,16 @@ export async function handleCloseLiveEvent(req, res, user) {
     return res.status(500).json({ error: 'Failed to close event' });
   }
   if (!data || data.ok === false)
-    return res.status(409).json({ error: data?.code || 'CLOSE_FAILED', message: LIVE_EVENT_CLOSED_NOTICE });
+    return res.status(409).json({ error: data?.code || 'CLOSE_FAILED' });
 
-  publishRoomEvent(null, 'live_event_closed', { event_id: eventId, state: data.state });
+  publishLiveEventEvent(eventId, 'closed', { state: data.state });
   return res.status(200).json({ ok: true, event_id: eventId, state: data.state, closed_notice: LIVE_EVENT_CLOSED_NOTICE });
 }
 
 async function handleSetLiveEventStatus(req, res, user, target) {
-  const supabase = getDb();
-  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
-  if (!(await isAdminUser(user.id))) return res.status(403).json({ error: 'NOT_AUTHORIZED' });
+  const supabase = liveEventsDb(res);
+  if (!supabase) return;
+  if (!(await requireLiveEventAdmin(res, user))) return;
 
   const eventId = req.body?.event_id;
   if (!isUuid(eventId)) return res.status(400).json({ error: 'Invalid event id' });
@@ -4976,7 +5279,7 @@ async function handleSetLiveEventStatus(req, res, user, target) {
     return res.status(400).json({ error: 'end_at is required to start an event' });
 
   const patch = { status: target, updated_at: new Date().toISOString() };
-  if (target === 'live' && !event.start_at) patch.start_at = new Date().toISOString();
+  if (target === 'live' && !event.start_at) patch.start_at = truncateToMinute(new Date()).toISOString();
 
   const { data, error: uErr } = await supabase
     .from('live_events')
@@ -4989,23 +5292,76 @@ async function handleSetLiveEventStatus(req, res, user, target) {
     return res.status(500).json({ error: 'Failed to transition event' });
   }
 
-  publishRoomEvent(null, 'live_event_transitioned', { event_id: eventId, status: target, state: effectiveStatus(data) });
+  publishLiveEventEvent(eventId, 'transition', { status: target, state: effectiveStatus(data) });
   return res.status(200).json({ ok: true, event: data });
 }
 
+// ---------------------------------------------------------------------------
+// LE-6 - THE WRITES ARE LIVE-ONLY, AND THE SERVER DECIDES.
+//
+// The room's composer opens when the event goes live, and the room read
+// answers `can_write: state === 'live'`. If the server then accepted a
+// message into a SCHEDULED event, the client would be the only thing
+// enforcing the rule - and the rule is the whole point of a live event.
+//
+// ORDER MATTERS: `_live_event_over` is checked FIRST, so a closed, cancelled
+// or deadline-expired event still answers EVENT_CLOSED (the LE-4 contract).
+// Only a non-live, non-terminal event answers EVENT_NOT_LIVE.
+//
+// A failed state read FAILS CLOSED (the write is refused), exactly as it did
+// before this helper existed.
+// ---------------------------------------------------------------------------
+const requireLiveEventWritable = async (res, supabase, eventId) => {
+  const over = await supabase.rpc('_live_event_over', { p_event: eventId });
+  if (over.error || over.data === true) {
+    res.status(403).json({ error: 'EVENT_CLOSED', message: LIVE_EVENT_CLOSED_NOTICE });
+    return null;
+  }
+
+  const { data: event, error: evErr } = await supabase
+    .from('live_events')
+    .select('id, status, start_at, end_at')
+    .eq('id', eventId)
+    .maybeSingle();
+  if (evErr) {
+    console.error('[live event write]', evErr);
+    res.status(500).json({ error: 'Failed to load event' });
+    return null;
+  }
+  if (!event) {
+    res.status(404).json({ error: 'EVENT_NOT_FOUND', message: 'No such live event.' });
+    return null;
+  }
+
+  // effectiveStatus promotes a SCHEDULED event whose start has passed to
+  // 'live', so a scheduled event that is already running still accepts
+  // writes - the same rule the room read advertises.
+  if (effectiveStatus(event) !== 'live') {
+    res.status(403).json({
+      error: 'EVENT_NOT_LIVE',
+      message: LIVE_EVENT_ERROR_MESSAGES.EVENT_NOT_LIVE,
+    });
+    return null;
+  }
+
+  return event;
+};
+
 // POST /api/community/live-events/send   { event_id, content }   (authenticated, live only)
 export async function handleSendLiveEventMessage(req, res, user) {
-  const supabase = getDb();
-  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+  const supabase = liveEventsDb(res);
+  if (!supabase) return;
 
   const eventId = req.body?.event_id;
   const content = typeof req.body?.content === 'string' ? req.body.content.trim() : '';
   if (!isUuid(eventId)) return res.status(400).json({ error: 'Invalid event id' });
   if (content.length < 1 || content.length > 1000) return res.status(400).json({ error: 'Invalid content' });
 
-  const over = await supabase.rpc('_live_event_over', { p_event: eventId });
-  if (over.error || over.data === true)
-    return res.status(403).json({ error: 'EVENT_CLOSED', message: LIVE_EVENT_CLOSED_NOTICE });
+  // LE-6: the server refuses the write unless the event is LIVE. A closed,
+  // cancelled or deadline-expired event answers EVENT_CLOSED; a scheduled or
+  // draft event answers EVENT_NOT_LIVE.
+  const writable = await requireLiveEventWritable(res, supabase, eventId);
+  if (!writable) return;
 
   const { data, error } = await supabase
     .from('live_event_messages')
@@ -5017,14 +5373,14 @@ export async function handleSendLiveEventMessage(req, res, user) {
     return res.status(500).json({ error: 'Failed to send message' });
   }
 
-  publishRoomEvent(null, 'live_event_message', { event_id: eventId, message: data });
+  publishLiveEventEvent(eventId, 'message', { message_id: data.id });
   return res.status(200).json({ ok: true, message: data });
 }
 
 // POST /api/community/live-events/react   { message_id, emoji, active }   (authenticated, live only)
 export async function handleReactLiveEventMessage(req, res, user) {
-  const supabase = getDb();
-  if (!supabase) return res.status(500).json({ error: 'Server configuration error' });
+  const supabase = liveEventsDb(res);
+  if (!supabase) return;
 
   const messageId = req.body?.message_id;
   const emoji = typeof req.body?.emoji === 'string' ? req.body.emoji.trim() : '';
@@ -5044,9 +5400,10 @@ export async function handleReactLiveEventMessage(req, res, user) {
   }
   if (!message) return res.status(404).json({ error: 'MESSAGE_NOT_FOUND', message: 'No such message.' });
 
-  const over = await supabase.rpc('_live_event_over', { p_event: message.event_id });
-  if (over.error || over.data === true)
-    return res.status(403).json({ error: 'EVENT_CLOSED', message: LIVE_EVENT_CLOSED_NOTICE });
+  // LE-6: the reaction is a write too, so it is gated on the SAME live-only
+  // rule as the message it belongs to.
+  const writable = await requireLiveEventWritable(res, supabase, message.event_id);
+  if (!writable) return;
 
   if (active) {
     const { error } = await supabase
@@ -5073,6 +5430,8 @@ export async function handleReactLiveEventMessage(req, res, user) {
     }
   }
 
-  publishRoomEvent(null, 'live_event_reaction', { event_id: message.event_id, message_id: messageId, user_id: user.id, emoji, active });
+  // Notice only: no user id. A public broadcast channel must not turn into a
+  // roster of who reacted to what.
+  publishLiveEventEvent(message.event_id, 'reaction', { message_id: messageId, emoji, active });
   return res.status(200).json({ ok: true, active });
 }

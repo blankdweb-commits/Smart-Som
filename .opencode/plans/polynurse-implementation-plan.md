@@ -1,5 +1,12 @@
 ﻿# POLYNURSE — IMPLEMENTATION PLAN
 
+> **STATUS: EXECUTED.** This plan shipped as migrations v15/v16 (per-course
+> difficulty progress + the 30-minute course cooldown) and the 7 e2e script
+> updates. It is kept as the record of the contract that is now live. See
+> `AGENTS.md` → *PER-COURSE QUOTA / COURSE-LEVEL COOLDOWN* for the verified
+> outcome, and `.opencode/plans/live-events-admin-403.md` for the live-events
+> plan that came after it.
+
 ## Overview
 Implement progressive difficulty locking per course, server-side quota enforcement in batch-create, courseKeyâ†’framework validation, and update all 7 E2E scripts. This plan covers database migrations, API changes, server-side validation, UI updates, and test coverage.
 

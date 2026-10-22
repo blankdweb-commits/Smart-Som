@@ -7,7 +7,7 @@
 // ============================================================================
 import React, { useEffect, useRef, useState } from 'react';
 import { useAppContext } from '../context/AppContext';
-import { listLiveEvents } from '../utils/liveEventsApi';
+import { listLiveEvents, liveEventError } from '../utils/liveEventsApi';
 import { Calendar, Clock, Users, RefreshCw, Loader2, Trophy } from '../components/Icons';
 import { Link } from 'react-router-dom';
 
@@ -45,7 +45,7 @@ export default function LiveEvents() {
         const res = await listLiveEvents(session);
         if (!cancelled) setEvents(res.events || []);
       } catch (err) {
-        if (!cancelled) setError(err.message || 'Failed to load live events');
+        if (!cancelled) setError(liveEventError(err));
       } finally {
         if (!cancelled) setLoading(false);
       }
@@ -148,8 +148,9 @@ export default function LiveEvents() {
       </div>
 
       {error && (
-        <div className="mb-6 rounded-2xl border border-rose-200 dark:border-rose-900/30 bg-rose-50 dark:bg-rose-900/10 p-4 text-rose-700 dark:text-rose-400 font-black text-sm">
-          {error}
+        <div className="mb-6 rounded-2xl border border-rose-200 dark:border-rose-900/30 bg-rose-50 dark:bg-rose-900/10 p-4 text-rose-700 dark:text-rose-400">
+          <div className="font-black text-sm">{error.message}</div>
+          <div className="mt-1 text-[9px] font-black uppercase tracking-widest opacity-70">Code: {error.code}</div>
         </div>
       )}
 

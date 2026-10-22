@@ -39,12 +39,16 @@ export const applyCors = (req, res) => {
 // Service-role client for administrative server-side tasks.
 export const getSupabaseAdmin = () => {
   const url = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
-  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
+  // LE-5 — Supabase's new secret key (sb_secret_...) is the successor to the
+  // legacy service_role JWT, and a project can be rotated onto it. Accept
+  // either. The legacy key is preferred so an existing deployment keeps its
+  // exact behaviour; the secret key is the fallback, never the other way round.
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_SECRET_KEY;
 
   if (!url || !serviceKey) {
     const missing = [];
     if (!url) missing.push('SUPABASE_URL/VITE_SUPABASE_URL');
-    if (!serviceKey) missing.push('SUPABASE_SERVICE_ROLE_KEY');
+    if (!serviceKey) missing.push('SUPABASE_SERVICE_ROLE_KEY|SUPABASE_SECRET_KEY');
     const err = Object.assign(new Error('Supabase environment variables are missing'), {
       code: 'SUPABASE_ENV_MISSING',
       missing,

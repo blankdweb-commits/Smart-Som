@@ -4,6 +4,7 @@ import Modal from "../components/Modal";
 import { useAppContext } from "../context/AppContext";
 import { useChallenge } from "../context/ChallengeContext";
 import TutorialTip from '../components/TutorialTip';
+import { useWarhallExit } from '../components/WarhallExitContext';
 import { supabase } from "../utils/supabase";
 // eslint-disable-next-line no-unused-vars
 import { motion, AnimatePresence } from "framer-motion";
@@ -86,6 +87,16 @@ const OUTCOME_META = {
 };
 const outcomeMeta = (o) => OUTCOME_META[o] || OUTCOME_META.draw;
 
+// Which screen the header Back button returns to, one level up. The arena's
+// screens are internal state (goPhase never pushes router history), so router
+// back would leave /rumble instead of walking back through the Warhall. The hub
+// is deliberately absent: from the hub, Back leaves the page.
+const BACK_STEPS = {
+  picker: { to: 'hub', label: 'War Hall' },
+  bots: { to: 'picker', label: 'Arena' },
+  'blitz-result': { to: 'hub', label: 'War Hall' },
+};
+
 const SCHOLAR_STATUS = {
   available: { dot: 'bg-emerald-400', label: 'Available', button: 'Challenge', buttonClass: 'bg-purple-600 hover:bg-purple-500 text-white' },
   in_match: { dot: 'bg-amber-400', label: 'In a match', button: 'Busy', buttonClass: 'bg-white/10 text-white/30' },
@@ -156,6 +167,9 @@ const ScoreCard = ({ title, card, tone, sub }) => {
 };
 
 const Rumble = () => {
+  // The context carries a complete no-op default, so the hook never throws
+  // and is always called in the same order.
+  const { registerDuelState } = useWarhallExit();
   const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const {
@@ -242,6 +256,7 @@ const Rumble = () => {
   const [paceTick, setPaceTick] = useState(0);
   const [showPaceSheet, setShowPaceSheet] = useState(false);
   const [tempPace, setTempPace] = useState(FLOW_DEFAULT_PACE);
+  const [showExitConfirm, setShowExitConfirm] = useState(false);
 
   const matchIdRef = useRef(null);
   const lastOptionRef = useRef(null);
@@ -268,8 +283,17 @@ const Rumble = () => {
   const goBack = useCallback(() => {
     const idx = typeof window !== 'undefined' ? window.history?.state?.idx : null;
     if (typeof idx === 'number' && idx > 0) navigate(-1);
-    else { arenaTrace('back', { fallback: '/dashboard', reason: 'no router history' }); navigate('/dashboard'); }
+    else { 
+      arenaTrace('back', { fallback: '/dashboard', reason: 'no router history' }); 
+      setShowExitConfirm(true);
+    }
   }, [navigate]);
+
+  // The arena's screens are internal state, NOT router entries: goPhase never
+  // pushes history. So router back would leave /rumble entirely. Each screen
+  // therefore names the screen ONE level up, and the header button walks that
+  // step; only the hub itself falls through to the router (leaving the Warhall).
+  const backStep = BACK_STEPS[phase] || null;
 
   // While a stake is escrowed the Back button is HIDDEN for the whole staked
   // span — waiting (opponent not confirmed), the countdown, and the live round.
@@ -278,8 +302,19 @@ const Rumble = () => {
   // button returns as a plain "return home", because the match is settled.
   const STAKED_PHASES = ['blitz-waiting', 'blitz-countdown', 'blitz-play'];
   const stakeHeld = STAKED_PHASES.includes(phase);
-  const showBack = !stakeHeld;
-  const onResult = phase === 'blitz-result';
+  useEffect(() => {
+    registerDuelState?.(stakeHeld);
+  }, [stakeHeld, registerDuelState]);
+  const showBack = !stakeHeld && phase !== 'scholars';
+  const handleBack = useCallback(() => {
+    const step = BACK_STEPS[phase];
+    if (step) {
+      arenaTrace('back', { from: phase, to: step.to });
+      goPhase(step.to, `back-${phase}`);
+    } else {
+      goBack();
+    }
+  }, [phase, goPhase, goBack]);
 
   // The current user's id is already in the auth session, synchronously.
   // Do NOT call supabase.auth.getUser() here: it takes GoTrue's navigator
@@ -1049,11 +1084,6 @@ const Rumble = () => {
   // speed is decided once, so a live round has no chip to tap that could
   // distract from the question (and no second way to change a server setting
   // once the clock is already running).
-  const pickPace = useCallback((pace) => {
-    if (flowBusy) return;
-    setPreferredPace(pace);
-  }, [flowBusy]);
-
   const openPaceSheet = useCallback(() => {
     setTempPace(preferredPace);
     setShowPaceSheet(true);
@@ -1226,8 +1256,8 @@ const Rumble = () => {
         )}
         <div className="flex items-center justify-between mb-10">
           {showBack ? (
-            <button onClick={goBack} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors font-bold text-sm px-4 py-2 bg-white/5 rounded-2xl active:scale-95">
-              <ChevronLeft size={18} /> {onResult ? 'Home' : 'Back'}
+            <button onClick={handleBack} className="flex items-center gap-2 text-slate-400 hover:text-white transition-colors font-bold text-sm px-4 py-2 bg-white/5 rounded-2xl active:scale-95">
+              <ChevronLeft size={18} /> {backStep ? backStep.label : 'Back'}
             </button>
           ) : (
             // Deliberate placeholder: while a stake is escrowed (waiting,
@@ -1983,6 +2013,39 @@ const Rumble = () => {
           >
             Save pace
           </button>
+        </div>
+      </Modal>
+
+      <Modal isOpen={showExitConfirm} onClose={() => setShowExitConfirm(false)} label="Exit War Hall">
+        <div className="p-6 space-y-4">
+          <div className="flex items-center gap-3">
+            <div className="w-12 h-12 rounded-2xl bg-amber-500/20 flex items-center justify-center">
+              <AlertCircle className="w-6 h-6 text-amber-400" />
+            </div>
+            <div>
+              <h2 className="text-xl font-black text-slate-900 dark:text-white">Exit War Hall?</h2>
+            </div>
+          </div>
+          <p className="text-slate-600 dark:text-slate-300 font-medium">
+            Are you sure you want to exit the SC War Hall and return to the dashboard?
+          </p>
+          <div className="flex gap-2">
+            <button
+              onClick={() => setShowExitConfirm(false)}
+              className="flex-1 py-3 rounded-xl bg-slate-100 dark:bg-slate-700 text-slate-900 dark:text-white font-black uppercase tracking-widest text-xs hover:bg-slate-200 dark:hover:bg-slate-600 transition"
+            >
+              Stay
+            </button>
+            <button
+              onClick={() => {
+                setShowExitConfirm(false);
+                navigate('/dashboard');
+              }}
+              className="flex-1 py-3 rounded-xl bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-black uppercase tracking-widest text-xs hover:shadow-lg transition"
+            >
+              Exit to Dashboard
+            </button>
+          </div>
         </div>
       </Modal>
     </div>
