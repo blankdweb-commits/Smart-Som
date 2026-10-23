@@ -72,28 +72,57 @@ proves the gate FAILS.
 | `scripts/migration-v102-live-events.sql` | `live_events` + `live_event_messages` (admin entity, separate from the Anonymous Room) |
 | `scripts/migration-v103-live-event-reactions.sql` | `live_event_reactions` (one emoji per user per message) |
 | `scripts/migration-v99-anonymous-live-event.sql` | the anonymous event clock, `_anon_event_over`, the reconcile override and the triggers |
-| `api/_community.js` | the live-events handlers + the LE-0..LE-5 contract |
+| `api/_community.js` | the live-events handlers + the LE-0..LE-6 contract (`requireLiveEventWritable`) |
 | `api/community.js` | the routes + the `withLiveEventErrors` wrapper |
 | `api/_utils.js` | `SUPABASE_SECRET_KEY` fallback |
 | `src/utils/liveEventsApi.js` | client wrapper, `LIVE_EVENT_ERROR_COPY`, `liveEventError` |
-| `src/pages/AdminLiveEvents.jsx` | the admin console (local-minute editing, modal lifecycle actions, read-only terminal events) |
-| `src/pages/LiveEvents.jsx`, `src/pages/LiveEventRoom.jsx` | participant list + room |
-| `scripts/e2e-live-events.mjs` | `npm run e2e:live-events` — **41/41**, exercises the REAL router against the live DB |
-| `scripts/verify-live-events-negative.mjs` | `npm run verify:live-events-negative` — **21/21** mutations, each proven to fail its gate |
-| `scripts/verify-deploy-config.mjs` | PART Z — the 21 static gates |
+| `src/pages/AdminLiveEvents.jsx` | the admin console (local-minute editing, modal lifecycle actions, read-only terminal events, inline **Retry**) |
+| `src/pages/LiveEvents.jsx`, `src/pages/LiveEventRoom.jsx` | participant list + room (notice-only realtime, 4s poll, optimistic sends) |
+| `scripts/e2e-live-events.mjs` | `npm run e2e:live-events` — **48/48**, exercises the REAL router against the live DB |
+| `scripts/e2e-live-events-ui.mjs` | `npm run e2e:live-events-ui` — **30/30** in a real browser at 360×640 (P0–P9) |
+| `src/pages/Rumble.jsx` | the Warhall hub/picker/bots/duel screens — `BACK_STEPS` + the mounted exit guard |
+| `src/components/WarhallExitGuard.jsx`, `src/components/WarhallExitContext.js` | the exit guard + its hook split out (react-refresh) |
+| `scripts/verify-live-events-negative.mjs` | `npm run verify:live-events-negative` — **31/31** mutations, each proven to fail its gate |
+| `scripts/verify-deploy-config.mjs` | PART Z / LE-V — the 26 static gates |
 | `scripts/e2e-anonymous-lifecycle.mjs` | the v99 contract (**203/203**) |
 
 ## 5. Verification
 
 | Suite | Result |
 |-------|--------|
-| `npm run e2e:live-events` | **41/41** |
-| `npm run verify:live-events-negative` | **21/21** mutations pass, verifier green again |
-| `node scripts/verify-deploy-config.mjs` | **742 passed, 0 failed** |
+| `npm run e2e:live-events` | **48/48** |
+| `npm run e2e:live-events-ui` | **30/30** (five consecutive green runs) |
+| `npm run verify:live-events-negative` | **31/31** mutations pass, verifier green again |
+| `node scripts/verify-deploy-config.mjs` | **751 passed, 0 failed** |
 | `npm run e2e:anonymous-lifecycle` | **203/203** (was 188/194 — six stale assertions rewritten) |
 | `npm run e2e:community-ephemeral` | 12/12 |
 | `npm run e2e:social-hub` | 45/45 |
-| `npm run build` | OK |
+| `npx eslint . --format json` | **0 errors**, 33 warnings (15 files) |
+| `npm run build` | OK (46–53s; `Rumble` 56.83 kB) |
+
+**LE-6 — a closed event is not writable, and the room does not trust a notice.**
+`send`/`react` run `requireLiveEventWritable` (`_live_event_over` → `EVENT_CLOSED`,
+then `effectiveStatus !== 'live'` → `EVENT_NOT_LIVE`). The room subscribes to a
+**notice-only** `live_event:<uuid>` broadcast (no content, no author/reaction ids),
+re-reads `load({ quiet: true })` on every notice, and polls every 4s while locally
+live. Ids dedupe, sends/reacts are optimistic and reconcile from the re-read, and
+`my_reactions` drives `handleReact(messageId, emoji, !mine)`.
+
+**The console recovers rather than dead-ending.** The error banner has a `Retry`
+button (`setError(null); setReloadToken((t) => t + 1)`); the browser suite clicks
+it (or reloads) via `waitForConsoleRow` (4 × 10s) and `signIn` retries 3× with a
+body-text dump because this sandbox intermittently gets `EAI_AGAIN` from
+`*.supabase.co`.
+
+**The Warhall could not walk back to its own hub.** `goPhase` never pushes router
+history, so the header Back (`navigate(-1)`) left `/rumble` from the picker. It now
+walks `BACK_STEPS` (`picker → hub` "War Hall", `bots → picker` "Arena",
+`blitz-result → hub` "War Hall"), and only the hub falls through to the router.
+Back stays hidden while a stake is held — Cancel/Forfeit is the only exit and it
+settles the pot. `WarhallExitProvider` was never mounted, so its `beforeunload`
+guard was dead code; it is now mounted inside `<Router>` around the routes, and its
+hook moved to `WarhallExitContext.js` (the try/catch around a hook in `Rumble.jsx`
+was a conditional hook — the context default is a no-op, so the call is now plain).
 
 **The six stale assertions** (all caused by v99, all rewritten to state the
 NEW contract rather than deleted):
@@ -118,7 +147,10 @@ are proven independently of the event deadline).
 ## 6. Remaining (user)
 
 - Browser QA of the admin console (create → publish → start → chat → react →
-  close), the participant list and the participant room.
+  close), the participant list, the participant room, and the Warhall back button
+  on a real phone. A live 360×640 probe of the back button could not run on
+  Oct 22 because `*.supabase.co` stopped answering from this box (GoTrue and REST
+  both timed out for ~2 minutes while Vite stayed 200), so that check is owed.
 - The **production** 403 response body is still unverified (no authorised admin
   account on the deployed site) — the console is proven against the live
   database through the real router, not against production.

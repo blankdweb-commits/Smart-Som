@@ -277,22 +277,17 @@ const Rumble = () => {
     setPhase(next);
   }, []);
 
-  // Back must return to the PREVIOUS screen, not a hardcoded home route.
-  // window.history.state.idx is React Router's depth counter; a fresh tab or a
-  // direct URL load has no history to go back to, so fall back to /dashboard.
+  // Back must return to the PREVIOUS screen within the War Hall, or show an
+  // exit warning and return to the dashboard when leaving the War Hall entirely.
   const goBack = useCallback(() => {
-    const idx = typeof window !== 'undefined' ? window.history?.state?.idx : null;
-    if (typeof idx === 'number' && idx > 0) navigate(-1);
-    else { 
-      arenaTrace('back', { fallback: '/dashboard', reason: 'no router history' }); 
-      setShowExitConfirm(true);
-    }
-  }, [navigate]);
+    arenaTrace('back', { fallback: '/dashboard', reason: 'exit warhall' });
+    setShowExitConfirm(true);
+  }, []);
 
   // The arena's screens are internal state, NOT router entries: goPhase never
-  // pushes history. So router back would leave /rumble entirely. Each screen
-  // therefore names the screen ONE level up, and the header button walks that
-  // step; only the hub itself falls through to the router (leaving the Warhall).
+  // pushes history. Each screen names the screen ONE level up, and the header
+  // button walks that step; from the hub (or any screen with no step defined),
+  // the button shows an exit warning and returns to the dashboard.
   const backStep = BACK_STEPS[phase] || null;
 
   // While a stake is escrowed the Back button is HIDDEN for the whole staked
