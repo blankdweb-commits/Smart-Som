@@ -243,13 +243,25 @@ try {
   log('A0 setup — 4 funded users + 1 broke + 1 poor',
     await balanceOf(P1.id) === 100 && await balanceOf(BROKE.id) === 0);
 
-  // A1 — the creator's own solvency is checked.
+  // A1 — the creator's own solvency is checked. v107 replaced the activation
+  // gate with a 5 SC floor, so an insolvent creator is refused up front by name
+  // rather than by a failed escrow.
   const poorCreate = await rpc(POOR, 'arena_create_match',
     { p_mode: 'duel', p_stake: 5, p_opponent_id: P2.id });
   log('A1 create refused when the creator cannot fund the stake',
-    poorCreate.data?.ok === false && poorCreate.data?.error === 'ESCROW_FAILED'
+    poorCreate.data?.ok === false && poorCreate.data?.error === 'INSUFFICIENT_SC'
+      && poorCreate.data?.minCoins === 5
       && await balanceOf(POOR.id) === 1,
-    `error=${poorCreate.data?.error} balance=${await balanceOf(POOR.id)}`);
+    `error=${poorCreate.data?.error} min=${poorCreate.data?.minCoins} balance=${await balanceOf(POOR.id)}`);
+
+  // A1b — the floor is 5 SC, not the stake: a 1 SC creator is refused even for
+  // the cheapest 2 SC duel. This is the v107 rule that activation used to imply.
+  const poorLowStake = await rpc(POOR, 'arena_create_match',
+    { p_mode: 'duel', p_stake: 2, p_opponent_id: P2.id });
+  log('A1b the 5 SC floor applies even when the stake itself is only 2 SC',
+    poorLowStake.data?.ok === false && poorLowStake.data?.error === 'INSUFFICIENT_SC'
+      && poorLowStake.data?.minCoins === 5,
+    `error=${poorLowStake.data?.error} min=${poorLowStake.data?.minCoins}`);
 
   // A2 — the OPPONENT's solvency is checked, and the failure is fully atomic.
   const brokeCreate = await rpc(P1, 'arena_create_match',
@@ -969,6 +981,11 @@ try {
     `status=${sRow?.status} s1=${await balanceOf(S1.id)} s2=${await balanceOf(S2.id)}`);
 
   // ---- scholars list ------------------------------------------------------
+  // v106: presence is display-only. Force a known, funded scholar offline
+  // before the read so the assertion cannot pass just because everyone happened
+  // to be online.
+  await admin.from('arena_presence').delete().eq('user_id', P2.id);
+  await admin.from('profiles').update({ last_active_date: '2026-01-01' }).eq('id', P2.id);
   const rosterRes = await rpc(PR, 'arena_roster', { p_stake: 2, p_format: 'blitz' });
   const players = rosterRes.data?.players || [];
   const statuses = [...new Set(players.map((p) => p.status))];
@@ -979,9 +996,21 @@ try {
       && players.every((p) => ['available', 'in_match', 'offline'].includes(p.status))
       && typeof rosterRes.data?.online === 'number',
     `players=${players.length} statuses=${statuses.join('/')} online=${rosterRes.data?.online}`);
-  log('L14 a busy or offline scholar is never challengeable',
-    players.filter((p) => p.status !== 'available').every((p) => p.canChallenge === false),
-    `nonChallengeableWrongly=${players.filter((p) => p.status !== 'available' && p.canChallenge).length}`);
+  // v107 lists EVERY profile, so a deliberately offline fixture can fall outside
+  // the unfiltered 30-row page. Find it the way a user would: by its handle.
+  const offlineSuffixRes = await adminSql(`select substr(md5('${P2.id}'),1,6) h;`);
+  const offlineSuffix = String(offlineSuffixRes?.[0]?.h || '');
+  const offlineRes = await rpc(PR, 'arena_roster',
+    { p_stake: 2, p_format: 'blitz', p_query: offlineSuffix });
+  const offlinePlayers = offlineRes.data?.players || [];
+  const offlineTarget = offlinePlayers.find((p) => p.userId === P2.id);
+  log('L14 an offline scholar is still challengeable; only the refusal reason disables a row',
+    !!offlineTarget && offlineTarget.status === 'offline'
+      && offlineTarget.canChallenge === true && offlineTarget.reason == null
+      && players.every((p) => p.canChallenge === (p.reason == null))
+      && offlinePlayers.every((p) => p.canChallenge === (p.reason == null)),
+    `p2=${offlineTarget?.status}/${offlineTarget?.canChallenge}/${offlineTarget?.reason}`
+      + ` mismatched=${players.filter((p) => p.canChallenge !== (p.reason == null)).length}`);
 
   const anonRoster = await anon.rpc('arena_roster', { p_stake: 2 });
   log('L15 an anonymous caller cannot read the scholars list',
@@ -1048,9 +1077,10 @@ try {
   await admin.from('profiles').update({ last_active_date: '2026-01-01' }).eq('id', P2.id);
   const offlineHit = await search('ZainabTest');
   const offlineRow = offlineHit.players.find((p) => p.userId === P2.id);
-  log('M8 an offline scholar is still findable, but is not challengeable',
-    !!offlineRow && offlineRow.status === 'offline' && offlineRow.canChallenge === false,
-    `status=${offlineRow?.status} canChallenge=${offlineRow?.canChallenge}`);
+  log('M8 an offline scholar is still findable and remains challengeable',
+    !!offlineRow && offlineRow.status === 'offline'
+      && offlineRow.canChallenge === true && offlineRow.reason == null,
+    `status=${offlineRow?.status} canChallenge=${offlineRow?.canChallenge} reason=${offlineRow?.reason}`);
 
   await admin.from('profiles').update({ identity_name: null }).eq('id', P2.id);
   await admin.from('profiles').update({ identity_name: null }).eq('id', PR.id);
@@ -1201,6 +1231,45 @@ try {
   log('O13a you cannot invite while you are already in a duel',
     busyInvite.data?.ok === false && busyInvite.data?.error === 'ALREADY_IN_MATCH',
     `res=${JSON.stringify(busyInvite.data)}`);
+
+  // v106 contract: the caller side is reported at the TOP level of every read
+  // RPC (v93 only ever emitted it inside each player row, so the banner was
+  // dead code). An accepted invite leaves A in a waiting match.
+  const busyRoster = await rpc(INV_A, 'arena_roster', { p_stake: 2, p_format: 'blitz' });
+  const busyTargets = await rpc(INV_A, 'arena_challenge_targets', { p_limit: 100, p_offset: 0 });
+  const busyStatus = await rpc(INV_A, 'arena_challenge_status', { p_user_ids: [INV_C.id] });
+  log('O13a2 every read RPC reports the caller refusal at the top level',
+    busyRoster.data?.callerBlocked === 'ALREADY_IN_MATCH'
+      && busyTargets.data?.callerBlocked === 'ALREADY_IN_MATCH'
+      && busyStatus.data?.callerBlocked === 'ALREADY_IN_MATCH'
+      && busyRoster.data?.callerReason === 'ALREADY_IN_MATCH',
+    `roster=${busyRoster.data?.callerBlocked} targets=${busyTargets.data?.callerBlocked}`
+      + ` status=${busyStatus.data?.callerBlocked} reason=${busyRoster.data?.callerReason}`);
+
+  // Target-side refusals are NEW in v106: before this, the sender got as far as
+  // inserting an invite the opponent could never satisfy, or the client had to
+  // guess from a read RPC. Each case uses a fresh sender so no open invite from
+  // an earlier case can mask the reason under test.
+  const INV_F = await makeUser('inv_f', 50);
+  const INV_G = await makeUser('inv_g', 0);
+  const INV_H = await makeUser('inv_h', 50);
+  users.push(INV_F, INV_G, INV_H);
+
+  const inviteBusy = await rpc(INV_F, 'arena_invite', { p_to_user: INV_B.id, p_stake: 2 });
+  log('O13b inviting a scholar who is already in a duel says OPPONENT_BUSY',
+    inviteBusy.data?.ok === false && inviteBusy.data?.error === 'OPPONENT_BUSY',
+    `res=${JSON.stringify(inviteBusy.data)}`);
+
+  await admin.from('user_blocks').insert({ blocker_id: INV_H.id, blocked_id: INV_F.id });
+  const inviteBlocked = await rpc(INV_F, 'arena_invite', { p_to_user: INV_H.id, p_stake: 2 });
+  log('O13c inviting someone who blocked you says BLOCKED (and creates no invite)',
+    inviteBlocked.data?.ok === false && inviteBlocked.data?.error === 'BLOCKED',
+    `res=${JSON.stringify(inviteBlocked.data)}`);
+
+  const invitePoor = await rpc(INV_F, 'arena_invite', { p_to_user: INV_G.id, p_stake: 2 });
+  log('O13d inviting a scholar who cannot afford the stake says OPPONENT_INSUFFICIENT_SC',
+    invitePoor.data?.ok === false && invitePoor.data?.error === 'OPPONENT_INSUFFICIENT_SC',
+    `res=${JSON.stringify(invitePoor.data)}`);
 
   const INV_D = await makeUser('inv_d', 50);
   const INV_E = await makeUser('inv_e', 50);

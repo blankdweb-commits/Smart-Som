@@ -40,6 +40,36 @@ const urlBase64ToUint8Array = (base64String) => {
   return output;
 };
 
+const bufferToBase64Url = (buffer) => {
+  const bytes = buffer instanceof Uint8Array ? buffer : new Uint8Array(buffer || []);
+  let binary = '';
+  for (let i = 0; i < bytes.length; i += 1) binary += String.fromCharCode(bytes[i]);
+  return btoa(binary).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+};
+
+// True when this browser subscription was minted with the CURRENT VAPID key.
+// After a server-side rotation the old subscription keeps receiving push-service
+// rejections, so the client silently replaces it instead of waiting for the
+// user to toggle notifications off and on again.
+export const subscriptionUsesVapidKey = (sub, vapidKey) => {
+  if (!sub?.options?.applicationServerKey || !vapidKey) return false;
+  try {
+    const current = String(vapidKey).replace(/=+$/, '');
+    return bufferToBase64Url(sub.options.applicationServerKey) === current;
+  } catch {
+    return false;
+  }
+};
+
+const saveSubscription = async (session, sub) => {
+  const json = sub.toJSON();
+  await communityApi(session, '/notifications/subscribe', {
+    endpoint: json.endpoint,
+    keys: json.keys,
+    user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
+  });
+};
+
 // Returns the active PushSubscription for this browser, or null.
 export async function currentSubscription() {
   if (!pushSupported()) return null;
@@ -77,6 +107,10 @@ export async function enablePush(session) {
     if (!vapid) return { ok: false, reason: 'not_configured' };
 
     let sub = await reg.pushManager.getSubscription();
+    if (sub && !subscriptionUsesVapidKey(sub, vapid)) {
+      await sub.unsubscribe().catch(() => {});
+      sub = null;
+    }
     if (!sub) {
       sub = await reg.pushManager.subscribe({
         userVisibleOnly: true,
@@ -84,13 +118,37 @@ export async function enablePush(session) {
       });
     }
 
-    const json = sub.toJSON();
-    await communityApi(session, '/notifications/subscribe', {
-      endpoint: json.endpoint,
-      keys: json.keys,
-      user_agent: typeof navigator !== 'undefined' ? navigator.userAgent : undefined,
-    });
+    await saveSubscription(session, sub);
     return { ok: true };
+  } catch (err) {
+    return { ok: false, reason: err?.message || 'error' };
+  }
+}
+
+// App-open repair for a VAPID rotation. Never prompts: it only touches a
+// subscription the user already granted, and leaves everything untouched when
+// the key still matches or push is not configured.
+export async function syncPushSubscription(session) {
+  if (!pushSupported() || Notification.permission !== 'granted') {
+    return { ok: false, reason: 'not_enabled' };
+  }
+  try {
+    const reg = await navigator.serviceWorker.getRegistration();
+    if (!reg) return { ok: false, reason: 'no_sw' };
+    const sub = await reg.pushManager.getSubscription();
+    if (!sub) return { ok: false, reason: 'no_subscription' };
+
+    const vapid = await getVapidKey(session);
+    if (!vapid) return { ok: false, reason: 'not_configured' };
+    if (subscriptionUsesVapidKey(sub, vapid)) return { ok: true, unchanged: true };
+
+    await sub.unsubscribe().catch(() => {});
+    const next = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(vapid),
+    });
+    await saveSubscription(session, next);
+    return { ok: true, rekeyed: true };
   } catch (err) {
     return { ok: false, reason: err?.message || 'error' };
   }
@@ -125,6 +183,7 @@ export default {
   currentSubscription,
   getPushState,
   enablePush,
+  syncPushSubscription,
   disablePush,
   savePreferences,
 };

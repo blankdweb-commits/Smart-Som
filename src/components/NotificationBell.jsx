@@ -1,5 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from 'react';
-import { Bell, X, Flame, Calendar, Target, Sparkles } from './Icons';
+import { useNavigate } from 'react-router-dom';
+import { Bell, X, Flame, Calendar, Target, Sparkles, Coins, Landmark, ArrowRight } from './Icons';
 import { useAppContext } from '../context/AppContext';
 import { differenceInDays } from 'date-fns';
 import { safeGet, safeSet } from '../utils/safeStorage';
@@ -77,7 +78,36 @@ function buildNotifications({ exams, studyStats, learningAnalytics, identity }) 
   return list.slice(0, 4);
 }
 
+const serverNotificationCopy = (n) => {
+  const payload = n.payload || {};
+  const actor = n.actorName || 'A scholar';
+  const amount = payload.amount != null ? `${payload.amount} SC` : 'Smart Coins';
+  const fallback = { title: payload.title || 'New activity', body: 'Something new happened.' };
+  const copies = {
+    sc_request: [`${actor} asked for ${amount}`, 'Accept or decline it from Requests.'],
+    sc_request_accepted: [`${actor} accepted your request`, `${amount} moved to your wallet.`],
+    sc_request_declined: [`${actor} declined your request`, 'No coins moved.'],
+    loan_request: [`${actor} asked to borrow ${amount}`, `${payload.interest ?? 0}% interest over ${payload.termDays ?? 7} days.`],
+    loan_accepted: [`${actor} funded your loan`, `${amount} is in your wallet. Repay before the due date.`],
+    loan_declined: [`${actor} declined your loan request`, 'No coins moved.'],
+    loan_repaid: [`${actor} repaid a loan`, `${amount} arrived in your wallet.`],
+    loan_defaulted: [`A loan defaulted`, `${amount} was due. Available coins were recovered.`],
+    loan_defaulted_lender: [`A borrower defaulted`, `${amount} was due. Available coins were recovered.`],
+    loan_expired: ['A loan request expired', 'Nothing was funded.'],
+  };
+  const [title, body] = copies[n.kind] || [fallback.title, fallback.body];
+  const icon = n.kind === 'achievement'
+    ? <Sparkles className="text-amber-500" />
+    : n.kind?.startsWith('loan')
+      ? <Landmark size={16} className="text-emerald-500" />
+      : n.kind?.startsWith('sc_request')
+        ? <Coins size={16} className="text-amber-500" />
+        : <Bell size={16} className="text-slate-500" />;
+  return { title, body, icon, href: payload.href || null };
+};
+
 const NotificationBell = () => {
+  const navigate = useNavigate();
   const { exams, studyStats, learningAnalytics, identity } = useAppContext();
   const [open, setOpen] = useState(false);
   const [dismissed, setDismissed] = useState(() => loadDismissed());
@@ -112,20 +142,17 @@ const NotificationBell = () => {
   // the client-side ones are contextual nudges the app can recompute at any
   // time.
   const visible = useMemo(() => {
-    const fromServer = serverNotes.map((n) => ({
-      key: `db-${n.id}`,
-      server: true,
-      id: n.id,
-      icon: n.kind === 'achievement'
-        ? <Sparkles className="text-amber-500" />
-        : <Bell size={16} className="text-slate-500" />,
-      title: n.kind === 'achievement'
-        ? `${n.actorName || 'A scholar'} unlocked ${n.payload?.name || 'an achievement'}`
-        : (n.payload?.name || 'New activity'),
-      body: n.kind === 'achievement'
-        ? `${n.payload?.emoji || ''} Tap to see their profile.`.trim()
-        : 'Something new happened.',
-    }));
+    const fromServer = serverNotes
+      .filter((n) => !n.read)
+      .map((n) => {
+        const copy = serverNotificationCopy(n);
+        return {
+          key: `db-${n.id}`,
+          server: true,
+          id: n.id,
+          ...copy,
+        };
+      });
     const fromClient = notifications
       .filter((n) => !dismissed.has(n.key))
       .map((n) => ({ ...n, server: false }));
@@ -139,13 +166,24 @@ const NotificationBell = () => {
       // Mark it read in the database so it does not come back on the next
       // load. Optimistic: it disappears now, and the server catches up.
       setServerNotes((cur) => cur.map((n) => (n.id === note.id ? { ...n, read: true } : n)));
-      supabase.rpc('notifications_mark_read', { p_ids: [note.id] }).catch(() => {});
+      Promise.resolve(supabase.rpc('notifications_mark_read', { p_ids: [note.id] })).catch(() => {});
       return;
     }
     const next = new Set(dismissed);
     next.add(note.key);
     setDismissed(next);
     saveDismissed(next);
+  };
+
+  const openNote = (note) => {
+    const href = note?.href;
+    if (!href) return;
+    if (note.server) {
+      setServerNotes((cur) => cur.map((n) => (n.id === note.id ? { ...n, read: true } : n)));
+      Promise.resolve(supabase.rpc('notifications_mark_read', { p_ids: [note.id] })).catch(() => {});
+    }
+    setOpen(false);
+    navigate(href);
   };
 
   const dismissAll = () => {
@@ -155,7 +193,7 @@ const NotificationBell = () => {
     saveDismissed(next);
     if (visible.some((n) => n.server)) {
       setServerNotes([]);
-      supabase.rpc('notifications_mark_read', { p_ids: null }).catch(() => {});
+      Promise.resolve(supabase.rpc('notifications_mark_read', { p_ids: null })).catch(() => {});
     }
   };
 
@@ -191,12 +229,16 @@ const NotificationBell = () => {
                   <div className="w-12 h-12 rounded-2xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center mx-auto mb-3">
                     <Bell size={20} className="text-slate-400" />
                   </div>
-                  <p className="text-sm text-slate-500 dark:text-slate-400 font-bold">You\u2019re all caught up</p>
+                  <p className="text-sm text-slate-500 dark:text-slate-400 font-bold">{'You\u2019re all caught up'}</p>
                   <p className="text-xs text-slate-400 font-medium mt-1">Nothing needs your attention right now.</p>
                 </div>
               ) : (
                 visible.map(n => (
-                  <div key={n.key} className="flex items-start gap-3 px-4 py-3 border-b border-slate-50 dark:border-slate-700/60">
+                  <div
+                    key={n.key}
+                    onClick={() => openNote(n)}
+                    className={`flex items-start gap-3 px-4 py-3 border-b border-slate-50 dark:border-slate-700/60 ${n.href ? 'cursor-pointer hover:bg-slate-50 dark:hover:bg-slate-700/40' : ''}`}
+                  >
                     <div className="w-9 h-9 rounded-xl bg-slate-100 dark:bg-slate-700 flex items-center justify-center shrink-0">
                       {n.icon}
                     </div>
@@ -204,7 +246,12 @@ const NotificationBell = () => {
                       <p className="text-sm font-black text-slate-900 dark:text-white leading-tight">{n.title}</p>
                       <p className="text-xs text-slate-500 dark:text-slate-400 font-medium mt-0.5 leading-snug">{n.body}</p>
                     </div>
-                    <button onClick={() => dismiss(n.key)} aria-label="Dismiss notification" className="text-slate-300 hover:text-slate-500 p-1 shrink-0">
+                    {n.href && <ArrowRight size={14} className="shrink-0 mt-1 text-slate-300" />}
+                    <button
+                      onClick={(e) => { e.stopPropagation(); dismiss(n); }}
+                      aria-label="Dismiss notification"
+                      className="text-slate-300 hover:text-slate-500 p-1 shrink-0"
+                    >
                       <X size={14} />
                     </button>
                   </div>
@@ -219,3 +266,4 @@ const NotificationBell = () => {
 };
 
 export default NotificationBell;
+

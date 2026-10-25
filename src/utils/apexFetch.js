@@ -72,6 +72,29 @@ export class ApiError extends Error {
   }
 }
 
+const errorMessage = (data) => {
+  if (!data) return null;
+  if (typeof data === 'string') return data;
+  if (typeof data.message === 'string' && data.message.trim()) return data.message;
+  if (typeof data.error === 'string' && data.error.trim()) return data.error;
+  if (data.error && typeof data.error === 'object') {
+    if (typeof data.error.message === 'string' && data.error.message.trim()) return data.error.message;
+    if (typeof data.error.code === 'string' && data.error.code.trim()) return data.error.code;
+  }
+  if (typeof data.error_code === 'string' && data.error_code.trim()) return data.error_code;
+  return null;
+};
+
+const errorCode = (data) => {
+  if (!data) return 'REQUEST_FAILED';
+  if (typeof data.error === 'string' && data.error.trim()) return data.error;
+  if (data.error && typeof data.error === 'object' && typeof data.error.code === 'string' && data.error.code.trim()) {
+    return data.error.code;
+  }
+  if (typeof data.error_code === 'string' && data.error_code.trim()) return data.error_code;
+  return 'REQUEST_FAILED';
+};
+
 // Auth-aware fetch against a same-origin /api endpoint. On a 401 that carried a
 // bearer token, refreshes the session once (single-flight) and replays the
 // request with the fresh token. Guarantees a JSON result or throws ApiError.
@@ -81,6 +104,7 @@ export async function apiFetch(relativePath, {
   body,
   token,
   retryOnAuth = true,
+  timeoutMs = 20000,
 } = {}) {
   const url = relativePath.startsWith('http') ? relativePath : `/api${relativePath}`;
   const baseHeaders = { ...headers };
@@ -90,31 +114,64 @@ export async function apiFetch(relativePath, {
   }
 
   const doFetch = async (requestHeaders) => {
-    const opts = { method, headers: requestHeaders };
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    const opts = { method, headers: requestHeaders, signal: controller.signal };
     if (body !== undefined) opts.body = JSON.stringify(body);
-    let res;
     try {
-      res = await fetch(url, opts);
+      let res;
+      let text;
+      try {
+        res = await fetch(url, opts);
+        text = await res.text();
+      } catch (err) {
+        if (err?.name === 'AbortError') {
+          throw new ApiError(`Request timed out after ${Math.round(timeoutMs / 1000)}s. Please retry.`, {
+            code: 'TIMEOUT',
+            recoverable: true,
+            data: { cause: 'timeout' },
+          });
+        }
+        throw new ApiError(`Network request failed: ${err.message}`, {
+          code: 'NETWORK',
+          recoverable: true,
+          data: { cause: err.message },
+        });
+      }
+
+      let data = null;
+      try {
+        data = text ? JSON.parse(text) : null;
+      } catch {
+        // Non-JSON body (e.g. an SPA HTML fallback from a broken deploy).
+        data = null;
+      }
+      if (!res.ok) {
+        throw new ApiError(errorMessage(data) || res.statusText || 'Request failed', {
+          status: res.status,
+          code: errorCode(data),
+          recoverable: res.status >= 500 || res.status === 429,
+          data,
+        });
+      }
+      return data ?? {};
+    } finally {
+      clearTimeout(timer);
+    }
+  };
+
+  // The Vite dev proxy answers 503 API_SERVER_UNREACHABLE while the API child
+  // is restarting. Only GETs are safe to replay; never retry a mutation.
+  const fetchWithSafeGetRetry = async (requestHeaders) => {
+    try {
+      return await doFetch(requestHeaders);
     } catch (err) {
-      throw new ApiError(`Network request failed: ${err.message}`, { code: 'NETWORK', recoverable: true, data: { cause: err.message } });
+      if (method !== 'GET' || !(err instanceof ApiError) || err.status !== 503 || err.code !== 'API_SERVER_UNREACHABLE') {
+        throw err;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 750));
+      return doFetch(requestHeaders);
     }
-    const text = await res.text();
-    let data = null;
-    try {
-      data = text ? JSON.parse(text) : null;
-    } catch {
-      // Non-JSON body (e.g. an SPA HTML fallback from a broken deploy).
-      data = null;
-    }
-    if (!res.ok) {
-      throw new ApiError(data?.message || data?.error || data?.error_code || res.statusText || 'Request failed', {
-        status: res.status,
-        code: data?.error || data?.error_code || 'REQUEST_FAILED',
-        recoverable: res.status >= 500 || res.status === 429,
-        data,
-      });
-    }
-    return data ?? {};
   };
 
   // A token is explicitly required for community/authenticated endpoints. If the
@@ -125,7 +182,7 @@ export async function apiFetch(relativePath, {
   }
 
   try {
-    return await doFetch(baseHeaders);
+    return await fetchWithSafeGetRetry(baseHeaders);
   } catch (err) {
     const hadBearer = /^Bearer\s+\S+/.test(baseHeaders.Authorization || '') || !!token;
     if (!(err instanceof ApiError) || err.status !== 401 || !hadBearer || !retryOnAuth) throw err;
@@ -133,7 +190,7 @@ export async function apiFetch(relativePath, {
     if (freshSession?.access_token) {
       const replayHeaders = { ...baseHeaders, Authorization: `Bearer ${freshSession.access_token}` };
       try {
-        return await doFetch(replayHeaders);
+        return await fetchWithSafeGetRetry(replayHeaders);
       } catch (replayErr) {
         if (replayErr instanceof ApiError && replayErr.status === 401) {
           throw new ApiError(replayErr.message, { status: replayErr.status, code: 'AUTH_EXPIRED', data: replayErr.data });

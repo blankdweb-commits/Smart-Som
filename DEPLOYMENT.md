@@ -149,8 +149,8 @@ every parent dead → all anonymous replies 404'd `REPLY_NOT_FOUND`.
 ### Vercel env vars (MUST set + redeploy — the whole push feature gates on these)
 
 ```env
-VAPID_PUBLIC_KEY=BIRbVNvYtH2DqyRLPIAxM4-l-52mzT92US4q8TIK2eVHn0el2y4zRlfR1GTICJSN3sxb1RY3tuoS27A8kdk09pk
-VAPID_PRIVATE_KEY=12QnZ6KDGGcU78cengsdBqGBQnAB5do2U2D7KTexwPg
+VAPID_PUBLIC_KEY=[REDACTED - rotate before use]
+VAPID_PRIVATE_KEY=[REDACTED - rotate before use]
 VAPID_SUBJECT=mailto:admin@polynurse.com.ng
 ```
 

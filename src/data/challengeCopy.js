@@ -14,11 +14,9 @@
  */
 export const BLOCKED_COPY = {
   ALREADY_IN_MATCH: 'In a duel',
-  INSUFFICIENT_SC: 'Low coins',
-  NOT_ACTIVATED: 'Not activated',
+  INSUFFICIENT_SC: 'Needs 5 SC',
   OPPONENT_BUSY: 'Busy',
-  OPPONENT_INSUFFICIENT_SC: 'Low coins',
-  OPPONENT_NOT_ACTIVATED: 'Not activated',
+  OPPONENT_INSUFFICIENT_SC: 'Needs 5 SC',
   INVITE_ALREADY_OPEN: 'Challenged',
   BLOCKED: 'Blocked',
 };

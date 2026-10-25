@@ -3630,14 +3630,16 @@ checks.push(
       : fail('Rumble: the all-answered predicate is still unguarded'),
   );
   checks.push(
-    /window\.history\?\.state\?\.idx/.test(v64Hall)
-      && /navigate\(-1\)/.test(v64Hall)
+    /const goBack = useCallback/.test(v64Hall)
+      && /setShowExitConfirm\(true\)/.test(v64Hall)
+      && /navigate\('\/dashboard'\)/.test(v64Hall)
+      && !/navigate\(-1\)/.test(v64Hall)
       && !/navigate\("\/quiz"\)/.test(v64Hall)
       // v105/A widened this from "not while waiting" to the WHOLE staked span.
       && /const STAKED_PHASES = \['blitz-waiting', 'blitz-countdown', 'blitz-play'\]/.test(v64Hall)
-      && /const showBack = !stakeHeld/.test(v64Hall)
-      ? ok('Rumble: Back goes to the previous screen (with a /dashboard fallback) and is hidden across the whole staked span')
-      : fail('Rumble: Back is still hardcoded, or is still shown during a search'),
+      && /const showBack = !stakeHeld && phase !== 'scholars'/.test(v64Hall)
+      ? ok('Rumble: leaving the War Hall asks first and exits to the dashboard, and Back is hidden across the whole staked span')
+      : fail('Rumble: Back does not confirm the War Hall exit, or is still shown during a search'),
   );
   checks.push(
     /await arenaLeaveQueue\(\);/.test(v64Hall)
@@ -5771,7 +5773,9 @@ checks.push(
       && /paceSkipForRef/.test(rumble)
       && /blitzPick\(null\)/.test(rumble)
       && /const \[preferredPace, setPreferredPace\] = useState\(FLOW_DEFAULT_PACE\)/.test(rumble)
-      && /const pickPace = useCallback/.test(rumble)
+      && /const openPaceSheet = useCallback/.test(rumble)
+      && /const savePace = useCallback/.test(rumble)
+      && /onClick=\{openPaceSheet\}/.test(rumble)
       && !/choosePace/.test(rumble)
       ? ok('v104/D: Rumble wires the 3–12 pace range, a picker-time pace preference and a once-per-question auto-skip (no in-match pace chips)')
       : fail('v104/D: the Rumble flow wiring is incomplete (pace must be chosen pre-match)'),
@@ -5862,6 +5866,165 @@ checks.push(
 }
 
 // ===========================================================================
+// PART W — ARENA CHALLENGE ELIGIBILITY (v106)
+// ===========================================================================
+//
+// The reported bug was a greyed-out Challenge button with no explanation. The
+// real defects were (a) presence gating on BOTH the roster and the client while
+// the invite never checked presence at all, (b) the caller-side refusal emitted
+// only inside each player row, so the banner that reads the top-level field was
+// dead code, and (c) the invite accepting a target who could never play. These
+// gates pin the PROPERTY — an offline scholar is challengeable, and every
+// refusal has a code — so a rewrite that reintroduces any of them fails.
+// ---------------------------------------------------------------------------
+{
+  const sql = read(resolve(ROOT, 'scripts/migration-v106-arena-challenge-eligibility.sql'));
+  const rumble = read(resolve(ROOT, 'src/pages/Rumble.jsx'));
+  const ranking = read(resolve(ROOT, 'src/components/RankingBoard.jsx'));
+  const leaderboard = read(resolve(ROOT, 'src/pages/Leaderboard.jsx'));
+  const ctx = read(resolve(ROOT, 'src/context/AppContext.jsx'));
+  const e2e = read(resolve(ROOT, 'scripts/e2e-arena.mjs'));
+
+  const canStart = sql.indexOf("'canChallenge', (coins >= v_stake");
+  const canEnd = sql.indexOf("'stake'", canStart);
+  const canExpr = canStart === -1 ? '' : sql.slice(canStart, canEnd);
+  const targetStart = sql.indexOf('-- Target-side refusals');
+  const targetBlock = targetStart === -1 ? '' : sql.slice(targetStart);
+
+  checks.push(
+    /create or replace function public\.arena_roster\(/.test(sql)
+      && /create or replace function public\.arena_challenge_targets\(/.test(sql)
+      && /create or replace function public\.arena_challenge_status\(\s*p_user_ids uuid\[\]/.test(sql)
+      && /create or replace function public\.arena_invite\(p_to_user uuid, p_stake integer default 2\)/.test(sql)
+      ? ok('v106: all four arena eligibility functions are present')
+      : fail('v106: a roster/targets/status/invite function is missing'),
+
+    canExpr.length > 0
+      && /coins >= v_stake/.test(canExpr)
+      && !/status/.test(canExpr)
+      && /not busy/.test(canExpr) && /not open_pair/.test(canExpr) && /not blocked/.test(canExpr)
+      ? ok('v106: roster canChallenge is money/busy/blocked, NOT presence (an offline scholar stays challengeable)')
+      : fail('v106: roster canChallenge is still gated on presence (or dropped an eligibility term)'),
+
+    (sql.match(/'callerBlocked', v_caller/g) || []).length >= 3
+      && (sql.match(/'callerReason', v_caller/g) || []).length >= 3
+      ? ok('v106: roster, targets and status all report the caller refusal at the TOP level')
+      : fail('v106: a read RPC still hides the caller refusal inside player rows'),
+
+    /revoke all on function public\.arena_challenge_status\(uuid\[\]\)\s+from public, anon, authenticated;/.test(sql)
+      && /grant execute on function public\.arena_challenge_status\(uuid\[\]\)\s+to authenticated, service_role;/.test(sql)
+      ? ok('v106: arena_challenge_status is authenticated+service_role only (anon revoked explicitly)')
+      : fail('v106: the arena_challenge_status ACLs are missing or too permissive'),
+
+    /perform public\._arena_sweep\(\);/.test(sql)
+      ? ok('v106: inviting sweeps dead matches first, so a voided duel cannot read as OPPONENT_BUSY')
+      : fail('v106: arena_invite does not sweep before deciding whether the target is busy'),
+
+    targetBlock.length > 0
+      && targetBlock.indexOf("'OPPONENT_BUSY'") > -1
+      && targetBlock.indexOf("'OPPONENT_BUSY'") < targetBlock.indexOf("'BLOCKED'")
+      && targetBlock.indexOf("'BLOCKED'") < targetBlock.indexOf("'INVITE_ALREADY_OPEN'")
+      && targetBlock.indexOf("'INVITE_ALREADY_OPEN'") < targetBlock.indexOf("'OPPONENT_INSUFFICIENT_SC'")
+      ? ok('v106: invite target refusals are ordered busy -> blocked -> open -> coins')
+      : fail('v106: invite target-side refusal order is missing or changed'),
+
+    /const can = p\.canChallenge === true && !roster\.callerBlocked/.test(rumble)
+      && /roster\.callerBlocked/.test(rumble)
+      ? ok('v106: Rumble disables every row while the CALLER is blocked (the banner is not decorative)')
+      : fail('v106: Rumble still lets you tap Challenge behind the caller-blocked banner'),
+
+    /arenaChallengeStatus/.test(ranking)
+      && /const targetFor = \(userId\) => targets\[userId\] \|\| extraTargets\[userId\]/.test(ranking)
+      && /const canChallenge = !isMe && !blocked && !!t\?\.canChallenge/.test(ranking)
+      ? ok('v106: RankingBoard resolves eligibility for rows beyond page 1 and honours callerBlocked')
+      : fail('v106: RankingBoard still disables rows it never fetched eligibility for'),
+
+    /setCallerBlocked\(res\.callerBlocked \|\| res\.callerReason \|\| null\)/.test(leaderboard)
+      && /const arenaChallengeStatus = useCallback/.test(ctx)
+      && /arenaChallengeStatus,/.test(ctx)
+      ? ok('v106: the caller banner is fed from the top-level field and the status RPC is exported')
+      : fail('v106: the caller banner or the status RPC wrapper is not wired'),
+
+    /an offline scholar is still challengeable/.test(e2e)
+      && /OPPONENT_BUSY/.test(e2e) && /OPPONENT_INSUFFICIENT_SC/.test(e2e)
+      && /callerBlocked === 'ALREADY_IN_MATCH'/.test(e2e)
+      ? ok('v106: e2e proves offline challengeability, the three target refusals and the top-level caller field')
+      : fail('v106: e2e does not prove the new eligibility contract'),
+  );
+}
+
+// ===========================================================================
+// PART W2 — THE ARENA'S 5 SC FLOOR REPLACES ACTIVATION (v107)
+// ===========================================================================
+//
+// The rule is deliberately narrow: a STAKED duel needs 5 SC on BOTH sides,
+// practice is free, and activation is no longer part of eligibility. These gates
+// pin the floor itself (not just the stake), the practice exemption ORDER, and
+// the client/copy/e2e surfaces, so a later rename cannot quietly restore the
+// activation gate or a 2 SC-only check.
+// ---------------------------------------------------------------------------
+{
+  const sql = read(resolve(ROOT, 'scripts/migration-v107-arena-min-5-sc.sql'));
+  const rumble = read(resolve(ROOT, 'src/pages/Rumble.jsx'));
+  const copy = read(resolve(ROOT, 'src/data/challengeCopy.js'));
+  const e2e = read(resolve(ROOT, 'scripts/e2e-arena.mjs'));
+
+  const coreAt = sql.indexOf('create or replace function public._arena_create_match_core');
+  const practiceAt = sql.indexOf('if v_practice then', coreAt);
+  const zeroAt = sql.indexOf('v_stake := 0;', practiceAt);
+  const minAt = sql.indexOf('v_min := greatest(v_stake, 5);', coreAt);
+
+  checks.push(
+    /create or replace function public\.arena_roster\(/.test(sql)
+      && /create or replace function public\.arena_challenge_targets\(/.test(sql)
+      && /create or replace function public\.arena_challenge_status\(/.test(sql)
+      && /create or replace function public\.arena_invite\(p_to_user uuid, p_stake integer default 2\)/.test(sql)
+      && /create or replace function public\._arena_create_match_core\(/.test(sql)
+      && /create or replace function public\.arena_enqueue\(/.test(sql)
+      ? ok('v107: all six arena functions are re-created with the 5 SC floor')
+      : fail('v107: a roster/targets/status/invite/core/enqueue function was not re-created'),
+
+    !/(p|v_prof|v_opp_prof)\.is_activated/.test(sql)
+      && (sql.match(/greatest\(v_stake, 5\)/g) || []).length >= 3
+      ? ok('v107: eligibility is money, never activation (the 5 SC floor is the gate)')
+      : fail('v107: an activation check survived, or the 5 SC floor is not applied'),
+
+    practiceAt > -1 && zeroAt > practiceAt && minAt > zeroAt
+      && /if not v_practice and coalesce\(v_prof\.smart_coins, 0\) < v_min then/.test(sql)
+      ? ok('v107: practice stays free — the stake is zeroed before the floor, which only applies when not practising')
+      : fail('v107: the practice exemption is missing or the floor is applied to a free tutor match'),
+
+    (sql.match(/'minCoins', v_min/g) || []).length >= 6
+      ? ok('v107: every refusal/read carries the floor so the client never has to guess 5')
+      : fail('v107: a refusal does not return minCoins'),
+
+    /const ARENA_MIN_SC = 5;/.test(rumble)
+      && /const canAffordStake = smartCoins >= ARENA_MIN_SC;/.test(rumble)
+      && /if \(ARENA_MIN_SC > smartCoins\)/.test(rumble)
+      ? ok('v107: Rumble gates entry on the 5 SC floor (not the 2 SC stake) before calling the server')
+      : fail('v107: Rumble still gates on the stake or does not pre-check the floor'),
+
+    /INSUFFICIENT_SC: `You need at least \$\{ARENA_MIN_SC\} Smart Coins/.test(rumble)
+      && /OPPONENT_INSUFFICIENT_SC: `That scholar needs at least \$\{ARENA_MIN_SC\} Smart Coins/.test(rumble)
+      && !/NOT_ACTIVATED/.test(rumble)
+      ? ok('v107: both insufficient-balance refusals name the floor and NOT_ACTIVATED is gone from the client')
+      : fail('v107: the refusal copy is stale or an activation code lingers in Rumble'),
+
+    /INSUFFICIENT_SC: 'Needs 5 SC'/.test(copy)
+      && /OPPONENT_INSUFFICIENT_SC: 'Needs 5 SC'/.test(copy)
+      && !/NOT_ACTIVATED/.test(copy)
+      ? ok('v107: the shared challenge copy matches the server (no dead activation codes)')
+      : fail('v107: the shared challenge copy disagrees with the 5 SC contract'),
+
+    /A1b the 5 SC floor applies even when the stake itself is only 2 SC/.test(e2e)
+      && /INSUFFICIENT_SC/.test(e2e)
+      && /an offline scholar is still challengeable/.test(e2e)
+      ? ok('v107: e2e proves the floor above the stake and that an offline scholar stays challengeable')
+      : fail('v107: e2e does not prove the 5 SC floor'),
+  );
+}
+
+// ===========================================================================
 // PART X — ARENA BACK BUTTON HIDDEN WHILE A STAKE IS HELD
 // ===========================================================================
 //
@@ -5878,10 +6041,10 @@ checks.push(
       && /const showBack = !stakeHeld/.test(rumble)
       ? ok('Arena: Back is hidden across the whole staked span (waiting, countdown, live round)')
       : fail('Arena: Back is reachable while a stake is held'),
-    /const onResult = phase === 'blitz-result'/.test(rumble)
-      && /\{onResult \? 'Home' : 'Back'\}/.test(rumble)
-      ? ok('Arena: on the settled result screen the button returns as a plain Home action')
-      : fail('Arena: the result-screen Back/Home labelling is missing'),
+    /'blitz-result': \{ to: 'hub', label: 'War Hall' \}/.test(rumble)
+      && /\{backStep \? backStep\.label : 'Back'\}/.test(rumble)
+      ? ok('Arena: on the settled result screen the header button returns to the War Hall')
+      : fail('Arena: the result-screen War Hall labelling is missing'),
   );
 }
 
@@ -6155,6 +6318,191 @@ checks.push(
     /RefreshCw size=\{12\} \/> Retry/.test(adminPage)
       ? ok('LE-V: the admin console can retry a failed read instead of waiting for the next poll')
       : fail('LE-V: the admin console cannot retry a failed read'),
+  );
+}
+
+// ===========================================================================
+// PART WALL — THE WALLET PIN CONTRACT (v110) + PUSH VAPID ROTATION (v111)
+// ===========================================================================
+//
+// The wallet became a PIN-protected surface (v110) and push subscriptions
+// learned which VAPID key minted them (v111). These gates pin the CONTRACT of
+// both, exactly as the real-HTTP suite (`npm run e2e:wallet-http`) proves them
+// live: it boots scripts/serve-api.mjs on a private port and drives the
+// /api/economy/* routes with real bearer tokens.
+// ---------------------------------------------------------------------------
+{
+  const economy = read(resolve(ROOT, 'api/_economy.js'));
+  const router = read(resolve(ROOT, 'api/quiz.js'));
+  const v110 = read(resolve(ROOT, 'scripts/migration-v110-wallet-pins.sql'));
+  const v111 = read(resolve(ROOT, 'scripts/migration-v111-push-vapid-hash.sql'));
+  const walletE2E = read(resolve(ROOT, 'scripts/e2e-wallet-http.mjs'));
+  const pkg = read(resolve(ROOT, 'package.json'));
+  const pushLib = read(resolve(ROOT, 'api/_push.js'));
+  const comm = read(resolve(ROOT, 'api/_community.js'));
+  const pushClient = read(resolve(ROOT, 'src/utils/push.js'));
+  const utils = read(resolve(ROOT, 'api/_utils.js'));
+  const vercelCfg = read(resolve(ROOT, 'vercel.json'));
+  const serveApi = read(resolve(ROOT, 'scripts/serve-api.mjs'));
+
+  // Same top-level-block extractor the Live Events gates use: from the marker
+  // to the next column-0 declaration.
+  const block = (text, marker) => {
+    const i = text.indexOf(marker);
+    if (i === -1) return '';
+    const rest = text.slice(i);
+    const m = rest.slice(1).search(/\n(?=export |const |let |async function |function |class )/);
+    return m === -1 ? rest : rest.slice(0, m + 1);
+  };
+
+  const overview = block(economy, 'export async function handleEconomyOverview');
+  const transfer = block(economy, 'export async function handleTransfer');
+  const bank = block(economy, 'export async function handleBankStatus');
+  const borrow = block(economy, 'export async function handleBorrow');
+  const repay = block(economy, 'export async function handleRepay');
+  const pinSetup = block(economy, 'export async function handlePinSetup');
+  const pinChange = block(economy, 'export async function handlePinChange');
+  const pinReset = block(economy, 'export async function handlePinReset');
+  const verifyPin = block(economy, 'const verifyWalletPin');
+
+  const MONEY_HANDLERS = [transfer, borrow, repay];
+  const READ_HANDLERS = [overview, bank];
+
+  checks.push(
+    // ---------------------------------------------------------------- WAL-C --
+    /const PIN_RE = \/\^\\d\{6\}\$\//.test(economy)
+      && /PIN_MAX_ATTEMPTS = 5/.test(economy)
+      && /PIN_LOCK_MINUTES = 15/.test(economy)
+      ? ok('WAL-C: the PIN contract is 6 digits, 5 attempts, a 15-minute lock')
+      : fail('WAL-C: the PIN contract constants (6 digits / 5 attempts / 15 min) drifted'),
+
+    /scrypt/.test(economy) && /timingSafeEqual/.test(economy)
+      ? ok('WAL-C: PINs are scrypt-hashed and compared in constant time (never plaintext)')
+      : fail('WAL-C: the PIN hash or its comparison is not scrypt + timingSafeEqual'),
+
+    verifyPin.includes("pinFailure(428, 'PIN_REQUIRED'")
+      && verifyPin.includes("pinFailure(400, 'INVALID_PIN'")
+      && verifyPin.includes("pinFailure(403, 'PIN_INCORRECT'")
+      && verifyPin.includes("pinFailure(423, 'PIN_LOCKED'")
+      ? ok('WAL-C: verification distinguishes 428 PIN_REQUIRED / 400 INVALID_PIN / 403 PIN_INCORRECT / 423 PIN_LOCKED')
+      : fail('WAL-C: the PIN-verification statuses or codes drifted'),
+
+    verifyPin.includes('wallet_pin_record_failure') && verifyPin.includes('attemptsRemaining')
+      ? ok('WAL-C: a wrong PIN is serialized through wallet_pin_record_failure (parallel guesses cannot bypass the counter)')
+      : fail('WAL-C: wrong-PIN accounting no longer goes through the serialising RPC'),
+
+    // ---------------------------------------------------------------- WAL-A --
+    READ_HANDLERS.every((b) => b.includes('requireWalletPin'))
+      && MONEY_HANDLERS.every((b) => b.includes('requireWalletPin(req, res, auth, body)'))
+      ? ok('WAL-A: overview/bank AND transfer/borrow/repay all demand the PIN')
+      : fail('WAL-A: a wallet surface accepts a request without its PIN'),
+
+    MONEY_HANDLERS.every((b) => {
+      const i = b.indexOf("error: 'MISSING_REQUEST_ID'");
+      const j = b.indexOf('requireWalletPin');
+      return i !== -1 && j !== -1 && i < j;
+    })
+      ? ok('WAL-A: requestId is demanded BEFORE the PIN check (a retry cannot double-spend on an un-keyed call)')
+      : fail('WAL-A: the requestId guard no longer precedes the PIN check on a money route'),
+
+    /pin\\\/\(\?:status\|setup\|change\|reset\)/.test(router)
+      && router.includes("if (economy === 'pin/status') return handlePinStatus(req, res);")
+      && router.includes("if (economy === 'pin/setup') return handlePinSetup(req, res);")
+      && router.includes("if (economy === 'pin/change') return handlePinChange(req, res);")
+      && router.includes("if (economy === 'pin/reset') return handlePinReset(req, res);")
+      ? ok('WAL-A: the quiz router dispatches all four pin routes beside the five economy routes')
+      : fail('WAL-A: a pin route is missing from the /api/economy dispatch'),
+
+    // The v81 RPCs solve the ACTOR from auth.uid() INSIDE the definer body. A
+    // service-role client has no uid, so every money RPC answered
+    // UNAUTHENTICATED — caught live by the real-HTTP suite. The actor-solving
+    // RPCs must run as the caller.
+    /export const getSupabaseUserFromRequest/.test(utils)
+      && [bank, transfer, borrow, repay].every((b) => b.includes('getSupabaseUserFromRequest(req)'))
+      && [transfer, borrow, repay].every((b) => !/admin\.rpc\('(sc_transfer|worldbank_)/.test(b))
+      ? ok('WAL-A: the actor-solving money RPCs run as the CALLER (a service-role call had auth.uid() = NULL and always answered UNAUTHENTICATED)')
+      : fail('WAL-A: a money RPC is called through the service-role client again (auth.uid() resolves to NULL inside the definer)'),
+
+    /"source": "\/api\/economy\/:path\*"/.test(vercelCfg)
+      && /source: '\/api\/economy\/:path\*'/.test(serveApi)
+      ? ok('WAL-A: vercel.json and serve-api both rewrite /api/economy/* onto /api/quiz (no new Hobby function)')
+      : fail('WAL-A: the /api/economy rewrite is missing from vercel.json or serve-api'),
+
+    // ---------------------------------------------------------------- WAL-S --
+    pinSetup.includes('PIN_ALREADY_SET') && pinSetup.includes('PIN_MISMATCH') && pinSetup.includes("status(409)")
+      ? ok('WAL-S: setup refuses a duplicate PIN with 409 PIN_ALREADY_SET and drifted confirmations with PIN_MISMATCH')
+      : fail('WAL-S: a second setup or a mismatched confirmation is no longer refused'),
+
+    pinChange.indexOf('verifyWalletPin') !== -1
+      && pinChange.indexOf('verifyWalletPin') < pinChange.indexOf('.update(')
+      ? ok('WAL-S: a PIN change verifies the CURRENT PIN before it writes the new hash')
+      : fail('WAL-S: the current PIN is not verified before a change persists'),
+
+    pinReset.includes('hasFreshRecoveryProof') && pinReset.includes("'REAUTH_REQUIRED'") && pinReset.includes('status(403)')
+      ? ok('WAL-S: pin/reset demands a fresh recovery proof (403 REAUTH_REQUIRED, never a PIN-less bypass)')
+      : fail('WAL-S: pin/reset no longer requires a fresh recovery session'),
+
+    /recovery', 'otp', 'magiclink/.test(economy) && /PIN_RECOVERY_MAX_AGE_SECONDS/.test(economy)
+      ? ok('WAL-S: the recovery proof is recovery/otp/magiclink auth within a fresh time window')
+      : fail('WAL-S: the recovery-proof amr filter or its age bound is gone'),
+
+    // ---------------------------------------------------------------- M-110 --
+    /create table if not exists public\.wallet_pins/.test(v110)
+      && /references auth\.users\(id\) on delete cascade/.test(v110)
+      ? ok('M-110: wallet_pins exists and is cascade-deleted with the account (no orphan PIN rows)')
+      : fail('M-110: the wallet_pins table or its account cascade is missing'),
+
+    /revoke all on public\.wallet_pins from public, anon, authenticated/.test(v110)
+      ? ok('M-110: wallet_pins is service-role only (no client policies, clients cannot enumerate or forge hashes)')
+      : fail('M-110: wallet_pins is still client-writable or readable'),
+
+    /pg_advisory_xact_lock\(hashtext\('wallet_pin:'/.test(v110)
+      && /v_attempts >= v_max/.test(v110)
+      ? ok('M-110: the failure counter is advisory-locked and the 5th wrong attempt locks the PIN')
+      : fail('M-110: the failure counter is not serialised or does not lock at the cap'),
+
+    // ---------------------------------------------------------------- WAL-V --
+    /"e2e:wallet-http": "node scripts\/e2e-wallet-http\.mjs"/.test(pkg)
+      && existsSync(resolve(ROOT, 'scripts/e2e-wallet-http.mjs'))
+      ? ok('WAL-V: the real-HTTP wallet suite is registered in package.json and present')
+      : fail('WAL-V: the wallet e2e suite is missing or unregistered'),
+
+    /MIGRATION v110 REQUIRED/.test(walletE2E)
+      ? ok('WAL-V: the suite preflights wallet_pins and names migration v110 instead of reporting misleading failures')
+      : fail('WAL-V: the suite no longer preflights the v110 migration'),
+
+    /does not double-spend/.test(walletE2E) && /replaying the same requestId/.test(walletE2E)
+      ? ok('WAL-V: the suite proves a replayed requestId moves coins exactly once')
+      : fail('WAL-V: the suite lost its transfer-replay proof'),
+
+    /locks the PIN \(423\)/.test(walletE2E) && /even the correct PIN is refused while locked/.test(walletE2E)
+      ? ok('WAL-V: the suite proves the 5-attempt lockout refuses even the correct PIN')
+      : fail('WAL-V: the suite lost its lockout proof'),
+
+    /\/api\/api\/economy/.test(walletE2E)
+      ? ok('WAL-V: the suite keeps the double-prefixed path pinned as a JSON 404 regression')
+      : fail('WAL-V: the double-prefix regression check is gone'),
+
+    // ---------------------------------------------------------------- PUSH-1 --
+    /add column if not exists vapid_key_hash text/.test(v111)
+      && /idx_push_subscriptions_vapid_key_hash/.test(v111)
+      ? ok('PUSH-1: v111 tracks which VAPID key minted each subscription (hashed, indexed)')
+      : fail('PUSH-1: the v111 vapid_key_hash column or index is missing'),
+
+    /export const vapidKeyHash/.test(pushLib)
+      && pushLib.includes(".eq('vapid_key_hash', keyHash)")
+      ? ok('PUSH-1: push sends filter subscriptions by the CURRENT key hash (stale rows are skipped, not retried)')
+      : fail('PUSH-1: push sends no longer filter by the current VAPID hash'),
+
+    /vapid_key_hash: keyHash/.test(comm)
+      && /vapid_key_hash !== keyHash/.test(comm)
+      ? ok('PUSH-1: the save path stamps the hash and prunes subscriptions minted with other keys')
+      : fail('PUSH-1: the save path no longer stamps or prunes by VAPID hash'),
+
+    /subscriptionUsesVapidKey/.test(pushClient)
+      && /syncPushSubscription/.test(pushClient)
+      ? ok('PUSH-1: the client compares its subscription key on open and silently re-registers when stale')
+      : fail('PUSH-1: the client no longer self-repairs a stale VAPID subscription'),
   );
 }
 

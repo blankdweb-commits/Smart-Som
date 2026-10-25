@@ -15,31 +15,67 @@ const rid = () => (crypto?.randomUUID
     return (c === 'x' ? r : (r & 0x3) | 0x8).toString(16);
   }));
 
-export const fetchEconomyOverview = (session) =>
-  apiFetch('/api/economy/overview', { method: 'GET', token: session?.access_token });
+const pinHeaders = (pin) => (pin ? { 'X-Wallet-Pin': pin } : {});
 
-export const sendTransfer = (session, { toUserId, amount }) =>
-  apiFetch('/api/economy/transfer', {
+export const newRequestId = rid;
+
+export const fetchPinStatus = (session) =>
+  apiFetch('/economy/pin/status', { method: 'GET', token: session?.access_token });
+
+export const setupPin = (session, { pin, confirmPin }) =>
+  apiFetch('/economy/pin/setup', {
     method: 'POST',
     token: session?.access_token,
-    body: { toUserId, amount, requestId: rid() },
+    body: { pin, confirmPin },
   });
 
-export const fetchBank = (session) =>
-  apiFetch('/api/economy/bank', { method: 'GET', token: session?.access_token });
-
-export const borrowFromBank = (session, amount) =>
-  apiFetch('/api/economy/borrow', {
+export const changePin = (session, { currentPin, pin, confirmPin }) =>
+  apiFetch('/economy/pin/change', {
     method: 'POST',
     token: session?.access_token,
-    body: { amount, requestId: rid() },
+    body: { currentPin, pin, confirmPin },
   });
 
-export const repayLoan = (session, loanId) =>
-  apiFetch('/api/economy/repay', {
+export const resetPin = (session, { pin, confirmPin }) =>
+  apiFetch('/economy/pin/reset', {
     method: 'POST',
     token: session?.access_token,
-    body: { loanId, requestId: rid() },
+    body: { pin, confirmPin },
+  });
+
+export const fetchEconomyOverview = (session, pin) =>
+  apiFetch('/economy/overview', {
+    method: 'GET',
+    token: session?.access_token,
+    headers: pinHeaders(pin),
+  });
+
+export const sendTransfer = (session, { toUserId, amount, pin, requestId = rid() }) =>
+  apiFetch('/economy/transfer', {
+    method: 'POST',
+    token: session?.access_token,
+    body: { toUserId, amount, pin, requestId },
+  });
+
+export const fetchBank = (session, pin) =>
+  apiFetch('/economy/bank', {
+    method: 'GET',
+    token: session?.access_token,
+    headers: pinHeaders(pin),
+  });
+
+export const borrowFromBank = (session, { amount, pin, requestId = rid() }) =>
+  apiFetch('/economy/borrow', {
+    method: 'POST',
+    token: session?.access_token,
+    body: { amount, pin, requestId },
+  });
+
+export const repayLoan = (session, { loanId, pin, requestId = rid() }) =>
+  apiFetch('/economy/repay', {
+    method: 'POST',
+    token: session?.access_token,
+    body: { loanId, pin, requestId },
   });
 
 // Find someone to pay. Uses the friend_search RPC: same name/handle predicate

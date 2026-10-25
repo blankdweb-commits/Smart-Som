@@ -22,7 +22,7 @@
 
 import crypto from 'crypto';
 import { getSupabaseAdmin } from './_utils.js';
-import { sendRoomPush } from './_push.js';
+import { sendRoomPush, vapidKeyHash } from './_push.js';
 
 // ------------------------------------------------------------
 // Constants
@@ -4393,13 +4393,18 @@ export async function handleNotificationsSubscribe(req, res, user) {
     return res.status(400).json({ error: 'INVALID_SUBSCRIPTION', message: 'A valid push subscription is required.' });
   }
 
+  // Rows minted with a superseded keypair can never be delivered to again.
+  // Track the key that created this subscription; the backfill script stamps
+  // existing rows before a rotation so they survive it.
+  const keyHash = vapidKeyHash();
   const { error } = await supabase.from('push_subscriptions').upsert(
     {
       user_id: user.id,
       endpoint: endpoint.slice(0, 1024),
       p256dh,
       auth,
-user_agent: typeof req.body?.user_agent === 'string' ? req.body.user_agent.slice(0, 300) : null,
+      user_agent: typeof req.body?.user_agent === 'string' ? req.body.user_agent.slice(0, 300) : null,
+      vapid_key_hash: keyHash,
       updated_at: new Date().toISOString(),
     },
     { onConflict: 'endpoint' },
@@ -4408,6 +4413,20 @@ user_agent: typeof req.body?.user_agent === 'string' ? req.body.user_agent.slice
     console.error('[push subscribe]', error?.message || error);
     return res.status(503).json({ error: 'DB_ERROR', message: 'Push notifications are not available yet.' });
   }
+
+  if (keyHash) {
+    const { data: rows } = await supabase
+      .from('push_subscriptions')
+      .select('id, endpoint, vapid_key_hash')
+      .eq('user_id', user.id);
+    const stale = (rows || [])
+      .filter((row) => row.endpoint !== endpoint.slice(0, 1024) && row.vapid_key_hash !== keyHash)
+      .map((row) => row.id);
+    if (stale.length) {
+      await supabase.from('push_subscriptions').delete().in('id', stale);
+    }
+  }
+
   return res.status(200).json({ ok: true });
 }
 

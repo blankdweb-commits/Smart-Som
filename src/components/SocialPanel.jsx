@@ -230,19 +230,19 @@ const SocialPanel = ({ relType, stake = 2, onOpenProfile, onChallenge, challenge
   const blockedIds = useMemo(() => new Set(blocks.map((b) => b.userId)), [blocks]);
 
   const PersonRow = ({ person, actions }) => (
-    <li className="flex items-center justify-between gap-3 rounded-2xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 shadow-clinical">
+    <li className="rounded-2xl border border-slate-100 dark:border-slate-700 bg-white dark:bg-slate-800 px-4 py-3 shadow-clinical">
       <button
         type="button"
         onClick={() => onOpenProfile({ userId: person.userId, displayName: person.name })}
-        className="min-w-0 flex-1 text-left"
+        className="block w-full min-w-0 text-left"
         aria-label={`Open ${person.name || 'scholar'}’s profile`}
       >
-        <p className="font-black text-slate-900 dark:text-white truncate">{person.name || 'Scholar'}</p>
+        <p className="font-black leading-tight text-slate-900 dark:text-white break-words">{person.name || 'Scholar'}</p>
         {person.hasIdentityName === false && (
-          <p className="text-[10px] font-bold text-slate-400">No display name set — shown as a handle</p>
+          <p className="mt-0.5 text-[10px] font-bold text-slate-400">No display name set — shown as a handle</p>
         )}
       </button>
-      <div className="flex items-center gap-2 shrink-0">{actions}</div>
+      <div className="mt-2.5 flex flex-wrap items-center gap-2">{actions}</div>
     </li>
   );
 

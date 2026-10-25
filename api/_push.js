@@ -17,12 +17,20 @@
 //   3. set VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY / VAPID_SUBJECT in the env.
 //   4. apply migration v44 (push_subscriptions + notification_preferences).
 
+import { createHash } from 'crypto';
 import { getSupabaseAdmin } from './_utils.js';
 
 const PUSH_ENABLED = !!(
   process.env.VAPID_PUBLIC_KEY &&
   process.env.VAPID_PRIVATE_KEY
 );
+
+// SHA-256 of the PUBLIC VAPID key. Public data, safe to store: it only says
+// which keypair a browser subscription was minted with. After a rotation old
+// rows are skipped instead of being retried against endpoints that will reject
+// them, and the client silently re-subscribes on its next app open.
+export const vapidKeyHash = (key = process.env.VAPID_PUBLIC_KEY) =>
+  key ? createHash('sha256').update(key).digest('hex') : null;
 
 let webpushPromise = null;
 async function loadWebPush() {
@@ -77,10 +85,12 @@ export async function sendRoomPush({ groupId, excludeUserId, recipientUserIds, k
     }
     if (!userIds.length) return { sent: 0 };
 
+    const keyHash = vapidKeyHash();
     const { data: subs } = await supabase
       .from('push_subscriptions')
       .select('id, endpoint, p256dh, auth, user_id')
-      .in('user_id', userIds);
+      .in('user_id', userIds)
+      .eq('vapid_key_hash', keyHash);
     if (!subs || !subs.length) return { sent: 0 };
 
     const { data: prefs } = await supabase

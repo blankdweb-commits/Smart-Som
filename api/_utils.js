@@ -31,7 +31,7 @@ export const applyCors = (req, res) => {
     res.setHeader('Access-Control-Allow-Origin', origin);
     res.setHeader('Vary', 'Origin');
     res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Session-Id');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Session-Id, X-Wallet-Pin');
   }
   return true;
 };
@@ -61,6 +61,30 @@ export const getSupabaseAdmin = () => {
   }
 
   return createClient(url, serviceKey);
+};
+
+// A CLIENT THAT SPEAKS AS THE CALLER.
+//
+// The v81 money RPCs (sc_transfer, worldbank_*) derive the actor from
+// auth.uid() inside the SECURITY DEFINER function body. Run through the
+// service-role client that uid is NULL, so the RPC answers UNAUTHENTICATED —
+// the exact defect the real-HTTP wallet suite caught (a 400 on every transfer
+// that carried a correct PIN). This client forwards the caller's own bearer
+// token, so PostgREST resolves auth.uid() to the verified user exactly as it
+// would for a direct client-side call (the role EXECUTE was granted to in v81).
+// Only routes that need a JWT context use this; wallet_pins CRUD and the
+// config reads stay on the service-role client.
+export const getSupabaseUserFromRequest = (req) => {
+  const url = process.env.VITE_SUPABASE_URL || process.env.NEXT_PUBLIC_SUPABASE_URL || process.env.SUPABASE_URL;
+  const anonKey = process.env.VITE_SUPABASE_PUBLISHABLE_KEY
+    || process.env.VITE_SUPABASE_ANON_KEY
+    || process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const token = getTokenFromRequest(req);
+  if (!url || !anonKey || !token) return null;
+  return createClient(url, anonKey, {
+    auth: { persistSession: false, autoRefreshToken: false },
+    global: { headers: { Authorization: `Bearer ${token}` } },
+  });
 };
 
 // Sentinels for downstream auth failures that are NOT the client's fault. When

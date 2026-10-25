@@ -462,6 +462,23 @@ const [scEarnedTotal, setScEarnedTotal] = useState(0);
     return () => { cancelled = true; };
   }, []);
 
+  // After a VAPID rotation an existing browser subscription is bound to the old
+  // key and every send is rejected. Repair it silently once the user is signed
+  // in; never prompts and never touches users who have not opted in.
+  useEffect(() => {
+    if (!session) return undefined;
+    let cancelled = false;
+    (async () => {
+      try {
+        const { syncPushSubscription } = await import('../utils/push');
+        if (!cancelled) await syncPushSubscription(session);
+      } catch {
+        // push is optional — never surface an error
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [session]);
+
   const fetchUserData = useCallback(async () => {
     if (!supabase || !session) return;
     // Claim a ticket. If a newer fetch starts while this one is awaiting, this
@@ -1086,6 +1103,24 @@ const arenaChallengeTargets = useCallback(async ({ limit = 100, offset = 0 } = {
     stake: Number(res?.stake) || 2,
     totalPlayers: Number(res?.totalPlayers) || 0,
     callerBlocked: res?.callerBlocked || null,
+    callerReason: res?.callerReason || res?.callerBlocked || null,
+  };
+}, [arenaRpc]);
+
+// Eligibility for ids that are NOT in the first targets page: search results
+// and leaderboard pages beyond PAGE_SIZE. Same gate and same reason codes as
+// arena_challenge_targets, resolved for just the rows about to render.
+const arenaChallengeStatus = useCallback(async (userIds = []) => {
+  const ids = [...new Set((Array.isArray(userIds) ? userIds : []).filter(Boolean))].slice(0, 200);
+  if (!ids.length) {
+    return { players: [], stake: 2, callerBlocked: null, callerReason: null };
+  }
+  const res = await arenaRpc('arena_challenge_status', { p_user_ids: ids });
+  return {
+    players: Array.isArray(res?.players) ? res.players : [],
+    stake: Number(res?.stake) || 2,
+    callerBlocked: res?.callerBlocked || null,
+    callerReason: res?.callerReason || res?.callerBlocked || null,
   };
 }, [arenaRpc]);
 
@@ -1104,7 +1139,10 @@ const arenaChallengeTargets = useCallback(async ({ limit = 100, offset = 0 } = {
 
   // The scholars list. v64 returns EVERY activated scholar with a derived
   // status (available / in_match / offline) plus `canChallenge`, rather than
-  // only the people already sitting in the queue.
+  // only the people already sitting in the queue. Since migration-v106 the
+  // status is display-only: an offline scholar is still challengeable (the
+  // invite waits 10 minutes and nothing is escrowed until they accept), so
+  // `reason` - not the presence dot - is what a disabled button should say.
   // `query` is the scholars search box (migration v75). It matches on
   // identity_name / full_name / the Scholar-xxxxxx handle, NEVER email.
   const arenaRoster = useCallback(async ({ stake = 0, query = '' } = {}) => {
@@ -1117,9 +1155,12 @@ const arenaChallengeTargets = useCallback(async ({ limit = 100, offset = 0 } = {
     return {
       players: Array.isArray(res?.players) ? res.players : [],
       online: Number(res?.online) || 0,
+      stake: Number(res?.stake) || 2,
       windowSeconds: Number(res?.windowSeconds) || 90,
       searching: res?.searching === true,
       query: res?.query || null,
+      callerBlocked: res?.callerBlocked || null,
+      callerReason: res?.callerReason || res?.callerBlocked || null,
     };
   }, [arenaRpc]);
 
@@ -2675,7 +2716,7 @@ useEffect(() => {
       arenaForfeit, arenaCancel, arenaSettle, arenaState, arenaOutcome, arenaFlow,
       arenaEnqueue, arenaLeaveQueue, arenaRoster, refreshSmartCoins, scEarnedTotal,
     arenaInvite, arenaInvites, arenaInviteRespond, arenaInviteCancel,
-      arenaInviteReady, arenaChallengeTargets,
+      arenaInviteReady, arenaChallengeTargets, arenaChallengeStatus,
       claimChallengeReward, getMyReferral, applyReferral,
       createSquad, joinSquad, leaveSquad, getMySquad, claimSquadReward,
       createRoom, joinRoom, leaveRoom, getActiveRooms, getMyRoom,

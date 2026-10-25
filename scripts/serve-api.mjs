@@ -161,7 +161,17 @@ const server = http.createServer(async (req, res) => {
   }
 });
 
+server.on('error', (err) => {
+  if (err?.code === 'EADDRINUSE') {
+    console.error(`[serve-api] Port ${PORT} is already in use.`);
+    console.error('[serve-api] Stop the other process (another dev server?) or set API_PORT to a free port.');
+  } else {
+    console.error('[serve-api] Server failed to start:', err?.message || err);
+  }
+  process.exit(1);
+});
+
 server.listen(PORT, () => {
-  console.log(`[serve-api] ${handlers.length} functions mounted on http://localhost:${PORT}`);
+  console.log(`[serve-api] READY — ${handlers.length} functions mounted on http://localhost:${PORT}`);
   handlers.forEach(h => console.log(`  ${h.route}  <-  ${path.relative(process.cwd(), h.file)}`));
 });

@@ -10,11 +10,15 @@ import { supabase } from "../utils/supabase";
 import { motion, AnimatePresence } from "framer-motion";
 import { Brain, Zap, Star, ChevronLeft, ArrowRight, Users, AlertCircle, RefreshCw, Trophy, Award, Shield, User, SkipForward, Check, X, Search, Swords } from "../components/Icons";
 import { useMatchRealtime } from "../hooks/useMatchRealtime";
+import { BLOCKED_COPY } from "../data/challengeCopy";
 // ---------------------------------------------------------------------------
 // Constants. The stake is FIXED and shown upfront: no wager selector, so nobody
 // can be surprised and the >=10 SC high-wager confirmation can never fire.
 // ---------------------------------------------------------------------------
 const ARENA_STAKE = 2;
+// Solvency floor, not a second charge. Activation is irrelevant to the arena:
+// every participant in a real duel must be able to cover the match.
+const ARENA_MIN_SC = 5;
 const BLITZ_DURATION_MS = 90 * 1000;   // one shared 90s wall-clock
 const ARENA_POLL_MS = 1500;
 const ARENA_HEARTBEAT_MS = 5000;
@@ -42,12 +46,11 @@ const EMPTY_CARD = { answers: 0, correct: 0, wrong: 0, skipped: 0, points: 0 };
 // back to a generic line, so a new server-side code can never render as "null".
 const ARENA_ERROR_COPY = {
   NO_OPPONENT_FOUND: 'Nobody joined the arena in time. Your stake has been returned - pick someone below to challenge.',
-  INSUFFICIENT_SC: 'You need at least 2 Smart Coins to enter the arena.',
-  OPPONENT_INSUFFICIENT_SC: 'That scholar cannot cover a 2 SC stake right now.',
+  INSUFFICIENT_SC: `You need at least ${ARENA_MIN_SC} Smart Coins to enter the arena.`,
+  OPPONENT_INSUFFICIENT_SC: `That scholar needs at least ${ARENA_MIN_SC} Smart Coins to duel right now.`,
   OPPONENT_REQUIRED: 'Pick someone to challenge first.',
   INVALID_STAKE: 'That stake is not allowed.',
   PRACTICE_NEEDS_BOT: 'Free practice is only available against a tutor bot.',
-  NOT_ACTIVATED: 'Activate your account before entering the arena.',
   ALREADY_IN_MATCH: 'You are already in a duel. Finish or cancel it first.',
   NETWORK_OR_RPC: 'Could not reach the arena. Check your connection and try again.',
 };
@@ -202,7 +205,7 @@ const Rumble = () => {
   const [handoffDismissed, setHandoffDismissed] = useState(false);
 
   // ---- lobby --------------------------------------------------------------
-  const [roster, setRoster] = useState({ players: [], online: 0, searching: false });
+  const [roster, setRoster] = useState({ players: [], online: 0, searching: false, callerBlocked: null, callerReason: null });
   const [rosterLoading, setRosterLoading] = useState(false);
   // Scholars search (migration v75). `scholarQuery` is what the box holds;
   // `activeQuery` is the debounced value actually sent to the server, so the
@@ -606,7 +609,7 @@ const Rumble = () => {
   // Sending an invite moves NO coins. That is the whole point of the flow: the
   // stake is held only when the other player accepts.
   const inviteScholar = useCallback(async (scholar) => {
-    if (ARENA_STAKE > smartCoins) {
+    if (ARENA_MIN_SC > smartCoins) {
       setPhaseError('INSUFFICIENT_SC');
       return;
     }
@@ -1198,7 +1201,7 @@ const Rumble = () => {
       }));
   }, [reviewList, blitzAnswers, blitzQuestions]);
 
-  const canAffordStake = smartCoins >= ARENA_STAKE;
+  const canAffordStake = smartCoins >= ARENA_MIN_SC;
 
   // =======================================================================
   // RENDER
@@ -1386,7 +1389,7 @@ const Rumble = () => {
                   <div>
                     <h3 className="font-black text-amber-300 text-lg">Not enough Smart Coins</h3>
                     <p className="text-sm text-white/60 font-medium mt-1">
-                      A 1v1 match costs {ARENA_STAKE} SC and you have {smartCoins} SC. You can still practise a tutor for free.
+                      A 1v1 match costs {ARENA_STAKE} SC, but you need at least {ARENA_MIN_SC} SC in your wallet to enter. You have {smartCoins} SC. You can still practise a tutor for free.
                     </p>
                   </div>
                   <button onClick={() => goPhase('hub', 'picker-earn')} className="w-full py-4 rounded-2xl bg-white/10 font-black uppercase tracking-widest text-xs active:scale-95 transition-all">Back to the War Hall</button>
@@ -1407,7 +1410,7 @@ const Rumble = () => {
                   </button>
 
                   <p className="text-center text-[11px] text-amber-400/80 font-bold leading-relaxed pt-2">
-                    Real Smart Coins. {ARENA_STAKE} SC is only held when a match actually starts — decline, cancel or walk away and it comes straight back.
+                    Real Smart Coins. {ARENA_MIN_SC} SC must sit in your wallet to enter; only the {ARENA_STAKE} SC stake is held when a match actually starts — decline, cancel or walk away and it comes straight back.
                   </p>
                 </>
               )}
@@ -1462,12 +1465,24 @@ const Rumble = () => {
                   <h2 className="text-2xl font-black uppercase tracking-tight">Online scholars</h2>
                   <p className="text-slate-400 font-medium mt-1 text-sm">
                     <span className="text-emerald-300 font-black tabular-nums">{roster.online}</span> online
+                    <span className="text-slate-600"> · offline scholars can still be challenged</span>
                   </p>
                 </div>
                 <span className="rounded-full bg-amber-500/10 border border-amber-500/25 px-3 py-1.5 text-[10px] font-black uppercase tracking-widest text-amber-300 whitespace-nowrap">
                   {ARENA_STAKE} SC per match
                 </span>
               </div>
+
+              {roster.callerBlocked && (
+                <div className="flex items-start gap-2 rounded-xl border border-amber-400/30 bg-amber-400/10 px-3 py-2.5">
+                  <AlertCircle size={15} className="mt-0.5 shrink-0 text-amber-300" />
+                  <p className="text-xs font-bold text-amber-100">
+                    You cannot send a challenge right now
+                    {BLOCKED_COPY[roster.callerBlocked] ? ` — ${BLOCKED_COPY[roster.callerBlocked].toLowerCase()}` : ''}.
+                    {roster.callerBlocked === 'ALREADY_IN_MATCH' ? ' Finish or cancel that duel first.' : ''}
+                  </p>
+                </div>
+              )}
 
               {/* Scholars search. Matches the name a user chose, their real
                   name, or the Scholar-xxxxxx handle. Never email. */}
@@ -1517,30 +1532,45 @@ const Rumble = () => {
                 ) : (
                   roster.players.map((p) => {
                     const st = SCHOLAR_STATUS[p.status] || SCHOLAR_STATUS.offline;
-                    const dimmed = p.status === 'offline';
+                    const offline = p.status === 'offline';
+                    // Presence is display-only since migration-v106: an offline
+                    // scholar can still be challenged (the invite waits 10
+                    // minutes and nothing is escrowed until they accept), so
+                    // `canChallenge` - never the dot - decides the button.
+                    const can = p.canChallenge === true && !roster.callerBlocked;
+                    const reasonLabel = roster.callerBlocked
+                      ? BLOCKED_COPY[roster.callerBlocked] || 'Unavailable'
+                      : p.reason ? BLOCKED_COPY[p.reason] || 'Unavailable' : 'Unavailable';
+                    const sending = inviteBusy === p.userId;
                     return (
-                      <div key={p.userId} className={`flex items-center justify-between gap-3 p-3 rounded-xl border ${dimmed ? 'bg-white/[0.02] border-white/5 opacity-60' : 'bg-white/5 border-white/10'}`}>
+                      <div key={p.userId} className={`flex items-center justify-between gap-3 p-3 rounded-xl border ${offline ? 'bg-white/[0.02] border-white/5' : 'bg-white/5 border-white/10'}`}>
                         <div className="flex items-center gap-3 min-w-0">
-                          <div className={`relative w-9 h-9 rounded-lg flex items-center justify-center font-black text-xs shrink-0 ${dimmed ? 'bg-white/5 text-white/30' : 'bg-purple-500/20 text-purple-200'}`}>
+                          <div className={`relative w-9 h-9 rounded-lg flex items-center justify-center font-black text-xs shrink-0 ${offline ? 'bg-white/5 text-white/30' : 'bg-purple-500/20 text-purple-200'}`}>
                             {String(p.name || 'S')[0]}
                             <span className={`absolute -bottom-0.5 -right-0.5 w-2.5 h-2.5 rounded-full border-2 border-slate-950 ${st.dot}`} />
                           </div>
                           <div className="min-w-0">
                             <span className="font-bold text-sm block truncate">{p.name || 'Scholar'}</span>
                             <span className="text-[10px] text-white/40 font-bold uppercase tracking-widest">
-                              {dimmed ? `last seen ${lastSeenLabel(p.lastSeenAt)}` : st.label}
+                              {offline
+                                ? `Offline · invite waits 10m · last seen ${lastSeenLabel(p.lastSeenAt)}`
+                                : st.label}
                             </span>
                           </div>
                         </div>
                         <button
-                          disabled={p.status !== 'available' || !p.canChallenge || inviteBusy === p.userId}
+                          disabled={!can || sending}
                           onClick={() => inviteScholar(p)}
-                          title={`Challenge ${p.name || 'this scholar'} to a ${ARENA_STAKE} SC duel. Nothing is held until they accept.`}
-                          className={`rounded-full px-4 py-2 text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all disabled:pointer-events-none ${st.buttonClass}`}
+                          title={can
+                            ? `Challenge ${p.name || 'this scholar'} to a ${ARENA_STAKE} SC duel. Nothing is held until they accept.`
+                            : `Cannot challenge ${p.name || 'this scholar'} — ${reasonLabel.toLowerCase()}.`}
+                          className={`shrink-0 rounded-full px-4 py-2 text-[10px] font-black uppercase tracking-widest active:scale-95 transition-all disabled:pointer-events-none ${
+                            can
+                              ? 'bg-purple-600 hover:bg-purple-500 text-white'
+                              : 'bg-white/5 text-white/25'
+                          }`}
                         >
-                          {p.status === 'available' && !p.canChallenge
-                            ? 'Too Low'
-                            : inviteBusy === p.userId ? 'Sending…' : 'Challenge'}
+                          {sending ? 'Sending…' : can ? 'Challenge' : reasonLabel}
                         </button>
                       </div>
                     );

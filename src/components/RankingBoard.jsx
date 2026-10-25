@@ -23,9 +23,9 @@ import { BLOCKED_COPY } from '../data/challengeCopy';
 // to 500 (migration-v74) and "Load more" still handles anything beyond this.
 export const PAGE_SIZE = 100;
 
-// The ranked list can only be paged; it cannot be searched. This is the same
-// minimum the Friends tab uses, so a one-letter query does not sweep the whole
-// activated user base.
+// The ranked list pages, and `scholar_search` covers the "find this person"
+// case separately. This is the same minimum the Friends tab uses, so a
+// one-letter query does not sweep the whole activated user base.
 const SEARCH_MIN = 2;
 
 const REL_LABEL = {
@@ -46,7 +46,7 @@ const RankingBoard = ({
   myId, targets, callerBlocked, stake,
   onOpenProfile, onChallenge, challengeBusy,
 }) => {
-  const { supabase, fetchGlobalRank, userProfile } = useAppContext();
+  const { supabase, fetchGlobalRank, userProfile, arenaChallengeStatus } = useAppContext();
 
   const [rows, setRows] = useState([]);
   const [myRank, setMyRank] = useState(null);
@@ -64,6 +64,11 @@ const RankingBoard = ({
   const [searching, setSearching] = useState(false);
   const [searchError, setSearchError] = useState(null);
   const searchTicket = useRef(0);
+
+  // Eligibility for rows the page-1 `targets` map cannot cover: search results
+  // and leaderboard rows past PAGE_SIZE. Resolved in one batched RPC instead of
+  // re-fetching the whole targets page per page (v106).
+  const [extraTargets, setExtraTargets] = useState({});
 
   const loadPage = useCallback(async (offset) => {
     if (!supabase) return null;
@@ -146,12 +151,40 @@ const RankingBoard = ({
     return () => clearTimeout(timer);
   }, [query, supabase]);
 
+  useEffect(() => {
+    const missing = [...new Set(
+      [...rows, ...found]
+        .map((r) => r.userId)
+        .filter((id) => id && !targets[id] && !extraTargets[id]),
+    )];
+    if (!missing.length) return undefined;
+    let live = true;
+    (async () => {
+      const res = await arenaChallengeStatus(missing);
+      if (!live || !res) return;
+      const next = {};
+      for (const p of res.players) next[p.userId] = p;
+      if (Object.keys(next).length) setExtraTargets((prev) => ({ ...prev, ...next }));
+    })();
+    return () => { live = false; };
+  }, [rows, found, targets, extraTargets, arenaChallengeStatus]);
+
+  const targetFor = (userId) => targets[userId] || extraTargets[userId];
+
   // Nobody had set identity_name before migration-v74, so without this nudge
   // every row on the board is an anonymous `Scholar-xxxxxx` handle.
   const needsIdentityName = !String(userProfile?.identityName || '').trim();
 
   return (
     <>
+      {callerBlocked && (
+        <div className="mb-4 rounded-2xl border border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-900/20 px-4 py-3 text-xs font-bold text-amber-800 dark:text-amber-200">
+          You cannot send a challenge right now
+          {BLOCKED_COPY[callerBlocked] ? ` — ${BLOCKED_COPY[callerBlocked].toLowerCase()}` : ''}.
+          {callerBlocked === 'ALREADY_IN_MATCH' ? ' Finish or cancel that duel first.' : ''}
+        </div>
+      )}
+
       <div className="flex items-center justify-between mb-4">
         <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">
           {Number(total).toLocaleString()} ranked scholars
@@ -218,9 +251,12 @@ const RankingBoard = ({
           <ul className="space-y-2">
             {found.map((s) => {
               const isMe = myId && s.userId === myId;
-              const t = targets[s.userId];
+              const t = targetFor(s.userId);
               const blocked = callerBlocked;
               const canChallenge = !isMe && !blocked && !!t?.canChallenge;
+              const blockedLabel = isMe ? 'You'
+                : blocked ? BLOCKED_COPY[blocked] || 'Unavailable'
+                  : t?.reason ? BLOCKED_COPY[t.reason] || 'Unavailable' : 'Challenge';
               const relLabel = isMe ? 'You' : REL_LABEL[s.relStatus] || null;
               return (
                 <li key={s.userId} className="flex items-stretch gap-2">
@@ -252,10 +288,10 @@ const RankingBoard = ({
                       disabled={!canChallenge || challengeBusy === s.userId}
                       title={canChallenge
                         ? `Challenge ${s.name || 'this scholar'} to a ${stake} SC duel. Nothing is held until they accept.`
-                        : BLOCKED_COPY[blocked] || BLOCKED_COPY[t?.reason] || 'Unavailable'}
+                        : blockedLabel}
                       className="shrink-0 self-center rounded-full px-3 py-2 text-[10px] font-black uppercase tracking-widest bg-polynurse-700 hover:bg-polynurse-800 text-white transition active:scale-95 disabled:bg-slate-200 disabled:text-slate-500 dark:disabled:bg-slate-700 dark:disabled:text-slate-400 disabled:cursor-not-allowed"
                     >
-                      {challengeBusy === s.userId ? 'Sending' : 'Challenge'}
+                      {challengeBusy === s.userId ? 'Sending' : blockedLabel}
                     </button>
                   )}
                 </li>
@@ -308,10 +344,11 @@ const RankingBoard = ({
           <ul className="space-y-2">
             {rows.map((row) => {
               const isMe = myId && row.userId === myId;
-              // Per-row challenge eligibility, merged from arena_challenge_targets.
+              // Per-row challenge eligibility, merged from arena_challenge_targets
+              // (page 1) and arena_challenge_status (this page / search results).
               // `reason` is why the server would refuse, so a disabled button can
               // say so rather than just being grey.
-              const t = targets[row.userId];
+              const t = targetFor(row.userId);
               const blocked = callerBlocked;
               const canChallenge = !isMe && !blocked && !!t?.canChallenge;
               const blockedLabel = isMe ? 'You'

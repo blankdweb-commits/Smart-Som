@@ -2,12 +2,14 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { useAppContext } from '../context/AppContext';
 import { usePlayerSheet } from '../hooks/usePlayerSheet';
-import { ArrowLeft, Swords, Trophy, Users, Sparkles, Crown } from '../components/Icons';
+import { ArrowLeft, Swords, Trophy, Users, Sparkles, Crown, Coins, Wallet } from '../components/Icons';
 import BrandLogo from '../components/BrandLogo';
 import RankingBoard, { PAGE_SIZE as RANKING_PAGE_SIZE } from '../components/RankingBoard';
 import SocialPanel from '../components/SocialPanel';
 import ActivityPanel from '../components/ActivityPanel';
 import CosmeticsPanel from '../components/CosmeticsPanel';
+import RequestsPanel from '../components/RequestsPanel';
+import WalletPanel from '../components/WalletPanel';
 import { BLOCKED_COPY } from '../data/challengeCopy';
 
 /**
@@ -31,7 +33,9 @@ const TABS = [
   { key: 'ranking', label: 'Ranking', icon: Trophy },
   { key: 'friends', label: 'Friends', icon: Users },
   { key: 'rivals', label: 'Rivals', icon: Swords },
+  { key: 'requests', label: 'Requests', icon: Coins },
   { key: 'activity', label: 'Activity', icon: Sparkles },
+  { key: 'wallet', label: 'Wallet', icon: Wallet },
   { key: 'cosmetics', label: 'Cosmetics', icon: Crown },
 ];
 
@@ -48,9 +52,17 @@ const HERO = {
     title: 'Rivals',
     sub: 'The ones you mean to beat · a challenge moves no coins until it is accepted',
   },
+  requests: {
+    title: 'Smart Coin Requests',
+    sub: 'Ask someone you know for 1-10 SC · nothing moves until they accept',
+  },
   activity: {
     title: 'Activity',
-    sub: 'What your scholars have unlocked, newest first',
+    sub: 'Quizzes, duels, streaks and rank climbs from your scholars',
+  },
+  wallet: {
+    title: 'Wallet & Loans',
+    sub: 'Your Smart Coins · server-owned transfers, World Bank and scholar loans',
   },
   cosmetics: {
     title: 'Cosmetics',
@@ -95,7 +107,7 @@ const Leaderboard = () => {
       const map = {};
       for (const p of res.players) map[p.userId] = p;
       setTargets(map);
-      setCallerBlocked(res.callerBlocked || null);
+      setCallerBlocked(res.callerBlocked || res.callerReason || null);
       setStake(Number(res.stake) || 2);
     })();
     return () => { live = false; };
@@ -136,6 +148,7 @@ const Leaderboard = () => {
   }, [arenaInvite, challengeBusy, navigate, stake]);
 
   const hero = HERO[tab];
+  const walletView = params.get('view') === 'loans' ? 'loans' : 'wallet';
 
   const panel = useMemo(() => {
     switch (tab) {
@@ -143,8 +156,12 @@ const Leaderboard = () => {
         return <SocialPanel relType="friend" stake={stake} onOpenProfile={profile.open} onChallenge={sendChallenge} challengeBusy={challengeBusy} />;
       case 'rivals':
         return <SocialPanel relType="rival" stake={stake} onOpenProfile={profile.open} onChallenge={sendChallenge} challengeBusy={challengeBusy} />;
+      case 'requests':
+        return <RequestsPanel onOpenProfile={profile.open} />;
       case 'activity':
         return <ActivityPanel onOpenProfile={profile.open} />;
+      case 'wallet':
+        return <WalletPanel key={walletView} initialView={walletView} />;
       case 'cosmetics':
         return <CosmeticsPanel />;
       default:
@@ -160,7 +177,7 @@ const Leaderboard = () => {
           />
         );
     }
-  }, [tab, profile, sendChallenge, challengeBusy, myId, targets, callerBlocked, stake]);
+  }, [tab, profile, sendChallenge, challengeBusy, myId, targets, callerBlocked, stake, walletView]);
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-6">
